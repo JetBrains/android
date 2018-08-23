@@ -42,7 +42,7 @@ fun parseFile(text: String): Annotated<ParsedValue<File>> =
   else
     ParsedValue.Set.Parsed(File(text), DslText.Literal).annotated()
 
-inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): Annotated<ParsedValue<T>> =
+inline fun <reified T : Any> parseEnum(text: String, parser: (String) -> T?): Annotated<ParsedValue<T>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else {

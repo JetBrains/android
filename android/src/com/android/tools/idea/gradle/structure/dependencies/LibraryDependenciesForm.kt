@@ -34,10 +34,9 @@ internal class LibraryDependenciesForm (module: PsModule) : LibraryDependenciesF
   val panel: JPanel get() = myMainPanel
   val selectedLibrary: ParsedValue<String> get() = selected
   val searchErrors: List<Exception> get() = searchForm.searchErrors
+  val repositories = module.getArtifactRepositories()
 
   init {
-    val repositories = module.getArtifactRepositories()
-
     searchForm = ArtifactRepositorySearchForm(module.variables, repositories)
     searchForm.add(SelectionChangeListener { selectedLibrary ->
       selected = selectedLibrary ?: ParsedValue.NotSet

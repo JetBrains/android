@@ -15,7 +15,9 @@
  */
 package com.android.tools.swingp;
 
-import com.google.gson.JsonObject;
+import com.android.tools.swingp.json.IncludeMethodsSerializer;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -23,7 +25,9 @@ import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonAdapter(IncludeMethodsSerializer.class)
 public class PaintChildrenMethodStat extends MethodStat {
+  @SerializedName("xform")
   private final AffineTransform myTransform;
   /**
    * Need to ensure owner does not get GC'ed.
@@ -31,6 +35,11 @@ public class PaintChildrenMethodStat extends MethodStat {
    */
   private final JComponent myOwnerReference;
   private final List<Class<?>> myPathFragmentClasses;
+
+  @SerializedName("pathToRoot")
+  private List<String> getPathToRoot() {
+    return myPathFragmentClasses.stream().map(clazz -> clazz == null ? null : clazz.getSimpleName()).collect(Collectors.toList());
+  }
 
   public PaintChildrenMethodStat(@NotNull JComponent owner, @NotNull AffineTransform transform) {
     super(owner);
@@ -45,17 +54,5 @@ public class PaintChildrenMethodStat extends MethodStat {
   public void endMethod() {
     JComponentTreeManager.popJComponent(myOwnerReference);
     super.endMethod();
-  }
-
-  @Override
-  protected void addAttributeDescriptions(@NotNull JsonObject description) {
-    super.addAttributeDescriptions(description);
-
-    double[] matrix = new double[6];
-    myTransform.getMatrix(matrix);
-    description.add("xform", SerializationHelpers.arrayToJsonArray(matrix));
-
-    description.add("pathToRoot", SerializationHelpers.listToJsonArray(
-      myPathFragmentClasses.stream().map(clazz -> clazz == null ? null : clazz.getSimpleName()).collect(Collectors.toList())));
   }
 }

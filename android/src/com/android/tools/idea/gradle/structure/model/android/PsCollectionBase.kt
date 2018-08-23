@@ -24,6 +24,8 @@ abstract class PsCollectionBase<TModel : PsModel, TKey, TParent : PsModel>
 protected constructor(val parent: TParent) :
   PsKeyedModelCollection<TKey, TModel> {
   private val changedDispatcher = ChangeDispatcher()
+  private var batchChangeLevel = 0
+  private var batchHasPendingChangeNotifications = false
 
   protected abstract fun getKeys(from: TParent): Set<TKey>
   protected abstract fun create(key: TKey): TModel
@@ -45,7 +47,33 @@ protected constructor(val parent: TParent) :
 
   override fun onChange(disposable: Disposable, listener: () -> Unit) = changedDispatcher.add(disposable, listener)
 
-  protected fun notifyChanged() = changedDispatcher.changed()
+  protected fun notifyChanged() {
+    if (batchChangeLevel == 0) changedDispatcher.changed() else batchHasPendingChangeNotifications = true
+  }
+
+  protected fun <T> batchChange(block: () -> T): T {
+    beginChange()
+    try {
+      return block()
+    }
+    finally {
+      endChange()
+    }
+  }
+
+  private fun beginChange() {
+    batchChangeLevel++
+  }
+
+  private fun endChange() {
+    batchChangeLevel--
+    if (batchChangeLevel == 0){
+      if (batchHasPendingChangeNotifications) {
+        batchHasPendingChangeNotifications = false
+        notifyChanged()
+      }
+    }
+  }
 }
 
 abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel> protected constructor(parent: TParent)

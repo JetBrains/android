@@ -53,15 +53,4 @@ public class TableRowHandler extends LinearLayoutHandler {
     // the table row will enforce match_parent and wrap_content for width and height
     // respectively.
   }
-
-  @Nullable
-  @Override
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    // No resizing in TableRows; the width is *always* match_parent and the height is
-    // *always* wrap_content.
-    return null;
-  }
 }

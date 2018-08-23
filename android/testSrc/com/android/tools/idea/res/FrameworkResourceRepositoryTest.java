@@ -113,8 +113,8 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   }
 
   private static void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
-    List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResourceItems());
-    List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResourceItems());
+    List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResources());
+    List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResources());
 
     Comparator<ResourceItem> comparator = (item1, item2) -> {
       int comp = item1.getType().compareTo(item2.getType());
@@ -211,7 +211,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   }
 
   private static void checkPublicResourcesCount(@NotNull FrameworkResourceRepository repository) {
-    List<ResourceItem> resourceItems = repository.getAllResourceItems();
+    List<ResourceItem> resourceItems = repository.getAllResources();
     assertTrue("Too few resources: " + resourceItems.size(), resourceItems.size() >= 10000);
     for (ResourceItem item : resourceItems) {
       assertEquals(ResourceNamespace.ANDROID, item.getNamespace());

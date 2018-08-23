@@ -20,8 +20,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.intellij.openapi.util.io.FileUtil;
@@ -48,7 +46,7 @@ public class StudioDownloader implements Downloader {
     private Storage.Unit mReasonableUnit;
 
     public DownloadProgressIndicator(@NotNull ProgressIndicator wrapped, long contentLength) {
-      super(wrapped, null);
+      super(wrapped);
       mContentLength = contentLength;
       Storage storage = new Storage(mContentLength);
       mReasonableUnit = storage.getLargestReasonableUnits();
@@ -59,6 +57,7 @@ public class StudioDownloader implements Downloader {
     public void setFraction(double fraction) {
       super.setFraction(fraction);
 
+      checkCanceled();
       int percentage = (int)(fraction * 100);
       if (percentage == mCurrentPercentage) {
         return; // Do not update too often

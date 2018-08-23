@@ -58,7 +58,7 @@ class BuildTypesPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
-        object : DumbAwareAction("Add Variant", "", IconUtil.getAddIcon()) {
+        object : DumbAwareAction("Add Build Type", "", IconUtil.getAddIcon()) {
           override fun actionPerformed(e: AnActionEvent?) {
             val newName =
                 Messages.showInputDialog(

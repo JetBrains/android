@@ -16,10 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.tools.apk.analyzer.ApkSizeCalculator;
-import com.android.tools.apk.analyzer.Archive;
-import com.android.tools.apk.analyzer.Archives;
-import com.android.tools.apk.analyzer.BinaryXmlParser;
+import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
@@ -51,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -66,7 +62,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   private final VirtualFile myBaseFile;
   private final VirtualFile myRoot;
   private ApkViewPanel myApkViewPanel;
-  private Archive myArchive;
+  private ArchiveContext myArchiveContext;
 
   private JBSplitter mySplitter;
   private ApkFileEditorComponent myCurrentEditor;
@@ -132,8 +128,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       // this temporary copy is destroyed while disposing the archive, see #disposeArchive
       Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
       Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
-      myArchive = Archives.open(copyOfApk);
-      myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchive, ApkSizeCalculator.getDefault()));
+      myArchiveContext = Archives.open(copyOfApk);
+      myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
       myApkViewPanel.setListener(this);
       mySplitter.setFirstComponent(myApkViewPanel.getContainer());
       selectionChanged(null);
@@ -260,16 +256,16 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     if (myApkViewPanel != null){
       myApkViewPanel.clearArchive();
     }
-    if (myArchive != null) {
+    if (myArchiveContext != null) {
       try {
-        myArchive.close();
+        myArchiveContext.close();
         // the archive was constructed out of a temporary file
-        Files.deleteIfExists(myArchive.getPath());
+        Files.deleteIfExists(myArchiveContext.getArchive().getPath());
       }
       catch (IOException e) {
         getLog().warn(e);
       }
-      myArchive = null;
+      myArchiveContext = null;
     }
   }
 

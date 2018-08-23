@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property;
 
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -28,7 +30,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.openapi.Disposable;
@@ -53,10 +54,8 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener, Disposable {
@@ -262,45 +261,69 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   }
 
   @NotNull
-  public PropertiesMap getDefaultProperties(@NotNull List<NlComponent> components) {
+  public Map<ResourceReference, ResourceValue> getDefaultProperties(@NotNull List<NlComponent> components) {
     if (components.isEmpty()) {
-      return PropertiesMap.EMPTY_MAP;
+      return Collections.emptyMap();
     }
     if (mySurface == null) {
-      return PropertiesMap.EMPTY_MAP;
+      return Collections.emptyMap();
     }
     SceneView view = mySurface.getCurrentSceneView();
     if (view == null) {
-      return PropertiesMap.EMPTY_MAP;
+      return Collections.emptyMap();
     }
-    Map<Object, PropertiesMap> map = view.getSceneManager().getDefaultProperties();
-    List<PropertiesMap> propertiesMaps = new ArrayList<>(components.size());
+    Map<Object, Map<ResourceReference, ResourceValue>> map = view.getSceneManager().getDefaultProperties();
+    List<Map<ResourceReference, ResourceValue>> propertiesMaps = new ArrayList<>(components.size());
     for (NlComponent component : components) {
-      PropertiesMap propertiesMap = map.get(component.getSnapshot());
+      Map<ResourceReference, ResourceValue> propertiesMap = map.get(component.getSnapshot());
       if (propertiesMap == null) {
-        return PropertiesMap.EMPTY_MAP;
+        return Collections.emptyMap();
       }
       propertiesMaps.add(propertiesMap);
     }
-    PropertiesMap first = propertiesMaps.get(0);
+    Map<ResourceReference, ResourceValue> first = propertiesMaps.get(0);
     if (propertiesMaps.size() == 1) {
       return first;
     }
-    PropertiesMap commonProperties = new PropertiesMap();
-    for (Map.Entry<String, PropertiesMap.Property> property : first.entrySet()) {
-      boolean include = true;
-      for (int index = 1; index < propertiesMaps.size(); index++) {
-        PropertiesMap other = propertiesMaps.get(index);
-        if (!property.getValue().equals(other.get(property.getKey()))) {
-          include = false;
-          break;
+    Map<ResourceReference, ResourceValue> commonProperties = new HashMap<>(first);
+    for (int index = 1; index < propertiesMaps.size(); index++) {
+      Map<ResourceReference, ResourceValue> other = propertiesMaps.get(index);
+      Iterator<ResourceReference> it = commonProperties.keySet().iterator();
+      while (it.hasNext()) {
+        ResourceReference reference = it.next();
+        ResourceValue value = other.get(reference);
+        if (value == null || !value.equals(commonProperties.get(reference))) {
+          it.remove();
         }
-      }
-      if (include) {
-        commonProperties.put(property.getKey(), property.getValue());
       }
     }
     return commonProperties;
+  }
+
+  @Nullable
+  public String getDefaultStyle(@NotNull List<NlComponent> components) {
+    if (components.isEmpty()) {
+      return null;
+    }
+    if (mySurface == null) {
+      return null;
+    }
+    SceneView view = mySurface.getCurrentSceneView();
+    if (view == null) {
+      return null;
+    }
+    Map<Object, String> styleMap = view.getSceneManager().getDefaultStyles();
+    String style = styleMap.get(components.get(0).getSnapshot());
+    if (style == null) {
+      return null;
+    }
+    for (NlComponent component : components) {
+      String other = styleMap.get(component.getSnapshot());
+      if (!style.equals(other)) {
+        return null;
+      }
+    }
+    return style;
   }
 
   @NotNull

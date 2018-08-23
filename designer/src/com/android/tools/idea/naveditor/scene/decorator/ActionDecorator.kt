@@ -25,13 +25,13 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.model.ActionType
-import com.android.tools.idea.naveditor.model.actionType
+import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.actionColor
 import java.awt.geom.Point2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.geom.Rectangle2D
 
 /**
  * [ActionDecorator] responsible for creating draw commands for actions.
@@ -43,7 +43,7 @@ object ActionDecorator : SceneDecorator() {
 
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     // TODO: Add support for other action types
-    when (component.nlComponent.actionType) {
+    when (component.nlComponent.getActionType(component.scene.root?.nlComponent)) {
       ActionType.GLOBAL, ActionType.EXIT -> {
         val color = actionColor(sceneContext, component)
 
@@ -55,13 +55,14 @@ object ActionDecorator : SceneDecorator() {
         @SwingCoordinate val y = drawRect.y + drawRect.height / 2
         list.add(DrawLine(DRAW_ACTION_LEVEL, Point2D.Float(x1, y), Point2D.Float(x2, y), color, ACTION_STROKE))
 
-        val arrowRect = RoundRectangle2D.Float()
+        val arrowRect = Rectangle2D.Float()
         arrowRect.x = x2
         arrowRect.y = drawRect.y
         arrowRect.width = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
         arrowRect.height = drawRect.height
         list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.RIGHT, arrowRect, color))
       }
+      else -> {}
     }
   }
 

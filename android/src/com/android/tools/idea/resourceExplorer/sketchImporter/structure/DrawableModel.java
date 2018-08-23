@@ -18,32 +18,24 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DrawableShape {
+public class DrawableModel {
 
-  @Nullable private String name;
   @NotNull private String pathData;
-  @Nullable private String fillColor;
+  private int fillColor;
   @Nullable private SketchGradient gradient;
-  @Nullable private String strokeColor;
+  private int strokeColor;
   @Nullable private String strokeWidth;
 
-  public DrawableShape(@Nullable String nameParam,
-                       @NotNull String pathDataParam,
-                       @Nullable String fillColorParam,
+  public DrawableModel(@NotNull String pathDataParam,
+                       int fillColorParam,
                        @Nullable SketchGradient gradientParam,
-                       @Nullable String strokeColorParam,
+                       int strokeColorParam,
                        @Nullable String strokeWidthParam) {
     pathData = pathDataParam;
-    name = nameParam;
     fillColor = fillColorParam;
     strokeColor = strokeColorParam;
     strokeWidth = strokeWidthParam;
     gradient = gradientParam;
-  }
-
-  @Nullable
-  public String getName() {
-    return name;
   }
 
   @NotNull
@@ -51,13 +43,11 @@ public class DrawableShape {
     return pathData;
   }
 
-  @Nullable
-  public String getFillColor() {
+  public int getFillColor() {
     return fillColor;
   }
 
-  @Nullable
-  public String getStrokeColor() {
+  public int getStrokeColor() {
     return strokeColor;
   }
 

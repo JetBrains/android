@@ -34,7 +34,6 @@ import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.daemon.impl.quickfix.SimplifyBooleanExpressionFix;
@@ -220,10 +219,12 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       assert oldConfig != null;
       assert newConfig != null;
 
-      // Find all the applicable resource items
+      // Find all the applicable resource items.
       Multimap<String, ResourceType> destFolderResources = ArrayListMultimap.create(100, 2);
       List<ResourceItem> srcItems = new ArrayList<>();
-      for (ResourceItem item : repository.getAllResourceItems()) {
+      // Not using the ResourceRepository.accept method here because ResourceHelper.getSourceAsVirtualFile
+      // is a potentially long running operation.
+      for (ResourceItem item : repository.getAllResources()) {
         if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
           continue;
         }

@@ -16,5 +16,6 @@
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>

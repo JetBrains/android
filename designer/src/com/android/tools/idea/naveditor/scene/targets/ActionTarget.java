@@ -40,7 +40,8 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.*;
@@ -50,8 +51,8 @@ import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.Connec
  * An Action in the navigation editor
  */
 public class ActionTarget extends BaseTarget {
-  @SwingCoordinate private Rectangle mySourceRect;
-  @SwingCoordinate private Rectangle myDestRect;
+  @SwingCoordinate private Rectangle2D.Float mySourceRect;
+  @SwingCoordinate private Rectangle2D.Float myDestRect;
   private final NlComponent myNlComponent;
   private final SceneComponent myDestination;
   private boolean myHighlighted = false;
@@ -62,20 +63,12 @@ public class ActionTarget extends BaseTarget {
   private static final ConnectionDirection START_DIRECTION = RIGHT;
 
   public static class CurvePoints {
-    @SwingCoordinate public Point p1;
-    @SwingCoordinate public Point p2;
-    @SwingCoordinate public Point p3;
-    @SwingCoordinate public Point p4;
+    @SwingCoordinate public Point2D.Float p1;
+    @SwingCoordinate public Point2D.Float p2;
+    @SwingCoordinate public Point2D.Float p3;
+    @SwingCoordinate public Point2D.Float p4;
     public ConnectionDirection dir;
   }
-
-  public static class SelfActionPoints {
-    @SwingCoordinate public final int[] x = new int[5];
-    @SwingCoordinate public final int[] y = new int[5];
-    public ConnectionDirection dir;
-  }
-
-  public enum ConnectionType {NORMAL, EXIT}
 
   public enum ConnectionDirection {
     LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
@@ -151,7 +144,11 @@ public class ActionTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    Rectangle sourceRect = Coordinates.getSwingRect(sceneContext, getComponent().fillRect(null));
+    SceneView view = getComponent().getScene().getDesignSurface().getCurrentSceneView();
+    if(view == null) {
+      return;
+    }
+    Rectangle2D.Float sourceRect = Coordinates.getSwingRectDip(view, getComponent().fillDrawRect2D(0, null));
 
     String sourceId = getComponent().getId();
     if (sourceId == null) {
@@ -164,13 +161,15 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    Rectangle destRect = myDestination.fillRect(null);
+    Rectangle2D.Float destRect = myDestination.fillDrawRect2D(0,null);
     myDestination.getTargets().forEach(t -> {
       if (t instanceof NavBaseTarget) {
-        destRect.add(((NavBaseTarget)t).getBounds());
+        Rectangle2D.Float.union(destRect, ((NavBaseTarget)t).getBounds(), destRect);
       }
     });
-    myDestRect = Coordinates.getSwingRect(sceneContext, destRect);
+
+
+    myDestRect = Coordinates.getSwingRectDip(view, destRect);
     mySourceRect = sourceRect;
 
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
@@ -184,22 +183,17 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    ConnectionType connectionType = ConnectionType.NORMAL;
-    if (NavComponentHelperKt.getActionType(myNlComponent) == ActionType.EXIT) {
-      connectionType = ConnectionType.EXIT;
-    }
+    ActionType type = NavComponentHelperKt.getActionType(myNlComponent, getComponent().getScene().getRoot().getNlComponent());
 
-    DrawAction.buildDisplayList(list, connectionType, sourceRect, myDestRect,
+    DrawAction.buildDisplayList(list, type, sourceRect, myDestRect,
                                 selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
 
     ConnectionDirection direction = getDestinationDirection(sourceRect, myDestRect);
-    Point arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
+    Point2D.Float arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
 
     ArrowDirection arrowDirection = getArrowDirection(direction);
 
-    SceneView view = getComponent().getScene().getDesignSurface().getCurrentSceneView();
-
-    RoundRectangle2D.Float arrowRectangle = getArrowRectangle(view, arrowPoint, direction);
+    Rectangle2D.Float arrowRectangle = getArrowRectangle(view, arrowPoint, direction);
 
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
   }
@@ -210,16 +204,16 @@ public class ActionTarget extends BaseTarget {
   }
 
   private void renderSelfAction(@NotNull DisplayList list, @NotNull SceneContext sceneContext, Color color) {
-    Point start = getStartPoint(mySourceRect);
-    Point arrowPoint = getArrowPoint(sceneContext, myDestRect, BOTTOM);
+    Point2D.Float start = getStartPoint(mySourceRect);
+    Point2D.Float arrowPoint = getArrowPoint(sceneContext, myDestRect, BOTTOM);
     arrowPoint.x += myDestRect.width / 2
                     + sceneContext.getSwingDimension(NavDrawHelperKt.SELF_ACTION_LENGTHS[0]
                                                      - NavDrawHelperKt.SELF_ACTION_LENGTHS[2]);
 
     SceneView view = getComponent().getScene().getDesignSurface().getCurrentSceneView();
 
-    RoundRectangle2D.Float arrowRectangle = getArrowRectangle(view, arrowPoint, BOTTOM);
-    Point end = new Point((int)arrowRectangle.x + (int)arrowRectangle.width / 2, (int)arrowRectangle.y + (int)arrowRectangle.height - 1);
+    Rectangle2D.Float arrowRectangle = getArrowRectangle(view, arrowPoint, BOTTOM);
+    Point2D.Float end = new Point2D.Float(arrowRectangle.x + arrowRectangle.width / 2, arrowRectangle.y + arrowRectangle.height - 1);
 
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, ArrowDirection.UP, arrowRectangle, color));
     list.add(new DrawSelfAction(start, end, color));
@@ -242,21 +236,25 @@ public class ActionTarget extends BaseTarget {
     }
 
     if (sourceId.equals(targetId)) {
-      @SwingCoordinate Point[] points = getSelfActionPoints(mySourceRect, transform);
+      @SwingCoordinate Point2D.Float[] points = getSelfActionPoints(mySourceRect, transform);
       for (int i = 1; i < points.length; i++) {
-        picker.addLine(this, 0, points[i - 1].x, points[i - 1].y, points[i].x, points[i].y, 5);
+        picker.addLine(this, 0, (int)points[i - 1].x, (int)points[i - 1].y, (int)points[i].x, (int)points[i].y, 5);
       }
 
       return;
     }
 
     CurvePoints points = getCurvePoints(mySourceRect, myDestRect, transform);
-    picker.addCurveTo(this, 0, points.p1.x, points.p1.y, points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y, 10);
+    picker.addCurveTo(this, 0,
+                      (int)points.p1.x, (int)points.p1.y,
+                      (int)points.p2.x, (int)points.p2.y,
+                      (int)points.p3.x, (int)points.p3.y,
+                      (int)points.p4.x, (int)points.p4.y, 10);
   }
 
   @NotNull
-  public static CurvePoints getCurvePoints(@SwingCoordinate @NotNull Rectangle source,
-                                           @SwingCoordinate @NotNull Rectangle dest,
+  public static CurvePoints getCurvePoints(@SwingCoordinate @NotNull Rectangle2D.Float source,
+                                           @SwingCoordinate @NotNull Rectangle2D.Float dest,
                                            SceneContext sceneContext) {
     ConnectionDirection destDirection = getDestinationDirection(source, dest);
     CurvePoints result = new CurvePoints();
@@ -270,16 +268,16 @@ public class ActionTarget extends BaseTarget {
   }
 
   @NotNull
-  public static Point[] getSelfActionPoints(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
-    Point start = getStartPoint(rect);
-    Point end = getSelfActionEndPoint(rect, sceneContext);
+  public static Point2D.Float[] getSelfActionPoints(@SwingCoordinate @NotNull Rectangle2D.Float rect, @NotNull SceneContext sceneContext) {
+    Point2D.Float start = getStartPoint(rect);
+    Point2D.Float end = getSelfActionEndPoint(rect, sceneContext);
 
     return NavDrawHelperKt.selfActionPoints(start, end, sceneContext);
   }
 
   @NotNull
-  public static Point getSelfActionEndPoint(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
-    Point end = getEndPoint(sceneContext, rect, BOTTOM);
+  public static Point2D.Float getSelfActionEndPoint(@SwingCoordinate @NotNull Rectangle2D.Float rect, @NotNull SceneContext sceneContext) {
+    Point2D.Float end = getEndPoint(sceneContext, rect, BOTTOM);
     end.x += rect.width / 2 + sceneContext.getSwingDimension(NavDrawHelperKt.SELF_ACTION_LENGTHS[0]
                                                              - NavDrawHelperKt.SELF_ACTION_LENGTHS[2]);
 
@@ -287,44 +285,44 @@ public class ActionTarget extends BaseTarget {
   }
 
   @NotNull
-  private static Point getArrowPoint(@NotNull SceneContext context, @NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
+  private static Point2D.Float getArrowPoint(@NotNull SceneContext context, @NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
     return shiftPoint(getConnectionPoint(rectangle, direction), direction, context.getSwingDimension(ACTION_PADDING));
   }
 
   @NotNull
-  private static Point getStartPoint(@NotNull Rectangle rectangle) {
+  private static Point2D.Float getStartPoint(@NotNull Rectangle2D.Float rectangle) {
     return getConnectionPoint(rectangle, START_DIRECTION);
   }
 
   @NotNull
-  private static Point getEndPoint(@NotNull SceneContext context, @NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
+  private static Point2D.Float getEndPoint(@NotNull SceneContext context, @NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
     return shiftPoint(getConnectionPoint(rectangle, direction),
                       direction,
                       context.getSwingDimension((int)NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING) - 1);
   }
 
   @NotNull
-  private static Point getConnectionPoint(@NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
+  private static Point2D.Float getConnectionPoint(@NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
     return shiftPoint(getCenterPoint(rectangle), direction, rectangle.width / 2, rectangle.height / 2);
   }
 
   @NotNull
-  private static Point getControlPoint(@NotNull SceneContext context,
-                                       @NotNull Point p1,
-                                       @NotNull Point p2,
+  private static Point2D.Float getControlPoint(@NotNull SceneContext context,
+                                       @NotNull Point2D.Float p1,
+                                       @NotNull Point2D.Float p2,
                                        @NotNull ConnectionDirection direction) {
     int shift = (int)Math.min(Math.hypot(p1.x - p2.x, p1.y - p2.y) / 2, context.getSwingDimension(CONTROL_POINT_THRESHOLD));
     return shiftPoint(p1, direction, shift);
   }
 
   @NotNull
-  private static Point shiftPoint(@NotNull Point p, @NotNull ConnectionDirection direction, int shift) {
+  private static Point2D.Float shiftPoint(@NotNull Point2D.Float p, @NotNull ConnectionDirection direction, int shift) {
     return shiftPoint(p, direction, shift, shift);
   }
 
   @NotNull
-  private static Point shiftPoint(@NotNull Point p, ConnectionDirection direction, int shiftX, int shiftY) {
-    return new Point(p.x + shiftX * direction.getDeltaX(), p.y + shiftY * direction.getDeltaY());
+  private static Point2D.Float shiftPoint(@NotNull Point2D.Float p, ConnectionDirection direction, float shiftX, float shiftY) {
+    return new Point2D.Float(p.x + shiftX * direction.getDeltaX(), p.y + shiftY * direction.getDeltaY());
   }
 
   /**
@@ -335,9 +333,9 @@ public class ActionTarget extends BaseTarget {
    * Otherwise: LEFT
    */
   @NotNull
-  private static ConnectionDirection getDestinationDirection(@NotNull Rectangle source, @NotNull Rectangle destination) {
-    Point start = getStartPoint(source);
-    Point end = getCenterPoint(destination);
+  private static ConnectionDirection getDestinationDirection(@NotNull Rectangle2D.Float source, @NotNull Rectangle2D.Float destination) {
+    Point2D.Float start = getStartPoint(source);
+    Point2D.Float end = getCenterPoint(destination);
 
     float slope = (destination.width == 0) ? 1f : (float)destination.height / destination.width;
     float rise = (start.x - end.x) * slope;
@@ -355,8 +353,8 @@ public class ActionTarget extends BaseTarget {
   }
 
   @NotNull
-  private static RoundRectangle2D.Float getArrowRectangle(@NotNull SceneView view, @NotNull Point p, @NotNull ConnectionDirection direction) {
-    RoundRectangle2D.Float rectangle = new RoundRectangle2D.Float();
+  private static Rectangle2D.Float getArrowRectangle(@NotNull SceneView view, @NotNull Point2D.Float p, @NotNull ConnectionDirection direction) {
+    Rectangle2D.Float rectangle = new Rectangle2D.Float();
     float parallel = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL);
     float perpendicular = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PERPENDICULAR);
     float deltaX = direction.getDeltaX();
@@ -387,8 +385,8 @@ public class ActionTarget extends BaseTarget {
   }
 
   @NotNull
-  private static Point getCenterPoint(@NotNull Rectangle rectangle) {
-    return new Point((int)rectangle.getCenterX(), (int)rectangle.getCenterY());
+  private static Point2D.Float getCenterPoint(@NotNull Rectangle2D.Float rectangle) {
+    return new Point2D.Float((float)rectangle.getCenterX(), (float)rectangle.getCenterY());
   }
 }
 

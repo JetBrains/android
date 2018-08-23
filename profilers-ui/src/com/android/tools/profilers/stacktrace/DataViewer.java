@@ -29,16 +29,25 @@ public interface DataViewer {
 
   enum Style {
     /**
-     * The default style for raw data content.
+     * A style that indicates we should attempt to render data as is, without formatting it. This
+     * may indicate text data that we want to render unmodified, or it may indicate binary data.
      */
     RAW,
+
     /**
-     * Creates a reformatted view based on the raw code content that is user friendly. For example, suppose the raw bytes for JSON data
-     * are a single line string {"menu": {id": "file", "value": "File"}}, this style applies formatting of multiple lines and indentation.
+     * A style for text data that is properly formatted in some way, so that the view can do this
+     * like color fields or reconfigure indentation.
+     *
+     * For example, suppose the raw bytes for JSON data are a single line string
+     * <code>{"menu": {id": "file", "value": "File"}}</code>; this text may get expanded onto
+     * multiple lines and provide controls for collapsing / expanding JSON objects.
      */
     PRETTY,
+
     /**
-     * Indicates the content cannot be displayed as wanted, a help message will be shown.
+     * A fallback style for when things have gone wrong, such as expecting text data but receiving
+     * binary, trying to load a corrupt image, etc. An invalid style will present a useful error
+     * message to the user.
      */
     INVALID
   }

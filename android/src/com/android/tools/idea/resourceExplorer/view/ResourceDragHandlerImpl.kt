@@ -17,7 +17,6 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.intellij.openapi.application.ApplicationManager
 import java.awt.GraphicsEnvironment
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
@@ -98,19 +97,14 @@ private class ResourceDragGestureListener : DragGestureListener {
   private fun createDragPreview(jList: JList<DesignAssetSet>,
                                 assetSet: DesignAssetSet?,
                                 index: Int): BufferedImage {
-    val image = BufferedImage(jList.fixedCellWidth, jList.fixedCellHeight, BufferedImage.TYPE_INT_ARGB)
-    val graphics2D = image.createGraphics()
-
-    jList.cellRenderer
-      .getListCellRendererComponent(jList, assetSet, index, false, false).apply {
-        setSize(jList.fixedCellWidth, jList.fixedCellHeight)
-        paint(graphics2D)
-      }
-
-    graphics2D.dispose()
+    val component = jList.cellRenderer.getListCellRendererComponent(jList, assetSet, index, false, false)
+    val image = BufferedImage(component.preferredSize.width, component.preferredSize.height, BufferedImage.TYPE_INT_ARGB)
+    with(image.createGraphics()) {
+      component.paint(this)
+      dispose()
+    }
     return image
   }
-
 }
 
 private fun createTransferable(assetSet: DesignAssetSet): Transferable {

@@ -47,7 +47,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   private static final BasicStroke DEFAULT_AXIS_STROKE = new BasicStroke(1);
-  private static final int MARKER_LABEL_OFFSET_PX = 3;
+  private static final int MARKER_LABEL_OFFSET_PX = 5;
   private static final int MAXIMUM_LABEL_WIDTH = 50;
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
@@ -85,12 +85,12 @@ public final class AxisComponent extends AnimatedComponent {
   private float myMarkerLabelDensity;
 
   /**
-   * Cached max marker lablels
+   * Cached max marker labels
    */
   private String myMaxLabel;
 
   /**
-   * Cached min marker lablels
+   * Cached min marker labels
    */
   private String myMinLabel;
 

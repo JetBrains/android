@@ -234,8 +234,8 @@ abstract class PsModule protected constructor(
     repositories.addAll(
       parsedModel?.repositories()?.repositories().orEmpty().mapNotNull { repositoryModel ->
         when (repositoryModel.type) {
-          RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository()
-          RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository()
+          RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository
+          RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository
           RepositoryModel.RepositoryType.MAVEN -> maybeCreateLocalMavenRepository(repositoryModel as MavenRepositoryModel)
           RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> null
           RepositoryModel.RepositoryType.FLAT_DIR -> null

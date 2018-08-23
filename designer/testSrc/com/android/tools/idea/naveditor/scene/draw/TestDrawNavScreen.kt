@@ -18,11 +18,16 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.SceneContext
 import org.junit.Test
 import org.mockito.Mockito.*
+import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.Graphics2D
-import java.awt.Rectangle
+import java.awt.geom.AffineTransform
+import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+
+var IMAGE_DIMENSION = Dimension(5, 5)
+var DRAW_COMMAND_RECTANGLE = Rectangle2D.Float(1f, 2f, 3f, 4f)
 
 class TestDrawNavScreen {
   @Test
@@ -30,37 +35,38 @@ class TestDrawNavScreen {
     var graphics = createGraphics()
     val context = mock(SceneContext::class.java)
 
-    var drawCommand = DrawNavScreen(Rectangle(1, 2, 3, 4), CompletableFuture.completedFuture(null), null)
+    var drawCommand = DrawNavScreen(createRectangle(), CompletableFuture.completedFuture(null), null)
     drawCommand.paint(graphics, context)
-    verify(graphics).drawString(eq("Preview"), anyInt(), anyInt())
-    verify(graphics).drawString(eq("Unavailable"), anyInt(), anyInt())
+    verify(graphics).drawString(eq("Preview"), anyFloat(), anyFloat())
+    verify(graphics).drawString(eq("Unavailable"), anyFloat(), anyFloat())
 
     graphics = createGraphics()
 
-    drawCommand = DrawNavScreen(Rectangle(1, 2, 3, 4), CompletableFuture(), null)
+    drawCommand = DrawNavScreen(createRectangle(),
+                                CompletableFuture(), null)
     drawCommand.paint(graphics, context)
-    verify(graphics).drawString(eq("Loading..."), anyInt(), anyInt())
+    verify(graphics).drawString(eq("Loading..."), anyFloat(), anyFloat())
 
     graphics = createGraphics()
 
-    val image = mock(BufferedImage::class.java)
-    drawCommand = DrawNavScreen(Rectangle(1, 2, 3, 4), CompletableFuture.completedFuture(image), null)
+    val image = createImage()
+    drawCommand = DrawNavScreen(createRectangle(), CompletableFuture.completedFuture(image), null)
     drawCommand.paint(graphics, context)
-    verify(graphics).drawImage(image, 1, 2, 3, 4, null)
+    verify(graphics).drawImage(image, createTransform(), null)
 
     graphics = createGraphics()
 
-    val oldImage = mock(BufferedImage::class.java)
+    val oldImage = createImage()
 
-    drawCommand = DrawNavScreen(Rectangle(1, 2, 3, 4), CompletableFuture.completedFuture(image), oldImage)
+    drawCommand = DrawNavScreen(createRectangle(), CompletableFuture.completedFuture(image), oldImage)
     drawCommand.paint(graphics, context)
-    verify(graphics).drawImage(image, 1, 2, 3, 4, null)
+    verify(graphics).drawImage(image, createTransform(), null)
 
     graphics = createGraphics()
 
-    drawCommand = DrawNavScreen(Rectangle(1, 2, 3, 4), CompletableFuture(), oldImage)
+    drawCommand = DrawNavScreen(createRectangle(), CompletableFuture(), oldImage)
     drawCommand.paint(graphics, context)
-    verify(graphics).drawImage(oldImage, 1, 2, 3, 4, null)
+    verify(graphics).drawImage(oldImage, createTransform(), null)
   }
 
   private fun createGraphics(): Graphics2D {
@@ -69,5 +75,25 @@ class TestDrawNavScreen {
     val metrics = mock(FontMetrics::class.java)
     `when`(graphics.fontMetrics).thenReturn(metrics)
     return graphics
+  }
+
+  private fun createRectangle() : Rectangle2D.Float {
+    return Rectangle2D.Float(DRAW_COMMAND_RECTANGLE.x, DRAW_COMMAND_RECTANGLE.y,
+                                  DRAW_COMMAND_RECTANGLE.width, DRAW_COMMAND_RECTANGLE.height)
+  }
+
+  private fun createImage() : BufferedImage {
+    val image = mock(BufferedImage::class.java)
+    `when`(image.width).thenReturn(IMAGE_DIMENSION.width)
+    `when`(image.height).thenReturn(IMAGE_DIMENSION.height)
+    return image
+  }
+
+  private fun createTransform() : AffineTransform {
+    val transform = AffineTransform()
+    transform.translate(DRAW_COMMAND_RECTANGLE.x.toDouble(), DRAW_COMMAND_RECTANGLE.y.toDouble())
+    transform.scale(DRAW_COMMAND_RECTANGLE.width.toDouble() / IMAGE_DIMENSION.width,
+                    DRAW_COMMAND_RECTANGLE.height.toDouble() / IMAGE_DIMENSION.height)
+    return transform
   }
 }

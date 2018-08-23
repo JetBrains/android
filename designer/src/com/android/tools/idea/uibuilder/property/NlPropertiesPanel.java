@@ -17,6 +17,11 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -27,10 +32,11 @@ import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.PropertiesPanel;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -38,6 +44,8 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
@@ -63,6 +71,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
@@ -223,14 +232,13 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     if (myTable.isCellEditable(0, 1)) {
       myTable.editCellAt(0, 1);
       myTable.transferFocus();
-      event.consume();
     }
     else {
       myModel.expand(myTable.convertRowIndexToModel(0));
       myTable.requestFocus();
       myTable.setRowSelectionInterval(0, 0);
-      event.consume();
     }
+    event.consume();
   }
 
   public void activatePropertySheet() {
@@ -293,29 +301,59 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     });
   }
 
-  private void updateDefaultProperties(@NotNull PropertiesManager propertiesManager) {
+  private void updateDefaultProperties(@NotNull PropertiesManager<?> propertiesManager) {
     if (myComponents.isEmpty() || myProperties.isEmpty()) {
       return;
     }
-    PropertiesMap defaultValues = propertiesManager.getDefaultProperties(myComponents);
-    if (defaultValues.isEmpty()) {
+    Map<ResourceReference, ResourceValue> defaultValues = propertiesManager.getDefaultProperties(myComponents);
+    String style = propertiesManager.getDefaultStyle(myComponents);
+    if (style == null && defaultValues.isEmpty()) {
       return;
     }
     for (NlPropertyItem property : myProperties) {
-      property.setDefaultValue(getDefaultProperty(defaultValues, property));
+      // TODO: Change the API of RenderResult.getDefaultStyles to return ResourceValues instead of Strings.
+      if (property.getName().equals(ATTR_STYLE) && StringUtil.isEmpty(property.getNamespace()) && !StringUtil.isEmpty(style)) {
+        style = style.startsWith("android:") ? "?android:attr/" + StringUtil.trimStart(style, "android:") : "?attr/" + style;
+        property.setDefaultValue(style);
+      }
+      else {
+        property.setDefaultValue(getDefaultProperty(defaultValues, property));
+      }
     }
   }
 
   @Nullable
-  private static PropertiesMap.Property getDefaultProperty(@NotNull PropertiesMap defaultValues, @NotNull NlProperty property) {
-    if (SdkConstants.ANDROID_URI.equals(property.getNamespace())) {
-      PropertiesMap.Property defaultValue = defaultValues.get(SdkConstants.PREFIX_ANDROID + property.getName());
-      if (defaultValue != null) {
-        return defaultValue;
-      }
-      return defaultValues.get(SdkConstants.ANDROID_PREFIX + property.getName());
+  private String getDefaultProperty(@NotNull Map<ResourceReference, ResourceValue> defaultValues, @NotNull NlProperty property) {
+    String namespaceUri = property.getNamespace();
+    if (namespaceUri == null) {
+      return null;
     }
-    return defaultValues.get(property.getName());
+    ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
+    if (namespace == null) {
+      return null;
+    }
+    XmlTag tag = property.getTag();
+    if (tag == null) {
+      return null;
+    }
+    ResourceValue value = defaultValues.get(ResourceReference.attr(namespace, property.getName()));
+    if (value == null) {
+      return null;
+    }
+    ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(tag);
+    ResourceNamespace defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(myPropertiesManager.getFacet()).getNamespace();
+    if (value.getResourceType() == ResourceType.STYLE_ITEM) {
+      ResourceReference reference = value.getReference();
+      if (reference == null) {
+        return null;
+      }
+      ResourceUrl url = reference.getRelativeResourceUrl(defaultNamespace, resolver);
+      return (url.type != ResourceType.ATTR) ?
+             url.toString() : ResourceUrl.createThemeReference(url.namespace, url.type, url.name).toString();
+    }
+    else {
+      return value.asReference().getRelativeResourceUrl(defaultNamespace, resolver).toString();
+    }
   }
 
   @NotNull

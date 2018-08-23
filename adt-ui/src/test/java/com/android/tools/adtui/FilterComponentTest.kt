@@ -72,4 +72,19 @@ class FilterComponentTest {
     ui.filterComponent.model.filter = Filter("1234567")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("1,234,567 matches")
   }
+
+  @Test
+  fun canHideCountLabel() {
+    val ui = FilterComponentUi()
+
+    ui.filterComponent.setMatchCountVisibility(false)
+    ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
+      override fun applyFilter(filter: Filter): FilterResult {
+        return FilterResult(Integer.parseInt(filter.filterString), true)
+      }
+    })
+    ui.filterComponent.model.filter = Filter("1234567")
+    assertThat(ui.filterComponent.countLabel.text).isNotEmpty()
+    assertThat(ui.filterComponent.countLabel.isVisible).isFalse()
+  }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
-import trebuchet.model.fragments.ModelFragment
-import trebuchet.model.fragments.ProcessModelFragment
 import java.util.concurrent.TimeUnit
 
 class AtraceTestUtils {
@@ -24,22 +22,10 @@ class AtraceTestUtils {
     val DELTA = .00000001
     val TEST_PID = 2652
     val SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1).toDouble()
-    val RENDER_THREAD_ID = 7
 
-    fun buildModelFragment(): ModelFragment {
-      val modelFragment = ModelFragment()
-      val process = ProcessModelFragment(1, "Process")
-      val thread = process.threadFor(1, "Main")
-      thread.slicesBuilder.beginSlice {
-        it.startTime = 1.0
-        it.name = AtraceFrameFactory.UIThreadDrawType.MARSHMALLOW.getDrawName()
-      }
-      thread.slicesBuilder.endSlice {
-        it.endTime = 2.0
-        it.cpuTime = 0.5
-      }
-      modelFragment.processes.add(process)
-      return modelFragment
+    @JvmStatic
+    fun convertTimeStamps(secondsTime: Double): Long {
+      return secondsTime.toLong();
     }
   }
 }

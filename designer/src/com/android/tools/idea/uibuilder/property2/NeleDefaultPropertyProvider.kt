@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.PREFIX_ANDROID
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.util.PropertiesMap
 
 /**
  * Provider of default property values for NlComponent attributes.
@@ -29,25 +32,36 @@ import com.android.util.PropertiesMap
  * but this map could be more extensive in the future.
  */
 class NeleDefaultPropertyProvider(sceneManager: SceneManager) {
-  val properties: Map<Any?, PropertiesMap> = sceneManager.defaultProperties
+  val properties: Map<Any?, Map<ResourceReference, ResourceValue>> = sceneManager.defaultProperties
+  val styles: Map<Any?, String> = sceneManager.defaultStyles
 
   /**
    * Given a [property] return the default value found by layoutlib.
    *
    * Or `null` if such a default value hasn't been reported.
    */
-  fun provideDefaultValue(property: NelePropertyItem): String? {
-    val key = namespacePrefix(property.namespace) + property.name
+  fun provideDefaultValue(property: NelePropertyItem): ResourceValue? {
+    if (property.namespace.isEmpty() && property.name == ATTR_STYLE) {
+      return provideDefaultStyleValue(property)
+    }
+    val namespace = ResourceNamespace.fromNamespaceUri(property.namespace) ?: return null
+    val reference =  ResourceReference.attr(namespace, property.name)
     return property.components
-      .map { it.snapshot }
-      .map { properties[it] }
-      .map { it?.get(key) }
-      .map { it?.resource }
+      .map { properties[it.snapshot] }
+      .map { it?.get(reference) }
       .distinct()
       .singleOrNull()
   }
 
-  private fun namespacePrefix(namespace: String): String {
-    return if (namespace == ANDROID_URI) PREFIX_ANDROID else ""
+  private fun provideDefaultStyleValue(property: NelePropertyItem): ResourceValue? {
+    // TODO: Change the API of RenderResult.getDefaultStyles to return ResourceValues instead of Strings.
+    val qualifiedStyle = property.components
+                           .map { styles[it.snapshot] }
+                           .distinct()
+                           .singleOrNull() ?: return null
+    val namespace = if (qualifiedStyle.startsWith("android:")) ResourceNamespace.ANDROID else ResourceNamespace.TODO()
+    val style = "?" + qualifiedStyle.removePrefix("android:")
+    val reference = ResourceReference.attr(namespace, ATTR_STYLE)
+    return ResourceValueImpl(reference, style)
   }
 }

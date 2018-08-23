@@ -25,8 +25,6 @@ import com.android.tools.adtui.ptable.StarState;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
@@ -39,7 +37,8 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlPropertyItemTest extends PropertyTestCase {
 
@@ -153,7 +152,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.isDefaultValue(null)).isTrue();
     assertThat(text.isDefaultValue("Text")).isFalse();
 
-    text.setDefaultValue(new PropertiesMap.Property("Text", "Text"));
+    text.setDefaultValue("Text");
     assertThat(text.isDefaultValue(null)).isTrue();
     assertThat(text.isDefaultValue("Text")).isTrue();
   }
@@ -174,13 +173,13 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     textAppearance.setValue("?android:attr/textAppearanceMedium");
-    textAppearance.setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", null));
+    textAppearance.setDefaultValue("?android:attr/textAppearanceMedium");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     textAppearance.setValue(null);
     textAppearance
-      .setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Material.Medium"));
+      .setDefaultValue("?android:attr/textAppearanceMedium");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
@@ -191,7 +190,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
 
-    size.setDefaultValue(new PropertiesMap.Property("@dimen/text_size_small_material", "14sp"));
+    size.setDefaultValue("@dimen/text_size_small_material");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
   }
@@ -245,7 +244,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
 
   public void testSetValueWithDefaultValue() {
     NlPropertyItem auto = createFrom(myTextView, ATTR_AUTO_TEXT);
-    auto.setDefaultValue(new PropertiesMap.Property("true", "true"));
+    auto.setDefaultValue("true");
     auto.setValue("true");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_AUTO_TEXT)).isEqualTo("true");

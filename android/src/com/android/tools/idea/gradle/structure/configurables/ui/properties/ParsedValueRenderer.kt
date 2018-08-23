@@ -37,7 +37,56 @@ private val errorAttributes = SimpleTextAttributes.ERROR_ATTRIBUTES
 private val codeAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.black))
 
 /**
- * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues]. Returns [true] in the case of
+ * Renders the receiver (which may be of [List], [Map] or any simple type to the [textRenderer] with any known values handled by renderers
+ * from [knownValues]. Returns true in the case of non-empty output.
+ */
+fun ParsedValue<Any>.renderAnyTo(
+  textRenderer: TextRenderer,
+  knownValues: Map<ParsedValue<Any>, ValueRenderer>
+): Boolean {
+  fun renderAny(value: Any) =
+    when (value) {
+      is ParsedValue<*> -> value.renderTo(textRenderer, { toString() }, knownValues)
+      else -> {
+        val text = toString()
+        if (text.isNotEmpty()) {
+          textRenderer.append(text, regularAttributes)
+        }
+        text.isNotEmpty()
+      }
+    }
+
+  val literalValue = maybeLiteralValue
+  return when (literalValue) {
+    is Map<*, *> -> {
+      textRenderer.append("[", regularAttributes)
+      literalValue.entries.forEachIndexed { index, entry ->
+        if (index > 0) textRenderer.append(", ", regularAttributes)
+        textRenderer.append(entry.key.toString(), regularAttributes)
+        textRenderer.append(" : ", regularAttributes)
+        renderAny(entry.value ?: "")
+      }
+      if (literalValue.isEmpty()) {
+        textRenderer.append(":", regularAttributes)
+      }
+      textRenderer.append("]", regularAttributes)
+      true
+    }
+    is List<*> -> {
+      textRenderer.append("[", regularAttributes)
+      literalValue.forEachIndexed { index, v->
+        if (index > 0) textRenderer.append(", ", regularAttributes)
+        renderAny(v ?: "")
+      }
+      textRenderer.append("]", regularAttributes)
+      true
+    }
+    else -> renderTo(textRenderer, { toString() }, knownValues)
+  }
+}
+
+/**
+ * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues]. Returns true in the case of
  * non-empty output.
  */
 fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(

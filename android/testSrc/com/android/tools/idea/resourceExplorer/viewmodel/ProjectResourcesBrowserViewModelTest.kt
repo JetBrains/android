@@ -85,7 +85,7 @@ class ProjectResourcesBrowserViewModelTest {
                      "myLibrary", "com.resources.test") { file -> FileUtil.copyDir(File(getTestDataDirectory() + "/res"), file) }
 
     val viewModel = createViewModel(projectRule.module)
-    Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResourceItems).isEmpty()
+    Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
     val colorSection = viewModel.getResourcesLists()
     Truth.assertThat(colorSection).hasSize(2)

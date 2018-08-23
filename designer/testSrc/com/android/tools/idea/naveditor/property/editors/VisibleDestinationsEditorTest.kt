@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -43,6 +44,7 @@ class VisibleDestinationsEditorTest: NavTestCase() {
             fragment("f5")
           }
         }
+        addChild(ComponentDescriptor("fragment"), null)
       }
     }
     val property = mock(NlProperty::class.java)

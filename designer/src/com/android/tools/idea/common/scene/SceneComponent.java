@@ -21,9 +21,8 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.ActionGroupTarget;
-import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -37,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -234,6 +232,19 @@ public class SceneComponent {
 
   private void setParent(@NotNull SceneComponent parent) {
     myParent = parent;
+  }
+
+  /**
+   * @return the depth from root to this instance. Return 0 if this instance is root.
+   */
+  public int getDepth() {
+    int depth = 0;
+    SceneComponent current = myParent;
+    while (current != null) {
+      current = current.myParent;
+      depth += 1;
+    }
+    return depth;
   }
 
   private TargetProvider getTargetProvider() {
@@ -817,9 +828,9 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   @NotNull
-  public RoundRectangle2D.Float fillDrawRect2D(long time, @AndroidDpCoordinate RoundRectangle2D.Float rec) {
+  public Rectangle2D.Float fillDrawRect2D(long time, @AndroidDpCoordinate Rectangle2D.Float rec) {
     if (rec == null) {
-      rec = new RoundRectangle2D.Float();
+      rec = new Rectangle2D.Float();
     }
     rec.x = getDrawX(time);
     rec.y = getDrawY(time);
@@ -893,6 +904,16 @@ public class SceneComponent {
     // update the Targets of children
     for (SceneComponent child : getChildren()) {
       child.updateTargets();
+    }
+
+    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
+      boolean hasDragTarget;
+      synchronized (myTargets) {
+        hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
+      }
+      if (hasDragTarget) {
+        addTarget(new CommonDragTarget());
+      }
     }
   }
 

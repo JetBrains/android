@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
@@ -29,13 +30,13 @@ import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
-import com.intellij.ide.plugins.IdeaPluginDescriptorImpl;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -52,6 +53,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.util.PlatformUtils;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
@@ -107,6 +109,23 @@ public class AndroidStudioInitializer implements Runnable {
    */
   private static void setupAnalytics() {
     UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+
+    // If the user hasn't opted in, we will ask IJ to check if the user has
+    // provided a decision on the statistics consent. If the user hasn't made a
+    // choice, a modal dialog will be shown asking for a decision
+    // before the regular IDE ui components are shown.
+    if (!AnalyticsSettings.getOptedIn()) {
+      Application application = ApplicationManager.getApplication();
+      // If we're running in a test or headless mode, do not show the dialog
+      // as it would block the test & IDE from proceeding.
+      // NOTE: in this case the metrics logic will be left in the opted-out state
+      // and no metrics are ever sent.
+      if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
+        !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
+        AppUIUtil.showConsentsAgreementIfNeed();
+      }
+    }
+
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.setVersion(application.getStrictVersion());

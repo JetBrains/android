@@ -21,7 +21,6 @@ import java.text.DecimalFormat;
 
 public class PathStringBuilder {
 
-  //TODO Take into consideration max string length: 32,767 characters
   private static final char MOVE_CURSOR_COMMAND_ABSOLUTE = 'M';
   private static final char LINE_COMMAND_ABSOLUTE = 'L';
   private static final char BEZIER_CURVE_COMMAND_ABSOLUTE = 'C';

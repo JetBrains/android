@@ -342,7 +342,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     ResourceTable resourceTable = repository.getFullTablePackageAccessible();
 
     eachItemInRepo:
-    for (ResourceItem item : repository.getAllResourceItems()) {
+    for (ResourceItem item : repository.getAllResources()) {
 
       ListMultimap<String, ResourceItem> multimap = resourceTable.get(item.getNamespace(), item.getType());
       assertThat(multimap).named("Multimap for " + item).isNotNull();

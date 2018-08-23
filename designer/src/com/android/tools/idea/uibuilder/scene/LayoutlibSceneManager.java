@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.common.scene.*;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -44,7 +49,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.ListenerCollection;
-import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -676,13 +680,28 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   @NotNull
-  public Map<Object, PropertiesMap> getDefaultProperties() {
+  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
     myRenderResultLock.readLock().lock();
     try {
       if (myRenderResult == null) {
         return Collections.emptyMap();
       }
       return myRenderResult.getDefaultProperties();
+    }
+    finally {
+      myRenderResultLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  @NotNull
+  public Map<Object, String> getDefaultStyles() {
+    myRenderResultLock.readLock().lock();
+    try {
+      if (myRenderResult == null) {
+        return Collections.emptyMap();
+      }
+      return myRenderResult.getDefaultStyles();
     }
     finally {
       myRenderResultLock.readLock().unlock();

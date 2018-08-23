@@ -19,6 +19,7 @@ import com.android.tools.idea.common.scene.LerpFloat
 import com.google.common.base.Joiner
 import java.awt.*
 import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
 fun parse(s: String, expected: Int): Array<String> {
@@ -39,17 +40,17 @@ fun buildString(simpleName: String, vararg properties: Any): String {
   }
 }
 
-fun stringToRect(s: String): Rectangle {
+fun stringToRect2D(s: String): Rectangle2D.Float {
   val sp = splitString(s, 'x')
-  val r = Rectangle()
-  r.x = sp[0].toInt()
-  r.y = sp[1].toInt()
-  r.width = sp[2].toInt()
-  r.height = sp[3].toInt()
+  val r = Rectangle2D.Float()
+  r.x = sp[0].toFloat()
+  r.y = sp[1].toFloat()
+  r.width = sp[2].toFloat()
+  r.height = sp[3].toFloat()
   return r
 }
 
-fun rectToString(r: Rectangle): String {
+fun rect2DToString(r: Rectangle2D.Float): String {
   return Joiner.on('x').join(r.x, r.y, r.width, r.height)
 }
 

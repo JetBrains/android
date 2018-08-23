@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
@@ -44,7 +43,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   description: String,
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   resolvedValueGetter: ResolvedT.() -> PropertyT?,
-  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
+  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   parser: (String) -> Annotated<ParsedValue<PropertyT>>,
@@ -73,7 +72,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   override val description: String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
-  private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
+  private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   override val parser: (String) -> Annotated<ParsedValue<PropertyT>>,
@@ -84,14 +83,12 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
 ) : ModelPropertyBase<ModelT, PropertyT>(),
     ModelSimpleProperty<ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
-    getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
+    modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter().getParsedValue(getter).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
-    thisRef.setModified()
-    setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).parsedPropertyGetter(),
-                   setter,
-                   { delete() },
-                   value)
+    thisRef.setModified()  // setModified() is expected to instantiate a parsed model if it is still null.
+    (modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException())
+      .parsedPropertyGetter()!!.setParsedValue(setter, { delete() }, value)
   }
 
   inner class SimplePropertyCore(private val model: ModelT)
@@ -130,11 +127,11 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
   abstract val nullifier: ResolvedPropertyModel.() -> Unit
   abstract fun setModified()
 
-  override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedValue(getParsedProperty(), getter)
+  override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedProperty().getParsedValue(getter)
 
   override fun setParsedValue(value: ParsedValue<PropertyT>) {
     setModified()
-    setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, nullifier, value)
+    (getParsedProperty() ?: throw IllegalStateException()).setParsedValue(setter, nullifier, value)
   }
 
   override val isModified: Boolean? get() = getParsedProperty()?.isModified
@@ -164,36 +161,6 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
 
       override fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCore<PropertyT> =
         this@ModelPropertyCoreImpl.rebind(resolvedProperty, modifiedSetter)
-    }
-  }
-}
-
-private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: ResolvedPropertyModel.() -> T?): Annotated<ParsedValue<T>> =
-  makeAnnotatedParsedValue(property?.getter(), property?.dslText())
-
-private fun <T : Any> setParsedValue(parsedProperty: ResolvedPropertyModel,
-                                     setter: ResolvedPropertyModel.(T) -> Unit,
-                                     nullifier: ResolvedPropertyModel.() -> Unit,
-                                     value: ParsedValue<T>) {
-  when (value) {
-    is ParsedValue.NotSet -> {
-      parsedProperty.nullifier()
-    }
-    is ParsedValue.Set.Parsed -> {
-      val dsl = value.dslText
-      when (dsl) {
-      // Dsl modes.
-        is DslText.Reference -> parsedProperty.setDslText(dsl)
-        is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)
-        is DslText.OtherUnparsedDslText -> parsedProperty.setDslText(dsl)
-      // Literal modes.
-        DslText.Literal -> if (value.value != null) {
-          parsedProperty.setter(value.value)
-        }
-        else {
-          parsedProperty.nullifier()
-        }
-      }
     }
   }
 }

@@ -38,7 +38,6 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -277,6 +276,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
     @Override
     public boolean isCanceled() {
+      if (myIndicator != null) {
+        myCancelled = myCancelled || myIndicator.isCanceled();
+      }
       return myCancelled;
     }
 

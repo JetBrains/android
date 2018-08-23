@@ -39,6 +39,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -229,23 +230,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     super.addParent(parent);
   }
 
-  /**
-   * Returns if the given {@link VirtualFile} is part of the sample data directory (or the directory itself)
-   */
-  private static boolean isSampleDataFile(@NotNull AndroidFacet facet, @NotNull VirtualFile file) {
-    VirtualFile sampleDataDir = null;
-    try {
-      sampleDataDir = getSampleDataDir(facet, false);
-    }
-    catch (IOException e) {
-      LOG.warn("Error getting 'sampledir'", e);
-    }
-
-    boolean relevant = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false);
-    // Also account for the case where the directory itself is being added or removed
-    return relevant || FD_SAMPLE_DATA.equals(file.getName());
-  }
-
   @NonNull
   @Override
   protected ResourceTable getFullTable() {
@@ -292,6 +276,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
    */
   static class SampleDataRepositoryManager extends AndroidFacetScopedService {
     private static final Key<SampleDataRepositoryManager> KEY = Key.create(SampleDataRepositoryManager.class.getName());
+    private final Object repositoryLock = new Object();
+    @GuardedBy("repositoryLock")
     private SampleDataResourceRepository repository;
 
     @NotNull
@@ -315,25 +301,31 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       if (isDisposed()) {
         throw new IllegalStateException(getClass().getName() + " is disposed");
       }
-      if (repository == null) {
-        repository = new SampleDataResourceRepository(getFacet());
+      synchronized (repositoryLock) {
+        if (repository == null) {
+          repository = new SampleDataResourceRepository(getFacet());
+
+          Disposer.register(repository, () -> {
+            synchronized (repositoryLock) {
+              repository = null;
+            }
+          });
+        }
+        return repository;
       }
-      return repository;
     }
 
-    public static boolean hasRepository(@NotNull AndroidFacet facet) {
-      SampleDataRepositoryManager manager = facet.getUserData(KEY);
-
-      if (manager == null) {
-        return false;
+    public boolean hasRepository() {
+      synchronized (repositoryLock) {
+        return repository != null;
       }
-
-      return manager.repository != null;
     }
 
     @Override
     public void onServiceDisposal(@NotNull AndroidFacet facet) {
-      repository = null;
+      synchronized (repositoryLock) {
+        repository = null;
+      }
     }
   }
 }

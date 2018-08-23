@@ -111,12 +111,12 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val view = nlModel.surface.currentSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
     val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, listOf(textView))
-    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     waitUntilEventsProcessed(model)
 
     // test
-    assertThat(model.provideDefaultValue(property)).isEqualTo("?attr/textAppearanceSmall")
+    assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
   }
 
   fun testListenersAreConcurrentModificationSafe() {

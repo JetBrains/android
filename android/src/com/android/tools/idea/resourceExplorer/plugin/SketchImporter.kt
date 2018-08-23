@@ -37,8 +37,7 @@ private val supportedFileTypes = setOf("sketch")
 class SketchImporter : ResourceImporter {
   override fun getPresentableName() = "Sketch Importer"
 
-  override fun getConfigurationPanel(facet: AndroidFacet,
-                                     callback: ConfigurationDoneCallback): JPanel? {
+  override fun getConfigurationPanel(facet: AndroidFacet, callback: ConfigurationDoneCallback): JPanel? {
     val sketchFilePath = getFilePath(facet.module.project)
     if (sketchFilePath != null) {
       val sketchFile = SketchParser.read(sketchFilePath)
@@ -47,11 +46,9 @@ class SketchImporter : ResourceImporter {
       }
       else {
         val importOptions = ImportOptions(sketchFile)
-        val presenter = SketchImporterPresenter(sketchFile, importOptions, DesignAssetImporter())
-        importOptions.isImportAll = true  // this should be controlled by the user
-        val view = SketchImporterView(presenter)
-        presenter.populatePages(facet.module.project, view)
-        view.createImportDialog(facet, view)
+        val view = SketchImporterView()
+        view.presenter = SketchImporterPresenter(view, sketchFile, importOptions, DesignAssetImporter(), facet)
+        view.createImportDialog(facet.module.project)
       }
     }
 

@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ImportOptions {
   private static final Logger LOG = Logger.getInstance(ImportOptions.class);
-  private static final boolean DEFAULT_IMPORT_ALL = false;
+  public static final boolean DEFAULT_IMPORT_ALL = false;
 
   private boolean myImportAll = DEFAULT_IMPORT_ALL;
 
@@ -43,7 +43,7 @@ public class ImportOptions {
     initWithDefaultOptions(file);
   }
 
-  public boolean isImportAll() {
+  public boolean getImportAll() {
     return myImportAll;
   }
 
@@ -71,28 +71,6 @@ public class ImportOptions {
   @Nullable
   public IconOptions getIconOptions(@NotNull String objectId) {
     return myIconIdToOptions.get(objectId);
-  }
-
-  public boolean putPageOptions(@NotNull String objectId, @NotNull PageOptions options) {
-    if (myPageIdToOptions.get(objectId) != null) {
-      myPageIdToOptions.put(objectId, options);
-      return true;
-    }
-    else {
-      LOG.warn("Page with objectId = " + objectId + " not found.");
-      return false;
-    }
-  }
-
-  public boolean putIconOptions(@NotNull String objectId, @NotNull IconOptions options) {
-    if (myIconIdToOptions.get(objectId) != null) {
-      myIconIdToOptions.put(objectId, options);
-      return true;
-    }
-    else {
-      LOG.warn("Artboard with objectId = " + objectId + " not found.");
-      return false;
-    }
   }
 
   /**

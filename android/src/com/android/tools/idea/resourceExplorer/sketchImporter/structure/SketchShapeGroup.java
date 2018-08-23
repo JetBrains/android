@@ -21,13 +21,8 @@ import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.List;
-
-import static com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathUtils.*;
 
 public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
@@ -85,128 +80,73 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
     return windingRule;
   }
 
+  /**
+   * Method that generates the shape model of the shape in the SketchShapeGroup object.
+   * <p>
+   * Shape operations can only be performed on Area objects, and to make sure that the conversion
+   * between {@link Path2D.Double} to {@link java.awt.geom.Area} is correct, the {@link Path2D.Double} object must be closed
+   */
   @NotNull
   @Override
-  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
-    String shapePathData = buildShapeString(parentCoords);
-    String shapeName = getName();
-    String shapeBorderWidth = null;
-    String shapeBorderColor = null;
-    String shapeFillColor = null;
-    SketchStyle style = getStyle();
-    SketchBorder[] borders = style.getBorders();
-    if (borders != null && borders.length != 0) {
-      SketchBorder border = borders[0];
-      if (border.isEnabled()) {
-        shapeBorderWidth = Integer.toString(border.getThickness());
-        shapeBorderColor = "#" + Integer.toHexString(border.getColor().getRGB());
-      }
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords) {
+    SketchFill[] fills = getStyle().getFills();
+    SketchBorder[] borders = getStyle().getBorders();
+    SketchFill shapeGroupFill = fills != null ? fills[0] : null;
+    SketchBorder shapeGroupBorder = borders != null ? borders[0] : null;
+    if (shapeGroupBorder == null && shapeGroupFill == null) {
+      return ImmutableList.of();
     }
 
-    SketchFill[] fills = style.getFills();
+    Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
+                                                        parentCoords.getY() + getFrame().getY());
 
-    SketchGradient shapeGradient = null;
-    if (fills != null && fills.length != 0) {
-      SketchFill fill = fills[0];
-      if (fill.isEnabled()) {
-        if (fill.getGradient() == null) {
-          shapeFillColor = "#" + Integer.toHexString(fill.getColor().getRGB());
-        }
-        else {
-          shapeGradient = fill.getGradient();
-          shapeGradient = shapeGradient.toAbsoluteGradient(parentCoords, getFrame());
-        }
-      }
+    SketchLayer[] layers = getLayers();
+    SketchShapePath baseSketchShapePath = (SketchShapePath)layers[0];
+
+    Path2D.Double baseShapePath = baseSketchShapePath.getPath2D();
+    PathModel finalShape = new PathModel(baseShapePath,
+                                         shapeGroupFill,
+                                         shapeGroupBorder,
+                                         baseSketchShapePath.isFlippedHorizontal(),
+                                         baseSketchShapePath.isFlippedVertical(),
+                                         baseSketchShapePath.isClosed(),
+                                         baseSketchShapePath.getRotation(),
+                                         getBooleanOperation(),
+                                         baseSketchShapePath.getFramePosition());
+
+    // If the shapegroup has just one layer, there will be no shape operation.
+    // Therefore, no conversion to area needed.
+    // Therefore, the path does not necessarily have to be closed.
+    if (layers.length == 1) {
+      return ImmutableList.of(transformShapeGroup(finalShape, newParentCoords));
     }
-    return ImmutableList.of(new DrawableShape(shapeName, shapePathData, shapeFillColor, shapeGradient, shapeBorderColor, shapeBorderWidth));
+
+    // If the shapegroup has multiple layers, there definitely are some shape operations to be performed.
+    // Therefore, the path needs to be closed and converted into an Area before applying anything.
+    AreaModel finalArea = finalShape.convertToArea();
+    finalArea.applyTransformations();
+
+    for (int i = 1; i < layers.length; i++) {
+      SketchShapePath path = (SketchShapePath)layers[i];
+
+      PathModel pathModel = path.createPathModel();
+      AreaModel areaModel = pathModel.convertToArea();
+      areaModel.applyTransformations();
+      finalArea.applyOperation(areaModel);
+    }
+
+    // The shapeGroup itself and its components altogether can be rotated or flipped.
+    return ImmutableList.of(transformShapeGroup(finalArea, newParentCoords));
   }
 
-
-  /*
-   * Method that computes the pathData string of the shape in the SketchShapeGroup object.
-   *
-   * Shape operations can only be performed on Area objects, and to make sure that the conversion
-   * between Path2D.Double to Area is correct, the Path2D.Double object MUST be closed
-   * */
   @NotNull
-  private String buildShapeString(@NotNull Point2D.Double parentCoordinates) {
-    SketchLayer[] shapeGroupLayers = getLayers();
-    Rectangle2D.Double parentFrame = getFrame();
-    Rectangle.Double newFrame = new Rectangle2D.Double();
-    newFrame.setRect(parentFrame.getX() + parentCoordinates.getX(),
-                     parentFrame.getY() + parentCoordinates.getY(),
-                     parentFrame.getWidth(),
-                     parentFrame.getHeight());
+  private ShapeModel transformShapeGroup(@NotNull ShapeModel finalShape, @NotNull Point2D.Double newParentCoords) {
+    finalShape.setRotation(getRotation());
+    finalShape.setMirroring(isFlippedHorizontal(), isFlippedVertical());
+    finalShape.setTranslation(newParentCoords);
+    finalShape.applyTransformations();
 
-    SketchShapePath baseSketchShapePath = (SketchShapePath)shapeGroupLayers[0];
-    Area baseShapeArea;
-    Path2D.Double baseShapePath = baseSketchShapePath.getPath2D(newFrame);
-
-
-    // However, if the path is not closed
-    if (shapeGroupLayers.length == 1) {
-      if (getRotation() != 0) {
-        baseShapePath = rotatePath(baseShapePath, baseSketchShapePath.getRotation());
-      }
-      if (baseSketchShapePath.isFlippedHorizontal() || baseSketchShapePath.isFlippedVertical()) {
-        baseShapePath = flipPath(baseShapePath, baseSketchShapePath.isFlippedHorizontal(), baseSketchShapePath.isFlippedVertical());
-      }
-      return toStringPath(baseShapePath);
-    }
-    else {
-      // If the path is already closed, the conversion to Area is completely safe
-      if (baseSketchShapePath.isClosed()) {
-        baseShapeArea = new Area(baseShapePath);
-      }
-      else {
-        baseShapePath.closePath();
-        baseShapeArea = new Area(baseShapePath);
-      }
-    }
-    if (baseSketchShapePath.getRotation() != 0) {
-      baseShapeArea = rotateArea(baseShapeArea, baseSketchShapePath.getRotation());
-    }
-    if (baseSketchShapePath.isFlippedHorizontal() || baseSketchShapePath.isFlippedVertical()) {
-      baseShapeArea = flipArea(baseShapeArea, baseSketchShapePath.isFlippedHorizontal(), baseSketchShapePath.isFlippedVertical());
-    }
-
-    for (int i = 1; i < shapeGroupLayers.length; i++) {
-      SketchShapePath sketchShapePath = (SketchShapePath)shapeGroupLayers[i];
-      Path2D.Double shapePath = sketchShapePath.getPath2D(newFrame);
-      if (!sketchShapePath.isClosed()) {
-        shapePath.closePath();
-      }
-      Area shapeArea = new Area(shapePath);
-      if (sketchShapePath.getRotation() != 0) {
-        shapeArea = rotateArea(shapeArea, sketchShapePath.getRotation());
-      }
-      if (sketchShapePath.isFlippedHorizontal() || sketchShapePath.isFlippedVertical()) {
-        shapeArea = flipArea(shapeArea, sketchShapePath.isFlippedHorizontal(), sketchShapePath.isFlippedVertical());
-      }
-
-      int booleanOperation = sketchShapePath.getBooleanOperation();
-      switch (booleanOperation) {
-        case BOOLEAN_OPERATION_UNION:
-          baseShapeArea.add(shapeArea);
-          break;
-        case BOOLEAN_OPERATION_SUBSTRACTION:
-          baseShapeArea.subtract(shapeArea);
-          break;
-        case BOOLEAN_OPERATION_DIFFERENCE:
-          baseShapeArea.exclusiveOr(shapeArea);
-          break;
-        case BOOLEAN_OPERATION_INTERSECTION:
-          baseShapeArea.intersect(shapeArea);
-          break;
-      }
-    }
-    if (getRotation() != 0) {
-      baseShapeArea = rotateArea(baseShapeArea, getRotation());
-    }
-    if (isFlippedHorizontal() || isFlippedVertical()) {
-      baseShapeArea = flipArea(baseShapeArea, isFlippedHorizontal(), isFlippedVertical());
-    }
-    return toStringPath(baseShapeArea);
+    return finalShape;
   }
 }
 

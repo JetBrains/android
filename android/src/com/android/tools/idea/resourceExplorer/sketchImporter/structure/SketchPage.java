@@ -87,13 +87,13 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
 
   @NotNull
   @Override
-  public List<DrawableShape> getTranslatedShapes(@NotNull Point2D.Double parentCoords) {
-    Point2D.Double currentCoord = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
-                                                     parentCoords.getY() + getFrame().getY());
-    ImmutableList.Builder<DrawableShape> builder = new ImmutableList.Builder<>();
+  public ImmutableList<ShapeModel> createShapeModels(Point2D.Double parentCoords) {
+    Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
+                                                        parentCoords.getY() + getFrame().getY());
+    ImmutableList.Builder<ShapeModel> builder = new ImmutableList.Builder<>();
 
     for (SketchLayer groupLayer : this.getLayers()) {
-      builder.addAll(groupLayer.getTranslatedShapes(currentCoord));
+      builder.addAll(groupLayer.createShapeModels(newParentCoords));
     }
 
     return builder.build();

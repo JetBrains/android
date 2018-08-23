@@ -25,13 +25,13 @@ import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Point
 import java.awt.geom.GeneralPath
+import java.awt.geom.Point2D
 
-class DrawSelfAction(@SwingCoordinate private val start: Point,
-                     @SwingCoordinate private val end: Point,
+class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
+                     @SwingCoordinate private val end: Point2D.Float,
                      private val myColor: Color) : DrawCommand {
-  private constructor(sp: Array<String>) : this(stringToPoint(sp[0]), stringToPoint(sp[1]), stringToColor(sp[2]))
+  private constructor(sp: Array<String>) : this(stringToPoint2D(sp[0]), stringToPoint2D(sp[1]), stringToColor(sp[2]))
 
   constructor(s: String) : this(parse(s, 3))
 
@@ -44,8 +44,8 @@ class DrawSelfAction(@SwingCoordinate private val start: Point,
     path.moveTo(start.x.toFloat(), start.y.toFloat())
 
     val points = selfActionPoints(start, end, sceneContext)
-    DrawConnectionUtils.drawRound(path, points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size,
-                                  SELF_ACTION_RADII.map { sceneContext.getSwingDimension(it) }.toIntArray())
+    DrawConnectionUtils.drawRound(path, points.map { it.x.toInt() }.toIntArray(), points.map { it.y.toInt() }.toIntArray(), points.size,
+                                  SELF_ACTION_RADII.map { sceneContext.getSwingDimensionDip(it) }.toIntArray())
 
     val g2 = g.create() as Graphics2D
 
@@ -57,6 +57,6 @@ class DrawSelfAction(@SwingCoordinate private val start: Point,
   }
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, pointToString(start), pointToString(end), colorToString(myColor))
+    return buildString(javaClass.simpleName, point2DToString(start), point2DToString(end), colorToString(myColor))
   }
 }

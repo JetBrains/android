@@ -88,16 +88,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    return myHandler.createResizeHandler(editor, component, horizontalEdgeType, verticalEdgeType);
-  }
-
-
-  @Override
-  @Nullable
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return myHandler.createScrollHandler(editor, component);
   }

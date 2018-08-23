@@ -69,28 +69,28 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1050,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawAction,NORMAL,490x400x76x128,580x389x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,612.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawAction,NORMAL,490x400x76x128,400x389x76x139,NORMAL\n" +
-      "DrawArrow,2,UP,435.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawIcon,490x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x389.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,612.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x76.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRectangle,1,580.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,580.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,580x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawAction,EXIT,580x400x70x19,400x389x76x139,NORMAL\n" +
-      "DrawArrow,2,DOWN,435.0x380.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,subnav,580x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,580.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,580.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,580.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawAction,EXIT_DESTINATION,580.0x400.0x70.0x19.0,400.0x389.0x76.5x139.0,NORMAL\n" +
+      "DrawArrow,2,DOWN,435.25x380.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,subnav,580.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,404x404x68x111\n" +
-      "DrawRectangle,5,404.0x404.0x68.5x111.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Activity,400x515x76x13,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,activity,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,404.0x404.0x68.5x111.0\n" +
+      "DrawRectangle,5,404.0x404.0x68.5x111.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Activity,400.0x515.0x76.5x13.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,activity,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -115,16 +115,16 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawAction,NORMAL,400x400x76x128,490x389x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,522.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x389.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,navigation.xml,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,nav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,navigation.xml,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,nav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -155,18 +155,18 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1126,1128\n" +
-      "DrawRectangle,1,500.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,501x401x74x126\n" +
-      "DrawIcon,500x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment1,508x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,500.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,501.0x401.0x74.5x126.0\n" +
+      "DrawIcon,500.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment1,508.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x500.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x501x74x126\n" +
-      "DrawTruncatedText,3,fragment2,400x490x77x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x500.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x501.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment2,400.0x490.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,650.0x600.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,651x601x74x126\n" +
-      "DrawTruncatedText,3,fragment3,650x590x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,650.0x600.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,651.0x601.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment3,650.0x590.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -197,18 +197,18 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1126,1128\n" +
-      "DrawRectangle,1,500.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,501x401x74x126\n" +
-      "DrawIcon,500x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment1,508x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,500.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,501.0x401.0x74.5x126.0\n" +
+      "DrawIcon,500.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment1,508.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x500.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x501x74x126\n" +
-      "DrawTruncatedText,3,fragment2,400x490x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x500.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x501.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment2,400.0x490.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,650.0x600.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,651x601x74x126\n" +
-      "DrawTruncatedText,3,fragment3,650x590x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,650.0x600.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,651.0x601.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment3,650.0x590.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -244,20 +244,20 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1056,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawAction,NORMAL,490x400x76x128,400x389x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,436.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,436.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment2,408x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment2,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,580.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,581x401x74x126\n" +
-      "DrawTruncatedText,3,fragment3,580x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,581.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment3,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -287,11 +287,11 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,477.5x464.0,484.5x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,484.5x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,484.5x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -306,16 +306,16 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,966,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawAction,NORMAL,490x400x76x128,400x389x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,436.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,436.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment2,408x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment2,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -357,25 +357,25 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,1056,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawAction,NORMAL,490x400x76x128,580x389x78x139,NORMAL\n" +
-      "DrawArrow,2,RIGHT,571.0x455.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,RIGHT,571.0x455.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,580.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,581x401x74x126\n" +
-      "DrawIcon,580x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment2,588x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,581.0x401.0x74.5x126.0\n" +
+      "DrawIcon,580.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment2,588.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,657.5x464.0,664.5x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,664.5x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,664.5x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFilledRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,400x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawAction,EXIT,400x400x70x19,490x389x78x139,NORMAL\n" +
-      "DrawArrow,2,RIGHT,481.0x455.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,subnav,400x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawAction,EXIT_DESTINATION,400.0x400.0x70.0x19.0,490.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,RIGHT,481.0x455.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,subnav,400.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -393,17 +393,17 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, view)
     assertEquals(
       "Clip,0,0,966,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawAction,NORMAL,490x400x76x128,400x389x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,436.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment3,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,436.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment3,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,fragment4,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment4,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,477.5x464.0,484.5x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,484.5x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,484.5x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -423,9 +423,9 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -479,19 +479,19 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawArrow,2,UP,459.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawSelfAction,476x464,462x535,b2a7a7a7\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawArrow,2,UP,459.5x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,476.5x464.0,462.5x536.0,b2a7a7a7\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawArrow,2,UP,541.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawSelfAction,560x409,544x427,b2a7a7a7\n" +
-      "DrawTruncatedText,3,nav1,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawArrow,2,UP,541.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,560.0x409.5,544.0x427.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,nav1,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -513,11 +513,11 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawIcon,469x389x7x7,DEEPLINK\n" +
-      "DrawTruncatedText,3,fragment1,408x390x60x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawIcon,469.5x389.0x7.0x7.0,DEEPLINK\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x60.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -548,17 +548,17 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawLine,2,387.0x464.0,391.0x464.0,ff1886f7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,ff1886f7\n" +
-      "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,ff1886f7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList(context)
     )
@@ -572,17 +572,17 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ff1886f7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ff1886f7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "DrawFilledCircle,6,560.0x409.5,fff5f5f5,0.0:3.5:63\n" +
       "DrawCircle,7,560.0x409.5,ff1886f7,2,0.0:2.5:63\n" +
       "\n" +
@@ -598,18 +598,18 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ff1886f7,2.0\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ff1886f7,2.0\n" +
       "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-      "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ff1886f7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ff1886f7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "DrawFilledCircle,6,560.0x409.5,fff5f5f5,3.5:0.0:63\n" +
       "DrawCircle,7,560.0x409.5,ff1886f7,2,2.5:0.0:63\n" +
       "\n" +
@@ -641,21 +641,21 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
-      "DrawAction,NORMAL,400x400x76x128,490x389x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,522.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x389.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:63\n" +
       "DrawCircle,7,478.5x464.0,ffa7a7a7,2,0.0:2.5:63\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList(transform)
     )
@@ -666,20 +666,20 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawAction,NORMAL,400x400x76x128,490x389x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,522.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x389.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawFilledCircle,6,478.5x464.0,fff5f5f5,3.5:0.0:63\n" +
       "DrawCircle,7,478.5x464.0,ffa7a7a7,2,2.5:0.0:63\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList(transform)
     )
@@ -690,18 +690,18 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,960,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawAction,NORMAL,400x400x76x128,490x389x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,522.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x389.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
       "DrawLine,2,387.0x464.0,391.0x464.0,ffa7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,ffa7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,ffa7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "\n" +
-      "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList(transform)
     )
@@ -729,10 +729,10 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-      "DrawNavScreen,401x401x74x126\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
       "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:5.5:100\n" +
       "DrawCircle,7,478.5x464.0,ffa7a7a7,2,0.0:4.0:100\n" +
       "\n" +
@@ -776,19 +776,19 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
         "Clip,0,0,960,928\n" +
-        "DrawFilledRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-        "DrawRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
-        "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+        "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+        "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
+        "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+        "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
         "\n" +
-        "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-        "DrawRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ff1886f7,2.0\n" +
-        "DrawAction,NORMAL,400x400x76x128,490x389x70x30,NORMAL\n" +
-        "DrawArrow,2,UP,522.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
+        "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+        "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ff1886f7,2.0\n" +
+        "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x389.0x70.0x30.0,NORMAL\n" +
+        "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
         "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawNavScreen,401x401x74x126\n" +
+        "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+        "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+        "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
         "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:63\n" +
         "DrawFilledCircle,7,478.5x464.0,ff1886f7,2.5:2.5:0\n" +
         "DrawActionHandleDrag,478,464\n" +
@@ -812,7 +812,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,977,1028\n" +
-      "DrawRectangle,450x450x77x128,FRAMES,1,0\n" +
+      "DrawRoundRectangle,450x450x77x128,FRAMES,1,0\n" +
       "DrawActionHandle,527,514,0,0,FRAMES,0\n" +
       "DrawScreenLabel,450,445,fragment1\n" +
       "\n" +
@@ -827,7 +827,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,914,914\n" +
-      "DrawRectangle,425x425x64x64,FRAMES,1,0\n" +
+      "DrawRoundRectangle,425x425x64x64,FRAMES,1,0\n" +
       "DrawActionHandle,489,456,0,0,FRAMES,0\n" +
       "DrawTruncatedText,3,fragment1,425x415x64x5,SUBDUED_TEXT,0,false\n" +
       "\n" +
@@ -841,7 +841,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1028,972\n" +
-      "DrawRectangle,450x450x128x72,FRAMES,1,0\n" +
+      "DrawRoundRectangle,450x450x128x72,FRAMES,1,0\n" +
       "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
       "DrawTruncatedText,3,fragment1,450x440x128x5,SUBDUED_TEXT,0,false\n" +
       "\n" +
@@ -881,33 +881,33 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1056,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,477.0x464.0,481.0x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,481.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawRectangle,1,580.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,581x401x74x126\n" +
-      "DrawAction,NORMAL,580x400x76x128,400x389x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,436.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawArrow,2,UP,639.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawSelfAction,656x464,642x535,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment2,580x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,581.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,580.0x400.0x76.5x128.0,400.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,436.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,639.5x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,656.5x464.0,642.5x536.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,567.0x455.0,571.0x455.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,571.0x452.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,571.0x452.0x5.0x6.0,b2a7a7a7\n" +
       "DrawLine,2,567.0x464.0,571.0x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,571.0x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,fragment3,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment3,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,387.0x446.0,391.0x446.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x443.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,391.0x443.0x5.0x6.0,b2a7a7a7\n" +
       "DrawLine,2,387.0x455.0,391.0x455.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x452.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,391.0x452.0x5.0x6.0,b2a7a7a7\n" +
       "DrawLine,2,387.0x473.0,391.0x473.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,391.0x470.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,391.0x470.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -933,15 +933,15 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,966,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawAction,NORMAL,400x400x76x128,490x389x78x139,NORMAL\n" +
-      "DrawArrow,2,RIGHT,481.0x455.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment2,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,RIGHT,481.0x455.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -997,44 +997,46 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,1056,1078\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawTruncatedText,3,fragment2,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment2,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,567.5x464.0,574.5x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,574.5x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,574.5x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawRectangle,1,580.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,581x401x74x126\n" +
-      "DrawTruncatedText,3,fragment3,580x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,581.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment3,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,657.5x455.0,664.5x455.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,664.5x452.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,664.5x452.0x5.0x6.0,b2a7a7a7\n" +
       "DrawLine,2,657.5x464.0,664.5x464.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,664.5x461.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,664.5x461.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawRectangle,1,400.0x520.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x521x74x126\n" +
-      "DrawAction,NORMAL,400x520x76x128,490x389x78x139,NORMAL\n" +
-      "DrawArrow,2,UP,526.0x531.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment4,400x510x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x520.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x521.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,400.0x520.0x76.5x128.0,490.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,UP,526.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment4,400.0x510.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,477.5x566.0,484.5x566.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,484.5x563.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,484.5x563.0x5.0x6.0,b2a7a7a7\n" +
       "DrawLine,2,477.5x575.0,484.5x575.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,484.5x572.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,484.5x572.0x5.0x6.0,b2a7a7a7\n" +
       "DrawLine,2,477.5x593.0,484.5x593.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,484.5x590.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,484.5x590.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawRectangle,1,490.0x550.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x551x74x126\n" +
-      "DrawArrow,2,UP,549.0x681.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawSelfAction,566x614,552x685,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment5,490x540x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x550.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x551.0x74.5x126.0\n" +
+      "DrawArrow,2,UP,549.5x682.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,566.5x614.0,552.5x686.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment5,490.0x540.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawLine,2,567.5x605.0,574.5x605.0,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,574.5x602.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,574.5x602.0x5.0x6.0,b2a7a7a7\n" +
       "\n" +
-      "DrawFilledRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,400x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,nav2,400x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,nav2,400.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,2,471.0x409.5,478.0x409.5,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,478.0x406.5x5.0x6.0,b2a7a7a7\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -1112,31 +1114,31 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1056,928\n" +
-      "DrawRectangle,1,490.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,491x401x74x126\n" +
-      "DrawAction,NORMAL,490x400x76x128,580x389x78x139,NORMAL\n" +
-      "DrawArrow,2,RIGHT,571.0x455.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawAction,NORMAL,490x400x76x128,400x419x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,432.0x453.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,RIGHT,571.0x455.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x419.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,432.0x453.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawRectangle,1,580.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,581x401x74x126\n" +
-      "DrawTruncatedText,3,fragment2,580x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,581.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment2,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRectangle,1,400.0x430.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,400.0x430.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,400x430x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawAction,NORMAL,400x430x70x19,490x389x78x139,NORMAL\n" +
-      "DrawArrow,2,RIGHT,481.0x455.0x5.0x6.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawAction,NORMAL,400x430x70x19,400x389x70x30,NORMAL\n" +
-      "DrawArrow,2,UP,432.0x423.0x6.0x5.0x0.0x0.0,b2a7a7a7\n" +
-      "DrawTruncatedText,3,nav1,400x420x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,400.0x430.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x430.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x430.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawAction,REGULAR,400.0x430.0x70.0x19.0,490.0x389.0x78.5x139.0,NORMAL\n" +
+      "DrawArrow,2,RIGHT,481.0x455.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawAction,REGULAR,400.0x430.0x70.0x19.0,400.0x389.0x70.0x30.0,NORMAL\n" +
+      "DrawArrow,2,UP,432.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,nav1,400.0x420.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
-      "DrawRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Nested Graph,400x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-      "DrawTruncatedText,3,nav2,400x390x70x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x400.0x70.0x19.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,nav2,400.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -1176,9 +1178,9 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -1197,27 +1199,27 @@ class NavSceneTest : NavTestCase() {
 
   fun testZoomIn() {
     zoomTest(3.0, "Clip,0,0,5259,5568\n" +
-                  "DrawRectangle,1,2400.0x2400.0x459.0x768.0x0.0x0.0,ffa7a7a7,1.0\n" +
-                  "DrawNavScreen,2401x2401x457x766\n" +
-                  "DrawTruncatedText,3,fragment1,2400x2340x459x30,ff656565,Default:0:36,false\n" +
+                  "DrawRectangle,1,2400.0x2400.0x459.0x768.0,ffa7a7a7,1.0\n" +
+                  "DrawNavScreen,2401.0x2401.0x457.0x766.0\n" +
+                  "DrawTruncatedText,3,fragment1,2400.0x2340.0x459.0x30.0,ff656565,Default:0:36,false\n" +
                   "\n" +
                   "UNClip\n")
   }
 
   fun testZoomOut() {
     zoomTest(0.25, "Clip,0,0,438,464\n" +
-                   "DrawRectangle,1,200.0x200.0x38.25x64.0x0.0x0.0,ffa7a7a7,1.0\n" +
-                   "DrawNavScreen,201x201x36x62\n" +
-                   "DrawTruncatedText,3,fragment1,200x195x38x2,ff656565,Default:0:5,false\n" +
+                   "DrawRectangle,1,200.0x200.0x38.25x64.0,ffa7a7a7,1.0\n" +
+                   "DrawNavScreen,201.0x201.0x36.25x62.0\n" +
+                   "DrawTruncatedText,3,fragment1,200.0x195.0x38.25x2.5,ff656565,Default:0:5,false\n" +
                    "\n" +
                    "UNClip\n")
   }
 
   fun testZoomToFit() {
     zoomTest(1.0, "Clip,0,0,1753,1856\n" +
-                  "DrawRectangle,1,800.0x800.0x153.0x256.0x0.0x0.0,ffa7a7a7,1.0\n" +
-                  "DrawNavScreen,801x801x151x254\n" +
-                  "DrawTruncatedText,3,fragment1,800x780x153x10,ff656565,Default:0:12,false\n" +
+                  "DrawRectangle,1,800.0x800.0x153.0x256.0,ffa7a7a7,1.0\n" +
+                  "DrawNavScreen,801.0x801.0x151.0x254.0\n" +
+                  "DrawTruncatedText,3,fragment1,800.0x780.0x153.0x10.0,ff656565,Default:0:12,false\n" +
                   "\n" +
                   "UNClip\n")
   }
@@ -1237,9 +1239,9 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )
@@ -1282,9 +1284,9 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
       "Clip,0,0,876,928\n" +
-      "DrawRectangle,1,400.0x400.0x76.5x128.0x0.0x0.0,ffa7a7a7,1.0\n" +
-      "DrawNavScreen,401x401x74x126\n" +
-      "DrawTruncatedText,3,customComponent,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "DrawTruncatedText,3,customComponent,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
       "UNClip\n", list.serialize()
     )

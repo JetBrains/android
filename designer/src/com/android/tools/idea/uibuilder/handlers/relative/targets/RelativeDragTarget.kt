@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.intellij.openapi.util.text.StringUtil
 
 /**
@@ -33,8 +34,10 @@ class RelativeDragTarget : DragBaseTarget() {
   private var myTargetX: BaseRelativeTarget? = null
   private var myTargetY: BaseRelativeTarget? = null
 
-  private var recomputeHorizontalConstraint = false
-  private var recomputeVerticalConstraint = false
+  private var hasHorizontalConstraint = false
+  private var hasVerticalConstraint = false
+
+  override fun isAutoConnectionEnabled() = ToggleAutoConnectAction.isAutoconnectOn()
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     if (myComponent.parent == null) {
@@ -43,8 +46,8 @@ class RelativeDragTarget : DragBaseTarget() {
 
     preProcessAttribute(myComponent.authoritativeNlComponent.startAttributeTransaction())
 
-    recomputeHorizontalConstraint = !hasHorizontalConstraint(myComponent)
-    recomputeVerticalConstraint = !hasVerticalConstraint(myComponent)
+    hasHorizontalConstraint = hasHorizontalConstraint(myComponent)
+    hasVerticalConstraint = hasVerticalConstraint(myComponent)
 
     super.mouseDown(x, y)
     myComponent.setModelUpdateAuthorized(true)
@@ -128,32 +131,33 @@ class RelativeDragTarget : DragBaseTarget() {
   @AndroidDpCoordinate
   private fun processHorizontalAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int): Int {
     val parent = myComponent.parent!!
+    myTargetX?.myIsHighlight = false
 
     // Calculate horizontal constraint(s)
-    if (recomputeHorizontalConstraint) {
-      clearHorizontalConstrains(attributes)
-      attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
-      myTargetX?.myIsHighlight = false
-
-      val dx = Math.max(parent.drawLeft, Math.min(x, parent.drawRight - myComponent.drawWidth))
-      val snappedX = targetNotchSnapper.trySnapHorizontal(dx)
-
-      if (snappedX.isPresent) {
-        targetNotchSnapper.applyNotches(attributes)
-        myTargetX = targetNotchSnapper.snappedHorizontalTarget as BaseRelativeTarget?
-        myTargetX?.myIsHighlight = true
-
-        targetNotchSnapper.clearSnappedNotches()
-        return snappedX.asInt
-      }
-      else {
-        addHorizontalParentConstraints(attributes, dx)
-        return dx
-      }
-    }
-    else {
+    if (hasHorizontalConstraint) {
       updateCurrentHorizontalConstraints(attributes)
       return x
+    }
+
+    clearHorizontalConstrains(attributes)
+    attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
+    val dx = Math.max(parent.drawLeft, Math.min(x, parent.drawRight - myComponent.drawWidth))
+    if (!isAutoConnectionEnabled) {
+      return dx
+    }
+
+    val snappedX = targetNotchSnapper.trySnapHorizontal(dx)
+    if (snappedX.isPresent) {
+      targetNotchSnapper.applyNotches(attributes)
+      myTargetX = targetNotchSnapper.snappedHorizontalTarget as BaseRelativeTarget?
+      myTargetX?.myIsHighlight = true
+
+      targetNotchSnapper.clearSnappedNotches()
+      return snappedX.asInt
+    }
+    else {
+      addHorizontalParentConstraints(attributes, dx)
+      return dx
     }
   }
 
@@ -207,33 +211,34 @@ class RelativeDragTarget : DragBaseTarget() {
   @AndroidDpCoordinate
   private fun processVerticalAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate y: Int): Int {
     val parent = myComponent.parent!!
+    myTargetY?.myIsHighlight = false
 
     // Calculate vertical constraint(s)
-    if (recomputeVerticalConstraint) {
-      clearVerticalConstrains(attributes)
-      attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
-      myTargetY?.myIsHighlight = false
-
-      val dy = Math.max(parent.drawTop, Math.min(y, parent.drawBottom - myComponent.drawHeight))
-      val snappedY = targetNotchSnapper.trySnapVertical(dy)
-
-      if (snappedY.isPresent) {
-        targetNotchSnapper.applyNotches(attributes)
-        myTargetY = targetNotchSnapper.snappedVerticalTarget as BaseRelativeTarget?
-        myTargetY?.myIsHighlight = true
-
-        targetNotchSnapper.clearSnappedNotches()
-
-        return snappedY.asInt
-      }
-      else {
-        addVerticalParentConstraint(attributes, dy)
-        return dy
-      }
-    }
-    else {
+    if (hasVerticalConstraint) {
       updateVerticalConstraints(attributes)
       return y
+    }
+
+    clearVerticalConstrains(attributes)
+    attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
+    val dy = Math.max(parent.drawTop, Math.min(y, parent.drawBottom - myComponent.drawHeight))
+    if (!isAutoConnectionEnabled) {
+      return dy
+    }
+
+    val snappedY = targetNotchSnapper.trySnapVertical(dy)
+    if (snappedY.isPresent) {
+      targetNotchSnapper.applyNotches(attributes)
+      myTargetY = targetNotchSnapper.snappedVerticalTarget as BaseRelativeTarget?
+      myTargetY?.myIsHighlight = true
+
+      targetNotchSnapper.clearSnappedNotches()
+
+      return snappedY.asInt
+    }
+    else {
+      addVerticalParentConstraint(attributes, dy)
+      return dy
     }
   }
 

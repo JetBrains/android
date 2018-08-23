@@ -325,7 +325,7 @@ public class VariantOnlyProjectModels implements Serializable {
 
     public static class NativeVariantAbiModel implements Serializable {
       @NotNull final String name;
-      @NotNull final NativeVariantAbi model;
+      @NotNull public final NativeVariantAbi model;
 
       public NativeVariantAbiModel(@NotNull String name, @NotNull NativeVariantAbi nativeVariantAbi) {
         this.name = name;

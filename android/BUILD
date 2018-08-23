@@ -296,6 +296,20 @@ filegroup(
 )
 
 filegroup(
+    name = "deploy-artifacts",
+    srcs = select({
+        "//tools/base/bazel:windows": [
+            "//tools/base/deploy/proto:java_proto",
+        ],
+        "//conditions:default": [
+            "//tools/base/deploy/installer:android",
+            "//tools/base/deploy/proto:java_proto",
+        ],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "aapt-proto-artifacts",
     srcs = [
         "//tools/base/sdk-common/aapt-proto-jar-generator:aapt-proto-jarjar.jar",
@@ -332,12 +346,11 @@ filegroup(
         ":aapt-proto-artifacts",
         ":aia-artifacts",
         ":analytics-artifacts",
+        ":deploy-artifacts",
         ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
-        "//tools/base/deploy/installer:android",
-        "//tools/base/deploy/proto:java_proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
 )
@@ -442,8 +455,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/27.1.1:aar",
-        "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/26.0.2:aar",
-        "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/27.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-core/3.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-idling-resource/3.0.2:aar",
@@ -499,6 +510,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/errorprone/error_prone_annotations/2.1.3:jar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-common-license/12.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-common/12.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-iid-license/12.0.1:aar",
@@ -507,6 +519,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-messaging/12.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/19.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/23.0:jar",
         "//prebuilts/tools/common/m2/repository/com/linkedin/testbutler/test-butler-app/1.3.1:apk",
         "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
         "//prebuilts/tools/common/m2/repository/commons-lang/commons-lang/2.4:jar",

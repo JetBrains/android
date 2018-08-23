@@ -107,9 +107,6 @@ open class NelePropertyItem(
   open val rawValue: String?
     get() = getCommonComponentValue()
 
-  private val rawOrDefaultValue: String?
-    get() = rawValue ?: model.provideDefaultValue(this)
-
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
 
@@ -155,13 +152,26 @@ open class NelePropertyItem(
   override fun hashCode() = HashCodes.mix(namespace.hashCode(), name.hashCode())
 
   private fun resolveValue(value: String?): String? {
-    return resolveValueUsingResolver(value ?: model.provideDefaultValue(this))
+    return resolveValueUsingResolver(value)
   }
 
   private fun resolveValueUsingResolver(value: String?): String? {
-    if (value == null || !isReferenceValue(value)) return value
-    val resValue = asResourceValue(value) ?: asFrameworkResourceValue(value) ?: return null
-    return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
+    if (value != null && !isReferenceValue(value)) return value
+    val resValue = asResourceValue(value) ?: return null
+    when (resValue.resourceType) {
+      ResourceType.BOOL,
+      ResourceType.DIMEN,
+      ResourceType.FRACTION,
+      ResourceType.ID,
+      ResourceType.STYLE_ITEM,  // Hack for default values from LayoutLib
+      ResourceType.INTEGER,
+      ResourceType.STRING -> if (resValue.value != null) return resValue.value
+      ResourceType.COLOR -> if (resValue.value?.startsWith("#") == true) return resValue.value
+      else -> {}
+    }
+    // The value of the remaining resource types are file names, which we don't want to display.
+    // Instead show the url of this resolved resource.
+    return resValue.asReference().getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString()
   }
 
   val resolver: ResourceResolver?
@@ -181,18 +191,22 @@ open class NelePropertyItem(
   protected open val firstComponent: NlComponent?
     get() = components.firstOrNull()
 
-  private fun asResourceValue(value: String): ResourceValue? {
-    val url = ResourceUrl.parse(value) ?: return null
-    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
-    val resRef = url.resolve(defaultNamespace, namespaceResolver) ?: return null
-    return resolver?.getResolvedResource(resRef)
-  }
+  private fun asResourceValue(value: String?): ResourceValue? {
+    val resRef = when (value) {
+      null -> {
+        val defValue = model.provideDefaultValue(this)
+        defValue?.reference ?: return defValue
+      }
+      else -> ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver)
+    } ?: return null
 
-  // TODO: Namespaces. Remove this when the framework & layoutlib is properly using prefixes for framework references
-  private fun asFrameworkResourceValue(value: String): ResourceValue? {
-    val url = ResourceUrl.parse(value) ?: return null
-    val resRef = url.resolve(ResourceNamespace.ANDROID, namespaceResolver) ?: return null
-    return resolver?.getResolvedResource(resRef)
+    if (resRef.resourceType == ResourceType.ATTR) {
+      val resValue = resolver?.findItemInTheme(resRef) ?: return null
+      return resolver?.resolveResValue(resValue)
+    }
+    else {
+      return resolver?.getResolvedResource(resRef)
+    }
   }
 
   private val project: Project
@@ -203,6 +217,9 @@ open class NelePropertyItem(
 
   private val nlModel: NlModel?
     get() = firstComponent?.model
+
+  private val defaultNamespace: ResourceNamespace
+    get() = ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -253,13 +270,20 @@ open class NelePropertyItem(
 
   private fun computeTooltipForValue(): String {
     val currentValue = rawValue
-    val actualValue = currentValue ?: model.provideDefaultValue(this)
-    val resolvedValue = if (isReferenceValue(actualValue)) resolveValue(actualValue) else actualValue
-    if (actualValue == null || (currentValue == resolvedValue)) return ""
+    val actualValue = rawValue ?: valueOf(model.provideDefaultValue(this))
+    val computedResolvedValue = resolvedValue
+    if (currentValue == computedResolvedValue) return ""
     val defaultText = if (currentValue == null) "[default] " else ""
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)
-    val resolvedText = if (resolvedValue != actualValue) " = \"$resolvedValue\" ($keyStroke)" else ""
+    val resolvedText = if (computedResolvedValue != actualValue) " = \"$computedResolvedValue\" ($keyStroke)" else ""
     return "$defaultText\"$actualValue\"$resolvedText"
+  }
+
+  private fun valueOf(value: ResourceValue?): String? {
+    if (value == null) {
+      return null
+    }
+    return value.reference?.getRelativeResourceUrl(defaultNamespace, namespaceResolver)?.toString() ?: value.value
   }
 
   private fun findNamespacePrefix(): String {
@@ -279,7 +303,6 @@ open class NelePropertyItem(
     val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
     val localRepository = resourceManagers.localResourceManager.resourceRepository
     val frameworkRepository = resourceManagers.frameworkResourceManager?.resourceRepository
-    val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
     val namespaceResolver = namespaceResolver
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
@@ -349,26 +372,27 @@ open class NelePropertyItem(
       get() = true
 
     override fun getActionIcon(focused: Boolean): Icon {
-      return resolveAsIcon(rawOrDefaultValue) ?: return StudioIcons.LayoutEditor.Extras.PIPETTE
+      return resolveValueAsIcon() ?: return StudioIcons.LayoutEditor.Extras.PIPETTE
     }
 
     override val action: AnAction?
       get() {
-        val value = rawOrDefaultValue
-        val color = resolveAsColor(value)
+        val color = resolveValueAsColor()
         return ColorSelectionAction(this@NelePropertyItem, color)
       }
 
-      private fun resolveAsColor(value: String?): Color? {
-        if (value == null || !isReferenceValue(value)) {
+      private fun resolveValueAsColor(): Color? {
+        val value = rawValue
+        if (value != null && !isReferenceValue(value)) {
           return parseColor(value)
         }
         val resValue = asResourceValue(value) ?: return null
         return resolver?.resolveColor(resValue, project)
       }
 
-      private fun resolveAsIcon(value: String?): Icon? {
-        if (value == null || !isReferenceValue(value)) {
+      private fun resolveValueAsIcon(): Icon? {
+        val value = rawValue
+        if (value != null && !isReferenceValue(value)) {
           val color = parseColor(value) ?: return null
           return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
         }

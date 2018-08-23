@@ -17,18 +17,18 @@ package com.android.tools.idea.common.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,8 +49,6 @@ import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 /**
@@ -469,18 +467,6 @@ public class InteractionManager {
       SelectionModel selectionModel = sceneView.getSelectionModel();
       NlComponent component = Coordinates.findComponent(sceneView, x, y);
 
-      // TODO: remove selectionhandle reference
-      if (selectionModel instanceof NlSelectionModel && component == null) {
-        // Clicked component resize handle?
-        @AndroidDpCoordinate int mx = Coordinates.getAndroidXDip(sceneView, x);
-        @AndroidDpCoordinate int my = Coordinates.getAndroidYDip(sceneView, y);
-        @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = ((NlSelectionModel)selectionModel).findHandle(mx, my, max, mySurface);
-        if (handle != null) {
-          component = handle.component;
-        }
-      }
-
       if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
         return;
       }
@@ -562,46 +548,31 @@ public class InteractionManager {
         int yDp = Coordinates.getAndroidYDip(sceneView, y);
 
         Interaction interaction;
-        // Dragging on top of a selection handle: start a resize operation
-        @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = null;
-        // TODO: remove selectionhandle reference
-        if (selectionModel instanceof NlSelectionModel) {
-          ((NlSelectionModel)selectionModel).findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y),
-                                                        max, mySurface);
+        NlModel model = sceneView.getModel();
+        SceneComponent component = null;
+
+        // Make sure we start from root if we don't have anything selected
+        if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
+          selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
         }
-        if (handle != null) {
-          SceneComponent component = scene.getSceneComponent(handle.component);
-          assert component != null;
-          interaction = new ResizeInteraction(sceneView, component, handle);
+
+        // See if you're dragging inside a selected parent; if so, drag the selection instead of any
+        // leaf nodes inside it
+        NlComponent primaryNlComponent = selectionModel.getPrimary();
+        SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
+        if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
+          component = primary;
+        }
+        if (component == null) {
+          component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
+        }
+
+        if (component == null || component.getParent() == null) {
+          // Dragging on the background/root view: start a marquee selection
+          interaction = new MarqueeInteraction(sceneView, toggle);
         }
         else {
-          NlModel model = sceneView.getModel();
-          SceneComponent component = null;
-
-          // Make sure we start from root if we don't have anything selected
-          if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
-            selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
-          }
-
-          // See if you're dragging inside a selected parent; if so, drag the selection instead of any
-          // leaf nodes inside it
-          NlComponent primaryNlComponent = selectionModel.getPrimary();
-          SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
-          if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
-            component = primary;
-          }
-          if (component == null) {
-            component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
-          }
-
-          if (component == null || component.getParent() == null) {
-            // Dragging on the background/root view: start a marquee selection
-            interaction = new MarqueeInteraction(sceneView, toggle);
-          }
-          else {
-            interaction = getSurface().createInteractionOnDrag(component, primary);
-          }
+          interaction = getSurface().createInteractionOnDrag(component, primary);
         }
 
         if (interaction != null) {

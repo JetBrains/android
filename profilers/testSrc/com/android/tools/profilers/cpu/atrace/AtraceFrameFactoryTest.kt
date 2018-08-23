@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.buildModelFragment
+import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.convertTimeStamps
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -25,6 +25,7 @@ import trebuchet.model.Model
 import trebuchet.model.ProcessModel
 import trebuchet.task.ImportTask
 import trebuchet.util.PrintlnImportFeedback
+import java.util.concurrent.TimeUnit
 
 class AtraceFrameFactoryTest {
   private lateinit var model: Model
@@ -39,43 +40,25 @@ class AtraceFrameFactoryTest {
   }
 
   @Test
-  fun testStandardFrames() {
-    val frameFactory = AtraceFrameFactory(model, process)
-    val frames = frameFactory.buildFramesList()
+  fun filterReturnsFramesOfSameThread() {
+    val frameFactory = AtraceFrameFactory(process, ::convertTimeStamps)
+    val frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", TEST_PID,
+                                              TimeUnit.MILLISECONDS.toMicros(30));
+    val frames = frameFactory.buildFramesList(frameFilter)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(122)
-    assertThat(frames[0].slices).hasSize(2)
-    val uiThreadSlice = frames[0].slices[1]
-    val renderThreadSlice = frames[0].slices[0]
-    assertThat(uiThreadSlice.name).isEqualTo(AtraceFrameFactory.UIThreadDrawType.MARSHMALLOW.getDrawName())
-    assertThat(renderThreadSlice.name).isEqualTo(AtraceFrameFactory.RenderThreadDrawNames.RENDER_THREAD.getDrawName())
+    assertThat(frames[0].perfClass).isEqualTo(AtraceFrame.PerfClass.GOOD)
+    assertThat(frames[1].perfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
   }
 
   @Test
-  fun testNoRenderThread() {
-    val modelFragment = buildModelFragment()
-    val noRenderModel = Model(modelFragment)
-    val frameFactory = AtraceFrameFactory(noRenderModel, noRenderModel.processes[1]!!)
-    val frames = frameFactory.buildFramesList()
-    assertThat(frames).hasSize(1)
-    assertThat(frames[0].slices[0].name).isEqualTo(AtraceFrameFactory.UIThreadDrawType.MARSHMALLOW.getDrawName())
-  }
-
-  @Test
-  fun testRenderThreadFrame() {
-    val modelFragment = buildModelFragment()
-    val renderThread = modelFragment.processes[0].threadFor(2, AtraceFrameFactory.RENDER_THREAD_NAME)
-    renderThread.slicesBuilder.beginSlice {
-      it.name = AtraceFrameFactory.RenderThreadDrawNames.RENDER_THREAD_INDEP.getDrawName()
-      it.startTime = 1.0
-    }
-    renderThread.slicesBuilder.endSlice {
-      it.endTime = 2.0
-    }
-    val renderModel = Model(modelFragment)
-    val frameFactory = AtraceFrameFactory(renderModel, renderModel.processes[1]!!)
-    val frames = frameFactory.buildFramesList()
-    assertThat(frames).hasSize(2)
-    assertThat(frames[1].slices[0].name).isEqualTo(AtraceFrameFactory.RenderThreadDrawNames.RENDER_THREAD_INDEP.getDrawName())
+  fun noMatchingThreadReturnsEmptyList() {
+    val frameFactory = AtraceFrameFactory(process, ::convertTimeStamps)
+    var frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", 0,
+                                              TimeUnit.MILLISECONDS.toMicros(30));
+    assertThat(frameFactory.buildFramesList(frameFilter)).hasSize(0)
+    frameFilter = AtraceFrameFilterConfig("TestEventOnValidThread", TEST_PID,
+                                          TimeUnit.MILLISECONDS.toMicros(30));
+    assertThat(frameFactory.buildFramesList(frameFilter)).hasSize(0)
   }
 }

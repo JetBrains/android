@@ -430,22 +430,25 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     }
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
     Collection<UsageInfo> references = findCodeUsages("MyView2.java", "src/p1/p2/MyView.java");
-    assertEquals("MyView.java:12:\n" +
-                 "  int attribute = R.attr.answer;\n" +
-                 "                         |~~~~~~\n" +
-                 "MyView.java:14:\n" +
-                 "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
-                 "                                    |~~~~~~~~~~~~~    \n" +
-                 "R.java:46:\n" +
-                 "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
-                 "                        |~~~~~~~~~~~~~                                       \n" +
-                 "R.java:48:\n" +
-                 "  @see #MyView_answer\n" +
-                 "        |~~~~~~~~~~~~\n" +
-                 "R.java:54:\n" +
-                 "  <p>This symbol is the offset where the {@link p1.p2.R.attr#answer}\n" +
-                 "                                                             |~~~~~~\n",
-                 describeUsages(references));
+    String expected = "MyView.java:12:\n" +
+                      "  int attribute = R.attr.answer;\n" +
+                      "                         |~~~~~~\n" +
+                      "MyView.java:14:\n" +
+                      "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
+                      "                                    |~~~~~~~~~~~~~    \n";
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      expected +=
+        "R.java:46:\n" +
+        "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
+        "                        |~~~~~~~~~~~~~                                       \n" +
+        "R.java:48:\n" +
+        "  @see #MyView_answer\n" +
+        "        |~~~~~~~~~~~~\n" +
+        "R.java:54:\n" +
+        "  <p>This symbol is the offset where the {@link p1.p2.R.attr#answer}\n" +
+        "                                                             |~~~~~~\n";
+    }
+    assertEquals(expected, describeUsages(references));
   }
 
   public void testIdDeclarations() throws Throwable {

@@ -28,12 +28,13 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 
 internal fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
-internal fun <T> Annotated<ParsedValue<T>>.asTestValue(): T? = value.maybeValue
+internal fun <T : Any> Annotated<ParsedValue<T>>.asTestValue(): T? = value.maybeValue
 internal fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(this, DslText.Literal)
-internal fun <T> Annotated<ParsedValue<T>>.asUnparsedValue(): String? =
+internal fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
+internal fun <T : Any> Annotated<ParsedValue<T>>.asUnparsedValue(): String? =
   ((value as? ParsedValue.Set.Parsed<T>)?.dslText as? DslText.OtherUnparsedDslText)?.text
-internal val <T> Annotated<PropertyValue<T>>.resolved get() = value.resolved
-internal val <T> Annotated<PropertyValue<T>>.parsedValue get() = value.parsedValue
+internal val <T : Any> Annotated<PropertyValue<T>>.resolved get() = value.resolved
+internal val <T : Any> Annotated<PropertyValue<T>>.parsedValue get() = value.parsedValue
 
 fun PsProjectImpl.testResolve() {
   refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(30, TimeUnit.SECONDS))

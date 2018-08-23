@@ -16,7 +16,6 @@
 
 package org.jetbrains.android.util;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -43,7 +42,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -57,7 +55,6 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
-import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.ManifestClass;
@@ -82,6 +79,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.builder.model.AaptOptions.Namespacing;
 import static com.android.resources.ResourceType.*;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
@@ -184,29 +182,34 @@ public class AndroidResourceUtil {
     }
   }
 
+  /**
+   * Finds all R classes that contain fields for resources from the given module.
+   *
+   * @param facet {@link AndroidFacet} of the module to find classes for
+   * @param onlyInOwnPackages whether to limit results to "canonical" R classes, that is classes defined in the same module as the module
+   *                          they describe. When sync-time R.java generation is used, sources for the same fully-qualified R class are
+   *                          generated both in the owning module and all modules depending on it.
+   * @return
+   */
   @NotNull
-  private static Set<PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
-    Set<PsiClass> rClasses = Sets.newHashSet();
+  private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
+    final Module module = facet.getModule();
+    final Project project = module.getProject();
+    if (facet.getManifest() == null) {
+      return Collections.emptySet();
+    }
+
 
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       LightResourceClassService resourceClassService =
         ProjectSystemUtil.getProjectSystem(facet.getModule().getProject()).getLightResourceClassService();
 
-      if (resourceClassService != null) {
-        rClasses.addAll(resourceClassService.getLightRClassesAccessibleFromModule(facet.getModule()));
-      }
+      return resourceClassService.getLightRClassesContainingModuleResources(module);
     }
     else {
-      final Module module = facet.getModule();
-      final Project project = module.getProject();
-      if (facet.getManifest() == null) {
-        return Collections.emptySet();
-      }
-
-      Graph<Module> graph = ModuleManager.getInstance(project).moduleGraph();
-      Set<Module> dependentModules = Sets.newHashSet();
-      collectDependentModules(graph, module, dependentModules);
-
+      Set<Module> dependentModules = new HashSet<>();
+      ModuleUtilCore.collectModulesDependsOn(module, dependentModules);
+      Set<PsiClass> rClasses = new HashSet<>();
       JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
 
       String targetPackage = onlyInOwnPackages ? null : AndroidManifestUtils.getPackageName(facet);
@@ -230,21 +233,8 @@ public class AndroidResourceUtil {
         }
         rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
       }
-    }
 
-    return rClasses;
-  }
-
-  private static void collectDependentModules(@NotNull Graph<Module> graph,
-                                              @NotNull Module module,
-                                              @NotNull Set<Module> result) {
-    if (result.contains(module)) {
-      return;
-    }
-    result.add(module);
-    Iterator<Module> out = graph.getOut(module);
-    while (out.hasNext()) {
-      collectDependentModules(graph, out.next(), result);
+      return rClasses;
     }
   }
 
@@ -1062,7 +1052,7 @@ public class AndroidResourceUtil {
     }
 
     ResourceNamespace resourceNamespace;
-    if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+    if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == Namespacing.DISABLED) {
       resourceNamespace = ResourceNamespace.RES_AUTO;
     } else {
       resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(qName));
