@@ -44,11 +44,12 @@ sealed class Destination : Comparable<Destination> {
    * Add this to the graph. Must be called in a write action.
    */
 
-  enum class DestinationOrder(val order: Int) {
-    FRAGMENT(0),
-    INCLUDE(1),
-    ACTIVITY(2),
-    OTHER(3)
+  enum class DestinationOrder {
+    PLACEHOLDER,
+    FRAGMENT,
+    INCLUDE,
+    ACTIVITY,
+    OTHER
   }
 
   abstract fun addToGraph()
@@ -149,9 +150,34 @@ sealed class Destination : Comparable<Destination> {
     override val inProject = true
   }
 
+  data class PlaceholderDestination(val parent: NlComponent) : Destination() {
+    override fun addToGraph() {
+      val model = parent.model
+
+      val tag = parent.tag.createChildTag("fragment", null, null, true)
+      val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
+      newComponent.assignId()
+      if (parent.startDestinationId == null) {
+        newComponent.setAsStartDestination()
+      }
+      component = newComponent
+    }
+
+    override val label = "placeholder"
+
+    //TODO: update with real icon when it becomes available
+    override val thumbnail: Image by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED) }
+
+    override val typeLabel = "Empty destination"
+
+    override val destinationOrder = DestinationOrder.PLACEHOLDER
+
+    override val inProject = true
+  }
+
   companion object {
     private val comparator = Comparator.comparing<Destination, Boolean> { it.inProject }
-      .thenComparingInt { it.destinationOrder.order }
+      .thenComparingInt { it.destinationOrder.ordinal }
       .thenComparing<String> { it.label }
   }
 }

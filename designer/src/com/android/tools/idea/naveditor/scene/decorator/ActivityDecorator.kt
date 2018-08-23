@@ -62,7 +62,7 @@ object ActivityDecorator : NavScreenDecorator() {
     @SwingCoordinate val activityTextHeight = getSwingDimension(sceneView, ACTIVITY_TEXT_HEIGHT)
     imageRectangle.height -= (activityTextHeight - activityPadding)
 
-    drawImage(list, sceneContext, component, imageRectangle)
+    drawScreen(list, sceneContext, component, imageRectangle)
 
     val imageBorder = Rectangle2D.Float()
     imageBorder.setRect(imageRectangle)
