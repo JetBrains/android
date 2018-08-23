@@ -100,6 +100,7 @@ public class LineChartVisualTest extends VisualTest {
       mData.add(series);
     }
     model.addAll(mRangedData);
+    RangedContinuousSeries firstSeries = mRangedData.get(0);
 
     mDurationData1 = new DefaultDataSeries<>();
     mDurationData2 = new DefaultDataSeries<>();
@@ -111,6 +112,9 @@ public class LineChartVisualTest extends VisualTest {
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
+    LineConfig customMaskConfig = LineConfig.copyOf(mLineChart.getLineConfig(firstSeries));
+    customMaskConfig.addMaskedSeries(firstSeries);
+    mDurationRendererBlocking.addCustomLineConfig(firstSeries, customMaskConfig);
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
     model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
@@ -120,6 +124,7 @@ public class LineChartVisualTest extends VisualTest {
       .setLabelProvider(durationdata -> "Attached")
       .setStroke(new BasicStroke(1))
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
+    mDurationRendererAttached.addCustomLineConfig(firstSeries, customMaskConfig);
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
     mLineChart.addCustomRenderer(mDurationRendererAttached);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererBlocking);

@@ -254,7 +254,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         g2d.fill(clipRect);
         g2d.setClip(clipRect);
         // Redraw lines in clipRect.
-        LineChart.drawLines(g2d, transformedPaths, configs);
+        LineChart.drawLines(g2d, transformedPaths, series, configs);
         g2d.setClip(originalClip);
       }
     }
