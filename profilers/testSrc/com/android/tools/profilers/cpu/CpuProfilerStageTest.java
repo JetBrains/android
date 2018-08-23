@@ -35,6 +35,7 @@ import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.Iterators;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -342,19 +343,38 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Ignore("b/113102299")
   @Test
   public void traceFilesGeneratedPerTrace() {
-    int firstTraceId = 30;
-    int secondTraceId = 39;
+    int trace1Id = 30;
+    String trace1ExpectedName = String.format("cpu_trace_%d.trace", trace1Id);
+    File trace1 = new File(FileUtil.getTempDirectory(), trace1ExpectedName);
 
-    myCpuService.setTraceId(firstTraceId);
-    captureSuccessfully();
+    int trace2Id = 39;
+    String trace2ExpectedName = String.format("cpu_trace_%d.trace", trace2Id);
+    File trace2 = new File(FileUtil.getTempDirectory(), trace2ExpectedName);
 
-    myCpuService.setTraceId(secondTraceId);
+    // Make sure that both traces do not exist before effectively starting the test. Trace files are marked as temporary and will be deleted
+    // when the program finishes executing. In production, this means we're fine, because we don't repeat trace IDs on the same Studio
+    // instance, so the files won't conflict. For the tests, however, the files might get deleted only after all the tests run, so tests
+    // running in parallel, or multiple executions of this test would mean the files would still be there and we might end up with
+    // conflicting file names, which would cause this test to be flaky.
+    trace1.delete();
+    trace2.delete();
+
+    assertThat(trace1.exists()).isFalse();
+    myCpuService.setTraceId(trace1Id);
     captureSuccessfully();
+    trace1 = new File(FileUtil.getTempDirectory(), trace1ExpectedName);
+    assertThat(trace1.exists()).isTrue();
+
+    assertThat(trace2.exists()).isFalse();
+    myCpuService.setTraceId(trace2Id);
+    captureSuccessfully();
+    trace2 = new File(FileUtil.getTempDirectory(), trace1ExpectedName);
+    assertThat(trace2.exists()).isTrue();
 
     List<String> paths = myCpuService.getTraceFilePaths();
     assertThat(paths).hasSize(2);
-    assertThat(paths.get(0)).endsWith("cpu_trace_30.trace");
-    assertThat(paths.get(1)).endsWith("cpu_trace_39.trace");
+    assertThat(paths.get(0)).endsWith(trace1ExpectedName);
+    assertThat(paths.get(1)).endsWith(trace2ExpectedName);
   }
 
   @Test
