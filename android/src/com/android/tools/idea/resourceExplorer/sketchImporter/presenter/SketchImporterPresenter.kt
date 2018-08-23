@@ -41,7 +41,7 @@ private fun List<LightVirtualFile>.toAssets() = this.map {
   DesignAssetSet(it.name, listOf(DesignAsset(it, emptyList(), ResourceType.DRAWABLE)))
 }
 
-private const val DEFAULT_IMPORT_ALL = false
+private const val DEFAULT_IMPORT_ALL = true
 
 class SketchImporterPresenter(private val sketchImporterView: SketchImporterView,
                               sketchFile: SketchFile,
