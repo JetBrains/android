@@ -17,7 +17,10 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.intellij.ui.JBColor;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -106,10 +109,14 @@ public class LineConfig {
   @NotNull
   private Color mColor;
 
+  @NotNull
+  private Set<RangedContinuousSeries> mMaskedSeries;
+
   public LineConfig(@NotNull Color color) {
     mColor = color;
     myStroke = DEFAULT_LINE_STROKE;
     myLegendIconType = LegendConfig.IconType.NONE;
+    mMaskedSeries = new HashSet<>();
   }
 
   public static LineConfig copyOf(@NotNull LineConfig otherConfig) {
@@ -123,7 +130,21 @@ public class LineConfig {
     config.setLegendIconType(otherConfig.getLegendIconType());
     config.setStroke(otherConfig.getStroke());
     config.setAdjustedDashPhase(otherConfig.getAdjustedDashPhase());
+    otherConfig.getMaskedSeries().forEach(series -> config.addMaskedSeries(series));
+
     return config;
+  }
+
+  /**
+   * Specify the series that will be masked out (hidden) when it is drawn on the LineChart using this config instance.
+   */
+  public void addMaskedSeries(@NotNull RangedContinuousSeries series) {
+    mMaskedSeries.add(series);
+  }
+
+  @NotNull
+  public Set<RangedContinuousSeries> getMaskedSeries() {
+    return mMaskedSeries;
   }
 
   @NotNull
