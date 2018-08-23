@@ -49,7 +49,6 @@ class PresenterTest {
     val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/presenter.sketch")!!
     val view = SketchImporterView()
     val presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), projectRule.module.androidFacet!!)
-    presenter.filterExportable(ItemEvent.DESELECTED)
     presenter.importFilesIntoProject()
 
     val resourceFolder = projectRule.fixture.tempDirFixture.findOrCreateDir("res").findChild("drawable-anydpi")
@@ -78,6 +77,7 @@ class PresenterTest {
     val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/presenter.sketch")!!
     val view = SketchImporterView()
     val presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), projectRule.module.androidFacet!!)
+    presenter.filterExportable(ItemEvent.SELECTED)
     presenter.importFilesIntoProject()
 
     val resourceFolder = projectRule.fixture.tempDirFixture.findOrCreateDir("res").findChild("drawable-anydpi")
