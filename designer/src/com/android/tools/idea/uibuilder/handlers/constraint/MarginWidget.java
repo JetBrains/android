@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel;
-import com.android.tools.adtui.stdui.CommonComboBox;
+import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Widget to support margin editing on the ui
  */
-public class MarginWidget extends CommonComboBox<String, DefaultCommonComboBoxModel<String>> {
+public class MarginWidget extends JComboBox<String> {
   private static final String[] str = new String[]{"0", "8", "16", "24", "32"};
 
   public enum Show {
@@ -36,8 +36,8 @@ public class MarginWidget extends CommonComboBox<String, DefaultCommonComboBoxMo
   }
 
   public MarginWidget(@NotNull String name) {
-    super(new DefaultCommonComboBoxModel<>(str[0], Arrays.asList(str)));
-    getModel().setEditable(true);
+    super(new CollectionComboBoxModel<>(Arrays.asList(str)));
+    setEditable(true);
     JTextField textField = (JTextField)getEditor().getEditorComponent();
     textField.setFont(textField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
     initComboBox(name);
