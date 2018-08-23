@@ -56,12 +56,15 @@ public class GradleDependencyManager {
   }
 
   /**
-   * Returns the dependencies that are NOT included in the specified module.
-   * Note: the version of the dependency is disregarded.
+   * Returns the dependencies that are NOT defined in the build files.
+   * 
+   * Note: A dependency is still regarded as missing even if it's available
+   * by a transitive dependency.
+   * Also: the version of the dependency is disregarded.
    *
    * @param module       the module to check dependencies in
    * @param dependencies the dependencies of interest.
-   * @return a list of the dependencies NOT included in the module
+   * @return a list of the dependencies NOT defined in the build files.
    */
   @NotNull
   public List<GradleCoordinate> findMissingDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
@@ -118,25 +121,10 @@ public class GradleDependencyManager {
         coordinate = resolvedCoordinate;
       }
 
-      boolean dependencyFound = false;
-      // First look in the model returned by Gradle.
-      if (gradleModel != null &&
-          GradleUtil.dependsOn(gradleModel, String.format("%s:%s", groupId, artifactId))) {
-        // GradleUtil.dependsOn method only checks the android library dependencies.
-        // TODO: Consider updating it to also check for java library dependencies.
-        dependencyFound = true;
-      }
-      else if (compileDependencies != null) {
-        // Now, check in the model obtained from the gradle files.
-        for (ArtifactDependencyModel dependency : compileDependencies) {
-          if (Objects.equal(groupId, dependency.group().toString()) &&
-              Objects.equal(artifactId, dependency.name().forceString())) {
-            dependencyFound = true;
-            break;
-          }
-        }
-      }
-
+      boolean dependencyFound = compileDependencies != null &&
+                                compileDependencies.stream()
+                                                   .anyMatch(d -> Objects.equal(d.group().toString(), groupId) &&
+                                                                  d.name().forceString().equals(artifactId));
       if (!dependencyFound) {
         missingLibraries.add(coordinate);
       }
