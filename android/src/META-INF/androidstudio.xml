@@ -38,7 +38,7 @@
 
   <application-components>
     <component>
-      <implementation-class>com.intellij.ide.AndroidStudioSystemHealthMonitor</implementation-class>
+      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>
       <headless-implementation-class/>
     </component>
   </application-components>
