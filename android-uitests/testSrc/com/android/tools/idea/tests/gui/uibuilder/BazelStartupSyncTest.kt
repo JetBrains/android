@@ -23,12 +23,14 @@ import com.android.tools.idea.tests.gui.framework.bazel.fixture.BazelConsoleTool
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
 
+@Ignore("b/113117406")
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory::class)
 class BazelStartupSyncTest {
