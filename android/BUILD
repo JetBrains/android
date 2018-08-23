@@ -78,6 +78,8 @@ iml_module(
         "//tools/adt/idea/android/lib:spantable",
         "//tools/idea/.idea/libraries:jsr305",
         "//prebuilts/tools/common/m2/repository/org/tinyjee/jgraphx/jgraphx/3.4.1.3:jar",
+        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/squareup/moshi/moshi/1.6.0:jar",
         "//tools/base/repository:studio.android.sdktools.repository[module]",
         "//tools/base/instant-run:studio.android.sdktools.instant-run-client[module]",
         "//tools/base/instant-run:studio.android.sdktools.instant-run-common[module]",
