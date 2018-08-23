@@ -164,5 +164,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.deploy" />
+    <orderEntry type="library" name="HdrHistogram" level="project" />
   </component>
 </module>
