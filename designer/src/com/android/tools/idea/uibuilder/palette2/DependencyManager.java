@@ -19,7 +19,9 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -37,9 +39,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Keeps track of which of the dependencies for all the components on a palette are currently
  * missing from a project. DependencyManager does this by caching dependency information available
- * through the instance of {@link com.android.tools.idea.projectsystem.AndroidModuleSystem} associated
- * with the module of the palette. This allows callers to quickly check if a particular palette item has
- * a missing dependency via the {@link #needsLibraryLoad(Palette.Item)} method.
+ * through the instance of {@link AndroidModuleSystem} associated with the module of the palette.
+ * This allows callers to quickly check if a particular palette item has a missing dependency via
+ * the {@link #needsLibraryLoad(Palette.Item)} method.
  *
  * The set of missing dependencies is recomputed each time the project is synced (in case new dependencies have
  * been added to the palette's module) and each time the associated palette changes (see {@link #setPalette}).
@@ -92,12 +94,13 @@ public class DependencyManager {
     Set<String> missing = Collections.emptySet();
 
     if (myModule != null && !myModule.isDisposed()) {
+      AndroidModuleSystem moduleSystem = ProjectSystemService.getInstance(myProject).getProjectSystem().getModuleSystem(myModule);
       missing = myPalette.getGradleCoordinateIds().stream()
         .map(id -> GradleCoordinate.parseCoordinateString(id + ":+"))
         .filter(Objects::nonNull)
-        .map(GoogleMavenArtifactId::forCoordinate)
-        .filter(artifactId -> artifactId != null && !DependencyManagementUtil.dependsOn(myModule, artifactId))
-        .map(GoogleMavenArtifactId::toString)
+        .filter(coordinate -> moduleSystem.getRegisteredDependency(coordinate) == null)
+        .map(coordinate -> coordinate.getId())
+        .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
       if (myMissingLibraries.equals(missing)) {
