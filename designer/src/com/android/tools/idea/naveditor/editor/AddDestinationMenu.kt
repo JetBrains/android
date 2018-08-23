@@ -66,10 +66,18 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.Point
-import java.awt.event.*
+import java.awt.event.HierarchyEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.io.File
-import java.util.*
-import javax.swing.*
+import java.util.LinkedHashMap
+import javax.swing.BorderFactory
+import javax.swing.ImageIcon
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.ListModel
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
@@ -139,6 +147,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         result.add(Destination.IncludeDestination(navPsi.name, parent))
       }
 
+      result.add(Destination.PlaceholderDestination(parent))
       result.sort()
       return result
     }
@@ -203,9 +212,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     searchField.textEditor.emptyText.text = "   Search existing destinations"
     result.add(searchField)
 
-    val action: AnAction = object : AnAction("Create blank destination") {
+    val action: AnAction = object : AnAction("Create new destination") {
       override fun actionPerformed(e: AnActionEvent?) {
-        createBlankDestination(e)
+        createNewDestination(e)
       }
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
@@ -304,15 +313,15 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return result
   }
 
-  private fun createBlankDestination(e: AnActionEvent?) {
+  private fun createNewDestination(e: AnActionEvent?) {
     balloon?.hide()
     val action = NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7)
     action.setShouldOpenFiles(false)
-    createBlankDestination(e, action)
+    createNewDestination(e, action)
   }
 
   @VisibleForTesting
-  fun createBlankDestination(e: AnActionEvent?, action: AnAction) {
+  fun createNewDestination(e: AnActionEvent?, action: AnAction) {
     createdFiles.clear()
     action.actionPerformed(e)
     val project = e?.project ?: return
