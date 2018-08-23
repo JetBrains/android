@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.List;
 
 public class SketchArtboard extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
@@ -79,16 +78,28 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
   }
 
   @NotNull
-  public List<DrawableShape> getShapes() {
-    ImmutableList.Builder<DrawableShape> shapes = new ImmutableList.Builder<>();
+  private ImmutableList<ShapeModel> createAllShapeModels() {
+    ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = getLayers();
 
     for (SketchLayer layer : layers) {
-      shapes.addAll(layer.getTranslatedShapes(new Point2D.Double()));
+      shapes.addAll(layer.createShapeModels(new Point2D.Double()));
     }
 
     return shapes.build();
   }
+
+  @NotNull
+  public ImmutableList<DrawableModel> createAllDrawableShapes() {
+    ImmutableList.Builder<DrawableModel> drawableShapes = new ImmutableList.Builder<>();
+
+    for (ShapeModel shapeModel : createAllShapeModels()) {
+      drawableShapes.add(shapeModel.toDrawableShape());
+    }
+
+    return drawableShapes.build();
+  }
+
 
   public boolean includeBackgroundColorInExport() {
     return includeBackgroundColorInExport;

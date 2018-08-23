@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginWidget;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView.KillButton;
-import com.intellij.openapi.application.ApplicationManager;
-import org.fest.swing.core.GenericTypeMatcher;
+import java.awt.Container;
+import javax.swing.JComboBox;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 public final class ConstraintLayoutViewInspectorFixture {
   private final Robot myRobot;
@@ -46,33 +41,10 @@ public final class ConstraintLayoutViewInspectorFixture {
     comboBoxFixture.selectItem(Integer.toString(margin));
   }
 
-  public ConstraintLayoutViewInspectorFixture setAllMargins(int marginValue) {
-    setMargin(SingleWidgetView.TOP_MARGIN_WIDGET, marginValue);
-    setMargin(SingleWidgetView.BOTTOM_MARGIN_WIDGET, marginValue);
-    setMargin(SingleWidgetView.RIGHT_MARGIN_WIDGET, marginValue);
-    setMargin(SingleWidgetView.LEFT_MARGIN_WIDGET, marginValue);
-    myRobot.click(findMarginWidget(SingleWidgetView.BOTTOM_MARGIN_WIDGET));
-    return this;
-  }
-
   private void setMargin(String widgetName, int marginValue) {
     MarginWidget widget = findMarginWidget(widgetName);
     JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(widget, JComboBox.class));
     comboBoxFixture.replaceText(Integer.toString(marginValue));
-  }
-
-  public ConstraintLayoutViewInspectorFixture scrollAllMargins(int scroll) {
-    scrollMargin(SingleWidgetView.TOP_MARGIN_WIDGET, scroll);
-    scrollMargin(SingleWidgetView.BOTTOM_MARGIN_WIDGET, scroll);
-    scrollMargin(SingleWidgetView.RIGHT_MARGIN_WIDGET, scroll);
-    scrollMargin(SingleWidgetView.LEFT_MARGIN_WIDGET, scroll);
-    return this;
-  }
-
-  private void scrollMargin(String widgetName, int scroll) {
-    MarginWidget widget = findMarginWidget(widgetName);
-    JTextField field = myRobot.finder().findByType(widget, JTextField.class);
-    myRobot.rotateMouseWheel(field, -scroll);  // Robot.rotateMouseWheel interprets positive numbers as rotation towards user
   }
 
   @NotNull

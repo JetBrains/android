@@ -474,12 +474,18 @@ class NlComponentMixin(component: NlComponent)
     }
   }
 
-  override fun afterMove(insertType: InsertType, receiver: NlComponent, surface: DesignSurface?) {
+  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent, surface: DesignSurface?) {
     var realInsertType = insertType
     if (insertType.isMove) {
       realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
     }
-    receiver.viewGroupHandler?.onChildInserted(ViewEditorImpl(component.model, surface?.scene), receiver, component, realInsertType)
+
+    val editor by lazy { ViewEditorImpl(component.model, surface?.scene) }
+    if (previousParent != receiver) {
+      previousParent?.viewGroupHandler?.onChildRemoved(editor, previousParent, component, realInsertType)
+    }
+
+    receiver.viewGroupHandler?.onChildInserted(editor, receiver, component, realInsertType)
   }
 
   override fun postCreate(surface: DesignSurface?, insertType: InsertType): Boolean {

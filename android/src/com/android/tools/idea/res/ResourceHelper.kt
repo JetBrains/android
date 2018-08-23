@@ -564,22 +564,25 @@ private fun RenderResources.resolveStateList(resourceValue: ResourceValue, proje
   val value = resourceValue.value ?: return null
 
   if (value.startsWith(PREFIX_RESOURCE_REF)) {
-    val resValue = findResValue(value, resourceValue.isFramework)
-    if (resValue != null) return resolveStateList(resValue, project, depth + 1)
+    val resValue = findResValue(value, resourceValue.isFramework) ?: return null
+    return resolveStateList(resValue, project, depth + 1)
   } else {
     val virtualFile = LocalFileSystem.getInstance().findFileByPath(value) ?: return null
     val psiFile = (AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as? XmlFile) ?: return null
-    val rootTag = psiFile.rootTag ?: return null
-    if (TAG_SELECTOR == rootTag.name) {
-      val stateList = StateList(psiFile.name, psiFile.containingDirectory.name)
-      for (subTag in rootTag.findSubTags(TAG_ITEM)) {
-        val stateListState = createStateListState(subTag, resourceValue.isFramework) ?: return null
-        stateList.addState(stateListState)
+    return runReadAction {
+      val rootTag = psiFile.rootTag
+      if (TAG_SELECTOR == rootTag?.name) {
+        val stateList = StateList(psiFile.name, psiFile.containingDirectory.name)
+        for (subTag in rootTag.findSubTags(TAG_ITEM)) {
+          createStateListState(subTag, resourceValue.isFramework)?.let { stateListState ->
+            stateList.addState(stateListState)
+          }
+        }
+        stateList
       }
-      return stateList
+      else null
     }
   }
-  return null
 }
 
 /**

@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.test.assertFailsWith
 
 class ShippedSyncGeneratorTest : AndroidGradleTestCase() {
   // Project folder created by AndroidGradleTestCase has the same name as the test which created it
@@ -63,6 +64,37 @@ class ShippedSyncGeneratorTest : AndroidGradleTestCase() {
     val loadedAndroidProject = loadAndroidProjectFromJSON(modulePath.toPath(), moduleConverter)
 
     assertTrue(oldAndroidProject essentiallyEquals loadedAndroidProject)
+  }
+
+  @Throws(Exception::class)
+  fun testClearRepositoriesOK() {
+    val buildGradleContent = """
+      repositories  { blah }
+      { {
+      repositories {
+      { } abc }
+      } }
+    """.trimIndent()
+
+    val expected = """
+      repositories  {}
+      { {
+      repositories {}
+      } }
+    """.trimIndent()
+
+    assertEquals(expected, clearRepositories(buildGradleContent))
+  }
+
+  @Throws(Exception::class)
+  fun testClearRepositoriesMalformed() {
+    val malformedBuildGradleContents = listOf(
+      "repositories {{ }"
+      // TODO(qumeric): think about other cases
+    )
+    for (badContent in malformedBuildGradleContents) {
+      assertFailsWith<IllegalArgumentException> { clearRepositories(badContent)}
+    }
   }
 }
 

@@ -308,7 +308,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", newName))
   }
 
-  fun testCodeCompletion_single() {
+  fun testCodeCompletion_select() {
     myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
@@ -334,6 +334,66 @@ class ColumnReferencesTest : RoomLightTestCase() {
         @Dao
         public interface UserDao {
           @Query("SELECT firstName") List<String> getNames();
+        }
+    """.trimIndent())
+  }
+
+  fun testCodeCompletion_update() {
+    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE user SET f<caret>") void update();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE user SET firstName") void update();
+        }
+    """.trimIndent())
+  }
+
+  fun testCodeCompletion_delete() {
+    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM user WHERE f<caret>") void delete();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM user WHERE firstName") void delete();
         }
     """.trimIndent())
   }

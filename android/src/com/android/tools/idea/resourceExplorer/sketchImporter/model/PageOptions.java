@@ -40,6 +40,13 @@ public class PageOptions {
     MIXED  // EXPERIMENTAL - can be set as the default if we find a stable, reliable implementation
   }
 
+  private final static String LABEL_ICONS = "Icons";
+  private final static String LABEL_SYMBOLS = "Symbols";
+  private final static String LABEL_COLORS = "Colors";
+  private final static String LABEL_TEXT = "Text";
+  private final static String LABEL_MIXED = "Mixed";
+
+  public final static String[] PAGE_TYPE_LABELS = {LABEL_ICONS, LABEL_SYMBOLS, LABEL_COLORS, LABEL_TEXT, LABEL_MIXED};
   public final static PageType DEFAULT_PAGE_TYPE = PageType.ICONS;
 
   private final static String KEYWORD_ICONS = "icon";
@@ -91,5 +98,23 @@ public class PageOptions {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  public static PageType getPageTypeFromLabel(@NotNull String label) {
+    switch (label) {
+      case LABEL_ICONS:
+        return PageType.ICONS;
+      case LABEL_SYMBOLS:
+        return PageType.SYMBOLS;
+      case LABEL_COLORS:
+        return PageType.COLORS;
+      case LABEL_TEXT:
+        return PageType.TEXT;
+      case LABEL_MIXED:
+        return PageType.MIXED;
+      default:
+        return DEFAULT_PAGE_TYPE;
+    }
   }
 }

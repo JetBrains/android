@@ -24,24 +24,31 @@
 
 package com.android.tools.idea
 
-import com.android.SdkConstants.*
-import com.android.projectmodel.AarLibrary
+import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.SdkConstants.DOT_AAR
+import com.android.SdkConstants.FD_JARS
+import com.android.SdkConstants.LIBS_FOLDER
+import com.android.builder.model.AaptOptions
+import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
 /**
- * Returns information about all [AarLibrary] dependencies present in the project, indexed by [AarLibrary.address] which is unique within
- * a project.
+ * Returns information about all [ExternalLibrary] dependencies that contribute resources in the project, indexed by
+ * [ExternalLibrary.address] which is unique within a project.
+ *
+ * TODO: ExternalLibrary.address is unique within an [AndroidProject], not necessarily within a [Project]
  */
-fun findAllAarsLibraries(project: Project): Map<String, AarLibrary> {
+fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary> {
   return ModuleManager.getInstance(project)
     .modules
     .asSequence()
-    .map(::findAarDependencies)
+    .map(::findDependenciesWithResources)
     .fold(HashMap()) { inProject, inModule ->
       inProject.putAll(inModule)
       inProject
@@ -49,13 +56,14 @@ fun findAllAarsLibraries(project: Project): Map<String, AarLibrary> {
 }
 
 /**
- * Returns information about all [AarLibrary] dependencies of a given module, indexed by [AarLibrary.address] which is unique within
- * a project.
+ * Returns information about all [ExternalLibrary] dependencies that contribute resources in a given module, indexed by
+ * [ExternalLibrary.address] which is unique within a project.
  */
-fun findAarDependencies(module: Module): Map<String, AarLibrary> {
+fun findDependenciesWithResources(module: Module): Map<String, ExternalLibrary> {
   return module.getModuleSystem()
     .getDependentLibraries()
-    .filterIsInstance<AarLibrary>()
+    .filterIsInstance<ExternalLibrary>()
+    .filter { it.hasResources }
     .associateBy { library -> library.address }
 }
 
@@ -64,7 +72,7 @@ fun findAarDependencies(module: Module): Map<String, AarLibrary> {
  *
  * TODO: make it private and part of building the model for legacy projects where guessing is the best we can do.
  */
-@Deprecated("Use AndroidProjectModelUtils.findAllAarsLibraries instead of processing jar files and looking for resources.")
+@Deprecated("Use AndroidProjectModelUtils.findAllLibrariesWithResources instead of processing jar files and looking for resources.")
 fun findResFolder(jarFile: File): File? {
   // We need to figure out the layout of the resources relative to the jar file. This changed over time, so we check for different
   // layouts until we find one we recognize.
@@ -103,3 +111,8 @@ fun findResFolder(jarFile: File): File? {
   }
   return resourcesDirectory
 }
+
+/**
+ * Checks namespacing of the module with the given [AndroidFacet].
+ */
+val AndroidFacet.namespacing: AaptOptions.Namespacing get() = configuration.model?.namespacing ?: AaptOptions.Namespacing.DISABLED

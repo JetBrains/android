@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.structure.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
@@ -72,25 +72,38 @@ public class SketchShapePath extends SketchLayer {
   }
 
   @NotNull
-  public Path2D.Double getPath2D(@NotNull Rectangle2D.Double parentFrame) {
-    if (RECTANGLE_CLASS_TYPE.equals(getClassType())) {
-      if (hasRoundCorners()) {
-        return getRoundRectanglePath(parentFrame);
-      }
-      else {
-        return getRectanglePath(parentFrame);
-      }
-    }
-    else {
-      return getGenericPath(parentFrame);
-    }
+  public PathModel createPathModel() {
+    return new PathModel(getPath2D(), null, null, isFlippedHorizontal(), isFlippedVertical(), isClosed(), getRotation(),
+                          getBooleanOperation(), getFramePosition());
   }
 
   @NotNull
-  private Path2D.Double getGenericPath(@NotNull Rectangle2D.Double parentFrame) {
+  public Point2D.Double getFramePosition() {
+    return new Point2D.Double(getFrame().getX(), getFrame().getY());
+  }
+
+  @NotNull
+  public Path2D.Double getPath2D() {
+    if (RECTANGLE_CLASS_TYPE.equals(getClassType())) {
+      if (hasRoundCorners()) {
+        return getRoundRectanglePath();
+      }
+      else {
+        return getRectanglePath();
+      }
+    }
+    else {
+      return getGenericPath();
+    }
+  }
+
+  //TODO: Add method for oval paths.
+
+  @NotNull
+  private Path2D.Double getGenericPath() {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
     SketchCurvePoint[] points = getPoints();
-    SketchPoint2D startCoords = points[0].getPoint().makeAbsolutePosition(parentFrame, getFrame());
+    SketchPoint2D startCoords = points[0].getPoint().makeAbsolutePosition(getFrame());
 
     path2DBuilder.startPath(startCoords);
 
@@ -101,20 +114,20 @@ public class SketchShapePath extends SketchLayer {
       previousCurvePoint = points[i - 1];
       currentCurvePoint = points[i];
 
-      SketchPoint2D previousPoint = previousCurvePoint.getPoint().makeAbsolutePosition(parentFrame, getFrame());
-      SketchPoint2D currentPoint = currentCurvePoint.getPoint().makeAbsolutePosition(parentFrame, getFrame());
+      SketchPoint2D previousPoint = previousCurvePoint.getPoint().makeAbsolutePosition(getFrame());
+      SketchPoint2D currentPoint = currentCurvePoint.getPoint().makeAbsolutePosition(getFrame());
 
       SketchPoint2D previousPointCurveFrom = previousPoint;
       SketchPoint2D currentPointCurveTo = currentPoint;
 
       if (previousCurvePoint.hasCurveFrom()) {
-        previousPointCurveFrom = previousCurvePoint.getCurveFrom().makeAbsolutePosition(parentFrame, getFrame());
+        previousPointCurveFrom = previousCurvePoint.getCurveFrom().makeAbsolutePosition(getFrame());
       }
       if (currentCurvePoint.hasCurveTo()) {
-        currentPointCurveTo = currentCurvePoint.getCurveTo().makeAbsolutePosition(parentFrame, getFrame());
+        currentPointCurveTo = currentCurvePoint.getCurveTo().makeAbsolutePosition(getFrame());
       }
 
-      if (!previousCurvePoint.hasCurveTo() && !currentCurvePoint.hasCurveFrom()) {
+      if (!previousCurvePoint.hasCurveFrom() && !currentCurvePoint.hasCurveTo()) {
         path2DBuilder.createLine(currentPoint);
       }
       else {
@@ -123,17 +136,16 @@ public class SketchShapePath extends SketchLayer {
     }
 
     if (isClosed()) {
-      path2DBuilder.createClosedShape(this, currentCurvePoint, parentFrame);
-      // TODO: Fix bug in closed shapes!! Currently it draws curves even though the .hasCurveFrom() and .hasCurveTo() return false
+      path2DBuilder.createClosedShape(this, currentCurvePoint);
     }
 
     return path2DBuilder.build();
   }
 
   @NotNull
-  private Path2D.Double getRectanglePath(@NotNull Rectangle.Double parentFrame) {
+  private Path2D.Double getRectanglePath() {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
-    ArrayList<SketchPoint2D> frameCorners = getRectangleCorners(parentFrame);
+    ArrayList<SketchPoint2D> frameCorners = getRectangleCorners();
 
     path2DBuilder.startPath(frameCorners.get(0));
     path2DBuilder.createLine(frameCorners.get(1));
@@ -145,7 +157,7 @@ public class SketchShapePath extends SketchLayer {
   }
 
   @NotNull
-  private Path2D.Double getRoundRectanglePath(@NotNull Rectangle.Double parentFrame) {
+  private Path2D.Double getRoundRectanglePath() {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
     SketchCurvePoint[] points = getPoints();
 
@@ -158,7 +170,7 @@ public class SketchShapePath extends SketchLayer {
         case 0:
           startPoint.setLocation(0, points[i].getCornerRadius());
           endPoint.setLocation(points[i].getCornerRadius(), 0);
-          path2DBuilder.startPath(startPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
+          path2DBuilder.startPath(startPoint);
           break;
         case 1:
           startPoint.setLocation(getFrame().getWidth() - points[i].getCornerRadius(), 0);
@@ -176,13 +188,13 @@ public class SketchShapePath extends SketchLayer {
 
       if (points[i].getCornerRadius() != 0) {
         if (!previousPoint.equals(startPoint) && i != 0) {
-          path2DBuilder.createLine(startPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
+          path2DBuilder.createLine(startPoint);
         }
-        path2DBuilder.createQuadCurve(points[i].getPoint().makeAbsolutePosition(parentFrame, getFrame()),
-                                      endPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
+        path2DBuilder.createQuadCurve(points[i].getPoint().makeAbsolutePosition(getFrame()),
+                                      endPoint);
       }
       else {
-        path2DBuilder.createLine(startPoint.makeAbsolutePosition(parentFrame).makeAbsolutePosition(getFrame()));
+        path2DBuilder.createLine(startPoint.makeAbsolutePosition(getFrame()));
       }
 
       previousPoint.setLocation(endPoint);
@@ -206,13 +218,13 @@ public class SketchShapePath extends SketchLayer {
   }
 
   @NotNull
-  private ArrayList<SketchPoint2D> getRectangleCorners(@NotNull Rectangle.Double shapeGroupFrame) {
-    ArrayList<SketchPoint2D> corners = new ArrayList<>();
+  private ArrayList<SketchPoint2D> getRectangleCorners() {
+    ArrayList<SketchPoint2D> corners = new ArrayList<>(4);
 
-    SketchPoint2D upLeftCorner = (new SketchPoint2D(0, 0)).makeAbsolutePosition(shapeGroupFrame, getFrame());
-    SketchPoint2D upRightCorner = (new SketchPoint2D(1, 0)).makeAbsolutePosition(shapeGroupFrame, getFrame());
-    SketchPoint2D downRightCorner = (new SketchPoint2D(1, 1)).makeAbsolutePosition(shapeGroupFrame, getFrame());
-    SketchPoint2D downLeftCorner = (new SketchPoint2D(0, 1)).makeAbsolutePosition(shapeGroupFrame, getFrame());
+    SketchPoint2D upLeftCorner = (new SketchPoint2D(0, 0)).makeAbsolutePosition(getFrame());
+    SketchPoint2D upRightCorner = (new SketchPoint2D(1, 0)).makeAbsolutePosition(getFrame());
+    SketchPoint2D downRightCorner = (new SketchPoint2D(1, 1)).makeAbsolutePosition(getFrame());
+    SketchPoint2D downLeftCorner = (new SketchPoint2D(0, 1)).makeAbsolutePosition(getFrame());
 
     corners.add(upLeftCorner);
     corners.add(upRightCorner);

@@ -109,8 +109,8 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   }
 
   private void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
-    List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResourceItems());
-    List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResourceItems());
+    List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResources());
+    List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResources());
 
     expectedItems.sort(ITEM_COMPARATOR);
     actualItems.sort(ITEM_COMPARATOR);

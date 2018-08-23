@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.intellij.ui.Gray
+import com.android.tools.adtui.common.border
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.JBColor
+import com.intellij.ui.RoundedLineBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.*
 import java.awt.image.BufferedImage
-import javax.swing.BorderFactory
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.*
 import kotlin.properties.Delegates
+import kotlin.reflect.KProperty
 
 // Chessboard texture constants
 /**
@@ -46,36 +46,67 @@ private val CHESSBOARD_COLOR_2 = JBColor(0xF1F1F1, 0x393A3B)
 private val TEXTURE_ANCHOR = Rectangle(0, 0, CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE)
 
 /**
- * Four alternating squares to make the chessboard pattern
+ * A [TexturePaint] that updates itself when the theme changes
  */
-private val TEXTURE_PATTERN = UIUtil.createImage(CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE, BufferedImage.TYPE_INT_ARGB).apply {
-  with(this.graphics) {
-    color = CHESSBOARD_COLOR_1
-    fillRect(0, 0, CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE)
-    color = CHESSBOARD_COLOR_2
-    fillRect(0, CHESSBOARD_CELL_SIZE, CHESSBOARD_CELL_SIZE, CHESSBOARD_CELL_SIZE)
-    fillRect(CHESSBOARD_CELL_SIZE, 0, CHESSBOARD_CELL_SIZE, CHESSBOARD_CELL_SIZE)
+private val CHESSBOARD_PAINT by object {
+
+  private var isDarcula = UIUtil.isUnderDarcula()
+  private var chessboardPaint = TexturePaint(createTexturePattern(), TEXTURE_ANCHOR)
+
+  /**
+   * Four alternating squares to make the chessboard pattern
+   */
+  private fun createTexturePattern() = UIUtil.createImage(CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE,
+                                                          BufferedImage.TYPE_INT_ARGB).apply {
+    with(this.graphics) {
+      color = CHESSBOARD_COLOR_1
+      fillRect(0, 0, CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE)
+      color = CHESSBOARD_COLOR_2
+      fillRect(0, CHESSBOARD_CELL_SIZE, CHESSBOARD_CELL_SIZE, CHESSBOARD_CELL_SIZE)
+      fillRect(CHESSBOARD_CELL_SIZE, 0, CHESSBOARD_CELL_SIZE, CHESSBOARD_CELL_SIZE)
+    }
+  }
+
+  operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
+    if (isDarcula != UIUtil.isUnderDarcula()) {
+      isDarcula = UIUtil.isUnderDarcula()
+      chessboardPaint = TexturePaint(createTexturePattern(), TEXTURE_ANCHOR)
+    }
+    return chessboardPaint
   }
 }
-private val CHESSBOARD_PAINT = TexturePaint(TEXTURE_PATTERN, TEXTURE_ANCHOR)
 
 // Graphic constant for the view
 
-private val LINE_BORDER = JBUI.Borders.customLine(Gray.x41, 2)
+/**
+ * Ratio of the height on the width of the whole view.
+ * These values come from the UI specs.
+ */
+private const val VIEW_HEIGHT_WIDTH_RATIO = 26 / 23f
 
-private val LARGE_MAIN_CELL_BORDER = JBUI.Borders.empty(10, 30, 10, 30)
+/**
+ * Ratio of the height on the width of the thumbnail
+ * These values come from the UI specs.
+ */
+private const val THUMBNAIL_HEIGHT_WIDTH_RATIO = 115 / 130f
 
-private val LARGE_CONTENT_CELL_BORDER = BorderFactory.createCompoundBorder(
-  JBUI.Borders.empty(10, 0, 10, 0),
-  LINE_BORDER
+private val LARGE_MAIN_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
+  JBUI.Borders.empty(10),
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(), 4, 2)
 )
 
-private val SMALL_MAIN_CELL_BORDER = JBUI.Borders.empty(5, 15, 5, 15)
-
-private val SMALL_CONTENT_CELL_BORDER = BorderFactory.createCompoundBorder(
-  JBUI.Borders.empty(5, 0, 5, 0),
-  LINE_BORDER
+private val LARGE_MAIN_CELL_BORDER = BorderFactory.createCompoundBorder(
+  JBUI.Borders.empty(11),
+  RoundedLineBorder(border, 4, 1)
 )
+
+private val BOTTOM_PANEL_BORDER = JBUI.Borders.empty(10, 8, 10, 10)
+
+private val PRIMARY_FONT_SIZE = JBUI.scaleFontSize(12f).toFloat()
+
+private val SECONDARY_FONT_SIZE = JBUI.scaleFontSize(10f).toFloat()
+
+private const val DEFAULT_WIDTH = 120
 
 /**
  * Component in the shape of a card with a large preview
@@ -111,6 +142,14 @@ class SingleAssetCard : JPanel(BorderLayout()) {
   val thumbnailWidth: Int get() = contentWrapper.width
 
   /**
+   * Set the width of the whole view. The height is computed using a fixed ratio of [VIEW_HEIGHT_WIDTH_RATIO].
+   */
+  var viewWidth by Delegates.observable(DEFAULT_WIDTH) { _, _, newValue ->
+    contentWrapper.preferredSize = Dimension(newValue, (newValue * THUMBNAIL_HEIGHT_WIDTH_RATIO).toInt())
+    preferredSize = Dimension(newValue, (newValue * VIEW_HEIGHT_WIDTH_RATIO).toInt())
+  }
+
+  /**
    * Set the title label of this card
    */
   var title: String by Delegates.observable("") { _, _, newValue -> titleLabel.text = newValue }
@@ -118,19 +157,38 @@ class SingleAssetCard : JPanel(BorderLayout()) {
   /**
    * Set the subtitle label of this card
    */
-  var subtitle: String by Delegates.observable("") { _, _, newValue -> subtitleLabel.text = newValue }
+  var subtitle: String by Delegates.observable("") { _, _, newValue -> secondLineLabel.text = newValue }
 
-  private val bottomPanel = JPanel(BorderLayout()).apply {
-    isOpaque = false
+  /**
+   * Set the subtitle label of this card
+   */
+  var metadata: String by Delegates.observable("") { _, _, newValue -> thirdLineLabel.text = newValue }
+
+  private val bottomPanel = JPanel(BorderLayout(2, 8)).apply {
+    background = secondaryPanelBackground
+    isOpaque = true
+    border = BOTTOM_PANEL_BORDER
   }
-  private val titleLabel = JLabel()
 
-  private val subtitleLabel = JLabel()
+  private val titleLabel = JLabel().apply {
+    font = font.deriveFont(Font.BOLD, PRIMARY_FONT_SIZE)
+  }
+
+  private val secondLineLabel = JLabel().apply {
+    font = font.deriveFont(SECONDARY_FONT_SIZE)
+  }
+
+  private val thirdLineLabel = JLabel().apply {
+    font = font.deriveFont(SECONDARY_FONT_SIZE)
+  }
+
+  var selected by Delegates.observable(false) { _, _, selected ->
+    border = if (selected) LARGE_MAIN_CELL_BORDER_SELECTED else LARGE_MAIN_CELL_BORDER
+  }
 
   private var contentWrapper = object : JPanel(BorderLayout()) {
     init {
       isOpaque = false
-      border = LARGE_CONTENT_CELL_BORDER
     }
 
     override fun paintComponent(g: Graphics?) {
@@ -155,16 +213,12 @@ class SingleAssetCard : JPanel(BorderLayout()) {
     add(contentWrapper)
     add(bottomPanel, BorderLayout.SOUTH)
     with(bottomPanel) {
-      add(titleLabel)
-      add(subtitleLabel, BorderLayout.SOUTH)
+      add(titleLabel, BorderLayout.NORTH)
+      add(Box.createVerticalBox().apply {
+        add(secondLineLabel)
+        add(thirdLineLabel)
+      })
       add(JLabel(StudioIcons.Common.WARNING), BorderLayout.EAST)
     }
   }
-
-  var useSmallMargins = false
-    set(smallMargin) {
-      field = smallMargin
-      border = if (smallMargin) SMALL_MAIN_CELL_BORDER else LARGE_MAIN_CELL_BORDER
-      contentWrapper.border = if (smallMargin) SMALL_CONTENT_CELL_BORDER else SMALL_CONTENT_CELL_BORDER
-    }
 }

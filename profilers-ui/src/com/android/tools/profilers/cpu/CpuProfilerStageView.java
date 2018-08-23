@@ -20,8 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.adtui.ui.HideablePanel;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
@@ -34,13 +33,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
-import com.intellij.util.ui.JBUI;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.MouseListener;
 
@@ -66,15 +64,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     KERNEL("Fit"),
 
     /**
-     * Sizing string for the threads portion of the details view, when it is hidden.
+     * Sizing string for the threads portion of the details view.
      */
-    THREADS_COLLAPSED("Fit-"),
-
-    /**
-     * Sizing string for the threads portion of the details view, when it is expanded.
-     */
-    THREADS_EXPANDED("*");
-
+    THREADS("*");
 
     private final String myLayoutString;
 
@@ -150,8 +142,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myImportedSelectedProcessLabel = new JLabel();
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
-         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::onCaptureSelection)
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateImportedSelectedProcessLabel);
+
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
@@ -204,15 +197,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     TabularLayout detailsLayout = new TabularLayout("*");
     detailsLayout.setRowSizing(DETAILS_KERNEL_PANEL_ROW, PanelSpacing.KERNEL.toString());
-    detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS_EXPANDED.toString());
+    detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS.toString());
     final JPanel detailsPanel = new JBPanel(detailsLayout);
     detailsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-
-    myThreads = new CpuThreadsView(stage, detailsPanel);
-    myCpus = new CpuKernelsView(myStage, myThreads, detailsPanel);
+    myThreads = new CpuThreadsView(stage);
+    myCpus = new CpuKernelsView(myStage);
     addKernelPanelToDetails(detailsPanel);
-    addThreadsPanelToDetails(detailsLayout, detailsPanel);
+    addThreadsPanelToDetails(detailsPanel);
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
     mainPanel.add(detailsPanel, new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
 
@@ -252,20 +244,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     updateCaptureViewVisibility();
   }
 
-  private void updateThreadSelection() {
-    myThreads.updateThreadSelection();
-  }
-
-  private void addThreadsPanelToDetails(@NotNull TabularLayout detailsLayout, @NotNull JPanel detailsPanel) {
-    HideablePanel threadsPanel = myThreads.getPanel();
-    threadsPanel.addStateChangedListener((actionEvent) -> {
-      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel();
-      // On expanded set row sizing to initial ratio.
-      PanelSpacing panelSpacing = threadsPanel.isExpanded() ? PanelSpacing.THREADS_EXPANDED : PanelSpacing.THREADS_COLLAPSED;
-      detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, panelSpacing.toString());
-    });
-    myTooltipComponent.registerListenersOn(myThreads);
-    detailsPanel.add(threadsPanel, new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
+  private void addThreadsPanelToDetails(@NotNull JPanel detailsPanel) {
+    myTooltipComponent.registerListenersOn(myThreads.getComponent());
+    detailsPanel.add(myThreads.getComponent(), new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
   }
 
   /**
@@ -283,40 +264,23 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void addKernelPanelToDetails(@NotNull JPanel detailsPanel) {
-    HideablePanel kernelsPanel = myCpus.getPanel();
-    // Handle when we get CPU data we want to show the cpu list.
-    myStage.getCpuKernelModel().addListDataListener(new ListDataListener() {
+    myCpus.getPanel().addComponentListener(new ComponentAdapter() {
+      // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
+      // the first component occupies. For when we are showing Kernel elements we want to take up more space
+      // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
+      // adjust the proportion of the splitter accordingly.
+
       @Override
-      public void contentsChanged(ListDataEvent e) {
-        int size = myCpus.getModel().getSize();
-        boolean hasElements = size != 0;
-        // Lets only show 4 cores max the user can scroll to view the rest.
-        myCpus.setVisibleRowCount(Math.min(4, size));
-        kernelsPanel.setVisible(hasElements);
-        kernelsPanel.setExpanded(hasElements);
-        kernelsPanel.setTitle(String.format("KERNEL (%d)", size));
-        // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
-        // the first component occupies. For when we are showing Kernel elements we want to take up more space
-        // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
-        // adjust the proportion of the splitter accordingly.
-        if (hasElements) {
-          mySplitter.setProportion(KERNEL_VIEW_SPLITTER_RATIO);
-        }
-        else {
-          mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
-        }
-        detailsPanel.revalidate();
+      public void componentShown(ComponentEvent e) {
+        mySplitter.setProportion(KERNEL_VIEW_SPLITTER_RATIO);
       }
 
       @Override
-      public void intervalAdded(ListDataEvent e) {
-      }
-
-      @Override
-      public void intervalRemoved(ListDataEvent e) {
+      public void componentHidden(ComponentEvent e) {
+        mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
       }
     });
-    myTooltipComponent.registerListenersOn(myCpus);
+    myTooltipComponent.registerListenersOn(myCpus.getKernels());
     detailsPanel.add(myCpus.getPanel(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
   }
 
@@ -397,32 +361,41 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  private void updateCaptureSelection() {
+  private void onCaptureSelection() {
     CpuCapture capture = myStage.getCapture();
-
     if (capture == null) {
       return;
     }
     if ((myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
-             || (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
+        || (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
       // Capture has finished parsing.
       ensureCaptureInViewRange();
-      if (capture.getType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
-        if (myStage.isImportTraceMode()) {
-          CaptureNode node = capture.getCaptureNode(capture.getMainThreadId());
-          assert node != null;
-          myImportedSelectedProcessLabel.setText("Process: " + node.getData().getName());
-        }
-        else if (((AtraceCpuCapture)capture).isMissingData()) {
+      if (capture.getType() == CpuProfilerType.ATRACE) {
+        if (!myStage.isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
           myStage.getStudioProfilers().getIdeServices().showWarningBalloon(ATRACE_BUFFER_OVERFLOW_TITLE,
-                                                                         ATRACE_BUFFER_OVERFLOW_MESSAGE,
-                                                                         null,
-                                                                         null);
+                                                                           ATRACE_BUFFER_OVERFLOW_MESSAGE,
+                                                                           null,
+                                                                           null);
         }
       }
-      else {
-        myImportedSelectedProcessLabel.setText("");
-      }
+    }
+  }
+
+  /**
+   * Sets the main process name to {@link #myImportedSelectedProcessLabel} when the current capture is imported and ATrace.
+   * Otherwise, sets an empty text.
+   */
+  private void updateImportedSelectedProcessLabel() {
+    myImportedSelectedProcessLabel.setText("");
+    CpuCapture capture = myStage.getCapture();
+    if (capture == null || !myStage.isImportTraceMode()) {
+      return;
+    }
+
+    if (capture.getType() == CpuProfilerType.ATRACE) {
+      CaptureNode node = capture.getCaptureNode(capture.getMainThreadId());
+      assert node != null;
+      myImportedSelectedProcessLabel.setText("Process: " + node.getData().getName());
     }
   }
 

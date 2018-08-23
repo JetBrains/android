@@ -45,7 +45,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 
-private const val HEIGHT_WIDTH_RATIO = 3 / 4f
 private val DEFAULT_CELL_WIDTH = JBUI.scale(150)
 private val MAX_CELL_WIDTH = JBUI.scale(300)
 private val MIN_CELL_WIDTH = JBUI.scale(100)
@@ -208,13 +207,9 @@ class ResourceExplorerView(
 
   private fun <T : Any> JList<T>.setupListUI() {
     fixedCellWidth = cellWidth
-    fixedCellHeight = (fixedCellWidth * HEIGHT_WIDTH_RATIO).toInt()
     layoutOrientation = JList.HORIZONTAL_WRAP
     visibleRowCount = 0
-    val renderer = cellRenderer
-    if (renderer is DesignAssetCellRenderer) {
-      renderer.useSmallMargins = cellWidth < COMPACT_MODE_TRIGGER_SIZE // TODO Add Interface for compact mode
-    }
+    isOpaque = false
   }
 
   private fun getRendererForType(type: ResourceType, list: JList<*>): ListCellRenderer<DesignAssetSet> {

@@ -28,8 +28,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Color
 import com.intellij.util.ui.TwoColorsIcon
-
-
+import org.intellij.lang.annotations.Language
 
 internal const val EXPECTED_ID_TOOLTIP = """
 android:id: Supply an identifier name for this view, to later retrieve it
@@ -179,6 +178,28 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(isReferenceValue(property, "@android:id/hello")).isFalse()
   }
 
+  fun testResolvedValues() {
+    myFixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    myFixture.addFileToProject("res/layout/my_layout.xml", "<LinearLayout/>")
+    val components = createTextView()
+    assertThat(resolvedValue(components, NelePropertyType.BOOLEAN, "@bool/useBorder")).isEqualTo("true")
+    assertThat(resolvedValue(components, NelePropertyType.COLOR, "@color/opaqueRed")).isEqualTo("#f00")
+    assertThat(resolvedValue(components, NelePropertyType.COLOR, "@color/opaqueRedIndirect")).isEqualTo("#f00")
+    assertThat(resolvedValue(components, NelePropertyType.COLOR, "@color/translucentRed")).isEqualTo("#80ff0000")
+    assertThat(resolvedValue(components, NelePropertyType.DIMENSION, "@dimen/ballRadius")).isEqualTo("30dp")
+    assertThat(resolvedValue(components, NelePropertyType.DIMENSION, "@dimen/fontSize")).isEqualTo("16sp")
+    assertThat(resolvedValue(components, NelePropertyType.FRACTION, "@fraction/part")).isEqualTo("0.125")
+    assertThat(resolvedValue(components, NelePropertyType.ID, "@id/button_ok")).isEqualTo("@id/button_ok")
+    assertThat(resolvedValue(components, NelePropertyType.INTEGER, "@integer/records")).isEqualTo("67")
+    assertThat(resolvedValue(components, NelePropertyType.STRING, "@string/hello")).isEqualTo("Hello")
+
+    // The following resources will resolve to a file path. Check that we do NOT show the file:
+    assertThat(resolvedValue(components, NelePropertyType.COLOR, "@color/text")).isEqualTo("@android:color/primary_text_dark")
+    assertThat(resolvedValue(components, NelePropertyType.COLOR_OR_DRAWABLE, "@drawable/cancel")).isEqualTo("@android:drawable/ic_delete")
+    assertThat(resolvedValue(components, NelePropertyType.STYLE, "@style/stdButton")).isEqualTo("@style/stdButton")
+    assertThat(resolvedValue(components, NelePropertyType.LAYOUT, "@layout/my_layout")).isEqualTo("@layout/my_layout")
+  }
+
   fun testGetValueWhenDisplayingResolvedValues() {
     val property = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, createTextView())
     property.model.showResolvedValues = true
@@ -218,10 +239,10 @@ class NelePropertyItemTest : PropertyTestCase() {
     val components = createTextView()
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     waitUntilEventsProcessed(property.model)
 
-    assertThat(property.value).isEqualTo("?attr/textAppearanceSmall")
+    assertThat(property.value).isEqualTo("@android:style/TextAppearance.Material.Small")
     property.model.showResolvedValues = false
     assertThat(property.value).isNull()
   }
@@ -232,20 +253,21 @@ class NelePropertyItemTest : PropertyTestCase() {
     val emptyProperty = createPropertyItem(ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING, components, model)
     val hardcodedProperty = createPropertyItem(ATTR_LAYOUT_WIDTH, NelePropertyType.DIMENSION, components, model)
     val referenceProperty = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, components, model)
-    val hardcodedFromDefultProperty = createPropertyItem(ATTR_TEXT_SIZE, NelePropertyType.DIMENSION, components, model)
-    val referenceFromDefaultProperty = createPropertyItem(ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION, components, model)
-    val manager = getSceneManager(hardcodedFromDefultProperty)
+    val hardcodedFromDefaultProperty = createPropertyItem(ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION, components, model)
+    val referenceFromDefaultProperty = createPropertyItem(ATTR_TEXT_SIZE, NelePropertyType.DIMENSION, components, model)
+    val manager = getSceneManager(hardcodedFromDefaultProperty)
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)  // Platform dependent !!!
     referenceFromDefaultProperty.resolver
-    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "@dimen/lineSpacing", null)
-    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "14sp", null)
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "16sp")
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "@dimen/text_size_button_material")
     waitUntilEventsProcessed(model)
 
     assertThat(emptyProperty.tooltipForValue).isEmpty()
     assertThat(hardcodedProperty.tooltipForValue).isEmpty()
     assertThat(referenceProperty.tooltipForValue).isEqualTo("\"@string/demo\" = \"Demo String\" ($keyStroke)")
-    assertThat(hardcodedFromDefultProperty.tooltipForValue).isEqualTo("[default] \"14sp\"")
-    assertThat(referenceFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"@dimen/lineSpacing\" = \"13sp\" ($keyStroke)")
+    assertThat(hardcodedFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"16sp\"")
+    assertThat(referenceFromDefaultProperty.tooltipForValue)
+      .isEqualTo("[default] \"@android:dimen/text_size_button_material\" = \"14sp\" ($keyStroke)")
   }
 
   fun testCompletion() {
@@ -312,6 +334,12 @@ class NelePropertyItemTest : PropertyTestCase() {
     return property.isReference
   }
 
+  private fun resolvedValue(components: List<NlComponent>, type: NelePropertyType, value: String): String? {
+    val property = createPropertyItem("name", type, components)
+    property.value = value
+    return property.resolvedValue
+  }
+
   // Ugly hack:
   // The production code is executing the properties creation on a separate thread.
   // This code makes sure that the last scheduled worker thread is finished,
@@ -320,4 +348,24 @@ class NelePropertyItemTest : PropertyTestCase() {
     model.lastSelectionUpdate?.get()
     UIUtil.dispatchAllInvocationEvents()
   }
+
+  @Language("XML")
+  private val VALUE_RESOURCES = """<?xml version="1.0" encoding="utf-8"?>
+    <resources>
+      <bool name="useBorder">true</bool>
+      <color name="opaqueRed">#f00</color>
+      <color name="translucentRed">#80ff0000</color>
+      <color name="opaqueRedIndirect">@color/opaqueRed</color>
+      <dimen name="ballRadius">30dp</dimen>
+      <dimen name="fontSize">16sp</dimen>
+      <fraction name="part">0.125</fraction>
+      <item type="id" name="button_ok" />
+      <integer name="records">67</integer>
+      <string name="hello">Hello</string>
+
+      <color name="text">@android:color/primary_text_dark</color>
+      <drawable name="cancel">@android:drawable/ic_delete</drawable>
+      <style name="stdButton" parent="@android:style/TextAppearance.Material.Widget.Button"/>
+    </resources>
+  """.trimIndent()
 }

@@ -18,13 +18,10 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel;
 import com.android.tools.adtui.stdui.CommonComboBox;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseWheelEvent;
 import java.util.Arrays;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Widget to support margin editing on the ui
@@ -51,16 +48,6 @@ public class MarginWidget extends CommonComboBox<String, DefaultCommonComboBoxMo
     setAlignmentX(RIGHT_ALIGNMENT);
     setEditable(true);
     setName(name + "ComboBox");
-
-    addMouseWheelListener(new MouseAdapter() {
-      @Override
-      public void mouseWheelMoved(MouseWheelEvent e) {
-        int newMargin = getMargin() - e.getWheelRotation();
-        if (newMargin >= 0) {
-          setMargin(newMargin);
-        }
-      }
-    });
   }
 
   public void setMargin(int margin) {

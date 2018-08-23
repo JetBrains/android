@@ -29,9 +29,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS;
-import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH;
-import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE;
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
  * A {@link CapturePane} that renders the selected {@link CaptureDetails}.
@@ -64,7 +62,8 @@ class DetailsCapturePane extends CapturePane {
 
     final CpuProfilerStage stage = myStageView.getStage();
     myFilterComponent = new FilterComponent(stage.getCaptureFilter(),
-                                            FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+                                            FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS)
+      .setMatchCountVisibility(false); // TODO(b/112703942): Show again when we can completely support this value
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
       myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
         @Override

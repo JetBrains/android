@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesModel
@@ -106,7 +107,7 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     NlUsageTrackerManager.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
-  fun provideDefaultValue(property: NelePropertyItem): String? {
+  fun provideDefaultValue(property: NelePropertyItem): ResourceValue? {
     return defaultValueProvider?.provideDefaultValue(property)
   }
 

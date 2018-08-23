@@ -91,12 +91,12 @@ interface ModelProperty<in ModelT, PropertyT : Any, ValueT : Any, out PropertyCo
 /**
  * Metadata describing the well-known values and recognising variables suitable for a property.
  */
-interface KnownValues<ValueT> {
+interface KnownValues<ValueT : Any> {
   val literals: List<ValueDescriptor<ValueT>>
   fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<ValueT>>): Boolean
 }
 
-fun <T> emptyKnownValues() = object : KnownValues<T> {
+fun <T : Any> emptyKnownValues() = object : KnownValues<T> {
   override val literals: List<ValueDescriptor<T>> = listOf()
   override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<T>>): Boolean = false
 }
@@ -212,8 +212,19 @@ class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
   override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
 }
 
-class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
+open class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
   override fun parse(value: String): Annotated<ParsedValue<ValueT>> = throw UnsupportedOperationException()
   override fun format(value: ValueT): String = value.toString()
   override fun getKnownValues(): ListenableFuture<KnownValues<ValueT>> = Futures.immediateCancelledFuture()
+}
+
+fun <T : Any> ModelPropertyContext<T>.parseEditorText(text: String): Annotated<ParsedValue<T>> = when {
+  text.startsWith("\$\$") ->
+    ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
+  text.startsWith("\$") ->
+    ParsedValue.Set.Parsed<T>(value = null, dslText = DslText.Reference(text.substring(1))).annotated()
+  text.startsWith("\"") && text.endsWith("\"") ->
+    ParsedValue.Set.Parsed<T>(value = null,
+                              dslText = DslText.InterpolatedString(text.substring(1, text.length - 1))).annotated()
+  else -> parse(text)
 }

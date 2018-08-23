@@ -31,9 +31,9 @@ import java.awt.event.MouseEvent
 
 const val ICON_BORDER = 2
 
-class PropertyColorField(private val model: ColorFieldPropertyEditorModel, asTableCellEditor: Boolean): AdtSecondaryPanel(BorderLayout()) {
+class PropertyColorField(private val model: ColorFieldPropertyEditorModel): AdtSecondaryPanel(BorderLayout()) {
   private val iconField = JBLabel()
-  private val textField = PropertyTextField(model, asTableCellEditor)
+  private val textField = PropertyTextField(model)
 
   init {
     border = DarculaTextBorder()

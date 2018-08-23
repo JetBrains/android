@@ -48,7 +48,7 @@ android {
         versionCode 1
         versionName "1.0"
         versionNameSuffix "vns"
-        manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": 'ccc']
+        manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": true]
         testFunctionalTest false
     }
     buildTypes {

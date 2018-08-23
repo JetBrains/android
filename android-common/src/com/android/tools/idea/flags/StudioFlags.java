@@ -205,6 +205,12 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
+  public static final Flag<Boolean> NELE_SHOW_ON_HOVER = Flag.create(
+    NELE, "design.surface.show.hover", "Enable show on hover for the design surface",
+    "If enabled, the design surface will only display additional overlays (like constraints)" +
+    " if the mouse is over the layout",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
@@ -229,6 +235,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
     NELE, "new.color.picker", "New Color Picker",
     "Enable new Color Picker in layout Editor",
+    false);
+
+  public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
+    NELE, "drag.placeholder", "Dragging widgets with Placeholders",
+    "New architecture for dragging widgets in Layout Editor",
     false);
 
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
@@ -347,6 +358,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT = Flag
     .create(NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
             "If enabled, project system view will show a new include node with organized header files", true);
+
+  public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag
+    .create(NDK, "clangtidyinspections", "Enable clang-tidy inspections",
+            "If enabled, show inspections derived from clang-tidy.", false);
 
   private static final FlagGroup NAVIGATION = new FlagGroup(FLAGS, "navigation", "Navigation Editor");
   public static final Flag<Boolean> ENABLE_NAV_EDITOR = Flag.create(

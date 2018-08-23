@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.util.PropertiesMap;
 import com.intellij.util.ui.UIUtil;
 
 import static com.android.SdkConstants.*;
@@ -55,7 +54,7 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
 
   public void testGetGravityValueWithDefaultValue() {
     NlFlagPropertyItem gravity = (NlFlagPropertyItem)createFrom(myTextView, ATTR_GRAVITY);
-    gravity.setDefaultValue(new PropertiesMap.Property("center_vertical", "center_vertical"));
+    gravity.setDefaultValue("center_vertical");
     assertThat(gravity.getName()).isEqualTo(ATTR_GRAVITY);
     assertThat(gravity.getNamespace()).isEqualTo(ANDROID_URI);
     assertThat(gravity.getValue()).isNull();
@@ -65,7 +64,7 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
 
   public void testSetGravityValueWithDefaultValue() {
     NlFlagPropertyItem gravity = (NlFlagPropertyItem)createFrom(myTextView, ATTR_GRAVITY);
-    gravity.setDefaultValue(new PropertiesMap.Property("center_vertical", "center_vertical"));
+    gravity.setDefaultValue("center_vertical");
     gravity.setValue("top");
     assertThat(gravity.getMaskValue()).isEqualTo(0x20);
     assertThat(gravity.getFormattedValue()).isEqualTo("[top]");
@@ -110,7 +109,7 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
 
   public void testTextStyleBoldIsSetByDefault() {
     NlFlagPropertyItem textStyle = (NlFlagPropertyItem)createFrom(myTextView, ATTR_TEXT_STYLE);
-    textStyle.setDefaultValue(new PropertiesMap.Property(null, "bold"));
+    textStyle.setDefaultValue("bold");
     NlFlagPropertyItemValue normal = textStyle.getChildProperty(TextStyle.VALUE_NORMAL);
     NlFlagPropertyItemValue bold = textStyle.getChildProperty(TextStyle.VALUE_BOLD);
 
@@ -123,7 +122,7 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
 
   public void testTextStyleBoldIsSetExplicitlyAndByDefault() {
     NlFlagPropertyItem textStyle = (NlFlagPropertyItem)createFrom(myTextView, ATTR_TEXT_STYLE);
-    textStyle.setDefaultValue(new PropertiesMap.Property(null, TextStyle.VALUE_BOLD));
+    textStyle.setDefaultValue(TextStyle.VALUE_BOLD);
     textStyle.setValue(TextStyle.VALUE_BOLD);
     UIUtil.dispatchAllInvocationEvents();
 

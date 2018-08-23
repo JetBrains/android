@@ -24,11 +24,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
-import com.android.projectmodel.AarLibrary;
+import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
@@ -44,6 +43,13 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -51,9 +57,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
 
 public class ResourceRepositoryManager implements Disposable {
   private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
@@ -83,13 +86,13 @@ public class ResourceRepositoryManager implements Disposable {
 
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
-  private Map<AarLibrary, AarSourceResourceRepository> myLibraryResourceMap;
+  private Map<ExternalLibrary, AarSourceResourceRepository> myLibraryResourceMap;
 
   private final Object myLibraryLock = new Object();
 
   @NotNull
   public static ResourceRepositoryManager getOrCreateInstance(@NotNull AndroidFacet facet) {
-    AaptOptions.Namespacing namespacing = getNamespacing(facet);
+    AaptOptions.Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
     ResourceRepositoryManager instance = facet.getUserData(KEY);
 
     if (instance != null && instance.myNamespacing != namespacing) {
@@ -401,7 +404,7 @@ public class ResourceRepositoryManager implements Disposable {
       if (appResources != null) {
         appResources.invalidateCache(projectResources);
 
-        Map<AarLibrary, AarSourceResourceRepository> oldLibraryResourceMap;
+        Map<ExternalLibrary, AarSourceResourceRepository> oldLibraryResourceMap;
         synchronized (myLibraryLock) {
           // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
           oldLibraryResourceMap = myLibraryResourceMap;
@@ -420,16 +423,6 @@ public class ResourceRepositoryManager implements Disposable {
   @NotNull
   public AaptOptions.Namespacing getNamespacing() {
     return myNamespacing;
-  }
-
-  @NotNull
-  private static AaptOptions.Namespacing getNamespacing(@NotNull AndroidFacet facet) {
-    AndroidModel model = facet.getConfiguration().getModel();
-    if (model != null) {
-      return model.getNamespacing();
-    } else {
-      return AaptOptions.Namespacing.DISABLED;
-    }
   }
 
   /**
@@ -498,7 +491,7 @@ public class ResourceRepositoryManager implements Disposable {
    * @return the corresponding resource repository, or null if not found
    */
   @Nullable
-  public LocalResourceRepository findLibraryResources(@NotNull AarLibrary library) {
+  public LocalResourceRepository findLibraryResources(@NotNull ExternalLibrary library) {
     return getLibraryResourceMap().get(library);
   }
 
@@ -511,7 +504,7 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<AarLibrary, AarSourceResourceRepository> getLibraryResourceMap() {
+  private Map<ExternalLibrary, AarSourceResourceRepository> getLibraryResourceMap() {
     synchronized (myLibraryLock) {
       if (myLibraryResourceMap == null) {
         myLibraryResourceMap = computeLibraryResourceMap();
@@ -521,12 +514,15 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<AarLibrary, AarSourceResourceRepository> computeLibraryResourceMap() {
-    Collection<AarLibrary> libraries = AndroidProjectModelUtils.findAarDependencies(myFacet.getModule()).values();
-    Map<AarLibrary, AarSourceResourceRepository> result = new LinkedHashMap<>(libraries.size());
-    for (AarLibrary library: libraries) {
+  private Map<ExternalLibrary, AarSourceResourceRepository> computeLibraryResourceMap() {
+    Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
+    Map<ExternalLibrary, AarSourceResourceRepository> result = new LinkedHashMap<>(libraries.size());
+    for (ExternalLibrary library: libraries) {
       AarSourceResourceRepository aarRepository;
       if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+        if (library.getResFolder() == null) {
+          continue;
+        }
         File resFolder = library.getResFolder().toFile();
         if (resFolder == null) {
           LOG.warn("Cannot find res folder for " + library.getAddress());

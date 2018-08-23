@@ -198,13 +198,13 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     parser = ::parseString
   )
 
-  val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
+  val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, Any> = mapProperty(
     "Manifest Placeholders",
-    resolvedValueGetter = { manifestPlaceholders.mapValues { it.value.toString() } },
+    resolvedValueGetter = { manifestPlaceholders },
     parsedPropertyGetter = { manifestPlaceholders() },
-    getter = { asString() },
+    getter = { asAny() },
     setter = { setValue(it) },
-    parser = ::parseString
+    parser = ::parseAny
   )
 
   val testInstrumentationRunnerArguments: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(

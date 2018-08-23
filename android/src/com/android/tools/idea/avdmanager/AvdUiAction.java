@@ -123,6 +123,8 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
 
   @Override
   public void hyperlinkUpdate(HyperlinkEvent e) {
-    actionPerformed(null);
+    if (isEnabled()) {
+      actionPerformed(null);
+    }
   }
 }

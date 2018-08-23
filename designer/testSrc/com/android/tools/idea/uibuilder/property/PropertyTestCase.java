@@ -26,7 +26,6 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
@@ -498,7 +497,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                                    @NotNull String propertyName,
                                                    @NotNull String resource) {
     NlPropertyItem property = getProperty(component, propertyName);
-    property.setDefaultValue(new PropertiesMap.Property(resource, null));
+    property.setDefaultValue(resource);
     return property;
   }
 

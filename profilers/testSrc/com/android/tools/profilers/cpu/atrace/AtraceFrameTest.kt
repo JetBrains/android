@@ -18,9 +18,9 @@ package com.android.tools.profilers.cpu.atrace
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.DELTA
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.RENDER_THREAD_ID
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.SECONDS_TO_US
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
+import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.convertTimeStamps
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -42,50 +42,34 @@ class AtraceFrameTest {
 
   @Test
   fun testFramePerformance() {
-    val frame = AtraceFrame(myModel)
     val bitmapsProcess = myModel.processes[TEST_PID]!!
+    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1)
     val goodFrameRange = Range(1.0, 1.01)
-    val badFrameRange = Range(1.0, 2.0)
-    frame.addSlice(bitmapsProcess.threads[0].slices[0], goodFrameRange, bitmapsProcess.threads[0])
+    val badFrameRange = Range(1.0, 10.0)
+    frame.addSlice(bitmapsProcess.threads[0].slices[0], goodFrameRange)
     assertThat(frame.perfClass).isEqualTo(AtraceFrame.PerfClass.GOOD)
-    frame.addSlice(bitmapsProcess.threads[0].slices[1], badFrameRange, bitmapsProcess.threads[0])
+    frame.addSlice(bitmapsProcess.threads[0].slices[1], badFrameRange)
     assertThat(frame.perfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
   }
 
   @Test
   fun testRangeValues() {
-    val frame = AtraceFrame(myModel)
     val bitmapsProcess = myModel.processes[TEST_PID]!!
+    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, 0)
     val smallRange = Range(1.0 + myModel.beginTimestamp, 2.0 + myModel.beginTimestamp)
-    var smallUserRange = Range((1.0 + myModel.parentTimestamp) * SECONDS_TO_US, (2.0 + myModel.parentTimestamp) * SECONDS_TO_US)
-    frame.addSlice(bitmapsProcess.threads[0].slices[0], smallRange, bitmapsProcess.threads[0])
+    val smallUserRange = Range(convertTimeStamps(smallRange.min).toDouble(), convertTimeStamps(smallRange.max).toDouble())
+    frame.addSlice(bitmapsProcess.threads[0].slices[0], smallRange)
     validateRange(smallRange, frame.totalRangeSeconds)
-    assertThat(frame.ranges).hasSize(1)
-    validateRange(smallRange, frame.ranges[0])
     assertThat(smallUserRange.min.toLong()).isEqualTo(frame.startUs)
     assertThat(smallUserRange.max.toLong()).isEqualTo(frame.endUs)
-    validateRange(smallUserRange, frame.totalRangeProcessTime)
-    validateRange(smallUserRange, frame.uiThreadRangeProcessTime)
-    validateRange(Range(0.0, 0.0), frame.renderThreadRangeProcessTime)
     assertThat(bitmapsProcess.threads[0].slices[0].cpuTime).isWithin(DELTA).of(frame.cpuTimeSeconds)
 
     val largeRange = Range(3.0 + myModel.beginTimestamp, 6.0 + myModel.beginTimestamp)
-    var largeUserRange = Range((3.0 + myModel.parentTimestamp) * SECONDS_TO_US, (6.0 + myModel.parentTimestamp) * SECONDS_TO_US)
+    val largeUserRange = Range(convertTimeStamps(largeRange.min).toDouble(), convertTimeStamps(largeRange.max).toDouble())
     val totalRange = Range(smallRange.min, largeRange.max)
-    val totalUserRange = Range(smallUserRange.min, largeUserRange.max)
-    frame.addSlice(bitmapsProcess.threads[RENDER_THREAD_ID].slices[0], largeRange, bitmapsProcess.threads[RENDER_THREAD_ID])
-    assertThat(frame.ranges).hasSize(2)
-    validateRange(totalRange, frame.totalRangeSeconds)
-    validateRange(totalUserRange, frame.totalRangeProcessTime)
-    validateRange(smallUserRange, frame.uiThreadRangeProcessTime)
-    validateRange(largeUserRange, frame.renderThreadRangeProcessTime)
+    frame.addSlice(bitmapsProcess.threads[0].slices[1], largeRange)
     assertThat(smallUserRange.min.toLong()).isEqualTo(frame.startUs)
     assertThat(largeUserRange.max.toLong()).isEqualTo(frame.endUs)
-    assertThat(frame.slices).hasSize(2)
-    assertThat(frame.schedSlice).hasSize(
-        bitmapsProcess.threads[0].schedSlices.size +
-            bitmapsProcess.threads[RENDER_THREAD_ID].schedSlices.size
-    )
     assertThat(frame.durationUs).isEqualTo((totalRange.length * SECONDS_TO_US).toLong())
   }
 

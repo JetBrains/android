@@ -158,5 +158,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getAugmentRClasses() = true
 
-  override fun getLightResourceClassService(): LightResourceClassService? = null
+  override fun getLightResourceClassService(): LightResourceClassService {
+    TODO("not implemented")
+  }
 }

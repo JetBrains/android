@@ -167,6 +167,8 @@ public class ProfilerColors {
 
   public static final Color CPU_PROFILING_CONFIGURATIONS_SELECTED = new JBColor(0x1155CC, 0x1155CC);
 
+  public static final Color CPU_RECORDING_CONFIGURATION_DESCRIPTION = new JBColor(0x4E4E4E, 0xB5B5B5);
+
   public static final Color CPU_DURATION_LABEL_BACKGROUND = new JBColor(new Color(0x70000000, true), new Color(0x70000000, true));
 
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);

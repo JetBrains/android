@@ -41,6 +41,6 @@ class VisibleDestinationsEditor(listener: NlEditingListener, comboBox: CustomCom
       result.addAll(visibleDestinations[it].orEmpty())
     }
 
-    result
+    result.filter { it.id != null }
   }
 }

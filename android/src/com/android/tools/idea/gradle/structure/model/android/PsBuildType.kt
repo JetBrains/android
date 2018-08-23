@@ -246,13 +246,13 @@ open class PsBuildType(
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
 
-    val manifestPlaceholders: MapProperty<PsBuildType, String> = mapProperty(
+    val manifestPlaceholders: MapProperty<PsBuildType, Any> = mapProperty(
       "Manifest Placeholders",
-      resolvedValueGetter = { manifestPlaceholders.mapValues { it.value.toString() } },
+      resolvedValueGetter = { manifestPlaceholders },
       parsedPropertyGetter = { manifestPlaceholders() },
-      getter = { asString() },
+      getter = { asAny() },
       setter = { setValue(it) },
-      parser = ::parseString
+      parser = ::parseAny
     )
 
     override val properties: Collection<ModelProperty<PsBuildType, *, *, *>> =

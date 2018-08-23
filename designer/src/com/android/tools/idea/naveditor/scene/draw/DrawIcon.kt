@@ -22,14 +22,14 @@ import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
 import com.android.tools.idea.naveditor.scene.setRenderingHints
 import icons.StudioIcons.NavEditor.Surface
 import java.awt.Graphics2D
-import java.awt.Rectangle
+import java.awt.geom.Rectangle2D
 import javax.swing.Icon
 
 /**
  * [DrawIcon] is a DrawCommand that draws an icon
  * in the specified rectangle.
  */
-class DrawIcon(@SwingCoordinate private val rectangle: Rectangle, private val iconType: IconType) : DrawCommandBase() {
+class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float, private val iconType: IconType) : DrawCommandBase() {
   enum class IconType {
     START_DESTINATION,
     DEEPLINK
@@ -41,7 +41,7 @@ class DrawIcon(@SwingCoordinate private val rectangle: Rectangle, private val ic
         DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
       }
 
-  private constructor(sp: Array<String>) : this(stringToRect(sp[0]), IconType.valueOf(sp[1]))
+  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), IconType.valueOf(sp[1]))
 
   constructor(s: String) : this(parse(s, 2))
 
@@ -50,7 +50,7 @@ class DrawIcon(@SwingCoordinate private val rectangle: Rectangle, private val ic
   }
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, rectToString(rectangle), iconType)
+    return buildString(javaClass.simpleName, rect2DToString(rectangle), iconType)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

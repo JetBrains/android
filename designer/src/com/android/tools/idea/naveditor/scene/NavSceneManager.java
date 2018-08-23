@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
@@ -43,7 +45,6 @@ import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.xml.XmlTag;
@@ -131,7 +132,7 @@ public class NavSceneManager extends SceneManager {
 
     NlComponent nlComponent = sceneComponent.getNlComponent();
 
-    switch (NavComponentHelperKt.getActionType(nlComponent)) {
+    switch (NavComponentHelperKt.getActionType(nlComponent, getRoot())) {
       case GLOBAL:
         sceneComponent.setSize((int)GLOBAL_ACTION_WIDTH, (int)ACTION_HEIGHT, false);
         return;
@@ -276,16 +277,12 @@ public class NavSceneManager extends SceneManager {
   }
 
   private boolean shouldCreateActionHierarchy(@NotNull NlComponent component) {
-    ActionType actionType = NavComponentHelperKt.getActionType(component);
+    ActionType actionType = NavComponentHelperKt.getActionType(component, getRoot());
 
     switch (actionType) {
       case GLOBAL:
-        // Create scene components for global actions under the root navigation
-        return component.getParent() == getRoot();
       case EXIT:
-        // Create scene components for exit actions under children of the root navigation
-        NlComponent parent = component.getParent();
-        return parent != null && parent.getParent() == getRoot();
+        return true;
       default:
         // Regular and self actions are handled as targets
         return false;
@@ -386,7 +383,7 @@ public class NavSceneManager extends SceneManager {
       ArrayList<SceneComponent> exitActions = new ArrayList<>();
 
       for (SceneComponent child : component.getChildren()) {
-        switch (NavComponentHelperKt.getActionType(child.getNlComponent())) {
+        switch (NavComponentHelperKt.getActionType(child.getNlComponent(), getRoot())) {
           case GLOBAL:
             globalActions.add(child);
             break;
@@ -512,7 +509,12 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
-  public Map<Object, PropertiesMap> getDefaultProperties() {
+  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
+    return ImmutableMap.of();
+  }
+
+  @Override
+  public Map<Object, String> getDefaultStyles() {
     return ImmutableMap.of();
   }
 

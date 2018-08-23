@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -38,7 +39,7 @@ import static java.lang.Math.min;
  * Displays a separator in between LinearLayout's children and used as a target when dropping
  * a component in LinearLayout
  */
-public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider {
+public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider, NonPlaceholderDragTarget {
 
   private static final boolean DEBUG = false;
   private final boolean myLayoutVertical;

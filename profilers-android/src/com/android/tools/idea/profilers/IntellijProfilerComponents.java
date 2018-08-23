@@ -17,7 +17,12 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceGroup;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ContentType;
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.ExportDialog;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ImportDialog;
+import com.android.tools.profilers.UiMessageHandler;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
@@ -26,16 +31,16 @@ import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.function.Consumer;
+import javax.imageio.ImageIO;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
 
@@ -111,7 +116,10 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style style) {
+  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
+    // User isn't expected to specify INVALID; it's only meant as an internal fallback
+    assert(styleHint != DataViewer.Style.INVALID);
+
     if (contentType.isImageType()) {
       try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
         BufferedImage image = ImageIO.read(inputStream);
@@ -123,10 +131,13 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       }
       return IntellijDataViewer.createInvalidViewer();
     }
-    if (style == DataViewer.Style.PRETTY) {
+    if (styleHint == DataViewer.Style.RAW) {
+      return IntellijDataViewer.createRawTextViewer(content);
+    }
+    else {
+      assert (styleHint == DataViewer.Style.PRETTY);
       return IntellijDataViewer.createPrettyViewer(myProject, content, contentType.getFileType());
     }
-    return IntellijDataViewer.createEditorViewer(myProject, new String(content), contentType.getFileType());
   }
 
   @NotNull

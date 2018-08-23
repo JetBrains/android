@@ -15,33 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.*;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.util.PropertiesMap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandAdapter;
 import com.intellij.openapi.command.CommandEvent;
+import com.intellij.openapi.command.CommandListener;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.android.SdkConstants.PREFIX_ANDROID;
 
 /**
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
-  private final Map<Object, PropertiesMap> myDefaultProperties;
+  private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private ViewEditor myCustomViewEditor;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
@@ -66,7 +61,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   private static void runAfterCommandIfNecessary(Runnable runnable) {
     if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      CommandProcessor.getInstance().addCommandListener(new CommandAdapter() {
+      CommandProcessor.getInstance().addCommandListener(new CommandListener() {
         @Override
         public void commandFinished(CommandEvent event) {
           runnable.run();
@@ -87,23 +82,22 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @Override
   @NotNull
-  public Map<Object, PropertiesMap> getDefaultProperties() {
+  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
     return myDefaultProperties;
   }
 
   public void putDefaultPropertyValue(@NotNull NlComponent component,
                                       @NotNull ResourceNamespace namespace,
                                       @NotNull String attributeName,
-                                      @NotNull String resourceValue,
-                                      @Nullable String value) {
-    PropertiesMap map = myDefaultProperties.get(component.getSnapshot());
+                                      @NotNull String value) {
+    Map<ResourceReference, ResourceValue> map = myDefaultProperties.get(component.getSnapshot());
     if (map == null) {
-      map = new PropertiesMap();
+      map = new HashMap<>();
       myDefaultProperties.put(component.getSnapshot(), map);
     }
-    // TODO: Update for namespace support:
-    String key = (namespace == ResourceNamespace.ANDROID ? PREFIX_ANDROID : "") + attributeName;
-    map.put(key, new PropertiesMap.Property(resourceValue, value));
+    ResourceReference reference = ResourceReference.attr(namespace, attributeName);
+    ResourceValue resourceValue = new StyleItemResourceValueImpl(namespace, attributeName, value, null);
+    map.put(reference, resourceValue);
   }
 
   public void setCustomViewEditor(@NotNull ViewEditor editor) {

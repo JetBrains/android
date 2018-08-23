@@ -65,7 +65,7 @@ public class AarSourceResourceRepositoryTest extends TestCase {
   public void testLibraryNameIsMaintained() {
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
-    for (ResourceItem item : repository.getAllResourceItems()) {
+    for (ResourceItem item : repository.getAllResources()) {
       assertThat(item.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
     }
   }

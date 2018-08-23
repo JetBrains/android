@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
@@ -69,7 +71,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
@@ -175,12 +176,28 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     myFontCacheService = DownloadableFontCacheService.getInstance();
-    myFontFamilies = projectRes.getAllResourceItems().stream()
-      .filter(r -> r.getType() == ResourceType.FONT)
-      .map(r -> r.getResourceValue())
-      .filter(Objects::nonNull)
-      .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
-      .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
+    ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
+    projectRes.accept(
+        new ResourceVisitor() {
+          @Override
+          @NotNull
+          public VisitResult visit(@NotNull ResourceItem resourceItem) {
+            ResourceValue resourceValue = resourceItem.getResourceValue();
+            if (resourceValue != null) {
+              String rawXml = resourceValue.getRawXmlValue();
+              if (rawXml != null && rawXml.endsWith(DOT_XML)) {
+                fontBuilder.put(rawXml, resourceValue);
+              }
+            }
+            return VisitResult.CONTINUE;
+          }
+
+          @Override
+          public boolean shouldVisitResourceType(@NotNull ResourceType resourceType) {
+            return resourceType == ResourceType.FONT;
+          }
+        });
+    myFontFamilies = fontBuilder.build();
   }
 
   /** Resets the callback state for another render */
@@ -384,6 +401,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Override
+  @Nullable
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
     String value = layoutResource.getValue();
     if (value == null) {
@@ -498,7 +516,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     Multimap<String, String> includeMap = ArrayListMultimap.create();
     for (PathString path : myParserFiles) {
       File file = path.toFile();
-      if (file == null) {
+      if (file == null || !file.exists()) {
         continue;
       }
       String layoutName = Lint.getLayoutName(file);
@@ -601,8 +619,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getAdapterItemValue(ResourceReference adapterView,
                                     Object adapterCookie,
                                     ResourceReference itemRef,
@@ -640,6 +658,52 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     if (viewAttribute == ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
+      return "Item " + (fullPosition + 1);
+    }
+
+    return null;
+  }
+
+  @Override
+  @Nullable
+  @Deprecated
+  public Object getAdapterItemValue(ResourceReference adapterView,
+                                    Object adapterCookie,
+                                    ResourceReference itemRef,
+                                    int fullPosition,
+                                    int typePosition,
+                                    int fullChildPosition,
+                                    int typeChildPosition,
+                                    ResourceReference viewRef,
+                                    IProjectCallback.ViewAttribute viewAttribute,
+                                    Object defaultValue) {
+
+    // Special case for the palette preview
+    if (viewAttribute == IProjectCallback.ViewAttribute.TEXT && adapterView.getName().startsWith("android_widget_")) { //$NON-NLS-1$
+      String name = adapterView.getName();
+      if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
+        return "Sub Item";
+      }
+      if (fullPosition == 0) {
+        String viewName = name.substring("android_widget_".length());
+        if (viewName.equals(EXPANDABLE_LIST_VIEW)) {
+          return "ExpandableList"; // ExpandableListView is too wide, character-wraps
+        }
+        return viewName;
+      }
+      else {
+        return "Next Item";
+      }
+    }
+
+    if (itemRef.getNamespace() == ResourceNamespace.ANDROID) {
+      // Special case for list_view_item_2 and friends
+      if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
+        return "Sub Item " + (fullPosition + 1);
+      }
+    }
+
+    if (viewAttribute == IProjectCallback.ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
       return "Item " + (fullPosition + 1);
     }
 

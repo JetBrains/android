@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 
-abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in CollectionT, ValueT : Any> :
+abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in CollectionT : Any, ValueT : Any> :
   ModelPropertyBase<ModelT, ValueT>() {
   abstract val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>
   abstract val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel

@@ -16,13 +16,14 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -243,7 +244,9 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
 
-  public abstract Map<Object, PropertiesMap> getDefaultProperties();
+  public abstract Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties();
+
+  public abstract Map<Object, String> getDefaultStyles();
 
   @NotNull
   protected HitProvider getHitProvider(@NotNull NlComponent component) {

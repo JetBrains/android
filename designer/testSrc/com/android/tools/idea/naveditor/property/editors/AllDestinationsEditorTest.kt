@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -39,6 +40,7 @@ class AllDestinationsEditorTest : NavTestCase() {
             action("a2", destination = "fragment1")
           }
         }
+        addChild(ComponentDescriptor("fragment"), null)
       }
     }
     val property = mock(NlProperty::class.java)

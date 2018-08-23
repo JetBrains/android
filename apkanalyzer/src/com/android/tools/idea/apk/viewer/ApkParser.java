@@ -43,22 +43,22 @@ import java.util.List;
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
 
-  @NotNull private final Archive myArchive;
-  @NotNull private final ApkSizeCalculator myApkSizeCalculator;
+  private final ArchiveContext myArchiveContext;
+  private final ApkSizeCalculator myApkSizeCalculator;
 
   @Nullable private ListenableFuture<ArchiveNode> myTreeStructure;
   @Nullable private ListenableFuture<ArchiveNode> myTreeStructureWithDownloadSizes;
   @Nullable private ListenableFuture<Long> myRawFullApkSize;
   @Nullable private ListenableFuture<Long> myCompressedFullApkSize;
 
-  public ApkParser(@NotNull Archive archive, @NotNull ApkSizeCalculator sizeCalculator) {
-    myArchive = archive;
+  public ApkParser(@NotNull ArchiveContext archiveContext, @NotNull ApkSizeCalculator sizeCalculator) {
+    myArchiveContext = archiveContext;
     myApkSizeCalculator = sizeCalculator;
   }
 
   @NotNull
   public Archive getArchive() {
-    return myArchive;
+    return myArchiveContext.getArchive();
   }
 
   public synchronized void cancelAll(){
@@ -103,7 +103,7 @@ public class ApkParser {
   @NotNull
   public synchronized ListenableFuture<Long> getUncompressedApkSize() {
     if (myRawFullApkSize == null) {
-      myRawFullApkSize = ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkRawSize(myArchive.getPath()));
+      myRawFullApkSize = ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkRawSize(myArchiveContext.getArchive().getPath()));
     }
     return myRawFullApkSize;
   }
@@ -111,7 +111,7 @@ public class ApkParser {
   @NotNull
   public synchronized ListenableFuture<Long> getCompressedFullApkSize() {
     if (myCompressedFullApkSize == null) {
-      myCompressedFullApkSize = ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkDownloadSize(myArchive.getPath()));
+      myCompressedFullApkSize = ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkDownloadSize(myArchiveContext.getArchive().getPath()));
     }
 
     return myCompressedFullApkSize;
@@ -119,7 +119,7 @@ public class ApkParser {
 
   @NotNull
   private ArchiveNode createTreeNode() throws IOException {
-    ArchiveNode node = ArchiveTreeStructure.create(myArchive);
+    ArchiveNode node = ArchiveTreeStructure.create(myArchiveContext);
     ArchiveTreeStructure.updateRawFileSizes(node, myApkSizeCalculator);
     return node;
   }

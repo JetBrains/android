@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.ui.HideablePanel;
@@ -28,6 +29,8 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -37,7 +40,7 @@ import java.util.List;
  * represents a core found in an atrace file and is composed by a {@link com.android.tools.adtui.chart.statechart.StateChart} whose data are
  * the list of {@link CpuThreadSliceInfo} associated with that core.
  */
-public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
+public class CpuKernelsView {
 
   @NotNull
   private final HideablePanel myPanel;
@@ -46,20 +49,37 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
   private final CpuProfilerStage myStage;
 
   @NotNull
-  private final CpuThreadsView myThreads;
+  private final JBList<CpuKernelModel.CpuState> myKernels;
 
-  // TODO(b/110766649): Do not expose the parent only to capture mouse events.
-  public CpuKernelsView(@NotNull CpuProfilerStage stage, @NotNull CpuThreadsView threadsView, @NotNull JPanel parent) {
-    super(stage.getCpuKernelModel());
+  public CpuKernelsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
-    myThreads = threadsView;
-    myPanel = createKernelsPanel(parent);
-
+    myKernels = new JBList<>(stage.getCpuKernelModel());
+    myPanel = createKernelsPanel();
     setupListeners();
-    setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
-                                              myStage.getStudioProfilers().getSession().getPid(),
-                                              this, threadsView));
+    myKernels.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    myKernels.setCellRenderer(new CpuKernelCellRenderer(myStage, myStage.getStudioProfilers().getIdeServices().getFeatureConfig(),
+                                                        myStage.getStudioProfilers().getSession().getPid(),
+                                                        myKernels));
+    myKernels.getModel().addListDataListener(new ListDataListener() {
+      @Override
+      public void contentsChanged(ListDataEvent e) {
+        int size = myKernels.getModel().getSize();
+        boolean hasElements = size != 0;
+        // Lets only show 4 cores max the user can scroll to view the rest.
+        myKernels.setVisibleRowCount(Math.min(4, size));
+        myPanel.setVisible(hasElements);
+        myPanel.setExpanded(hasElements);
+        myPanel.setTitle(String.format("KERNEL (%d)", size));
+      }
+
+      @Override
+      public void intervalAdded(ListDataEvent e) {
+      }
+
+      @Override
+      public void intervalRemoved(ListDataEvent e) {
+      }
+    });
   }
 
   @NotNull
@@ -67,25 +87,33 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
     return myPanel;
   }
 
+  /* TODO(b/112827411): We don't need to expose the list when refactoring will be done.
+     Consumers of CpuKernelsView should be able to register mouse or UI events directly to the top-level component of CpuKernelsView.
+   */
+  @NotNull
+  public JBList<CpuKernelModel.CpuState> getKernels() {
+    return myKernels;
+  }
+
   private void setupListeners() {
     // Handle selection.
-    addListSelectionListener((e) -> cpuKernelRunningStateSelected(getModel()));
-    addMouseListener(new MouseAdapter() {
+    myKernels.addListSelectionListener((e) -> cpuKernelRunningStateSelected(myKernels.getModel()));
+    myKernels.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        cpuKernelRunningStateSelected(getModel());
+        cpuKernelRunningStateSelected(myKernels.getModel());
         myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectCpuKernelElement();
       }
     });
 
     // Handle Tooltip
-    addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
-    addMouseMotionListener(new MouseAdapter() {
+    myKernels.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
+    myKernels.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        int row = locationToIndex(e.getPoint());
+        int row = myKernels.locationToIndex(e.getPoint());
         if (row != -1) {
-          CpuKernelModel.CpuState model = getModel().getElementAt(row);
+          CpuKernelModel.CpuState model = myKernels.getModel().getElementAt(row);
           if (myStage.getTooltip() instanceof CpuKernelTooltip) {
             CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
             tooltip.setCpuSeries(model.getCpuId(), model.getSeries());
@@ -96,9 +124,10 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
   }
 
   @NotNull
-  private HideablePanel createKernelsPanel(@NotNull JPanel parent) {
+  private HideablePanel createKernelsPanel() {
+    JPanel kernelsContent = new JPanel(new TabularLayout("*", "*"));
     // Create hideable panel for CPU list.
-    HideablePanel kernelsPanel = new HideablePanel.Builder("KERNEL", new CpuListScrollPane(this, parent))
+    HideablePanel kernelsPanel = new HideablePanel.Builder("KERNEL", kernelsContent)
       .setShowSeparator(false)
       // We want to keep initially expanded to false because the kernel layout is set to "Fix" by default. As such when
       // we later change the contents to have elements and expand the view we also want to trigger the StateChangedListener below
@@ -107,7 +136,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
       .setInitiallyExpanded(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
       .build();
-
+    kernelsContent.add(new CpuListScrollPane(myKernels, kernelsPanel), new TabularLayout.Constraint(0, 0));
     // Hide CPU panel by default
     kernelsPanel.setVisible(false);
 
@@ -116,6 +145,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
     kernelsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     kernelsPanel.addStateChangedListener(
       (e) -> myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuKernelHideablePanel());
+    kernelsContent.setBorder(JBUI.Borders.empty());
     return kernelsPanel;
   }
 
@@ -124,7 +154,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
    * triggering the feature tracker to register the thread selection.
    */
   private void cpuKernelRunningStateSelected(@NotNull ListModel<CpuKernelModel.CpuState> cpuModel) {
-    int selectedIndex = getSelectedIndex();
+    int selectedIndex = myKernels.getSelectedIndex();
     if (selectedIndex < 0) {
       myStage.setSelectedThread(CaptureModel.NO_THREAD);
       return;
@@ -138,7 +168,7 @@ public class CpuKernelsView extends JBList<CpuKernelModel.CpuState> {
 
     int id = process.get(0).value.getId();
     CpuThreadsModel threadsModel = myStage.getThreadStates();
-    for (int i = 0; i < myThreads.getModel().getSize(); i++) {
+    for (int i = 0; i < threadsModel.getSize(); i++) {
       CpuThreadsModel.RangedCpuThread thread = threadsModel.getElementAt(i);
       if (id == thread.getThreadId()) {
         myStage.setSelectedThread(thread.getThreadId());

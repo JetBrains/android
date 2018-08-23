@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -31,8 +29,10 @@ import java.awt.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
@@ -43,7 +43,9 @@ public class ConnectionsViewTest {
       .add(TestHttpData.newBuilder(3, 8, 13)
              .setResponsePayloadSize(TestHttpData.fakeContentSize(3))
              .build())
-      .add(TestHttpData.newBuilder(4, 21, 34).build())
+      .add(TestHttpData.newBuilder(4, 21, 34)
+                       .setResponseFields(TestHttpData.fakeResponseFields(4, "bmp"))
+                       .build())
       .build();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
@@ -66,10 +68,27 @@ public class ConnectionsViewTest {
     // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
     assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is(Long.toString(id)));
     assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(TestHttpData.fakeContentSize(id)));
-    assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is(TestHttpData.FAKE_CONTENT_TYPE));
+    assertThat(TestHttpData.FAKE_CONTENT_TYPE, endsWith((String)ConnectionsView.Column.TYPE.getValueFrom(data)));
     assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(TestHttpData.FAKE_RESPONSE_CODE));
     assertThat(ConnectionsView.Column.TIME.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(5)));
     assertThat(ConnectionsView.Column.TIMELINE.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(8)));
+  }
+
+  @Test
+  public void mimeTypeContainingMultipleComponentsIsTruncated() throws Exception {
+    HttpData data = FAKE_DATA.get(0); // Request: id = 1
+    long id = data.getId();
+    assertThat(id, is(1L));
+    assertThat(TestHttpData.FAKE_CONTENT_TYPE, allOf(endsWith((String)ConnectionsView.Column.TYPE.getValueFrom(data)),
+                                                     not((String)ConnectionsView.Column.TYPE.getValueFrom(data))));
+  }
+
+  @Test
+  public void simpleMimeTypeIsCorrectlyDisplayed() throws Exception {
+    HttpData data = FAKE_DATA.get(3); // Request: id = 4
+    long id = data.getId();
+    assertThat(id, is(4L));
+    assertThat("bmp", is((String)ConnectionsView.Column.TYPE.getValueFrom(data)));
   }
 
   @Test

@@ -40,11 +40,17 @@ class PsVariable(
     this.resolvedProperty = property.resolve()
     myListItems?.refresh()
     myMapEntries?.refresh()
+    pendingListItemContainer = null
+  }
+
+  private fun initNewListItem(property: ResolvedPropertyModel) {
+    pendingListItemContainer = property
   }
 
   private var property: GradlePropertyModel? = null
   private var resolvedProperty: ResolvedPropertyModel? = null
   private var myListItems: ListVariableEntries? = null
+  private var pendingListItemContainer: ResolvedPropertyModel? = null
   val listItems: PsKeyedModelCollection<Int, PsVariable> = myListItems ?: ListVariableEntries(this).also { myListItems = it }
   val isList: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.LIST
   private var myMapEntries: MapVariableEntries? = null
@@ -56,16 +62,6 @@ class PsVariable(
 
   fun convertToEmptyList() = resolvedProperty!!.convertToEmptyList()
   fun convertToEmptyMap() = resolvedProperty!!.convertToEmptyMap()
-
-  fun setValue(aValue: Any) {
-    val property = property!!
-    if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
-      property.setValue((aValue as String).toBoolean())
-    } else {
-      property.setValue(aValue)
-    }
-    parent.isModified = true
-  }
 
   fun delete() {
     property!!.delete()
@@ -79,29 +75,29 @@ class PsVariable(
     parent.isModified = true
   }
 
-  fun addListValue(value: String): PsVariable {
-    val property = property!!
-    if (property.valueType != GradlePropertyModel.ValueType.LIST) {
-      throw IllegalStateException("addListValue can only be called for list variables")
+  fun addListValue(value: ParsedValue<Any>): PsVariable {
+    if (!isList) throw IllegalStateException("addListValue can only be called for list variables")
+    return if (value === ParsedValue.NotSet) {
+      PsVariable(this, scopePsVariables, { myListItems?.refresh() }).also { it.initNewListItem(resolvedProperty!!) }
     }
-
-    val listValue = property.addListValue()
-    listValue.setValue(value)
-    parent.isModified = true
-    return PsVariable(this, scopePsVariables, {}).also { it.init(listValue) }
+    else {
+      val listValue = this.property!!.addListValue().resolve()
+      listValue.setParsedValue({ setValue(it) }, {}, value)
+      parent.isModified = true
+      myListItems?.refresh()
+      listItems.findElement(listItems.size - 1)!!
+    }
   }
 
   fun addMapValue(key: String): PsVariable? {
-    val property = property!!
-    if (property.valueType != GradlePropertyModel.ValueType.MAP) {
-      throw IllegalStateException("addMapValue can only be called for map variables")
-    }
-
-    val mapValue = property.getMapValue(key)
+    if (!isMap) throw IllegalStateException("addMapValue can only be called for map variables")
+    val mapValue = property!!.getMapValue(key)
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(this, scopePsVariables, {}).also { it.init(mapValue) }
+    mapValue.setValue("")
+    myMapEntries?.refresh()
+    return mapEntries.findElement(key)!!
   }
 
   /**
@@ -119,7 +115,16 @@ class PsVariable(
     override fun getParsed(model: PsVariable): ResolvedPropertyModel? = model.resolvedProperty
 
     override fun setModified(model: PsVariable) {
+      model.pendingListItemContainer?.let {
+        val itemProperty = it.addListValue()
+        model.property = itemProperty
+        model.resolvedProperty = itemProperty.resolve()
+        model.pendingListItemContainer = null
+        model.refreshCollection()
+      }
       model.scopePsVariables.model.isModified = true
+      model.myListItems?.refresh()
+      model.myMapEntries?.refresh()
     }
 
     val variableValue: SimpleProperty<PsVariable, Any> = property(
@@ -219,7 +224,7 @@ class PsVariable(
 /**
  * Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values.
  */
-private fun <T> Collection<KnownValues<out T>>.combineKnownValues() =
+private fun <T : Any> Collection<KnownValues<out T>>.combineKnownValues() =
   map { it.literals.toSet() }
     .fold(setOf<ValueDescriptor<T>>()) { acc, v ->
       when {

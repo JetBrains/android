@@ -22,6 +22,7 @@ import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
 import com.android.tools.idea.common.property2.impl.ui.CellPanel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Color
 import javax.swing.JComponent
 import javax.swing.border.Border
 
@@ -57,7 +58,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
         val controlType = nameControlTypeProvider(newProperty)
         val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
         val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
-        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border))
+        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
       }
 
       PTableColumn.VALUE -> {
@@ -68,7 +69,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
         val controlType = valueControlTypeProvider(valueProperty)
         val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
         val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
-        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border))
+        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
       }
     }
     return editor
@@ -141,11 +142,12 @@ class PTableCellEditorImpl : PTableCellEditor {
 }
 
 @VisibleForTesting
-class EditorPanel(val editor: JComponent, withBorder: Border): CellPanel() {
+class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: Color?): CellPanel() {
 
   init {
     add(editor, BorderLayout.CENTER)
     border = withBorder
+    background = backgroundColor
   }
 
   override fun requestFocus() {

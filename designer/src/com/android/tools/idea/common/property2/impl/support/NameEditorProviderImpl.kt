@@ -30,7 +30,7 @@ class NameEditorProviderImpl<in P : NewPropertyItem> : EditorProvider<P> {
 
   override fun createEditor(property: P, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val model = PropertyNameEditorModel(property)
-    val editor = PropertyTextField(model, asTableCellEditor)
+    val editor = PropertyTextField(model)
     return Pair(model, editor)
   }
 }

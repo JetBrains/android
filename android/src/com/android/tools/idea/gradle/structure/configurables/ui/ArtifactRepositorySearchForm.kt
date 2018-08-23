@@ -140,22 +140,21 @@ class ArtifactRepositorySearchForm(
     val request = SearchRequest(artifactName, groupId, 50, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
-      val errors = results.errors
-      if (errors.isNotEmpty()) {
-        showSearchStopped()
-        searchErrors = errors
-        return@continueOnEdt
-      }
-
       val foundArtifacts = results.artifacts.sorted()
 
       resultsTable.listTableModel.items = foundArtifacts
       resultsTable.updateColumnSizes()
-      showSearchStopped()
       if (foundArtifacts.isNotEmpty()) {
         resultsTable.changeSelection(0, 0, false, false)
       }
       resultsTable.requestFocusInWindow()
+
+      val errors = results.errors
+      if (errors.isNotEmpty()) {
+        searchErrors = errors
+      }
+
+      showSearchStopped()
     }
   }
 

@@ -117,7 +117,7 @@ interface AndroidProjectSystem {
   /**
    * [LightResourceClassService] instance used by this project system (if used at all).
    */
-  fun getLightResourceClassService(): LightResourceClassService?
+  fun getLightResourceClassService(): LightResourceClassService
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

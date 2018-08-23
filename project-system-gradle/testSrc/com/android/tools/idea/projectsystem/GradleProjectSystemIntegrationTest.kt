@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.projectmodel.ExternalLibrary
 import com.android.testutils.truth.FileSubject.assertThat
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
@@ -68,18 +69,16 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
 
     // There are many aars and jars in the loaded application. Here we just confirm that a few known ones are present
     val guava = libraries
-      .filterIsInstance<com.android.projectmodel.JavaLibrary>()
-      .filter { library -> library.address.startsWith("com.google.guava") }
-      .first()
-    assertThat(guava.classesJar.fileName).matches("guava-[\\.\\d]+.jar")
+      .filterIsInstance<ExternalLibrary>()
+      .first { library -> library.address.startsWith("com.google.guava") }
+    assertThat(guava.classesJar!!.fileName).matches("guava-[\\.\\d]+.jar")
 
     val appcompat = libraries
-      .filterIsInstance<com.android.projectmodel.AarLibrary>()
-      .filter { library -> library.address.startsWith("com.android.support:support-compat") }
-      .first()
+      .filterIsInstance<com.android.projectmodel.ExternalLibrary>()
+      .first { library -> library.address.startsWith("com.android.support:support-compat") }
 
     assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
-    assertThat(appcompat.manifestFile.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    assertThat(appcompat.resFolder.toFile()!!).isDirectory()
+    assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    assertThat(appcompat.resFolder!!.toFile()).isDirectory()
   }
 }

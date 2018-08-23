@@ -119,8 +119,8 @@ class UserSentimentPanel(private var myProject: Project?,
 
   companion object {
     const val POSITIVE_SENTIMENT_MESSAGE = "We are glad to hear you are having a positive experience with Android Studio!"
-    const val NEGATIVE_SENTIMENT_MESSAGE = "We are sorry to hear you are having problems using Android Studio. Help us address your " +
-                                           "specific concerns by sending <a href='file bug'>detailed feedback</a>."
+    const val NEGATIVE_SENTIMENT_MESSAGE = "We are sorry to hear you are having problems using Android Studio. " +
+                                           "Please share <a href='file bug'>detailed feedback</a>."
 
     @JvmField
     val NOTIFICATIONS =

@@ -30,7 +30,7 @@ public interface RoomUpdateStatement extends PsiElement {
   @NotNull
   List<RoomExpression> getExpressionList();
 
-  @NotNull
+  @Nullable
   RoomSingleTableStatementTable getSingleTableStatementTable();
 
   @Nullable

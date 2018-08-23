@@ -59,16 +59,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       else dimensions
     }
 
-    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = when {
-      text.startsWith("\$\$") ->
-        ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
-      text.startsWith("\$") ->
-        ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText.Reference(text.substring(1))).annotated()
-      text.startsWith("\"") && text.endsWith("\"") ->
-        ParsedValue.Set.Parsed<PropertyT>(value = null,
-                                                dslText = DslText.InterpolatedString(text.substring(1, text.length - 1))).annotated()
-      else -> propertyContext.parse(text)
-    }
+    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = propertyContext.parseEditorText(text)
 
     override fun toEditorText(anObject: Annotated<ParsedValue<PropertyT>>?): String = when (anObject) {
       null -> ""

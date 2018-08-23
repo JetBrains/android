@@ -19,14 +19,15 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.adtui.ImageUtils.lowQualityFastScale
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.projectsystem.transform
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.transform
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
+import com.intellij.util.Alarm
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -36,11 +37,14 @@ import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.*
 import java.awt.image.BufferedImage
 import javax.swing.*
-import kotlin.properties.Delegates
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
 private val EMPTY_ICON = createIcon(Color.GREEN)
+
+private const val VERSION = "version"
+
+private fun String.pluralize(size: Int) = this + (if (size > 1) "s" else "")
 
 fun createIcon(color: Color?) = UIUtil.createImage(
   80, 80, BufferedImage.TYPE_INT_ARGB
@@ -61,8 +65,6 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     withChessboard = true
   }
 
-  var useSmallMargins by Delegates.observable(false) { _, _, smallMargin -> cardView.useSmallMargins = smallMargin }
-
   override fun getListCellRendererComponent(
     list: JList<out DesignAssetSet>,
     value: DesignAssetSet,
@@ -71,10 +73,15 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     cellHasFocus: Boolean
   ): Component {
     cardView.title = value.name
-    cardView.preferredSize = JBUI.size(list.fixedCellWidth, list.fixedCellHeight)
+    cardView.subtitle = value.getHighestDensityAsset().type.displayName
+    val size = value.designAssets.size
+    cardView.metadata = "$size $VERSION".pluralize(size)
+    val width = cardView.viewWidth
+    if (width != list.fixedCellWidth) {
+      cardView.viewWidth = list.fixedCellWidth
+    }
     cardView.thumbnail = getContent(value, cardView.thumbnailWidth, cardView.thumbnailHeight, isSelected, index)
-    cardView.background = UIUtil.getListBackground(isSelected)
-
+    cardView.selected = isSelected
     return cardView
   }
 
@@ -150,10 +157,11 @@ class DrawableResourceCellRenderer(
     .maximumSize(200)
     .build<DesignAssetSet, Image>()
 
-  private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null)
+  private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null,
+                                               null, null, false)
 
   private val drawablePreview = JLabel(imageIcon).apply {
-      border = JBUI.Borders.empty(18)
+    border = JBUI.Borders.empty(18)
   }
 
   override fun getContent(
@@ -249,7 +257,13 @@ class DrawableResourceCellRenderer(
     designAssetSet: DesignAssetSet,
     index: Int
   ) {
-    val finalImage = if (previewFuture.isCancelled) EMPTY_ICON else previewFuture.get()
+    val finalImage = try {
+      if (previewFuture.isCancelled) EMPTY_ICON else previewFuture.get()
+    }
+    catch (e: Exception) {
+      LOG.error("${designAssetSet.name} couldn't be rendered", e)
+      EMPTY_ICON
+    }
     assetToImage.put(designAssetSet, finalImage)
     refreshListCallback(index)
   }

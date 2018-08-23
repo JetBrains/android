@@ -20,17 +20,17 @@ import com.android.tools.idea.common.scene.SceneContext
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.geom.Rectangle2D
 
 class DrawRectangle(
   private val level: Int,
-  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
+  @SwingCoordinate private val rectangle: Rectangle2D.Float,
   @SwingCoordinate private val color: Color,
   @SwingCoordinate private val brushThickness: Float
 ) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(
-    sp[0].toInt(), stringToRoundRect2D(sp[1]),
+    sp[0].toInt(), stringToRect2D(sp[1]),
     stringToColor(sp[2]), sp[3].toFloat()
   )
 
@@ -39,7 +39,7 @@ class DrawRectangle(
   override fun getLevel(): Int = level
 
   override fun serialize(): String = buildString(
-    javaClass.simpleName, level, roundRect2DToString(rectangle),
+    javaClass.simpleName, level, rect2DToString(rectangle),
     colorToString(color), brushThickness
   )
 

@@ -48,6 +48,12 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    */
   public static final float ZOOM_LERP_THRESHOLD_NS = 10;
 
+  /**
+   * In order to prevent attempts to zoom larger than the current view range, this cap serves to limit the delta range to a fixed number
+   * proportional to the current view range.
+   */
+  public static final double ZOOM_IN_DELTA_RANGE_US_MAX_RATIO = 0.90;
+
   @VisibleForTesting
   public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
 
@@ -336,8 +342,13 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     if (deltaUs == 0.0) {
       return;
     }
-    if (deltaUs < 0 && percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
-      setStreaming(false);
+    if (deltaUs < 0.0) {
+      double zoomMax = -ZOOM_IN_DELTA_RANGE_US_MAX_RATIO * myViewRangeUs.getLength();
+      deltaUs = Math.max(zoomMax, deltaUs);
+
+      if (percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
+        setStreaming(false);
+      }
     }
     myZoomLeft.clear();
     double minUs = myViewRangeUs.getMin() - deltaUs * percent;

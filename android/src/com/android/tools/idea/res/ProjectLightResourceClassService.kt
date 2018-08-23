@@ -17,9 +17,9 @@ package com.android.tools.idea.res
 
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.projectmodel.AarLibrary
-import com.android.tools.idea.findAarDependencies
-import com.android.tools.idea.findAllAarsLibraries
+import com.android.projectmodel.ExternalLibrary
+import com.android.tools.idea.findDependenciesWithResources
+import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache
 import com.android.tools.idea.util.androidFacet
@@ -33,6 +33,7 @@ import com.intellij.ProjectTopics
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -68,24 +69,24 @@ class ProjectLightResourceClassService(
   }
 
   /** Cache of AAR package names. */
-  private val aarPackageNamesCache: Cache<AarLibrary, String> = CacheBuilder.newBuilder().build()
+  private val aarPackageNamesCache: Cache<ExternalLibrary, String> = CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
-  private val aarClassesCache: Cache<AarLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
+  private val aarClassesCache: Cache<ExternalLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
   private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> = CacheBuilder.newBuilder().weakKeys().build()
 
   /**
-   * [Multimap] of all [AarLibrary] dependencies in the project, indexed by their package name (read from Manifest).
+   * [Multimap] of all [ExternalLibrary] dependencies in the project, indexed by their package name (read from Manifest).
    */
   @GuardedBy("aarLocationsLock")
-  private var aarLocationsCache: Multimap<String, AarLibrary>? = null
+  private var aarLocationsCache: Multimap<String, ExternalLibrary>? = null
   private val aarLocationsLock = ReentrantReadWriteLock()
 
   init {
-    // Currently findAllAarsLibraries creates new (equal) instances of AarLibrary every time it's called, so we have to keep hard references
-    // to AarLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync removes a library from
+    // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep hard references
+    // to ExternalLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync removes a library from
     // the project.
     project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent?) {
@@ -117,7 +118,7 @@ class ProjectLightResourceClassService(
       result.add(getModuleRClasses(dependency))
     }
 
-    for (aarLibrary in findAarDependencies(module).values) {
+    for (aarLibrary in findDependenciesWithResources(module).values) {
       result.add(getAarRClasses(aarLibrary, getAarPackageName(aarLibrary)))
     }
 
@@ -127,6 +128,23 @@ class ProjectLightResourceClassService(
         AaptOptions.Namespacing.DISABLED -> nonNamespaced
       }
     }
+  }
+
+  override fun getLightRClassesContainingModuleResources(module: Module): Collection<PsiClass> {
+    val facet = module.androidFacet ?: return emptySet()
+    val result = mutableSetOf<PsiClass>()
+
+    // The namespaced class of the module itself:
+    getModuleRClasses(facet).namespaced?.let(result::add)
+
+    // Non-namespaced classes of this module and all that depend on it:
+    val modules = HashSet<Module>().also { ModuleUtilCore.collectModulesDependsOn(module, it) }
+    modules.asSequence()
+      .mapNotNull { it.androidFacet }
+      .mapNotNull { getModuleRClasses(it).nonNamespaced }
+      .forEach { result += it }
+
+    return result
   }
 
   private fun getModuleRClasses(packageName: String): Sequence<ResourceClasses> {
@@ -146,7 +164,7 @@ class ProjectLightResourceClassService(
     return getAllAars().get(packageName).asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
   }
 
-  private fun getAarRClasses(aarLibrary: AarLibrary, packageName: String): ResourceClasses {
+  private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String): ResourceClasses {
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
@@ -159,7 +177,7 @@ class ProjectLightResourceClassService(
             ResourceNamespace.fromPackageName(packageName)
           )
         },
-        nonNamespaced = aarLibrary.symbolFile.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
+        nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
           NonNamespacedAarPackageRClass(psiManager, packageName, symbolFile)
         }
       )
@@ -180,12 +198,12 @@ class ProjectLightResourceClassService(
     return projectFacetManager.getFacets(AndroidFacet.ID).filter { AndroidManifestUtils.getPackageName(it) == packageName }
   }
 
-  private fun getAllAars(): Multimap<String, AarLibrary> {
+  private fun getAllAars(): Multimap<String, ExternalLibrary> {
     return aarLocationsLock.read {
       aarLocationsCache ?: aarLocationsLock.write {
         /** Check aarLocationsCache again, see [kotlin.concurrent.write]. */
         aarLocationsCache ?: run {
-          Multimaps.index(findAllAarsLibraries(project).values) { getAarPackageName(it!!) }.also {
+          Multimaps.index(findAllLibrariesWithResources(project).values) { getAarPackageName(it!!) }.also {
             aarLocationsCache = it
           }
         }
@@ -193,10 +211,10 @@ class ProjectLightResourceClassService(
     }
   }
 
-  private fun getAarPackageName(aarLibrary: AarLibrary): String {
+  private fun getAarPackageName(aarLibrary: ExternalLibrary): String {
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
       val fromManifest = try {
-        aarLibrary.manifestFile.toFile()?.let(AndroidManifestUtils::getPackageNameFromManifestFile)
+        aarLibrary.representativeManifestFile?.let(AndroidManifestUtils::getPackageNameFromManifestFile) ?: ""
       }
       catch (e: IOException) {
         null

@@ -106,6 +106,21 @@ public class ProfilerTimelineTest {
   }
 
   @Test
+  public void zoomInMoreThanViewRangeShouldStillResultInValidViewRange() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myViewRange.set(0, 100);
+
+    myTimeline.zoom(-120, .5);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertThat(myViewRange.isEmpty()).isFalse();
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(45);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(55);
+  }
+
+  @Test
   public void previousAdjustRangeCloseToMiddleViewShouldNotAffectTheCurrentViewRange() {
     myTimeline.reset(0, secToNanos(100));
     myTimeline.setStreaming(false);

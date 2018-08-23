@@ -16,6 +16,12 @@
  *
   -->
 <idea-plugin url="https://www.jetbrains.com/idea">
+  <application-components>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
+    </component>
+  </application-components>
+
   <extensions defaultExtensionNs="com.intellij">
     <!--
       Startup.AndroidStudioInitializer has to be always first because the first thing it does is checking that the IDE installation is not
@@ -36,6 +42,11 @@
       <headless-implementation-class/>
     </component>
   </application-components>
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
+    </component>
+  </project-components>
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>

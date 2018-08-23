@@ -24,16 +24,16 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
 import com.android.tools.apk.analyzer.AndroidApplicationInfo;
-import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -248,8 +248,8 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   private static String getPackageId(@NotNull File fileApk) throws ApkProvisionException {
-    try (Archive archive = Archives.open(fileApk.toPath())) {
-      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(getPathToAapt(), archive);
+    try (ArchiveContext archiveContext = Archives.open(fileApk.toPath())) {
+      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(getPathToAapt(), archiveContext.getArchive());
       if (applicationInfo == AndroidApplicationInfo.UNKNOWN) {
         throw new ApkProvisionException("Could not determine manifest package for apk: " + fileApk.getName());
       }

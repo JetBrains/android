@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -173,4 +174,12 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
     return ImmutableList.of();
   }
 
+  /**
+   * Get the associated {@link Placeholder}s of the given {@link SceneComponent}.
+   *
+   * @param component The {@link SceneComponent} which associates to this ViewGroupHandler
+   */
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of();
+  }
 }

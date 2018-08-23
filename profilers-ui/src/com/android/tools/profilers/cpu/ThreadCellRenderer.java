@@ -28,12 +28,16 @@ import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.Icon;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import org.jetbrains.annotations.NotNull;
 
 public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread, CpuProfilerStage.ThreadState> {
   /**
@@ -67,10 +71,11 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
 
     myLabel.setText(value.getName());
     myLabel.setIcon(null);
-    myLabel.setBorder(JBUI.Borders.emptyLeft(reorderIcon.getIconWidth() + myLabel.getIconTextGap()));
+    Border iconIndent = JBUI.Borders.emptyLeft(reorderIcon.getIconWidth() + myLabel.getIconTextGap());
+    myLabel.setBorder(new CompoundBorder(iconIndent, ProfilerLayout.CPU_THREADS_RIGHT_BORDER));
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
-
+    //
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each thread and their models. StateChart#setModel is currently expensive and will make StateChart#render
     // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid
@@ -93,7 +98,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     }
     if (myHoveredIndex == index) {
       // Draw drag icon next to label
-      myLabel.setBorder(JBUI.Borders.empty());
+      myLabel.setBorder(ProfilerLayout.CPU_THREADS_RIGHT_BORDER);
       myLabel.setIcon(isSelected ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(reorderIcon) : reorderIcon);
     }
 

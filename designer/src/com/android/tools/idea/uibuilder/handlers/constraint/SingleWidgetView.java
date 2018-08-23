@@ -113,7 +113,7 @@ public class SingleWidgetView extends JPanel {
    */
   private static final int CONSTRAINT_PATTERN_SIZE = JBUI.scale(2);
 
-  private static final int DROP_DOWN_WIDTH = JBUI.scale(55);
+  private static final int DROP_DOWN_WIDTH = JBUI.scale(60);
 
   private static final int DROP_DOWN_HEIGHT = JBUI.scale(25);
 

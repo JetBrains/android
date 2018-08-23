@@ -178,7 +178,6 @@ public class NavNlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/112570135
   @Test
   public void testCreateAndCancel() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");

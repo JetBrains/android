@@ -17,11 +17,11 @@
 package com.android.tools.idea.util
 
 import com.android.ide.common.util.PathString
+import com.android.ide.common.util.inputStream
 import com.intellij.openapi.vfs.*
-import com.intellij.util.io.inputStream
+import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
 import java.io.InputStream
 
 fun VirtualFile.toIoFile(): File = VfsUtil.virtualToIoFile(this)
@@ -37,11 +37,21 @@ fun File.toLibraryRootVirtualFile(refresh: Boolean = false): VirtualFile? {
 
 /**
  * Returns a new input stream for reading this file. Throws an [IOException] if unable to open the file
- * or the file does not exist.
+ * or the file does not exist. The result will be a buffered stream.
  */
-fun PathString.inputStream(): InputStream {
-  return toVirtualFile()?.inputStream ?: toPath()?.inputStream() ?: throw FileNotFoundException(toString())
-}
+fun PathString.bufferedStream(): InputStream
+  = inputStream().buffered()
+
+/**
+ * Converts this stream to a buffered stream, if there is a possibility that it isn't already buffered.
+ * No additional buffering is added around streams that are known to already be buffered.
+ */
+fun InputStream.buffered(): InputStream
+  = when (this) {
+    is BufferedInputStream -> this
+    is ByteArrayInputStream -> this
+    else -> BufferedInputStream(this)
+  }
 
 /**
  * Returns the [VirtualFile] representing the file resource given its path, or null
@@ -49,13 +59,18 @@ fun PathString.inputStream(): InputStream {
  */
 @JvmOverloads
 fun PathString.toVirtualFile(refresh: Boolean = false): VirtualFile? {
-  val filesystem = VirtualFileManager.getInstance().getFileSystem(filesystemUri.scheme) ?: return null
-  return if (refresh) filesystem.refreshAndFindFileByPath(portablePath) else filesystem.findFileByPath(portablePath)
+  // Ensure that IntelliJ's virtual filesystems are mounted (ensures that PathString-to-VirtualFile lookups work from unit tests
+  // or if performed very early during startup).
+  VirtualFileSystemOpener.mount()
+  return toVirtualFile(this, refresh)
 }
 
 /**
  * Returns a [PathString] that describes the given [VirtualFile].
  */
 fun VirtualFile.toPathString(): PathString {
+  // Ensure that IntelliJ's virtual filesystems are mounted (ensures that PathString-to-VirtualFile lookups work from unit tests
+  // or if performed very early during startup).
+  VirtualFileSystemOpener.mount()
   return PathString(fileSystem.protocol, path)
 }

@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
-import java.awt.Component
 import java.awt.image.BufferedImage
-import java.util.*
-import javax.swing.*
+import javax.swing.ImageIcon
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
 
-class SingleImageViewTest {
+private class SingleImageViewTest {
 
-  companion object {
+  private companion object {
     @JvmStatic
     fun main(args: Array<String>) {
       JFrame().apply {
-        val imageIcon = ImageIcon(UIUtil.createImage(200, 300, BufferedImage.TYPE_INT_ARGB).apply {
+        val imageIcon = ImageIcon(UIUtil.createImage(115, 75, BufferedImage.TYPE_INT_ARGB).apply {
           createGraphics().apply {
             this.color = Color.BLUE
             this.fillRect(0, 0, 200, 300)
@@ -38,31 +40,16 @@ class SingleImageViewTest {
         val jLabel = JLabel(imageIcon).apply {
           isOpaque = false
         }
-        contentPane = JList(arrayOf(1)).apply {
-          cellRenderer = object : ListCellRenderer<Int> {
-            private val random = Random()
-            val card = SingleAssetCard().apply {
-              withChessboard = true
-              title = "title"
-              subtitle = "Subtitle"
-              thumbnail = jLabel
-            }
-
-            override fun getListCellRendererComponent(list: JList<out Int>?,
-                                                      value: Int?,
-                                                      index: Int,
-                                                      isSelected: Boolean,
-                                                      cellHasFocus: Boolean): Component {
-              imageIcon.image = UIUtil.createImage(200, 300, BufferedImage.TYPE_INT_ARGB).apply {
-                createGraphics().apply {
-                  this.color = Color(random.nextInt())
-                  this.fillRect(0, 0, 200, 300)
-                }
-              }
-              return card
-            }
-          }
+        contentPane = JPanel().apply {
+          preferredSize = JBUI.size(200, 300)
+          add(SingleAssetCard().apply {
+            withChessboard = true
+            title = "title"
+            subtitle = "Subtitle"
+            thumbnail = jLabel
+          })
         }
+
         pack()
         isVisible = true
       }

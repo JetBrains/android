@@ -17,7 +17,7 @@ package com.android.tools.idea.apk.viewer.diff;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkDiffEntry;
 import com.android.tools.apk.analyzer.internal.ApkDiffParser;
@@ -44,7 +44,6 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -88,9 +87,9 @@ public class ApkDiffPanel {
   private void constructFbfTree(){
     if (myFbfTreeStructureFuture == null) {
       myFbfTreeStructureFuture = ourExecutorService.submit(() -> {
-        try (Archive archive1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
-             Archive archive2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
-          return ApkFileByFileDiffParser.createTreeNode(archive1, archive2);
+        try (ArchiveContext archiveContext1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
+             ArchiveContext archiveContext2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
+          return ApkFileByFileDiffParser.createTreeNode(archiveContext1, archiveContext2);
         }
       });
     }
@@ -108,9 +107,9 @@ public class ApkDiffPanel {
   private void constructDiffTree(){
     // construct the main tree
     ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = ourExecutorService.submit(() -> {
-      try (Archive archive1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
-           Archive archive2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
-        return ApkDiffParser.createTreeNode(archive1, archive2);
+      try (ArchiveContext archiveContext1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
+           ArchiveContext archiveContext2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
+        return ApkDiffParser.createTreeNode(archiveContext1, archiveContext2);
       }
     });
     FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {

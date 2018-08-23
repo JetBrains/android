@@ -476,7 +476,7 @@ compound_operator ::= UNION ALL? | INTERSECT | EXCEPT
 update_statement ::=
   UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? single_table_statement_table ( INDEXED BY index_name | NOT INDEXED )?
   SET column_name '=' expression ( ',' column_name '=' expression )*
-  where_clause?
+  where_clause? { pin=1 }
 
 single_table_statement_table ::= ( database_name '.' )? defined_table_name {
   implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"

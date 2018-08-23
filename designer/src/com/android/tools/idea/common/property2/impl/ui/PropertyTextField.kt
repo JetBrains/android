@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
-import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonTextField
-import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import java.awt.Color
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
@@ -29,11 +27,7 @@ import javax.swing.KeyStroke
 /**
  * A standard control for editing a text property.
  */
-class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
-                        asTableCellEditor: Boolean) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
-  // HORIZONTAL_PADDING has already been scaled: do not use JBUI.scale()
-  private val textBorder: CellBorder? = CellBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING, background)
-
+class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
   init {
     registerKeyAction({ enter() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
@@ -41,9 +35,6 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
     addFocusListener(EditorFocusListener(editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    if (asTableCellEditor) {
-      border = textBorder
-    }
   }
 
   override fun updateFromModel() {
@@ -52,11 +43,6 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
     if (editorModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
-  }
-
-  override fun setBackground(color: Color?) {
-    super.setBackground(color)
-    textBorder?.background = color
   }
 
   override fun getToolTipText(): String? = editorModel.tooltip

@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.structure;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public class SketchGradient {
+  public static final Logger LOG = Logger.getInstance(SketchGradient.class);
   private final int elipseLength;
-  private final SketchPoint2D from;
+  private SketchPoint2D from;
+  private SketchPoint2D to;
   /**
    * Linear: 0
    * Radial: 1
@@ -30,7 +35,6 @@ public class SketchGradient {
    */
   private final int gradientType;
   private final SketchGradientStop[] stops;
-  private final SketchPoint2D to;
 
   public static final String GRADIENT_LINEAR = "linear";
   public static final String GRADIENT_RADIAL = "radial";
@@ -65,8 +69,16 @@ public class SketchGradient {
     return gradientType;
   }
 
+  @Nullable
   public String getDrawableGradientType() {
-    return TYPES[getGradientType()];
+    if (gradientType >= 0 && gradientType < TYPES.length) {
+      return TYPES[getGradientType()];
+    }
+    else {
+      LOG.error("Unknown gradient type. Array index is " + Integer.toString(gradientType));
+    }
+
+    return null;
   }
 
   @NotNull
@@ -112,18 +124,16 @@ public class SketchGradient {
     return String.valueOf((to.y + from.y) / 2);
   }
 
-  /**
-   * This method does not modify the current object but creates a new instance with coordinates in its parent coordinate system.
-   **/
-  public SketchGradient toAbsoluteGradient(Point2D.Double parentCoords, Rectangle2D.Double ownFrame) {
-    Rectangle2D.Double parentFrame = new Rectangle2D.Double(parentCoords.getX(),
-                                                            parentCoords.getY(),
-                                                            ownFrame.getWidth(),
-                                                            ownFrame.getHeight());
-    return new SketchGradient(elipseLength,
-                              from.makeAbsolutePosition(parentFrame, ownFrame),
-                              gradientType,
-                              stops,
-                              to.makeAbsolutePosition(parentFrame, ownFrame));
+  public void toRelativeGradient(@NotNull Rectangle2D ownFrame) {
+    from = from.makeAbsolutePosition(ownFrame);
+    to = to.makeAbsolutePosition(ownFrame);
+  }
+
+  public void applyTransformation(AffineTransform transformation) {
+    Point2D[] origin = {from, to};
+    Point2D[] newPoints = new Point2D[2];
+    transformation.transform(origin, 0, newPoints, 0, 2);
+    from.setLocation(newPoints[0]);
+    to.setLocation(newPoints[1]);
   }
 }
