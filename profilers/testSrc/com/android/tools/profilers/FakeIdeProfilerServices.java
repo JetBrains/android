@@ -124,11 +124,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCpuApiTracingEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableCpuCaptureFilter(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myIsCpuCaptureFilterEnabled = false;
-
-  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -232,11 +227,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
-      }
-
-      @Override
-      public boolean isCpuCaptureFilterEnabled() {
-        return myIsCpuCaptureFilterEnabled;
       }
 
       @Override
@@ -423,10 +413,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableAtrace(boolean enabled) {
     myAtraceEnabled = enabled;
-  }
-
-  public void enableCpuCaptureFilter(boolean enabled) {
-    myIsCpuCaptureFilterEnabled = enabled;
   }
 
   public void enableEnergyProfiler(boolean enabled) {
