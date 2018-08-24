@@ -80,7 +80,7 @@ public class DrawableModel {
 
   /**
    * Method that checks if the model should be used to mask other shapes in the drawable file.
-   * Used for generating XML clipping groups
+   * Used for generating XML clipping groups.
    *
    * @return true if the DrawableModel is a sketch clipping mask
    */
