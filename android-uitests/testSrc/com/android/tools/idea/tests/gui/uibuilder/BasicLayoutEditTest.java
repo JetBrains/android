@@ -56,7 +56,7 @@ public class BasicLayoutEditTest {
    * </pre>
    */
   @RunIn(TestGroup.SANITY_BAZEL)
-  @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
+  @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE})  // TargetBuildSystem.BuildSystem.BAZEL removed; see b/113117406
   @Test
   public void basicLayoutEdit() throws Exception {
     NlEditorFixture editorFixture = guiTest.importSimpleLocalApplication()
