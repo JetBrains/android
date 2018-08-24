@@ -47,17 +47,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A view model which wraps a target {@link HttpData} and can create useful, shared UI components
- * and display values from it.
+ * A factory which wraps a target {@link HttpData} and can create useful, shared UI components
+ * for displaying aspects of it.
  */
-final class HttpDataViewModel {
+final class HttpDataComponentFactory {
   private static final String ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER";
   private static final Border PAYLOAD_BORDER = new JBEmptyBorder(6, 0, 0, 0);
 
   private final NetworkConnectionsModel myModel;
   private final HttpData myHttpData;
 
-  public HttpDataViewModel(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
+  public HttpDataComponentFactory(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
     myModel = model;
     myHttpData = httpData;
   }
@@ -91,7 +91,7 @@ final class HttpDataViewModel {
    * {@link #createBodyComponent(IdeProfilerComponents, ConnectionType)}.
    */
   @NotNull
-  public String getBodyTitle(@NotNull ConnectionType type) {
+  private String getBodyTitle(@NotNull ConnectionType type) {
     HttpData.Header header = type.getHeader(myHttpData);
     HttpData.ContentType contentType = header.getContentType();
     if (contentType.isEmpty()) {
