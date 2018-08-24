@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.view
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
 import com.android.tools.idea.resourceExplorer.view.DrawableResourceCellRenderer
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.DialogWrapper
@@ -27,7 +28,15 @@ import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JCheckBox
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.ListSelectionModel
 
 
 private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
@@ -45,6 +54,7 @@ const val FILTER_EXPORTABLE_TOOLTIP_TEXT = "Any item that has at least one expor
 class SketchImporterView {
 
   var presenter: SketchImporterPresenter? = null
+  private lateinit var disposable: Disposable
 
   private val previewPanel = JPanel(VerticalFlowLayout())
 
@@ -100,7 +110,7 @@ class SketchImporterView {
     val presenter = presenter ?: return null
     if (assetList.isNotEmpty()) {
       return JList<DesignAssetSet>().apply {
-        cellRenderer = DrawableResourceCellRenderer(presenter::fetchImage) { repaint() }
+        cellRenderer = DrawableResourceCellRenderer(disposable, presenter::fetchImage) { repaint() }
         fixedCellWidth = ASSET_FIXED_WIDTH
         fixedCellHeight = ASSET_FIXED_HEIGHT
         selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
@@ -149,6 +159,7 @@ class SketchImporterView {
       }
       setTitle("Choose the assets you would like to import")
       showModal(true)
+      disposable = dialogWrapper.disposable
     }
   }
 

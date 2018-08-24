@@ -24,19 +24,29 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.transform
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
-import com.intellij.util.Alarm
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.ide.PooledThreadExecutor
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Image
 import java.awt.image.BufferedImage
-import javax.swing.*
+import javax.swing.ImageIcon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.ListCellRenderer
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
@@ -146,6 +156,7 @@ class ColorResourceCellRenderer(
  * called once it's finished.
  */
 class DrawableResourceCellRenderer(
+  parentDisposable: Disposable,
   private val imageProvider: (size: Dimension, designAssetSet: DesignAssetSet) -> ListenableFuture<out Image?>,
   private val refreshListCallback: (index: Int) -> Unit
 ) : DesignAssetCellRenderer() {
@@ -158,7 +169,7 @@ class DrawableResourceCellRenderer(
     .build<DesignAssetSet, Image>()
 
   private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null,
-                                               null, null, false)
+                                               parentDisposable, null, false)
 
   private val drawablePreview = JLabel(imageIcon).apply {
     border = JBUI.Borders.empty(18)
