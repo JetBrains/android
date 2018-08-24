@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.facet.Facet;
@@ -140,7 +141,11 @@ public class EnableDisableSingleVariantSyncStep {
 
         // native module.
         if (NdkFacet.getFacetName().equals(facet.getName())) {
-          return HAS_NATIVE;
+          NdkModuleModel ndkModel = NdkModuleModel.get(module);
+          // old plugin.
+          if (ndkModel != null && !ndkModel.getFeatures().isSingleVariantSyncSupported()) {
+            return OLD_PLUGIN;
+          }
         }
 
         // kotlin module. Old sync relies on this check.
@@ -181,7 +186,7 @@ public class EnableDisableSingleVariantSyncStep {
       @Override
       @NotNull
       String getReason() {
-        return "use Android Gradle Plugin older than 3.2";
+        return "use Android Gradle Plugin older than 3.3";
       }
     },
     // The project contains Kotlin modules.
