@@ -63,7 +63,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
@@ -86,12 +85,7 @@ public class RenderTask {
     @Override
     public BufferedImage getImage(int width, int height) {
       @SuppressWarnings("UndesirableClassUsage")
-      BufferedImage image = GraphicsEnvironment.isHeadless() ?
-                            new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-                                                             : GraphicsEnvironment.getLocalGraphicsEnvironment()
-                                                                                  .getDefaultScreenDevice()
-                                                                                  .getDefaultConfiguration()
-                                                                                  .createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+      BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       image.setAccelerationPriority(1f);
 
       return image;
