@@ -24,7 +24,7 @@ import com.android.tools.idea.common.actions.ZoomOutAction;
 import com.android.tools.idea.common.actions.ZoomToFitAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceShortcut;
+import com.android.tools.idea.common.surface.ZoomShortcut;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +42,10 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(DesignSurfaceShortcut.ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface, this));
+    group.add(ZoomShortcut.ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface, this));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(DesignSurfaceShortcut.ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface, this));
-    group.add(DesignSurfaceShortcut.ZOOM_FIT.registerForAction(new ZoomToFitAction(mySurface), mySurface, this));
+    group.add(ZoomShortcut.ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface, this));
+    group.add(ZoomShortcut.ZOOM_FIT.registerForAction(new ZoomToFitAction(mySurface), mySurface, this));
     group.addSeparator();
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
     return group;

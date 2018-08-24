@@ -20,9 +20,9 @@ import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_D
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH_ORIENTATION;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.ZOOM_FIT;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.ZOOM_IN;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.ZOOM_OUT;
+import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_FIT;
+import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_IN;
+import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_OUT;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
