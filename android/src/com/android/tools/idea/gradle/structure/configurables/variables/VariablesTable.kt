@@ -495,10 +495,10 @@ class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(z
     userObject = NodeDescription(variable.name, when {
       variable.isMap -> AllIcons.Json.Object
       variable.isList -> AllIcons.Json.Array
-      else -> AllIcons.Nodes.C_plocal
+      else -> StudioIcons.Misc.GRADLE_VARIABLE
     })
   }
-  
+
   override fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any> = variable.value
 
   override fun setName(newName: String) {
