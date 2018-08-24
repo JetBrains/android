@@ -200,7 +200,6 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      ideServices.enableCpuCaptureFilter(true)
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       captureTrace(profilerType = ART)
     }
@@ -264,7 +263,6 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      ideServices.enableCpuCaptureFilter(true)
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       captureTrace(profilerType = ART)
     }
