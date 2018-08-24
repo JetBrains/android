@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.DrawableModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestBase;
 import org.junit.Test;

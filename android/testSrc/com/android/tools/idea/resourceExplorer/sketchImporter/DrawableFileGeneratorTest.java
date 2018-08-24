@@ -17,11 +17,11 @@ package com.android.tools.idea.resourceExplorer.sketchImporter;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.DrawableFileGenerator;
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.VectorDrawable;
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchArtboard;
-import com.android.tools.idea.resourceExplorer.sketchImporter.structure.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.testFramework.ProjectRule;
