@@ -18,7 +18,7 @@ package com.android.tools.profilers.network.details;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
-import com.android.tools.profilers.network.details.HttpDataViewModel.ConnectionType;
+import com.android.tools.profilers.network.details.HttpDataComponentFactory.ConnectionType;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -67,11 +67,11 @@ final class RequestTabContent extends TabContent {
       return;
     }
 
-    HttpDataViewModel httpDataViewModel = new HttpDataViewModel(myModel, data);
+    HttpDataComponentFactory httpDataComponentFactory = new HttpDataComponentFactory(myModel, data);
 
-    JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.REQUEST);
+    JComponent headersComponent = httpDataComponentFactory.createHeaderComponent(ConnectionType.REQUEST);
     myPanel.add(TabUiUtils.createHideablePanel(HEADERS_TITLE, headersComponent, null));
-    myPanel.add(httpDataViewModel.createBodyComponent(myComponents, ConnectionType.REQUEST));
+    myPanel.add(httpDataComponentFactory.createBodyComponent(myComponents, ConnectionType.REQUEST));
   }
 
   @Override
