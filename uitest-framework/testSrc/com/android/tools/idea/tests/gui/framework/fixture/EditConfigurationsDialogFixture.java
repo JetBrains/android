@@ -20,7 +20,7 @@ import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.module.impl.ModuleImpl;
+import com.intellij.openapi.module.Module;
 import org.fest.swing.cell.JComboBoxCellReader;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -60,7 +60,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
   private static final JComboBoxCellReader MODULE_PICKER_READER = (jComboBox, index) -> {
     Object element = jComboBox.getItemAt(index);
     if (element != null) {
-      return ((ModuleImpl)element).getName();
+      return ((Module)element).getName();
     }
     return null; // The element at index 0 is null. Deal with it specially.
   };
