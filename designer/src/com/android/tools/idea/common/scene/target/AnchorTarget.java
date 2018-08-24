@@ -375,14 +375,14 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
         side = "Baseline";
         break;
       default:
-        return isConnected() ? "Delete Connection" : "Create Connection";
+        return isConnected() ? "Delete Constraint" : "Create Constraint";
     }
 
     StringBuilder builder = new StringBuilder();
     builder
       .append(isConnected() ? "Delete " : "Create ")
       .append(side)
-      .append(" Connection");
+      .append(" Constraint");
 
     return builder.toString();
   }
