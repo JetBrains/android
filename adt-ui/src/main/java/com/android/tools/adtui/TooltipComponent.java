@@ -222,9 +222,9 @@ public final class TooltipComponent extends AnimatedComponent {
       return;
     }
     Dimension preferredSize = getPreferredSize();
-    Point xy = getPaintLocation(myLastPoint, preferredSize);
-    opaqueRepaint(xy.x - DROPSHADOW_ALPHAS.length,
-                  xy.y - DROPSHADOW_ALPHAS.length,
+    Point paintLocation = getPaintLocation(myLastPoint, preferredSize);
+    opaqueRepaint(paintLocation.x - DROPSHADOW_ALPHAS.length,
+                  paintLocation.y - DROPSHADOW_ALPHAS.length,
                   preferredSize.width + 2 * DROPSHADOW_ALPHAS.length,
                   preferredSize.height + 2 * DROPSHADOW_ALPHAS.length);
   }
