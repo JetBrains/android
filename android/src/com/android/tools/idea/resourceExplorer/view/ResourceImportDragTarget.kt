@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.ide.dnd.FileCopyPasteUtil
+import com.intellij.openapi.util.SystemInfo
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
 import java.awt.Point
@@ -41,10 +42,17 @@ class ResourceImportDragTarget(
   }
 
   override fun update(event: DnDEvent): Boolean {
-    val files = getFiles(event)
-    val dropPossible = anyFileCanBeImported(files)
-    event.setDropPossible(dropPossible, "Import Files in project resources")
-    return !dropPossible // Delegate to parent if drop is not possible
+    if (FileCopyPasteUtil.isFileListFlavorAvailable(event)) {
+
+      // On mac, we don't have access to the dragged object before the drop is accepted so
+      // we don't check if there is any file
+      if (SystemInfo.isMac || anyFileCanBeImported(getFiles(event))) {
+        event.setDropPossible(true, "Import Files in project resources")
+        return false // No need to delegate to parent
+      }
+    }
+
+    return true // Delegate to parent if drop is not possible
   }
 
   /**
