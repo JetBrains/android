@@ -24,7 +24,11 @@ import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.util.SystemInfo
@@ -39,7 +43,17 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.event.InputEvent
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JMenuBar
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.JTabbedPane
+import javax.swing.ListCellRenderer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -217,10 +231,10 @@ class ResourceExplorerView(
       list.repaint(list.getCellBounds(index, index))
     }
     return when (type) {
-      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
+      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(this, resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
       ResourceType.COLOR -> ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project,
                                                       resourcesBrowserViewModel.resourceResolver)
-      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
+      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(this, resourcesBrowserViewModel::getDrawablePreview, refreshCallBack)
       else -> ListCellRenderer { _, value, _, _, _ ->
         JLabel(value.name)
       }
