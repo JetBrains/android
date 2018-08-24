@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
-import org.jetbrains.android.dom.AndroidDomUtil;
-
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class SystemFontsTest extends FontTestCase {
   private SystemFonts mySystemFonts;
@@ -40,20 +38,29 @@ public class SystemFontsTest extends FontTestCase {
     assertThat(fontNames).containsExactlyElementsIn(AndroidDomUtil.AVAILABLE_FAMILIES);
   }
 
-  public void testAllMenuFontsAreOfWeight400() {
-    for (String fontName : AndroidDomUtil.AVAILABLE_FAMILIES) {
-      FontFamily family = mySystemFonts.getFont(fontName);
-      FontDetail menuFont = null;
-      assertThat(family).isNotNull();
-      assertThat(family.getName()).isEqualTo(fontName);
-      for (FontDetail detail : family.getFonts()) {
-        if (Objects.equals(family.getMenu(), detail.getFontUrl())) {
-          menuFont = detail;
-        }
-      }
-      assertThat(menuFont).isNotNull();
-      assertThat(menuFont.getWeight()).isEqualTo(DEFAULT_WEIGHT);
-      assertThat(menuFont.getItalics()).isFalse();
-    }
+  public void testDefaultFontWeights() {
+    assertFontWeight("sans-serif-thin", 100);
+    assertFontWeight("sans-serif-light", 300);
+    assertFontWeight("sans-serif", 400);
+    assertFontWeight("sans-serif-medium", 500);
+    assertFontWeight("sans-serif-black", 900);
+    assertFontWeight("sans-serif-condensed-light", 300);
+    assertFontWeight("sans-serif-condensed", 400);
+    assertFontWeight("sans-serif-condensed-medium", 400); // should be 500 but that font doesn't exist on fonts.google.com
+    assertFontWeight("serif", 400);
+    assertFontWeight("monospace", 400);
+    assertFontWeight("serif-monospace", 400);
+    assertFontWeight("casual", 400);
+    assertFontWeight("cursive", 400);
+    assertFontWeight("sans-serif-smallcaps", 400);
+  }
+
+  private void assertFontWeight(@NotNull String fontName, int expectedWeight) {
+    FontFamily family = mySystemFonts.getFont(fontName);
+    assertThat(family).named(fontName).isNotNull();
+    assertThat(family.getName()).isEqualTo(fontName);
+    FontDetail firstDetail = family.getFonts().get(0);
+    assertThat(firstDetail.getWeight()).named(fontName).isEqualTo(expectedWeight);
+    assertThat(firstDetail.getItalics()).named(fontName).isFalse();
   }
 }
