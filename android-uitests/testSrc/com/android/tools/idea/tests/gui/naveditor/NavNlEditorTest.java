@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -304,18 +305,23 @@ public class NavNlEditorTest {
     screen.click();
 
     double scale = fixture.getScale();
+    int actionMask = AdtUiUtils.getActionMask();
 
+    guiTest.robot().pressKey(actionMask);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_MINUS);
+    guiTest.robot().releaseKey(actionMask);
     double zoomOutScale = fixture.getScale();
     assertTrue(zoomOutScale < scale);
 
-    guiTest.robot().pressKey(KeyEvent.VK_SHIFT);
+    guiTest.robot().pressKey(actionMask);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_PLUS);
-    guiTest.robot().releaseKey(KeyEvent.VK_SHIFT);
+    guiTest.robot().releaseKey(actionMask);
     double zoomInScale = fixture.getScale();
     assertTrue(zoomInScale > zoomOutScale);
 
+    guiTest.robot().pressKey(actionMask);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_0);
+    guiTest.robot().releaseKey(actionMask);
     double fitScale = fixture.getScale();
 
     assertTrue(Math.abs(fitScale - scale) < 0.001);
