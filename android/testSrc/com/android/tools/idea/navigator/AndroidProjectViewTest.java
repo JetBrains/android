@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.navigator;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS;
+import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.testFramework.PlatformTestUtil.createComparator;
+import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
@@ -39,20 +49,17 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static com.intellij.testFramework.PlatformTestUtil.createComparator;
-import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
 
 // TODO: Test available actions for each node!
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
@@ -331,14 +338,14 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   // Test that the generated source files are displayed under app/generatedJava.
-  private void doTestGeneratedSourceFiles(boolean preSyncOverride, boolean postSyncOverride) throws Exception {
+  private void doTestGeneratedSourceFiles(boolean preSyncValue, boolean postSyncValue) throws Exception {
     try {
       // Setting the IDE flag results in a new property being passed to Gradle, which will cause the folder to not be in the model. But the
       // property is only recognized by new versions of AGP, so we need to also make sure that if the directories are in the model we ignore
       // them in the UI.
-      StudioFlags.IN_MEMORY_R_CLASSES.override(preSyncOverride);
+      StudioFlags.IN_MEMORY_R_CLASSES.override(preSyncValue);
       loadSimpleApplication();
-      StudioFlags.IN_MEMORY_R_CLASSES.override(postSyncOverride);
+      StudioFlags.IN_MEMORY_R_CLASSES.override(postSyncValue);
 
       // Create BuildConfig.java in one of the generated source folders.
       Module appModule = myModules.getAppModule();
@@ -352,7 +359,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       writeToFile(new File(buildConfigFolder, join("com", "application", "BuildConfig.java")),
                   "package com.application; public final class BuildConfig {}");
 
-      if (!preSyncOverride) {
+      if (!preSyncValue) {
         File rClassesFolder = generatedFolders.stream().filter(f -> f.getName().equals("r")).findFirst().orElse(null);
         assertNotNull(rClassesFolder);
         // Here we simulate an old AGP version that creates R.java despite being asked not to.
@@ -368,7 +375,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       assertTrue(allNodes.contains(Arrays.asList("app (Android)", "generatedJava", "application", "BuildConfig")));
 
       // The R class should only be displayed if we're using R.java from aapt, not light PSI.
-      assertEquals(!postSyncOverride, allNodes.contains(Arrays.asList("app (Android)", "generatedJava", "application", "R")));
+      assertEquals(!postSyncValue, allNodes.contains(Arrays.asList("app (Android)", "generatedJava", "application", "R")));
     }
     finally {
       StudioFlags.IN_MEMORY_R_CLASSES.clearOverride();
