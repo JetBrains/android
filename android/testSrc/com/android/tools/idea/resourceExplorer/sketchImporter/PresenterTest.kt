@@ -16,9 +16,9 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter
 
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
-import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterPresenter
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.util.Disposer
@@ -49,6 +49,7 @@ class PresenterTest {
     val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/presenter.sketch")!!
     val view = SketchImporterView()
     val presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), projectRule.module.androidFacet!!)
+    presenter.filterExportable(ItemEvent.DESELECTED)
     presenter.importFilesIntoProject()
 
     val resourceFolder = projectRule.fixture.tempDirFixture.findOrCreateDir("res").findChild("drawable-anydpi")

@@ -17,10 +17,10 @@ package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchImporterPresenter
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
-import com.android.tools.idea.resourceExplorer.sketchImporter.view.IMPORT_DIALOG_TITLE
-import com.android.tools.idea.resourceExplorer.sketchImporter.view.SketchImporterView
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.IMPORT_DIALOG_TITLE
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterPresenter
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterView
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
