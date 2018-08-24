@@ -62,9 +62,9 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
 
     NotificationHyperlink buildProjectHyperlink = new BuildProjectHyperlink();
     NotificationHyperlink openAndroidSdkManagerHyperlink = new OpenAndroidSdkManagerHyperlink();
-    text += "Please try one of the following:<ul>" +
-            "<li>" + buildProjectHyperlink.toHtml() + " to obtain the cause of the error</li>" +
-            "<li>" + openAndroidSdkManagerHyperlink.toHtml() + " to check if there are any missing components</li></ul>";
+    text += "Please try one of the following:\n" +
+             buildProjectHyperlink.toHtml() + " to obtain the cause of the error\n\n" +
+             openAndroidSdkManagerHyperlink.toHtml() + " to check if there are any missing components";
 
     hyperlinks.add(buildProjectHyperlink);
     hyperlinks.add(openAndroidSdkManagerHyperlink);
