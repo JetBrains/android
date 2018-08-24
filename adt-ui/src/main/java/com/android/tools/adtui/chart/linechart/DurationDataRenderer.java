@@ -18,6 +18,7 @@ package com.android.tools.adtui.chart.linechart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,6 +139,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
     RangedSeries<E> series = myModel.getSeries();
     RangedContinuousSeries attached = myModel.getAttachedSeries();
+    Predicate<Long> attachedPredicate = myModel.getAttachPredicate();
     double xMin = series.getXRange().getMin();
     double xLength = series.getXRange().getLength();
     List<SeriesData<E>> seriesList = series.getSeries();
@@ -158,25 +160,27 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       Rectangle2D.Float clickRegion = new Rectangle2D.Float();
       myDataCache.add(data.value);
       myClickRegionCache.add(clickRegion);
-      // If the DurationData series is attached to a line series, finds the Y value on the line series matching the current DurationData.
+      // If the DurationData needs to attach to a line series, finds the Y value on the line series matching the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
       if (attachedSeriesList != null) {
-        for (; j < attachedSeriesList.size(); j++) {
-          SeriesData<Long> seriesData = attachedSeriesList.get(j);
-          if (seriesData.x - data.x > EPSILON) {
-            // Stop as soon as we found a point on the attached series greater than the duration data's start point.
-            if (lastFoundData == null) {
-              // If the duration data is before the first data point on the attached series, simply places the DurationData
-              // at the bottom (yStart == 1), as we have nothing to attach to.
+        if (attachedPredicate == null || attachedPredicate.test(data.x)) {
+          for (; j < attachedSeriesList.size(); j++) {
+            SeriesData<Long> seriesData = attachedSeriesList.get(j);
+            if (seriesData.x - data.x > EPSILON) {
+              // Stop as soon as we found a point on the attached series greater than the duration data's start point.
+              if (lastFoundData == null) {
+                // If the duration data is before the first data point on the attached series, simply places the DurationData
+                // at the bottom (yStart == 1), as we have nothing to attach to.
+                break;
+              }
+              // Interpolate the y value in case the attached series and the duration data series do not match.
+              assert myModel.getInterpolatable() != null;
+              double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
+              yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
               break;
             }
-            // Interpolate the y value in case the attached series and the duration data series do not match.
-            assert myModel.getInterpolatable() != null;
-            double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
-            yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
-            break;
+            lastFoundData = seriesData;
           }
-          lastFoundData = seriesData;
         }
       }
 

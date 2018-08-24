@@ -147,11 +147,11 @@ public abstract class VisualTest {
     return button;
   }
 
-  protected static Component createCheckbox(String label, ItemListener action) {
+  protected static JCheckBox createCheckbox(String label, ItemListener action) {
     return createCheckbox(label, action, false);
   }
 
-  protected static Component createCheckbox(String label, ItemListener action, boolean selected) {
+  protected static JCheckBox createCheckbox(String label, ItemListener action, boolean selected) {
     JCheckBox button = new JCheckBox(label);
     button.addItemListener(action);
     button.setMaximumSize(new Dimension(Integer.MAX_VALUE, button.getMaximumSize().height));

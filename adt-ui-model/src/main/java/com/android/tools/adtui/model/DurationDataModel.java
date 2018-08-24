@@ -16,6 +16,7 @@
 package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.model.updater.Updatable;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +28,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
 
   @NotNull private final RangedSeries<E> mySeries;
   @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
+  @Nullable private Predicate<Long> myAttachPredicate = null;
   @Nullable private Interpolatable<Long, Double> myInterpolatable = null;
 
   public DurationDataModel(@NotNull RangedSeries<E> series) {
@@ -45,13 +47,31 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
   }
 
   @Nullable
+  public Predicate<Long> getAttachPredicate() {
+    return myAttachPredicate;
+  }
+
+  @Nullable
   public Interpolatable<Long, Double> getInterpolatable() {
     return myInterpolatable;
   }
 
-  public void setAttachedSeries(@NotNull RangedContinuousSeries attached, @NotNull Interpolatable<Long, Double> interpolatable) {
-    myAttachedLineSeries = attached;
+  /**
+   * @param attachedSeries    the series the DurationData should be attached to.
+   * @param interpolatable    the interpolation method used if the DurationData lies between two data points of the attached series.
+   */
+  public void setAttachedSeries(@NotNull RangedContinuousSeries attachedSeries,
+                                @NotNull Interpolatable<Long, Double> interpolatable) {
+    myAttachedLineSeries = attachedSeries;
     myInterpolatable = interpolatable;
+  }
+
+  /**
+   * @param attachPredicate   for each DurationData, an expression that evaluates whether it should be attached to the series (if the
+   *                          attachSeries has been set).
+   */
+  public void setAttachPredicate(@NotNull Predicate<Long> attachPredicate) {
+    myAttachPredicate = attachPredicate;
   }
 
   @Override
