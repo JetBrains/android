@@ -28,7 +28,9 @@ import javax.swing.JList
 /**
  * [DataFlavor] for [ResourceUrl]
  */
+@JvmField
 val RESOURCE_URL_FLAVOR = DataFlavor(ResourceUrl::class.java, "Resource Url")
+
 private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.stringFlavor)
 
 /**

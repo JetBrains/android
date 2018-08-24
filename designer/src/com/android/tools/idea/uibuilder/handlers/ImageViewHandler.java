@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ADJUST_VIEW_BOUNDS;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION;
+import static com.android.SdkConstants.ATTR_CROP_TO_PADDING;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_SCALE_TYPE;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.SAMPLE_PREFIX;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
@@ -34,15 +52,11 @@ import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
+import java.util.EnumSet;
+import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for the {@code <ImageView>} widget
@@ -86,6 +100,11 @@ public class ImageViewHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+      String src = getSrcAttribute(newChild);
+      if (src != null && !src.equals(getSampleImageSrc())) {
+        setSrcAttribute(newChild, src);
+        return true;
+      }
       return showImageChooser(editor, newChild);
     }
 
@@ -125,7 +144,15 @@ public class ImageViewHandler extends ViewHandler {
   @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
+    return TOOLS_SAMPLE_PREFIX + "avatars"; //$NON-NLS-1$
+  }
+
+  private static String getSrcAttribute(@NotNull NlComponent newChild) {
+    String src = newChild.getAttribute(ANDROID_URI, ATTR_SRC);
+    if (src == null) {
+      src = newChild.getAttribute(AUTO_URI, ATTR_SRC_COMPAT);
+    }
+    return src;
   }
 
   public void setSrcAttribute(@NotNull NlComponent component, @Nullable String imageSource) {
