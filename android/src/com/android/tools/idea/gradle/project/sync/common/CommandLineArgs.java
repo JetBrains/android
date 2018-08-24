@@ -15,9 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
+import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
+import static com.android.builder.model.AndroidProject.MODEL_LEVEL_4_NEW_DEP_MODEL;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
+import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
+import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
+import static com.android.builder.model.AndroidProject.PROPERTY_SEPARATE_R_CLASS_COMPILATION;
+import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.intellij.util.ArrayUtil.toStringArray;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
@@ -28,18 +41,11 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.intellij.util.ArrayUtil.toStringArray;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
@@ -108,10 +114,10 @@ public class CommandLineArgs {
       }
     }
 
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      // Don't put the R.java folder in the model. See GradleTaskExecutorImpl for the same flags passed at build time to not generate
-      // those classes either.
-      args.add(createProjectProperty(PROPERTY_SEPARATE_R_CLASS_COMPILATION, true));
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      // Explicitly request R.java files to be generated and put in the model. Older versions of AGP do it always, newer may not by default.
+      // See GradleTaskExecutorImpl.invokeGradleTasks for flags passed at build time.
+      args.add(createProjectProperty(PROPERTY_SEPARATE_R_CLASS_COMPILATION, false));
     }
 
     Application application = ApplicationManager.getApplication();
