@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.DelegateMouseEventHandler;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
@@ -24,7 +25,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.MouseEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -63,17 +63,12 @@ final class CpuThreadsView {
     // TODO(b/62447834): Make a decision on how we want to handle thread selection.
     myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-    MouseEventHandler mouseHandler = new MouseEventHandler() {
-      @Override
-      protected void handle(MouseEvent event) {
-        // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myThreads|.
-        // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
-        // directly into the top-level component (i.e to |myPanel|) instead of its child.
-        myPanel.dispatchEvent(SwingUtilities.convertMouseEvent(myThreads, event, myPanel));
-      }
-    };
-    myThreads.addMouseListener(mouseHandler);
-    myThreads.addMouseMotionListener(mouseHandler);
+    // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myThreads|.
+    // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
+    // directly into the top-level component (i.e to |myPanel|) instead of its child.
+    DelegateMouseEventHandler.delegateTo(myPanel)
+                             .installListenerOn(myThreads)
+                             .installMotionListenerOn(myThreads);
 
     myPanel.addStateChangedListener((actionEvent) ->
       myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()

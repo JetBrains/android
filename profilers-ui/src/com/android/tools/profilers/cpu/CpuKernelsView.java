@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.DelegateMouseEventHandler;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -26,7 +27,6 @@ import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.MouseEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -82,17 +82,12 @@ public final class CpuKernelsView {
       }
     });
 
-    MouseEventHandler mouseHandler = new MouseEventHandler() {
-      @Override
-      protected void handle(MouseEvent event) {
-        // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myKernels|.
-        // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
-        // directly into the top-level component (i.e to |myPanel|) instead of its child.
-        myPanel.dispatchEvent(SwingUtilities.convertMouseEvent(myKernels, event, myPanel));
-      }
-    };
-    myKernels.addMouseListener(mouseHandler);
-    myKernels.addMouseMotionListener(mouseHandler);
+    // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myKernels|.
+    // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
+    // directly into the top-level component (i.e to |myPanel|) instead of its child.
+    DelegateMouseEventHandler.delegateTo(myPanel)
+                             .installListenerOn(myKernels)
+                             .installMotionListenerOn(myKernels);
   }
 
   @NotNull
