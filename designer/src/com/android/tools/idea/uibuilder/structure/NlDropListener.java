@@ -71,8 +71,10 @@ public class NlDropListener extends DropTargetAdapter {
   @Override
   public void dragEnter(@NotNull DropTargetDragEvent dragEvent) {
     NlDropEvent event = new NlDropEvent(dragEvent);
-    captureDraggedComponents(event, true /* preview */);
-    updateInsertionPoint(event);
+    InsertType type = captureDraggedComponents(event, true /* preview */);
+    if (type != null) {
+      updateInsertionPoint(event);
+    }
   }
 
   @Override
