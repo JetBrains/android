@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.event;
 
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.Component;

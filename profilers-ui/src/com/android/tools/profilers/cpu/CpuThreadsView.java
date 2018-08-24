@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.DelegateMouseEventHandler;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
