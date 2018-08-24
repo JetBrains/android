@@ -54,7 +54,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       Disposable disposable = Disposer.newDisposable();
       ApplicationManager.getApplication().getMessageBus().connect(disposable).subscribe(CommandListener.TOPIC, new CommandListener() {
         @Override
-        public void commandFinished(CommandEvent event) {
+        public void commandFinished(@NotNull CommandEvent event) {
           Disposer.dispose(disposable);
           runnable.run();
         }
