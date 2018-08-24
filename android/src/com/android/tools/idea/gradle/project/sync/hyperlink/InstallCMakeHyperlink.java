@@ -54,7 +54,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
    * Constructs a hyperlink to install the default version of CMake in the SDK.
    */
   public InstallCMakeHyperlink() {
-    super("install.cmake", "Install CMake and sync project");
+    super("install.cmake", "Install CMake");
     myCmakeVersion = null;
   }
 
@@ -64,7 +64,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
    * @param cmakeVersion The version of CMake to install.
    */
   public InstallCMakeHyperlink(@NotNull Revision cmakeVersion) {
-    super("install.cmake", "Install CMake " + cmakeVersion.toString() + " and sync project");
+    super("install.cmake", "Install CMake " + cmakeVersion.toString());
     this.myCmakeVersion = cmakeVersion;
   }
 
@@ -85,7 +85,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
     StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
     RepoManager.RepoLoadedCallback onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
-        RemotePackage cmakePackage = null;
+        RemotePackage cmakePackage;
         Collection<RemotePackage> cmakePackages = packages.getRemotePackagesForPrefix(FD_CMAKE);
 
         if (myCmakeVersion == null) {
@@ -107,7 +107,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
 
         if (cmakePackage != null) {
           // Found: Trigger installation of the package.
-          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
+          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()), true);
           if (dialog != null && dialog.showAndGet()) {
             GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
           }
