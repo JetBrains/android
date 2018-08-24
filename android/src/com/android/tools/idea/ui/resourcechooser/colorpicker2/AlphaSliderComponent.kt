@@ -20,6 +20,8 @@ import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.UIUtil
 
 import java.awt.*
+import kotlin.math.max
+import kotlin.math.min
 
 private val DEFAULT_SLIDER_BACKGROUND = Color.WHITE
 
@@ -31,11 +33,18 @@ class AlphaSliderComponent : SliderComponent<Int>(0) {
   var sliderBackgroundColor: Color = DEFAULT_SLIDER_BACKGROUND
 
   override fun knobPositionToValue(knobPosition: Int): Int {
-    val sliderWidth = sliderWidth
     return if (sliderWidth > 0) Math.round(knobPosition * 255f / sliderWidth) else 0
   }
 
   override fun valueToKnobPosition(value: Int): Int = Math.round(value * sliderWidth / 255f)
+
+  override fun slideLeft(size: Int) {
+    value = max(0, value - size)
+  }
+
+  override fun slideRight(size: Int) {
+    value = min(value + size, 255)
+  }
 
   override fun paintSlider(g2d: Graphics2D) {
     val transparent = ColorUtil.toAlpha(Color.WHITE, 0)
