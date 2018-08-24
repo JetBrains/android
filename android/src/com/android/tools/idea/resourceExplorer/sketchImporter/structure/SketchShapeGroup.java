@@ -93,7 +93,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
     SketchFill shapeGroupFill = fills != null ? fills[0] : null;
     SketchBorder shapeGroupBorder = borders != null ? borders[0] : null;
 
-    // If if the shape does not have a fill or border, it will not be visible in the VectorDrawable file. However,
+    // If the shape does not have a fill or border, it will not be visible in the VectorDrawable file. However,
     // clipping paths don't need fills and colors to have an effect, but they still need to be included in the
     // DrawableModel list.
     if (shapeGroupBorder == null && shapeGroupFill == null && !hasClippingMask) {

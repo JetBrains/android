@@ -69,13 +69,13 @@ public class AreaModel extends ShapeModel {
     int booleanOperation = model.getBooleanOperation();
     switch (booleanOperation) {
       case SketchLayer.BOOLEAN_OPERATION_UNION:
-      case SketchLayer.BOOLEAN_OPERATION_NONE:
         addShape(model);
         break;
       case SketchLayer.BOOLEAN_OPERATION_SUBSTRACTION:
         subtractShape(model);
         break;
       case SketchLayer.BOOLEAN_OPERATION_DIFFERENCE:
+      case SketchLayer.BOOLEAN_OPERATION_NONE:
         differenceShape(model);
         break;
       case SketchLayer.BOOLEAN_OPERATION_INTERSECTION:

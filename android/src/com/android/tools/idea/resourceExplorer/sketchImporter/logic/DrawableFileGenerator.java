@@ -195,7 +195,7 @@ public class DrawableFileGenerator {
     XmlTag root = createVectorDrawable(myProject);
     if (vectorDrawable != null) {
       updateDimensionsFromVectorDrawable(vectorDrawable, root);
-      //addArtboardPathForTesting();
+      //addArtboardPathForTesting(vectorDrawable, root);
       List<DrawableModel> drawableModels = vectorDrawable.getDrawableModels();
       XmlTag groupTag = null;
 
