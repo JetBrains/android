@@ -83,13 +83,11 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     AnalyticsSettingsData settings = new AnalyticsSettingsData();
     AnalyticsSettings.setInstanceForTest(settings);
     usageTracker = new TestUsageTracker(myVirtualTimeScheduler);
-    UsageTracker.setWriterForTest(usageTracker);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      UsageTracker.cleanAfterTesting();
       usageTracker.close();
     } finally {
       super.tearDown();
