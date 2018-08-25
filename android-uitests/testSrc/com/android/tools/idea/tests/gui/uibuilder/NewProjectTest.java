@@ -168,6 +168,7 @@ public class NewProjectTest {
     assertTrue(guiTest.getProjectPath(FN_GRADLE_WRAPPER_UNIX).canExecute());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/113197543
   @Test
   public void testIncludeNavControllerWithJava() throws Exception {
     newProject("Java", true);
