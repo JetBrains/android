@@ -56,6 +56,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
     return ConfigurationTypeUtil.findConfigurationType(AndroidTestRunConfigurationType.class);
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return AndroidBundle.message("android.test.run.configuration.type.name");
