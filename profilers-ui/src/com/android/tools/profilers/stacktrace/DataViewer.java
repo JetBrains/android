@@ -60,7 +60,7 @@ public interface DataViewer {
    * doesn't make sense for the file type (e.g. txt, xml)
    */
   @Nullable
-  Dimension getDimension();
+  Dimension getImageDimension();
 
   @NotNull
   Style getStyle();

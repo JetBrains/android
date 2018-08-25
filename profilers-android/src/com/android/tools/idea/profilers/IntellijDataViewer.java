@@ -127,9 +127,9 @@ public class IntellijDataViewer implements DataViewer {
     return new IntellijDataViewer(component, null, Style.INVALID);
   }
 
-  private IntellijDataViewer(@NotNull JComponent component, @Nullable Dimension dimension, @NotNull Style style) {
+  private IntellijDataViewer(@NotNull JComponent component, @Nullable Dimension imageDimension, @NotNull Style style) {
     myComponent = component;
-    myDimension = dimension;
+    myDimension = imageDimension;
     myStyle = style;
   }
 
@@ -141,7 +141,7 @@ public class IntellijDataViewer implements DataViewer {
 
   @Nullable
   @Override
-  public Dimension getDimension() {
+  public Dimension getImageDimension() {
     return myDimension;
   }
 

@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network.details;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
@@ -45,11 +47,8 @@ import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -57,8 +56,15 @@ import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
@@ -271,7 +277,7 @@ final class OverviewTabContent extends TabContent {
     responsePayloadComponent.setName(ID_RESPONSE_PAYLOAD_VIEWER);
 
     myPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
-    myPanel.add(createFields(data, payloadViewer.getDimension()), new TabularLayout.Constraint(1, 0));
+    myPanel.add(createFields(data, payloadViewer.getImageDimension()), new TabularLayout.Constraint(1, 0));
   }
 
   @Override
