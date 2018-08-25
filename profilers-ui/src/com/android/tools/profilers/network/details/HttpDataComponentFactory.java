@@ -171,7 +171,7 @@ final class HttpDataComponentFactory {
     // We force a minimum height to make sure that the component always looks reasonable -
     // useful, for example, when we are displaying a bunch of text.
     int minimumHeight = 300;
-    int originalHeight = viewer.getDimension() != null ? (int)viewer.getDimension().getHeight() : minimumHeight;
+    int originalHeight = viewer.getImageDimension() != null ? (int)viewer.getImageDimension().getHeight() : minimumHeight;
     viewerComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
     viewerComponent.setBorder(PAYLOAD_BORDER);
     JComponent payloadComponent = new JPanel(new BorderLayout());
