@@ -165,8 +165,7 @@ sealed class Destination : Comparable<Destination> {
 
     override val label = "placeholder"
 
-    //TODO: update with real icon when it becomes available
-    override val thumbnail: Image by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED) }
+    override val thumbnail: Image by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.PLACEHOLDER) }
 
     override val typeLabel = "Empty destination"
 
