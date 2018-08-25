@@ -98,6 +98,12 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   }
 
   @NotNull
+  @Override
+  public String getConfigurationPropertyName() {
+    return "androidJunit";
+  }
+
+  @NotNull
   public static AndroidJUnitConfigurationType getInstance() {
     return ConfigurationTypeUtil.findConfigurationType(AndroidJUnitConfigurationType.class);
   }
