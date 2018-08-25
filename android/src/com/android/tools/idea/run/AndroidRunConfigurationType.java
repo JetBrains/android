@@ -52,6 +52,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return AndroidBundle.message("android.run.configuration.type.name");

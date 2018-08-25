@@ -69,6 +69,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
     };
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return ANDROID_JUNIT_NAME;
