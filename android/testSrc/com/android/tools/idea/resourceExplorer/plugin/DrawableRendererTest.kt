@@ -52,6 +52,7 @@ class DrawableRendererTest {
     assertFalse { viewer.isFileSupported(otherFile) }
   }
 
+  @Ignore("b/113242835")
   @Test
   fun renderSelector() {
     val stateList = projectRule.getStateList()
