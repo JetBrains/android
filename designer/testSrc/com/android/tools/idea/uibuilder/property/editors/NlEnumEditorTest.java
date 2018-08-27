@@ -17,19 +17,26 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture;
+import com.intellij.openapi.command.impl.UndoManagerImpl;
+import com.intellij.openapi.command.undo.UndoManager;
 
 import static com.android.SdkConstants.*;
 import static java.awt.event.KeyEvent.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * TODO: probably some of these tests should be moved up to {@link EnumEditorTest}.
  */
 public class NlEnumEditorTest extends PropertyTestCase {
   private EnumEditorFixture myEditorFixture;
+  private UndoManager myUndoManager;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    myUndoManager = mock(UndoManagerImpl.class);
+    registerProjectComponentImplementation(UndoManager.class, myUndoManager);
     myFixture.setTestDataPath(getTestDataPath());
     myEditorFixture = EnumEditorFixture.create(NlEnumEditor::createForTest);
   }
@@ -92,6 +99,33 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectSelectedText(null)
       .expectText("60dp")
       .expectValue("60dp");
+  }
+
+  public void testFocusLoss() {
+    myEditorFixture
+      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
+      .expectText("wrap_content")
+      .expectSelectedText(null)
+      .gainFocus()
+      .type("80")
+      .loseFocus()
+      .expectSelectedText(null)
+      .expectText("80dp")
+      .expectValue("80dp");
+  }
+
+  public void testFocusLossDuringUndo() {
+    when(myUndoManager.isUndoInProgress()).thenReturn(true);
+    myEditorFixture
+      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
+      .expectText("wrap_content")
+      .expectSelectedText(null)
+      .gainFocus()
+      .type("80")
+      .loseFocus()
+      .expectSelectedText(null)
+      .expectText("80dp")
+      .expectValue("wrap_content");
   }
 
   public void testSelectItemThroughModel() {
