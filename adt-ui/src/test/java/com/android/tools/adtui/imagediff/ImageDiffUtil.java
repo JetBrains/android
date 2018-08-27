@@ -73,9 +73,9 @@ public final class ImageDiffUtil {
   /**
    * Default threshold to be used when comparing two images.
    * If the calculated difference between the images is greater than this value (in %), the test should fail.
-   * TODO: current value is 1.0%. This can be revisited later in case it happens not to be a good value.
+   * TODO: current value is 0.5%. This can be revisited later in case it happens not to be a good value.
    */
-  public static final float DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD = 1.0f;
+  public static final float DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD = 0.5f;
 
   private ImageDiffUtil() {
   }

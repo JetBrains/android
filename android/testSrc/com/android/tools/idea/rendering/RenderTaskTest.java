@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
@@ -334,8 +335,9 @@ public class RenderTaskTest extends AndroidTestCase {
 
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
     // Fonts on OpenJDK look slightly different than on the IntelliJ version. Increase the diff tolerance to
-    // 1.0 to account for that. We mostly care about characters not being displayed at all.
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 1.0d);
+    // 0.5 to account for that. We mostly care about characters not being displayed at all.
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result,
+        (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 }

@@ -36,6 +36,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
 import static org.junit.Assert.assertNotEquals;
 
 public class GraphicsLayoutRendererTest extends AndroidTestCase {
@@ -91,7 +92,8 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
       assertTrue(renderer.render((Graphics2D)image.getGraphics()));
 
       BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/themeEditor/previewPanel/components-golden.png"));
-      ImageDiffUtil.assertImageSimilar("components_golden", goldenImage, image, 1.0d);
+      ImageDiffUtil.assertImageSimilar("components_golden", goldenImage, image,
+          (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
     } finally {
       renderer.dispose();
     }
