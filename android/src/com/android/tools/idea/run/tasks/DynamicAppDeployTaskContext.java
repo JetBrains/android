@@ -16,10 +16,9 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.ApkFileUnit;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public class DynamicAppDeployTaskContext implements SplitApkDeployTaskContext {
   @Override
   public List<File> getArtifacts() {
     return myApkInfo.getFiles().stream()
-      .filter(entry -> isFeatureEnabled(entry))
+      .filter(entry -> DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, entry))
       .map(entry -> entry.getApkFile())
       .collect(Collectors.toList());
   }
@@ -63,14 +62,6 @@ public class DynamicAppDeployTaskContext implements SplitApkDeployTaskContext {
   @NotNull
   public List<String> getDisabledFeatures() {
     return myDisabledFeatures;
-  }
-
-  private boolean isFeatureEnabled(@NotNull ApkFileUnit apkFileUnit) {
-    return myDisabledFeatures.stream().noneMatch(m -> featureNameEquals(apkFileUnit, m));
-  }
-
-  private static boolean featureNameEquals(@NotNull ApkFileUnit apkFileUnit, @NotNull String featureName) {
-    return StringUtil.equals(featureName.replace('-', '_'), apkFileUnit.getModuleName());
   }
 
   @Override

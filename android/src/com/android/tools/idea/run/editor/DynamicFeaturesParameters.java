@@ -196,6 +196,7 @@ public class DynamicFeaturesParameters {
         if (!featurenames.contains(x.getFeatureName()) && !x.isBaseFeature()) {
           x.isChecked = false;
           x.setEnabled(false);
+          myDisabledDynamicFeatures.add(x.getFeatureName());
         }
       });
     } else {

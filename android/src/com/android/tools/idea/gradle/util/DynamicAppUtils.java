@@ -318,6 +318,14 @@ public class DynamicAppUtils {
                          .collect(Collectors.toList());
   }
 
+  public static boolean isFeatureEnabled(@NotNull List<String> myDisabledFeatures, @NotNull ApkFileUnit apkFileUnit) {
+    return myDisabledFeatures.stream().noneMatch(m -> featureNameEquals(apkFileUnit, m));
+  }
+
+  public static boolean featureNameEquals(@NotNull ApkFileUnit apkFileUnit, @NotNull String featureName) {
+    return StringUtil.equals(featureName.replace('-', '_'), apkFileUnit.getModuleName());
+  }
+
   @NotNull
   private static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
     return Arrays.stream(ModuleManager.getInstance(project).getModules())

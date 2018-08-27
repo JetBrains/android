@@ -78,6 +78,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   // Deploy options
   public boolean DEPLOY = true;
   public boolean DEPLOY_APK_FROM_BUNDLE = false;
+  public boolean DEPLOY_AS_INSTANT = false;
   public String ARTIFACT_NAME = "";
   public String PM_INSTALL_OPTIONS = "";
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
@@ -134,7 +135,8 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       .setDeploy(DEPLOY)
       .setPmInstallOptions(PM_INSTALL_OPTIONS)
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
-      .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
+      .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
+      .setDeployAsInstant(DEPLOY_AS_INSTANT);
   }
 
   @NotNull
@@ -233,7 +235,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     if (module == null) {
       return true;
     }
-    return DynamicAppUtils.isInstantRunSupported(module);
+    return DynamicAppUtils.isInstantRunSupported(module) && !DEPLOY_AS_INSTANT;
   }
 
   @Override
