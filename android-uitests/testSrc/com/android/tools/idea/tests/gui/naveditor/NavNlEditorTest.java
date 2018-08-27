@@ -105,7 +105,7 @@ public class NavNlEditorTest {
       .openAddDestinationMenu()
       .waitForContents();
 
-    assertEquals(4, menuFixture.visibleItemCount());
+    assertEquals(5, menuFixture.visibleItemCount());
     guiTest.robot().enterText("fragment_my");
     assertEquals(1, menuFixture.visibleItemCount());
 
