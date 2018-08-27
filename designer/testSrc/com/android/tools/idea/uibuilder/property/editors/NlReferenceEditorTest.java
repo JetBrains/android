@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.fixtures.NlReferenceEditorFixture;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.command.impl.UndoManagerImpl;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -33,13 +35,18 @@ import java.util.Collections;
 import static com.android.SdkConstants.*;
 import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlReferenceEditorTest extends PropertyTestCase {
   private NlReferenceEditorFixture myFixture;
+  private UndoManager myUndoManager;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    myUndoManager = mock(UndoManagerImpl.class);
+    registerProjectComponentImplementation(UndoManager.class, myUndoManager);
     myFixture = NlReferenceEditorFixture.createForInspector(getProject());
   }
 
@@ -83,6 +90,24 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectSelectedText(null)
       .expectText("Hello")
       .expectValue("Hello");
+  }
+
+  public void testFocusLossDuringUndo() {
+    when(myUndoManager.isUndoInProgress()).thenReturn(true);
+    myFixture
+      .setProperty(getProperty(myTextView, ATTR_TEXT))
+      .expectText("SomeText")
+      .expectSelectedText(null)
+      .gainFocus()
+      .expectSelectedText("SomeText")
+      .type("Hello")
+      .expectText("Hello")
+      .expectValue("SomeText")
+      .expectSelectedText(null)
+      .loseFocus()
+      .expectSelectedText(null)
+      .expectText("Hello")
+      .expectValue("SomeText");
   }
 
   public void testReplaceCaseOfText() {
