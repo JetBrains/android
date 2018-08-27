@@ -188,6 +188,12 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.DEPLOY_APK_FROM_BUNDLE, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
 
+    myInstantAppDeployCheckBox.setSelected(configuration.DEPLOY_AS_INSTANT);
+    Module currentModule = myModuleSelector.getModule();
+    if (currentModule != null) {
+      myDynamicFeaturesParameters.updateBasedOnInstantState(currentModule, configuration.DEPLOY_AS_INSTANT);
+    }
+
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       String artifactName = StringUtil.notNullize(configuration.ARTIFACT_NAME);
       List<Artifact> artifacts = Lists.newArrayList(getAndroidArtifacts());
@@ -239,6 +245,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
     configuration.DEPLOY = installOption != InstallOption.NOTHING;
     configuration.DEPLOY_APK_FROM_BUNDLE = installOption == InstallOption.APK_FROM_BUNDLE;
+    configuration.DEPLOY_AS_INSTANT = myInstantAppDeployCheckBox.isSelected();
     configuration.ARTIFACT_NAME = "";
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       Object item = myCustomArtifactLabeledComponent.getComponent().getSelectedItem();
