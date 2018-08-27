@@ -196,6 +196,15 @@ class SerializationTest : TestCase() {
                       DrawSelfAction(Point2D.Float(50f, 60f), Point2D.Float(70f, 80f), Color.BLUE), factory)
   }
 
+  fun testDrawPlaceholder() {
+    val factory = { s: String -> DrawPlaceholder(s) }
+
+    testSerialization("DrawPlaceholder,0,10.0x20.0x30.0x40.0",
+                      DrawPlaceholder(0, Rectangle2D.Float(10f, 20f, 30f, 40f)), factory)
+    testSerialization("DrawPlaceholder,1,50.0x60.0x70.0x80.0",
+                      DrawPlaceholder(1, Rectangle2D.Float(50f, 60f, 70f, 80f)), factory)
+  }
+
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()
