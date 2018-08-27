@@ -20,25 +20,19 @@ import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
-import com.android.tools.idea.naveditor.scene.NavColorSet.FRAME_COLOR
-import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
+import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.intellij.psi.xml.XmlFile
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import java.awt.BasicStroke
 import java.awt.Dimension
-import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 class NavScreenDecoratorTest : NavTestCase() {
@@ -66,9 +60,7 @@ class NavScreenDecoratorTest : NavTestCase() {
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
     assertEquals(
       listOf(
-        DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, Rectangle2D.Float(50f, 150f, 100f, 200f), NavColorSet.PLACEHOLDER_BACKGROUND_COLOR),
-        DrawLine(DRAW_NAV_SCREEN_LEVEL, Point2D.Float(50f, 150f), Point2D.Float(150f, 350f), PLACEHOLDER_BORDER_COLOR, stroke),
-        DrawLine(DRAW_NAV_SCREEN_LEVEL, Point2D.Float(50f, 350f), Point2D.Float(150f, 150f), PLACEHOLDER_BORDER_COLOR, stroke)),
+        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(50f, 150f, 100f, 200f))),
       displayList.commands)
   }
 

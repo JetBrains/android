@@ -23,23 +23,17 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
-import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
+import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
-import java.awt.BasicStroke
 import java.awt.Dimension
-import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.io.File
 
@@ -64,34 +58,16 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
                            @SwingCoordinate rectangle: Rectangle2D.Float) {
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     val className = component.nlComponent.className
-    if (layout == null && className == null) {
-      drawPlaceholder(list, rectangle)
-    }
-    else {
-      drawImage(list, sceneContext, component, layout, rectangle)
-    }
-  }
 
-  private fun drawPlaceholder(list: DisplayList, @SwingCoordinate rectangle: Rectangle2D.Float) {
-    list.add(DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, rectangle, PLACEHOLDER_BACKGROUND_COLOR))
-
-    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
-    val p1 = Point2D.Float(rectangle.x, rectangle.y)
-    val p2 = Point2D.Float(p1.x, p1.y + rectangle.height)
-    val p3 = Point2D.Float(p1.x + rectangle.width, p1.y)
-    val p4 = Point2D.Float(p3.x, p2.y)
-
-    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p1, p4, PLACEHOLDER_BORDER_COLOR, stroke))
-    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p2, p3, PLACEHOLDER_BORDER_COLOR, stroke))
-  }
-
-  private fun drawImage(list: DisplayList,
-                        sceneContext: SceneContext,
-                        component: SceneComponent,
-                        layout: String?,
-                        rectangle: Rectangle2D.Float) {
-    val image = buildImage(sceneContext, component, layout, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
-    list.add(DrawNavScreen(rectangle, image))
+    list.add(
+      if (layout == null && className == null) {
+        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, rectangle)
+      }
+      else {
+        val image = buildImage(sceneContext, component, layout, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
+        DrawNavScreen(rectangle, image)
+      }
+    )
   }
 
   private fun buildImage(sceneContext: SceneContext,

@@ -19,19 +19,16 @@ import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import org.mockito.Mockito
 import java.awt.BasicStroke
-import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
@@ -55,9 +52,7 @@ class FragmentDecoratorTest : NavTestCase() {
     assertEquals(
       listOf(
         DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), NavColorSet.FRAME_COLOR, REGULAR_FRAME_THICKNESS),
-        DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f), NavColorSet.PLACEHOLDER_BACKGROUND_COLOR),
-        DrawLine(DRAW_NAV_SCREEN_LEVEL, Point2D.Float(420f, 470f), Point2D.Float(468f, 568f), NavColorSet.PLACEHOLDER_BORDER_COLOR, stroke),
-        DrawLine(DRAW_NAV_SCREEN_LEVEL, Point2D.Float(420f, 568f), Point2D.Float(468f, 470f), NavColorSet.PLACEHOLDER_BORDER_COLOR, stroke)
+        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f))
       ),
       displayList.commands)
   }
@@ -83,9 +78,7 @@ class FragmentDecoratorTest : NavTestCase() {
       listOf(
         DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), NavColorSet.HIGHLIGHTED_FRAME_COLOR,
                       REGULAR_FRAME_THICKNESS),
-        DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f), NavColorSet.PLACEHOLDER_BACKGROUND_COLOR),
-        DrawLine(DRAW_NAV_SCREEN_LEVEL, Point2D.Float(420f, 470f), Point2D.Float(468f, 568f), NavColorSet.PLACEHOLDER_BORDER_COLOR, stroke),
-        DrawLine(DRAW_NAV_SCREEN_LEVEL, Point2D.Float(420f, 568f), Point2D.Float(468f, 470f), NavColorSet.PLACEHOLDER_BORDER_COLOR, stroke),
+        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f)),
         DrawRoundRectangle(DRAW_FRAME_LEVEL, RoundRectangle2D.Float(417f, 467f, 54f, 104f, 2f, 2f), NavColorSet.SELECTED_FRAME_COLOR,
                            HIGHLIGHTED_FRAME_THICKNESS)
       ),
