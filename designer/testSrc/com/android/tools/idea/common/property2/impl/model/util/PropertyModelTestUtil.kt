@@ -54,7 +54,7 @@ object PropertyModelTestUtil {
         get() = namespace
 
       override val namespaceIcon: Icon?
-        get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY else null
+        get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE else null
 
       override var name: String = name
 
@@ -84,7 +84,7 @@ object PropertyModelTestUtil {
         get() = namespace
 
       override val namespaceIcon: Icon?
-        get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY else null
+        get() = if (namespace == TOOLS_URI) StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE else null
 
       override var name: String = name
 

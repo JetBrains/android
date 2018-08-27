@@ -91,7 +91,7 @@ open class NelePropertyItem(
       "",
       ANDROID_URI,
       AUTO_URI -> null
-      TOOLS_URI -> StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY
+      TOOLS_URI -> StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE
       else -> StudioIcons.LayoutEditor.Toolbar.INSERT_VERT_CHAIN
     }
 
