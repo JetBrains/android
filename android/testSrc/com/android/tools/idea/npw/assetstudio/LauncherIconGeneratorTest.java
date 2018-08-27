@@ -148,7 +148,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       } else {
         BufferedImage goldenImage = ImageIO.read(goldenFile);
         assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(),
-			   (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
+                           (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
       }
       unexpectedFiles.remove(file);
     }

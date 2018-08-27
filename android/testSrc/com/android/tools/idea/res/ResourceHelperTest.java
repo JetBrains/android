@@ -50,6 +50,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ResourceHelperTest extends AndroidTestCase {
@@ -257,7 +258,8 @@ public class ResourceHelperTest extends AndroidTestCase {
     BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     icon.paintIcon(null, image.getGraphics(), 0, 0);
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/resourceHelper/ic_delete.png"));
-    ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image, 1.0d);
+    ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image,
+        (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
   }
 
   public void testGetCompletionFromTypes() {
