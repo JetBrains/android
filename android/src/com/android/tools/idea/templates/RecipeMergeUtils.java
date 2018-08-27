@@ -288,7 +288,7 @@ public class RecipeMergeUtils {
         .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
                       ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
                       ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
-        .addFlavorAndBuildTypeManifest(tempFile2)
+        .addLibraryManifest(tempFile2)
         .asType(isMasterManifest ? XmlDocument.Type.MAIN : XmlDocument.Type.OVERLAY)
         .withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
           @Override
