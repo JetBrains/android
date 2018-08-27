@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.uipreview;
+
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.R_CLASS;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
@@ -43,21 +52,15 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -65,7 +68,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * If the project is indexing, the ViewLoader will not be able to detect the modification times
  * in the project so it will not report outdated classes.
  */
-@SuppressWarnings("deprecation") // The Pair class is required by the IProjectCallback
 public class ViewLoader {
   private static final Logger LOG = Logger.getInstance(ViewLoader.class);
   /** Number of instances of a custom view that are allowed to nest inside itself. */
