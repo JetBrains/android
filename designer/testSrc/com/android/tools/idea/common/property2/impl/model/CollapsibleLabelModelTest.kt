@@ -145,7 +145,7 @@ class CollapsibleLabelModelTest {
   @Test
   fun testIconOfToolsPropertyItem() {
     val test = Labels()
-    assertThat(test.backgroundTintItem.icon).isEqualTo(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY)
+    assertThat(test.backgroundTintItem.icon).isEqualTo(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
   }
 
   @Test

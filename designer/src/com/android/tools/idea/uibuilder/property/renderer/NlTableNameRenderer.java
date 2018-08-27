@@ -104,11 +104,11 @@ public class NlTableNameRenderer extends PTableCellRenderer implements PNameRend
     }
     if (TOOLS_URI.equals(item.getNamespace())) {
       if (icon == null) {
-        icon = StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY;
+        icon = StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE;
       }
       else {
-        LayeredIcon layered = new LayeredIcon(icon, StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
-        layered.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY, 1, afterGroupIcon + icon.getIconWidth(), 0);
+        LayeredIcon layered = new LayeredIcon(icon, StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
+        layered.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, 1, afterGroupIcon + icon.getIconWidth(), 0);
         icon = layered;
       }
       textGap = 4;
