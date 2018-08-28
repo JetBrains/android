@@ -55,7 +55,7 @@ public class LibraryFileNode extends LibraryNode {
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(JavaClass);
     boolean hasDebugSymbols = myLibrary.hasDebugSymbols;
     boolean missingPathMappings = myLibrary.isMissingPathMappings();

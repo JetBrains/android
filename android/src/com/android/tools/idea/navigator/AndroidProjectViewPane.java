@@ -130,6 +130,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     };
   }
 
+  @NotNull
   @Override
   protected ProjectAbstractTreeStructureBase createStructure() {
     return new ProjectTreeStructure(myProject, ID) {
@@ -142,17 +143,19 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @NotNull
   @Override
-  protected BaseProjectTreeBuilder createBuilder(DefaultTreeModel treeModel) {
+  protected BaseProjectTreeBuilder createBuilder(@NotNull DefaultTreeModel treeModel) {
     return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, (ProjectAbstractTreeStructureBase)myTreeStructure, null);
   }
 
+  @NotNull
   @Override
-  protected ProjectViewTree createTree(final DefaultTreeModel treeModel) {
+  protected ProjectViewTree createTree(@NotNull final DefaultTreeModel treeModel) {
     return new MyProjectViewTree(treeModel);
   }
 
+  @NotNull
   @Override
-  protected AbstractTreeUpdater createTreeUpdater(AbstractTreeBuilder treeBuilder) {
+  protected AbstractTreeUpdater createTreeUpdater(@NotNull AbstractTreeBuilder treeBuilder) {
     return new AbstractTreeUpdater(treeBuilder);
   }
 

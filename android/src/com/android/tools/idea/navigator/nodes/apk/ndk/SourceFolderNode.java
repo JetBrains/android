@@ -54,7 +54,7 @@ public class SourceFolderNode extends PsiDirectoryNode {
   }
 
   @Override
-  protected void updateImpl(PresentationData data) {
+  protected void updateImpl(@NotNull PresentationData data) {
     PsiDirectory folder = getValue();
     assert folder != null;
     data.addText(folder.getName() + " ", REGULAR_ATTRIBUTES);

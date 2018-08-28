@@ -144,7 +144,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.addText(mySourceType.getName(), REGULAR_ATTRIBUTES);
 
     Icon icon = mySourceType.getIcon();

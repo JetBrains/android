@@ -78,7 +78,7 @@ public class NdkSourceNode extends ProjectViewNode<File> {
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(AndroidIcons.Android);
     presentation.addText("NDK ", REGULAR_ATTRIBUTES);
     presentation.addText(myNdkPath.getPath(), GRAY_ATTRIBUTES);

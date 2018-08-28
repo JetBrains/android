@@ -101,7 +101,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.addText(CPP.getName(), REGULAR_ATTRIBUTES);
 
     Icon icon = CPP.getIcon();

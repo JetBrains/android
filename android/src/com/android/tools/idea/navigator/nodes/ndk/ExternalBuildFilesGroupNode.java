@@ -94,7 +94,7 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setPresentableText("External Build Files");
     presentation.setIcon(ExternalToolsSmall);
   }
