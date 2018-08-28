@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.*
 import com.intellij.testFramework.ProjectRule
 import org.jetbrains.android.AndroidTestBase
@@ -30,42 +29,8 @@ class ParserTest {
   val projectRule = ProjectRule()
 
   @Test
-  fun findLayers() {
-    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
-
-    // First page
-    assertEquals(sketchFile.findLayer("7D779FEF-7EA8-45AF-AA97-04E803E773F7")?.classType, "rectangle")
-    assertEquals(sketchFile.findLayer("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")?.classType, "page")
-
-    // Second page
-    assertEquals(sketchFile.findLayer("E107408D-96BD-4B27-A124-6A84069917FB")?.classType, "artboard")
-    assertEquals(sketchFile.findLayer("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")?.classType, "page")
-  }
-
-  @Test
-  fun findSymbols() {
-    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
-
-    // First page
-    assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.height, 12.0)
-    assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.width, 14.0)
-
-    // Second page
-    assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.name, "text_dark")
-    assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.classType, "symbolMaster")
-  }
-
-  @Test
-  fun parseSketchFiles() {
-    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
-
-    assertEquals("New Palette", sketchFile.pages[0]?.name)
-    assertEquals("Symbols", sketchFile.pages[1]?.name)
-  }
-
-  @Test
   fun checkParsedPageData() {
-    val page: SketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")!!
+    val page: SketchPage = SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertEquals("page", page.classType)
     assertEquals("4A20F10B-61D2-4A1B-8BF1-623ACF2E7637", page.objectId)
@@ -92,7 +57,7 @@ class ParserTest {
 
   @Test
   fun checkParsedSliceData() {
-    val page: SketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")!!
+    val page: SketchPage = SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[0] is SketchSlice)
     val slice = page.layers[0] as SketchSlice
@@ -124,7 +89,7 @@ class ParserTest {
 
   @Test
   fun checkParsedShapeGroupData() {
-    val page: SketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")!!
+    val page: SketchPage = SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     val shapeGroup = page.layers[1] as SketchShapeGroup
@@ -152,7 +117,7 @@ class ParserTest {
 
   @Test
   fun checkStyleData() {
-    val page: SketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")!!
+    val page: SketchPage = SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     val style = (page.layers[1] as SketchShapeGroup).style
@@ -180,7 +145,7 @@ class ParserTest {
 
   @Test
   fun checkShapePathData() {
-    val page: SketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")!!
+    val page: SketchPage = SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     assertTrue((page.layers[1] as SketchShapeGroup).layers[0] is SketchShapePath)
@@ -207,7 +172,7 @@ class ParserTest {
 
   @Test
   fun checkPointsData() {
-    val page: SketchPage = SketchParser.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")!!
+    val page: SketchPage = SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is SketchShapeGroup)
     assertTrue((page.layers[1] as SketchShapeGroup).layers[0] is SketchShapePath)

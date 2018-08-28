@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -48,7 +47,7 @@ public class DrawableFileGeneratorTest {
   @Test
   public void addShapeTest() {
 
-    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_addShape.json"));
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_addShape.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
     VectorDrawable vectorDrawable = new VectorDrawable(artboard);
 
@@ -62,7 +61,7 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void shapeFillAndBorderTest() {
-    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_shapeFillAndBorder.json"));
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeFillAndBorder.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
     VectorDrawable vectorDrawable = new VectorDrawable(artboard);
 
@@ -76,7 +75,7 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void shapeRotationTest() {
-    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_shapeRotation.json"));
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeRotation.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
     VectorDrawable vectorDrawable = new VectorDrawable(artboard);
 
@@ -90,7 +89,7 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void fillGradientTest() {
-    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_fillGradient.json"));
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_fillGradient.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
     VectorDrawable vectorDrawable = new VectorDrawable(artboard);
 
@@ -104,7 +103,7 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void shapeMirroringTest() {
-    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_shapeMirroring.json"));
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeMirroring.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
     VectorDrawable vectorDrawable = new VectorDrawable(artboard);
 
@@ -118,7 +117,7 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void clippingTest() {
-    SketchPage sketchPage = SketchParser.parsePage(getTestFilePath("/sketch/vectordrawable_clipping.json"));
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_clipping.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
     VectorDrawable vectorDrawable = new VectorDrawable(artboard);
 
