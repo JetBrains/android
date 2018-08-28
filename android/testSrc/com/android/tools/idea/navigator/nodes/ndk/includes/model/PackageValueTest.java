@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
 import com.google.common.collect.Lists;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
 import java.io.File;
@@ -23,9 +24,9 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class TestPackageValue {
+public class PackageValueTest {
   @Test
-  public void testNoSharedCommonFolder() throws Exception {
+  public void testNoSharedCommonFolder() {
     PackageKey key = new PackageKey(PackageType.CDepPackage, "package name", new File("."));
     List<SimpleIncludeValue> includes = Lists.newArrayList();
     includes.add(new SimpleIncludeValue(PackageType.CDepPackage, "package name", "x1", new File("."), new File(".")));
@@ -36,7 +37,7 @@ public class TestPackageValue {
   }
 
   @Test
-  public void testSharedCommonFolder() throws Exception {
+  public void testSharedCommonFolder() {
     PackageKey key = new PackageKey(PackageType.CDepPackage, "package name", new File("."));
     List<SimpleIncludeValue> includes = Lists.newArrayList();
     includes.add(new SimpleIncludeValue(PackageType.CDepPackage, "package name", "root-folder/x1", new File("."), new File(".")));
@@ -44,5 +45,11 @@ public class TestPackageValue {
     PackageValue value = new PackageValue(key, includes);
     assertThat(value.getDescriptiveText()).isEqualTo("root-folder");
     assertThat(value.toString()).isEqualTo("package name (CDep Packages, root-folder)");
+  }
+
+  @Test
+  public void testEqualsHash() {
+    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(PackageValue.class);
+    equalsVerifier.verify();
   }
 }

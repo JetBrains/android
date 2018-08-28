@@ -19,9 +19,9 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
@@ -44,14 +44,15 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 /**
  * A view class over SimpleIncludeExpressions. This is a basic single include folder.
  */
-public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
+final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
 
-  protected SimpleIncludeViewNode(@NotNull SimpleIncludeValue thisInclude,
+  SimpleIncludeViewNode(@NotNull VirtualFile buildFileFolder,
+                                  @NotNull SimpleIncludeValue thisInclude,
                                   @NotNull IncludeSet allIncludes,
                                   boolean showPackageType,
                                   @Nullable Project project,
                                   @NotNull ViewSettings viewSettings) {
-    super(thisInclude, allIncludes, showPackageType, project, viewSettings);
+    super(buildFileFolder, thisInclude, allIncludes, showPackageType, project, viewSettings);
   }
 
   @NotNull
@@ -86,7 +87,7 @@ public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
   }
 
   @Override
-  protected void update(@NotNull PresentationData presentation) {
+  final void writeDescription(@NotNull PresentationDataWrapper presentation) {
     SimpleIncludeValue concrete = getSimpleIncludeValue();
     if (concrete.getPackageType() == PackageType.IncludeFolder) {
       presentation.setIcon(AllIcons.Nodes.Folder);
@@ -137,11 +138,5 @@ public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
       return "[icon-f]" + value.getSortKey();
     }
     return "[icon-m]" + value.getSortKey();
-  }
-
-  @NotNull
-  @Override
-  public String toString() {
-    return getValue().toString();
   }
 }

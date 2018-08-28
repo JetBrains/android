@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.openapi.util.text.StringUtil.trimEnd;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
+
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
@@ -31,19 +36,14 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.intellij.openapi.util.text.StringUtil.trimEnd;
-import static com.intellij.openapi.util.text.StringUtil.trimStart;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleNode extends AndroidViewModuleNode {
   public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
@@ -100,12 +100,15 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       }
       nativeLibraryName = trimStart(nativeLibraryName, "lib");
       if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+        LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+        VirtualFile buildFileFolder = fileSystem.findFileByIoFile(ndkModel.getRootDirPath());
         NdkLibraryEnhancedHeadersNode node =
-          new NdkLibraryEnhancedHeadersNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name),
+          new NdkLibraryEnhancedHeadersNode(buildFileFolder, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name),
                                             new NativeIncludes(ndkModel::findSettings, nativeLibraries.get(name)), settings,
                                             sourceFileExtensions);
         children.add(node);
-      } else {
+      }
+      else {
         NdkLibraryNode node =
           new NdkLibraryNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name), settings, sourceFileExtensions);
         children.add(node);
@@ -147,8 +150,9 @@ public class NdkModuleNode extends AndroidViewModuleNode {
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
     Module module = getValue();
-    if (module != null)
+    if (module != null) {
       presentation.setIcon(getModuleIcon(module));
+    }
   }
 
   public static boolean containedInIncludeFolders(@NotNull NdkModuleModel model, @NotNull VirtualFile file) {

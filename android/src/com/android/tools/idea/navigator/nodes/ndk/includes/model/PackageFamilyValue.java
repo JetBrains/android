@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -70,5 +71,22 @@ public class PackageFamilyValue extends ClassifiedIncludeValue {
   @Override
   public File getPackageFamilyBaseFolder() {
     return myKey.myPackagingFamilyBaseFolder;
+  }
+
+  @Override
+  final public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof PackageFamilyValue)) {
+      return false;
+    }
+    PackageFamilyValue that = (PackageFamilyValue) obj;
+    return Objects.equals(this.myKey, that.myKey) && Objects.equals(this.myIncludes, that.myIncludes);
+  }
+
+  @Override
+  final public int hashCode() {
+    return Objects.hash(myKey, myIncludes);
   }
 }

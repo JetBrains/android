@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
@@ -25,17 +27,14 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.junit.ClassRule;
-import org.mockito.Mockito;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.ClassRule;
+import org.mockito.Mockito;
 
 public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
   @ClassRule
@@ -51,20 +50,23 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
+    VirtualFile buildFileFolder = Mockito.mock(VirtualFile.class);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(buildFileFolder,
+                                                                           getProject(),
                                                                            "native-library-name",
                                                                            "native-library-type",
                                                                            nativeArtifacts,
                                                                            layout.getNativeIncludes(),
                                                                            settings,
                                                                            sourceFileExtensions);
-    NdkLibraryEnhancedHeadersNode node2 = new NdkLibraryEnhancedHeadersNode(getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           nativeArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node2 = new NdkLibraryEnhancedHeadersNode(buildFileFolder,
+                                                                            getProject(),
+                                                                            "native-library-name",
+                                                                            "native-library-type",
+                                                                            nativeArtifacts,
+                                                                            layout.getNativeIncludes(),
+                                                                            settings,
+                                                                            sourceFileExtensions);
     NdkLibraryEnhancedHeadersNode nodeAlias = node;
     assertThat(node != node2).isTrue(); // They're not reference-equals
     assertThat(node.equals(nodeAlias)).isTrue();
@@ -87,13 +89,14 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
-                                     "native-library-name",
-                                      "native-library-type",
-                                      nativeArtifacts,
-                                      layout.getNativeIncludes(),
-                                      settings,
-                                      sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
+                                                                           getProject(),
+                                                                           "native-library-name",
+                                                                           "native-library-type",
+                                                                           nativeArtifacts,
+                                                                           layout.getNativeIncludes(),
+                                                                           settings,
+                                                                           sourceFileExtensions);
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
@@ -110,7 +113,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
+                                                                           getProject(),
                                                                            "native-library-name",
                                                                            "native-library-type",
                                                                            layout.getNativeIncludes().myArtifacts,
@@ -137,7 +141,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "sub1/bar1.cpp", "sub1/bar2.cpp", "sub2/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
+                                                                           getProject(),
                                                                            "native-library-name",
                                                                            "native-library-type",
                                                                            layout.getNativeIncludes().myArtifacts,
@@ -184,7 +189,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk", "my-other-thing")
       .addArtifact("my-artifact", "sub1/bar1.cpp", "sub1/bar2.cpp", "sub2/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
+                                                                           getProject(),
                                                                            "native-library-name",
                                                                            "native-library-type",
                                                                            layout.getNativeIncludes().myArtifacts,
@@ -221,7 +227,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact2", "my-sdk2", "my-other-thing2")
       .addArtifact("my-artifact1", "sub1a/bar1.cpp", "sub1a/bar2.cpp", "sub1b/baz.cpp")
       .addArtifact("my-artifact2", "sub2a/bar1.cpp", "sub2a/bar2.cpp", "sub2b/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
+                                                                           getProject(),
                                                                            "native-library-name",
                                                                            "native-library-type",
                                                                            layout.getNativeIncludes().myArtifacts,
@@ -260,7 +267,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact2", "my-sdk2", "my-other-thing2")
       .addArtifact("my-artifact1", "sub1a/bar1.cpp", "sub1a/bar2.cpp", "sub1b/baz.cpp")
       .addArtifact("my-artifact2", "sub2a/sub2x/bar1.cpp", "sub2a/sub2x/bar2.cpp", "sub2b/sub2x/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(getProject(),
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
+                                                                           getProject(),
                                                                            "native-library-name",
                                                                            "native-library-type",
                                                                            layout.getNativeIncludes().myArtifacts,
@@ -284,7 +292,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
   }
 
   private void assertThatNodeIs(AbstractTreeNode node, String name) {
-    PsiFileNode file = (PsiFileNode) node;
+    PsiFileNode file = (PsiFileNode)node;
     assertThat(file.getVirtualFile().getPath()).endsWith(name);
   }
 }
