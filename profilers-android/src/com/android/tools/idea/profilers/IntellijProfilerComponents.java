@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.profilers.dataviewer.IntellijDataViewer;
+import com.android.tools.idea.profilers.dataviewer.IntellijImageDataViewer;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceGroup;
 import com.android.tools.profilers.ContentType;
@@ -26,7 +28,7 @@ import com.android.tools.profilers.UiMessageHandler;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.stacktrace.DataViewer;
+import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.intellij.openapi.project.Project;
@@ -34,10 +36,8 @@ import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.function.Consumer;
-import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,11 +121,8 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     assert(styleHint != DataViewer.Style.INVALID);
 
     if (contentType.isImageType()) {
-      try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
-        BufferedImage image = ImageIO.read(inputStream);
-        if (image != null) {
-          return IntellijDataViewer.createImageViewer(image);
-        }
+      try {
+        return IntellijImageDataViewer.createImageViewer(content);
       }
       catch (IOException ignored) {
       }

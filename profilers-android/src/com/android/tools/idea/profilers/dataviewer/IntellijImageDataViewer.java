@@ -1,0 +1,57 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.profilers.dataviewer;
+
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.profilers.ResizableImage;
+import com.android.tools.profilers.dataviewer.ImageDataViewer;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
+
+public class IntellijImageDataViewer implements ImageDataViewer {
+  @NotNull
+  private final BufferedImage myImage;
+  @NotNull
+  private final JComponent myComponent;
+
+  @NotNull
+  public static IntellijImageDataViewer createImageViewer(@NotNull byte[] content) throws IOException {
+    try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
+      return new IntellijImageDataViewer(ImageIO.read(inputStream));
+    }
+  }
+
+  private IntellijImageDataViewer(@NotNull BufferedImage image) {
+    myImage = image;
+    myComponent = new ResizableImage(image);
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return myComponent;
+  }
+
+  @NotNull
+  @Override
+  public BufferedImage getImage() {
+    return myImage;
+  }
+}

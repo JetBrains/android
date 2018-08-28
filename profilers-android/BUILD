@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
