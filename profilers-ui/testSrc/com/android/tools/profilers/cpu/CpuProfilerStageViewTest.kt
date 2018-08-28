@@ -98,6 +98,7 @@ class CpuProfilerStageViewTest {
   }
 
   @Ignore("b/113554750")
+  // TODO(b/113451031): refactor this test, because it relies on internal implementations.
   @Test
   fun testCpuKernelAndFramesViewAreExpandedOnAtraceCapture() {
     // Create default device and process for a default session.
@@ -110,7 +111,7 @@ class CpuProfilerStageViewTest {
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     // Find our Jlist elements, type of test ignores generics so we get all elements.
     val list = treeWalker.descendants().filterIsInstance<JList<CpuFramesModel.FrameState>>()
-    val framesPanel = TreeWalker(list[0]).ancestors().filterIsInstance<HideablePanel>().first()
+    val framesPanel = TreeWalker(list[2]).ancestors().filterIsInstance<HideablePanel>().first()
     var title = TreeWalker(framesPanel).descendants().filterIsInstance<JLabel>().first()
     // The panel containing the frames list should be hidden by default
     assertThat(framesPanel.isVisible).isFalse()
