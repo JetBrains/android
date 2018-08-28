@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -23,7 +24,7 @@ import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class TestPackageKey {
+public class PackageKeyTest {
   private static void assertAreEqual(@NotNull PackageKey lhs, @NotNull Object rhs) {
     assertThat(lhs).isEqualTo(rhs);
     assertThat(lhs.hashCode()).isEqualTo(rhs.hashCode());
@@ -37,42 +38,48 @@ public class TestPackageKey {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void testEquals() {
     assertAreEqual(new PackageKey(PackageType.CDepPackage, "a", new File(".")),
                    new PackageKey(PackageType.CDepPackage, "a", new File(".")));
   }
 
   @Test
-  public void testEqualsSameInstance() throws Exception {
+  public void testEqualsSameInstance() {
     PackageKey instance = new PackageKey(PackageType.CDepPackage, "a", new File("."));
     assertAreEqual(instance, instance);
   }
 
   @Test
-  public void testNotEqualsDifferentPackage() throws Exception {
+  public void testNotEqualsDifferentPackage() {
     assertAreNotEqual(new PackageKey(PackageType.CDepPackage, "a", new File(".")),
                       new PackageKey(PackageType.CocosThirdPartyPackage, "a", new File(".")));
   }
 
   @Test
-  public void testNotEqualsDifferentPath() throws Exception {
+  public void testNotEqualsDifferentPath() {
     assertAreNotEqual(new PackageKey(PackageType.CDepPackage, "a", new File("path1")),
                       new PackageKey(PackageType.CDepPackage, "a", new File("path2")));
   }
 
   @Test
-  public void testNotEqualsNullRhs() throws Exception {
+  public void testNotEqualsNullRhs() {
     assertAreNotEqual(new PackageKey(PackageType.CDepPackage, "a", new File("path1")), null);
   }
 
   @Test
-  public void testNotEqualsStringRhs() throws Exception {
+  public void testNotEqualsStringRhs() {
     assertAreNotEqual(new PackageKey(PackageType.CDepPackage, "a", new File("path1")), "bob");
   }
 
   @Test
-  public void testNotEqualsDifferentPackageName() throws Exception {
+  public void testNotEqualsDifferentPackageName() {
     assertAreNotEqual(new PackageKey(PackageType.CDepPackage, "a", new File(".")),
                    new PackageKey(PackageType.CDepPackage, "b", new File(".")));
+  }
+
+  @Test
+  public void testEqualsHash() {
+    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(PackageKey.class);
+    equalsVerifier.verify();
   }
 }

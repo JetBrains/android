@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeSettings;
 import com.google.common.collect.ImmutableList;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -41,5 +42,22 @@ public class NativeIncludes {
   @NotNull
   public NativeSettings findExpectedSettings(@NotNull String name) {
     return myFindNativeSettingsFunction.apply(name);
+  }
+
+  @Override
+  final public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof NativeIncludes)) {
+      return false;
+    }
+    NativeIncludes that = (NativeIncludes) obj;
+    return Objects.equals(this.myArtifacts, that.myArtifacts);
+  }
+
+  @Override
+  final public int hashCode() {
+    return myArtifacts.hashCode();
   }
 }

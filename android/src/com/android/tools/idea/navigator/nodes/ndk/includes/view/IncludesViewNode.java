@@ -19,6 +19,7 @@ import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.*;
 import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.IncludeResolver;
@@ -63,11 +64,19 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements FolderGroupNode {
 
   @NotNull
+  final private VirtualFile myBuildFileFolder;
+
+  @NotNull
   private final NativeIncludes myDependencyInfo;
 
-  public IncludesViewNode(@Nullable Project project, @NotNull NativeIncludes dependencyInfo, @NotNull ViewSettings settings) {
+  public IncludesViewNode(
+    @NotNull VirtualFile buildFileFolder,
+    @Nullable Project project,
+    @NotNull NativeIncludes dependencyInfo,
+    @NotNull ViewSettings settings) {
     super(project, dependencyInfo, settings);
     myDependencyInfo = dependencyInfo;
+    myBuildFileFolder = buildFileFolder;
   }
 
   @NotNull
@@ -137,7 +146,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   private Collection<? extends AbstractTreeNode> getChildrenImpl() {
     List<AbstractTreeNode> result = new ArrayList<>();
     Project project = getProject();
-    if (project == null) {
+    if (project == null || GradleSyncState.getInstance(project).isSyncInProgress()) {
       return result;
     }
     IncludeSet includeSet = distinctIncludes(myDependencyInfo);
@@ -158,13 +167,13 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
                                                                           project, getSettings()));
       }
       else if (include instanceof SimpleIncludeValue) {
-        result.add(new SimpleIncludeViewNode((SimpleIncludeValue)include, includeSet, true, getProject(), getSettings()));
+        result.add(new SimpleIncludeViewNode(myBuildFileFolder, (SimpleIncludeValue)include, includeSet, true, getProject(), getSettings()));
       }
       else if (include instanceof ClassifiedIncludeValue) {
         // Add folders to the list of folders to exclude from the simple path group
         ClassifiedIncludeValue classifiedIncludeValue = (ClassifiedIncludeValue)include;
         result.add(IncludeViewNode.createIncludeView(
-          classifiedIncludeValue, includeSet, true, getProject(), getSettings()));
+          myBuildFileFolder, classifiedIncludeValue, includeSet, true, getProject(), getSettings()));
       }
     }
     return result;
@@ -190,5 +199,22 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   @Override
   public String toString() {
     return "includes";
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null) {
+      return false;
+    }
+    if (!(object instanceof IncludesViewNode)) {
+      return false;
+    }
+    IncludesViewNode that = (IncludesViewNode) object;
+    return Objects.equals(myBuildFileFolder, that.myBuildFileFolder);
+  }
+
+  @Override
+  public int hashCode() {
+    return myBuildFileFolder.hashCode();
   }
 }

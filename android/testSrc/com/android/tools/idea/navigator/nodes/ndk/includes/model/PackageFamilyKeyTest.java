@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -23,7 +24,7 @@ import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class TestPackageFamilyKey {
+public class PackageFamilyKeyTest {
   
   private static void assertAreEqual(@NotNull PackageFamilyKey lhs, @NotNull Object rhs) {
     assertThat(lhs).isEqualTo(rhs);
@@ -38,36 +39,42 @@ public class TestPackageFamilyKey {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void testEquals() {
     assertAreEqual(new PackageFamilyKey(PackageType.CDepPackage, new File(".")),
                    new PackageFamilyKey(PackageType.CDepPackage, new File(".")));
   }
 
   @Test
-  public void testEqualsSameInstance() throws Exception {
+  public void testEqualsSameInstance() {
     PackageFamilyKey instance = new PackageFamilyKey(PackageType.CDepPackage, new File("."));
     assertAreEqual(instance, instance);
   }
 
   @Test
-  public void testNotEqualsDifferentPackage() throws Exception {
+  public void testNotEqualsDifferentPackage() {
     assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File(".")),
                       new PackageFamilyKey(PackageType.CocosThirdPartyPackage, new File(".")));
   }
 
   @Test
-  public void testNotEqualsDifferentPath() throws Exception {
+  public void testNotEqualsDifferentPath() {
     assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File("path1")),
                       new PackageFamilyKey(PackageType.CDepPackage, new File("path2")));
   }
 
   @Test
-  public void testNotEqualsNullRhs() throws Exception {
+  public void testNotEqualsNullRhs() {
     assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File("path1")), null);
   }
 
   @Test
-  public void testNotEqualsStringRhs() throws Exception {
+  public void testNotEqualsStringRhs() {
     assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File("path1")), "bob");
+  }
+
+  @Test
+  public void testEqualsHash() {
+    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(PackageFamilyKey.class);
+    equalsVerifier.verify();
   }
 }

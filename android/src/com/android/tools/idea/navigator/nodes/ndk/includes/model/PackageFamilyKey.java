@@ -24,7 +24,7 @@ import java.io.File;
 /**
  * A key value for a packaging family. Groups by package type and the base folder of the include.
  */
-public class PackageFamilyKey {
+final public class PackageFamilyKey {
   // The packaging kind. For example, NDK component.
   @NotNull
   public final PackageType myPackageType;
