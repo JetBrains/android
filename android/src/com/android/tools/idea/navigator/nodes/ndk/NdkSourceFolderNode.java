@@ -67,7 +67,7 @@ public class NdkSourceFolderNode extends PsiDirectoryNode {
   }
 
   @Override
-  protected void updateImpl(PresentationData presentation) {
+  protected void updateImpl(@NotNull PresentationData presentation) {
     VirtualFile folder = getVirtualFile();
     assert folder != null;
     presentation.setPresentableText(folder.getName());

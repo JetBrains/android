@@ -262,7 +262,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.addText(myNativeLibraryName, REGULAR_ATTRIBUTES);
     if (!myNativeLibraryType.isEmpty()) {
       presentation.addText(" (" +

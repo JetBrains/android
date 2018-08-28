@@ -96,7 +96,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
       }
 
       @Override
-      public void customizeCellRenderer(JTree tree,
+      public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
                                         boolean selected,
                                         boolean expanded,
