@@ -15,36 +15,17 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.common.actions.ActivateComponentAction
-import com.android.tools.idea.common.actions.GotoComponentAction
-import com.android.tools.idea.common.actions.ZoomInAction
-import com.android.tools.idea.common.actions.ZoomOutAction
-import com.android.tools.idea.common.actions.ZoomToFitAction
+import com.android.tools.idea.common.actions.*
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.ZoomShortcut
-import com.android.tools.idea.naveditor.actions.AddGlobalAction
-import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
-import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
-import com.android.tools.idea.naveditor.actions.AutoArrangeAction
-import com.android.tools.idea.naveditor.actions.EditExistingAction
-import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
-import com.android.tools.idea.naveditor.actions.SelectAllAction
-import com.android.tools.idea.naveditor.actions.SelectNextAction
-import com.android.tools.idea.naveditor.actions.SelectPreviousAction
-import com.android.tools.idea.naveditor.actions.StartDestinationAction
-import com.android.tools.idea.naveditor.actions.ToDestinationAction
-import com.android.tools.idea.naveditor.actions.ToSelfAction
-import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.model.supportsActions
-import com.android.tools.idea.naveditor.model.uiName
+import com.android.tools.idea.common.surface.DesignSurfaceShortcut
+import com.android.tools.idea.naveditor.actions.*
+import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.util.SystemInfo
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
@@ -56,9 +37,9 @@ import javax.swing.JComponent
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
   private val autoArrangeAction: AnAction = AutoArrangeAction(surface)
-  private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
-  private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
-  private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
+  private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
+  private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
+  private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
   private val selectNextAction: AnAction = SelectNextAction(surface)
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)
@@ -73,7 +54,8 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     selectPreviousAction.registerCustomShortcutSet(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK, mySurface)
     ActionManager.registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component)
 
-    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
+    val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, keyEvent, mySurface)
   }
 
   override fun createPopupMenu(

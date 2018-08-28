@@ -35,6 +35,11 @@ import javax.swing.KeyStroke
  * @See KeyEvent
  */
 enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = null) {
+  ZOOM_IN(KeyEvent.VK_PLUS, '+'),
+  ZOOM_OUT(KeyEvent.VK_MINUS, '-'),
+  ZOOM_FIT(KeyEvent.VK_0, '0'),
+  ZOOM_ACTUAL(KeyEvent.VK_1, '1'),
+
   TOGGLE_ISSUE_PANEL(KeyEvent.VK_E),
   SWITCH_ORIENTATION(KeyEvent.VK_O),
   NEXT_DEVICE(KeyEvent.VK_D),
