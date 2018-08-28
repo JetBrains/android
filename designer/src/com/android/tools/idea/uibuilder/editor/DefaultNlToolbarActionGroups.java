@@ -15,31 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH_ORIENTATION;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
-import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_FIT;
-import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_IN;
-import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_OUT;
-
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
-import com.android.tools.idea.common.actions.IssueNotificationAction;
-import com.android.tools.idea.common.actions.NextDeviceAction;
-import com.android.tools.idea.common.actions.SetZoomAction;
-import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
-import com.android.tools.idea.common.actions.ZoomLabelAction;
+import com.android.tools.idea.common.actions.*;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.ZoomType;
-import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.configurations.OrientationMenuAction;
-import com.android.tools.idea.configurations.TargetMenuAction;
-import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -47,6 +30,8 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.*;
 
 /**
  * Permanent toolbar for the {@link NlDesignSurface}. This toolbar and its contained object
