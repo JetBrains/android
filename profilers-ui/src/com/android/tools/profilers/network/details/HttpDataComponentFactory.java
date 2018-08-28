@@ -22,10 +22,11 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
-import com.android.tools.profilers.stacktrace.DataViewer;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.BorderLayout;
@@ -171,8 +172,10 @@ final class HttpDataComponentFactory {
     // We force a minimum height to make sure that the component always looks reasonable -
     // useful, for example, when we are displaying a bunch of text.
     int minimumHeight = 300;
-    int originalHeight = viewer.getImageDimension() != null ? (int)viewer.getImageDimension().getHeight() : minimumHeight;
-    viewerComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
+    if (viewer instanceof ImageDataViewer) {
+      minimumHeight = Math.min(minimumHeight, ((ImageDataViewer)viewer).getImage().getHeight());
+    }
+    viewerComponent.setMinimumSize(new Dimension(1, minimumHeight));
     viewerComponent.setBorder(PAYLOAD_BORDER);
     JComponent payloadComponent = new JPanel(new BorderLayout());
     payloadComponent.add(viewerComponent);

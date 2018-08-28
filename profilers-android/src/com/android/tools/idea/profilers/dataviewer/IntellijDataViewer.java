@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.profilers.dataviewer;
 
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.stacktrace.DataViewer;
+import com.android.tools.profilers.dataviewer.DataViewer;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.folding.CodeFoldingManager;
 import com.intellij.lang.Language;
@@ -34,8 +34,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
-import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -47,15 +45,8 @@ import org.jetbrains.annotations.Nullable;
 public class IntellijDataViewer implements DataViewer {
   @NotNull
   private final JComponent myComponent;
-  @Nullable
-  private final Dimension myDimension;
   @NotNull
   private final Style myStyle;
-
-  @NotNull
-  public static IntellijDataViewer createImageViewer(@NotNull BufferedImage image) {
-    return new IntellijDataViewer(new ResizableImage(image), new Dimension(image.getWidth(), image.getHeight()), Style.RAW);
-  }
 
   /**
    * Create a data viewer that renders its content as is, without any attempt to clean it up.
@@ -66,7 +57,7 @@ public class IntellijDataViewer implements DataViewer {
     textArea.setFont(ProfilerFonts.H4_FONT);
     textArea.setEditable(false);
     textArea.setBackground(null);
-    return new IntellijDataViewer(textArea, null, Style.RAW);
+    return new IntellijDataViewer(textArea, Style.RAW);
   }
 
   /**
@@ -141,7 +132,7 @@ public class IntellijDataViewer implements DataViewer {
         }
       });
 
-      return new IntellijDataViewer(editor.getComponent(), null, style);
+      return new IntellijDataViewer(editor.getComponent(), style);
     }
     catch (Exception | AssertionError e) {
       // Exceptions and AssertionErrors can be thrown by editorFactory.createDocument and editorFactory.createViewer
@@ -153,12 +144,11 @@ public class IntellijDataViewer implements DataViewer {
   public static IntellijDataViewer createInvalidViewer() {
     JComponent component = new JLabel("No preview available", SwingConstants.CENTER);
     component.setFont(component.getFont().deriveFont(14.f));
-    return new IntellijDataViewer(component, null, Style.INVALID);
+    return new IntellijDataViewer(component, Style.INVALID);
   }
 
-  private IntellijDataViewer(@NotNull JComponent component, @Nullable Dimension imageDimension, @NotNull Style style) {
+  private IntellijDataViewer(@NotNull JComponent component, @NotNull Style style) {
     myComponent = component;
-    myDimension = imageDimension;
     myStyle = style;
   }
 
@@ -166,12 +156,6 @@ public class IntellijDataViewer implements DataViewer {
   @Override
   public JComponent getComponent() {
     return myComponent;
-  }
-
-  @Nullable
-  @Override
-  public Dimension getImageDimension() {
-    return myDimension;
   }
 
   @NotNull

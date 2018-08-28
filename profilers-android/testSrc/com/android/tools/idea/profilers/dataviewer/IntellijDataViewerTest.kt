@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers
+package com.android.tools.idea.profilers.dataviewer
 
-import com.android.tools.profilers.stacktrace.DataViewer
+import com.android.tools.profilers.dataviewer.DataViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.testFramework.IdeaTestCase
-import java.awt.Dimension
-import java.awt.image.BufferedImage
 
 class IntellijDataViewerTest : IdeaTestCase() {
   fun testCanCreateRawTextViewer() {
@@ -30,7 +28,6 @@ class IntellijDataViewerTest : IdeaTestCase() {
     val viewer = IntellijDataViewer.createRawTextViewer(dummyText.toByteArray())
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
-    assertThat(viewer.imageDimension).isNull()
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
   }
 
@@ -39,7 +36,6 @@ class IntellijDataViewerTest : IdeaTestCase() {
     val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, jsonText.toByteArray(), JsonFileType.INSTANCE)
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)
-    assertThat(viewer.imageDimension).isNull()
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
     assertExpectedEditorSettings(viewer)
   }
@@ -49,25 +45,14 @@ class IntellijDataViewerTest : IdeaTestCase() {
     val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, dummyText.toByteArray(), PlainTextFileType.INSTANCE)
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
-    assertThat(viewer.imageDimension).isNull()
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
     assertExpectedEditorSettings(viewer)
-  }
-
-  fun testCanCreateImageViewer() {
-    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
-    val viewer = IntellijDataViewer.createImageViewer(image)
-
-    assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
-    assertThat(viewer.imageDimension).isEqualTo(Dimension(100, 100))
-    assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
   }
 
   fun testCanCreateInvalidViewer() {
     val viewer = IntellijDataViewer.createInvalidViewer()
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.INVALID)
-    assertThat(viewer.imageDimension).isNull()
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
   }
 
