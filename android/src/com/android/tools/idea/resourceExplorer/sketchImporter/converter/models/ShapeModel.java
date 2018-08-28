@@ -15,27 +15,30 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
+import static java.awt.geom.PathIterator.SEG_CLOSE;
+import static java.awt.geom.PathIterator.SEG_CUBICTO;
+import static java.awt.geom.PathIterator.SEG_LINETO;
+import static java.awt.geom.PathIterator.SEG_MOVETO;
+import static java.awt.geom.PathIterator.SEG_QUADTO;
+
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.PathStringBuilder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicContextSettings;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-
-import static java.awt.geom.PathIterator.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ShapeModel {
 
+  protected final double myParentOpacity;
   @NotNull private Shape shape;
-  @Nullable protected SketchFill shapeFill;
-  @Nullable protected SketchBorder shapeBorder;
+  @Nullable protected SketchStyle shapeStyle;
   protected boolean isFlippedHorizontal;
   protected boolean isFlippedVertical;
   protected boolean isClosed;
@@ -45,11 +48,9 @@ public abstract class ShapeModel {
   protected boolean hasClippingMask;
   protected boolean shouldBreakMaskChain;
   protected boolean isLastShape;
-  @Nullable protected SketchGradient shapeGradient;
 
   public ShapeModel(@NotNull Shape shape,
-                    @Nullable SketchFill fill,
-                    @Nullable SketchBorder border,
+                    @Nullable SketchStyle style,
                     boolean flippedHorizontal,
                     boolean flippedVertical,
                     boolean closed,
@@ -58,16 +59,10 @@ public abstract class ShapeModel {
                     @NotNull Point2D.Double framePosition,
                     boolean hasClippingMask,
                     boolean shouldBreakMaskChain,
-                    boolean isLastShapeGroup) {
+                    boolean isLastShapeGroup,
+                    double parentOpacity) {
     this.shape = shape;
-    shapeFill = fill;
-    if (shapeFill != null) {
-      shapeGradient = shapeFill.getGradient();
-      if (shapeGradient != null) {
-        shapeGradient.toRelativeGradient(this.shape.getBounds2D());
-      }
-    }
-    shapeBorder = border;
+    myParentOpacity = parentOpacity;
     isFlippedHorizontal = flippedHorizontal;
     isFlippedVertical = flippedVertical;
     isClosed = closed;
@@ -77,6 +72,12 @@ public abstract class ShapeModel {
     this.hasClippingMask = hasClippingMask;
     this.shouldBreakMaskChain = shouldBreakMaskChain;
     isLastShape = isLastShapeGroup;
+
+    if (style != null) {
+      shapeStyle = style;
+      shapeStyle.makeGradientRelative(this.shape);
+      shapeStyle.applyParentOpacity(myParentOpacity);
+    }
   }
 
   public int getBooleanOperation() {
@@ -154,29 +155,44 @@ public abstract class ShapeModel {
 
   public abstract void applyTransformations();
 
+  /**
+   * Applies all the transformations that have been done on a shape to its corresponding gradient
+   * by modifying the style property of the ShapeModel.
+   *
+   * @param transform
+   */
+  protected void transformGradient(@NotNull AffineTransform transform) {
+    SketchFill[] shapeFills = shapeStyle != null ? shapeStyle.getFills() : null;
+    SketchFill shapeFill = shapeFills != null && shapeFills.length != 0 ? shapeFills[0] : null;
+    SketchGradient shapeGradient = shapeFill != null ? shapeFill.getGradient() : null;
+    if (shapeGradient != null) {
+      shapeGradient.applyTransformation(transform);
+    }
+  }
+
   @NotNull
   public DrawableModel toDrawableShape() {
     String shapePathData = getPathString();
     String shapeBorderWidth = null;
     int shapeBorderColor = 0;
     int shapeFillColor = 0;
-    SketchGradient shapeGradient = null;
-    SketchGraphicContextSettings shapeGraphicContextSettings = null;
 
+    SketchBorder[] shapeBorders = shapeStyle != null ? shapeStyle.getBorders() : null;
+    SketchBorder shapeBorder = shapeBorders != null && shapeBorders.length != 0 ? shapeBorders[0] : null;
     if (shapeBorder != null) {
       shapeBorderWidth = Integer.toString(shapeBorder.getThickness());
       shapeBorderColor = shapeBorder.getColor().getRGB();
     }
 
-    if (shapeFill != null && shapeFill.isEnabled()) {
-      shapeGradient = shapeFill.getGradient();
-      shapeGraphicContextSettings = shapeFill.getContextSettings();
-      if (shapeGradient == null) {
-        shapeFillColor = shapeFill.getColor().getRGB();
-      }
+    SketchFill[] shapeFills = shapeStyle != null ? shapeStyle.getFills() : null;
+    SketchFill shapeFill = shapeFills != null && shapeFills.length != 0 ? shapeFills[0] : null;
+    SketchGradient shapeGradient = shapeFill != null && shapeFill.isEnabled() ? shapeFill.getGradient() : null;
+    if (shapeGradient == null && shapeFill != null && shapeFill.isEnabled()) {
+      shapeFillColor = shapeFill.getColor().getRGB();
     }
 
-    return new DrawableModel(shapePathData, shapeFillColor, shapeGraphicContextSettings, shapeGradient, shapeBorderColor, shapeBorderWidth, hasClippingMask,
+
+    return new DrawableModel(shapePathData, shapeFillColor, shapeGradient, shapeBorderColor, shapeBorderWidth, hasClippingMask,
                              shouldBreakMaskChain, isLastShape);
   }
 }

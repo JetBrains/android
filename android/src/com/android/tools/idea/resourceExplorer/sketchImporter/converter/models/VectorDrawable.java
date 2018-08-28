@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.layoutlib.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.List;
 
 public class VectorDrawable {

@@ -16,9 +16,8 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchExportOptions;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Holds the fields that are shared between all types of symbols in the sketch JSON file.

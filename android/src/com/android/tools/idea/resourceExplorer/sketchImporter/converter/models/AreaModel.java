@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.layoutlib.annotations.NotNull;
-
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import org.jetbrains.annotations.Nullable;
 
 public class AreaModel extends ShapeModel {
 
@@ -30,8 +29,7 @@ public class AreaModel extends ShapeModel {
   private final Area area;
 
   public AreaModel(@NotNull Area shape,
-                   @NotNull SketchFill fill,
-                   @NotNull SketchBorder border,
+                   @Nullable SketchStyle style,
                    boolean flippedHorizontal,
                    boolean flippedVertical,
                    boolean closed,
@@ -40,9 +38,10 @@ public class AreaModel extends ShapeModel {
                    @NotNull Point2D.Double framePosition,
                    boolean hasClippingMask,
                    boolean shouldBreakMaskChain,
-                   boolean isLastShapeGroup) {
-    super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
-          shouldBreakMaskChain, isLastShapeGroup);
+                   boolean isLastShapeGroup,
+                   double parentOpacity) {
+    super(shape, style, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
+          shouldBreakMaskChain, isLastShapeGroup, parentOpacity);
     area = shape;
   }
 
@@ -91,9 +90,6 @@ public class AreaModel extends ShapeModel {
     AffineTransform transform = computeAffineTransform();
 
     area.transform(transform);
-
-    if (shapeGradient != null) {
-      shapeGradient.applyTransformation(transform);
-    }
+    transformGradient(transform);
   }
 }

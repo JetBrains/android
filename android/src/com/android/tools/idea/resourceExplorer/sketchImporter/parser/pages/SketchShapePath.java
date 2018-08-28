@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
+
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.Path2DBuilder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-
-import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:
@@ -74,8 +73,8 @@ public class SketchShapePath extends SketchLayer {
 
   @NotNull
   public PathModel createPathModel() {
-    return new PathModel(getPath2D(), null, null, isFlippedHorizontal(), isFlippedVertical(), isClosed(), getRotation(),
-                         getBooleanOperation(), getFramePosition(), false, false, false);
+    return new PathModel(getPath2D(), null, isFlippedHorizontal(), isFlippedVertical(), isClosed(), getRotation(),
+                         getBooleanOperation(), getFramePosition(), false, false, false, 1);
   }
 
   @NotNull

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import org.jetbrains.annotations.Nullable;
 
 public class SketchBorder {
   private final boolean isEnabled;
-  private final Color color;
+  private Color color;
   private final short fillType;
   private final int position;
   private final int thickness;
@@ -53,5 +53,11 @@ public class SketchBorder {
 
   public int getThickness() {
     return thickness;
+  }
+
+  public void applyGraphicContextSettings(@Nullable SketchGraphicContextSettings settings) {
+    if (settings != null) {
+      color = SketchStyle.addAlpha(getColor(), settings.getOpacity());
+    }
   }
 }

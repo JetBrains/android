@@ -22,7 +22,6 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.D
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradientStop;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicContextSettings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -114,7 +113,7 @@ public class DrawableFileGenerator {
       }
       if (shape.getGradient() != null) {
         parentTag.setAttribute(ATTRIBUTE_AAPT, SdkConstants.AAPT_URI);
-        pathTag.addSubTag(generateGradientSubTag(shape.getGradient(), shape.getGraphicContextSettings()), false);
+        pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
       }
       else if (shape.getFillColor() != INVALID_COLOR_VALUE) {
         pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, colorToHex(shape.getFillColor()));
@@ -132,7 +131,7 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient, @Nullable SketchGraphicContextSettings contextSettings) {
+  private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient) {
     XmlTag aaptAttrTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_AAPT_ATTR);
     XmlTag gradientTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_GRADIENT);
     String gradientType = gradient.getDrawableGradientType();
@@ -157,7 +156,6 @@ public class DrawableFileGenerator {
       gradientTag.setAttribute(ATTRIBUTE_GRADIENT_TYPE, gradient.getDrawableGradientType());
     }
 
-    gradient.applyGraphicContextSettings(contextSettings);
     for (SketchGradientStop item : gradient.getStops()) {
       XmlTag itemTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_ITEM);
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, colorToHex(item.getColor().getRGB()));

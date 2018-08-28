@@ -134,7 +134,7 @@ public abstract class SketchLayer {
   }
 
   @NotNull
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastLayer) {
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastLayer, double parentOpacity) {
     return ImmutableList.of();
   }
 }

@@ -16,9 +16,8 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public class SketchSymbolInstance extends SketchSymbol {
   private final SketchStyle style;

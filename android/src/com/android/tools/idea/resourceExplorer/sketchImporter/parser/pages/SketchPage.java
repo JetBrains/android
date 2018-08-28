@@ -87,9 +87,15 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
 
   @NotNull
   @Override
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastGroupElement) {
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords,
+                                                     boolean isLastGroupElement,
+                                                     double parentOpacity) {
     Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
                                                         parentCoords.getY() + getFrame().getY());
+    SketchGraphicContextSettings graphicContextSettings = style.getContextSettings();
+    if (graphicContextSettings != null) {
+      parentOpacity *= graphicContextSettings.getOpacity();
+    }
     ImmutableList.Builder<ShapeModel> builder = new ImmutableList.Builder<>();
 
     isLastGroupElement = false;
@@ -98,7 +104,8 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
       if (i == groupLayers.length - 1) {
         isLastGroupElement = true;
       }
-      builder.addAll(groupLayers[i].createShapeModels(newParentCoords, isLastGroupElement));
+
+      builder.addAll(groupLayers[i].createShapeModels(newParentCoords, isLastGroupElement, parentOpacity));
     }
 
     return builder.build();
