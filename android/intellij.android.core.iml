@@ -76,20 +76,20 @@
       <library name="okio" type="repository">
         <properties maven-id="com.squareup.okio:okio:1.14.0" />
         <CLASSES>
-	  <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okio/okio/1.14.0/okio-1.14.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okio/okio/1.14.0/okio-1.14.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-	<SOURCES />
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="moshi" type="repository">
         <properties maven-id="com.squareup.moshi:moshi:1.6.0" />
         <CLASSES>
-	  <root url="jar://$MAVEN_REPOSITORY$/com/squareup/moshi/moshi/1.6.0/moshi-1.6.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/moshi/moshi/1.6.0/moshi-1.6.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-	<SOURCES />
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
