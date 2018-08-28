@@ -32,7 +32,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />

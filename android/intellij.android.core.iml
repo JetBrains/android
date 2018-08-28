@@ -126,10 +126,10 @@
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="project-system" />
-    <orderEntry type="module" module-name="apkanalyzer" />
-    <orderEntry type="module" module-name="android-lang" />
-    <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="module" module-name="intellij.android.lang" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module-library">
       <library name="instantapps-api-1.0">
         <CLASSES>

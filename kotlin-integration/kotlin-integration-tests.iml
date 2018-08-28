@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.smRunner" scope="TEST" />
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
