@@ -15,34 +15,31 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.stacktrace.DataViewer;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.codeInsight.folding.CodeFoldingManager;
+import com.intellij.lang.Language;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
+import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.LightVirtualFile;
-import java.awt.BorderLayout;
+import com.intellij.psi.PsiFileFactory;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Random;
+import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,52 +69,84 @@ public class IntellijDataViewer implements DataViewer {
     return new IntellijDataViewer(textArea, null, Style.RAW);
   }
 
-
   /**
-   * Create a data viewer that automatically formats the content it receives.
+   * Create a data viewer that automatically formats the content it receives. In cases where it is
+   * not able to do this, or it is not desirable to do this (e.g. plain text), it returns a
+   * {@link Style#RAW} viewer instead. Be sure to check {@link IntellijDataViewer#getStyle()} if
+   * this matters for your use-case.
    *
    * @param fileType An optional file type that can be associated with this content, which,
    *                 if provided, hints to the editor how it should format it.
    */
   @NotNull
-  public static IntellijDataViewer createPrettyViewer(@NotNull Project project,
-                                                      @NotNull byte[] content,
-                                                      @Nullable FileType fileType) {
-    String fileExtension = fileType != null ? fileType.getDefaultExtension() : "";
-    VirtualFile virtualFile = new LightVirtualFile(new Random().nextLong() + "." + fileExtension, fileType, new String(content));
-    FileEditorProvider[] fileEditors = FileEditorProviderManager.getInstance().getProviders(project, virtualFile);
-    FileEditor fileEditor = fileEditors.length != 0 ? fileEditors[0].createEditor(project, virtualFile) : null;
-    if (!(fileEditor instanceof TextEditor)) {
+  public static IntellijDataViewer createPrettyViewerIfPossible(@NotNull Project project,
+                                                                @NotNull byte[] content,
+                                                                @Nullable FileType fileType) {
+    try {
+      EditorFactory editorFactory = EditorFactory.getInstance();
+
+      // We need to support documents with \r newlines in them (since network payloads can contain
+      // data from any OS); however, Document will assert if it finds a \r as a line ending in its
+      // content and the user will see a mysterious "NO PREVIEW" message without any information
+      // on why. The Document class allows you to change a setting to allow \r, but this breaks
+      // soft wrapping in the editor.
+      String contentStr = new String(content).replace("\r\n", "\n");
+
+      Style style = Style.RAW;
+      Document document = null;
+      if (fileType instanceof LanguageFileType) {
+        Language language = ((LanguageFileType)fileType).getLanguage();
+        // Creating a "pretty" editor for plain text ends up feeling redundant, as none of the
+        // features matter in that case. Just create a regular editor.
+        if (!language.is(PlainTextLanguage.INSTANCE)) {
+          PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText(language, contentStr);
+          if (psiFile != null) {
+            ReformatCodeProcessor processor = new ReformatCodeProcessor(psiFile, false);
+            processor.run();
+
+            document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+            if (document != null) {
+              style = Style.PRETTY;
+            }
+          }
+        }
+      }
+
+      if (document == null) {
+        document = editorFactory.createDocument(contentStr.toCharArray());
+      }
+
+      EditorEx editor = (EditorEx)editorFactory.createViewer(document);
+      editor.setCaretVisible(false);
+      EditorSettings settings = editor.getSettings();
+
+      settings.setLineNumbersShown(false);
+      settings.setLineMarkerAreaShown(false);
+      settings.setUseSoftWraps(true);
+
+      settings.setSoftMargins(Collections.emptyList());
+      settings.setRightMarginShown(false);
+
+      settings.setFoldingOutlineShown(true);
+      CodeFoldingManager.getInstance(project).updateFoldRegions(editor);
+
+      if (fileType != null) {
+        editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType));
+      }
+
+      Disposer.register(project, new Disposable() {
+        @Override
+        public void dispose() {
+          editorFactory.releaseEditor(editor);
+        }
+      });
+
+      return new IntellijDataViewer(editor.getComponent(), null, style);
+    }
+    catch (Exception | AssertionError e) {
+      // Exceptions and AssertionErrors can be thrown by editorFactory.createDocument and editorFactory.createViewer
       return createInvalidViewer();
     }
-
-    EditorEx editorEx = (EditorEx) ((TextEditor)fileEditor).getEditor();
-    editorEx.setViewer(true);
-    editorEx.setCaretVisible(false);
-    editorEx.getSettings().setLineNumbersShown(false);
-    editorEx.getSettings().setLineMarkerAreaShown(false);
-    editorEx.getFoldingModel().setFoldingEnabled(true);
-    Disposer.register(project, fileEditor);
-
-    JComponent component = fileEditor.getComponent();
-    JPanel wrapper = new JPanel(new BorderLayout());
-    wrapper.add(component, BorderLayout.CENTER);
-    PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-    if (psiFile != null) {
-      wrapper.setVisible(false);
-      ReformatCodeProcessor processor = new ReformatCodeProcessor(psiFile, false);
-      processor.setPostRunnable(() -> {
-        try {
-          virtualFile.setWritable(false);
-        } catch (IOException ignored) {
-        }
-        // Fixes the viewer size to the post code reformat preferred size, that avoids the viewer changes its size on collapse/expand.
-        wrapper.setPreferredSize(component.getPreferredSize());
-        wrapper.setVisible(true);
-      });
-      processor.run();
-    }
-    return new IntellijDataViewer(wrapper, null, Style.PRETTY);
   }
 
   @NotNull

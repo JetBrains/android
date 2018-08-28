@@ -136,7 +136,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     }
     else {
       assert (styleHint == DataViewer.Style.PRETTY);
-      return IntellijDataViewer.createPrettyViewer(myProject, content, contentType.getFileType());
+      return IntellijDataViewer.createPrettyViewerIfPossible(myProject, content, contentType.getFileType());
     }
   }
 
