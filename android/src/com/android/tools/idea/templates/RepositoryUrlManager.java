@@ -506,7 +506,8 @@ public class RepositoryUrlManager {
         if (revision.endsWith("+")) {
           revision = revision.length() > 1 ? revision.substring(0, revision.length() - 1) : null;
           boolean includePreviews = false;
-          if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
+          if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId()) ||
+              ImportModule.CORE_KTX_GROUP_ID.equals(highest.getGroupId())) {
             if (revision == null) {
               revision = supportFilter;
             }
