@@ -115,16 +115,6 @@ java_test(
 )
 
 java_test(
-    name = "ApkViewerTest",
-    size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/74906386
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "NewProjectTest",
     size = "large",
     data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"],
@@ -1372,6 +1362,21 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NoGradleSyncForProjectReimportTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ApkViewerTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",

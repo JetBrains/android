@@ -142,17 +142,27 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     private PaneFixture waitForTreeToFinishLoading() {
+      return waitForTreeToFinishLoading(5);
+    }
+
+    @NotNull
+    private PaneFixture waitForTreeToFinishLoading(long secondsToWait) {
       TreeModel model = myTree.target().getModel();
       if (model instanceof AsyncTreeModel) { // otherwise there's nothing to wait for, as the tree loading should be synchronous
-        Wait.seconds(5).expecting("tree to load").until(() -> !(((AsyncTreeModel) model).isProcessing()));
+        Wait.seconds(secondsToWait).expecting("tree to load").until(() -> !(((AsyncTreeModel) model).isProcessing()));
       }
       return this;
     }
 
     @NotNull
     public PaneFixture expand() {
+      return expand(5);
+    }
+
+    @NotNull
+    public PaneFixture expand(long secondsToWait) {
       GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
-      waitForTreeToFinishLoading();
+      waitForTreeToFinishLoading(secondsToWait);
       return this;
     }
 
