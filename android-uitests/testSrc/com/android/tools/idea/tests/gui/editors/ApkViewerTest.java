@@ -54,7 +54,7 @@ public class ApkViewerTest {
    *   6. Make some changes in source code, and re-build APK and verify the build is successful.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testFileHandleRelease() throws Exception {
     final String SIMPLE_APP = "SimpleLocalApplication";
@@ -73,7 +73,7 @@ public class ApkViewerTest {
       .getProjectView();
 
     PaneFixture paneFixture = projectView.selectProjectPane();
-    paneFixture.expand();
+    paneFixture.expand(30);
     paneFixture.clickPath(SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG);
 
     EditorFixture editor = ideFrame.getEditor();
