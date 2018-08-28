@@ -2,10 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "project-system-gradle",
-    # do not sort: must match IML order
+    name = "intellij.android.projectSystem.gradle",
     srcs = ["src"],
-    iml_files = ["project-system-gradle.iml"],
+    iml_files = ["intellij.android.projectSystem.gradle.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -21,7 +20,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
-        "//tools/adt/idea/project-system[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
@@ -36,8 +35,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "project-system-gradle-tests",
-    iml_files = ["project-system-gradle-tests.iml"],
+    name = "intellij.android.projectSystem.gradle.tests",
+    iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",
@@ -78,13 +77,13 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/project-system[module, test]",
-        "//tools/adt/idea/project-system-gradle[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

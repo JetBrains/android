@@ -2,8 +2,8 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "adt-testutils",
-    iml_files = ["adt-testutils.iml"],
+    name = "intellij.android.adt.testutils",
+    iml_files = ["intellij.android.adt.testutils.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/usageView:intellij.platform.usageView",

@@ -32,7 +32,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
-        "//tools/adt/idea/profilers-atrace[module]",
+        "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
         "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",

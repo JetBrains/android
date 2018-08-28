@@ -2,15 +2,14 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "android-lang",
+    name = "intellij.android.lang",
     # do not sort: must match IML order
     srcs = [
         "src",
         "gen",
         "resources",
     ],
-    iml_files = ["android-lang.iml"],
-    # do not sort: must match IML order
+    iml_files = ["intellij.android.lang.iml"],
     test_runtime_deps = ["//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -39,8 +38,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "android-lang-tests",
-    iml_files = ["android-lang-tests.iml"],
+    name = "intellij.android.lang.tests",
+    iml_files = ["intellij.android.lang.tests.iml"],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
         "//tools/adt/idea/android/annotations",
@@ -48,7 +47,6 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
         "//prebuilts/studio/sdk:platforms/latest",
     ],
-    # do not sort: must match IML order
     test_runtime_deps = ["//tools/adt/idea/adt-branding:intellij.android.adt.branding"],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
@@ -70,12 +68,12 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/android-lang[module, test]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
