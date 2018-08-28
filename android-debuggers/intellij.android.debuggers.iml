@@ -11,7 +11,7 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="JDOM" level="project" />
   </component>

@@ -47,6 +47,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -207,10 +208,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     return selectedDirectories;
   }
 
+  @Nullable
   @Override
-  protected Object exhumeElementFromNode(DefaultMutableTreeNode node) {
-    Object o = super.exhumeElementFromNode(node);
-    if (o instanceof ArrayList && node.getUserObject() instanceof FolderGroupNode) {
+  public Object getValueFromNode(@Nullable Object node) {
+    Object o = super.getValueFromNode(node);
+    if (o instanceof ArrayList && TreeUtil.getUserObject(node) instanceof FolderGroupNode) {
       return ((ArrayList)o).toArray();
     }
 
