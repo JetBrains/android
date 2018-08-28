@@ -42,6 +42,7 @@ public abstract class ImportModule implements Comparable<ImportModule> {
   private static final String SHERLOCK_DEP = "com.actionbarsherlock:actionbarsherlock:4.4.0@aar";
   private static final String PLAY_SERVICES_DEP = "com.google.android.gms:play-services:+";
   public static final String SUPPORT_GROUP_ID = "com.android.support";
+  public static final String CORE_KTX_GROUP_ID = "androidx.core";
 
   public static final String APPCOMPAT_ARTIFACT = "appcompat-v7";
   public static final String SUPPORT_ARTIFACT = "support-v4";
