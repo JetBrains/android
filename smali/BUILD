@@ -42,6 +42,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

@@ -43,7 +43,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/android-adb[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/vendor/intellij/cidr:intellij.c[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/native-symbolizer[module]",
@@ -51,6 +51,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

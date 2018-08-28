@@ -2,10 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "project-system",
-    # do not sort: must match IML order
+    name = "intellij.android.projectSystem",
     srcs = ["src"],
-    iml_files = ["project-system.iml"],
+    iml_files = ["intellij.android.projectSystem.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
@@ -40,8 +39,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "project-system-tests",
-    iml_files = ["project-system-tests.iml"],
+    name = "intellij.android.projectSystem.tests",
+    iml_files = ["intellij.android.projectSystem.tests.iml"],
     test_class = "com.android.tools.idea.projectsystem.ProjectSystemTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -61,11 +60,11 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/project-system[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

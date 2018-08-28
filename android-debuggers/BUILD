@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "android-debuggers",
+    name = "intellij.android.debuggers",
     srcs = ["src"],
-    iml_files = ["android-debuggers.iml"],
+    iml_files = ["intellij.android.debuggers.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
@@ -36,7 +36,7 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/android-adb[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:JDOM",
     ],
@@ -44,8 +44,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "android-debuggers-tests",
-    iml_files = ["android-debuggers-tests.iml"],
+    name = "intellij.android.debuggers.tests",
+    iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -62,12 +62,12 @@ iml_module(
     runtime_deps = ["//tools/idea/.idea/libraries:sqlite"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/android-debuggers[module, test]",
-        "//tools/adt/idea/android-adb[module, test]",
+        "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
