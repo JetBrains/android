@@ -32,7 +32,7 @@ import com.android.tools.idea.flags.StudioFlags.NPW_OFFLINE_REPO_CHECKBOX
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.truth.Truth.assertThat
 
-@RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.UNRELIABLE)  // b/113298184 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner::class)
 class OfflineRepoTest {
   @JvmField @Rule
@@ -60,7 +60,6 @@ class OfflineRepoTest {
     assertThat(buildGradleText).contains("""properties.getProperty("offline.repo").split(",").each { repo ->""")
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/113298184
   @Test
   @Throws(Exception::class)
   fun testOfflineRepoDisabled() {
