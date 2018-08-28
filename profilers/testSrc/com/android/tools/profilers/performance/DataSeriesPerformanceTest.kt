@@ -40,6 +40,7 @@ import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.ActivityEventDataSeries
 import com.android.tools.profilers.event.SimpleEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
+import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.GcStatsDataSeries
 import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.MemoryProfilerStage
@@ -72,7 +73,7 @@ class DataSeriesPerformanceTest {
   private val benchmark = Benchmark.Builder("DataSeries Query Timings (Nanos)").setProject("Android Studio Profilers").build()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("DataSeriesPerformanceTest", FakeCpuService())
+  var grpcChannel = FakeGrpcChannel("DataSeriesPerformanceTest", FakeCpuService(), FakeMemoryService())
 
   @Before
   fun setup() {

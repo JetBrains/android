@@ -371,6 +371,19 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     observer.onCompleted();
   }
 
+  @Override
+  public void setAllocationSamplingRate(SetAllocationSamplingRateRequest request,
+                                        StreamObserver<SetAllocationSamplingRateResponse> observer) {
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    if (client != null) {
+      observer.onNext(client.setAllocationSamplingRate(request));
+    }
+    else {
+      observer.onNext(SetAllocationSamplingRateResponse.getDefaultInstance());
+    }
+    observer.onCompleted();
+  }
+
   @NotNull
   @Override
   public List<BackingNamespace> getBackingNamespaces() {
