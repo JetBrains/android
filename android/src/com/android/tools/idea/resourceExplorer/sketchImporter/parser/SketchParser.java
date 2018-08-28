@@ -92,29 +92,12 @@ public class SketchParser {
    * @return a {@link SketchPage} or {@code null} if the parsing failed
    */
   @Nullable
-  private static SketchPage parsePage(@NotNull InputStream in) {
+  public static SketchPage parsePage(@NotNull InputStream in) {
     try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
       return getPage(reader);
     }
     catch (Exception e) {
       LOG.warn("Could not read page from input stream.", e);
-    }
-
-    return null;
-  }
-
-  /**
-   * Read page data (represented as JSON) from filepath.
-   *
-   * @return a {@link SketchPage} or {@code null} if the parsing failed
-   */
-  @Nullable
-  public static SketchPage parsePage(@NotNull String path) {
-    try (Reader reader = new BufferedReader(new FileReader(path))) {
-      return getPage(reader);
-    }
-    catch (Exception e) {
-      LOG.warn("Could not read page from " + path + ".", e);
     }
 
     return null;
