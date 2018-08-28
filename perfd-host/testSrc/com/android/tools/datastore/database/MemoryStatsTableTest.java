@@ -78,6 +78,7 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     methodCalls.add((table) -> table.updateLegacyAllocationDump(session, 0, null));
     methodCalls.add((table) -> table.updateLegacyAllocationEvents(session, 0, LegacyAllocationEventsResponse.getDefaultInstance()));
     methodCalls.add((table) -> table.getData(MemoryRequest.getDefaultInstance()));
+    methodCalls.add((table) -> table.insertOrReplaceAllocationSamplingRange(session, AllocationSamplingRange.getDefaultInstance()));
     return methodCalls;
   }
 
@@ -90,6 +91,8 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
      * allocStats         |
      * ongoing heap         |---------->
      * finished heap          |-|
+     * finished alloc sampling  |---|
+     * ongoing alloc sampling       |-->
      * ongoing alloc              |---->
      * finished alloc               |-|
      * gcStats                        |-|
@@ -99,6 +102,8 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     HeapDumpInfo ongoingHeapSample =
       HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(Long.MAX_VALUE).build();
     HeapDumpInfo finishedHeapSample = HeapDumpInfo.newBuilder().setStartTime(4).setEndTime(5).build();
+    AllocationSamplingRange finishedSamplingInfo = AllocationSamplingRange.newBuilder().setStartTime(5).setEndTime(7).build();
+    AllocationSamplingRange ongoingSamplingInfo = AllocationSamplingRange.newBuilder().setStartTime(7).setEndTime(Long.MAX_VALUE).build();
     AllocationsInfo ongoingAllocSample =
       AllocationsInfo.newBuilder().setStartTime(6).setEndTime(Long.MAX_VALUE).build();
     AllocationsInfo finishedAllocSample = AllocationsInfo.newBuilder().setStartTime(7).setEndTime(8).build();
@@ -111,59 +116,67 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     getTable().insertOrReplaceHeapInfo(VALID_SESSION, ongoingHeapSample);
     getTable().insertOrReplaceAllocationsInfo(VALID_SESSION, ongoingAllocSample);
     getTable().insertOrReplaceAllocationsInfo(VALID_SESSION, finishedAllocSample);
+    getTable().insertOrReplaceAllocationSamplingRange(VALID_SESSION, finishedSamplingInfo);
+    getTable().insertOrReplaceAllocationSamplingRange(VALID_SESSION, ongoingSamplingInfo);
 
     // Perform a sequence of queries to ensure we are getting startTime-exclusive and endTime-inclusive data.
     MemoryData result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(-1).setEndTime(0).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0, 0);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(0).setEndTime(1).build());
-    verifyMemoryDataResultCounts(result, 1, 0, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 1, 0, 0, 0, 0, 0);
     assertThat(result.getMemSamples(0)).isEqualTo(memSample);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(1).setEndTime(2).build());
-    verifyMemoryDataResultCounts(result, 0, 1, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 0, 1, 0, 0, 0, 0);
     assertThat(result.getAllocStatsSamples(0)).isEqualTo(allocStatsSample);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(2).setEndTime(3).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 0, 0);
     assertThat(result.getHeapDumpInfos(0)).isEqualTo(ongoingHeapSample);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(3).setEndTime(4).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0, 0);
     assertThat(result.getHeapDumpInfosList()).contains(ongoingHeapSample);
     assertThat(result.getHeapDumpInfosList()).contains(finishedHeapSample);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(4).setEndTime(5).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0, 1);
     assertThat(result.getHeapDumpInfosList()).contains(ongoingHeapSample);
     assertThat(result.getHeapDumpInfosList()).contains(finishedHeapSample);
+    assertThat(result.getAllocationSamplingRangesList()).contains(finishedSamplingInfo);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(5).setEndTime(6).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1, 1);
     assertThat(result.getHeapDumpInfos(0)).isEqualTo(ongoingHeapSample);
     assertThat(result.getAllocationsInfo(0)).isEqualTo(ongoingAllocSample);
+    assertThat(result.getAllocationSamplingRangesList()).contains(finishedSamplingInfo);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(6).setEndTime(7).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 2);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 2, 2);
     assertThat(result.getHeapDumpInfos(0)).isEqualTo(ongoingHeapSample);
     assertThat(result.getAllocationsInfoList()).contains(ongoingAllocSample);
     assertThat(result.getAllocationsInfoList()).contains(finishedAllocSample);
+    assertThat(result.getAllocationSamplingRangesList()).contains(finishedSamplingInfo);
+    assertThat(result.getAllocationSamplingRangesList()).contains(ongoingSamplingInfo);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(7).setEndTime(8).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 1, 1, 2);
+    verifyMemoryDataResultCounts(result, 0, 0, 1, 1, 2, 1);
     assertThat(result.getGcStatsSamples(0)).isEqualTo(gcStatsSample);
     assertThat(result.getHeapDumpInfos(0)).isEqualTo(ongoingHeapSample);
     assertThat(result.getAllocationsInfoList()).contains(ongoingAllocSample);
     assertThat(result.getAllocationsInfoList()).contains(finishedAllocSample);
+    assertThat(result.getAllocationSamplingRangesList()).contains(ongoingSamplingInfo);
 
     result = getTable().getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setStartTime(8).setEndTime(9).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1, 1);
     assertThat(result.getHeapDumpInfos(0)).isEqualTo(ongoingHeapSample);
     assertThat(result.getAllocationsInfo(0)).isEqualTo(ongoingAllocSample);
+    assertThat(result.getAllocationSamplingRangesList()).contains(ongoingSamplingInfo);
 
     // Test that querying for an invalid session returns no data.
     result = getTable().getData(MemoryRequest.newBuilder().setSession(INVALID_SESSION).setStartTime(0).setEndTime(9).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0, 0);
   }
 
   @Test
@@ -271,11 +284,13 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
                                                    int numAllocStatsSample,
                                                    int numGcStatsSample,
                                                    int numHeapInfoSample,
-                                                   int numAllocInfoSample) {
+                                                   int numAllocInfoSample,
+                                                   int numAllocationSamplingRanges) {
     assertThat(result.getMemSamplesCount()).isEqualTo(numMemSample);
     assertThat(result.getAllocStatsSamplesCount()).isEqualTo(numAllocStatsSample);
     assertThat(result.getGcStatsSamplesCount()).isEqualTo(numGcStatsSample);
     assertThat(result.getHeapDumpInfosCount()).isEqualTo(numHeapInfoSample);
     assertThat(result.getAllocationsInfoCount()).isEqualTo(numAllocInfoSample);
+    assertThat(result.getAllocationSamplingRangesCount()).isEqualTo(numAllocationSamplingRanges);
   }
 }

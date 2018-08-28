@@ -44,9 +44,11 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.hash.HashMap;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,6 +64,7 @@ import static com.android.tools.adtui.model.Interpolatable.RoundedSegmentInterpo
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
+  private static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
 
   static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
@@ -109,6 +112,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
   private long myPendingCaptureStartTime = INVALID_START_TIME;
   private long myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
+
+  @NotNull private final AllocationSamplingRangeDataSeries myAllocationSamplingRateDataSeries;
+  @NotNull private final DurationDataModel<AllocationSamplingRangeDurationData> myAllocationSamplingRateDurations;
+  @NotNull private final AllocationSamplingRateUpdatable myAllocationSamplingRateUpdatable;
+  @NotNull private LiveAllocationSamplingMode myLiveAllocationSamplingMode;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -182,6 +190,18 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myAllocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
     myDeallocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
+
+    myAllocationSamplingRateUpdatable  = new AllocationSamplingRateUpdatable();
+    myAllocationSamplingRateDataSeries = new AllocationSamplingRangeDataSeries(myClient, mySessionData);
+    myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
+
+    // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
+    // It will be set properly in the AllocationSamplingRateUpdatable.
+    myLiveAllocationSamplingMode = LiveAllocationSamplingMode.getModeFromFrequency(
+      profilers.getIdeServices().getPersistentProfilerPreferences()
+               .getInt(LIVE_ALLOCATION_SAMPLING_PREF, LiveAllocationSamplingMode.SAMPLED.getValue())
+    );
+    myAllocationSamplingRateUpdatable.update(0);
   }
 
   public boolean hasUserUsedMemoryCapture() {
@@ -205,6 +225,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myGcStatsModel);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
+    getStudioProfilers().getUpdater().register(myAllocationSamplingRateUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -239,6 +260,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStatsModel);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
+    getStudioProfilers().getUpdater().unregister(myAllocationSamplingRateUpdatable);
     selectCaptureDuration(null, null);
     myLoader.stop();
 
@@ -638,6 +660,44 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     setProfilerMode(ProfilerMode.EXPANDED);
   }
 
+  @NotNull
+  public List<LiveAllocationSamplingMode> getSupportedLiveAllocationSamplingMode() {
+    return Arrays.asList(LiveAllocationSamplingMode.values());
+  }
+
+  @NotNull
+  public LiveAllocationSamplingMode getLiveAllocationSamplingMode() {
+    return myLiveAllocationSamplingMode;
+  }
+
+  /**
+   * Trigger a change to the sampling mode that should be used for live allocation tracking.
+   */
+  public void requestLiveAllocationSamplingModeUpdate(@NotNull LiveAllocationSamplingMode mode) {
+    getStudioProfilers().getIdeServices().getPersistentProfilerPreferences().setInt(
+      LIVE_ALLOCATION_SAMPLING_PREF, mode.getValue()
+    );
+
+    try {
+      myClient.setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+        .setSession(mySessionData)
+        .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(mode.getValue()).build())
+        .build());
+    }
+    catch (StatusRuntimeException e) {
+        getLogger().debug(e);
+    }
+  }
+
+  private void setLiveAllocationSamplingModelInternal(@NotNull LiveAllocationSamplingMode mode) {
+    if (mode == myLiveAllocationSamplingMode) {
+      return;
+    }
+
+    myLiveAllocationSamplingMode = mode;
+    myAspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
+  }
+
   @Nullable
   public CaptureObject getSelectedCapture() {
     return mySelection.getCaptureObject();
@@ -771,6 +831,58 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       if (myTrackingAllocations) {
         myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
       }
+    }
+  }
+
+  private class AllocationSamplingRateUpdatable implements Updatable {
+    @Override
+    public void update(long elapsedNs) {
+      if (!useLiveAllocationTracking())
+        return;
+
+      // Find the last sampling info and see if it is different from the current, if so,
+      double dataRangeMaxUs = getStudioProfilers().getTimeline().getDataRange().getMax();
+      List<SeriesData<AllocationSamplingRangeDurationData>> data =
+        myAllocationSamplingRateDataSeries.getDataForXRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
+
+      if (data.size() == 0) {
+        // No data available. Keep the current settings.
+        return;
+      }
+
+      AllocationSamplingRange samplingInfo = data.get(data.size() - 1).value.getSamplingInfo();
+      LiveAllocationSamplingMode mode =
+        LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval());
+      setLiveAllocationSamplingModelInternal(mode);
+    }
+  }
+
+  enum LiveAllocationSamplingMode {
+    NONE(0),      // 0 is a special value for disabling tracking.
+    SAMPLED(10),  // Sample every 10 allocations
+    FULL(1);      // Sample every allocation
+
+    static final Map<Integer, LiveAllocationSamplingMode> MAP;
+    static {
+      Map<Integer, LiveAllocationSamplingMode> map = new HashMap<>();
+      for (LiveAllocationSamplingMode mode : LiveAllocationSamplingMode.values()) {
+        map.put(mode.getValue(), mode);
+      }
+      MAP = ImmutableMap.copyOf(map);
+    }
+
+    int mySamplingFrequency;
+    LiveAllocationSamplingMode(int frequency) {
+      mySamplingFrequency = frequency;
+    }
+
+    int getValue() {
+      return mySamplingFrequency;
+    }
+
+    @NotNull
+    static LiveAllocationSamplingMode getModeFromFrequency(int frequency) {
+      return MAP.getOrDefault(frequency, SAMPLED);
     }
   }
 }

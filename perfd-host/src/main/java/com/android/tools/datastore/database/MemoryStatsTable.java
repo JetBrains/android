@@ -66,7 +66,12 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     INSERT_LEGACY_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_LegacyAllocationStack (Session, Id, Data) VALUES (?, ?, ?)"),
     INSERT_LEGACY_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_LegacyAllocatedClass (Session, Id, Data) VALUES (?, ?, ?)"),
     QUERY_LEGACY_ALLOCATION_STACK("Select Data FROM Memory_LegacyAllocationStack WHERE Session = ? AND Id = ?"),
-    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Session = ? AND Id = ?");
+    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Session = ? AND Id = ?"),
+
+    INSERT_OR_REPLACE_ALLOCATIONS_SAMPLING_RANGE(
+      "INSERT OR REPLACE INTO Memory_AllocationSamplingRange (Session, StartTime, EndTime, Data) VALUES (?, ?, ?, ?)"),
+    QUERY_ALLOCATION_SAMPLING_RANGE_BY_TIME(
+      "SELECT Data FROM Memory_AllocationSamplingRange WHERE Session = ? AND EndTime > ? AND StartTime <= ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -101,6 +106,9 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
                   "PRIMARY KEY(Session, Id)");
       createTable("Memory_HeapDump", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Session, StartTime)");
+      createTable("Memory_AllocationSamplingRange", "Session INTEGER NOT NULL", "StartTime INTEGER",
+                  "EndTime INTEGER", "Data BLOB",
+                  "PRIMARY KEY(Session, StartTime)");
     }
     catch (SQLException ex) {
       onError(ex);
@@ -134,9 +142,11 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       getResultsInfo(QUERY_HEAP_INFO_BY_TIME, sessionId, startTime, endTime, HeapDumpInfo.getDefaultInstance());
     List<AllocationsInfo> allocationSamples =
       getResultsInfo(QUERY_ALLOCATION_INFO_BY_TIME, sessionId, startTime, endTime, AllocationsInfo.getDefaultInstance());
+    List<AllocationSamplingRange> AllocationSamplingRanges =
+      getResultsInfo(QUERY_ALLOCATION_SAMPLING_RANGE_BY_TIME, sessionId, startTime, endTime, AllocationSamplingRange.getDefaultInstance());
     MemoryData.Builder response = MemoryData
       .newBuilder().addAllMemSamples(memorySamples).addAllAllocStatsSamples(allocStatsSamples).addAllGcStatsSamples(gcStatsSamples)
-      .addAllHeapDumpInfos(heapDumpSamples).addAllAllocationsInfo(allocationSamples);
+      .addAllHeapDumpInfos(heapDumpSamples).addAllAllocationsInfo(allocationSamples).addAllAllocationSamplingRanges(AllocationSamplingRanges);
     return response.build();
   }
 
@@ -218,6 +228,10 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     return null;
   }
 
+  public void insertOrReplaceAllocationSamplingRange(@NotNull Common.Session session, @NotNull AllocationSamplingRange info) {
+    execute(INSERT_OR_REPLACE_ALLOCATIONS_SAMPLING_RANGE,
+            session.getSessionId(), info.getStartTime(), info.getEndTime(), info.toByteArray());
+  }
 
   /**
    * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.
