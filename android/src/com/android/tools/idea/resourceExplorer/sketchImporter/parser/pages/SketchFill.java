@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-
 public class SketchFill {
   private final boolean isEnabled;
-  private final Color color;
+  private Color color;
   private final SketchGraphicContextSettings contextSettings;
   /**
    * <ul>
@@ -127,5 +126,29 @@ public class SketchFill {
 
   public int getPatternTileScale() {
     return patternTileScale;
+  }
+
+  public void setColor(@NotNull Color color) {
+    this.color = color;
+  }
+
+  public void applyGraphicContextSettings(@Nullable SketchGraphicContextSettings settings) {
+    if (settings != null) {
+      double opacity = settings.getOpacity();
+      if (contextSettings != null) {
+        opacity *= contextSettings.getOpacity();
+      }
+
+      SketchGradient gradient = getGradient();
+      if (gradient != null) {
+        SketchGradientStop[] stops = gradient.getStops();
+        for (SketchGradientStop gradientStop : stops) {
+          gradientStop.setColor(SketchStyle.addAlpha(gradientStop.getColor(), opacity));
+        }
+      }
+      else {
+        color = SketchStyle.addAlpha(color, opacity);
+      }
+    }
   }
 }

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -126,6 +127,20 @@ public class DrawableFileGeneratorTest {
 
     assertEquals(
       "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"1006.0dp\" android:width=\"1006.0dp\" android:viewportHeight=\"1006.0\" android:viewportWidth=\"1006.0\"><clip-path android:pathData=\"M472,18 L860,946 L84,946 C84,946 472,18 472,18 \"/><path android:pathData=\"M472,18 L860,946 L84,946 C84,946 472,18 472,18 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffd8d8d8\"/><group><clip-path android:pathData=\"M681.5,946 C803.83,946 903,846.83 903,724.5 C903,602.17 803.83,503 681.5,503 C559.17,503 460,602.17 460,724.5 C460,846.83 559.17,946 681.5,946 \"/><path android:pathData=\"M681.5,946 C803.83,946 903,846.83 903,724.5 C903,602.17 803.83,503 681.5,503 C559.17,503 460,602.17 460,724.5 C460,846.83 559.17,946 681.5,946 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffff0000\"/><path android:pathData=\"M289,531 L1071,531 L1071,917 L289,917 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#fff8e71c\"/><path android:pathData=\"M529,761 L670,761 L670,902 L529,902 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ff50e3c2\"/></group><path android:pathData=\"M618,677 L759,677 L759,818 L618,818 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffb8e986\"/><path android:pathData=\"M213.5,771 C264.03,771 305,730.03 305,679.5 C305,628.97 264.03,588 213.5,588 C162.97,588 122,628.97 122,679.5 C122,730.03 162.97,771 213.5,771 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ff000000\"/><group><clip-path android:pathData=\"M343.5,515 C465.83,515 565,415.83 565,293.5 C565,171.17 465.83,72 343.5,72 C221.17,72 122,171.17 122,293.5 C122,415.83 221.17,515 343.5,515 \"/><path android:pathData=\"M343.5,515 C465.83,515 565,415.83 565,293.5 C565,171.17 465.83,72 343.5,72 C221.17,72 122,171.17 122,293.5 C122,415.83 221.17,515 343.5,515 \" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffff0000\"/><path android:pathData=\"M-49,100 L733,100 L733,486 L-49,486 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#fff8e71c\"/><path android:pathData=\"M191,330 L332,330 L332,471 L191,471 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ff50e3c2\"/></group><path android:pathData=\"M403,63 L544,63 L544,204 L403,204 z\" android:strokeColor=\"#ff979797\" android:strokeWidth=\"1\" android:fillColor=\"#ffb8e986\"/></vector>",
+      file.getContent());
+  }
+
+  @Test
+  public void additiveTransparencyTest() {
+    SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_additiveTransparency.json"));
+    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+
+    DrawableFileGenerator drawableGenerator = new DrawableFileGenerator(projectRule.getProject());
+    LightVirtualFile file = drawableGenerator.generateFile(vectorDrawable);
+
+    assertEquals(
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"908.0dp\" android:width=\"908.0dp\" android:viewportHeight=\"908.0\" android:viewportWidth=\"908.0\" xmlns:aapt=\"http://schemas.android.com/aapt\"><path android:pathData=\"M64,638 L432,638 L432,847 L64,847 z\" android:strokeColor=\"#7f979797\" android:strokeWidth=\"1\" android:fillColor=\"#7fff0000\"/><path android:pathData=\"M538,297 L872,297 L872,513 L538,513 z\" android:strokeColor=\"#8e979797\" android:strokeWidth=\"1\" android:fillColor=\"#64ff0000\"/><path android:pathData=\"M257,371 L695,371 L695,581 L257,581 z\" android:strokeColor=\"#b2979797\" android:strokeWidth=\"1\" android:fillColor=\"#6bff0000\"/><path android:pathData=\"M476,513 L776,513 L776,847 L476,847 z\" android:strokeColor=\"#a0979797\" android:strokeWidth=\"1\"><aapt:attr name = \"android:fillColor\"><gradient android:endX=\"626.0\" android:endY=\"847.0\" android:startX=\"626.0\" android:startY=\"513.0\" android:type=\"linear\"><item android:color=\"#70ff0000\" android:offset=\"0.0\"/><item android:color=\"#4eff0000\" android:offset=\"1.0\"/></gradient></aapt:attr></path><path android:pathData=\"M110,130 L386,130 L386,297 L110,297 z\" android:strokeColor=\"#a0979797\" android:strokeWidth=\"1\" android:fillColor=\"#80ff0000\"/><path android:pathData=\"M413,47 L695,47 L695,363 L413,363 z\" android:strokeColor=\"#a0979797\" android:strokeWidth=\"1\" android:fillColor=\"#90ff0000\"/><path android:pathData=\"M22,279 L318,279 L318,447 L22,447 z\" android:strokeColor=\"#7f979797\" android:strokeWidth=\"1\" android:fillColor=\"#7fff0000\"/></vector>",
       file.getContent());
   }
 

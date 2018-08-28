@@ -20,10 +20,10 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.S
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import org.jetbrains.annotations.NotNull;
 
 public class SketchArtboard extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
@@ -85,7 +85,7 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
     SketchLayer[] layers = getLayers();
 
     for (SketchLayer layer : layers) {
-      shapes.addAll(layer.createShapeModels(new Point2D.Double(), false));
+      shapes.addAll(layer.createShapeModels(new Point2D.Double(), false, 1));
     }
 
     return shapes.build();

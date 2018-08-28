@@ -16,9 +16,9 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
+import java.awt.Color;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public class SketchSlice extends SketchLayer {
   private final Color backgroundColor;

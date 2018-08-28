@@ -90,7 +90,7 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
    */
   @NotNull
   @Override
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastShapeGroup) {
+  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastShapeGroup, double parentOpacity) {
     SketchFill[] fills = getStyle().getFills();
     SketchBorder[] borders = getStyle().getBorders();
     SketchFill shapeGroupFill = fills != null ? fills[0] : null;
@@ -110,9 +110,9 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
     SketchShapePath baseSketchShapePath = (SketchShapePath)layers[0];
 
     Path2D.Double baseShapePath = baseSketchShapePath.getPath2D();
+
     PathModel finalShape = new PathModel(baseShapePath,
-                                         shapeGroupFill,
-                                         shapeGroupBorder,
+                                         getStyle(),
                                          baseSketchShapePath.isFlippedHorizontal(),
                                          baseSketchShapePath.isFlippedVertical(),
                                          baseSketchShapePath.isClosed(),
@@ -121,7 +121,8 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
                                          baseSketchShapePath.getFramePosition(),
                                          hasClippingMask,
                                          shouldBreakMaskChain,
-                                         isLastShapeGroup);
+                                         isLastShapeGroup,
+                                         parentOpacity);
 
     // If the shapegroup has just one layer, there will be no shape operation.
     // Therefore, no conversion to area needed.

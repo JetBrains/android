@@ -16,9 +16,8 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Holds the options the user chooses for each individual page that is imported,
