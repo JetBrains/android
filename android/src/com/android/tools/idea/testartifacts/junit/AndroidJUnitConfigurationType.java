@@ -16,10 +16,9 @@
 package com.android.tools.idea.testartifacts.junit;
 
 import com.android.tools.idea.IdeInfo;
-import com.intellij.execution.configuration.ConfigurationFactoryEx;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationTypeBase;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.icons.AllIcons;
@@ -53,7 +52,7 @@ public class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
   public AndroidJUnitConfigurationType() {
     super(ANDROID_JUNIT_ID, ANDROID_JUNIT_NAME, ANDROID_JUNIT_DESCRIPTION, LazyUtil.create(() -> IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue()));
 
-    addFactory(new ConfigurationFactoryEx(this) {
+    addFactory(new ConfigurationFactory(this) {
       @NotNull
       @Override
       public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
@@ -61,11 +60,6 @@ public class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
         configuration.setVMParameters("-ea");
         configuration.setWorkingDirectory("$MODULE_DIR$");
         return configuration;
-      }
-
-      @Override
-      public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
-        ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
       }
     });
   }
