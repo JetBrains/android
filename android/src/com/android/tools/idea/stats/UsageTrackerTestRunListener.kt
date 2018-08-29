@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented
+package com.android.tools.idea.stats
 
 import com.android.builder.model.TestOptions
 import com.android.builder.model.TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
@@ -23,14 +23,9 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.AndroidStudioUsageTracker
-import com.google.common.collect.Iterables
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
-import groovy.transform.PackageScope
 
 fun TestOptions.Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
   ANDROID_TEST_ORCHESTRATOR, ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
@@ -40,6 +35,8 @@ fun TestOptions.Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
 
 /**
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
+ *
+ * @see AnalyticsTestRunnerEventsListener for how we track unit test runs.
  */
 class UsageTrackerTestRunListener constructor(
     private val artifact: IdeAndroidArtifact?,
@@ -48,10 +45,9 @@ class UsageTrackerTestRunListener constructor(
   private val testRun: TestRun.Builder = TestRun.newBuilder().apply {
     testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
     testKind = TestRun.TestKind.INSTRUMENTATION_TEST
-
-    findTestLibrariesVersions(artifact)?.let { testLibraries = it }
-
     testExecution = artifact?.testOptions?.execution.toProtoValue()
+
+    artifact?.let(::findTestLibrariesVersions)?.let { testLibraries = it }
   }
 
   override fun testRunStarted(runName: String?, testCount: Int) {
@@ -80,41 +76,5 @@ class UsageTrackerTestRunListener constructor(
   override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {}
   override fun testIgnored(test: TestIdentifier?) {}
   override fun testEnded(test: TestIdentifier?, testMetrics: MutableMap<String, String>?) {}
-  private fun findTestLibrariesVersions(artifact: IdeAndroidArtifact?): TestLibraries? {
-    val deps = artifact?.level2Dependencies ?: return null
-    val builder = TestLibraries.newBuilder()
-
-    for (lib in (Iterables.concat(deps.androidLibraries, deps.javaLibraries))) {
-      val coordinate = GradleCoordinate.parseCoordinateString(lib.artifactAddress) ?: continue
-      val version = coordinate.version?.toString() ?: continue
-
-      when (coordinate.groupId) {
-        "com.android.support.test", "androidx.test" -> {
-          when (coordinate.artifactId) {
-            "orchestrator" -> builder.testOrchestratorVersion = version
-            "rules" -> builder.testRulesVersion = version
-            "runner" -> builder.testSupportLibraryVersion = version
-          }
-        }
-        "com.android.support.test.espresso", "androidx.test.espresso" -> {
-          when (coordinate.artifactId) {
-            "espresso-accessibility" -> builder.espressoAccessibilityVersion = version
-            "espresso-contrib" -> builder.espressoContribVersion = version
-            "espresso-core" -> builder.espressoVersion = version
-            "espresso-idling-resource" -> builder.espressoIdlingResourceVersion = version
-            "espresso-intents" -> builder.espressoIntentsVersion = version
-            "espresso-web" -> builder.espressoWebVersion = version
-          }
-        }
-        "org.robolectric" -> {
-          when (coordinate.artifactId) { "robolectric" -> builder.robolectricVersion = version }
-        }
-        "org.mockito" -> {
-          when (coordinate.artifactId) { "mockito-core" -> builder.mockitoVersion = version }
-        }
-      }
-    }
-
-    return builder.build()
-  }
 }
+
