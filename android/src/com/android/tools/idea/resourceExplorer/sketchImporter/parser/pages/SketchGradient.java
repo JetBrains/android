@@ -22,19 +22,11 @@ import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "gradient"</code> contained within a sketch file.
+ */
 public class SketchGradient {
   public static final Logger LOG = Logger.getInstance(SketchGradient.class);
-  private final int elipseLength;
-  private SketchPoint2D from;
-  private SketchPoint2D to;
-  /**
-   * Linear: 0
-   * Radial: 1
-   * Angular: 2
-   */
-  private final int gradientType;
-  private final SketchGradientStop[] stops;
-
   public static final String GRADIENT_LINEAR = "linear";
   public static final String GRADIENT_RADIAL = "radial";
   public static final String GRADIENT_SWEEP = "sweep";
@@ -42,6 +34,16 @@ public class SketchGradient {
    * The index in the array corresponds to each of the gradient types
    */
   private static final String[] TYPES = new String[]{GRADIENT_LINEAR, GRADIENT_RADIAL, GRADIENT_SWEEP};
+  private final int elipseLength;
+  /**
+   * Linear: 0
+   * Radial: 1
+   * Angular: 2
+   */
+  private final int gradientType;
+  private final SketchGradientStop[] stops;
+  private SketchPoint2D from;
+  private SketchPoint2D to;
 
   public SketchGradient(int elipseLength,
                         @NotNull SketchPoint2D from,

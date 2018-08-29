@@ -19,6 +19,11 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link SketchLayer} that mimics the JSON element with attribute <code>"_class": "bitmap"</code> contained within a sketch file.
+ *
+ * @see com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer
+ */
 public class SketchBitmap extends SketchLayer {
   private final SketchStyle style;
   private final SketchFileReference image;

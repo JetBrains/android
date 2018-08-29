@@ -23,13 +23,16 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Holds the fields that are shared between all types of layers in the Sketch JSON file.
  * Extended by:
- * SketchPage - is used to retrieve artboards held in the layers field
- * SketchArtboard - in addition to the base class, it mainly holds information about the layers of artwork inside it
- * SketchShapeGroup - holds the whole information on one single shape, be it simple or combined: style options, clipping
- * and layers for each shape path that it contains
- * SketchShapePath - holds specific information for each path in one shape group: boolean to depict if the path is closed
- * and an array of curve points that make up the path
- * Other classes built for functionalities not yet implemented, such as SketchSlice, SketchSymbol and SketchText
+ * <ul>
+ * <li><b>SketchPage</b> - is used to retrieve artboards held in the layers field</li>
+ * <li><b>SketchArtboard</b> - in addition to the base class, it mainly holds information about the layers of artwork inside it</li>
+ * <li><b>SketchShapeGroup</b> - holds the entire information about a single shape, be it simple or combined: style options, clipping
+ * and layers for each shape path that it contains</li>
+ * <li><b>SketchShapePath</b> - holds specific information for each path in one shape group: boolean to depict if the path is closed
+ * and an array of curve points that make up the path</li>
+ * <li><i>Other classes</i> built for functionalities not yet implemented, such as <b>SketchSlice</b>, <b>SketchSymbol</b> and
+ * <b>SketchText</b></li>
+ * </ul>
  */
 public abstract class SketchLayer {
 
@@ -38,7 +41,7 @@ public abstract class SketchLayer {
   public static final int BOOLEAN_OPERATION_SUBSTRACTION = 1;
   public static final int BOOLEAN_OPERATION_INTERSECTION = 2;
   public static final int BOOLEAN_OPERATION_DIFFERENCE = 3;
-
+  protected final boolean shouldBreakMaskChain;
   @SerializedName("_class")
   private final String classType;
   @SerializedName("do_objectID")
@@ -55,7 +58,6 @@ public abstract class SketchLayer {
    * [0, 359] is sometimes equivalent to [0, 180] ∪ [-179, -1] with no apparent rule
    */
   private final int rotation;
-  protected final boolean shouldBreakMaskChain;
 
   public SketchLayer(@NotNull String classType,
                      @NotNull String objectId,

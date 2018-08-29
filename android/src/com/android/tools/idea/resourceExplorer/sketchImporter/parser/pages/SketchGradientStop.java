@@ -18,9 +18,12 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "gradientStop"</code> contained within a sketch file.
+ */
 public class SketchGradientStop {
-  private Color color;
   private final double position;
+  private Color color;
 
   public SketchGradientStop(@NotNull Color color, double position) {
     this.color = color;
@@ -32,11 +35,11 @@ public class SketchGradientStop {
     return color;
   }
 
-  public double getPosition() {
-    return position;
-  }
-
   public void setColor(@NotNull Color color) {
     this.color = color;
+  }
+
+  public double getPosition() {
+    return position;
   }
 }

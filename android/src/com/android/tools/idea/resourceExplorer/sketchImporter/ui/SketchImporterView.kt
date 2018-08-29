@@ -34,7 +34,6 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.ListSelectionModel
 
-
 private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
 private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
   BorderFactory.createEmptyBorder(0, 0, 8, 0),
@@ -49,6 +48,10 @@ const val FILTER_EXPORTABLE_CHECKBOX_TEXT = "Only show exportable assets"
 const val FILTER_EXPORTABLE_TOOLTIP_TEXT = "Any item that has at least one export format in Sketch is considered exportable"
 const val NO_VALID_ASSETS_TEXT = "No valid assets"
 
+/**
+ * The view in the MVP pattern developed for the Sketch Importer UI, deals with the actual interface and doesn't know anything about the
+ * model. It doesn't contain any logic.
+ */
 class SketchImporterView : Disposable, JPanel(BorderLayout()) {
 
   override fun dispose() {}

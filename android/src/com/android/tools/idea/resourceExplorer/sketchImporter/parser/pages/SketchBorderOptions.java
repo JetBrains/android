@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "borderOptions"</code> contained within a sketch file.
+ */
 public class SketchBorderOptions {
   private final boolean isEnabled;
   private final short lineCapStyle;

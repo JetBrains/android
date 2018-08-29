@@ -19,19 +19,17 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Refers to objects that have the "_class" field set to be one of the following:
+ * Mimics the JSON element with attribute <code>"_class"</code> set to be one of the following:
  * <ul>
- * <li>"innerShadow"</li>
- * <li>"shadow"</li>
+ * <li><code>"innerShadow"</code></li>
+ * <li><code>"shadow"</code></li>
  * </ul>
- * <p>
- * {@link com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer}
  */
 public class SketchShadow {
   private final boolean isEnabled;
   private final int blurRadius;
   private final Color color;
-  private final SketchGraphicContextSettings contextSettings;
+  private final SketchGraphicsContextSettings contextSettings;
   private final int offsetX;
   private final int offsetY;
   private final short spread;
@@ -39,7 +37,7 @@ public class SketchShadow {
   public SketchShadow(boolean enabled,
                       int blurRadius,
                       @NotNull Color color,
-                      @NotNull SketchGraphicContextSettings settings,
+                      @NotNull SketchGraphicsContextSettings settings,
                       int offsetX,
                       int offsetY,
                       short spread) {
@@ -66,7 +64,7 @@ public class SketchShadow {
   }
 
   @NotNull
-  public SketchGraphicContextSettings getContextSettings() {
+  public SketchGraphicsContextSettings getContextSettings() {
     return contextSettings;
   }
 

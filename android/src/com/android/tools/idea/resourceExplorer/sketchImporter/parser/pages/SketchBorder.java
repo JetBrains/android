@@ -19,12 +19,16 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+
+/**
+ * Mimics the JSON element with attribute <code>"_class": "border"</code> contained within a sketch file.
+ */
 public class SketchBorder {
   private final boolean isEnabled;
-  private Color color;
   private final short fillType;
   private final int position;
   private final int thickness;
+  private Color color;
 
   public SketchBorder(boolean isEnabled, @NotNull Color color, short fillType, int position, int thickness) {
     this.isEnabled = isEnabled;
@@ -55,7 +59,7 @@ public class SketchBorder {
     return thickness;
   }
 
-  public void applyGraphicContextSettings(@Nullable SketchGraphicContextSettings settings) {
+  public void applyGraphicContextSettings(@Nullable SketchGraphicsContextSettings settings) {
     if (settings != null) {
       color = SketchStyle.addAlpha(getColor(), settings.getOpacity());
     }

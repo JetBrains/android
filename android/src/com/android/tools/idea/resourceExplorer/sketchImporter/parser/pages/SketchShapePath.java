@@ -21,7 +21,7 @@ import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Refers to objects that have the "_class" field set to be one of the following:
+ * {@link SketchLayer} that mimics the JSON element with attribute <code>"_class"</code> set to be one of the following:
  * <ul>
  * <li>"shapePath"</li>
  * <li>"rectangle"</li>
@@ -29,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
  * <li>"star"</li>
  * <li>"polygon"</li>
  * </ul>
- * <p>
- * {@link com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer}
+ *
+ * @see com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer
  */
 public class SketchShapePath extends SketchLayer {
   private final boolean isClosed;
