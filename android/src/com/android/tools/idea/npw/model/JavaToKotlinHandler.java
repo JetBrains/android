@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.model;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
@@ -53,7 +52,9 @@ public class JavaToKotlinHandler {
   @NotNull
   public static ConvertJavaToKotlinProvider getJavaToKotlinConversionProvider() {
     ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
-    return providers.length != 0 ? providers[0] : new ConvertJavaToKotlinDefaultImpl();
+    if (providers.length == 0)
+      throw new RuntimeException("Could not find a JavaToKotlinConversionProvider, even though one should be bundled with Studio");
+    return providers[0];
   }
 
   static void convertJavaFilesToKotlin(@NotNull Project project,
