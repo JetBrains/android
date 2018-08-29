@@ -87,7 +87,7 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
   override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? = null
 
-  override fun getDependentLibraries(): Collection<Library> {
+  override fun getResolvedDependentLibraries(): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
     ModuleRootManager.getInstance(module)

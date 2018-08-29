@@ -32,7 +32,7 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     val moduleSystem = project
       .getProjectSystem()
       .getModuleSystem(getModule("app"))
-    val libraries = moduleSystem.getDependentLibraries()
+    val libraries = moduleSystem.getResolvedDependentLibraries()
 
     // There are many aars and jars in the loaded application. Here we just confirm that a few known ones are present
     val guava = libraries
