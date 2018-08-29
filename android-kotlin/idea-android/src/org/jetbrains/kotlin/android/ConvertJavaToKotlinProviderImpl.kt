@@ -34,7 +34,7 @@ class ConvertJavaToKotlinProviderImpl : ConvertJavaToKotlinProvider {
     }
 
     override fun getKotlinVersion(): String {
-        return bundledRuntimeVersion().split("-")[0]
+        return bundledRuntimeVersion()
     }
 
     override fun convertToKotlin(project: Project, files: List<PsiJavaFile>): List<PsiFile> {
