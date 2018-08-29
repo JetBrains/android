@@ -23,7 +23,6 @@ import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.dataviewer.DataViewer;
-import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
@@ -32,7 +31,6 @@ import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
@@ -169,13 +167,6 @@ final class HttpDataComponentFactory {
     DataViewer viewer = components.createDataViewer(payload.getBytes().toByteArray(), contentType, DataViewer.Style.RAW);
     JComponent viewerComponent = viewer.getComponent();
     viewerComponent.setName(ID_PAYLOAD_VIEWER);
-    // We force a minimum height to make sure that the component always looks reasonable -
-    // useful, for example, when we are displaying a bunch of text.
-    int minimumHeight = 300;
-    if (viewer instanceof ImageDataViewer) {
-      minimumHeight = Math.min(minimumHeight, ((ImageDataViewer)viewer).getImage().getHeight());
-    }
-    viewerComponent.setMinimumSize(new Dimension(1, minimumHeight));
     viewerComponent.setBorder(PAYLOAD_BORDER);
     JComponent payloadComponent = new JPanel(new BorderLayout());
     payloadComponent.add(viewerComponent);
