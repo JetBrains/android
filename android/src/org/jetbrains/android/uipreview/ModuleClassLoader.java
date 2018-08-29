@@ -303,7 +303,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   private static void registerResources(@NotNull Module module) {
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (Library library : moduleSystem.getDependentLibraries()) {
+    for (Library library : moduleSystem.getResolvedDependentLibraries()) {
       if (library instanceof ExternalLibrary && ((ExternalLibrary)library).hasResources()) {
         registerLibraryResources(module, (ExternalLibrary)library);
       }

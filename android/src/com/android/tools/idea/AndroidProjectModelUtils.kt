@@ -61,7 +61,7 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary
  */
 fun findDependenciesWithResources(module: Module): Map<String, ExternalLibrary> {
   return module.getModuleSystem()
-    .getDependentLibraries()
+    .getResolvedDependentLibraries()
     .filterIsInstance<ExternalLibrary>()
     .filter { it.hasResources }
     .associateBy { library -> library.address }

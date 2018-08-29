@@ -82,9 +82,9 @@ interface AndroidModuleSystem: ClassFileFinder {
   fun registerDependency(coordinate: GradleCoordinate)
 
   /**
-   * Returns the libraries that this module depends on.
+   * Returns the resolved libraries that this module depends on.
    */
-  fun getDependentLibraries(): Collection<Library>
+  fun getResolvedDependentLibraries(): Collection<Library>
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

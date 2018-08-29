@@ -39,7 +39,7 @@ import java.util.function.Predicate
 class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository) : AndroidModuleSystem, ClassFileFinder by GradleClassFileFinder(module) {
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    return getDependentLibraries()
+    return getResolvedDependentLibraries()
       .asSequence()
       .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
       .find { it.matches(coordinate) }
@@ -53,7 +53,7 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
       .find { it.matches(coordinate) }
   }
 
-  override fun getDependentLibraries(): Collection<Library> {
+  override fun getResolvedDependentLibraries(): Collection<Library> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
     val converter = GradleModelConverter(gradleModel.androidProject)

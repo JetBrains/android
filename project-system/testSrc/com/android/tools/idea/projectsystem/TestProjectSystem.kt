@@ -81,7 +81,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
                ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
       }
 
-      override fun getDependentLibraries(): Collection<Library> {
+      override fun getResolvedDependentLibraries(): Collection<Library> {
         return emptySet()
       }
 
