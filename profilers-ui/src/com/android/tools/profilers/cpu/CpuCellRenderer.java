@@ -76,12 +76,14 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
         // Pass the mouse moved event onto the child statecharts.
         // First we pass a mouse exited to reset positioning.
         if (oldHoveredIndex != myHoveredIndex && list.getModel().getSize() > oldHoveredIndex && oldHoveredIndex >= 0) {
+          // JLists don't support hover and this behavior is custom implementation. So repaint must be queued manually.
           list.repaint(list.getCellBounds(oldHoveredIndex, oldHoveredIndex));
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(oldHoveredIndex));
           chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_EXITED));
         }
         // Second we pass the updated position of the mouse.
         if (myHoveredIndex >= 0) {
+          // JLists don't support hover and this behavior is custom implementation. So repaint must be queued manually.
           list.repaint(list.getCellBounds(myHoveredIndex, myHoveredIndex));
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
           chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_MOVED));
