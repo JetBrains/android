@@ -16,9 +16,13 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea.res
 
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
+import com.android.tools.idea.diagnostics.crash.StudioPsiInvalidationTraceReport
+import com.intellij.diagnostic.ThreadDumper
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiInvalidElementAccessException
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -62,6 +66,12 @@ class IDEAndroidLayoutXmlFileManager(val module: Module) : AndroidLayoutXmlFileM
     }
 
     override fun doExtractResources(layoutGroup: AndroidLayoutGroupData, module: ModuleDescriptor): AndroidLayoutGroup {
+        // Sometimes due to a race of later-invoked runnables, the PsiFiles can be invalidated; for now log their invalidation trace
+        layoutGroup.layouts.firstOrNull { !it.isValid }?.let {
+            StudioCrashReporter.getInstance().submit(
+              StudioPsiInvalidationTraceReport(it, ThreadDumper.dumpThreadsToString()))
+        }
+
         val layouts = layoutGroup.layouts.filter { it.isValid }.map { layout ->
             val resources = arrayListOf<AndroidResource>()
             layout.accept(AndroidXmlVisitor { id, widgetType, attribute ->
