@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu
 object CpuProfilerUITestUtils {
   const val VALID_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
   const val ATRACE_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
-
   const val ATRACE_PID1_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
 
   // We use a different path than in "profilers" modules, because resources from "profilers" modules is not accessible from "profilers-ui".

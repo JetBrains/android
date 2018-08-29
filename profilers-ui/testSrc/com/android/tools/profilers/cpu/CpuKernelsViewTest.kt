@@ -15,9 +15,12 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -87,6 +90,27 @@ class CpuKernelsViewTest {
   fun panelShouldBeHiddenByDefault() {
     val kernelsView = CpuKernelsView(stage)
     assertThat(kernelsView.component.isVisible).isFalse()
+  }
+
+  @Test
+  fun testHideablePanelsHaveItemCountsAsTitle() {
+    val kernelsView = CpuKernelsView(stage)
+
+    stage.studioProfilers.stage = stage
+    cpuService.apply {
+      profilerType = CpuProfiler.CpuProfilerType.ATRACE
+      setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+      setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
+    }
+    stage.setAndSelectCapture(0)
+    // One second is enough for the models to be updated.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
+
+    val hideablePanel = TreeWalker(kernelsView.component).ancestors().filterIsInstance<HideablePanel>().first()
+    TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first().let { panel ->
+      assertThat(panel.text).contains("KERNEL (4)")
+    }
   }
 
   @Test
