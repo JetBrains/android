@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.npw.module;
 
+import static java.util.stream.Collectors.toMap;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.ui.WizardGallery;
@@ -29,20 +28,21 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.util.*;
-
-import static java.util.stream.Collectors.toMap;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * This step allows the user to select which type of module they want to create.
@@ -155,7 +155,9 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
     // To have a sequence specified by design, we hardcode the sequence. Everything else is added at the end (sorted by name)
     String[] orderedNames = {
       message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
-      message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.new.instant.app"),
+      message("android.wizard.module.new.dynamic.module"),
+      message("android.wizard.module.new.dynamic.module.instant"),
+      message("android.wizard.module.new.instant.app"),
       message("android.wizard.module.new.feature.module"), ANDROID_WEAR_MODULE_NAME, ANDROID_TV_MODULE_NAME,
       ANDROID_THINGS_MODULE_NAME, message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.import.title"),

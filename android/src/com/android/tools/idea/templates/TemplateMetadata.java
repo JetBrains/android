@@ -97,6 +97,7 @@ public class TemplateMetadata {
   public static final String ATTR_DYNAMIC_FEATURE_TITLE = "dynamicFeatureTitle";
   public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND = "dynamicFeatureOnDemand";
   public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
+  public static final String ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule";
 
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
   public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";

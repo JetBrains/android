@@ -392,6 +392,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> UAB_INSTANT_DYNAMIC_FEATURE_MODULE = Flag.create(
+    UAB, "instant.dynamic.feature.modules", "Enable Instant Dynamic Feature Template",
+    "If enabled, the new module wizard will include the template for instant dynamic feature modules",
+    false
+  );
+
   private StudioFlags() {
   }
 }
