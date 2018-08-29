@@ -104,7 +104,9 @@ public final class TooltipComponent extends AnimatedComponent {
   }
 
   private void resetBounds() {
-    setBounds(0, 0, myParent.getWidth(), myParent.getHeight());
+    if (myParent.getWidth() != getWidth() || myParent.getHeight() != getHeight()){
+      setBounds(0, 0, myParent.getWidth(), myParent.getHeight());
+    }
   }
 
   @NotNull
@@ -137,6 +139,7 @@ public final class TooltipComponent extends AnimatedComponent {
         myExpandedSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         myParent.addComponentListener(myParentListener);
+        resetBounds();
         myParent.add(TooltipComponent.this, JLayeredPane.POPUP_LAYER);
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
         setVisible(true);
