@@ -140,39 +140,6 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
-  fun testHideablePanelsHaveItemCountsAsTitle() {
-    myStage.studioProfilers.stage = myStage
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
-    myStage.setAndSelectCapture(0)
-    // One second is enough for the models to be updated.
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myStage.studioProfilers.timeline.viewRange.set(myStage.capture!!.range)
-
-    val cpuProfilerStageView = myProfilersView.stageView as CpuProfilerStageView
-    val treeWalker = TreeWalker(cpuProfilerStageView.component)
-    // Find our Jlist elements, type of test ignores generics so we get all elements.
-    val list = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>()
-    var hideablePanel = TreeWalker(list[1]).ancestors().filterIsInstance<HideablePanel>().first()
-    var panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
-    assertThat(panelTitle.text).contains("KERNEL (4)")
-    // Find our thread list.
-    hideablePanel = TreeWalker(list[2]).ancestors().filterIsInstance<HideablePanel>().first()
-    panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
-    assertThat(panelTitle.text).contains("THREADS (0)")
-    // Add a thread
-    myCpuService.addAdditionalThreads(1, "Test", mutableListOf(
-      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
-        CpuProfiler.GetThreadsResponse.State.SLEEPING).build()))
-    // Update the view range triggering an aspect change in CpuThreadsModel.
-    myStage.studioProfilers.timeline.viewRange.set(myStage.studioProfilers.timeline.dataRange)
-    // Tick to trigger
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(panelTitle.text).contains("THREADS (1)")
-  }
-
-  @Test
   fun testTooltipComponentIsFirstChild() {
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
