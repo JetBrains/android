@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
-
 
 /**
  * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
@@ -151,6 +153,59 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     // guava is a dependency with a JAR.
     assertThat(myModules.appModule.getModuleSystem().getResolvedDependency(
       GradleCoordinate("com.google.guava", "guava", "+"))).isNotNull()
+  }
+
+  @Throws(Exception::class)
+  fun testAddSupportDependencyWithMatchInSubModule() {
+    // In this module app -> library2 -> library1
+    loadProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES)
+
+    // First verify that there is no support library in the app module:
+    val dependency = ProjectBuildModel.get(project).getModuleBuildModel(myModules.appModule)?.dependencies()?.artifacts()
+      ?.firstOrNull { it.group().forceString() == SdkConstants.SUPPORT_LIB_GROUP_ID }
+    assertThat(dependency).isNull()
+
+    // Check that the version is picked up from one of the sub modules
+    val coord = myModules.appModule.getModuleSystem().getLatestCompatibleDependency(SdkConstants.SUPPORT_LIB_GROUP_ID, "recyclerview-v7")
+    assertThat(coord!!.id).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT)
+    assertThat(coord.version.toString()).isEqualTo("+")
+
+    checkFindInReverseDependency()
+  }
+
+  // Note this could be a separate test.
+  // It is called from [testDependencyInMultiProject] to save time since these tests are slow.
+  @Throws(Exception::class)
+  private fun checkFindInReverseDependency() {
+    // In this module app -> library2 -> library1
+
+    // First verify that there is no gson library in library1:
+    val groupId = "com.google.code.gson"
+    val dependency = ProjectBuildModel.get(project).getModuleBuildModel(myModules.getModule("library1"))?.dependencies()?.artifacts()
+      ?.firstOrNull { it.group().forceString() == groupId }
+    assertThat(dependency).isNull()
+
+    // Check that the version is picked up from the parent module:
+    val gradleModuleSystem = myModules.getModule("library1").getModuleSystem() as GradleModuleSystem
+    val version = gradleModuleSystem.findVersionOfExistingGroupDependency(groupId)
+    assertThat(version.toString()).isEqualTo("2.2.4")
+  }
+
+  @Throws(Exception::class)
+  fun testDependencyInMultiProject() {
+    // There are 3 independent modules in this project: module1, module2, module3
+    loadProject(TestProjectPaths.SYNC_MULTIPROJECT)
+
+    // First verify that there is a guava library in module3:
+    val groupId = "com.google.guava"
+    val dependency = ProjectBuildModel.get(project).getModuleBuildModel(myModules.getModule("module3"))?.dependencies()?.artifacts()
+      ?.firstOrNull { it.group().forceString() == groupId }
+    assertThat(dependency).isNotNull()
+
+    // Check that the version is not picked up from module3 when testing module2:
+    val gradleModuleSystem = myModules.getModule("module2").getModuleSystem() as GradleModuleSystem
+    val version = gradleModuleSystem.findVersionOfExistingGroupDependency(groupId)
+    assertThat(version).isNull()
   }
 
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
