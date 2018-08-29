@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.DragAndDropList;
@@ -47,6 +47,8 @@ final class CpuThreadsView {
 
   @NotNull
   private final HideablePanel myPanel;
+
+  private AxisComponent myAxisComponent;
 
   @NotNull
   private final CpuProfilerStage myStage;
@@ -90,13 +92,14 @@ final class CpuThreadsView {
     return myPanel;
   }
 
+  @NotNull
   private HideablePanel createHideablePanel() {
     // Add AxisComponent only to scrollable section of threads list.
-    final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
-    timeAxisGuide.setShowAxisLine(false);
-    timeAxisGuide.setShowLabels(false);
-    timeAxisGuide.setHideTickAtMin(true);
-    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
+    myAxisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+    myAxisComponent.setShowAxisLine(false);
+    myAxisComponent.setShowLabels(false);
+    myAxisComponent.setHideTickAtMin(true);
+    myAxisComponent.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
     final JPanel threads = new JPanel(new TabularLayout("*", "*"));
 
     final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
@@ -110,11 +113,11 @@ final class CpuThreadsView {
     scrollingThreads.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        timeAxisGuide.setMarkerLengths(scrollingThreads.getHeight(), 0);
+        myAxisComponent.setMarkerLengths(scrollingThreads.getHeight(), 0);
       }
     });
 
-    threads.add(timeAxisGuide, new TabularLayout.Constraint(0, 0));
+    threads.add(myAxisComponent, new TabularLayout.Constraint(0, 0));
     threads.add(scrollingThreads, new TabularLayout.Constraint(0, 0));
 
     // Clear border set by default on the hideable panel.
@@ -170,6 +173,10 @@ final class CpuThreadsView {
       public void mouseMoved(MouseEvent e) {
         int row = myThreads.locationToIndex(e.getPoint());
         if (row != -1) {
+          // TODO(b/113539143) Optimize this so we don't repaint the whole thing.
+          // Only the portion that has changed should be repainted (remember to transform coordinate space into AxisComponent's).
+          myAxisComponent.repaint();
+
           CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(row);
           if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
             CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
