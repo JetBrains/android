@@ -188,10 +188,10 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.DEPLOY_APK_FROM_BUNDLE, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
 
-    myInstantAppDeployCheckBox.setSelected(configuration.DEPLOY_AS_INSTANT);
+    myInstantAppDeployCheckBox.setSelected(myInstantAppDeployCheckBox.isEnabled() && configuration.DEPLOY_AS_INSTANT);
     Module currentModule = myModuleSelector.getModule();
     if (currentModule != null) {
-      myDynamicFeaturesParameters.updateBasedOnInstantState(currentModule, configuration.DEPLOY_AS_INSTANT);
+      myDynamicFeaturesParameters.updateBasedOnInstantState(currentModule, myInstantAppDeployCheckBox.isSelected());
     }
 
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
@@ -371,10 +371,8 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
       myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
     }
     else {
-      if (model.getSelectedVariant().isInstantAppCompatible()) {
-        // Enable instant app deploy checkbox if module is instant enabled
-        myInstantAppDeployCheckBox.setEnabled(model.getSelectedVariant().isInstantAppCompatible());
-      }
+      // Enable instant app deploy checkbox if module is instant enabled
+      myInstantAppDeployCheckBox.setEnabled(model.getSelectedVariant().isInstantAppCompatible());
 
       myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
     }
