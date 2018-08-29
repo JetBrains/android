@@ -16,7 +16,19 @@
 package com.android.tools.idea.model
 
 import com.android.ide.common.util.PathString
-import com.android.projectmodel.*
+import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.projectmodel.AndroidPathType
+import com.android.projectmodel.AndroidProject
+import com.android.projectmodel.ArtifactDependency
+import com.android.projectmodel.Config
+import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ProjectType
+import com.android.projectmodel.SourceSet
+import com.android.projectmodel.buildTable
+import com.android.projectmodel.configTableSchemaWith
+import com.android.projectmodel.configTableWith
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.DATA_BINDING_LIB
 import com.google.common.truth.Truth.assertThat
@@ -32,15 +44,15 @@ class AndroidModelSubsetTest {
 
   private fun simpleConfig(onlyPath: String) = Config(sources = SourceSet(mapOf(AndroidPathType.JAVA to listOf(PathString(onlyPath)))))
 
-  private val typicalGradleConfigTable = configTableWith(
+  private val typicalGradleConfigTable =
     configTableSchemaWith(
       "buildType" to listOf("debug", "release")
-    ),
-    mapOf(null to simpleConfig("main").copy(compileDeps = listOf(databindingLib)),
-          "debug" to simpleConfig("debug"),
-          "release" to simpleConfig("release"),
-          ARTIFACT_NAME_MAIN to simpleConfig("app"))
-  )
+    ).buildTable(
+      null to simpleConfig("main").copy(compileDeps = listOf(databindingLib)),
+      "debug" to simpleConfig("debug"),
+      "release" to simpleConfig("release"),
+      ARTIFACT_NAME_MAIN to simpleConfig("app")
+    )
 
   private val typicalGradleModel = com.android.projectmodel.AndroidModel(listOf(
     AndroidProject(
@@ -51,20 +63,12 @@ class AndroidModelSubsetTest {
     )
   ))
 
-  private fun typicalBlazeConfigTable(targetName: String, extraCompileDeps: List<ArtifactDependency>): ConfigTable =
-    configTableWith(
-      configTableSchemaWith("target" to listOf(targetName)),
-      mapOf(targetName to simpleConfig("src").copy(compileDeps = extraCompileDeps))
-    )
-
   private fun typicalBlazeProjectModel(targetName: String, extraCompileDeps: List<ArtifactDependency> = listOf()): AndroidProject {
-    val configTable = typicalBlazeConfigTable(targetName, extraCompileDeps)
+    val configTable = configTableWith(simpleConfig("src").copy(compileDeps = extraCompileDeps, applicationIdSuffix = targetName))
     return AndroidProject(
       name = targetName,
-      type = ProjectType.APP,
-      variants = configTable.generateVariants(),
-      configTable = configTable
-    )
+      type = ProjectType.APP
+    ).withVariantsGeneratedBy(configTable)
   }
 
   private val typicalBlazeModel = com.android.projectmodel.AndroidModel(listOf(
@@ -96,12 +100,12 @@ class AndroidModelSubsetTest {
     val selection = selectAllVariants(typicalBlazeModel)
 
     assertThat(selection.firstMainArtifact()!!.artifact.resolved.sources.javaDirectories).containsExactly(PathString("src"))
-    assertThat(selection.selectedArtifacts(ARTIFACT_NAME_MAIN).toList().map { it.variant.configPath.simpleName })
+    assertThat(selection.selectedArtifacts(ARTIFACT_NAME_MAIN).toList().map { it.project.name })
       .containsExactly("app", "tests", "resources")
-    assertThat(selection.selectedConfigs(ARTIFACT_NAME_UNIT_TEST).toList().map { it.path.simpleName })
+    assertThat(selection.selectedConfigs(ARTIFACT_NAME_UNIT_TEST).toList().map { it.path.simpleName }).isEmpty()
+    assertThat(selection.selectedConfigs().toList().map { it.config.applicationIdSuffix }).containsExactly("app", "tests", "resources")
+    assertThat(selection.selectedVariants().toList().map { it.variant.mainArtifact.resolved.applicationIdSuffix })
       .containsExactly("app", "tests", "resources")
-    assertThat(selection.selectedConfigs().toList().map { it.path.simpleName }).containsExactly("app", "tests", "resources")
-    assertThat(selection.selectedVariants().toList().map { it.variant.configPath.simpleName }).containsExactly("app", "tests", "resources")
     assertThat(selection.dependsOn(ANDROIDX_DATA_BINDING_LIB.getCoordinate("+"))).isTrue()
     assertThat(selection.dependsOn(DATA_BINDING_LIB.getCoordinate("+"))).isFalse()
   }
