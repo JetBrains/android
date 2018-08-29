@@ -7,15 +7,19 @@ import com.intellij.execution.configurations.*;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.LazyUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
+  public AndroidRunConfigurationType() {
+    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
+          LazyUtil.create(() -> AndroidIcons.AndroidModule));
 
-public class AndroidRunConfigurationType implements ConfigurationType {
-  private final ConfigurationFactory myFactory = new AndroidRunConfigurationFactory(this);
+    addFactory(new AndroidRunConfigurationFactory(this));
+  }
 
   public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
     protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
@@ -52,34 +56,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
   }
 
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return AndroidBundle.message("android.run.configuration.type.name");
-  }
-
-  @Override
-  public String getConfigurationTypeDescription() {
-    return AndroidBundle.message("android.run.configuration.type.description");
-  }
-
-  @Override
-  public Icon getIcon() {
-    return AndroidIcons.AndroidModule;
-  }
-
-  @Override
-  @NotNull
-  public String getId() {
-    return "AndroidRunConfigurationType";
-  }
-
-  @Override
-  public ConfigurationFactory[] getConfigurationFactories() {
-    return new ConfigurationFactory[]{myFactory};
-  }
-
   public ConfigurationFactory getFactory() {
-    return myFactory;
+    return getConfigurationFactories()[0];
   }
 }
