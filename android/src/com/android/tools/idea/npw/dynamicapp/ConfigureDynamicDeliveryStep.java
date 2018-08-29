@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -28,14 +32,12 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.android.tools.adtui.validation.Validator.Result.OK;
-import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeatureModel> {
   private final JBScrollPane myRootPanel;
@@ -92,6 +94,11 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
   public void dispose() {
     myBindings.releaseAll();
     myListeners.releaseAll();
+  }
+
+  @Override
+  protected boolean shouldShow() {
+    return !getModel().instantModule().get();
   }
 
   private static void setEnabled(boolean isEnabled, JComponent... components) {

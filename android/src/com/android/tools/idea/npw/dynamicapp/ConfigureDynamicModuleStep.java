@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static java.lang.String.format;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -29,9 +36,15 @@ import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
@@ -39,26 +52,28 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Image;
 import java.util.Collection;
 import java.util.Collections;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.tools.adtui.validation.Validator.Result.OK;
-import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
-import static java.lang.String.format;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
@@ -77,9 +92,14 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private JLabel myTemplateIconTitle;
   private JLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
+  private JCheckBox myFusingCheckbox;
+  private JBLabel myInstantModuleInfo;
+  private JBLabel myInstantInfoIcon;
+  private JTextField myModuleTitle;
+  private JLabel myModuleTitleLabel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
-  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage) {
+  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage, boolean isInstant) {
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -93,6 +113,24 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
+
+    myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
+    if(isInstant) {
+      SelectedProperty isFusingSelected = new SelectedProperty(myFusingCheckbox);
+      myBindings.bind(model.featureFusing(), isFusingSelected);
+      BoolProperty isOnDemand = new BoolValueProperty(false);
+      myBindings.bind(model.featureOnDemand(), isOnDemand);
+      BoolProperty isInstantModule = new BoolValueProperty(true);
+      myBindings.bind(model.instantModule(), isInstantModule);
+      myBindings.bindTwoWay(new TextProperty(myModuleTitle), getModel().featureTitle());
+    } else {
+      myFusingCheckbox.setVisible(false);
+      myInstantInfoIcon.setVisible(false);
+      myInstantModuleInfo.setVisible(false);
+      myModuleTitleLabel.setVisible(false);
+      myModuleTitle.setVisible(false);
+    }
+
     myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
@@ -190,7 +228,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     if (image != null) {
       myTemplateIconTitle.setIcon(new ImageIcon(image.getScaledInstance(256, 256,  Image.SCALE_SMOOTH)));
     }
-    myTemplateIconTitle.setText(ActivityGallery.getTemplateImageLabel(templateHandle, false));
+    myTemplateIconTitle.setText("<html><center>" + ActivityGallery.getTemplateImageLabel(templateHandle, false) + "</center></html>");
     myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle, false) + "</center></html>");
   }
 

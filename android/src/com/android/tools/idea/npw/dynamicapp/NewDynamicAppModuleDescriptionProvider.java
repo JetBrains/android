@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
@@ -23,35 +29,42 @@ import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
+import java.awt.Image;
+import java.io.File;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-
-import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static org.jetbrains.android.util.AndroidBundle.message;
-
 public class NewDynamicAppModuleDescriptionProvider implements ModuleDescriptionProvider {
   public static final String DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature";
+  public static final String INSTANT_DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature (Instant App)";
 
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
-    return Collections.singletonList(new FeatureTemplateGalleryEntry());
+    if(StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.get()) {
+      return ImmutableList.of(
+        new FeatureTemplateGalleryEntry(false),
+        new FeatureTemplateGalleryEntry(true)
+      );
+    } else {
+      return ImmutableList.of(
+        new FeatureTemplateGalleryEntry(false)
+      );
+    }
   }
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
     @NotNull private final File myTemplateFile;
     @NotNull private TemplateHandle myTemplateHandle;
+    private boolean myIsInstant;
 
-    FeatureTemplateGalleryEntry() {
-      myTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, DYNAMIC_FEATURE_TEMPLATE);
+    FeatureTemplateGalleryEntry(boolean isInstant) {
+      myTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, isInstant ? INSTANT_DYNAMIC_FEATURE_TEMPLATE :
+                                                                                           DYNAMIC_FEATURE_TEMPLATE);
       myTemplateHandle = new TemplateHandle(myTemplateFile);
+      myIsInstant = isInstant;
     }
 
     @Nullable
@@ -63,7 +76,8 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     @NotNull
     @Override
     public String getName() {
-      return message("android.wizard.module.new.dynamic.module");
+      return message(myIsInstant ? "android.wizard.module.new.dynamic.module.instant" :
+                     "android.wizard.module.new.dynamic.module");
     }
 
     @Nullable
@@ -104,7 +118,7 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       Project project = model.getProject().getValue();
       String basePackage = getSuggestedProjectPackage(project, false);
-      return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle, model.getProjectSyncInvoker()), basePackage);
+      return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle, model.getProjectSyncInvoker()), basePackage, myIsInstant);
     }
   }
 }
