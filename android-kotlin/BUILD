@@ -95,6 +95,7 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
+        "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:kotlin-plugin",
