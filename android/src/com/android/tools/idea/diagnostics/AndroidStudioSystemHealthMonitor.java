@@ -249,17 +249,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
    * Android Studio-specific checks of Java runtime.
    */
   private void checkRuntime() {
-    warnIfJRE();
     warnIfOpenJDK();
     warnIfMacDragNDropJDKBug();
-  }
-
-  private void warnIfJRE() {
-    try {
-      Class.forName("com.sun.jdi.Value");
-    } catch (Throwable t) {
-      showNotification("unsupported.jre", null);
-    }
   }
 
   private void warnIfOpenJDK() {
@@ -397,7 +388,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private void showNotification(@PropertyKey(resourceBundle = "messages.IdeBundle") String key,
+  private void showNotification(@PropertyKey(resourceBundle = "messages.AndroidBundle") String key,
                                 @Nullable NotificationAction action,
                                 Object... params) {
     boolean ignored = myProperties.isValueSet("ignore." + key);
