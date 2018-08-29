@@ -24,6 +24,8 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.stubs.FileStructure
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.idea.stats.UsageTrackerTestRunListener
+import com.android.tools.idea.stats.toProtoValue
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
@@ -40,10 +42,10 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
     val oldTracker = UsageTracker.setWriterForTest(tracker)
     val listener = UsageTrackerTestRunListener(
-        AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
-        mock(IDevice::class.java)!!.also {
-          `when`(it.serialNumber).thenReturn(serial)
-        }
+      AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
+      mock(IDevice::class.java)!!.also {
+        `when`(it.serialNumber).thenReturn(serial)
+      }
     )
 
     InstrumentationResultParser(UsageTrackerTestRunListener::class.qualifiedName, listener).run {
