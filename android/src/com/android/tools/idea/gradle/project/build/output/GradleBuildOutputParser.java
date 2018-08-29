@@ -46,7 +46,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   private static final String MESSAGES_GROUP = "Android issues";
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<MessageEvent> messageConsumer) {
+  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super MessageEvent> messageConsumer) {
     if (line.startsWith(STDOUT_ERROR_TAG)) {
       // Message started, start storing lines
       return processMessage(line, reader.getBuildId(), messageConsumer);
@@ -58,7 +58,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
    * Process an error message stored in myBufferedLines.
    * @return true if a message was processed.
    */
-  private static boolean processMessage(@NotNull String line, @NotNull Object buildId, @NotNull Consumer<MessageEvent> messageConsumer) {
+  private static boolean processMessage(@NotNull String line, @NotNull Object buildId, @NotNull Consumer<? super MessageEvent> messageConsumer) {
     String jsonString = line.substring(STDOUT_ERROR_TAG.length()).trim();
     if (jsonString.isEmpty()) {
       return false;

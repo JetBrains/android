@@ -121,7 +121,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   @Override
-  public Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
+  public Promise<Void> addExternalLibraryDependency(@NotNull Collection<? extends Module> modules,
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
     ArtifactDependencySpec dependencySpec =
@@ -143,7 +143,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
+  private static Promise<Void> addExternalLibraryDependency(@NotNull Collection<? extends Module> modules,
                                                             @NotNull ArtifactDependencySpec dependencySpec,
                                                             @NotNull DependencyScope scope) {
     Module firstModule = Iterables.getFirst(modules, null);
