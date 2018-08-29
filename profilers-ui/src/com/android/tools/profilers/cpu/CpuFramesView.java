@@ -66,7 +66,6 @@ public class CpuFramesView {
         boolean hasElements = size != 0;
         myPanel.setVisible(hasElements);
         myPanel.setExpanded(hasElements);
-        myPanel.getParent().revalidate();
       }
 
       @Override
@@ -123,6 +122,7 @@ public class CpuFramesView {
     HideablePanel framesPanel = new HideablePanel.Builder("FRAMES", frames)
       .setShowSeparator(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+      .setInitiallyExpanded(false)
       .build();
 
     CpuListScrollPane scrollingFrames = new CpuListScrollPane(myFrames, framesPanel);

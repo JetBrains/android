@@ -24,8 +24,6 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.ui.HideablePanel
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
@@ -42,7 +40,6 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -51,7 +48,6 @@ import java.awt.Point
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JLabel
-import javax.swing.JList
 import javax.swing.SwingUtilities
 
 // Path to trace file. Used in test to build AtraceParser.
@@ -97,49 +93,18 @@ class CpuProfilerStageViewTest {
     myProfilersView = StudioProfilersView(profilers, myComponents)
   }
 
-  @Ignore("b/113554750")
-  // TODO(b/113451031): refactor this test, because it relies on internal implementations.
   @Test
-  fun testCpuKernelAndFramesViewAreExpandedOnAtraceCapture() {
-    // Create default device and process for a default session.
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(1234).setState(Common.Process.State.ALIVE).build()
-    // Create a session and a ongoing profiling session.
-    myStage.studioProfilers.sessionsManager.endCurrentSession()
-    myStage.studioProfilers.sessionsManager.beginSession(device, process1)
-    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    val treeWalker = TreeWalker(cpuProfilerStageView.component)
-    // Find our Jlist elements, type of test ignores generics so we get all elements.
-    val list = treeWalker.descendants().filterIsInstance<JList<CpuFramesModel.FrameState>>()
-    val framesPanel = TreeWalker(list[2]).ancestors().filterIsInstance<HideablePanel>().first()
-    var title = TreeWalker(framesPanel).descendants().filterIsInstance<JLabel>().first()
-    // The panel containing the frames list should be hidden by default
-    assertThat(framesPanel.isVisible).isFalse()
-    assertThat(title.text).contains("FRAMES")
-
-    // Find our cpu list.
-    val kernelPanel = TreeWalker(list[1]).ancestors().filterIsInstance<HideablePanel>().first()
-    title = TreeWalker(kernelPanel).descendants().filterIsInstance<JLabel>().first()
-    // The panel containing the cpu list should be hidden by default.
-    assertThat(kernelPanel.isVisible).isFalse()
-    assertThat(title.text).contains("KERNEL")
+  fun splitterRatioChangesOnAtraceCapture() {
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
 
     val traceFile = TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)
     val capture = AtraceParser(1).parse(traceFile, 0)
-    myStage.capture = capture
-    // After we set a capture it should be visible and expanded.
-    assertThat(kernelPanel.isExpanded).isTrue()
-    assertThat(kernelPanel.isVisible).isTrue()
-    assertThat(framesPanel.isExpanded).isTrue()
-    assertThat(framesPanel.isVisible).isTrue()
 
-    // Verify the expanded kernel view adjust the splitter to take up more space.
-    val splitter = treeWalker.descendants().filterIsInstance<JBSplitter>().first()
-    assertThat(splitter.proportion).isWithin(0.0001f).of(KERNEL_VIEW_SPLITTER_RATIO)
-
-    // Verify when we reset the capture our splitter value goes back to default.
-    myStage.capture = null
     assertThat(splitter.proportion).isWithin(0.0001f).of(SPLITTER_DEFAULT_RATIO)
+    myStage.capture = capture
+    // Verify the expanded kernel view adjust the splitter to take up more space.
+    assertThat(splitter.proportion).isWithin(0.0001f).of(KERNEL_VIEW_SPLITTER_RATIO)
   }
 
   @Test
