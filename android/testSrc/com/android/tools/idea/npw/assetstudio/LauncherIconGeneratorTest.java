@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
@@ -25,22 +28,22 @@ import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ThreadTracker;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.imageio.ImageIO;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link LauncherIconGenerator}.
@@ -147,8 +150,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
                      Files.toString(goldenFile, StandardCharsets.UTF_8), ((GeneratedXmlResource)icon).getXmlText());
       } else {
         BufferedImage goldenImage = ImageIO.read(goldenFile);
-        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(),
-                           (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
+        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
       }
       unexpectedFiles.remove(file);
     }

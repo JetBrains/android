@@ -15,29 +15,29 @@
  */
 package com.android.tools.swing.layoutlib;
 
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.xml.sax.SAXException;
-
-import javax.imageio.ImageIO;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
-import static org.junit.Assert.assertNotEquals;
 
 public class GraphicsLayoutRendererTest extends AndroidTestCase {
   private static Dimension EMPTY_DIMENSION = new Dimension();
@@ -92,8 +92,7 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
       assertTrue(renderer.render((Graphics2D)image.getGraphics()));
 
       BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/themeEditor/previewPanel/components-golden.png"));
-      ImageDiffUtil.assertImageSimilar("components_golden", goldenImage, image,
-          (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
+      ImageDiffUtil.assertImageSimilar("components_golden", goldenImage, image, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
     } finally {
       renderer.dispose();
     }

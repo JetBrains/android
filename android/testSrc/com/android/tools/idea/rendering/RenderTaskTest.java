@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.isNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
@@ -27,23 +35,22 @@ import com.android.tools.idea.configurations.Configuration;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.*;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.*;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.imageio.ImageIO;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class RenderTaskTest extends AndroidTestCase {
   @Language("XML")
@@ -336,8 +343,7 @@ public class RenderTaskTest extends AndroidTestCase {
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
     // Fonts on OpenJDK look slightly different than on the IntelliJ version. Increase the diff tolerance to
     // 0.5 to account for that. We mostly care about characters not being displayed at all.
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result,
-        (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 }

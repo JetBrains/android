@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -36,22 +41,16 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.TwoColorsIcon;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
-import static com.google.common.truth.Truth.assertThat;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() {
@@ -258,8 +257,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     icon.paintIcon(null, image.getGraphics(), 0, 0);
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/resourceHelper/ic_delete.png"));
-    ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image,
-        (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
+    ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
   }
 
   public void testGetCompletionFromTypes() {
