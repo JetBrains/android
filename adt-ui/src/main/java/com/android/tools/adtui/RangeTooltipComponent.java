@@ -18,15 +18,21 @@ package com.android.tools.adtui;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A tooltip to be shown over some ranged chart with a vertical line to mark its horizontal position.
@@ -71,8 +77,9 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     myDataRange = data;
     myShowSeekComponent = showSeekComponent;
 
-    myTooltipComponent = new TooltipComponent.Builder(component, this, parent).build();
-    myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::viewRangeChanged);
+    myTooltipComponent =
+      new TooltipComponent.Builder(component, this, parent).setDefaultVisibilityOverride(() -> isHighlightRangeVisible()).build();
+    myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::refreshRanges);
     myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
   }
 
@@ -84,6 +91,11 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   public void registerListenersOn(@NotNull JComponent component) {
     MouseAdapter adapter = new MouseAdapter() {
       @Override
+      public void mouseEntered(MouseEvent e) {
+        handleMove(e);
+      }
+
+      @Override
       public void mouseMoved(MouseEvent e) {
         handleMove(e);
       }
@@ -92,7 +104,6 @@ public final class RangeTooltipComponent extends AnimatedComponent {
       public void mouseExited(MouseEvent e) {
         myLastPoint = null;
         myHighlightRange.clear();
-        highlightRangeChanged();
       }
 
       @Override
@@ -102,8 +113,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
 
       private void handleMove(MouseEvent e) {
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), RangeTooltipComponent.this);
-        viewRangeChanged();
-        highlightRangeChanged();
+        refreshRanges();
       }
     };
     component.addMouseMotionListener(adapter);
@@ -113,7 +123,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     myTooltipComponent.registerListenersOn(component);
   }
 
-  private void viewRangeChanged() {
+  private void refreshRanges() {
     if (isShowing()) {
       if (myLastPoint != null) {
         double current = xToRange(myLastPoint.x);
@@ -145,6 +155,8 @@ public final class RangeTooltipComponent extends AnimatedComponent {
       int width = (int)Math.ceil(x + HIGHLIGHT_WIDTH / 2.0) - minX;
       opaqueRepaint(minX, 0, width, getHeight());
     }
+
+    myTooltipComponent.setVisible(isHighlightRangeVisible());
   }
 
   @VisibleForTesting
@@ -164,10 +176,8 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     if (!isHighlightRangeVisible()) {
-      myTooltipComponent.setVisible(false);
       return;
     }
-    myTooltipComponent.setVisible(true);
 
     if (myShowSeekComponent.get()) {
       float x = rangeToX(myHighlightRange.getMin());

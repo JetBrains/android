@@ -51,14 +51,19 @@ public final class TooltipComponent extends AnimatedComponent {
   @NotNull
   private final Producer<Boolean> myIsOwnerDisplayable;
 
+  @Nullable
+  private final Producer<Boolean> myDefaultVisibilityOverride;
+
   // Minimum size of the tooltip between mouse enter/exit events.
   // This prevents the tooltip component from flapping due to the content size changing constantly.
   @NotNull
   private final Dimension myExpandedSize = new Dimension(0, 0);
 
-
   @Nullable
   private Point myLastPoint;
+
+  @Nullable
+  private Dimension myLastSize;
 
   private final ComponentListener myParentListener;
 
@@ -67,6 +72,7 @@ public final class TooltipComponent extends AnimatedComponent {
     myOwner = builder.myOwner;
     myParent = builder.myParent;
     myIsOwnerDisplayable = builder.myIsOwnerDisplayable;
+    myDefaultVisibilityOverride = builder.myDefaultVisibilityOverride;
 
     myParentListener = new ComponentAdapter() {
       @Override
@@ -104,7 +110,7 @@ public final class TooltipComponent extends AnimatedComponent {
   }
 
   private void resetBounds() {
-    if (myParent.getWidth() != getWidth() || myParent.getHeight() != getHeight()){
+    if (myParent.getWidth() != getWidth() || myParent.getHeight() != getHeight()) {
       setBounds(0, 0, myParent.getWidth(), myParent.getHeight());
     }
   }
@@ -142,23 +148,25 @@ public final class TooltipComponent extends AnimatedComponent {
         resetBounds();
         myParent.add(TooltipComponent.this, JLayeredPane.POPUP_LAYER);
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
-        setVisible(true);
+        setVisible(myDefaultVisibilityOverride == null ? true : myDefaultVisibilityOverride.produce());
         revalidate();
-        repaintIfVisible(myTooltipContent.getPreferredSize());
+        myLastSize = myTooltipContent.getPreferredSize(); // Stash this value only after revalidate().
+        repaintIfVisible(myLastSize);
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
-        repaintLastPoint();
+        repaintLastPoint(myLastSize);
         myExpandedSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         removeFromParent();
         setVisible(false);
         myLastPoint = null;
+        myLastSize = null;
       }
 
       private void handleMove(MouseEvent e) {
-        repaintIfVisible(myTooltipContent.getBounds().getSize()); // Repaint previous location.
+        repaintIfVisible(myTooltipContent.getSize()); // Repaint previous location.
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
         if (!isVisible()) {
           // If we turn invisible, then reset the anti-flap size.
@@ -168,7 +176,8 @@ public final class TooltipComponent extends AnimatedComponent {
         if (!myTooltipContent.getPreferredSize().equals(myTooltipContent.getBounds().getSize())) {
           revalidate();
         }
-        repaintIfVisible(myTooltipContent.getPreferredSize()); // Repaint new location.
+        myLastSize = myTooltipContent.getPreferredSize(); // Stash this value only after revalidate().
+        repaintIfVisible(myLastSize); // Repaint new location.
       }
     };
     component.addMouseMotionListener(adapter);
@@ -214,22 +223,22 @@ public final class TooltipComponent extends AnimatedComponent {
     return new Point(x, y);
   }
 
-  public void repaintIfVisible(@NotNull Dimension dimensionToCheck) {
-    if (isVisible() && dimensionToCheck.width > 0 && dimensionToCheck.height > 0) {
-      repaintLastPoint();
+  public void repaintIfVisible(@NotNull Dimension contentDimension) {
+    if (isVisible() && contentDimension.width > 0 && contentDimension.height > 0) {
+      repaintLastPoint(contentDimension);
     }
   }
 
-  private void repaintLastPoint() {
+  private void repaintLastPoint(@Nullable Dimension repaintDimension) {
     if (myLastPoint == null) {
       return;
     }
-    Dimension preferredSize = getPreferredSize();
+    Dimension preferredSize = repaintDimension == null ? getPreferredSize() : repaintDimension;
     Point paintLocation = getPaintLocation(myLastPoint, preferredSize);
     opaqueRepaint(paintLocation.x - DROPSHADOW_ALPHAS.length,
                   paintLocation.y - DROPSHADOW_ALPHAS.length,
-                  preferredSize.width + 2 * DROPSHADOW_ALPHAS.length,
-                  preferredSize.height + 2 * DROPSHADOW_ALPHAS.length);
+                  preferredSize.width + 2 * DROPSHADOW_ALPHAS.length + 1,   // We're off by 1 somewhere?
+                  preferredSize.height + 2 * DROPSHADOW_ALPHAS.length + 1);
   }
 
   public static class Builder {
@@ -237,6 +246,7 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull private final JComponent myOwner;
     @NotNull private final JLayeredPane myParent;
     @NotNull private Producer<Boolean> myIsOwnerDisplayable;
+    @Nullable private Producer<Boolean> myDefaultVisibilityOverride;
 
     /**
      * Construct a tooltip component to show for a particular {@code owner}. After
@@ -263,6 +273,16 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull
     public Builder setIsOwnerDisplayable(@NotNull Producer<Boolean> isOwnerDisplayable) {
       myIsOwnerDisplayable = isOwnerDisplayable;
+      return this;
+    }
+
+    /**
+     * A visibility override on mouseEntered, in case an external class owns a tooltip component
+     * and has more context about when it should first appear.
+     */
+    @NotNull
+    public Builder setDefaultVisibilityOverride(@NotNull Producer<Boolean> defaultVisibilityOverride) {
+      myDefaultVisibilityOverride = defaultVisibilityOverride;
       return this;
     }
 
