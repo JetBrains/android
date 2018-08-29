@@ -25,13 +25,14 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Refers to objects that have the "_class" field set to be one of the following:
+ * {@link SketchLayer} that mimics the JSON element with attribute <code>"_class"</code> set to be one of the following:
  * <ul>
- * <li>"page"</li>
- * <li>"group"</li>
+ * <li><code>"page"</code></li>
+ * <li><code>"group"</code></li>
  * </ul>
- * <p>
- * {@link com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer}
+ * It contains other layers, so it is a {@link SketchLayerable}.
+ *
+ * @see com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer
  */
 public class SketchPage extends SketchLayer implements SketchLayerable {
   SketchStyle style;

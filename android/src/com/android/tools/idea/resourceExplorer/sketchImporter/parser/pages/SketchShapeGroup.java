@@ -20,6 +20,12 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link SketchLayer} that mimics the JSON element with attribute <code>"_class": "shapeGroup"</code> contained within a sketch file.
+ * It contains other layers, so it is a {@link SketchLayerable}.
+ *
+ * @see com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer
+ */
 public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
   private final SketchStyle style;
   private final SketchLayer[] layers;

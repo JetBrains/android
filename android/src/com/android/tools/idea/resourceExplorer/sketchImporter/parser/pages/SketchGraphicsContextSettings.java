@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-public class SketchGraphicContextSettings {
+/**
+ * Mimics the JSON element with attribute <code>"_class": "graphicsContextSettings"</code> contained within a sketch file.
+ */
+public class SketchGraphicsContextSettings {
   /**
    * <ul>
    * <li>Normal: 0</li>
@@ -42,7 +45,7 @@ public class SketchGraphicContextSettings {
    */
   private double opacity;
 
-  public SketchGraphicContextSettings(short blendMode, double opacity) {
+  public SketchGraphicsContextSettings(short blendMode, double opacity) {
     this.blendMode = blendMode;
     this.opacity = opacity;
   }

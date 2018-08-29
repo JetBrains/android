@@ -38,6 +38,10 @@ private fun List<LightVirtualFile>.toAssets() = this.map {
 
 private const val DEFAULT_IMPORT_ALL = true
 
+/**
+ * The presenter in the MVP pattern developed for the Sketch Importer UI, connects the view to the model and deals with the logic behind the
+ * user interface.
+ */
 class SketchImporterPresenter(private val sketchImporterView: SketchImporterView,
                               sketchFile: SketchFile,
                               private val designAssetImporter: DesignAssetImporter,

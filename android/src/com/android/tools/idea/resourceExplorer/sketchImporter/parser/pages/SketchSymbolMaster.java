@@ -23,6 +23,10 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link SketchSymbol} that mimics the JSON element with attribute <code>"_class": "symbolMaster"</code> contained within a sketch file.
+ * It contains layers, so it is a {@link SketchLayerable}.
+ */
 public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable {
   private final SketchStyle style;
   private final SketchLayer[] layers;

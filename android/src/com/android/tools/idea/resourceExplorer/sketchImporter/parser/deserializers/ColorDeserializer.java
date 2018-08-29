@@ -24,7 +24,7 @@ import java.lang.reflect.Type;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * In the sketch JSON, colors are represented through floating-point values representing percentages that correspond to the ARGB values.
+ * In the sketch JSON, colors are represented through floating-point values denoting percentages that correspond to the ARGB values.
  * This is a {@link JsonDeserializer} that turns that into a {@link Color} for easy manipulation.
  */
 public class ColorDeserializer implements JsonDeserializer<Color> {

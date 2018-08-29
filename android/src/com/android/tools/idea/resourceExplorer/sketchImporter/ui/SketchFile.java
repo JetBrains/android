@@ -36,6 +36,9 @@ import org.jetbrains.annotations.Nullable;
  * <li><b>"meta.json"</b> - Contains metadata about the document itself: a list of pages and artboards, fonts used etc.</li>
  * <li><b>"user.json"</b> - Contains user metadata for the file, like the canvas viewport & zoom level for each page, UI metadata for the app etc.</li>
  * </ul>
+ * <p>
+ * With respect to the MVP pattern developed for the Sketch Importer UI, this class is part of the model that forms the backbone of the
+ * information presented in the interface.
  */
 public class SketchFile {
   private SketchDocument myDocument;
@@ -51,13 +54,47 @@ public class SketchFile {
     return myPages;
   }
 
+  @NotNull
+  public SketchDocument getDocument() {
+    return myDocument;
+  }
+
   public void setDocument(@NotNull SketchDocument document) {
     myDocument = document;
   }
 
-  @NotNull
-  public SketchDocument getDocument() {
-    return myDocument;
+  /**
+   * Recursively search through all pages in the file for the layer with the corresponding {@code objectId}.
+   *
+   * @return the found layer or {@code null} if no layer was found
+   */
+  @Nullable
+  public SketchLayer findLayer(@NotNull String objectId) {
+    for (SketchPage page : myPages) {
+      SketchLayer foundLayer = findLayer(objectId, page);
+      if (foundLayer != null) {
+        return foundLayer;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Recursively search through all pages in the file for the symbol with the corresponding {@code symbolId}.
+   *
+   * @return the found symbol or {@code null} if no layer was found
+   */
+  @Nullable
+  public SketchSymbol findSymbol(@NotNull String symbolId) {
+    for (SketchPage page : myPages) {
+      SketchSymbol foundSymbol = findSymbol(symbolId, page);
+      if (foundSymbol != null) {
+        return foundSymbol;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -84,23 +121,6 @@ public class SketchFile {
   }
 
   /**
-   * Recursively search through all pages in the file for the layer with the corresponding {@code objectId}.
-   *
-   * @return the found layer or {@code null} if no layer was found
-   */
-  @Nullable
-  public SketchLayer findLayer(@NotNull String objectId) {
-    for (SketchPage page : myPages) {
-      SketchLayer foundLayer = findLayer(objectId, page);
-      if (foundLayer != null) {
-        return foundLayer;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Recursively search for the symbol with the corresponding {@code symbolId} starting at {@code currentLayer}.
    *
    * @return the found symbol or {@code null} if no layer was found
@@ -119,23 +139,6 @@ public class SketchFile {
         if (foundSymbol != null) {
           return foundSymbol;
         }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Recursively search through all pages in the file for the symbol with the corresponding {@code symbolId}.
-   *
-   * @return the found symbol or {@code null} if no layer was found
-   */
-  @Nullable
-  public SketchSymbol findSymbol(@NotNull String symbolId) {
-    for (SketchPage page : myPages) {
-      SketchSymbol foundSymbol = findSymbol(symbolId, page);
-      if (foundSymbol != null) {
-        return foundSymbol;
       }
     }
 

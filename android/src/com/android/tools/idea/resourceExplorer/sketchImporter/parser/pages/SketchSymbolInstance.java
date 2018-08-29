@@ -19,6 +19,9 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link SketchSymbol} that mimics the JSON element with attribute <code>"_class": "symbolInstance"</code> contained within a sketch file.
+ */
 public class SketchSymbolInstance extends SketchSymbol {
   private final SketchStyle style;
   private final double scale;

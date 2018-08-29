@@ -22,6 +22,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Holds the options the user chooses for each individual icon that is imported,
  * i.e. whether they want to hide the background or other things that may come up in the future.
+ * <p>
+ * With respect to the MVP pattern developed for the Sketch Importer UI, this class is part of the model that forms the backbone of the
+ * information presented in the interface.
  */
 public class AssetOptions {
   private String myName;
@@ -46,6 +49,15 @@ public class AssetOptions {
   }
 
   @NotNull
+  public String getName() {
+    return myName;
+  }
+
+  public void setName(@NotNull String name) {
+    myName = name;
+  }
+
+  @NotNull
   private static String getDefaultName(@NotNull SketchArtboard artboard) {
     String name = artboard.getName();
 
@@ -61,14 +73,5 @@ public class AssetOptions {
     }
 
     return name;
-  }
-
-  public void setName(@NotNull String name) {
-    myName = name;
-  }
-
-  @NotNull
-  public String getName() {
-    return myName;
   }
 }

@@ -28,7 +28,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchCurvePoint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicContextSettings;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicsContextSettings;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapeGroup;
@@ -153,7 +153,7 @@ public class SketchToShapeConverter {
                                                                      double parentOpacity) {
     Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + page.getFrame().getX(),
                                                         parentCoords.getY() + page.getFrame().getY());
-    SketchGraphicContextSettings graphicContextSettings = page.getStyle().getContextSettings();
+    SketchGraphicsContextSettings graphicContextSettings = page.getStyle().getContextSettings();
     if (graphicContextSettings != null) {
       parentOpacity *= graphicContextSettings.getOpacity();
     }
@@ -210,7 +210,7 @@ public class SketchToShapeConverter {
   private static Path2D.Double getGenericPath(@NotNull SketchShapePath shapePath) {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
     SketchCurvePoint[] points = shapePath.getPoints();
-    if(points.length == 0){
+    if (points.length == 0) {
       return new Path2D.Double();
     }
     SketchPoint2D startCoords = points[0].getPoint().makeAbsolutePosition(shapePath.getFrame());

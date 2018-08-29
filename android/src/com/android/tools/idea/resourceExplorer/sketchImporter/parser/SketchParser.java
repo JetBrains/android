@@ -41,6 +41,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Parses sketch files.
+ */
 public class SketchParser {
   private static final Logger LOG = Logger.getInstance(SketchParser.class);
 
