@@ -17,7 +17,7 @@ package com.android.tools.idea.testartifacts.junit;
 
 import com.android.tools.idea.IdeInfo;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
-import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationTypeBase;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -26,6 +26,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
+import com.intellij.util.LazyUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,7 @@ import javax.swing.*;
 /**
  * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
  */
-public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
+public class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
@@ -49,10 +50,10 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
     }
   };
 
-  private final ConfigurationFactory myFactory;
-
   public AndroidJUnitConfigurationType() {
-    myFactory = new ConfigurationFactoryEx(this) {
+    super(ANDROID_JUNIT_ID, ANDROID_JUNIT_NAME, ANDROID_JUNIT_DESCRIPTION, LazyUtil.create(() -> IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue()));
+
+    addFactory(new ConfigurationFactoryEx(this) {
       @NotNull
       @Override
       public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
@@ -66,45 +67,17 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
       public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
         ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
       }
-    };
+    });
   }
 
   @NotNull
-  @Override
-  public String getDisplayName() {
-    return ANDROID_JUNIT_NAME;
-  }
-
-  @Override
-  public String getConfigurationTypeDescription() {
-    return ANDROID_JUNIT_DESCRIPTION;
-  }
-
-  @Override
-  public Icon getIcon() {
-    // Uses the standard JUnit icon if in AndroidStudio and otherwise, another icon
-    return IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue();
-  }
-
-  @Override
-  public ConfigurationFactory[] getConfigurationFactories() {
-    return new ConfigurationFactory[]{myFactory};
-  }
-
-  @Override
-  @NotNull
-  public String getId() {
-    return ANDROID_JUNIT_ID;
+  public static AndroidJUnitConfigurationType getInstance() {
+    return ConfigurationTypeUtil.findConfigurationType(AndroidJUnitConfigurationType.class);
   }
 
   @NotNull
   @Override
   public String getConfigurationPropertyName() {
     return "androidJunit";
-  }
-
-  @NotNull
-  public static AndroidJUnitConfigurationType getInstance() {
-    return ConfigurationTypeUtil.findConfigurationType(AndroidJUnitConfigurationType.class);
   }
 }
