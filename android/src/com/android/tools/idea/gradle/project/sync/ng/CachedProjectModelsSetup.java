@@ -130,12 +130,10 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
     AndroidModuleModel androidModel = cache.findModel(AndroidModuleModel.class);
     if (androidModel != null) {
       myAndroidModuleSetup.setUpModule(context, androidModel, true /* sync skipped */);
-      return;
-    }
-
-    NdkModuleModel ndkModel = cache.findModel(NdkModuleModel.class);
-    if (ndkModel != null) {
-      myNdkModuleSetup.setUpModule(context, ndkModel, true /* sync skipped */);
+      NdkModuleModel ndkModel = cache.findModel(NdkModuleModel.class);
+      if (ndkModel != null) {
+        myNdkModuleSetup.setUpModule(context, ndkModel, true /* sync skipped */);
+      }
       return;
     }
 
