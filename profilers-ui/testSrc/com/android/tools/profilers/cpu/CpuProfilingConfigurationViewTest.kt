@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JComboBox
 
 class CpuProfilingConfigurationViewTest {
 
@@ -58,6 +59,19 @@ class CpuProfilingConfigurationViewTest {
   fun separatorEntryExists() {
     assertThat(configurationView.profilingConfigurations).contains(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY)
     assertThat(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY.name).isNotEmpty()
+  }
+
+  @Test
+  fun separatorShouldNotBeSelectable() {
+    val combobox = configurationView.component as JComboBox<*>
+    assertThat(combobox.getItemAt(0)).isNotEqualTo(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY)
+    assertThat(combobox.getItemAt(1)).isEqualTo(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY)
+
+    combobox.selectedIndex = 0
+    assertThat(combobox.selectedIndex).isEqualTo(0)
+
+    combobox.selectedIndex = 1
+    assertThat(combobox.selectedIndex).isEqualTo(0)
   }
 
   @Test
