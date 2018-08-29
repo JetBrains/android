@@ -19,16 +19,19 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
 import java.lang.reflect.Type;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * In the sketch JSON, colors are represented through floating-point values representing percentages that correspond to the ARGB values.
  * This is a {@link JsonDeserializer} that turns that into a {@link Color} for easy manipulation.
  */
 public class ColorDeserializer implements JsonDeserializer<Color> {
+  private static final String ALPHA = "alpha";
+  private static final String BLUE = "blue";
+  private static final String GREEN = "green";
+  private static final String RED = "red";
 
   @Override
   @NotNull
@@ -37,10 +40,10 @@ public class ColorDeserializer implements JsonDeserializer<Color> {
                            @NotNull JsonDeserializationContext context) {
     final JsonObject jsonObject = json.getAsJsonObject();
 
-    final int alpha = (int)Math.round(jsonObject.get("alpha").getAsDouble() * 255);
-    final int blue = (int)Math.round(jsonObject.get("blue").getAsDouble() * 255);
-    final int green = (int)Math.round(jsonObject.get("green").getAsDouble() * 255);
-    final int red = (int)Math.round(jsonObject.get("red").getAsDouble() * 255);
+    final int alpha = (int)Math.round(jsonObject.get(ALPHA).getAsDouble() * 255);
+    final int blue = (int)Math.round(jsonObject.get(BLUE).getAsDouble() * 255);
+    final int green = (int)Math.round(jsonObject.get(GREEN).getAsDouble() * 255);
+    final int red = (int)Math.round(jsonObject.get(RED).getAsDouble() * 255);
 
     return new Color(red, green, blue, alpha);
   }
