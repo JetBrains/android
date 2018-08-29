@@ -32,16 +32,21 @@ import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
@@ -88,6 +93,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private JButton myForceGarbageCollectionButton;
   @NotNull private JButton myHeapDumpButton;
   @NotNull private JButton myAllocationButton;
+  @NotNull private JComboBox myAllocationSamplingRateDropDown;
   @NotNull private ProfilerAction myForceGarbageCollectionAction;
   @NotNull private ProfilerAction myHeapDumpAction;
   @NotNull private ProfilerAction myAllocationAction;
@@ -186,6 +192,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();
 
+    myAllocationSamplingRateDropDown = new ComboBox<LiveAllocationSamplingMode>();
+
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
@@ -202,13 +210,51 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return !getStage().isMemoryCaptureOnly();
   }
 
+  @VisibleForTesting
+  JButton getGarbageCollectionButtion() {
+    return myForceGarbageCollectionButton;
+  }
+
+  @VisibleForTesting
+  JButton getHeapDumpButton() {
+    return myHeapDumpButton;
+  }
+
+  @VisibleForTesting
+  JButton getAllocationButton() {
+    return myAllocationButton;
+  }
+
+  @VisibleForTesting
+  JLabel getAllocationCaptureElaspedTimeLabel() {
+    return myCaptureElapsedTime;
+  }
+
+  @VisibleForTesting
+  JComboBox getAllocationSamplingRateDropDown() {
+    return myAllocationSamplingRateDropDown;
+  }
+
   @Override
   public JComponent getToolbar() {
     JPanel toolBar = new JPanel(createToolbarLayout());
     toolBar.add(myForceGarbageCollectionButton);
     toolBar.add(myHeapDumpButton);
-    toolBar.add(myAllocationButton);
-    toolBar.add(myCaptureElapsedTime);
+    if (getStage().useLiveAllocationTracking()) {
+      JComboBoxView sampleRateComboView =
+        new JComboBoxView<LiveAllocationSamplingMode, MemoryProfilerAspect>(myAllocationSamplingRateDropDown,
+                                                                            getStage().getAspect(),
+                                                                            MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
+                                                                            getStage()::getSupportedLiveAllocationSamplingMode,
+                                                                            getStage()::getLiveAllocationSamplingMode,
+                                                                            getStage()::requestLiveAllocationSamplingModeUpdate);
+      sampleRateComboView.bind();
+      myAllocationSamplingRateDropDown.setRenderer(new LiveAllocationSamplingModeRenderer());
+      toolBar.add(myAllocationSamplingRateDropDown);
+    } else {
+      toolBar.add(myAllocationButton);
+      toolBar.add(myCaptureElapsedTime);
+    }
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
@@ -216,6 +262,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myForceGarbageCollectionButton.setEnabled(isAlive);
       myHeapDumpButton.setEnabled(isAlive);
       myAllocationButton.setEnabled(isAlive);
+      myAllocationSamplingRateDropDown.setEnabled(isAlive);
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
     toggleButtons.run();
@@ -727,5 +774,23 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return (instance == null || instance.getCallStackDepth() == 0)
            ? nonStackedIcon
            : stackedIcon;
+  }
+
+  @VisibleForTesting
+  static class LiveAllocationSamplingModeRenderer extends ColoredListCellRenderer<LiveAllocationSamplingMode> {
+    private static ImmutableMap<LiveAllocationSamplingMode, String> MODE_TO_NAME = ImmutableMap.of(
+      LiveAllocationSamplingMode.NONE, "None",
+      LiveAllocationSamplingMode.SAMPLED, "Sampled",
+      LiveAllocationSamplingMode.FULL, "Full"
+    );
+
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list,
+                                         LiveAllocationSamplingMode value,
+                                         int index,
+                                         boolean selected,
+                                         boolean hasFocus) {
+      append(MODE_TO_NAME.get(value), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    }
   }
 }
