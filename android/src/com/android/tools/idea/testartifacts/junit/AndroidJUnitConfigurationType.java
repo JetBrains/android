@@ -34,7 +34,7 @@ import javax.swing.*;
 /**
  * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
  */
-public class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
+public final class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
