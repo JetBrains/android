@@ -28,6 +28,10 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
+import com.android.tools.idea.naveditor.scene.HEADER_HEIGHT
+import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
+import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
+import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.scaledFont
 import com.intellij.util.ui.JBUI
@@ -39,13 +43,6 @@ import java.awt.geom.Rectangle2D
  * It consists of an optional start destination icon, followed by
  * the label, followed by an optional deep link icon.
  */
-@NavCoordinate private val ICON_SIZE = JBUI.scale(14f)
-@NavCoordinate private val TEXT_PADDING = JBUI.scale(2f)
-@NavCoordinate private val HEADER_PADDING = JBUI.scale(8f)
-
-@NavCoordinate private val HEADER_HEIGHT = ICON_SIZE + HEADER_PADDING
-@NavCoordinate private val TEXT_HEIGHT = ICON_SIZE - 2 * TEXT_PADDING
-
 class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
 
   private val hasDeepLink: Boolean
@@ -79,9 +76,9 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
     @SwingCoordinate var l = Coordinates.getSwingX(view, myLeft)
     @SwingCoordinate val t = Coordinates.getSwingY(view, myTop)
     @SwingCoordinate var r = Coordinates.getSwingX(view, myRight)
-    @SwingCoordinate val iconSize = Coordinates.getSwingDimension(view, ICON_SIZE)
-    @SwingCoordinate val textPadding = Coordinates.getSwingDimension(view, TEXT_PADDING)
-    @SwingCoordinate val textHeight = Coordinates.getSwingDimension(view, TEXT_HEIGHT)
+    @SwingCoordinate val iconSize = Coordinates.getSwingDimension(view, HEADER_ICON_SIZE)
+    @SwingCoordinate val textPadding = Coordinates.getSwingDimension(view, HEADER_TEXT_PADDING)
+    @SwingCoordinate val textHeight = Coordinates.getSwingDimension(view, HEADER_TEXT_HEIGHT)
 
     if (isStartDestination) {
       list.add(DrawIcon(Rectangle2D.Float(l, t, iconSize, iconSize), DrawIcon.IconType.START_DESTINATION))

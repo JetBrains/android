@@ -162,12 +162,6 @@ public class ActionTarget extends BaseTarget {
     }
 
     Rectangle2D.Float destRect = myDestination.fillDrawRect2D(0,null);
-    myDestination.getTargets().forEach(t -> {
-      if (t instanceof NavBaseTarget) {
-        Rectangle2D.Float.union(destRect, ((NavBaseTarget)t).getBounds(), destRect);
-      }
-    });
-
 
     myDestRect = Coordinates.getSwingRectDip(view, destRect);
     mySourceRect = sourceRect;
@@ -286,7 +280,11 @@ public class ActionTarget extends BaseTarget {
 
   @NotNull
   private static Point2D.Float getArrowPoint(@NotNull SceneContext context, @NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
-    return shiftPoint(getConnectionPoint(rectangle, direction), direction, context.getSwingDimension(ACTION_PADDING));
+    @NavCoordinate int shiftY = ACTION_PADDING;
+    if (direction == TOP) {
+      shiftY += (int)JBUI.scale(NavDrawHelperKt.HEADER_HEIGHT);
+    }
+    return shiftPoint(getConnectionPoint(rectangle, direction), direction, context.getSwingDimension(shiftY));
   }
 
   @NotNull
@@ -296,9 +294,9 @@ public class ActionTarget extends BaseTarget {
 
   @NotNull
   private static Point2D.Float getEndPoint(@NotNull SceneContext context, @NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
-    return shiftPoint(getConnectionPoint(rectangle, direction),
+    return shiftPoint(getArrowPoint(context, rectangle, direction),
                       direction,
-                      context.getSwingDimension((int)NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING) - 1);
+                      context.getSwingDimension((int)NavSceneManager.ACTION_ARROW_PARALLEL) - 1);
   }
 
   @NotNull
