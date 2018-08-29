@@ -41,8 +41,10 @@ class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
   }
 
   fun testVerifyDynamicFeatureAnnotations() {
-    Truth.assertThat(parameters.getTableDisplayValueAt(1,1).toString()).contains(" (not instant app enabled)")
-    Truth.assertThat(parameters.getTableDisplayValueAt(2,1).toString()).doesNotContain(" (not instant app enabled)")
+    if (model.modelVersion!!.isAtLeast(3, 3, 0, "alpha", 10, true)) {
+      Truth.assertThat(parameters.getTableDisplayValueAt(1,1).toString()).contains(" (not instant app enabled)")
+      Truth.assertThat(parameters.getTableDisplayValueAt(2,1).toString()).doesNotContain(" (not instant app enabled)")
+    }
   }
 
   fun testVerifyBaseModuleAnnotations() {
@@ -58,20 +60,22 @@ class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
     Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(true)
     Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
 
-    parameters.updateBasedOnInstantState(getModule("app"), true)
-    Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
-    Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isFalse()
-    Truth.assertThat(parameters.tableComponent.model.isCellEditable(2, 0)).isTrue()
-    Truth.assertThat(parameters.tableComponent.model.getValueAt(0, 0)).isEqualTo(true)
-    Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(false)
-    Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
+    if (model.modelVersion!!.isAtLeast(3, 3, 0, "alpha", 10, true)) {
+      parameters.updateBasedOnInstantState(getModule("app"), true)
+      Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
+      Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isFalse()
+      Truth.assertThat(parameters.tableComponent.model.isCellEditable(2, 0)).isTrue()
+      Truth.assertThat(parameters.tableComponent.model.getValueAt(0, 0)).isEqualTo(true)
+      Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(false)
+      Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
 
-    parameters.updateBasedOnInstantState(getModule("app"), false)
-    Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
-    Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isTrue()
-    Truth.assertThat(parameters.tableComponent.model.isCellEditable(2, 0)).isTrue()
-    Truth.assertThat(parameters.tableComponent.model.getValueAt(0, 0)).isEqualTo(true)
-    Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(false)
-    Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
+      parameters.updateBasedOnInstantState(getModule("app"), false)
+      Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
+      Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isTrue()
+      Truth.assertThat(parameters.tableComponent.model.isCellEditable(2, 0)).isTrue()
+      Truth.assertThat(parameters.tableComponent.model.getValueAt(0, 0)).isEqualTo(true)
+      Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(false)
+      Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
+    }
   }
 }

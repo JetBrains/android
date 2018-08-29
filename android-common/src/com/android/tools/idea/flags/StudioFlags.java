@@ -393,7 +393,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS = Flag.create(
     UAB, "hide.instant.modules", "Hide Instant Modules for non-feature plugin Project",
-    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be avialble",
+    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be available",
     true
   );
 
