@@ -26,6 +26,7 @@ import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
@@ -35,9 +36,11 @@ import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
@@ -47,8 +50,6 @@ final class CpuThreadsView {
 
   @NotNull
   private final HideablePanel myPanel;
-
-  private AxisComponent myAxisComponent;
 
   @NotNull
   private final CpuProfilerStage myStage;
@@ -60,6 +61,9 @@ final class CpuThreadsView {
   @SuppressWarnings("FieldCanBeLocal")
   @NotNull
   private final AspectObserver myObserver;
+
+  @Nullable
+  private Rectangle myLastHoveredThreadBoundsInPanelSpace;
 
   public CpuThreadsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
@@ -95,11 +99,11 @@ final class CpuThreadsView {
   @NotNull
   private HideablePanel createHideablePanel() {
     // Add AxisComponent only to scrollable section of threads list.
-    myAxisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
-    myAxisComponent.setShowAxisLine(false);
-    myAxisComponent.setShowLabels(false);
-    myAxisComponent.setHideTickAtMin(true);
-    myAxisComponent.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
+    AxisComponent axisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+    axisComponent.setShowAxisLine(false);
+    axisComponent.setShowLabels(false);
+    axisComponent.setHideTickAtMin(true);
+    axisComponent.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
     final JPanel threads = new JPanel(new TabularLayout("*", "*"));
 
     final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
@@ -113,11 +117,11 @@ final class CpuThreadsView {
     scrollingThreads.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        myAxisComponent.setMarkerLengths(scrollingThreads.getHeight(), 0);
+        axisComponent.setMarkerLengths(scrollingThreads.getHeight(), 0);
       }
     });
 
-    threads.add(myAxisComponent, new TabularLayout.Constraint(0, 0));
+    threads.add(axisComponent, new TabularLayout.Constraint(0, 0));
     threads.add(scrollingThreads, new TabularLayout.Constraint(0, 0));
 
     // Clear border set by default on the hideable panel.
@@ -171,11 +175,15 @@ final class CpuThreadsView {
     myThreads.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
+        if (myLastHoveredThreadBoundsInPanelSpace != null) {
+          myPanel.repaint(myLastHoveredThreadBoundsInPanelSpace);
+          myLastHoveredThreadBoundsInPanelSpace = null;
+        }
+
         int row = myThreads.locationToIndex(e.getPoint());
         if (row != -1) {
-          // TODO(b/113539143) Optimize this so we don't repaint the whole thing.
-          // Only the portion that has changed should be repainted (remember to transform coordinate space into AxisComponent's).
-          myAxisComponent.repaint();
+          myLastHoveredThreadBoundsInPanelSpace = SwingUtilities.convertRectangle(myThreads, myThreads.getCellBounds(row, row), myPanel);
+          myPanel.repaint(myLastHoveredThreadBoundsInPanelSpace);
 
           CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(row);
           if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
