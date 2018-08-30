@@ -549,12 +549,12 @@ public class ChooseResourceDialog extends DialogWrapper {
   private ToggleAction createGridViewAction() {
     return new ToggleAction(null, "grid", StudioIcons.LayoutEditor.Palette.GRID_VIEW) {
         @Override
-        public boolean isSelected(AnActionEvent e) {
+        public boolean isSelected(@NotNull AnActionEvent e) {
           return myGridMode;
         }
 
         @Override
-        public void setSelected(AnActionEvent e, boolean state) {
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
           setGridMode(state);
         }
       };
@@ -564,12 +564,12 @@ public class ChooseResourceDialog extends DialogWrapper {
   private ToggleAction createListViewAction() {
     return new ToggleAction(null, "list", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
         @Override
-        public boolean isSelected(AnActionEvent e) {
+        public boolean isSelected(@NotNull AnActionEvent e) {
           return !myGridMode;
         }
 
         @Override
-        public void setSelected(AnActionEvent e, boolean state) {
+        public void setSelected(@NotNull AnActionEvent e, boolean state) {
           setGridMode(!state);
         }
       };

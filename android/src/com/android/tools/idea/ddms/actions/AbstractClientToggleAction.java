@@ -37,7 +37,7 @@ public abstract class AbstractClientToggleAction extends ToggleAction {
   }
 
   @Override
-  public final boolean isSelected(AnActionEvent e) {
+  public final boolean isSelected(@NotNull AnActionEvent e) {
     Client c = myDeviceContext.getSelectedClient();
     if (c == null || !c.isValid()) {
       return false;
@@ -46,7 +46,7 @@ public abstract class AbstractClientToggleAction extends ToggleAction {
   }
 
   @Override
-  public final void setSelected(AnActionEvent e, boolean state) {
+  public final void setSelected(@NotNull AnActionEvent e, boolean state) {
     Client c = myDeviceContext.getSelectedClient();
     if (c == null || !c.isValid()) {
       return;

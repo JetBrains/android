@@ -657,7 +657,7 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent event) {
+    public boolean isSelected(@NotNull AnActionEvent event) {
       return getProperty(myProperty);
     }
 
@@ -677,7 +677,7 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent event) {
+    public boolean isSelected(@NotNull AnActionEvent event) {
       return !super.isSelected(event);
     }
 

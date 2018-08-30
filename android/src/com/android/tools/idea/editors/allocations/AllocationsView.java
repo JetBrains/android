@@ -644,12 +644,12 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return mySplitter.getSecondComponent() != null;
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       PropertiesComponent.getInstance().setValue(ALLOCATION_VIEW_ID + SHOW_CHART_STATE, state);
       if (state) {
         mySplitter.setSecondComponent(myChartPane);
