@@ -1,0 +1,36 @@
+apply plugin: 'com.android.library'
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+    flavorDimensions "dim0"
+    productFlavors {
+        dim0flav0 {
+            dimension "dim0"
+        }
+        dim0flav1 {
+            dimension "dim0"
+        }
+    }
+}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':module20')
+    implementation "com.android.support.constraint:constraint-layout:1.0.2"
+    testImplementation "junit:junit:4.12"
+}
