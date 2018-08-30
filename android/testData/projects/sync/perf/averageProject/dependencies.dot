@@ -1,6 +1,0 @@
-digraph averageProject {
-  androidAppModule0 -> androidAppModule1, androidAppModule2, module0;
-  androidAppModule1 -> androidAppModule2, module0;
-  androidAppModule2 -> module0;
-  module0;
-}

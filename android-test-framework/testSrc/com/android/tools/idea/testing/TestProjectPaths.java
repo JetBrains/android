@@ -77,6 +77,9 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
+  public static final String SYNC_PERF_AVERAGE_PROJECT = "projects/sync/perf/averageProject";
+  public static final String SYNC_PERF_LARGE_PROJECT = "projects/sync/perf/largeProject";
+  public static final String SYNC_PERF_UBER_LIKE_PROJECT = "projects/sync/perf/uberLikeProject";
   public static final String TEST_ARTIFACTS_KOTLIN = "projects/testArtifacts/kotlin";
   public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
@@ -90,5 +93,4 @@ public final class TestProjectPaths {
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";
-  public static final String SYNC_PERF_AVERAGE_PROJECT = "projects/sync/perf/averageProject";
 }

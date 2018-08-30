@@ -1,0 +1,24 @@
+{
+  "projectName": "largeProject",
+  "root": ".",
+  "gradleVersion": "4.9",
+  "androidGradlePluginVersion": "3.2.0-dev",
+  "kotlinVersion": "1.1.60",
+  "numModules": "10",
+  "allMethods": "40",
+  "javaPackageCount": "1",
+  "javaClassCount": "4",
+  "javaMethodCount": "20",
+  "kotlinPackageCount": "0",
+  "kotlinClassCount": "0",
+  "androidModules": "21",
+  "numActivitiesPerAndroidModule": "5",
+  "productFlavors": [
+      3, 3
+   ],
+   "topologies": [
+      {"type": "full", "density": "1.0"}
+   ],
+  "generateTests": true,
+  "gradleProperties": {"org.gradle.parallel": "false"}
+}

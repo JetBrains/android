@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.androidAppModule24">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+<application>
+         <activity android:name=".Activity0">
+        </activity>
+        <activity android:name=".Activity1">
+        </activity>
+        <activity android:name=".Activity2">
+        </activity>
+        <activity android:name=".Activity3">
+        </activity>
+        <activity android:name=".Activity4">
+        </activity>
+ </application>
+
+</manifest>
