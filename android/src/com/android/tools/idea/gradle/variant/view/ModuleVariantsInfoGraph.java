@@ -307,12 +307,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myGraphComponent != null && myGraphComponent.isGridVisible();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       if (myGraphComponent != null) {
         myGraphComponent.setGridVisible(state);
         myGraphComponent.refresh();

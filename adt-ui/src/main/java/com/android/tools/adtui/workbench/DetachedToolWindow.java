@@ -188,7 +188,7 @@ class DetachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       // Dummy action. The tool window is always detached when using a real Intellij ToolWindow.
       // Note that the AttachToSideAction will reset the DETACHED state.
     }

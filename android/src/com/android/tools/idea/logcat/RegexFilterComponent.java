@@ -84,12 +84,12 @@ public final class RegexFilterComponent extends FilterComponent {
     super(propertyName, historySize, true);
     final CheckboxAction regexToggle = new CheckboxAction(REGEX) {
       @Override
-      public boolean isSelected(AnActionEvent e) {
+      public boolean isSelected(@NotNull AnActionEvent e) {
         return isRegex();
       }
 
       @Override
-      public void setSelected(AnActionEvent e, boolean state) {
+      public void setSelected(@NotNull AnActionEvent e, boolean state) {
         setIsRegex(state);
       }
     };

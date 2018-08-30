@@ -33,12 +33,12 @@ public class BlueprintAndDesignModeAction extends ToggleAction {
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
+  public boolean isSelected(@NotNull AnActionEvent e) {
     return mySurface.getSceneMode() == SceneMode.BOTH;
   }
 
   @Override
-  public void setSelected(AnActionEvent e, boolean state) {
+  public void setSelected(@NotNull AnActionEvent e, boolean state) {
     mySurface.setScreenMode(SceneMode.BOTH, true);
   }
 }
