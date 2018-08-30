@@ -675,7 +675,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    */
   public void requestLiveAllocationSamplingModeUpdate(@NotNull LiveAllocationSamplingMode mode) {
     getStudioProfilers().getIdeServices().getPersistentProfilerPreferences().setInt(
-      LIVE_ALLOCATION_SAMPLING_PREF, mode.getValue()
+      LIVE_ALLOCATION_SAMPLING_PREF, mode.getValue(), LiveAllocationSamplingMode.SAMPLED.getValue()
     );
 
     try {
