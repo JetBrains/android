@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.assistant.datamodel.*;
+import com.android.tools.idea.assistant.datamodel.ActionData;
+import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.android.tools.idea.assistant.datamodel.StepData;
+import com.android.tools.idea.assistant.datamodel.StepElementData;
+import com.android.tools.idea.assistant.datamodel.StepElementType;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -24,20 +30,24 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
-
-import javax.swing.*;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Locale;
+import javax.swing.Icon;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.transform.stream.StreamSource;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 
 /**
  * JAXB enabled POJO representing "assistant" content organized into features and tutorials.
@@ -143,6 +153,16 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   }
 
   @NotNull
+  public static String getIconResourcePath(@NotNull String resourceRoot, @NotNull String iconPath) {
+    try {
+      return new URI(resourceRoot).resolve(iconPath).toString();
+    }
+    catch (URISyntaxException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  @NotNull
   @Override
   public String getName() {
     return myName;
@@ -167,7 +187,8 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     if (myIconName == null || myResourceRoot == null) {
       return null;
     }
-    myIcon = getIconResource(myResourceRoot + "/" + myIconName);
+
+    myIcon = getIconResource(getIconResourcePath(myResourceRoot, myIconName));
     return myIcon;
   }
 
@@ -180,7 +201,8 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     if (myLogoName == null || myResourceRoot == null) {
       return null;
     }
-    myLogo = getIconResource(myResourceRoot + "/" + myLogoName);
+
+    myLogo = getIconResource(getIconResourcePath(myResourceRoot, myLogoName));
     return myLogo;
   }
 
@@ -283,7 +305,8 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       if (myIcon == null) {
         return null;
       }
-      myIconInstance = getIconResource(myResourceRoot + "/" + myIcon);
+
+      myIconInstance = getIconResource(getIconResourcePath(myResourceRoot, myIcon));
       return myIconInstance;
     }
 
@@ -389,8 +412,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
         return null;
       }
 
-      String iconPath = Paths.get(myResourceRoot, myIconName).toString();
-      myIcon =  IconLoader.findIcon(iconPath, myResourceClass);
+      myIcon = IconLoader.findIcon(getIconResourcePath(myResourceRoot, myIconName), myResourceClass);
       return myIcon;
     }
 
