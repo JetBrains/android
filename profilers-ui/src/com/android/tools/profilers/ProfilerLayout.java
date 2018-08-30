@@ -83,7 +83,7 @@ public class ProfilerLayout {
   /**
    * Used in the CPU threads/kernel cell renderer's to set the preferred height.
    */
-  public static final int CPU_THREADS_LINE_HEIGHT = 21;
+  public static final int CPU_STATE_LIST_ITEM_HEIGHT = 21;
   public static final Border CPU_THREADS_BORDER = JBUI.Borders.empty();
 
   // To be combined with CPU threads/kernel cell label border to draw a vertical right border.

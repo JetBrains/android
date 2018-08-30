@@ -21,7 +21,6 @@ import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.chart.statechart.StateChartTextConverter;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
@@ -62,7 +61,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
                                                 boolean cellHasFocus) {
     JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
     panel.setBorder(ProfilerLayout.CPU_THREADS_BORDER);
-    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_THREADS_LINE_HEIGHT));
+    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_STATE_LIST_ITEM_HEIGHT));
     panel.setBackground(list.getBackground());
     myLabel.setText(value.getThreadName());
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);

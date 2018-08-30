@@ -66,7 +66,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     Icon reorderIcon = StudioIcons.Common.REORDER;
     JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
     panel.setBorder(ProfilerLayout.CPU_THREADS_BORDER);
-    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_THREADS_LINE_HEIGHT));
+    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_STATE_LIST_ITEM_HEIGHT));
     panel.setBackground(list.getBackground());
 
     myLabel.setText(value.getName());
