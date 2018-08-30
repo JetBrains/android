@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
-import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
 
 public class SketchArtboard extends SketchLayer implements SketchLayerable {
@@ -78,30 +74,6 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
   public boolean hasBackgroundColor() {
     return hasBackgroundColor;
   }
-
-  @NotNull
-  private ImmutableList<ShapeModel> createAllShapeModels() {
-    ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
-    SketchLayer[] layers = getLayers();
-
-    for (SketchLayer layer : layers) {
-      shapes.addAll(layer.createShapeModels(new Point2D.Double(), false, 1));
-    }
-
-    return shapes.build();
-  }
-
-  @NotNull
-  public ImmutableList<DrawableModel> createAllDrawableShapes() {
-    ImmutableList.Builder<DrawableModel> drawableShapes = new ImmutableList.Builder<>();
-
-    for (ShapeModel shapeModel : createAllShapeModels()) {
-      drawableShapes.add(shapeModel.toDrawableShape());
-    }
-
-    return drawableShapes.build();
-  }
-
 
   public boolean includeBackgroundColorInExport() {
     return includeBackgroundColorInExport;

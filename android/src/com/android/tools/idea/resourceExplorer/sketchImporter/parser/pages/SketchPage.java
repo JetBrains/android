@@ -17,12 +17,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
-import com.google.common.collect.ImmutableList;
 import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -83,31 +80,5 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
     }
 
     return artboards;
-  }
-
-  @NotNull
-  @Override
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords,
-                                                     boolean isLastGroupElement,
-                                                     double parentOpacity) {
-    Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
-                                                        parentCoords.getY() + getFrame().getY());
-    SketchGraphicContextSettings graphicContextSettings = style.getContextSettings();
-    if (graphicContextSettings != null) {
-      parentOpacity *= graphicContextSettings.getOpacity();
-    }
-    ImmutableList.Builder<ShapeModel> builder = new ImmutableList.Builder<>();
-
-    isLastGroupElement = false;
-    SketchLayer[] groupLayers = getLayers();
-    for (int i = 0; i < groupLayers.length; i++) {
-      if (i == groupLayers.length - 1) {
-        isLastGroupElement = true;
-      }
-
-      builder.addAll(groupLayers[i].createShapeModels(newParentCoords, isLastGroupElement, parentOpacity));
-    }
-
-    return builder.build();
   }
 }

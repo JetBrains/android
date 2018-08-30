@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.createAllDrawableShapes;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
@@ -154,7 +155,7 @@ public class PathsTest {
       .parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "paths_combinationsMultipleArtboards.json");
 
     List<SketchArtboard> artboards = sketchPage.getArtboards();
-    List<DrawableModel> firstArtboardShapes = artboards.get(0).createAllDrawableShapes();
+    List<DrawableModel> firstArtboardShapes = createAllDrawableShapes(artboards.get(0));
 
     assertEquals(
       "M71,180 C94.2,180 113,198.8 113,222 C113,245.2 94.2,264 71,264 C47.8,264 29,245.2 29,222 C29,198.8 47.8,180 71,180 zM287.67,225.22 C296.68,237.48 302,252.62 302,269 C302,283.72 297.7,297.44 290.29,308.97 L290.29,308.97 C267.89,308.07 250,289.62 250,267 C250,245.27 266.51,227.39 287.67,225.22 zM10,164 L10,382.47 L77,382.47 C77,382.32 77,382.16 77,382 C77,358.8 95.8,340 119,340 C142.2,340 161,358.8 161,382 C161,382.16 161,382.32 161,382.47 L228.47,382.47 L228.47,343 L228.47,343 C254.42,342.84 277.21,329.32 290.29,308.97 L290.29,308.97 C290.86,308.99 291.43,309 292,309 C315.2,309 334,290.2 334,267 C334,243.8 315.2,225 292,225 C290.54,225 289.09,225.07 287.67,225.22 L287.67,225.22 C274.28,207.01 252.77,195.15 228.47,195 L228.47,195 L228.47,164 z",
@@ -169,7 +170,7 @@ public class PathsTest {
       "M188.44,106 C169.42,106 154,120.67 154,138.76 C154,141.97 154.48,145.07 155.39,148 L181.28,148 Q189.28,148 189.28,140 L189.28,106.01 L189.28,106.01 C189,106 188.72,106 188.44,106 z",
       firstArtboardShapes.get(3).getPathData());
 
-    List<DrawableModel> secondArtboardPaths = artboards.get(1).createAllDrawableShapes();
+    List<DrawableModel> secondArtboardPaths = createAllDrawableShapes(artboards.get(0));
 
     assertEquals(
       "M71,180 C94.2,180 113,198.8 113,222 C113,245.2 94.2,264 71,264 C47.8,264 29,245.2 29,222 C29,198.8 47.8,180 71,180 zM287.67,225.22 C296.68,237.48 302,252.62 302,269 C302,283.72 297.7,297.44 290.29,308.97 L290.29,308.97 C267.89,308.07 250,289.62 250,267 C250,245.27 266.51,227.39 287.67,225.22 zM10,164 L10,382.47 L77,382.47 C77,382.32 77,382.16 77,382 C77,358.8 95.8,340 119,340 C142.2,340 161,358.8 161,382 C161,382.16 161,382.32 161,382.47 L228.47,382.47 L228.47,343 L228.47,343 C254.42,342.84 277.21,329.32 290.29,308.97 L290.29,308.97 C290.86,308.99 291.43,309 292,309 C315.2,309 334,290.2 334,267 C334,243.8 315.2,225 292,225 C290.54,225 289.09,225.07 287.67,225.22 L287.67,225.22 C274.28,207.01 252.77,195.15 228.47,195 L228.47,195 L228.47,164 z",
@@ -188,8 +189,7 @@ public class PathsTest {
   public List<String> getFirstArtboardPaths(SketchPage sketchPage) {
     List<SketchArtboard> artboards = sketchPage.getArtboards();
     if (!artboards.isEmpty()) {
-      return artboards.get(0)
-                      .createAllDrawableShapes()
+      return createAllDrawableShapes(artboards.get(0))
                       .stream()
                       .map((shape) -> shape.getPathData())
                       .collect(Collectors.toList());
