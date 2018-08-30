@@ -303,11 +303,11 @@ filegroup(
     name = "deploy-artifacts",
     srcs = select({
         "//tools/base/bazel:windows": [
-            "//tools/base/deploy/proto:java_proto",
+            "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
             "//tools/base/deploy/installer:android",
-            "//tools/base/deploy/proto:java_proto",
+            "//tools/base/deploy/proto:deploy_java_proto",
         ],
     }),
     visibility = ["//visibility:public"],
