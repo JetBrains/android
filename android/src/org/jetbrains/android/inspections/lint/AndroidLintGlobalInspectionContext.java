@@ -306,7 +306,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     lint.setAnalysisStartTime(startTime);
     LintIdeAnalytics analytics = new LintIdeAnalytics(project);
-    analytics.logSession(AnalysisType.IDE_FILE, lint, severityModule, null, problemMap);
+    analytics.logSession(AnalysisType.IDE_BATCH, lint, severityModule, null, problemMap);
 
     myResults = problemMap;
   }
