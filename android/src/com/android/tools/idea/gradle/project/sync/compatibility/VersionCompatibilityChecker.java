@@ -25,10 +25,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.SystemProperties;
 import org.intellij.lang.annotations.Language;
-import org.jdom.Document;
+import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 
 /**
  * Compatibility checks between different components of a Gradle-based Android project (e.g. Gradle version vs. Android Gradle plugin
@@ -98,14 +98,14 @@ public class VersionCompatibilityChecker {
    * @param metadata the XML document containing the new metadata.
    * @return {@code true} if the metadata was updated, {@code false} otherwise.
    */
-  boolean updateMetadata(@NotNull Document metadata) {
+  boolean updateMetadata(@NotNull Element metadata) {
     try {
-      CompatibilityChecksMetadata updated = CompatibilityChecksMetadata.load(metadata.getRootElement());
+      CompatibilityChecksMetadata updated = CompatibilityChecksMetadata.load(metadata);
       if (updated.getDataVersion() > myMetadata.getDataVersion()) {
         myMetadata = updated;
 
         File metadataFilePath = CompatibilityChecksMetadata.getSourceFilePath();
-        writeDocument(metadata, metadataFilePath, SystemProperties.getLineSeparator());
+        JDOMUtil.write(metadata, metadataFilePath, SystemProperties.getLineSeparator());
         getLogger().info("Saved component version metadata to: " + metadataFilePath);
         return true;
       }

@@ -22,7 +22,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.Pair;
-import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jetbrains.annotations.NotNull;
@@ -91,9 +90,9 @@ public class ExternalRepository {
 
   private void doRefreshFor(@NotNull final String groupId, @NotNull final String artifactId) {
     String url = String.format(URL_TEMPLATE, groupId.replaceAll("\\.", "/"), artifactId);
-    Document document;
+    Element rootElement;
     try {
-      document = JDOMUtil.loadDocument(URI.create(url).toURL());
+      rootElement = JDOMUtil.load(URI.create(url).toURL());
     }
     catch (JDOMException e) {
       LOG.warn(String.format(
@@ -106,7 +105,7 @@ public class ExternalRepository {
                              + "external repository (url %s)", groupId, artifactId, url));
       return;
     }
-    Element versioning = document.getRootElement().getChild(MAVEN_METADATA_VERSIONING);
+    Element versioning = rootElement.getChild(MAVEN_METADATA_VERSIONING);
     if (versioning == null) {
       LOG.warn(String.format("Can't check the latest version for artifact '%s:%s'. Reason: artifact metadata info downloaded from "
                              + "%s has unknown format - expected to find a <%s> element under a root element but it's not there",
