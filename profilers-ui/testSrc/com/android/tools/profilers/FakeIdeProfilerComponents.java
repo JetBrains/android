@@ -157,7 +157,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
       @Nullable
       @Override
-      public Dimension getDimension() {
+      public Dimension getImageDimension() {
         return null;
       }
 

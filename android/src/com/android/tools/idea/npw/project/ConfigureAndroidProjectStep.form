@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.npw.project.ConfigureAndroidProjectStep">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="19" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="20" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="5" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="445" height="641"/>
@@ -120,7 +120,7 @@
       <grid id="e0f3a" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="1" column="0" row-span="18" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="19" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="250" height="-1"/>
             <maximum-size width="250" height="-1"/>
           </grid>
@@ -202,7 +202,7 @@
       </component>
       <vspacer id="45f83">
         <constraints>
-          <grid row="18" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="19" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="9af35" class="javax.swing.JCheckBox" binding="myOfflineRepoCheck">
@@ -214,6 +214,17 @@
           <label value="Use offline repo"/>
           <selected value="true"/>
           <text value="Use offline repo"/>
+        </properties>
+      </component>
+      <component id="9863d" class="javax.swing.JCheckBox" binding="myUseAndroidxCheck">
+        <constraints>
+          <grid row="18" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <label value="Use AndroidX artifacts"/>
+          <selected value="false"/>
+          <text value="Use AndroidX artifacts"/>
         </properties>
       </component>
     </children>

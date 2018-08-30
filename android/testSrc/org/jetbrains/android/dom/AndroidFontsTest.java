@@ -17,7 +17,7 @@ package org.jetbrains.android.dom;
 
 public class AndroidFontsTest extends AndroidDomTestCase {
 
-  public AndroidFontsTest() throws Exception {
+  public AndroidFontsTest() {
     super("dom/font");
   }
 
@@ -42,7 +42,7 @@ public class AndroidFontsTest extends AndroidDomTestCase {
   }
 
   public void testValueCompletion3() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "sans-serif", "sans-serif-condensed", "sans-serif-smallcaps");
+    doTestCompletionVariants(getTestName(true) + ".xml", "sans-serif-black", "sans-serif-condensed-medium", "sans-serif-smallcaps", "sans-serif", "sans-serif-thin", "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-light", "sans-serif-medium");
   }
 
   public void testValueCompletion4() throws Throwable {

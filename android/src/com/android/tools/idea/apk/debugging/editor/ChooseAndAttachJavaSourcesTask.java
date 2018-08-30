@@ -20,6 +20,7 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.ApkFacetConfiguration;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.apk.debugging.ExternalSourceFolders;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.util.FileOrFolderChooser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -95,7 +96,7 @@ class ChooseAndAttachJavaSourcesTask implements Runnable {
              .setApkDebugProject(project);
         // @formatter:on
 
-        UsageTracker.log(event);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(event, myModule.getProject()));
       }
 
       ModifiableRootModel moduleModel = ModuleRootManager.getInstance(myModule).getModifiableModel();

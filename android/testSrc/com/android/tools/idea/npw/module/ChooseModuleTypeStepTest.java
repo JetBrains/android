@@ -47,6 +47,16 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     when(new IdeComponents(getProject()).mockApplicationService(InstantAppSdks.class).isInstantAppSdkEnabled()).thenReturn(true);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testSortSingleModuleEntries() {
     Assert.assertThat(sort("Phone & Tablet Module"), equalToList("Phone & Tablet Module"));
   }

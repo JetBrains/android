@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.common.model;
 
+import com.android.SdkConstants;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DnDTransferItem {
   private final boolean myFromPalette;
@@ -55,15 +59,23 @@ public class DnDTransferItem {
 
   @Nullable
   public static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder) {
-    DnDTransferItem item = null;
     try {
       if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
-        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+        return (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
       }
-      else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+
+      if (transferable.isDataFlavorSupported(ResourceDragHandlerKt.RESOURCE_URL_FLAVOR)) {
+        ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDragHandlerKt.RESOURCE_URL_FLAVOR);
+        DnDTransferItem item = fromResourceUrl(url);
+        if (item != null) {
+          return item;
+        }
+      }
+
+      if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
         if (!StringUtil.isEmpty(xml)) {
-          item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
+          return new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
         }
       }
     }
@@ -72,12 +84,25 @@ public class DnDTransferItem {
         return null;
       }
       String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
-      item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
+      return new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
     }
     catch (IOException | UnsupportedFlavorException ex) {
       Logger.getInstance(DnDTransferItem.class).warn(ex);
     }
-    return item;
+    return null;
+  }
+
+  private static DnDTransferItem fromResourceUrl(ResourceUrl url) {
+    if (url.type == ResourceType.DRAWABLE) {
+      @Language("XML")
+      String representation = "<ImageView\n" +
+                              "    android:layout_width=\"wrap_content\"\n" +
+                              "    android:layout_height=\"wrap_content\"\n" +
+                              "    android:src=\"" + url.toString() + "\"/>";
+
+      return new DnDTransferItem(new DnDTransferComponent(SdkConstants.IMAGE_VIEW, representation, 200, 100));
+    }
+    return null;
   }
 
   public boolean isFromPalette() {

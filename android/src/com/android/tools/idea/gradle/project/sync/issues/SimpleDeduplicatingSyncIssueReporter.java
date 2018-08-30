@@ -161,6 +161,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * @param syncIssues        list of all the sync issues in this group, this list will contain at least one element.
    * @param buildFile         the build file for the provided module.
    */
+  @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
                                                @NotNull ProjectBuildModel projectBuildModel,

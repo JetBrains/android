@@ -198,7 +198,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private AvdOptionsModel myModel;
 
   @NotNull
-  private String mySelectedSnapshotName = "";
+  private String mySelectedSnapshotFileName = "";
 
   private class SnapshotListItem implements Comparable<SnapshotListItem> {
     public String fileName;
@@ -216,8 +216,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       // Sort by:
       //   a) Selected fileName
       //   b) Date
-      boolean thisIsSelected = mySelectedSnapshotName.equals(fileName);
-      boolean thatIsSelected = mySelectedSnapshotName.equals(that.fileName);
+      boolean thisIsSelected = mySelectedSnapshotFileName.equals(fileName);
+      boolean thatIsSelected = mySelectedSnapshotFileName.equals(that.fileName);
 
       if (thisIsSelected) return thatIsSelected ? 0 : -1;
       if (thatIsSelected) return 1;
@@ -245,7 +245,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     setAdvanceSettingsVisible(false);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
-    mySelectedSnapshotName = getModel().chosenSnapshotFile().get();
+    mySelectedSnapshotFileName = getModel().chosenSnapshotFile().get();
     populateSnapshotList();
     refreshSnapshotPulldown();
     myChosenSnapshotComboBox.addItemListener(mySnapshotComboListener);
@@ -287,13 +287,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   @TestOnly
   @NotNull
-  public List<String> getSnapshotNamesList(@NotNull String selectedSnapshotName) {
-    mySelectedSnapshotName = selectedSnapshotName;
+  public List<String> getSnapshotNamesList(@NotNull String selectedSnapshotFileName) {
+    mySelectedSnapshotFileName = selectedSnapshotFileName;
     populateSnapshotList();
     List<String> nameList = new ArrayList<>();
-    for (SnapshotListItem listItem : mySnapshotList) {
-      nameList.add(listItem.fileName);
-    }
+    mySnapshotList.forEach(item -> nameList.add(item.fileName));
     return nameList;
   }
 
@@ -351,20 +349,21 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       return;
     }
     CollectionComboBoxModel<String> snapshotModel = new CollectionComboBoxModel<>();
-    int numShown = 0;
-    for (SnapshotListItem item : mySnapshotList) {
-      snapshotModel.add(item.logicalName);
-      numShown++;
-      if (numShown >= 3) break;
-    }
-    int numNotShown = mySnapshotList.size() - numShown;
+    // Put up to 3 snapshots onto the pull-down
+    mySnapshotList.stream()
+                  .limit(3)
+                  .forEach(item -> snapshotModel.add(item.logicalName));
+    int numNotShown = mySnapshotList.size() - snapshotModel.getSize();
     String finalLine = (mySnapshotList.isEmpty()) ? "(no snapshots)" :
                        (numNotShown == 0) ? "  Details ..." :
                        String.format("  Details ... (+%d others)", numNotShown);
     snapshotModel.add(finalLine);
     myChosenSnapshotComboBox.setModel(snapshotModel);
     myChosenSnapshotComboBox.setSelectedIndex(0);
+    // Make sure the boot mode is compatible with the snapshots
+    // that we found.
     if (mySnapshotList.isEmpty()) {
+      mySelectedSnapshotFileName = "";
       myChosenSnapshotComboBox.setEnabled(false);
       myChooseBootRadioButton.setEnabled(false);
       if (getModel().useChosenSnapshotBoot().get()) {
@@ -372,8 +371,21 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         getModel().useFastBoot().set(true);
       }
     } else {
+      boolean previousSelectionExists = (mySelectedSnapshotFileName.equals(mySnapshotList.get(0).fileName));
+      mySelectedSnapshotFileName = mySnapshotList.get(0).fileName;
       myChosenSnapshotComboBox.setEnabled(true);
       myChooseBootRadioButton.setEnabled(true);
+      if (getModel().useChosenSnapshotBoot().get() && !previousSelectionExists) {
+        // The boot mode says to use a chosen snapshot, but that snapshot
+        // was not found. Change the boot mode.
+        getModel().useChosenSnapshotBoot().set(false);
+        getModel().useColdBoot().set(true);
+        getModel().chosenSnapshotFile().set(mySelectedSnapshotFileName);
+        // Note: If the user clicks Cancel, these changes will not be saved.
+        //       That's actually OK: we'll command the Emulator with an
+        //       invalid snapshot and the Emulator will Cold Boot. The actual
+        //       behavior is exactly what the UI says.
+      }
     }
   }
 
@@ -677,8 +689,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
       if (myChosenSnapshotComboBox.getSelectedIndex() != myChosenSnapshotComboBox.getItemCount() - 1) {
         // A snapshot was selected (not the "Details ..." line)
-        mySelectedSnapshotName = mySnapshotList.get(myChosenSnapshotComboBox.getSelectedIndex()).fileName;
-        getModel().chosenSnapshotFile().set(mySelectedSnapshotName);
+        mySelectedSnapshotFileName = mySnapshotList.get(myChosenSnapshotComboBox.getSelectedIndex()).fileName;
+        getModel().chosenSnapshotFile().set(mySelectedSnapshotFileName);
         myChooseBootRadioButton.setSelected(true);
         return;
       }
@@ -782,8 +794,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           if (inputLine.startsWith(keyString)) {
             String responseName = inputLine.substring(keyString.length());
             if (!responseName.isEmpty()) {
-              mySelectedSnapshotName = responseName;
-              getModel().chosenSnapshotFile().set(mySelectedSnapshotName);
+              mySelectedSnapshotFileName = responseName;
+              getModel().chosenSnapshotFile().set(mySelectedSnapshotFileName);
             }
             break;
           }

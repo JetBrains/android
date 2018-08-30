@@ -142,8 +142,8 @@ public class SceneComponent {
    * Utility class to encapsulate animatable values
    */
   static class AnimatedValue {
-    int value;
-    int target;
+    @AndroidDpCoordinate int value;
+    @AndroidDpCoordinate int target;
     long startTime;
     int duration = ANIMATION_DURATION;
 
@@ -165,7 +165,7 @@ public class SceneComponent {
      * @param v    the target value to reach
      * @param time the start time to animate
      */
-    public void setTarget(int v, long time) {
+    public void setTarget(@AndroidDpCoordinate int v, long time) {
       if (target == v) {
         return;
       }
@@ -318,6 +318,7 @@ public class SceneComponent {
    * the value at the start of the animation.
    * <p>This is the equivalent of {@link SceneComponent#getDrawX(long 0)}</p>
    */
+  @AndroidDpCoordinate
   public int getDrawX() {
     return myAnimatedDrawX.getValue(0);
   }
@@ -327,6 +328,7 @@ public class SceneComponent {
    * the value at the start of the animation.
    * <p>This is the equivalent of {@link SceneComponent#getDrawY(long 0)}</p>
    */
+  @AndroidDpCoordinate
   public int getDrawY() {
     return myAnimatedDrawY.getValue(0);
   }
@@ -335,6 +337,7 @@ public class SceneComponent {
    * @return The width of this {@link SceneComponent}. If an animation is running, returns
    * the value at the start of the animation.
    */
+  @AndroidDpCoordinate
   public int getDrawWidth() {
     return myAnimatedDrawWidth.getValue(0);
   }
@@ -343,6 +346,7 @@ public class SceneComponent {
    * @return The height of this {@link SceneComponent}. If an animation is running, returns
    * the value at the start of the animation.
    */
+  @AndroidDpCoordinate
   public int getDrawHeight() {
     return myAnimatedDrawHeight.getValue(0);
   }
@@ -352,6 +356,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawX(long time) {
     return myAnimatedDrawX.getValue(time);
   }
@@ -361,6 +366,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawY(long time) {
     return myAnimatedDrawY.getValue(time);
   }
@@ -370,6 +376,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawWidth(long time) {
     return myAnimatedDrawWidth.getValue(time);
   }
@@ -379,6 +386,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawHeight(long time) {
     return myAnimatedDrawHeight.getValue(time);
   }

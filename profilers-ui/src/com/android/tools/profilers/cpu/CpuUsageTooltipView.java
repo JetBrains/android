@@ -18,9 +18,11 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.intellij.util.ui.JBUI;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,25 +32,40 @@ import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 class CpuUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuUsageTooltip myTooltip;
   @NotNull private final CpuProfilerStageView myView;
-  @NotNull private final JPanel myUnavailableDetails;
+  @NotNull private final JLabel mySelectionLabel;
 
   CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
     super(view.getTimeline());
     myTooltip = tooltip;
     myView = view;
-    myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit-"));
+    mySelectionLabel = new JLabel();
   }
 
   @Override
   protected void updateTooltip() {
     boolean canSelect = myView.getStage().getSelectionModel().canSelectRange(myView.getTimeline().getTooltipRange());
-    myUnavailableDetails.setVisible(!canSelect);
+    if (canSelect) {
+      List<SeriesData<CpuTraceInfo>>
+        traceSeries =
+        myView.getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(myView.getTimeline().getTooltipRange());
+      if (traceSeries.isEmpty()) {
+        return;
+      }
+      SeriesData<CpuTraceInfo> trace = traceSeries.get(0);
+      String name = CpuCaptureSessionArtifact.artifactNameFromTypeAndMode(trace.value.getProfilerType(),
+                                                                          trace.value.getTraceInfo().getProfilerMode());
+      mySelectionLabel.setText(name);
+    }
+    else {
+      mySelectionLabel.setText("Selection Unavailable");
+    }
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
     JPanel panel = new JPanel(new TabularLayout("*", "*,Fit"));
+    JPanel detailsPanel = new JPanel(new TabularLayout("*", "Fit,Fit-"));
     CpuProfilerStage.CpuStageLegends legends = myTooltip.getLegends();
 
     LegendComponent legend =
@@ -59,15 +76,14 @@ class CpuUsageTooltipView extends ProfilerTooltipView {
     legend.configure(legends.getThreadsLegend(),
                      new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
     panel.add(legend, new TabularLayout.Constraint(0, 0));
-    // Build detail unavailable panel.
+    // Build detail panel.
     JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
     separator.setBorder(JBUI.Borders.empty(8, 0));
-    myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
-    JLabel unavailableLabel = new JLabel("Selection Unavailable");
-    unavailableLabel.setFont(TOOLTIP_BODY_FONT);
-    unavailableLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
-    myUnavailableDetails.add(unavailableLabel, new TabularLayout.Constraint(1, 0));
-    panel.add(myUnavailableDetails, new TabularLayout.Constraint(1, 0));
+    detailsPanel.add(separator, new TabularLayout.Constraint(0, 0));
+    mySelectionLabel.setFont(TOOLTIP_BODY_FONT);
+    mySelectionLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
+    detailsPanel.add(mySelectionLabel, new TabularLayout.Constraint(1, 0));
+    panel.add(detailsPanel, new TabularLayout.Constraint(1, 0));
     return panel;
   }
 }

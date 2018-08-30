@@ -330,7 +330,7 @@ public class InspectorPanelTest extends PropertyTestCase {
       JLabel label = findFirstLabelWithText(components.get(row));
       if (label != null) {
         String propertyName = StringUtil.removeHtmlTags(label.getText());
-        if (label.getIcon() == StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY) {
+        if (label.getIcon() == StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE) {
           propertyName += DESIGN_POSTFIX;
         }
         labelToRowNumber.put(propertyName, row);

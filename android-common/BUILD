@@ -53,6 +53,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

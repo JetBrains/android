@@ -406,7 +406,13 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .showPopup()
       .expectChoices("sans-serif", null,
                      "sans-serif", "sans-serif",
+                     "sans-serif-thin", "sans-serif-thin",
+                     "sans-serif-light", "sans-serif-light",
+                     "sans-serif-medium", "sans-serif-medium",
+                     "sans-serif-black", "sans-serif-black",
                      "sans-serif-condensed", "sans-serif-condensed",
+                     "sans-serif-condensed-light", "sans-serif-condensed-light",
+                     "sans-serif-condensed-medium", "sans-serif-condensed-medium",
                      "serif", "serif",
                      "monospace", "monospace",
                      "serif-monospace", "serif-monospace",
@@ -415,6 +421,12 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "sans-serif-smallcaps", "sans-serif-smallcaps",
                      "-", "-",
                      "More Fonts...", null)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_DOWN)
@@ -433,7 +445,13 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .showPopup()
       .expectChoices("sans-serif", null,
                      "sans-serif", "sans-serif",
+                     "sans-serif-thin", "sans-serif-thin",
+                     "sans-serif-light", "sans-serif-light",
+                     "sans-serif-medium", "sans-serif-medium",
+                     "sans-serif-black", "sans-serif-black",
                      "sans-serif-condensed", "sans-serif-condensed",
+                     "sans-serif-condensed-light", "sans-serif-condensed-light",
+                     "sans-serif-condensed-medium", "sans-serif-condensed-medium",
                      "serif", "serif",
                      "monospace", "monospace",
                      "serif-monospace", "serif-monospace",
@@ -454,7 +472,13 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "customfont", "@font/customfont",
                      "-", "-",
                      "sans-serif", "sans-serif",
+                     "sans-serif-thin", "sans-serif-thin",
+                     "sans-serif-light", "sans-serif-light",
+                     "sans-serif-medium", "sans-serif-medium",
+                     "sans-serif-black", "sans-serif-black",
                      "sans-serif-condensed", "sans-serif-condensed",
+                     "sans-serif-condensed-light", "sans-serif-condensed-light",
+                     "sans-serif-condensed-medium", "sans-serif-condensed-medium",
                      "serif", "serif",
                      "monospace", "monospace",
                      "serif-monospace", "serif-monospace",

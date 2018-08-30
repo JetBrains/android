@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.artifactAddressToRelativePath
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.newProtoFile
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
 import java.io.File
 
@@ -24,7 +26,7 @@ interface JavaLibrary : Library {
   val artifact: File
 
   fun toProto(converter: PathConverter) = LibraryProto.JavaLibrary.newBuilder()
-    .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-    .setArtifact(converter.fileToProto(artifact, PathConverter.DirType.OFFLINE_REPO))
-    .build()!!
+      .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
+      .setArtifact(newProtoFile(artifactAddressToRelativePath(artifactAddress!!), PathConverter.DirType.OFFLINE_REPO))
+      .build()!!
 }

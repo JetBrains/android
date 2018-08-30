@@ -23,6 +23,7 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.usb.Platform
 import com.android.tools.usb.UsbDevice
 import com.android.tools.usb.UsbDeviceCollector
@@ -78,21 +79,21 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   fun refresh() {
     myDevicesFuture = usbDeviceCollector.listUsbDevices()
-    getDevices().thenAccept(
-      {
-        if (!myProject.isDisposed) {
-          UsageTracker.log(
-              AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-                .setConnectionAssistantEvent(
-                  ConnectionAssistantEvent.newBuilder()
-                    .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
-                    .setUsbDevicesDetected(it.size)
-                )
+    getDevices().thenAccept {
+      if (!myProject.isDisposed) {
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+            .setConnectionAssistantEvent(
+              ConnectionAssistantEvent.newBuilder()
+                .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
+                .setUsbDevicesDetected(it.size)
             )
-          refreshDependencyState(myProject)
-        }
+            .withProjectId(myProject)
+        )
+        refreshDependencyState(myProject)
       }
-    )
+    }
     refreshDependencyState(myProject)
   }
 

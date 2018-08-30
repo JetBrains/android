@@ -65,7 +65,6 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
 
     val gccPath = getGccPath()
     File(targetTestDirectory, ".bazelrc")
-      .appendLine("startup --host_javabase=${getJdkPath()}")
       .appendLine("info --action_env=CC=$gccPath")
       .appendLine("build --action_env=CC=$gccPath")
   }
@@ -172,17 +171,6 @@ the location of the project data directory that is assigned during importProject
 
   private fun getGccPath() =
     File(TestUtils.getWorkspaceRoot(), "prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.15-4.8/bin/x86_64-linux-gcc").path
-
-  private fun getJdkPath(): String {
-    val subdir = when {
-      SystemInfo.isWindows -> "win64"
-      SystemInfo.isLinux -> "linux"
-      SystemInfo.isMac -> "mac/Contents/Home"
-      else -> throw RuntimeException("Running test on unsupported OS for bazel")
-    }
-
-    return File(TestUtils.getWorkspaceRoot(), "prebuilts/studio/jdk/$subdir").path
-  }
 
   private fun getSdkPath(): String {
     val osName = getOSName() ?: throw RuntimeException("Running test on unsupported OS for bazel")

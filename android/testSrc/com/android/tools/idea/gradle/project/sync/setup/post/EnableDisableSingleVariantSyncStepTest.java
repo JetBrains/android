@@ -51,7 +51,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
     prepareProjectForImport(HELLO_JNI);
     Project project = getProject();
     importProject(project.getName(), getBaseDirPath(project), null);
-    assertEquals(HAS_NATIVE, isEligibleForSingleVariantSync(project));
+    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(project));
   }
 
   public void testIsEligibleWithKotlinModuleWithNewSync() throws Exception {

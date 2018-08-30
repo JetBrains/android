@@ -417,7 +417,7 @@ public class LineChart extends AnimatedComponent {
     }
 
     // 1st pass - draw all the lines in the background.
-    drawLines(g2d, transformedPaths, configs);
+    drawLines(g2d, transformedPaths, myLinePathSeries, configs);
 
     // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
     myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathSeries));
@@ -425,13 +425,22 @@ public class LineChart extends AnimatedComponent {
     addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawStartTime) / 1e6);
   }
 
-  public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs) {
-    assert transformedPaths.size() == configs.size();
+  public static void drawLines(Graphics2D g2d,
+                               List<Path2D> transformedPaths,
+                               List<RangedContinuousSeries> seriesList,
+                               List<LineConfig> configs) {
+    assert transformedPaths.size() == configs.size() && seriesList.size() == configs.size();
 
     for (int i = 0; i < transformedPaths.size(); ++i) {
       Path2D path = transformedPaths.get(i);
+      RangedContinuousSeries series = seriesList.get(i);
       LineConfig config = configs.get(i);
       Color lineColor = config.getColor();
+
+      // Skip line that has been masked out.
+      if (config.getMaskedSeries().contains(series)) {
+        continue;
+      }
 
       g2d.setColor(lineColor);
       g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());

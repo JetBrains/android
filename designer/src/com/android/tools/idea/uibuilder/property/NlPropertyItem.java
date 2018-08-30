@@ -33,6 +33,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.google.common.base.Objects;
@@ -356,12 +357,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     if (getModel().getProject().isDisposed()) {
       return;
     }
+
+    String attrValueWithUnit = attrValue != null ? Quantity.addUnit(this, attrValue) : null;
     String oldValue = getValue();
     String componentName = myComponents.size() == 1 ? myComponents.get(0).getTagName() : "Multiple";
 
-    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValue, () -> {
-      myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValue));
-      myPropertiesManager.propertyChanged(this, oldValue, attrValue);
+    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValueWithUnit, () -> {
+      myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValueWithUnit));
+      myPropertiesManager.propertyChanged(this, oldValue, attrValueWithUnit);
 
       if (valueUpdated == null) {
         return;

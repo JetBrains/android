@@ -21,17 +21,20 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Paths
 
-class PathConverter(moduleDirFile: File, sdkDirFile: File, offlineRepo: File) {
+// TODO(qumeric): Split this into two converters: one for saving and the second for loading
+class PathConverter(moduleDirFile: File, sdkDirFile: File, offlineRepo: File, bundleDir: File) {
   enum class DirType {
     MODULE,
     SDK,
-    OFFLINE_REPO
+    OFFLINE_REPO,
+    BUNDLE
   }
 
   val knownDirs = mapOf(
     DirType.MODULE to moduleDirFile.toPath(),
     DirType.SDK to sdkDirFile.toPath(),
-    DirType.OFFLINE_REPO to offlineRepo.toPath()
+    DirType.OFFLINE_REPO to offlineRepo.toPath(),
+    DirType.BUNDLE to bundleDir.toPath()
   )
 
   private fun toRelativePath(fileFile: File, dirType: DirType): String {
@@ -49,8 +52,5 @@ class PathConverter(moduleDirFile: File, sdkDirFile: File, offlineRepo: File) {
 
   fun fileFromProto(proto: FileProto.File) = toAbsolutePath(proto.relativePath, DirType.valueOf(proto.relativeTo.name))
 
-  fun fileToProto(file: File, dirType: DirType = DirType.MODULE) = FileProto.File.newBuilder()
-    .setRelativePath(toRelativePath(file, dirType))
-    .setRelativeTo(FileProto.File.RelativeTo.valueOf(dirType.name))
-    .build()!!
+  fun fileToProto(file: File, dirType: DirType = DirType.MODULE) = newProtoFile(toRelativePath(file, dirType), dirType)
 }

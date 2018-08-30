@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.bazel.fixture.BazelConsoleTool
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

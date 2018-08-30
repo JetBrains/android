@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <metadata>
+  <com.android.support/>
   <com.android.support.constraint/>
   <androidx.navigation/>
 </metadata>

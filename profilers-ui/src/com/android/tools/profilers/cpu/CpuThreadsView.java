@@ -17,20 +17,30 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.DragAndDropList;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.MouseEventHandler;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import java.awt.event.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
@@ -52,6 +62,9 @@ final class CpuThreadsView {
   @NotNull
   private final AspectObserver myObserver;
 
+  @Nullable
+  private Rectangle myLastHoveredThreadBoundsInPanelSpace;
+
   public CpuThreadsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myThreads = new DragAndDropList<>(stage.getThreadStates());
@@ -63,20 +76,15 @@ final class CpuThreadsView {
     // TODO(b/62447834): Make a decision on how we want to handle thread selection.
     myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-    MouseEventHandler mouseHandler = new MouseEventHandler() {
-      @Override
-      protected void handle(MouseEvent event) {
-        // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myThreads|.
-        // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
-        // directly into the top-level component (i.e to |myPanel|) instead of its child.
-        myPanel.dispatchEvent(SwingUtilities.convertMouseEvent(myThreads, event, myPanel));
-      }
-    };
-    myThreads.addMouseListener(mouseHandler);
-    myThreads.addMouseMotionListener(mouseHandler);
+    // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myThreads|.
+    // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
+    // directly into the top-level component (i.e to |myPanel|) instead of its child.
+    DelegateMouseEventHandler.delegateTo(myPanel)
+                             .installListenerOn(myThreads)
+                             .installMotionListenerOn(myThreads);
 
     myPanel.addStateChangedListener((actionEvent) ->
-      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
+                                      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
     );
     myObserver = new AspectObserver();
     stage.getAspect().addDependency(myObserver)
@@ -88,29 +96,32 @@ final class CpuThreadsView {
     return myPanel;
   }
 
+  @NotNull
   private HideablePanel createHideablePanel() {
     // Add AxisComponent only to scrollable section of threads list.
-    final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
-    timeAxisGuide.setShowAxisLine(false);
-    timeAxisGuide.setShowLabels(false);
-    timeAxisGuide.setHideTickAtMin(true);
-    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
+    AxisComponent axisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+    axisComponent.setShowAxisLine(false);
+    axisComponent.setShowLabels(false);
+    axisComponent.setHideTickAtMin(true);
+    axisComponent.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
     final JPanel threads = new JPanel(new TabularLayout("*", "*"));
 
     final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
       .setShowSeparator(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+      .setIconTextGap(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP)
+      .setTitleLeftPadding(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING)
       .build();
 
     CpuListScrollPane scrollingThreads = new CpuListScrollPane(myThreads, threadsPanel);
     scrollingThreads.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        timeAxisGuide.setMarkerLengths(scrollingThreads.getHeight(), 0);
+        axisComponent.setMarkerLengths(scrollingThreads.getHeight(), 0);
       }
     });
 
-    threads.add(timeAxisGuide, new TabularLayout.Constraint(0, 0));
+    threads.add(axisComponent, new TabularLayout.Constraint(0, 0));
     threads.add(scrollingThreads, new TabularLayout.Constraint(0, 0));
 
     // Clear border set by default on the hideable panel.
@@ -164,8 +175,16 @@ final class CpuThreadsView {
     myThreads.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
+        if (myLastHoveredThreadBoundsInPanelSpace != null) {
+          myPanel.repaint(myLastHoveredThreadBoundsInPanelSpace);
+          myLastHoveredThreadBoundsInPanelSpace = null;
+        }
+
         int row = myThreads.locationToIndex(e.getPoint());
         if (row != -1) {
+          myLastHoveredThreadBoundsInPanelSpace = SwingUtilities.convertRectangle(myThreads, myThreads.getCellBounds(row, row), myPanel);
+          myPanel.repaint(myLastHoveredThreadBoundsInPanelSpace);
+
           CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(row);
           if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
             CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();

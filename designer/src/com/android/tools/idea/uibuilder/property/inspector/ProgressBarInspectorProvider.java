@@ -150,7 +150,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider<NlPropert
       JLabel designVisibility = inspector.addComponent(ATTR_VISIBILITY,
                                                        myDesignVisibility != null ? myDesignVisibility.getTooltipText() : null,
                                                        myDesignVisibilityEditor.getComponent());
-      designVisibility.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+      designVisibility.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
       inspector.addComponent(ATTR_INDETERMINATE, myIndeterminate.getTooltipText(), myIndeterminateEditor.getComponent());
     }
 

@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
@@ -524,7 +525,7 @@ public class GradleSyncState {
              .setSyncType(getSyncType());
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
-    return event;
+    return UsageTrackerUtils.withProjectId(event, myProject);
   }
 
   @NotNull

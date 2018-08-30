@@ -117,11 +117,6 @@ public final class StudioFlags {
     "Support method tracing through APIs from android.os.Debug.",
     true);
 
-  public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
-    PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
-    "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
-    true);
-
   public static final Flag<Boolean> PROFILER_MEMORY_CAPTURE_FILTER = Flag.create(
     PROFILER, "memory.capture.filter", "Enable Memory Capture Filter",
     "Show a text input field in the Memory profiler that is used to filter class names.",

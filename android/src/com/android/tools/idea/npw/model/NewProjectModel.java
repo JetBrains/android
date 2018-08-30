@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model;
 
 import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -97,6 +98,7 @@ public class NewProjectModel extends WizardModel {
   private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
+  private final BoolProperty myUseAndroidx = new BoolValueProperty();
 
   private  NewProjectExtraInfo myNewProjectExtraInfo;
 
@@ -135,6 +137,7 @@ public class NewProjectModel extends WizardModel {
 
     myEnableCppSupport.set(getInitialCppSupport());
     myEnableKotlinSupport.set(getInitialKotlinSupport());
+    myUseAndroidx.set(getInitialUseAndroidxSupport());
   }
 
   @NotNull
@@ -171,6 +174,29 @@ public class NewProjectModel extends WizardModel {
   @NotNull
   public BoolProperty useOfflineRepo() {
     return myUseOfflineRepo;
+  }
+
+  /**
+   * Returns whether AndroidX is available considering the installed API levels. If anything >= 28 is available, then
+   * we make AndroidX available.
+   */
+  public boolean isAndroidxAvailable() {
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    if (sdkData == null) {
+      return false;
+    }
+
+    for (IAndroidTarget target : sdkData.getTargets()) {
+      if (target.getVersion().getApiLevel() >= 28) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @NotNull
+  public BoolProperty useAndroidx() {
+    return myUseAndroidx;
   }
 
   public OptionalProperty<Project> project() {
@@ -253,6 +279,16 @@ public class NewProjectModel extends WizardModel {
    */
   private static boolean getInitialKotlinSupport() {
     return PropertiesComponent.getInstance().isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
+  }
+
+
+  /**
+   * Returns the initial value of the androidx support property. The value is true if we allow androidx to be the default
+   * and if androidx is available.
+   */
+  @NotNull
+  private Boolean getInitialUseAndroidxSupport() {
+    return NELE_USE_ANDROIDX_DEFAULT.get() && isAndroidxAvailable();
   }
 
   public void onWizardFinished(@NotNull ModelWizard.WizardResult wizardResult) {
@@ -375,7 +411,8 @@ public class NewProjectModel extends WizardModel {
         newProjectExtraInfoBuilder = new NewProjectExtraInfoBuilder();
       }
 
-      int maxBuildApi = 0;
+      myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, myUseAndroidx.get());
+
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
         params.putAll(newModuleModel.getTemplateValues());
@@ -388,11 +425,7 @@ public class NewProjectModel extends WizardModel {
         if (shouldUseNewExtraProjectInfo) {
           newProjectExtraInfoBuilder.fill(renderTemplateValues);
         }
-
-        maxBuildApi = Math.max(maxBuildApi, (int) renderTemplateValues.getOrDefault(ATTR_BUILD_API, 0));
       }
-
-      myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, NELE_USE_ANDROIDX_DEFAULT.get() && maxBuildApi >= 28);
 
       if (shouldUseNewExtraProjectInfo) {
         newProjectExtraInfoBuilder.fill(params);

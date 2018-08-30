@@ -100,7 +100,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
       verify(panel).addComponent(eq(property.getName()), eq(property.getTooltipText()), eq(editor.getComponent()));
       assertThat(editor.getLabel()).isNotNull();
       if (TOOLS_URI.equals(property.getNamespace())) {
-        assertThat(editor.getLabel().getIcon()).isEqualTo(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+        assertThat(editor.getLabel().getIcon()).isEqualTo(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
         if (!inspectorProperties.remove(TOOLS_NS_NAME_PREFIX + property.getName())) {
           assertThat(inspectorProperties.remove(TOOLS_NS_NAME_PREFIX + property.getName())).named(property.getName()).isTrue();
         }

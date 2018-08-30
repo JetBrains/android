@@ -27,7 +27,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
-import com.android.tools.idea.stats.AnonymizerUtil;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -76,26 +76,26 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     long startTimeMs = System.currentTimeMillis();
     LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
     long captureDurationMs = System.currentTimeMillis() - startTimeMs;
-    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
-             .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
-             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
-                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
-                                        .setDurationInMs(captureDurationMs)
-                                        .setDataSize(result.getError().isEmpty() ? result.getData().length : 0)));
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
+        .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+          .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
+          .setDurationInMs(captureDurationMs)
+          .setDataSize(result.getError().isEmpty() ? result.getData().length : 0)),
+      myProject));
 
-    String projectId = myClient.getClientData().getPackageName();
-    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
-                                       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
-                                       .setRawProjectId(projectId)
-                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(projectId))
-                                       .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
-                                                                                    .setType(
-                                                                                      LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
-                                                                                    .setDurationInMs(captureDurationMs)
-                                                                                    .setVersion(version.ordinal() + 1)
-                                                                                    .setDataSize(result.getError().isEmpty()
-                                                                                                 ? result.getData().length
-                                                                                                 : 0)));
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
+        .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+          .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
+          .setDurationInMs(captureDurationMs)
+          .setVersion(version.ordinal() + 1)
+          .setDataSize(result.getError().isEmpty()
+                       ? result.getData().length
+                       : 0)),
+        myProject));
     
     if (!result.getError().isEmpty()) {
       myError = result.getError();

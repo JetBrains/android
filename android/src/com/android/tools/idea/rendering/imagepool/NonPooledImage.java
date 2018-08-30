@@ -58,7 +58,10 @@ class NonPooledImage implements ImagePool.Image {
   @Override
   public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
     assert myImage != null : "Image already disposed";
-    return copy(myImage);
+    if (x == 0 && y == 0 && w == getWidth() && h == getHeight()) {
+      return copy(myImage);
+    }
+    return copy(myImage.getSubimage(x, y, w, h));
   }
 
   @Override

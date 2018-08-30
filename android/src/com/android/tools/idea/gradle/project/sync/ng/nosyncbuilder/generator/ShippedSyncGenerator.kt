@@ -25,11 +25,16 @@ import com.android.tools.idea.gradle.project.sync.ng.SyncAction
 import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.ng.SyncModuleModels
 import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.AndroidLibrary
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.JavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAndroidProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewGlobalLibraryMap
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant.NewVariant
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
+import org.apache.commons.io.FileUtils
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
@@ -58,23 +63,31 @@ fun main(args: Array<String>) {
 
   val useOnlyGivenRepos = flag == ONLY_GIVEN_REPOS_FLAG
 
-  ShippedSyncGenerator(projectRoot, sdkRoot, outRoot, repoPaths, useOnlyGivenRepos).use {
-    it.run()
+  ShippedSyncGenerator(projectRoot, sdkRoot, repoPaths, useOnlyGivenRepos).use {
+    val offlineRepoPath = outRoot.resolve(OFFLINE_REPO_PATH).toPath()
+    val bundlePath = outRoot.resolve(BUNDLE_PATH).toPath()
+    it.generateModels(outRoot.toPath())
+    it.generateOfflineRepo(offlineRepoPath, bundlePath)
   }
 }
 
 class ShippedSyncGenerator(private val projectRoot: File,
                            private val sdkRoot: File,
-                           private val outRoot: File,
                            repoPaths: List<String>,
-                           private val useOnlyGivenRepos: Boolean,
-                           private val properOfflineRepo: File? = null) : Closeable {
+                           private val useOnlyGivenRepos: Boolean) : Closeable {
   private lateinit var myProjectModels: SyncProjectModels
   private val glmBuilder = GlobalLibraryMapBuilder()
   private lateinit var myOfflineRepoInitScriptPath: Path
   private lateinit var myOriginalGradleBuildTempFile: File
   private val connection: ProjectConnection
   private val offlineRepoInitScriptContent: String?
+  private var isInitialized: Boolean = false
+    set(value) {
+      if (field && !value) {
+        throw IllegalArgumentException("It's impossible to uninitialize")
+      }
+      field = true
+    }
 
   init {
     val fullRepoPaths = repoPaths.toMutableList()
@@ -122,7 +135,7 @@ class ShippedSyncGenerator(private val projectRoot: File,
     Files.write(originalGradleBuildFile.toPath(), newGradleBuildContent.toByteArray())
   }
 
-  fun run() {
+  private fun initialize() {
     val args = listOf(
       "-Djava.awt.headless=true",
       "-Pandroid.injected.build.model.only=true",
@@ -141,21 +154,72 @@ class ShippedSyncGenerator(private val projectRoot: File,
       .withArguments(args)
       .run()
 
+    isInitialized = true
+  }
+
+  // Decorator pattern
+  private fun withInitialization(f: ()->Unit) {
+    if (!isInitialized) {
+      initialize()
+    }
+    f()
+  }
+
+  fun generateModels(path: Path) = withInitialization {
     val projectModel = getProjectModel()
 
-    val projectSyncPath = outRoot.toPath().resolve(projectModel.moduleName)
+    val projectSyncPath = path.resolve(projectModel.moduleName)
     Files.createDirectories(projectSyncPath)
 
-    val rootConverter = getPathConverter()
+    val rootConverter = PathConverter(projectRoot, File("/"), File("/"), File("/"))
     cacheProjectModel(projectModel, rootConverter, projectSyncPath)
 
     for (i in 1 until myProjectModels.moduleModels.size) {
       val moduleModel = myProjectModels.moduleModels[i]
-      val converter = getPathConverter(moduleModel.moduleName)
+      val converter = PathConverter(File(projectRoot, moduleModel.moduleName), sdkRoot, File("/"), File("/"))
       cacheModuleModel(moduleModel, converter, projectSyncPath)
     }
+
     // Contents of the global library map was filled while running [cacheModuleModel]
-    cacheGlobalLibraryMap(rootConverter, projectSyncPath, properOfflineRepo?.toPath())
+    cacheGlobalLibraryMap(rootConverter, projectSyncPath)
+  }
+
+  // If [bundlePath] is null then exploded AARs are not going to be generated
+  fun generateOfflineRepo(offlineRepoPath: Path, bundlePath: Path?) = withInitialization {
+    fun copyArtifact(path: Path, artifact: File, artifactAddress: String) {
+      val newArtifactFolder = path.resolve(artifactAddressToRelativePath(artifactAddress))
+      Files.createDirectories(newArtifactFolder)
+      FileUtils.copyDirectory(artifact.parentFile, newArtifactFolder.toFile())
+    }
+
+    fun AndroidLibrary.copyArtifactTo(path: Path) = copyArtifact(path, artifact, artifactAddress!!)
+    fun JavaLibrary.copyArtifactTo(path: Path) = copyArtifact(path, artifact, artifactAddress!!)
+
+    fun AndroidLibrary.copyExplodedAarsTo(path: Path) {
+      val relativePath = artifactAddressToRelativePath(artifactAddress!!)
+      val newBundleFolder = path.resolve(relativePath)
+      FileUtils.copyDirectory(bundleFolder, newBundleFolder.toFile())
+    }
+
+    for (i in 1 until myProjectModels.moduleModels.size) {
+      val model = myProjectModels.moduleModels[i]
+      val androidProject = model.findModel(OldAndroidProject::class.java)!!
+      // Fill Global Library Map
+      androidProject.variants.forEach { glmBuilder.addLibrariesFromVariantToGLM(it) }
+    }
+
+    val newGlobalLibraryMap = NewGlobalLibraryMap(GlobalLibraryMap { glmBuilder.build() })
+
+    for (library in newGlobalLibraryMap.libraries) {
+      when (library.value) {
+        is NewAndroidLibrary -> {
+          val androidLibrary = (library.value as AndroidLibrary)
+          androidLibrary.copyArtifactTo(offlineRepoPath)
+          bundlePath?.run { androidLibrary.copyExplodedAarsTo(this) }
+        }
+        is NewJavaLibrary -> (library.value as NewJavaLibrary).copyArtifactTo(offlineRepoPath)
+      }
+    }
   }
 
   private fun cacheProjectModel(model: SyncModuleModels, converter: PathConverter, syncPath: Path) {
@@ -168,14 +232,14 @@ class ShippedSyncGenerator(private val projectRoot: File,
 
   // TODO(qumeric): add java project support
   private fun cacheModuleModel(model: SyncModuleModels, converter: PathConverter, syncPath: Path) {
-    val androidProject = model.findModel(OldAndroidProject::class.java)
+    val androidProject = model.findModel(OldAndroidProject::class.java)!!
     val gradleProject = model.findModel(GradleProject::class.java)
 
     val modulePath = syncPath.resolve(model.moduleName)
     Files.createDirectories(modulePath)
     val androidProjectPath = modulePath.resolve(ANDROID_PROJECT_CACHE_PATH)
     val projectDir = converter.knownDirs[PathConverter.DirType.MODULE]!!
-    val newAndroidProject = NewAndroidProject(androidProject!!, projectDir.toFile())
+    val newAndroidProject = NewAndroidProject(androidProject, projectDir.toFile())
     val androidProjectJSON = newAndroidProject.toJson(converter)
     Files.write(androidProjectPath, androidProjectJSON.toByteArray())
 
@@ -196,16 +260,10 @@ class ShippedSyncGenerator(private val projectRoot: File,
     Files.write(gradleModuleProjectPath, gradleModuleProjectJSON.toByteArray())
   }
 
-  private fun cacheGlobalLibraryMap(converter: PathConverter, syncPath: Path, properOfflineRepo: Path?) {
+  private fun cacheGlobalLibraryMap(converter: PathConverter, syncPath: Path) {
     val globalLibraryMapPath = syncPath.resolve(GLOBAL_LIBRARY_MAP_CACHE_PATH)
-    val libraryConverter = if (properOfflineRepo != null) {
-      LibraryConverter(properOfflineRepo, false)
-    } else {
-      val offlineRepoPath = outRoot.toPath().resolve(OFFLINE_REPO_PATH)
-      LibraryConverter(offlineRepoPath, true)
-    }
 
-    val newGlobalLibraryMap = NewGlobalLibraryMap(GlobalLibraryMap { glmBuilder.build() }, libraryConverter)
+    val newGlobalLibraryMap = NewGlobalLibraryMap(GlobalLibraryMap { glmBuilder.build() })
     val globalLibraryMapJSON = newGlobalLibraryMap.toJson(converter)
     Files.write(globalLibraryMapPath, globalLibraryMapJSON.toByteArray())
   }
@@ -221,12 +279,6 @@ class ShippedSyncGenerator(private val projectRoot: File,
     }
     throw NoSuchElementException("Could not found the root module")
   }
-
-  private fun getPathConverter(moduleName: String? = null): PathConverter = PathConverter(
-    if (moduleName != null) File(projectRoot, moduleName) else projectRoot,
-    sdkRoot,
-    outRoot
-  )
 }
 
 fun createLocalMavenRepoInitScriptContent(repoPaths: List<String>): String? {

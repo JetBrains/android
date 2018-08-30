@@ -50,7 +50,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jcip",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/adt-ui/lib:libwebp",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
     ],

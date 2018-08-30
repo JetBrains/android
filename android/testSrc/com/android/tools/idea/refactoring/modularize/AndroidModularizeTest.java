@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.testing.Modules;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -25,12 +27,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 public class AndroidModularizeTest extends AndroidTestCase {
 
@@ -42,6 +41,9 @@ public class AndroidModularizeTest extends AndroidTestCase {
     super.setUp();
     myFixture.copyDirectoryToProject(BASE_PATH + "/res", "res/");
     myFixture.copyDirectoryToProject(BASE_PATH + "/src", "src/");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyDirectoryToProject(BASE_PATH + "/gen", "gen/");
+    }
     myFixture.copyFileToProject(BASE_PATH + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
 
     myFixture.copyDirectoryToProject(BASE_PATH + "/library/res", LIBRARY_PATH + "res/");
@@ -61,7 +63,7 @@ public class AndroidModularizeTest extends AndroidTestCase {
     return true;
   }
 
-  public void test() throws Exception {
+  public void testModularize() {
     PsiElement activity = myFixture.getJavaFacade().findClass("google.MainActivity");
     DataContext context = dataId -> {
       if (LangDataKeys.TARGET_MODULE.is(dataId)) {
@@ -119,7 +121,7 @@ public class AndroidModularizeTest extends AndroidTestCase {
 
     assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    package=\"app.google.myapplication\">\n" +
+                 "    package=\"google\">\n" +
                  "\n" +
                  "    <application android:label=\"@string/app_name\"></application>\n" +
                  "\n" +

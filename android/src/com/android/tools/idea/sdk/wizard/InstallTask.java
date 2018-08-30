@@ -276,7 +276,8 @@ class InstallTask extends Task.Backgroundable {
         notification.expire();
       }
     };
-    final NotificationGroup group = new NotificationGroup("SDK Installer", NotificationDisplayType.STICKY_BALLOON, false);
+
+    final NotificationGroup group = getNotificationGroup();
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     final Project[] openProjectsOrNull = openProjects.length == 0 ? new Project[]{null} : openProjects;
     ApplicationManager.getApplication().invokeLater(
@@ -308,6 +309,15 @@ class InstallTask extends Task.Backgroundable {
         }
         return true;
       });
+  }
+
+  private static NotificationGroup getNotificationGroup() {
+    final String NOTIFICATION_GROUP_NAME = "SDK Install";
+    NotificationGroup group = NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_NAME);
+    if (group == null) {
+      group = new NotificationGroup(NOTIFICATION_GROUP_NAME, NotificationDisplayType.STICKY_BALLOON, false);
+    }
+    return group;
   }
 
   public void setCompleteCallback(@Nullable Function<List<RepoPackage>, Void> completeCallback) {

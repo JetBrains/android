@@ -265,7 +265,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   /**
    * Returns true if we want to arrange screens vertically instead of horizontally
    */
-  private static boolean isVerticalScreenConfig(int availableWidth, int availableHeight, @NotNull Dimension preferredSize) {
+  private static boolean isVerticalScreenConfig(@SwingCoordinate int availableWidth,
+                                                @SwingCoordinate int availableHeight,
+                                                @SwingCoordinate @NotNull Dimension preferredSize) {
     boolean stackVertically = preferredSize.width > preferredSize.height;
     if (availableWidth > 10 && availableHeight > 3 * availableWidth / 2) {
       stackVertically = true;
@@ -432,6 +434,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return dimension;
   }
 
+  @SwingCoordinate
   @Override
   protected Dimension getDefaultOffset() {
     return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X + RULER_SIZE_PX, 2 * DEFAULT_SCREEN_OFFSET_Y + RULER_SIZE_PX);
@@ -440,7 +443,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate
   @NotNull
   @Override
-  protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
+  protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
     SceneManager primarySceneManager = getSceneManager();
     SceneView primarySceneView = primarySceneManager != null ? primarySceneManager.getSceneView() : null;
     if (primarySceneView == null) {

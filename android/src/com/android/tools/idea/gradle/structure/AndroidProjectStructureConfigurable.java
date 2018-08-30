@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurabl
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
@@ -92,7 +93,6 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
@@ -187,15 +187,13 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
   }
 
   private boolean doShowDialog(@Nullable Runnable advanceInit) {
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
 
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                       .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                                       .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-                                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                                       .setRawProjectId(appId));
-    }
+    UsageTracker.log(
+      UsageTrackerUtils.withProjectId(
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+          .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN),
+        myProject));
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
 
@@ -270,14 +268,12 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
 
   @Override
   public void apply() throws ConfigurationException {
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                       .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                                       .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-                                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                                       .setRawProjectId(appId));
-    }
+      UsageTracker.log(UsageTrackerUtils.withProjectId(
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+          .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE),
+         myProject));
+
 
     validateState();
     if (myErrorsPanel.hasCriticalErrors()) {
@@ -287,17 +283,14 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     boolean dataChanged = false;
     for (Configurable configurable : myConfigurables) {
       if (configurable.isModified()) {
-        if (appId != null) {
-          UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                           .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                                           .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
-                                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                                           .setRawProjectId(appId)
-          );
+          UsageTracker.log(UsageTrackerUtils.withProjectId(
+            AndroidStudioEvent.newBuilder()
+             .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+             .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE),
+            myProject));
         }
         dataChanged = true;
         configurable.apply();
-      }
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
@@ -448,14 +441,12 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
   }
 
   private void selectConfigurable(@NotNull Configurable configurable) {
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                       .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                                       .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-                                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                                       .setRawProjectId(appId));
-    }
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent.newBuilder()
+         .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+         .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK),
+      myProject));
+
     JComponent content = configurable.createComponent();
     assert content != null;
     myDetails.setContent(content);

@@ -20,6 +20,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutInspectorPanel;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutTreeDefinition;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesDefinition;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.project.Project;
@@ -42,9 +43,11 @@ public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext
 
     init(new LayoutInspectorPanel(context), context, tools);
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
-             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
-                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.OPEN)
-             ));
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+       AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+        .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+          .setType(LayoutInspectorEvent.LayoutInspectorEventType.OPEN)),
+       project));
   }
 }

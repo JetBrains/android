@@ -121,14 +121,10 @@ public class NdkModuleModel implements ModuleModel {
     }
 
     // populate toolchains
-    for (NativeToolchain toolchain : myAndroidProject.getToolChains()) {
-      myToolchainsByName.put(toolchain.getName(), toolchain);
-    }
+    populateToolchains(myAndroidProject.getToolChains());
 
     // populate settings
-    for (NativeSettings settings : myAndroidProject.getSettings()) {
-      mySettingsByName.put(settings.getName(), settings);
-    }
+    populateSettings(myAndroidProject.getSettings());
   }
 
   // Call this method for single variant sync.
@@ -140,22 +136,33 @@ public class NdkModuleModel implements ModuleModel {
       }
     }
 
-    List<NativeArtifact> nativeArtifacts = myVariantAbi.stream().flatMap(it -> it.getArtifacts().stream()).collect(toList());
-    for (NativeArtifact artifact : nativeArtifacts) {
-      String variantName = getNdkVariantName(artifact.getGroupName(), artifact.getAbi());
-      NdkVariant variant = new NdkVariant(variantName, myFeatures.isExportedHeadersSupported());
-      variant.addArtifact(artifact);
-      myVariantsByName.put(variantName, variant);
+    for (IdeNativeVariantAbi variantAbi : myVariantAbi) {
+      populateForNativeVariantAbi(variantAbi);
     }
+  }
+
+  private void populateForNativeVariantAbi(@NotNull IdeNativeVariantAbi variantAbi) {
+    String variantName = getNdkVariantName(variantAbi.getVariantName(), variantAbi.getAbi());
+    NdkVariant variant = new NdkVariant(variantName, myFeatures.isExportedHeadersSupported());
+    for (NativeArtifact artifact : variantAbi.getArtifacts()) {
+      variant.addArtifact(artifact);
+    }
+    myVariantsByName.put(variantName, variant);
 
     // populate toolchains
-    List<NativeToolchain> nativeToolchains = myVariantAbi.stream().flatMap(it -> it.getToolChains().stream()).collect(toList());
+    populateToolchains(variantAbi.getToolChains());
+
+    // populate settings
+    populateSettings(variantAbi.getSettings());
+  }
+
+  private void populateToolchains(@NotNull Collection<NativeToolchain> nativeToolchains) {
     for (NativeToolchain toolchain : nativeToolchains) {
       myToolchainsByName.put(toolchain.getName(), toolchain);
     }
+  }
 
-    // populate settings
-    List<NativeSettings> nativeSettings = myVariantAbi.stream().flatMap(it -> it.getSettings().stream()).collect(toList());
+  private void populateSettings(@NotNull Collection<NativeSettings> nativeSettings) {
     for (NativeSettings settings : nativeSettings) {
       mySettingsByName.put(settings.getName(), settings);
     }
@@ -191,7 +198,7 @@ public class NdkModuleModel implements ModuleModel {
    */
   public void addVariantOnlyModuleModel(@NotNull IdeNativeVariantAbi variantAbi) {
     myVariantAbi.add(variantAbi);
-    populateForSingleVariantSync();
+    populateForNativeVariantAbi(variantAbi);
   }
 
   private void parseAndSetModelVersion() {

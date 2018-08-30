@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.DeveloperServiceKind;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -97,10 +98,12 @@ public final class DeveloperService {
 
   private void trackEvent(AndroidStudioEvent.EventKind eventKind) {
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.DEVELOPER_SERVICES)
-                                   .setKind(eventKind)
-                                   .setDeveloperServiceKind(serviceIdToServiceKind(getMetadata().getId())));
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+       AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.DEVELOPER_SERVICES)
+        .setKind(eventKind)
+        .setDeveloperServiceKind(serviceIdToServiceKind(getMetadata().getId())),
+       myServiceParser.getModule().getProject()));
   }
 
   private DeveloperServiceKind serviceIdToServiceKind(String id) {

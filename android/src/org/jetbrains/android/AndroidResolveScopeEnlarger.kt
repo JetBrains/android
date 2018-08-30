@@ -47,8 +47,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
     project.getProjectSystem()
       .getLightResourceClassService()
-      ?.getLightRClassesAccessibleFromModule(module)
-      ?.let(result::addAll)
+      .getLightRClassesAccessibleFromModule(module)
+      .let(result::addAll)
 
     result.addAll(AndroidManifestClassPsiElementFinder.getInstance(project).getManifestClassesAccessibleFromModule(module))
 

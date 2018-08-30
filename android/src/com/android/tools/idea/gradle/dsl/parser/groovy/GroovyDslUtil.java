@@ -15,13 +15,29 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
+import static com.intellij.openapi.util.text.StringUtil.unquoteString;
+import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
+import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
+import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
+import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.addQuotes;
+import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStringCharacters;
+import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.removeQuotes;
+
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.extapi.psi.ASTDelegatePsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -29,8 +45,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.TokenType;
-import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.impl.CheckUtil;
+import com.intellij.psi.impl.source.codeStyle.CodeEditUtil;
+import com.intellij.psi.impl.source.tree.ChangeUtil;
+import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.IncorrectOperationException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -43,25 +66,17 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaratio
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
-import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
-import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.*;
 
 public final class GroovyDslUtil {
   @Nullable
@@ -341,7 +356,7 @@ public final class GroovyDslUtil {
   /**
    * Creates a literal from a context and value.
    *
-   * @param context context used to create GrPsiElementFactory
+   * @param context      context used to create GrPsiElementFactory
    * @param unsavedValue the value for the new expression
    * @return created PsiElement
    * @throws IncorrectOperationException if creation of the expression fails
@@ -399,11 +414,48 @@ public final class GroovyDslUtil {
     return added;
   }
 
+  /**
+   * This method is used in order to add elements to the back of a map,
+   * it is derived from {@link ASTDelegatePsiElement#addInternal(ASTNode, ASTNode, ASTNode, Boolean)}.
+   */
+  private static PsiElement realAddBefore(@NotNull GrListOrMap element, @NotNull PsiElement newElement, @NotNull PsiElement anchor) {
+    CheckUtil.checkWritable(element);
+    TreeElement elementCopy = ChangeUtil.copyToElement(newElement);
+    ASTNode anchorNode = getAnchorNode(element, anchor.getNode(), true);
+    ASTNode newNode = CodeEditUtil.addChildren(element.getNode(), elementCopy, elementCopy, anchorNode);
+    if (newNode == null) {
+      throw new IncorrectOperationException("Element cannot be added");
+    }
+    if (newNode instanceof TreeElement) {
+      return ChangeUtil.decodeInformation((TreeElement)newNode).getPsi();
+    }
+    return newNode.getPsi();
+  }
+
+  /**
+   * This method has been taken from {@link ASTDelegatePsiElement} in order to implement a correct version of
+   * {@link #realAddBefore}.
+   */
+  private static ASTNode getAnchorNode(@NotNull PsiElement element, final ASTNode anchor, final Boolean before) {
+    ASTNode anchorBefore;
+    if (anchor != null) {
+      anchorBefore = before.booleanValue() ? anchor : anchor.getTreeNext();
+    }
+    else {
+      if (before != null && !before.booleanValue()) {
+        anchorBefore = element.getNode().getFirstChildNode();
+      }
+      else {
+        anchorBefore = null;
+      }
+    }
+    return anchorBefore;
+  }
+
   static PsiElement addToMap(@NotNull GrListOrMap map, @NotNull GrNamedArgument newValue) {
+    final ASTNode astNode = map.getNode();
     if (map.getNamedArguments().length != 0) {
-      map.addAfter(GroovyPsiElementFactory.getInstance(map.getProject()).createWhiteSpace(), map.getLBrack());
-      final ASTNode astNode = map.getNode();
-      astNode.addLeaf(mCOMMA, ",", map.getLBrack().getNextSibling().getNode());
+      astNode.addLeaf(mCOMMA, ",", map.getRBrack().getNode());
     }
     else {
       // Empty maps are defined by [:], we need to delete the colon before adding the first element.
@@ -411,8 +463,8 @@ public final class GroovyDslUtil {
         map.getLBrack().getNextSibling().delete();
       }
     }
-    // GrMapOrListImpl ignores anchor, this will place at start of list after '['
-    return map.addAfter(newValue, map.getLBrack());
+
+    return realAddBefore(map, newValue, map.getRBrack());
   }
 
   @Nullable

@@ -26,7 +26,10 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.PsiPackage
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
@@ -36,20 +39,20 @@ import java.util.concurrent.CountDownLatch
  * to stub project system functionalities.
  */
 class TestProjectSystem @JvmOverloads constructor(val project: Project,
-                                                  private val availableDependencies: List<GradleCoordinate> = listOf(),
+                                                  availableDependencies: List<GradleCoordinate> = listOf(),
                                                   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
   : AndroidProjectSystem, AndroidProjectSystemProvider {
 
-  data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
-    override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion?.equals(mavenVersion) ?: false
-    override fun hashCode() = mavenVersion?.hashCode() ?: 0
-  }
-
-  companion object {
-    val TEST_VERSION_LATEST = TestDependencyVersion(GradleVersion.parse("+"))
-  }
-
   private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
+  private val availablePreviewDependencies: List<GradleCoordinate>
+  private val availableStableDependencies: List<GradleCoordinate>
+
+  init {
+    val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
+    val (previewDeps, stableDeps) = sortedHighToLowDeps.partition(GradleCoordinate::isPreview)
+    availablePreviewDependencies = previewDeps
+    availableStableDependencies = stableDeps
+  }
 
   /**
    * Adds the given artifact to the given module's list of dependencies.
@@ -70,12 +73,15 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun isApplicable(): Boolean = true
 
-  override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? =
-    availableDependencies.firstOrNull { coordinate.matches(it) }
-
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun getDependentLibraries(): Collection<Library> {
+      override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
+        val wildcardCoordinate = GradleCoordinate(mavenGroupId, mavenArtifactId, "+")
+        return availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+               ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+      }
+
+      override fun getResolvedDependentLibraries(): Collection<Library> {
         return emptySet()
       }
 
@@ -159,6 +165,11 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   override fun getAugmentRClasses() = true
 
   override fun getLightResourceClassService(): LightResourceClassService {
-    TODO("not implemented")
+    return object : LightResourceClassService {
+      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
+      override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
+      override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
+      override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
+    }
   }
 }

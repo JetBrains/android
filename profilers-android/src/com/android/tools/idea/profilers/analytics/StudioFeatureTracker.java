@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers.analytics;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.stats.AnonymizerUtil;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler;
@@ -568,12 +568,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
       }
 
-      String packageName = myTrackingProject.getName();
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
                                                            .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-                                                           .setAndroidProfilerEvent(profilerEvent)
-                                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(packageName))
-                                                           .setRawProjectId(packageName);
+                                                           .setAndroidProfilerEvent(profilerEvent);
 
       if (myDevice != null) {
         event.setDeviceInfo(
@@ -586,7 +583,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .build());
       }
 
-      UsageTracker.log(event);
+      UsageTracker.log(UsageTrackerUtils.withProjectId(event, myTrackingProject));
     }
 
     private void populateEnergyRangeMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {

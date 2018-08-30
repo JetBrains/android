@@ -85,13 +85,10 @@ public class Scene implements SelectionListener, Disposable {
 
   private int mNeedsLayout = NO_LAYOUT;
 
-  @AndroidDpCoordinate
-  protected int myPressedMouseX;
-  @AndroidDpCoordinate
-  protected int myPressedMouseY;
-
-  private int myLastMouseX;
-  private int myLastMouseY;
+  @AndroidDpCoordinate protected int myPressedMouseX;
+  @AndroidDpCoordinate protected int myPressedMouseY;
+  @AndroidDpCoordinate private int myLastMouseX;
+  @AndroidDpCoordinate private int myLastMouseY;
 
   @NotNull private final SceneHitListener myHoverListener;
   @NotNull private final SceneHitListener myHitListener;
@@ -504,7 +501,7 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  private void delegateMouseDownToSelection(int x, int y, SceneComponent currentComponent) {
+  private void delegateMouseDownToSelection(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, SceneComponent currentComponent) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -524,7 +521,10 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  private void delegateMouseDragToSelection(int x, int y, @Nullable Target closestTarget, SceneComponent currentComponent) {
+  private void delegateMouseDragToSelection(@AndroidDpCoordinate int x,
+                                            @AndroidDpCoordinate int y,
+                                            @Nullable Target closestTarget,
+                                            @NotNull SceneComponent currentComponent) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -546,7 +546,10 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  private void delegateMouseReleaseToSelection(int x, int y, @Nullable Target closestTarget, SceneComponent currentComponent) {
+  private void delegateMouseReleaseToSelection(@AndroidDpCoordinate int x,
+                                               @AndroidDpCoordinate int y,
+                                               @Nullable Target closestTarget,
+                                               @NotNull SceneComponent currentComponent) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {

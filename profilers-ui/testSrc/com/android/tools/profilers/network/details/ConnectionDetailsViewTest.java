@@ -109,10 +109,10 @@ public class ConnectionDetailsViewTest {
 
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
-    assertThat(HttpDataViewModel.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
+    assertThat(HttpDataComponentFactory.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
 
     myView.setHttpData(data);
-    assertThat(HttpDataViewModel.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNotNull();
+    assertThat(HttpDataComponentFactory.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNotNull();
   }
 
   @Test
@@ -122,7 +122,7 @@ public class ConnectionDetailsViewTest {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
 
     myView.setHttpData(data);
-    assertThat(HttpDataViewModel.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
+    assertThat(HttpDataComponentFactory.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
   }
 
   @Test
@@ -269,14 +269,14 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void expectedDisplayNameForContentTypes() {
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType(""))).isEqualTo("");
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType(" "))).isEqualTo("");
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8")))
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType(""))).isEqualTo("");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType(" "))).isEqualTo("");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8")))
       .isEqualTo("Form Data");
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("text/html"))).isEqualTo("HTML");
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("application/json"))).isEqualTo("JSON");
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("image/jpeg"))).isEqualTo("Image");
-    assertThat(HttpDataViewModel.getDisplayName(new HttpData.ContentType("audio/webm"))).isEqualTo("Audio");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("text/html"))).isEqualTo("HTML");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("application/json"))).isEqualTo("JSON");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("image/jpeg"))).isEqualTo("Image");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("audio/webm"))).isEqualTo("Audio");
   }
 
 

@@ -64,19 +64,19 @@ class DetailsCapturePane extends CapturePane {
     myFilterComponent = new FilterComponent(stage.getCaptureFilter(),
                                             FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS)
       .setMatchCountVisibility(false); // TODO(b/112703942): Show again when we can completely support this value
-    if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
-      myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
-        @Override
-        @NotNull
-        protected FilterResult applyFilter(@NotNull Filter filter) {
-          stage.setCaptureFilter(filter);
-          return new FilterResult(stage.getCaptureFilterNodeCount(), !filter.isEmpty());
-        }
-      });
-      myFilterComponent.setVisible(!myFilterComponent.getModel().getFilter().isEmpty());
-      myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
-      FilterComponent.configureKeyBindingAndFocusBehaviors(this, myFilterComponent, myToolbar.getFilterButton());
-    }
+
+    myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
+      @Override
+      @NotNull
+      protected FilterResult applyFilter(@NotNull Filter filter) {
+        stage.setCaptureFilter(filter);
+        return new FilterResult(stage.getCaptureFilterNodeCount(), !filter.isEmpty());
+      }
+    });
+    myFilterComponent.setVisible(!myFilterComponent.getModel().getFilter().isEmpty());
+    myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
+    FilterComponent.configureKeyBindingAndFocusBehaviors(this, myFilterComponent, myToolbar.getFilterButton());
+
     updateView();
   }
 

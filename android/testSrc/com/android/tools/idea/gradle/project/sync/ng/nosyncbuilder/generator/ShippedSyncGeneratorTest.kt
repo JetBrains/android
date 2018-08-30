@@ -19,7 +19,11 @@ import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.essentiallyEquals
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.LegacyAndroidProjectStub
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.ANDROID_PROJECT_CACHE_PATH
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.BUNDLE_PATH
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OFFLINE_REPO_PATH
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.VARIANTS_CACHE_DIR_PATH
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant.NewVariant
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.AndroidProjectProto
@@ -34,6 +38,10 @@ import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 class ShippedSyncGeneratorTest : AndroidGradleTestCase() {
+
+  // TODO(b/113098468): enable this once we know how to keep the JSON files up to date.
+  override fun shouldRunTest() = false
+
   // Project folder created by AndroidGradleTestCase has the same name as the test which created it
   private val ANDROID_PROJECT_TEST_NAME = "testGeneratedSyncIsTheSameAsRealAndroidProject"
   @Throws(Exception::class)
@@ -50,13 +58,14 @@ class ShippedSyncGeneratorTest : AndroidGradleTestCase() {
 
     val repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths().map( File::toString)
 
-    val shippedSyncGenerator = ShippedSyncGenerator(projectFolderPath, sdkRoot, outRoot, repoPaths, false )
+    val shippedSyncGenerator = ShippedSyncGenerator(projectFolderPath, sdkRoot, repoPaths, false )
 
     shippedSyncGenerator.use {
-      it.run()
+      it.generateModels(outRoot.toPath())
+      // TODO(qumeric): test generateOfflineRepo
     }
 
-    val moduleConverter = PathConverter(projectFolderPath.resolve("app"), sdkRoot, File(OFFLINE_REPO_PATH))
+    val moduleConverter = PathConverter(projectFolderPath.resolve("app"), sdkRoot, File(OFFLINE_REPO_PATH), File(BUNDLE_PATH))
 
     val projectRoot = outRoot.resolve(ANDROID_PROJECT_TEST_NAME)
     val modulePath = projectRoot.resolve("app")

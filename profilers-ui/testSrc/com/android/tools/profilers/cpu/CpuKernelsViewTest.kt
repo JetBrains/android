@@ -15,15 +15,19 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ExpandedItemListCellRendererWrapper
+import com.intellij.ui.components.JBList
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -66,9 +70,10 @@ class CpuKernelsViewTest {
     stage.studioProfilers.sessionsManager.beginSession(device, process1)
     val session = stage.studioProfilers.sessionsManager.selectedSession
     val kernelsView = CpuKernelsView(stage)
+    val kernels = getKernelsList(kernelsView)
     // JBList wraps cellRenderer in a ExpandedItemListCellRendererWrapper, so we get this and unwrap our instance.
-    assertThat(kernelsView.kernels.cellRenderer).isInstanceOf(ExpandedItemListCellRendererWrapper::class.java)
-    val cellRenderer = kernelsView.kernels.cellRenderer as ExpandedItemListCellRendererWrapper
+    assertThat(kernels.cellRenderer).isInstanceOf(ExpandedItemListCellRendererWrapper::class.java)
+    val cellRenderer = kernels.cellRenderer as ExpandedItemListCellRendererWrapper
     assertThat(cellRenderer.wrappee).isInstanceOf(CpuKernelCellRenderer::class.java)
 
     // Validate that the process we are looking at is the same as the process from the session.
@@ -78,20 +83,41 @@ class CpuKernelsViewTest {
   @Test
   fun backgroundShouldBeDefaultStage() {
     val kernelsView = CpuKernelsView(stage)
-    assertThat(kernelsView.kernels.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+    assertThat(getKernelsList(kernelsView).background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
   }
 
   @Test
   fun panelShouldBeHiddenByDefault() {
     val kernelsView = CpuKernelsView(stage)
-    assertThat(kernelsView.panel.isVisible).isFalse()
+    assertThat(kernelsView.component.isVisible).isFalse()
+  }
+
+  @Test
+  fun testHideablePanelsHaveItemCountsAsTitle() {
+    val kernelsView = CpuKernelsView(stage)
+
+    stage.studioProfilers.stage = stage
+    cpuService.apply {
+      profilerType = CpuProfiler.CpuProfilerType.ATRACE
+      setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+      setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
+    }
+    stage.setAndSelectCapture(0)
+    // One second is enough for the models to be updated.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
+
+    val hideablePanel = TreeWalker(kernelsView.component).ancestors().filterIsInstance<HideablePanel>().first()
+    TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first().let { panel ->
+      assertThat(panel.text).contains("KERNEL (4)")
+    }
   }
 
   @Test
   fun verifyTitleContent() {
     val kernelsView = CpuKernelsView(stage)
 
-    val title = TreeWalker(kernelsView.panel).descendants().filterIsInstance(JLabel::class.java).first().text
+    val title = TreeWalker(kernelsView.component).descendants().filterIsInstance(JLabel::class.java).first().text
     // Text is actual an HTML, so we use contains instead of equals
     assertThat(title).contains("KERNEL")
   }
@@ -99,10 +125,15 @@ class CpuKernelsViewTest {
   @Test
   fun scrollPaneViewportViewShouldBeKernelsView() {
     val kernelsView = CpuKernelsView(stage)
-    val descendants = TreeWalker(kernelsView.panel).descendants().filterIsInstance(CpuListScrollPane::class.java)
+    val descendants = TreeWalker(kernelsView.component).descendants().filterIsInstance(CpuListScrollPane::class.java)
     assertThat(descendants).hasSize(1)
     val scrollPane = descendants[0]
 
-    assertThat(scrollPane.viewport.view).isEqualTo(kernelsView.kernels)
+    assertThat(scrollPane.viewport.view).isEqualTo(getKernelsList(kernelsView))
   }
+
+  private fun getKernelsList(kernelsView: CpuKernelsView) = TreeWalker(kernelsView.component)
+    .descendants()
+    .filterIsInstance<JBList<CpuKernelModel.CpuState>>()
+    .first()
 }

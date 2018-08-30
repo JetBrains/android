@@ -15,6 +15,11 @@
  */
 package com.android.tools.adtui.common;
 
+import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
+
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.adtui.TabularLayout;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
@@ -22,20 +27,19 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.InputEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.function.Predicate;
-
-import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
@@ -170,63 +174,7 @@ public final class AdtUiUtils {
   @NotNull
   public static JBScrollPane createNestedVScrollPane(@NotNull JComponent component) {
     JBScrollPane scrollPane = new JBScrollPane(component);
-    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-    scrollPane.addMouseWheelListener(new AdtUiUtils.DelegateMouseWheelListener(scrollPane));
-    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    NestedScrollPaneMouseWheelListener.installOn(scrollPane);
     return scrollPane;
-  }
-
-  /**
-   * Delegates given scroll pane's vertical wheel event to the parent scroll pane.
-   */
-  private static class DelegateMouseWheelListener implements MouseWheelListener {
-    @NotNull private final JScrollPane myScrollPane;
-    @Nullable private JScrollPane myParentScrollPane;
-    private int myLastScrollOffset = 0;
-
-    DelegateMouseWheelListener(@NotNull JScrollPane scrollPane) {
-      myScrollPane = scrollPane;
-    }
-
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-      setParentScrollPane();
-      if (myParentScrollPane == null) {
-        myScrollPane.removeMouseWheelListener(this);
-        return;
-      }
-
-      JScrollBar scrollBar = myScrollPane.getVerticalScrollBar();
-      int terminalValue = e.getWheelRotation() < 0 ? 0 : scrollBar.getMaximum() - scrollBar.getVisibleAmount();
-      if (scrollBar.getValue() == terminalValue && myLastScrollOffset == terminalValue) {
-        // Clone the event since this pane already consumes it.
-        myParentScrollPane.dispatchEvent(clone(myParentScrollPane, e));
-      }
-      myLastScrollOffset = scrollBar.getValue();
-    }
-
-    private void setParentScrollPane() {
-      if (myParentScrollPane == null) {
-        Component parent = myScrollPane.getParent();
-        while (parent != null && !(parent instanceof JScrollPane)) {
-          parent = parent.getParent();
-        }
-        myParentScrollPane = (JScrollPane) parent;
-      }
-    }
-
-    private static MouseWheelEvent clone(JScrollPane source, MouseWheelEvent e) {
-      return new MouseWheelEvent(source,
-                                 e.getID(),
-                                 e.getWhen(),
-                                 e.getModifiers(),
-                                 e.getX(),
-                                 e.getY(),
-                                 e.getClickCount(),
-                                 e.isPopupTrigger(),
-                                 e.getScrollType(),
-                                 e.getScrollAmount(),
-                                 e.getWheelRotation());
-    }
   }
 }

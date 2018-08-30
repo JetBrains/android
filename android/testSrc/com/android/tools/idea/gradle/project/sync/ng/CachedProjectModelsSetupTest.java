@@ -88,6 +88,7 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
 
     CachedModuleModels cachedCppModels = mock(CachedModuleModels.class);
     when(myCachedProjectModels.findCacheForModule("cpp")).thenReturn(cachedCppModels);
+    when(cachedCppModels.findModel(AndroidModuleModel.class)).thenReturn(appAndroidModel);
     when(cachedCppModels.findModel(NdkModuleModel.class)).thenReturn(cppNdkModel);
     when(cachedCppModels.findModel(GradleModuleModel.class)).thenReturn(cppGradleModel);
 
@@ -127,6 +128,7 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
     verify(myAndroidModuleSetup).setUpModule(appModuleContext, appAndroidModel, true);
 
     verify(myGradleModuleSetup).setUpModule(cppModule, myModelsProvider, cppGradleModel);
+    verify(myAndroidModuleSetup).setUpModule(cppModuleContext, appAndroidModel, true);
     verify(myNdkModuleSetup).setUpModule(cppModuleContext, cppNdkModel, true);
 
     verify(myGradleModuleSetup).setUpModule(javaModule, myModelsProvider, javaGradleModel);

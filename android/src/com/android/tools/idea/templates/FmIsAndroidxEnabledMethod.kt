@@ -20,7 +20,9 @@ import com.android.tools.idea.util.dependsOnOldSupportLib
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectLocator
+import com.intellij.openapi.project.guessProjectForFile
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import freemarker.template.TemplateBooleanModel
 import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel
@@ -38,7 +40,11 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
     val modulePath = paramMap[TemplateMetadata.ATTR_PROJECT_OUT] as? String
     return modulePath?.let {
       val file = LocalFileSystem.getInstance().findFileByIoFile(File(modulePath.replace('/', File.separatorChar))) ?: return null
-      ProjectLocator.getInstance().guessProjectForFile(file)
+      val project = guessProjectForFile(file) ?: return@let null
+
+      // guessProjectForFile might return an incorrect project if the project is being created and
+      // does not exist yet. In that case, we return null.
+      if (VfsUtil.isAncestor(project.baseDir, file, false)) project else null
     }
   }
 
@@ -51,7 +57,7 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
 
   @Throws(TemplateModelException::class)
   override fun exec(args: List<*>): TemplateModel {
-    val buildApiObject = (paramMap.get(TemplateMetadata.ATTR_BUILD_API) as? Int) ?: 0
+    val buildApiObject = (paramMap[TemplateMetadata.ATTR_BUILD_API] as? Int) ?: 0
 
     if (buildApiObject < 28) {
       // androidx is not supported for <28
@@ -67,7 +73,7 @@ class FmIsAndroidxEnabledMethod(private val paramMap: Map<String, Any>) : Templa
       project?.hasAndroidxProperty() == true -> project.isAndroidx()
 
       // Default based on the global flag
-      else -> NELE_USE_ANDROIDX_DEFAULT.get()
+      else -> paramMap[TemplateMetadata.ATTR_ANDROIDX_SUPPORT] as? Boolean ?: false
     }
 
     return if (useAndroidx) TemplateBooleanModel.TRUE else TemplateBooleanModel.FALSE
