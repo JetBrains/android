@@ -240,7 +240,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel toolBar = new JPanel(createToolbarLayout());
     toolBar.add(myForceGarbageCollectionButton);
     toolBar.add(myHeapDumpButton);
-    if (getStage().useLiveAllocationTracking()) {
+    if (getStage().useLiveAllocationTracking() &&
+        getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       JComboBoxView sampleRateComboView =
         new JComboBoxView<LiveAllocationSamplingMode, MemoryProfilerAspect>(myAllocationSamplingRateDropDown,
                                                                             getStage().getAspect(),

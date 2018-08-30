@@ -137,6 +137,11 @@ public final class StudioFlags {
     "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
     true);
 
+  public static final Flag<Boolean> PROFILER_SAMPLE_LIVE_ALLOCATIONS = Flag.create(
+    PROFILER, "memory.livealloc.sampled", "Enable Sampled Live Allocation Tracking",
+    "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
+    true);
+
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
     PROFILER, "atrace", "Show the atrace option in CPU profiler",
     "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",

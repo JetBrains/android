@@ -38,9 +38,11 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -79,8 +81,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   }
 
   private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
-  // TODO(b/113349293): Read from project setting.
-  private static int LIVE_ALLOCATION_SAMPLING_NUM_INTERVAL = 1;
 
   private static final String BOOT_COMPLETE_PROPERTY = "dev.bootcomplete";
   private static final String BOOT_COMPLETE_MESSAGE = "1";
@@ -464,6 +464,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
       throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
+      int liveAllocationSamplingRate = StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get() ?
+        PropertiesComponent.getInstance().getInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF,
+                                                 MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()) :
+                                       MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
       Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
       Agent.AgentConfig agentConfig =
         Agent.AgentConfig.newBuilder()
@@ -474,7 +478,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
               .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
               .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
               .setSamplingRate(
-                MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(LIVE_ALLOCATION_SAMPLING_NUM_INTERVAL).build())
+                MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
               .build())
           .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
           // Using "@" to indicate an abstract socket in unix.

@@ -64,7 +64,7 @@ import static com.android.tools.adtui.model.Interpolatable.RoundedSegmentInterpo
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
-  private static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
+  public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
 
   static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
@@ -857,7 +857,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
   }
 
-  enum LiveAllocationSamplingMode {
+  public enum LiveAllocationSamplingMode {
     NONE(0),      // 0 is a special value for disabling tracking.
     SAMPLED(10),  // Sample every 10 allocations
     FULL(1);      // Sample every allocation
@@ -876,7 +876,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       mySamplingFrequency = frequency;
     }
 
-    int getValue() {
+    public int getValue() {
       return mySamplingFrequency;
     }
 
