@@ -157,5 +157,15 @@ public abstract class ShapeModel {
     }
   }
 
+  public void applyOpacity(double parentOpacity) {
+    if (shapeStyle != null) {
+      shapeStyle.applyParentOpacity(parentOpacity);
+    }
+  }
+
   public abstract void applyTransformations();
+
+  public abstract void scale(double scaleX, double scaleY);
+
+  public abstract void translate(double translateX, double translateY);
 }

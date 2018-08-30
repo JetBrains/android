@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.*
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapeGroup
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSlice
 import com.intellij.testFramework.ProjectRule
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
