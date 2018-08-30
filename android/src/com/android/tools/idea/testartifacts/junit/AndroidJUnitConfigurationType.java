@@ -16,10 +16,9 @@
 package com.android.tools.idea.testartifacts.junit;
 
 import com.android.tools.idea.IdeInfo;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationTypeBase;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.SimpleConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -34,7 +33,7 @@ import javax.swing.*;
 /**
  * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
  */
-public final class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
+public final class AndroidJUnitConfigurationType extends SimpleConfigurationType {
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
@@ -50,18 +49,14 @@ public final class AndroidJUnitConfigurationType extends ConfigurationTypeBase {
   };
 
   public AndroidJUnitConfigurationType() {
-    super(ANDROID_JUNIT_ID, ANDROID_JUNIT_NAME, ANDROID_JUNIT_DESCRIPTION, LazyUtil.create(() -> IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue()));
+    super(ANDROID_JUNIT_ID, ANDROID_JUNIT_NAME, ANDROID_JUNIT_DESCRIPTION,
+          LazyUtil.create(() -> IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue()));
+  }
 
-    addFactory(new ConfigurationFactory(this) {
-      @NotNull
-      @Override
-      public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-        AndroidJUnitConfiguration configuration = new AndroidJUnitConfiguration("", project, this);
-        configuration.setVMParameters("-ea");
-        configuration.setWorkingDirectory("$MODULE_DIR$");
-        return configuration;
-      }
-    });
+  @NotNull
+  @Override
+  public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
+    return new AndroidJUnitConfiguration("", project, getFactory());
   }
 
   @NotNull
