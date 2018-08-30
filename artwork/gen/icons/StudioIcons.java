@@ -445,6 +445,7 @@ public class StudioIcons {
 
   public static class Profiler {
     public static class Events {
+      public static final Icon ALLOCATION_TRACKING_CHANGE = load("/studio/icons/profiler/events/allocation-tracking-change.png"); // 22x22
       public static final Icon BACK_BUTTON = load("/studio/icons/profiler/events/back-button.png"); // 22x22
       public static final Icon GARBAGE_EVENT = load("/studio/icons/profiler/events/garbage-event.png"); // 22x22
       public static final Icon GPS = load("/studio/icons/profiler/events/gps.png"); // 22x22
