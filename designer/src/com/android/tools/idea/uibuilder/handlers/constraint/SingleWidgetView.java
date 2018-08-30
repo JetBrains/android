@@ -91,7 +91,7 @@ public class SingleWidgetView extends JPanel {
   /**
    * size of the empty square in between the constraint controls
    */
-  private static final int MIDDLE_SPACE = JBUI.scale(8);
+  private static final int MIDDLE_SPACE = JBUI.scale(6);
 
   /**
    * Length of a constraint symbol
@@ -136,7 +136,7 @@ public class SingleWidgetView extends JPanel {
   /**
    * Size of the square representing the widget
    */
-  public static final int BOX_SIZE = JBUI.scale(70);
+  public static final int BOX_SIZE = JBUI.scale(60);
 
   /* Constants for the different states for a constraint */
   public final static int MATCH_CONSTRAINT = 1;
@@ -145,10 +145,6 @@ public class SingleWidgetView extends JPanel {
   public final static int UNCONNECTED = -1;
 
   private final ColorSet mColorSet;
-  private int mCacheBottom;
-  private int mCacheTop;
-  private int mCacheLeft;
-  private int mCacheRight;
   private boolean mCacheBaseline;
   private int mCacheWidth;
   private int mCacheHeight;
@@ -328,7 +324,6 @@ public class SingleWidgetView extends JPanel {
     }
     mRatioString = sideRatioString + mAspectText.getText();
     myWidgetModel.setAspect(mRatioString);
-    update();
   }
 
   private static String getRatioPart(String str) {
@@ -381,7 +376,6 @@ public class SingleWidgetView extends JPanel {
         break;
     }
     myWidgetModel.setAspect(mRatioString);
-    update();
   }
 
   private void setHorizontalState(HConstraintDisplay state) {
@@ -417,32 +411,23 @@ public class SingleWidgetView extends JPanel {
 
   private void topKill() {
     myWidgetModel.killConstraint(ConstraintAnchor.Type.TOP);
-    mCacheTop = UNCONNECTED;
-    update();
   }
 
   private void leftKill() {
     myWidgetModel.killConstraint(ConstraintAnchor.Type.LEFT);
-    mCacheLeft = UNCONNECTED;
-    update();
   }
 
   private void rightKill() {
     myWidgetModel.killConstraint(ConstraintAnchor.Type.RIGHT);
-    mCacheRight = UNCONNECTED;
-    update();
   }
 
   private void bottomKill() {
     myWidgetModel.killConstraint(ConstraintAnchor.Type.BOTTOM);
-    mCacheBottom = UNCONNECTED;
-    update();
   }
 
   private void baselineKill() {
     myWidgetModel.killBaselineConstraint();
     mCacheBaseline = false;
-    update();
   }
 
   private void connectConstraint(Scout.Arrange bottom) {
@@ -760,10 +745,6 @@ public class SingleWidgetView extends JPanel {
     }
   }
 
-  private void update() {
-    configureUi(mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight, mRatioString);
-  }
-
   /**
    * @param bottom      sets the margin -1 = no margin
    * @param top         sets the margin -1 = no margin
@@ -808,10 +789,6 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void configureUi(int bottom, int top, int left, int right, boolean baseline, int width, int height) {
-    mCacheBottom = bottom;
-    mCacheTop = top;
-    mCacheLeft = left;
-    mCacheRight = right;
     mCacheBaseline = baseline;
     mCacheWidth = width;
     mCacheHeight = height;

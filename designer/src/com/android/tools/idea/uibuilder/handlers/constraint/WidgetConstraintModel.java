@@ -15,19 +15,51 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.NS_RESOURCES;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.VALUE_N_DP;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.VALUE_ZERO_DP;
+
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.ui.GuiUtils;
+import javax.swing.Timer;
+import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ChangeListener;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Handles model change coming from interaction on the {@link WidgetConstraintPanel}
@@ -147,12 +179,21 @@ public class WidgetConstraintModel {
 
   private final static int DELAY_BEFORE_COMMIT = 400; // ms
 
+  private boolean myIsInCallback = false;
   private Runnable myUpdateCallback;
   @Nullable private NlComponent myComponent;
 
-  @NotNull private final ChangeListener myChangeLiveListener = e -> {
-    if (myUpdateCallback != null) myUpdateCallback.run();
-  };
+  @NotNull private final ChangeListener myChangeLiveListener = e -> fireUIUpdate();
+
+  private void fireUIUpdate() {
+    if (myUpdateCallback != null) {
+      GuiUtils.invokeLaterIfNeeded(() -> {
+        myIsInCallback = true;
+        myUpdateCallback.run();
+        myIsInCallback = false;
+      }, ModalityState.any());
+    }
+  }
 
   @Nullable private ComponentModification myModification;
 
@@ -169,6 +210,11 @@ public class WidgetConstraintModel {
   });
 
   public WidgetConstraintModel(@NotNull Runnable modelUpdateCallback) {
+    myUpdateCallback = modelUpdateCallback;
+  }
+
+  @TestOnly
+  void setUpdateCallback(@NotNull Runnable modelUpdateCallback) {
     myUpdateCallback = modelUpdateCallback;
   }
 
@@ -214,7 +260,7 @@ public class WidgetConstraintModel {
     myComponent = isApplicable(component) ? component : null;
     if (myComponent != null) {
       myComponent.addLiveChangeListener(myChangeLiveListener);
-      myUpdateCallback.run();
+      fireUIUpdate();
     }
   }
 
@@ -258,7 +304,7 @@ public class WidgetConstraintModel {
   }
 
   private void removeAttribute(int type) {
-    if (myComponent == null) {
+    if (myComponent == null || myIsInCallback) {
       return;
     }
     String label = "Constraint Disconnected";
@@ -278,7 +324,7 @@ public class WidgetConstraintModel {
   }
 
   public void setHorizontalBias(int biasPercent) {
-    if (myComponent == null) {
+    if (myComponent == null || myIsInCallback) {
       return;
     }
     float bias = (biasPercent / 100f);
@@ -293,7 +339,7 @@ public class WidgetConstraintModel {
   }
 
   public void setVerticalBias(int biasPercent) {
-    if (myComponent == null) {
+    if (myComponent == null || myIsInCallback) {
       return;
     }
     float bias = 1f - (biasPercent / 100f);
@@ -373,15 +419,15 @@ public class WidgetConstraintModel {
     return ConstraintUtilities.getDpValue(myComponent, v);
   }
 
-  private void setDimension(@Nullable NlComponent component, @Nullable String attribute, int currentValue) {
-    if (component == null) {
+  private void setDimension(@Nullable String attribute, int currentValue) {
+    if (myComponent == null || myIsInCallback) {
       return;
     }
-    attribute = ConstraintComponentUtilities.mapStartEndStrings(component, attribute);
-    String marginString = component.getLiveAttribute(ANDROID_URI, attribute);
+    attribute = ConstraintComponentUtilities.mapStartEndStrings(myComponent, attribute);
+    String marginString = myComponent.getLiveAttribute(ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
-      marginValue = ConstraintComponentUtilities.getDpValue(component, component.getLiveAttribute(ANDROID_URI, attribute));
+      marginValue = ConstraintComponentUtilities.getDpValue(myComponent, myComponent.getLiveAttribute(ANDROID_URI, attribute));
     }
     if (marginValue != -1 && marginValue == currentValue) {
       setAttribute(ANDROID_URI, attribute, marginString);
@@ -479,21 +525,21 @@ public class WidgetConstraintModel {
   }
 
   public void setTopMargin(int margin) {
-    setDimension(myComponent, ATTR_LAYOUT_MARGIN_TOP, margin);
+    setDimension(ATTR_LAYOUT_MARGIN_TOP, margin);
   }
 
   public void setLeftMargin(int margin) {
-    setDimension(myComponent, ATTR_LAYOUT_MARGIN_START, margin);
-    setDimension(myComponent, ATTR_LAYOUT_MARGIN_LEFT, margin);
+    setDimension(ATTR_LAYOUT_MARGIN_START, margin);
+    setDimension(ATTR_LAYOUT_MARGIN_LEFT, margin);
   }
 
   public void setRightMargin(int margin) {
-    setDimension(myComponent, ATTR_LAYOUT_MARGIN_END, margin);
-    setDimension(myComponent, ATTR_LAYOUT_MARGIN_RIGHT, margin);
+    setDimension(ATTR_LAYOUT_MARGIN_END, margin);
+    setDimension(ATTR_LAYOUT_MARGIN_RIGHT, margin);
   }
 
   public void setBottomMargin(int margin) {
-    setDimension(myComponent, ATTR_LAYOUT_MARGIN_BOTTOM, margin);
+    setDimension(ATTR_LAYOUT_MARGIN_BOTTOM, margin);
   }
 
   public void killBaselineConstraint() {
@@ -501,7 +547,7 @@ public class WidgetConstraintModel {
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
-    if (myComponent == null) {
+    if (myComponent == null || myIsInCallback) {
       return;
     }
     String width = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
@@ -528,7 +574,7 @@ public class WidgetConstraintModel {
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
-    if (myComponent == null) {
+    if (myComponent == null || myIsInCallback) {
       return;
     }
     String height = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
