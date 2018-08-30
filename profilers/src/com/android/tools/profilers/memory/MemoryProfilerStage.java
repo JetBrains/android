@@ -61,6 +61,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.model.Interpolatable.RoundedSegmentInterpolator;
+import static com.android.tools.adtui.model.Interpolatable.SegmentInterpolator;
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
@@ -194,6 +195,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myAllocationSamplingRateUpdatable  = new AllocationSamplingRateUpdatable();
     myAllocationSamplingRateDataSeries = new AllocationSamplingRateDataSeries(myClient, mySessionData);
     myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
+    myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), SegmentInterpolator);
+    myAllocationSamplingRateDurations.setAttachPredicate(data ->
+      LiveAllocationSamplingMode.getModeFromFrequency(data.value.getOldRateEvent().getSamplingRate().getSamplingNumInterval()) ==
+      LiveAllocationSamplingMode.FULL
+    );
 
     // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
     // It will be set properly in the AllocationSamplingRateUpdatable.
@@ -224,6 +230,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myGcStatsModel);
+    getStudioProfilers().getUpdater().register(myAllocationSamplingRateDurations);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
     getStudioProfilers().getUpdater().register(myAllocationSamplingRateUpdatable);
 
@@ -259,6 +266,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStatsModel);
+    getStudioProfilers().getUpdater().unregister(myAllocationSamplingRateDurations);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
     getStudioProfilers().getUpdater().unregister(myAllocationSamplingRateUpdatable);
     selectCaptureDuration(null, null);
@@ -658,6 +666,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       joiner == null ? MoreExecutors.directExecutor() : joiner);
 
     setProfilerMode(ProfilerMode.EXPANDED);
+  }
+
+  @NotNull
+  DurationDataModel<AllocationSamplingRateDurationData> getAllocationSamplingRateDurations() {
+    return myAllocationSamplingRateDurations;
   }
 
   @NotNull
