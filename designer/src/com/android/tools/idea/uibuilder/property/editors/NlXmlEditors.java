@@ -86,7 +86,7 @@ public class NlXmlEditors implements PTableCellEditorProvider, BaseComponent, La
   }
 
   @Override
-  public void lookAndFeelChanged(LafManager source) {
+  public void lookAndFeelChanged(@NotNull LafManager source) {
     resetCachedEditors();
   }
 

@@ -56,7 +56,7 @@ public class ModuleResourceManagers {
       private Sdk myPrevSdk = null;
 
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         myLocalResourceManager = null;
 
         // The system resource managers cache data only from the platform, so they only need to be cleared if the platform changes

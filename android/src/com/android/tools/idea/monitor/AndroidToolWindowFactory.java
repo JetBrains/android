@@ -119,7 +119,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
       layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
       layoutUi.addListener(new ContentManagerAdapter() {
         @Override
-        public void selectionChanged(ContentManagerEvent event) {
+        public void selectionChanged(@NotNull ContentManagerEvent event) {
           Content selectedContent = event.getContent();
           BaseMonitorView view = selectedContent.getUserData(BaseMonitorView.MONITOR_VIEW_KEY);
           if (view != null && event.getOperation() == ContentManagerEvent.ContentOperation.add) {
@@ -291,7 +291,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     }
 
     @Override
-    public void rootsChanged(ModuleRootEvent event) {
+    public void rootsChanged(@NotNull ModuleRootEvent event) {
       final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(getToolWindowId());
       if (window == null) {
         return;

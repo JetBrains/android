@@ -64,7 +64,7 @@ public class ModuleSourceAutogenerating {
     myPrevSdk = ModuleRootManager.getInstance(module).getSdk();
     module.getMessageBus().connect(facet).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
         if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
           myPrevSdk = newSdk;
