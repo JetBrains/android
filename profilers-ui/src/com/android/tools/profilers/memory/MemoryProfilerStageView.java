@@ -476,6 +476,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       lineChart.addCustomRenderer(allocationRenderer);
       overlay.addDurationDataRenderer(allocationRenderer);
     }
+    else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()){
+      DurationDataRenderer<AllocationSamplingRateDurationData> samplingModeRenderer =
+        new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
+          .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+          .setIcon(StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE)
+          .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f, Y_AXIS_TOP_MARGIN)
+          .setClickRegionPadding(0, 0)
+          .build();
+      samplingModeRenderer.addCustomLineConfig(memoryUsage.getObjectsSeries(),
+                                               LineConfig.copyOf(lineChart.getLineConfig(memoryUsage.getObjectsSeries())).setMasked(true));
+      lineChart.addCustomRenderer(samplingModeRenderer);
+      overlay.addDurationDataRenderer(samplingModeRenderer);
+    }
 
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
       new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.DARK_GRAY)

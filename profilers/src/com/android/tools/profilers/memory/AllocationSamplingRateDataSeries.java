@@ -67,6 +67,7 @@ final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSam
         newRateEvent = event;
         seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(oldRateEvent.getTimestamp()),
                                         new AllocationSamplingRateDurationData(oldRateEvent, newRateEvent)));
+        newRateEvent = null;
       }
       oldRateEvent = event;
     }

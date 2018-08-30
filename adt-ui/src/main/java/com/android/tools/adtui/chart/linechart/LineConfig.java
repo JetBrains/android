@@ -109,14 +109,15 @@ public class LineConfig {
   @NotNull
   private Color mColor;
 
-  @NotNull
-  private Set<RangedContinuousSeries> mMaskedSeries;
+  /**
+   * Whether the series should be hidden.
+   */
+  private boolean myIsMasked;
 
   public LineConfig(@NotNull Color color) {
     mColor = color;
     myStroke = DEFAULT_LINE_STROKE;
     myLegendIconType = LegendConfig.IconType.NONE;
-    mMaskedSeries = new HashSet<>();
   }
 
   public static LineConfig copyOf(@NotNull LineConfig otherConfig) {
@@ -130,21 +131,21 @@ public class LineConfig {
     config.setLegendIconType(otherConfig.getLegendIconType());
     config.setStroke(otherConfig.getStroke());
     config.setAdjustedDashPhase(otherConfig.getAdjustedDashPhase());
-    otherConfig.getMaskedSeries().forEach(series -> config.addMaskedSeries(series));
-
+    config.setMasked(otherConfig.isMasked());
     return config;
   }
 
   /**
    * Specify the series that will be masked out (hidden) when it is drawn on the LineChart using this config instance.
    */
-  public void addMaskedSeries(@NotNull RangedContinuousSeries series) {
-    mMaskedSeries.add(series);
+  @NotNull
+  public LineConfig setMasked(boolean isMasked) {
+    myIsMasked = isMasked;
+    return this;
   }
 
-  @NotNull
-  public Set<RangedContinuousSeries> getMaskedSeries() {
-    return mMaskedSeries;
+  public boolean isMasked() {
+    return myIsMasked;
   }
 
   @NotNull

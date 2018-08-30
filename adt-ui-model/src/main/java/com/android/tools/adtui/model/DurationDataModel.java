@@ -28,7 +28,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
 
   @NotNull private final RangedSeries<E> mySeries;
   @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
-  @Nullable private Predicate<Long> myAttachPredicate = null;
+  @Nullable private Predicate<SeriesData<E>> myAttachPredicate = null;
   @Nullable private Interpolatable<Long, Double> myInterpolatable = null;
 
   public DurationDataModel(@NotNull RangedSeries<E> series) {
@@ -47,7 +47,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
   }
 
   @Nullable
-  public Predicate<Long> getAttachPredicate() {
+  public Predicate<SeriesData<E>> getAttachPredicate() {
     return myAttachPredicate;
   }
 
@@ -70,7 +70,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
    * @param attachPredicate   for each DurationData, an expression that evaluates whether it should be attached to the series (if the
    *                          attachSeries has been set).
    */
-  public void setAttachPredicate(@NotNull Predicate<Long> attachPredicate) {
+  public void setAttachPredicate(@NotNull Predicate<SeriesData<E>> attachPredicate) {
     myAttachPredicate = attachPredicate;
   }
 

@@ -139,7 +139,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
     RangedSeries<E> series = myModel.getSeries();
     RangedContinuousSeries attached = myModel.getAttachedSeries();
-    Predicate<Long> attachedPredicate = myModel.getAttachPredicate();
+    Predicate<SeriesData<E>> attachedPredicate = myModel.getAttachPredicate();
     double xMin = series.getXRange().getMin();
     double xLength = series.getXRange().getLength();
     List<SeriesData<E>> seriesList = series.getSeries();
@@ -163,7 +163,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       // If the DurationData needs to attach to a line series, finds the Y value on the line series matching the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
       if (attachedSeriesList != null) {
-        if (attachedPredicate == null || attachedPredicate.test(data.x)) {
+        if (attachedPredicate == null || attachedPredicate.test(data)) {
           for (; j < attachedSeriesList.size(); j++) {
             SeriesData<Long> seriesData = attachedSeriesList.get(j);
             if (seriesData.x - data.x > EPSILON) {

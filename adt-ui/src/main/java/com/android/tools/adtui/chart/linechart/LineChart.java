@@ -437,8 +437,7 @@ public class LineChart extends AnimatedComponent {
       LineConfig config = configs.get(i);
       Color lineColor = config.getColor();
 
-      // Skip line that has been masked out.
-      if (config.getMaskedSeries().contains(series)) {
+      if (config.isMasked()) {
         continue;
       }
 
