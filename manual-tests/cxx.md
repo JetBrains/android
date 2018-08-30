@@ -59,3 +59,41 @@ NOTE 2: The exact content of the sub-nodes depends on the version of the NDK ins
 [add-new-header-file]: res/cxx/enhanced-header-files/add-new-header-file.png
 [endless-tunnel-ndk-components]: res/cxx/enhanced-header-files/endless-tunnel-ndk-components.png
 [cdep-free-type-example]: res/cxx/enhanced-header-files/cdep-free-type-example..png
+
+## CMake Version Pinning
+
+### Prepare C++ Project
+
+1. From Android Studio choose `File/New/New Project...`
+1. Select `Native C++` from the wizard.
+1. Expect gradle sync to succeed without errors.
+
+#### Pin and install version from SDK
+1. Use SDK Manager (Main/Preferences/Android SDK) to uninstall all CMake versions from SDK Tools.
+1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.10"`.
+1. Click `Sync now`.
+1. Expect a gradle sync error with link: `Install CMake 3.10.2 and sync project`. Click on the link.
+1. Expect installation to complete successfully. Click `Finish`.
+1. Expect gradle sync to automatically restart and succeed.
+
+Verify the same behavior using version "3.10.2" and "3.6".
+
+### Pin and auto-install fork version from SDK
+1. Use SDK Manager (Main/Preferences/Android SDK) to uninstall all CMake versions from SDK Tools.
+1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.6.0-rc2"`.
+1. Click `Sync now`.
+1. Expect a gradle sync error with link: `Install CMake 3.6.2-rc2 and sync project`. Click on the link.
+1. Expect installation to complete successfully. Click `Finish`.
+1. Expect gradle sync to automatically restart and succeed.
+
+#### Pin to non-existing version
+1. Use SDK Manager (Main/Preferences/Android SDK) to uninstall all CMake versions from SDK Tools.
+1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.12"`.
+1. Expect a banner to appear at the top: `Gradle files have changed since last project sync...`.
+1. Click `Sync now`.
+1. Expect a gradle sync error with the following message, and no link:
+
+```
+CMake '3.12' was not found in PATH or by cmake.dir property.
+- CMake ... (these lines are not important)
+```
