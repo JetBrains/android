@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -26,25 +29,39 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.FilterComponent;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.util.*;
-
-import static com.android.SdkConstants.PREFIX_ANDROID;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Theme selection dialog.
@@ -67,10 +84,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   @NotNull private final Configuration myConfiguration;
   @NotNull private final ThemeSelectionDialog myDialog;
-  @NotNull private JBList myThemeList;
-  @NotNull private Tree myCategoryTree;
-  @NotNull private JPanel myContentPanel;
-  @NotNull private ThemeFilterComponent myFilter;
+  private JBList<String> myThemeList;
+  private Tree myCategoryTree;
+  private JPanel myContentPanel;
+  private ThemeFilterComponent myFilter;
   @NotNull private final List<String> myFrameworkThemes;
   @NotNull private final List<String> myProjectThemes;
   @NotNull private final List<String> myLibraryThemes;
@@ -97,10 +114,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, myExcludedThemes);
     myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, myExcludedThemes);
 
-    String currentTheme = configuration.getTheme();
-    if (currentTheme != null) {
-      currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(currentTheme);
-    }
+    String currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(configuration.getTheme());
     touchTheme(currentTheme, myExcludedThemes);
 
     myCategoryTree.setModel(new CategoryModel());
@@ -109,12 +123,11 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myCategoryTree.addTreeSelectionListener(this);
     setInitialSelection(currentTheme);
     myThemeList.addListSelectionListener(this);
-    myThemeList.setCellRenderer(new ColoredListCellRenderer() {
+    myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
       @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
         setIcon(AndroidIcons.Themes);
 
-        String style = (String)value;
         String filter = myFilter.getFilter();
         style = ThemeUtils.getPreferredThemeName(style);
 
@@ -216,14 +229,12 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
       return themes;
     }
 
-    themes = new ArrayList<String>(50);
+    themes = new ArrayList<>(50);
 
     switch (category) {
       case RECENT:
         if (ourRecent != null) {
-          for (String theme : ourRecent) {
-            themes.add(theme);
-          }
+          themes.addAll(ourRecent);
         }
         break;
       case HOLO:
@@ -255,9 +266,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case PROJECT:
-        for (String theme : myProjectThemes) {
-          themes.add(theme);
-        }
+        themes.addAll(myProjectThemes);
         break;
       case CLASSIC:
         for (String theme : myFrameworkThemes) {
@@ -315,7 +324,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         */
 
         String manifestTheme = manifest.getManifestTheme();
-        Set<String> allThemes = new HashSet<String>();
+        Set<String> allThemes = new HashSet<>();
         if (manifestTheme != null) {
           allThemes.add(manifestTheme);
         }
@@ -324,7 +333,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
             allThemes.add(info.getTheme());
           }
         }
-        List<String> sorted = new ArrayList<String>(allThemes);
+        List<String> sorted = new ArrayList<>(allThemes);
         Collections.sort(sorted);
 
         for (String theme : sorted) {
@@ -334,15 +343,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       }
       case ALL:
-        for (String theme : myProjectThemes) {
-          themes.add(theme);
-        }
-        for (String theme : myFrameworkThemes) {
-          themes.add(theme);
-        }
-        for (String theme : myLibraryThemes) {
-          themes.add(theme);
-        }
+        themes.addAll(myProjectThemes);
+        themes.addAll(myFrameworkThemes);
+        themes.addAll(myLibraryThemes);
         break;
       case ROOT:
       default:
@@ -359,9 +362,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
       return;
     }
 
-    String selected = (String)myThemeList.getSelectedValue();
+    String selected = myThemeList.getSelectedValue();
 
-    SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+    SortedListModel<String> model = new SortedListModel<>(String.CASE_INSENSITIVE_ORDER);
     String filter = myFilter.getFilter();
 
     List<String> themes = getThemes(myCategory);
@@ -428,7 +431,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   @Nullable
   public String getTheme() {
-    String selected = (String)myThemeList.getSelectedValue();
+    String selected = myThemeList.getSelectedValue();
     touchTheme(selected, myExcludedThemes);
     return selected;
   }
@@ -437,7 +440,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     if (selected != null) {
       if (ourRecent == null || !ourRecent.contains(selected)) {
         if (ourRecent == null) {
-          ourRecent = new LinkedList<String>();
+          ourRecent = new LinkedList<>();
         }
         if (!excludedThemes.contains(selected)) {
           ourRecent.addFirst(selected);
@@ -573,12 +576,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   public void focus() {
     final Project project = myConfiguration.getModule().getProject();
     final IdeFocusManager focusManager = project.isDefault() ? IdeFocusManager.getGlobalInstance() : IdeFocusManager.getInstance(project);
-    focusManager.doWhenFocusSettlesDown(new Runnable() {
-      @Override
-      public void run() {
-        focusManager.requestFocus(myThemeList, true);
-      }
-    });
+    focusManager.doWhenFocusSettlesDown(() -> focusManager.requestFocus(myThemeList, true));
   }
 
   private static boolean haveMatches(String filter, List<String> themes) {
@@ -626,9 +624,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
 
     @Override
-    protected void onEscape(KeyEvent e) {
+    protected void onEscape(@NotNull KeyEvent event) {
       focus();
-      e.consume();
+      event.consume();
     }
   }
 
