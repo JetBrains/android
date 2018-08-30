@@ -32,7 +32,7 @@ public class AndroidDependenciesCache {
 
     module.getProject().getMessageBus().connect(module).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         dropCache();
       }
     });

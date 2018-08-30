@@ -50,7 +50,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     // If project roots change, reload the themes. This happens for example once the libraries have finished loading.
     project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         // Avoid invoking reload on the event listener thread. The rootsChanged event is called while holding the write lock
         // so calling reload can potentially cause a deadlock.
         ApplicationManager.getApplication().invokeLater(new Runnable() {

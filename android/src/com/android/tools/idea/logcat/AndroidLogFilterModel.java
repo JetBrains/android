@@ -139,7 +139,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     }
   }
 
-  private void fireFilterChange(LogFilter filter) {
+  private void fireFilterChange(@NotNull LogFilter filter) {
     for (LogFilterListener listener : myListeners) {
       listener.onFilterStateChange(filter);
     }

@@ -59,7 +59,7 @@ public abstract class InspectorProviders<PropMgr extends PropertiesManager<PropM
   }
 
   @Override
-  public void lookAndFeelChanged(LafManager source) {
+  public void lookAndFeelChanged(@NotNull LafManager source) {
     // Clear all caches with UI elements:
     getProviders().forEach(InspectorProvider::resetCache);
 
