@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -32,6 +33,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -42,8 +44,33 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class InstallCMakeHyperlink extends NotificationHyperlink {
+  /**
+   * The version of CMake that this hyperlink will try to install. Null if the cmake version is not
+   * important and the latest version included in the SDK should be installed.
+   */
+  @Nullable private Revision myCmakeVersion;
+
+  /**
+   * Constructs a hyperlink to install the default version of CMake in the SDK.
+   */
   public InstallCMakeHyperlink() {
     super("install.cmake", "Install CMake and sync project");
+    myCmakeVersion = null;
+  }
+
+  /**
+   * Constructs a hyperlink to install a specific version of CMake from the SDK.
+   *
+   * @param cmakeVersion The version of CMake to install.
+   */
+  public InstallCMakeHyperlink(@NotNull Revision cmakeVersion) {
+    super("install.cmake", "Install CMake " + cmakeVersion.toString() + " and sync project");
+    this.myCmakeVersion = cmakeVersion;
+  }
+
+  @Nullable
+  public Revision getCmakeVersion() {
+    return myCmakeVersion;
   }
 
   @Override
@@ -58,33 +85,66 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
     StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
     RepoManager.RepoLoadedCallback onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
+        RemotePackage cmakePackage = null;
         Collection<RemotePackage> cmakePackages = packages.getRemotePackagesForPrefix(FD_CMAKE);
-        if (!cmakePackages.isEmpty()) {
-          RemotePackage cmakePackage;
+
+        if (myCmakeVersion == null) {
+          // Install the latest version from the SDK.
           if (cmakePackages.size() == 1) {
             cmakePackage = getFirstItem(cmakePackages);
           }
           else {
             cmakePackage = sdkHandler.getLatestRemotePackageForPrefix(FD_CMAKE, false /* do not allow preview */, progressIndicator);
           }
-          if (cmakePackage != null) {
-            ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
-            if (dialog != null && dialog.showAndGet()) {
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
-            }
-            return;
-          }
-          notifyCMakePackageNotFound(project);
         }
+        else {
+          // Install the version the user requested.
+          cmakePackage = cmakePackages.stream()
+                                      .filter(remotePackage -> remotePackage.getVersion().equals(myCmakeVersion))
+                                      .findFirst()
+                                      .orElse(null);
+        }
+
+        if (cmakePackage != null) {
+          // Found: Trigger installation of the package.
+          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
+          if (dialog != null && dialog.showAndGet()) {
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+          }
+          return;
+        }
+
+        // Either no CMake versions were found, or the requested CMake version was not found.
+        notifyCMakePackageNotFound(project, myCmakeVersion);
       }, ModalityState.any());
     Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
-      () -> notifyCMakePackageNotFound(project),
+      () -> notifyCMakePackageInstallError(project),
       ModalityState.any());
     sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
   }
 
-  private static void notifyCMakePackageNotFound(@NotNull Project project) {
-    Messages.showErrorDialog(project, "Failed to obtain CMake package", "Gradle Sync");
+  /**
+   * Displays an error dialog to inform the user that a CMake package was not found.
+   *
+   * @param project      The current IntelliJ project.
+   * @param cmakeVersion The version of CMake that was searched for.
+   */
+  private static void notifyCMakePackageNotFound(@NotNull Project project, @Nullable Revision cmakeVersion) {
+    if (cmakeVersion == null) {
+      Messages.showErrorDialog(project, "Failed to obtain CMake package", "Gradle Sync");
+    }
+    else {
+      Messages.showErrorDialog(project, "Failed to obtain CMake package version " + cmakeVersion.toString(), "Gradle Sync");
+    }
+  }
+
+  /**
+   * Displays an error dialog to inform the user that the CMake install failed.
+   *
+   * @param project THe current IntelliJ project.
+   */
+  private static void notifyCMakePackageInstallError(@NotNull Project project) {
+    Messages.showErrorDialog(project, "Failed to install CMake package", "Gradle Sync");
   }
 }

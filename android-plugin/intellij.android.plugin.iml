@@ -11,11 +11,11 @@
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.designer" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
-    <orderEntry type="module" module-name="android-adb" />
-    <orderEntry type="module" module-name="android-debuggers" />
-    <orderEntry type="module" module-name="android-lang" />
-    <orderEntry type="module" module-name="project-system" />
-    <orderEntry type="module" module-name="project-system-gradle" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="intellij.android.debuggers" />
+    <orderEntry type="module" module-name="intellij.android.lang" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="android-layout-inspector" />
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="connection-assistant" />

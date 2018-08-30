@@ -28,11 +28,10 @@ import java.util.function.BiFunction;
 
 /**
  * Base class for components that should change their look over time.
- *
+ * <p>
  * At a minimum, child classes should override {@link #updateData()} and {@link
  * #draw(Graphics2D)}, as well as pay attention to the field {@link #mFrameLength} as it controls
  * the behavior of timed animations.
- *
  */
 public abstract class AnimatedComponent extends JComponent {
 
@@ -76,7 +75,7 @@ public abstract class AnimatedComponent extends JComponent {
 
   /**
    * Sets the cursor setter so that {@link #setCursor(Cursor)} has effect.
-   *
+   * <p>
    * Setting cursor on a Swing component that is not on the highest z-order hierarchy chain does
    * nothing. Call this with a setter that sets the cursor on the appropriate container and
    * {@link #setCursor(Cursor)} will call the setter when available.
@@ -108,7 +107,7 @@ public abstract class AnimatedComponent extends JComponent {
 
   /**
    * Overrides default behavior, which does nothing when this component is not on the highest
-   * z-roder hierarchy chain. This method now attempts to call the cursor setter first if set by
+   * z-order hierarchy chain. This method now attempts to call the cursor setter first if set by
    * {@link #setCursorSetter(BiFunction)}.
    */
   @Override
@@ -154,12 +153,22 @@ public abstract class AnimatedComponent extends JComponent {
   protected void debugDraw(Graphics2D g) {}
 
   protected void opaqueRepaint() {
-    // TODO: In theory swing should handle transparent repaints correctly, but
-    // for now this works-around the issue of multiple repaints.
+    getOpaqueContainer().repaint();
+  }
+
+  protected void opaqueRepaint(int x, int y, int width, int height) {
+    getOpaqueContainer().repaint(x, y, width, height);
+  }
+
+  @NotNull
+  private Container getOpaqueContainer() {
+    // For certain scenarios (such as a non-opaque panel sitting on a JLayeredPane), repaint() may not work correctly.
+    // Therefore, by forcing the repaint up the component hierarchy to the closest opaque ancestor, we cause all overlapping children
+    // to render, and avoid the "top child erases things underneath it" problem.
     Container c = this;
-    while (c.getParent() != null && !c.isOpaque()) {
+    while (!c.isOpaque() && c.getParent() != null) {
       c = c.getParent();
     }
-    c.repaint();
+    return c;
   }
 }

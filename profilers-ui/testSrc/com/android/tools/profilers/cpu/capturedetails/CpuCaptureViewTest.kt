@@ -101,7 +101,7 @@ class CpuCaptureViewTest {
     }
     val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
     val stopButton = TreeWalker(recordingPane).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerStageView.STOP_TEXT
+      it.text == CpuProfilerToolbar.STOP_TEXT
     }
     assertThat(stopButton.isEnabled).isTrue()
     cpuProfiler.stopCapturing()
@@ -200,7 +200,6 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      ideServices.enableCpuCaptureFilter(true)
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       captureTrace(profilerType = ART)
     }
@@ -264,7 +263,6 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      ideServices.enableCpuCaptureFilter(true)
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       captureTrace(profilerType = ART)
     }

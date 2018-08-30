@@ -17,27 +17,28 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.stats.RunStatsService;
-import com.android.tools.ir.client.InstantRunClient;
-import com.android.tools.idea.fd.*;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.fd.DeployType;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.run.ApkInfo;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.FullApkInstaller;
+import com.android.tools.idea.run.InstalledApkCache;
+import com.android.tools.idea.run.InstalledPatchCache;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.android.tools.ir.client.InstantRunClient;
 import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.ArtifactDetail;
-import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
-import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class DeployApkTask implements LaunchTask {
   private static final String ID = "DEPLOY_APK";
@@ -129,11 +130,13 @@ public class DeployApkTask implements LaunchTask {
     patchCache.setInstalledManifestResourcesHash(device, context.getApplicationId(), context.getManifestResourcesHash());
   }
 
-  private static void trackInstallation(@NotNull IDevice device) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
+  private void trackInstallation(@NotNull IDevice device) {
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent.newBuilder()
        .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
        .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
-       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
+       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)),
+      myProject));
   }
 
   private static class SkipEmptyLinesConsolePrinter implements ConsolePrinter {

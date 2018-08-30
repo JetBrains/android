@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "apkanalyzer",
+    name = "intellij.android.apkanalyzer",
     srcs = ["src"],
-    iml_files = ["apkanalyzer.iml"],
+    iml_files = ["intellij.android.apkanalyzer.iml"],
     test_resources = ["testSrc/resources"],
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc/java"],
@@ -39,9 +39,9 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/idea/.idea/libraries:dexlib2",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
-        "//tools/adt/idea/project-system[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
-        "//tools/adt/idea/android-lang[module]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],

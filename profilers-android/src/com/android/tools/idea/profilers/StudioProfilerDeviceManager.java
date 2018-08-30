@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.profilers;
 
+import static com.android.ddmlib.IDevice.CHANGE_STATE;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -28,6 +36,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
@@ -41,9 +50,6 @@ import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,9 +57,14 @@ import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
-
-import static com.android.ddmlib.IDevice.CHANGE_STATE;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
@@ -68,6 +79,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   }
 
   private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
+  // TODO(b/113349293): Read from project setting.
+  private static int LIVE_ALLOCATION_SAMPLING_NUM_INTERVAL = 1;
 
   private static final String BOOT_COMPLETE_PROPERTY = "dev.bootcomplete";
   private static final String BOOT_COMPLETE_MESSAGE = "1";
@@ -458,8 +471,12 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           .setMemConfig(
             Agent.AgentConfig.MemoryConfig
               .newBuilder()
-              .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get()).setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
-              .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get()).build())
+              .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
+              .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+              .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
+              .setSamplingRate(
+                MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(LIVE_ALLOCATION_SAMPLING_NUM_INTERVAL).build())
+              .build())
           .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
           // Using "@" to indicate an abstract socket in unix.
           .setServiceSocketName("@" + DEVICE_SOCKET_NAME).setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())

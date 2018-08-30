@@ -35,7 +35,7 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/vendor/intellij/cidr/cidr-debugger:intellij.cidr.debugger[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
     ],
 )

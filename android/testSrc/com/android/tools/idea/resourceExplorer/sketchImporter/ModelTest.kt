@@ -13,40 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter;
+package com.android.tools.idea.resourceExplorer.sketchImporter
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.ImportOptions
-import com.android.tools.idea.resourceExplorer.sketchImporter.model.PageOptions
-import com.android.tools.idea.resourceExplorer.sketchImporter.presenter.SketchParser
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class ModelTest {
   @Test
-  fun defaultOptions() {
+  fun findLayers() {
     val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
 
-    val options = ImportOptions(sketchFile)
+    // First page
+    assertEquals(sketchFile.findLayer("7D779FEF-7EA8-45AF-AA97-04E803E773F7")?.classType, "rectangle")
+    assertEquals(sketchFile.findLayer("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")?.classType, "page")
 
-    // Symbols page
-    val pageOptions1 = options.getPageOptions("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")
-    assertEquals("Symbols", sketchFile.findLayer("CD4A49FD-0A18-4059-B493-5C2DC9F8F386")?.name)
-    assertEquals(PageOptions.PageType.SYMBOLS, pageOptions1?.pageType)
+    // Second page
+    assertEquals(sketchFile.findLayer("E107408D-96BD-4B27-A124-6A84069917FB")?.classType, "artboard")
+    assertEquals(sketchFile.findLayer("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")?.classType, "page")
+  }
 
-    // Default-type page
-    val pageOptions2 = options.getPageOptions("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")
-    assertEquals("New Palette", sketchFile.findLayer("11B6C0F9-CE36-4365-8D66-AEF88B697CCD")?.name)
-    assertEquals(PageOptions.DEFAULT_PAGE_TYPE, pageOptions2?.pageType)
+  @Test
+  fun findSymbols() {
+    val sketchFile = SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
 
-    // Artboard (Icon)
-    val iconOptions = options.getIconOptions("E107408D-96BD-4B27-A124-6A84069917FB")
-    assertTrue(iconOptions?.isExportable ?: false)
+    // First page
+    assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.height, 12.0)
+    assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.width, 14.0)
 
-    // Layer that's in the file but is not a page/artboard
-    assertNull(options.getIconOptions("7D779FEF-7EA8-45AF-AA97-04E803E773F7"))
-    assertNull(options.getPageOptions("7D779FEF-7EA8-45AF-AA97-04E803E773F7"))
+    // Second page
+    assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.name, "text_dark")
+    assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.classType, "symbolMaster")
   }
 }

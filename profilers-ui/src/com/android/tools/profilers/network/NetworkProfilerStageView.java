@@ -34,6 +34,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -120,7 +121,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     JPanel toolbar = new JPanel(createToolbarLayout());
     toolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-    toolbar.add(getSelectionTimeLabel());
+    
+    JLabel selectionTimeLabel = getSelectionTimeLabel();
+    selectionTimeLabel.setBorder(new JBEmptyBorder(0, 0, 0, 8));
+    toolbar.add(selectionTimeLabel);
 
     myConnectionsPanel.add(toolbar, new TabularLayout.Constraint(0, 1));
     myConnectionsPanel.add(connectionsPanel, new TabularLayout.Constraint(0, 0, 2, 2));

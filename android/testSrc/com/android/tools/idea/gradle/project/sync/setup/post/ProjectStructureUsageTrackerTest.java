@@ -115,11 +115,6 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 
-  public void testGetApplicationId() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
-    assertEquals("com.example.projectwithappandlib.app", ProjectStructureUsageTracker.getApplicationId(getProject()));
-  }
-
   public void testStringToBuildSystemType() {
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD,
                  ProjectStructureUsageTracker.stringToBuildSystemType("ndkBuild"));

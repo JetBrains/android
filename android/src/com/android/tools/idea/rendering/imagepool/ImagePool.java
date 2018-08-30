@@ -146,7 +146,7 @@ public interface ImagePool {
      */
     @Nullable
     default BufferedImage getCopy(int x, int y, int w, int h) {
-      return getCopy(null, 0, 0, w, h);
+      return getCopy(null, x, y, w, h);
     }
 
     /**

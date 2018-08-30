@@ -66,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -98,6 +99,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JLabel myTemplateIconTitle;
   private JLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
+  private JCheckBox myUseAndroidxCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -150,6 +152,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
     myBindings.bindTwoWay(getModel().includeNavController(), new SelectedProperty(myNavigationControllerCheck));
+    myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
+
 
     myValidatorPanel.registerValidator(myProjectModel.applicationName(), value -> {
       if (value.isEmpty()) {
@@ -184,6 +188,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
+      myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
     });
   }
 

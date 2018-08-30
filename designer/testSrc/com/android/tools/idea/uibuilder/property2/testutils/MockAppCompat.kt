@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
@@ -164,8 +165,10 @@ object MockAppCompat {
     val projectSystemService = mock<ProjectSystemService>(ProjectSystemService::class.java)
     val androidProjectSystem = mock<AndroidProjectSystem>(AndroidProjectSystem::class.java)
     val androidModuleSystem = mock<AndroidModuleSystem>(AndroidModuleSystem::class.java)
+    val lightResourceClassService = mock<LightResourceClassService>(LightResourceClassService::class.java, Mockito.RETURNS_SMART_NULLS)
     `when`<AndroidProjectSystem>(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
     `when`<AndroidModuleSystem>(androidProjectSystem.getModuleSystem(facet.module)).thenReturn(androidModuleSystem)
+    `when`<LightResourceClassService>(androidProjectSystem.getLightResourceClassService()).thenReturn(lightResourceClassService)
     val matcher: ArgumentMatcher<GradleCoordinate> = ArgumentMatcher { it != null && it.isSameArtifact(appCompatCoordinate) }
     // The "argThat_NonNull" is a required work around due to Mockito's argThat function explicitly returning null into
     // a when() clause that does not accept null as an argument in kotlin.

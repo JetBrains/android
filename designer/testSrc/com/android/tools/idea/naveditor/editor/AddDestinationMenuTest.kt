@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.SdkConstants
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
@@ -111,6 +112,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
     val parent = model.components[0]
     val expected = listOf(
+      Destination.PlaceholderDestination(parent),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment")),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1")),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment2")),
@@ -176,10 +178,11 @@ class AddDestinationMenuTest : NavTestCase() {
     val gallery = menu.destinationsList
     val searchField = menu.searchField
 
-    assertEquals(3, gallery.itemsCount)
-    assertEquals("BlankFragment", (gallery.model.getElementAt(0) as Destination).label)
-    assertEquals("navigation.xml", (gallery.model.getElementAt(1) as Destination).label)
-    assertEquals("activity_main2", (gallery.model.getElementAt(2) as Destination).label)
+    assertEquals(4, gallery.itemsCount)
+    assertEquals("placeholder", (gallery.model.getElementAt(0) as Destination).label)
+    assertEquals("BlankFragment", (gallery.model.getElementAt(1) as Destination).label)
+    assertEquals("navigation.xml", (gallery.model.getElementAt(2) as Destination).label)
+    assertEquals("activity_main2", (gallery.model.getElementAt(3) as Destination).label)
 
     searchField.text = "v"
     assertEquals(2, gallery.itemsCount)
@@ -224,7 +227,7 @@ class AddDestinationMenuTest : NavTestCase() {
         createdFiles.add(File(root, "res/layout/frag_layout.xml"))
       }
     }
-    menu.createBlankDestination(event, action)
+    menu.createNewDestination(event, action)
 
     val added = model.find("frag")!!
     assertEquals("fragment", added.tagName)
@@ -247,12 +250,26 @@ class AddDestinationMenuTest : NavTestCase() {
         createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
       }
     }
-    menu.createBlankDestination(event, action)
+    menu.createNewDestination(event, action)
 
     val added = model.find("frag")!!
     assertEquals("fragment", added.tagName)
     assertNull(added.layout)
     assertEquals("mytest.navtest.Frag", added.className)
+  }
+
+  fun testCreatePlaceholder() {
+    val gallery = menu.destinationsList
+    val cell0Bounds = gallery.getCellBounds(1, 1)
+    val destination = gallery.model.getElementAt(1) as Destination
+    gallery.setSelectedValue(destination, false)
+    gallery.dispatchEvent(MouseEvent(
+      gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+      cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+    val component = destination.component
+    assertNotNull(component)
+    assertEquals(listOf(component!!), surface.selectionModel.selection)
+    assertNull(component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
   }
 
   fun testImageLoading() {

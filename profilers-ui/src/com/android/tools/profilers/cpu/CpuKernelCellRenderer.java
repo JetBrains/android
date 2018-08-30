@@ -28,12 +28,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import java.awt.Color;
+import java.awt.Component;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * This class is responsible for the layout of each row of the cpu process rendering.

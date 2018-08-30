@@ -26,6 +26,7 @@ import com.google.common.base.Verify
 import com.intellij.openapi.fileEditor.FileEditorManager
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.timing.Wait
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

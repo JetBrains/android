@@ -8,9 +8,6 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.project.DumbModeTask
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.JavaPsiFacade
@@ -80,9 +77,14 @@ internal fun computeAttributeMap(
 /**
  * Public version of the same method from [MigrationUtil].
  */
-fun findOrCreateClass(project: Project, migration: PsiMigration, qName: String): PsiClass {
-  return JavaPsiFacade.getInstance(project).findClass(qName, GlobalSearchScope.allScope(project))
-         ?: runWriteAction { migration.createClass(qName) }
+@JvmOverloads
+fun findOrCreateClass(
+  project: Project,
+  migration: PsiMigration,
+  qName: String,
+  scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
+): PsiClass {
+  return JavaPsiFacade.getInstance(project).findClass(qName, scope) ?: runWriteAction { migration.createClass(qName) }
 }
 
 /**

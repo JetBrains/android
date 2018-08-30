@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -54,6 +57,15 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
     return true;
   }
 
+  @Override
+  public void onChildRemoved(@NotNull ViewEditor editor,
+                             @NotNull NlComponent layout,
+                             @NotNull NlComponent newChild,
+                             @NotNull InsertType insertType) {
+    newChild.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X);
+    newChild.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y);
+  }
+
   @NotNull
   @Override
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
@@ -68,5 +80,10 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
       new AbsoluteResizeTarget(ResizeBaseTarget.Type.BOTTOM),
       new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM)
     );
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new AbsolutePlaceholder(component));
   }
 }

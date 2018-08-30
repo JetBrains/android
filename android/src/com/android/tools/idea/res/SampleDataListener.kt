@@ -22,7 +22,6 @@ import org.jetbrains.android.facet.AndroidFacet
 
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.vfs.*
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
@@ -76,7 +75,7 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
   /**
    * Used to fail fast when we can quickly tell that a file has nothing to do with sample data.
    */
-  private fun isPossiblyRelevant(file: VirtualFile) = file.fileType.let { it != StdFileTypes.JAVA && it != StdFileTypes.XML }
+  private fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
 
   /**
    * Returns true if the given [VirtualFile] is part of the sample data directory associated with the given

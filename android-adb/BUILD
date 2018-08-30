@@ -3,9 +3,9 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "android-adb",
+    name = "intellij.android.adb",
     srcs = ["src"],
-    iml_files = ["android-adb.iml"],
+    iml_files = ["intellij.android.adb.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -20,8 +20,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "android-adb-tests",
-    iml_files = ["android-adb-tests.iml"],
+    name = "intellij.android.adb.tests",
+    iml_files = ["intellij.android.adb.tests.iml"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
     # do not sort: must match IML order
@@ -51,11 +51,11 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/android-adb[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

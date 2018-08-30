@@ -24,9 +24,14 @@ import com.android.tools.idea.actions.DevicePickerHelpActionKt;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.stats.RunStatsService;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -36,7 +41,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -48,19 +56,23 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.*;
-import java.util.List;
 
 public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandler {
   private static final int DEVICE_TAB_INDEX = 0;
@@ -269,10 +281,11 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
   @Override
   public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
-    UsageTracker.log(
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
-        .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
+        .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)),
+      myFacet.getModule().getProject()));
 
     DevicePickerHelpAction action = (DevicePickerHelpAction) DevicePickerHelpActionKt.getAction();
     ApplicationManager.getApplication().invokeLater(() -> {

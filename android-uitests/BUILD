@@ -77,14 +77,15 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/uitest-framework:intellij.android.guiTestFramework[module, test]",
         "//tools/adt/idea/uitest-framework-gradle[module, test]",
         "//tools/adt/idea/uitest-framework-bazel[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
-        "//tools/adt/idea/android-adb[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
 
@@ -266,6 +267,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
         "testData/SimpleLocalApplication/**",
+        "testData/LayoutInspector/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
@@ -459,7 +461,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/112856839
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -522,6 +523,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
         "no_psq",
+        "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -643,7 +645,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_unreliable",  # b/113296797
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -659,7 +661,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_unreliable",  # b/112776687
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -675,7 +677,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_unreliable",  # b/112776687
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -691,7 +693,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_unreliable",  # b/112776687
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -726,7 +728,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_unreliable",  # b/113296852
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1059,6 +1061,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "no-remote",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1289,6 +1292,7 @@ java_test(
         "no_psq",
         "qa_fast",
         "qa_unreliable",  # b/111997969
+        "no-remote",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

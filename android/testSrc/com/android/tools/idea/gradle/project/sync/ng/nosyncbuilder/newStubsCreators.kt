@@ -48,8 +48,9 @@ val modulePath = File("/path/to/module")
 val sdkPath = File("/path/to/sdk")
 val buildPath = File(modulePath, "build")
 val outPath = File("/path/to/out")
+val bundlePath = File("/path/to/bundle")
 
-val testConverter = PathConverter(modulePath, sdkPath, outPath)
+val testConverter = PathConverter(modulePath, sdkPath, outPath, bundlePath)
 
 fun createNewAndroidProject(): AndroidProject {
   val aaptOptions = NewAaptOptions(AaptOptions.Namespacing.REQUIRED)
@@ -193,11 +194,11 @@ fun createNewGlobalLibraryMap() = NewGlobalLibraryMap(
 fun createNewAndroidLibraries(count: Int): Map<String, AndroidLibrary> {
   val androidLibraries = mutableMapOf<String, AndroidLibrary>()
   for (i in 1..count) {
-    val artifactAddress = "android_library:$i@aar"
+    val artifactAddress = "pkg:android_library:$i@aar"
     androidLibraries[artifactAddress] = NewAndroidLibrary(
-      File(outPath, "android_artifact_i$"),
-      listOf(File(outPath,  "local_jar_$i")),
-      File(outPath, "bundle_folder_$i"),
+      File(outPath, "pkg/android_library/$i"),
+      listOf(File(bundlePath,  "pkg/android_library/$i/jars/libs/local_jar_$i")),
+      File(bundlePath, "pkg/android_library/$i"),
       artifactAddress
     )
   }
@@ -207,9 +208,9 @@ fun createNewAndroidLibraries(count: Int): Map<String, AndroidLibrary> {
 fun createNewJavaLibraries(count: Int): Map<String, JavaLibrary> {
   val javaLibraries = mutableMapOf<String, JavaLibrary>()
   for (i in 1..count) {
-    val artifactAddress = "java_library:$i@jar"
+    val artifactAddress = "pkg:java_library:$i@jar"
     javaLibraries[artifactAddress] = NewJavaLibrary(
-      File(outPath, "java_artifact_$i"),
+      File(outPath, "pkg/java_library/$i"),
       artifactAddress
     )
   }
@@ -219,7 +220,7 @@ fun createNewJavaLibraries(count: Int): Map<String, JavaLibrary> {
 fun createNewModuleLibraries(count: Int): Map<String, ModuleDependency> {
   val moduleDependencies = mutableMapOf<String, ModuleDependency>()
   for (i in 1..count) {
-    val artifactAddress = "module_dependency:$i@mod"
+    val artifactAddress = "pkg:module_dependency:$i@mod"
     moduleDependencies[artifactAddress] = NewModuleDependency(
       "build_id_$i",
       "project_path_$i",

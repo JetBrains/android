@@ -15,12 +15,53 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.AAPT_ATTR_PREFIX;
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CALENDAR_VIEW;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.FD_RES_DRAWABLE;
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.SdkConstants.FD_RES_MENU;
+import static com.android.SdkConstants.FQCN_GRID_VIEW;
+import static com.android.SdkConstants.FQCN_SPINNER;
+import static com.android.SdkConstants.GRID_VIEW;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.LIST_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
+import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ActionBarCallback;
+import com.android.ide.common.rendering.api.AdapterBinding;
+import com.android.ide.common.rendering.api.DataBindingItem;
+import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.ILayoutLog;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
@@ -32,8 +73,16 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.rendering.parsers.*;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.rendering.parsers.AaptAttrParser;
+import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
+import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
@@ -42,7 +91,12 @@ import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -54,6 +108,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
@@ -65,22 +131,8 @@ import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
-import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
-
 /**
  * Loader for Android Project class in order to use them in the layout editor.
- * <p/>This implements {@code com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
- * {@link LayoutlibCallback}
  */
 public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
@@ -631,8 +683,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                     ResourceReference viewRef,
                                     ViewAttribute viewAttribute,
                                     Object defaultValue) {
-
-    // Special case for the palette preview
+    // Special case for the palette preview.
     if (viewAttribute == ViewAttribute.TEXT && adapterView.getName().startsWith("android_widget_")) { //$NON-NLS-1$
       String name = adapterView.getName();
       if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
@@ -658,52 +709,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     if (viewAttribute == ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
-      return "Item " + (fullPosition + 1);
-    }
-
-    return null;
-  }
-
-  @Override
-  @Nullable
-  @Deprecated
-  public Object getAdapterItemValue(ResourceReference adapterView,
-                                    Object adapterCookie,
-                                    ResourceReference itemRef,
-                                    int fullPosition,
-                                    int typePosition,
-                                    int fullChildPosition,
-                                    int typeChildPosition,
-                                    ResourceReference viewRef,
-                                    IProjectCallback.ViewAttribute viewAttribute,
-                                    Object defaultValue) {
-
-    // Special case for the palette preview
-    if (viewAttribute == IProjectCallback.ViewAttribute.TEXT && adapterView.getName().startsWith("android_widget_")) { //$NON-NLS-1$
-      String name = adapterView.getName();
-      if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
-        return "Sub Item";
-      }
-      if (fullPosition == 0) {
-        String viewName = name.substring("android_widget_".length());
-        if (viewName.equals(EXPANDABLE_LIST_VIEW)) {
-          return "ExpandableList"; // ExpandableListView is too wide, character-wraps
-        }
-        return viewName;
-      }
-      else {
-        return "Next Item";
-      }
-    }
-
-    if (itemRef.getNamespace() == ResourceNamespace.ANDROID) {
-      // Special case for list_view_item_2 and friends
-      if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
-        return "Sub Item " + (fullPosition + 1);
-      }
-    }
-
-    if (viewAttribute == IProjectCallback.ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
       return "Item " + (fullPosition + 1);
     }
 

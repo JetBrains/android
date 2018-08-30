@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
@@ -934,10 +935,10 @@ public class InteractionManager {
     }
   }
 
-  private void setPanning(boolean panning) {
+  void setPanning(boolean panning) {
     if (panning != myIsPanning) {
       myIsPanning = panning;
-      mySurface.setCursor(panning ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+      mySurface.setCursor(panning ? AdtUiCursors.GRAB
                                   : Cursor.getDefaultCursor());
     }
   }
@@ -951,7 +952,7 @@ public class InteractionManager {
    * @param y     y position of the cursor for the passed event
    * @return true if the event has been intercepted and handled, false otherwise.
    */
-  private boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
+  boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
@@ -964,8 +965,8 @@ public class InteractionManager {
       if (position != null) {
         position.translate(myLastMouseX - x, myLastMouseY - y);
         surface.setScrollPosition(position);
+        mySurface.setCursor(AdtUiCursors.GRABBING);
       }
-      mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
       return true;
     }
     return false;

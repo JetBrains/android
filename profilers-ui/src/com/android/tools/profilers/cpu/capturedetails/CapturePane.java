@@ -153,10 +153,9 @@ abstract class CapturePane extends JPanel {
       add(stageView.getSelectionTimeLabel());
 
       myFilterButton = FilterComponent.createFilterToggleButton();
-      if (stageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
-        add(new FlatSeparator());
-        add(myFilterButton);
-      }
+
+      add(new FlatSeparator());
+      add(myFilterButton);
     }
 
     @Override

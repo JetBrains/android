@@ -15,8 +15,11 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel
 import com.android.tools.profilers.event.FakeEventService
@@ -76,6 +79,35 @@ class CpuThreadsViewTest {
     val title = TreeWalker(threadsView.component).descendants().filterIsInstance(JLabel::class.java).first().text
     // Text is actual an HTML, so we use contains instead of equals
     assertThat(title).contains("THREADS")
+  }
+
+  @Test
+  fun testHideablePanelsHaveItemCountsAsTitle() {
+    val threadsView = CpuThreadsView(stage)
+    stage.studioProfilers.stage = stage
+    cpuService.apply {
+      profilerType = CpuProfiler.CpuProfilerType.ATRACE
+      setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+      setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
+    }
+    stage.setAndSelectCapture(0)
+    // One second is enough for the models to be updated.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
+
+    // Find our thread list.
+    val hideablePanel = TreeWalker(threadsView.component).ancestors().filterIsInstance<HideablePanel>().first()
+    val panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
+    assertThat(panelTitle.text).contains("THREADS (0)")
+    // Add a thread
+    cpuService.addAdditionalThreads(1, "Test", mutableListOf(
+      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
+        CpuProfiler.GetThreadsResponse.State.SLEEPING).build()))
+    // Update the view range triggering an aspect change in CpuThreadsModel.
+    stage.studioProfilers.timeline.viewRange.set(stage.studioProfilers.timeline.dataRange)
+    // Tick to trigger
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(panelTitle.text).contains("THREADS (1)")
   }
 
   @Test

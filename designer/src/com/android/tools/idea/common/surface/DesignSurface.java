@@ -663,7 +663,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return true;
   }
 
-  public void setScrollPosition(int x, int y) {
+  public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
     setScrollPosition(new Point(x, y));
   }
 
@@ -1057,8 +1057,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       Graphics2D g2d = (Graphics2D)graphics;
       // (x,y) coordinates of the top left corner in the view port
-      int tlx = myScrollPane.getHorizontalScrollBar().getValue();
-      int tly = myScrollPane.getVerticalScrollBar().getValue();
+      @SwingCoordinate int tlx = myScrollPane.getHorizontalScrollBar().getValue();
+      @SwingCoordinate int tly = myScrollPane.getVerticalScrollBar().getValue();
 
       paintBackground(g2d, tlx, tly);
 
@@ -1087,7 +1087,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
 
-    private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
+    private void paintBackground(@NotNull Graphics2D graphics, @SwingCoordinate int lx, @SwingCoordinate int ly) {
       int width = myScrollPane.getWidth();
       int height = myScrollPane.getHeight();
       graphics.setColor(getBackground());

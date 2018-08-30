@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.stats.AnonymizerUtil;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.Disposable;
@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
-import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -125,16 +124,12 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       myTabbedPane.addChangeListener(e -> {
         String tabName = myEditors.get(myTabbedPane.getSelectedIndex()).getDisplayName();
 
-        String appId = getApplicationId(myProject);
-        if (appId != null) {
-          UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                           .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
-                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                           .setRawProjectId(appId));
-        }
+          UsageTracker.log(UsageTrackerUtils.withProjectId(
+            AndroidStudioEvent.newBuilder()
+               .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+               .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
+               , myProject));
       });
-
       myGenericSettingsPanel = myTabbedPane;
     }
     return myGenericSettingsPanel;
@@ -159,15 +154,12 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   }
 
   public void apply() throws ConfigurationException {
-    String appId = getApplicationId(myProject);
     for (ModuleConfigurationEditor editor : myEditors) {
-      if (appId != null) {
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                       .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE)
-                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                       .setRawProjectId(appId));
-      }
+        UsageTracker.log(UsageTrackerUtils.withProjectId(
+          AndroidStudioEvent.newBuilder()
+           .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+           .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE),
+          myProject));
       editor.saveData();
       editor.apply();
     }

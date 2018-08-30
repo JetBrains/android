@@ -18,9 +18,10 @@ package com.android.tools.idea.fd;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -137,7 +138,7 @@ public class InstantRunStatsService {
     } else {
       studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(device));
     }
-    UsageTracker.log(studioEvent);
+    UsageTracker.log(UsageTrackerUtils.withProjectId(studioEvent, myProject));
   }
 
   @NotNull

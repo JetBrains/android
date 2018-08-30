@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.ArtifactDetail;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.google.wireless.android.sdk.stats.RunEvent;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,8 +36,10 @@ public class RunStats {
   private AndroidStudioEvent.Builder myEvent;
 
   private boolean myLogged;
+  private Project myProject;
 
-  public RunStats() {
+  public RunStats(Project project) {
+    myProject = project;
     myEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.RUN_EVENT);
   }
 
@@ -57,7 +60,7 @@ public class RunStats {
       myEvent.getRunEventBuilder()
              .setStatus(status)
              .setEndTimestampMs(System.currentTimeMillis());
-      UsageTracker.log(myEvent);
+      UsageTracker.log(UsageTrackerUtils.withProjectId(myEvent, myProject));
       myLogged = true;
     }
   }
@@ -147,7 +150,7 @@ public class RunStats {
     RunStats data = env.getUserData(KEY);
     if (data == null) {
       // This would be unexpected, so a transient stats is created and marked as such.
-      data = new RunStats();
+      data = new RunStats(env.getProject());
       data.setPartial(true);
     }
     return data;

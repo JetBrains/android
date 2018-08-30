@@ -61,7 +61,7 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/platform/smRunner:intellij.platform.smRunner[module, test]",
         "//tools/idea/.idea/libraries:truth",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",

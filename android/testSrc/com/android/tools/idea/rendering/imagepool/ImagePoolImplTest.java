@@ -68,7 +68,7 @@ public class ImagePoolImplTest {
       }
 
       return 50_000_000 / (w * h);
-    });;
+    });
   }
 
   @After
@@ -185,6 +185,12 @@ public class ImagePoolImplTest {
     assertEquals(25, copy.getWidth());
     assertEquals(50, copy.getHeight());
     ImageDiffUtil.assertImageSimilar("pooledimage", original.getSubimage(0, 0, 25, 50), copy, 0.0);
+
+    copy = image.getCopy(10, 10, 25, 25);
+    assertNotEquals(copy, image.myBuffer);
+    assertEquals(25, copy.getWidth());
+    assertEquals(25, copy.getHeight());
+    ImageDiffUtil.assertImageSimilar("pooledimage", original.getSubimage(10, 10, 25, 25), copy, 0.0);
 
     try {
       //noinspection UnusedAssignment

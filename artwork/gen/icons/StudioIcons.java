@@ -380,11 +380,16 @@ public class StudioIcons {
     public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.png"); // 16x16
   }
 
+  public static class Misc {
+    public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.png"); // 16x16
+  }
+
   public static class NavEditor {
     public static class ExistingDestinations {
       public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
       public static final Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.png"); // 146x188
       public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 146x188
+      public static final Icon PLACEHOLDER = load("/studio/icons/nav-editor/existing-destinations/placeholder.png"); // 146x188
     }
 
     public static class Properties {
@@ -411,6 +416,7 @@ public class StudioIcons {
       public static final Icon FRAGMENT = load("/studio/icons/nav-editor/tree/fragment.png"); // 16x16
       public static final Icon INCLUDE_GRAPH = load("/studio/icons/nav-editor/tree/include-graph.png"); // 16x16
       public static final Icon NESTED_GRAPH = load("/studio/icons/nav-editor/tree/nested-graph.png"); // 16x16
+      public static final Icon PLACEHOLDER = load("/studio/icons/nav-editor/tree/placeholder.png"); // 16x16
     }
   }
 

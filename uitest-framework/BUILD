@@ -45,12 +45,13 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/project-system[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/adt/idea/android-layout-inspector[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
         "//tools/idea/platform/testFramework/bootstrap:intellij.tools.testsBootstrap[module, test]",
+        "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
     ],
 )
 

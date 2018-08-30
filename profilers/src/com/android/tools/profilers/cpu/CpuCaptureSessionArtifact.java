@@ -116,7 +116,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
   /**
    * Returns the artifact name corresponding to the given {@link CpuProfilerType} and {@link CpuProfilerMode}.
    */
-  private static String artifactNameFromTypeAndMode(CpuProfilerType profilerType, CpuProfilerMode profilerMode) {
+  public static String artifactNameFromTypeAndMode(CpuProfilerType profilerType, CpuProfilerMode profilerMode) {
     switch (profilerType) {
       case ART:
         if (profilerMode == CpuProfilerMode.SAMPLED) {

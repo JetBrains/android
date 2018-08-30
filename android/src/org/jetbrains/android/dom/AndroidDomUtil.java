@@ -77,7 +77,9 @@ public class AndroidDomUtil {
   // Used to provide completion for values of android:fontFamily attribute
   // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
   public static final List<String> AVAILABLE_FAMILIES = ImmutableList
-      .of("sans-serif", "sans-serif-condensed", "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
+      .of("sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
+          "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
+          "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For

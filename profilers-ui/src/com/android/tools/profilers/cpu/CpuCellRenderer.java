@@ -15,27 +15,30 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import java.awt.*;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.android.tools.profilers.ProfilerFonts.SMALL_FONT;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for handing CpuCellRendering, this class is used by Renderers that create state charts within
  * a list in the {@link CpuProfilerStageView}
+ *
  * @param <T> The first type is the type used for the {@link ListCellRenderer}, this type should match the model used for the List.
  * @param <K> The second type is the type used for the {@link StateChartData}, this should match the model used for the {@link StateChart}
  */
@@ -58,7 +61,7 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
 
   public CpuCellRenderer(JList<T> list) {
     myLabel = new JLabel();
-    myLabel.setFont(SMALL_FONT);
+    myLabel.setFont(STANDARD_FONT);
     Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
     Border marginLeft = JBUI.Borders.emptyLeft(10);
     myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));
@@ -73,11 +76,15 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
         // Pass the mouse moved event onto the child statecharts.
         // First we pass a mouse exited to reset positioning.
         if (oldHoveredIndex != myHoveredIndex && list.getModel().getSize() > oldHoveredIndex && oldHoveredIndex >= 0) {
+          // JLists don't support hover and this behavior is custom implementation. So repaint must be queued manually.
+          list.repaint(list.getCellBounds(oldHoveredIndex, oldHoveredIndex));
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(oldHoveredIndex));
           chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_EXITED));
         }
         // Second we pass the updated position of the mouse.
         if (myHoveredIndex >= 0) {
+          // JLists don't support hover and this behavior is custom implementation. So repaint must be queued manually.
+          list.repaint(list.getCellBounds(myHoveredIndex, myHoveredIndex));
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
           chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_MOVED));
         }

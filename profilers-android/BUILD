@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
+    test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -42,12 +43,14 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/android-adb[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/vendor/intellij/cidr:intellij.c[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

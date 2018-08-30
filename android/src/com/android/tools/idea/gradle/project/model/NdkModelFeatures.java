@@ -31,8 +31,7 @@ public class NdkModelFeatures {
     myGroupNameSupported = isAtLeastTwoDotTwo;
     myExportedHeadersSupported = isAtLeastTwoDotTwo;
     myBuildSystemNameSupported = modelVersion != null && modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
-    // TODO: update this flag when single variant sync for native modules are supported by AGP.
-    mySingleVariantSyncSupported = false;
+    mySingleVariantSyncSupported = modelVersion != null && modelVersion.compareIgnoringQualifiers("3.3.0") >= 0;
   }
 
   public boolean isGroupNameSupported() {

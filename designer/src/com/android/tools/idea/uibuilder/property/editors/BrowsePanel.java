@@ -318,7 +318,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
         Presentation presentation = event.getPresentation();
         switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
-            presentation.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+            presentation.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
             presentation.setText("Specify Design Property");
             presentation.setVisible(true);
             presentation.setEnabled(true);

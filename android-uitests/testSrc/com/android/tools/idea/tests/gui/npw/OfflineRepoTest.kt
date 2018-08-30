@@ -60,6 +60,7 @@ class OfflineRepoTest {
     assertThat(buildGradleText).contains("""properties.getProperty("offline.repo").split(",").each { repo ->""")
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/113298184
   @Test
   @Throws(Exception::class)
   fun testOfflineRepoDisabled() {

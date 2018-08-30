@@ -72,6 +72,26 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="okio" type="repository">
+        <properties maven-id="com.squareup.okio:okio:1.14.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okio/okio/1.14.0/okio-1.14.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="moshi" type="repository">
+        <properties maven-id="com.squareup.moshi:moshi:1.6.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/moshi/moshi/1.6.0/moshi-1.6.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-client" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-common" />
@@ -106,10 +126,10 @@
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="project-system" />
-    <orderEntry type="module" module-name="apkanalyzer" />
-    <orderEntry type="module" module-name="android-lang" />
-    <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="module" module-name="intellij.android.lang" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module-library">
       <library name="instantapps-api-1.0">
         <CLASSES>
@@ -144,5 +164,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.deploy" />
+    <orderEntry type="library" name="HdrHistogram" level="project" />
   </component>
 </module>

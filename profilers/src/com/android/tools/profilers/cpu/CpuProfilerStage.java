@@ -121,6 +121,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final SelectionModel mySelectionModel;
   private final EaseOutModel myInstructionsEaseOutModel;
   private final CpuProfilerConfigModel myProfilerConfigModel;
+  private final CpuFramesModel myFramesModel;
 
   private final DurationDataModel<CpuTraceInfo> myRecentTraceDurations;
 
@@ -271,6 +272,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myThreadsStates = new CpuThreadsModel(viewRange, this, mySession);
     myCpuKernelModel = new CpuKernelModel(viewRange, this);
+    myFramesModel = new CpuFramesModel(viewRange, this);
 
     myInProgressTraceSeries = new DefaultDataSeries<>();
     myInProgressTraceDuration = new DurationDataModel<>(new RangedSeries<>(viewRange, myInProgressTraceSeries));
@@ -1106,6 +1108,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   public CpuKernelModel getCpuKernelModel() {
     return myCpuKernelModel;
+  }
+
+  @NotNull
+  public CpuFramesModel getFramesModel() {
+    return myFramesModel;
   }
 
   /**

@@ -16,6 +16,9 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.builder.model.TestOptions
+import com.android.builder.model.TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
+import com.android.builder.model.TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR
+import com.android.builder.model.TestOptions.Execution.HOST
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
@@ -27,11 +30,18 @@ import com.google.common.collect.Iterables
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
+import groovy.transform.PackageScope
+
+fun TestOptions.Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
+  ANDROID_TEST_ORCHESTRATOR, ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+  HOST, null -> TestRun.TestExecution.HOST
+  else -> TestRun.TestExecution.UNKNOWN_TEST_EXECUTION
+}
 
 /**
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
  */
-class UsageTrackerTestRunListener @JvmOverloads constructor(
+class UsageTrackerTestRunListener constructor(
     private val artifact: IdeAndroidArtifact?,
     private val device: IDevice) : ITestRunListener {
 
@@ -41,11 +51,7 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
 
     findTestLibrariesVersions(artifact)?.let { testLibraries = it }
 
-    testExecution = when (artifact?.testOptions?.execution) {
-      TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
-      TestOptions.Execution.HOST, null -> TestRun.TestExecution.HOST
-      else -> TestRun.TestExecution.UNKNOWN_TEST_EXECUTION
-    }
+    testExecution = artifact?.testOptions?.execution.toProtoValue()
   }
 
   override fun testRunStarted(runName: String?, testCount: Int) {
@@ -61,7 +67,7 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
       category = AndroidStudioEvent.EventCategory.TESTS
       kind = AndroidStudioEvent.EventKind.TEST_RUN
       deviceInfo = AndroidStudioUsageTracker.deviceToDeviceInfo(device)
-      productDetails = AndroidStudioUsageTracker.getProductDetails()
+      productDetails = AndroidStudioUsageTracker.productDetails
       testRun = this@UsageTrackerTestRunListener.testRun.build()
     }
 
@@ -74,7 +80,6 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
   override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {}
   override fun testIgnored(test: TestIdentifier?) {}
   override fun testEnded(test: TestIdentifier?, testMetrics: MutableMap<String, String>?) {}
-
   private fun findTestLibrariesVersions(artifact: IdeAndroidArtifact?): TestLibraries? {
     val deps = artifact?.level2Dependencies ?: return null
     val builder = TestLibraries.newBuilder()

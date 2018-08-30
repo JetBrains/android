@@ -152,7 +152,7 @@ public class CpuCaptureView {
 
     @Override
     protected JButton createAbortButton() {
-      myStopRecordingButton = new JButton(CpuProfilerStageView.STOP_TEXT);
+      myStopRecordingButton = new JButton(CpuProfilerToolbar.STOP_TEXT);
       myStopRecordingButton.addActionListener((event) -> myStage.toggleCapturing());
       myStopRecordingButton.setEnabled(true);
       return myStopRecordingButton;

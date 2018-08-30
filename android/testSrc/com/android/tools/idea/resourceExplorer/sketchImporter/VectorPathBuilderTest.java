@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.logic.PathStringBuilder;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.PathStringBuilder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

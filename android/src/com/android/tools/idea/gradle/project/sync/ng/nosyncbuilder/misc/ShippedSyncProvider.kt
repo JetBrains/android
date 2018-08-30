@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.ng.SyncModuleModels
 import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.loaders.NewProjectJsonLoader
+import org.apache.commons.io.FilenameUtils
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
 
@@ -29,6 +30,17 @@ import java.io.IOException
 import java.nio.file.Paths
 
 private const val DEBUG_VARIANT_NAME = "debug"
+
+private fun locationToNormalizedFile(location: String): File {
+  return File(FilenameUtils.normalize(Paths.get(location).toAbsolutePath().toString()))
+}
+
+// TODO(qumeric): get rid of it
+private fun getConverter(rootDir: File, moduleName: String, sdkDir: String): PathConverter {
+  return PathConverter(File(rootDir, moduleName), File(sdkDir),
+                       locationToNormalizedFile("../../adt/idea/android/testData"),
+                       locationToNormalizedFile("../../adt/idea/android/testData"))
+}
 
 @Throws(IOException::class)
 internal fun doFetchShippedModels(extraInfo: NewProjectExtraInfo): SyncProjectModels {

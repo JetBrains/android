@@ -39,6 +39,16 @@ interface AndroidModuleSystem: ClassFileFinder {
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
+   * Returns a [GradleCoordinate] of the latest compatible artifact of the given maven project.
+   * This function returns non-null only if the build system can find a version of the artifact that is
+   * compatible with the rest of this module's dependencies.
+   * When there are multiple versions of the artifact that satisfy the above conditions, the latest
+   * stable artifact is selected. In the event that a stable artifact does not exist this function
+   * will fallback to searching for preview artifacts.
+   */
+  fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate?
+
+  /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
    * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
    * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build
@@ -72,9 +82,9 @@ interface AndroidModuleSystem: ClassFileFinder {
   fun registerDependency(coordinate: GradleCoordinate)
 
   /**
-   * Returns the libraries that this module depends on.
+   * Returns the resolved libraries that this module depends on.
    */
-  fun getDependentLibraries(): Collection<Library>
+  fun getResolvedDependentLibraries(): Collection<Library>
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

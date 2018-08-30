@@ -15,6 +15,41 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
+import static com.android.SdkConstants.ATTR_SCALE_TYPE;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_TEXT_COLOR;
+import static com.android.SdkConstants.ATTR_TEXT_SIZE;
+import static com.android.SdkConstants.ATTR_TEXT_STYLE;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.TAG_ADAPTIVE_ICON;
+import static com.android.SdkConstants.TAG_APPWIDGET_PROVIDER;
+import static com.android.SdkConstants.TAG_FONT_FAMILY;
+import static com.android.SdkConstants.TAG_MASKABLE_ICON;
+import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.SdkConstants.XMLNS_ANDROID;
+import static com.android.SdkConstants.XMLNS_URI;
+import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.FULL_EXPAND;
+import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
+
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.Features;
@@ -42,12 +77,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -55,10 +84,11 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.FULL_EXPAND;
-import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Methods for creating layout pull parsers for various different types of files.
@@ -347,7 +377,7 @@ public class LayoutPullParsers {
   }
 
   public static boolean needSave(@Nullable ResourceFolderType type) {
-    // Only layouts are delegates to the IProjectCallback#getParser where we can supply a
+    // Only layouts are delegates to the LayoutlibCallback#getParser where we can supply a
     // parser directly from the live document; others read contents from disk via layoutlib.
     // TODO: Work on adding layoutlib support for this.
     return type != ResourceFolderType.LAYOUT;

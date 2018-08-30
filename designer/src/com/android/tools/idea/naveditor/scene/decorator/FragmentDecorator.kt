@@ -43,7 +43,7 @@ object FragmentDecorator : NavScreenDecorator() {
     @SwingCoordinate val imageRectangle = Rectangle2D.Float()
     imageRectangle.setRect(drawRectangle)
     growRectangle(imageRectangle, -1f, -1f)
-    drawImage(list, sceneContext, component, imageRectangle)
+    drawScreen(list, sceneContext, component, imageRectangle)
 
     if (isHighlighted(component)) {
       @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneView, FRAGMENT_BORDER_SPACING)

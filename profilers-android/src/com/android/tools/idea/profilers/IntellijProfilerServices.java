@@ -194,11 +194,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isCpuCaptureFilterEnabled() {
-        return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
-      }
-
-      @Override
       public boolean isEnergyProfilerEnabled() {
         return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
       }

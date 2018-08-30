@@ -16,12 +16,20 @@
 package com.android.tools.idea.project
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.FD_RES
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
+import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.tools.idea.model.MergedManifest
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CapabilityNotSupported
+import com.android.tools.idea.projectsystem.CapabilityStatus
+import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.util.toPathString
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
@@ -75,7 +83,11 @@ class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFi
     return null
   }
 
-  override fun getDependentLibraries(): Collection<Library> {
+  // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
+  // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
+  override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? = null
+
+  override fun getResolvedDependentLibraries(): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
     ModuleRootManager.getInstance(module)

@@ -37,6 +37,9 @@ class KotlinAndroidGradleModuleConfigurator internal constructor() : KotlinWithG
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
+    fun getKotlinAndroidExtensionsExpression(forKotlinDsl: Boolean): String =
+        if (forKotlinDsl) "kotlin(\"android.extensions\")" else "id 'org.jetbrains.kotlin.android.extensions' "
+
     override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
         val manipulator = getManipulator(file, false)
         val sdk = ModuleUtil.findModuleForPsiElement(file)?.let { ModuleRootManager.getInstance(it).sdk }
@@ -52,6 +55,13 @@ class KotlinAndroidGradleModuleConfigurator internal constructor() : KotlinWithG
                     getStdlibArtifactName(sdk, version),
                     version,
                     jvmTarget
+            )
+            manipulator.configureModuleBuildScript(
+              KOTLIN_ANDROID_EXTENSIONS,
+              getKotlinAndroidExtensionsExpression(file.isKtDsl()),
+              getStdlibArtifactName(sdk, version),
+              version,
+              null
             )
         }
     }
@@ -79,5 +89,7 @@ class KotlinAndroidGradleModuleConfigurator internal constructor() : KotlinWithG
         private val NAME = "android-gradle"
 
         private val KOTLIN_ANDROID = "kotlin-android"
+
+        private val KOTLIN_ANDROID_EXTENSIONS = "kotlin-android-extensions"
     }
 }
