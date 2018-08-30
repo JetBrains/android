@@ -219,6 +219,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isLiveAllocationsSamplingEnabled() {
+        return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
+      }
+
+      @Override
       public boolean isMemoryCaptureFilterEnabled() {
         return StudioFlags.PROFILER_MEMORY_CAPTURE_FILTER.get();
       }

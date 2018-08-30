@@ -263,6 +263,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isLiveAllocationsSamplingEnabled() {
+        return true;
+      }
+
+      @Override
       public boolean isMemoryCaptureFilterEnabled() {
         return false;
       }
