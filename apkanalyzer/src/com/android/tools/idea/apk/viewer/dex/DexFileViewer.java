@@ -303,7 +303,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
         //otherwise, any root change event would wipe out the expandedDescendants list before we have a chance to read it
         treeModel.addTreeModelListener(new TreeModelAdapter() {
           @Override
-          protected void process(TreeModelEvent event, EventType type) {
+          protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
             Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
             if (expanded == null) {
               return;
