@@ -80,11 +80,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     super(project);
   }
 
+  @NotNull
   @Override
   public String getTitle() {
     return "Android";
   }
 
+  @NotNull
   @Override
   public Icon getIcon() {
     return AndroidIcons.Android;
@@ -110,6 +112,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     return sourceProviders;
   }
 
+  @NotNull
   @Override
   public SelectInTarget createSelectInTarget() {
     return new ProjectViewSelectInTarget(myProject) {
