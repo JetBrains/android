@@ -46,6 +46,7 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -97,6 +98,7 @@ class CpuProfilerStageViewTest {
     myProfilersView = StudioProfilersView(profilers, myComponents)
   }
 
+  @Ignore("b/113554750")
   @Test
   fun splitterRatioChangesOnAtraceCapture() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
