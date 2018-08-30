@@ -471,7 +471,7 @@ class CpuCaptureView {
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
-        protected void process(TreeModelEvent event, EventType type) {
+        protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
@@ -503,7 +503,7 @@ class CpuCaptureView {
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
-        protected void process(TreeModelEvent event, EventType type) {
+        protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
           // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
           // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
           if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {
