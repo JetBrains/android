@@ -81,7 +81,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
                                                 boolean cellHasFocus) {
     JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
     panel.setBorder(ProfilerLayout.CPU_THREADS_BORDER);
-    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_THREADS_LINE_HEIGHT));
+    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_STATE_LIST_ITEM_HEIGHT));
     panel.setBackground(list.getBackground());
     myLabel.setText(String.format("CPU %d", value.getCpuId()));
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
