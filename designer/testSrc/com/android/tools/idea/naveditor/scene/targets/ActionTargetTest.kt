@@ -108,8 +108,8 @@ class ActionTargetTest : NavTestCase() {
 
     assertEquals("DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
                  "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
-                 "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,HOVER\n" +
-                 "DrawArrow,2,UP,435.25x532.0x6.0x5.0,ffa7a7a7\n" +
+                 "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,SELECTED\n" +
+                 "DrawArrow,2,UP,435.25x532.0x6.0x5.0,ff1886f7\n" +
                  "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
                  "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
                  "DrawLine,5,491.0x401.0,565.5x527.0,ffa7a7a7,1:2:0\n" +
