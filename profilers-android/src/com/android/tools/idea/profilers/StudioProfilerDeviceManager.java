@@ -369,7 +369,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         if (file == null) {
           throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
         }
-        // TODO: Add debug support for development
         /*
          * If copying the agent fails, we will attach the previous version of the agent
          * Hence we first delete old agent before copying new one
