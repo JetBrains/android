@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.android.annotations.VisibleForTesting
 import java.awt.*
 import java.awt.geom.Point2D
 import kotlin.math.max
@@ -30,23 +31,18 @@ private val POINTS = COLORS.mapIndexed { index, color ->
   }
 }.toFloatArray()
 
-private const val SLIDE_UNIT = 0.01f
+@VisibleForTesting
+const val SLIDE_UNIT = 1
 
-class HueSliderComponent : SliderComponent<Float>(0f) {
+class HueSliderComponent : SliderComponent<Int>(0) {
 
-  override fun knobPositionToValue(knobPosition: Int): Float {
-    return if (sliderWidth > 0) knobPosition.toFloat() / sliderWidth else 0f
+  override fun knobPositionToValue(knobPosition: Int): Int {
+    return if (sliderWidth > 0) Math.round(360 * knobPosition.toFloat() / sliderWidth) else 0
   }
 
-  override fun valueToKnobPosition(value: Float): Int = Math.round(value * sliderWidth)
+  override fun valueToKnobPosition(value: Int): Int = Math.round(value / 360f * sliderWidth)
 
-  override fun slideLeft(size: Int) {
-    value = max(0f, value - size * SLIDE_UNIT)
-  }
-
-  override fun slideRight(size: Int) {
-    value = min(value + size * SLIDE_UNIT, 1.0f)
-  }
+  override fun slide(shift: Int) = max(0, min(value + shift * SLIDE_UNIT, 360))
 
   override fun paintSlider(g2d: Graphics2D) {
     g2d.paint = LinearGradientPaint(Point2D.Double(0.0, 0.0), Point2D.Double(sliderWidth.toDouble(), 0.0), POINTS, COLORS)

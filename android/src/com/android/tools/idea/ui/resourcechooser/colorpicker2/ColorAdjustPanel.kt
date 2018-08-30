@@ -23,6 +23,7 @@ import sun.security.util.SecurityConstants
 import java.awt.*
 import javax.swing.*
 import javax.swing.plaf.basic.BasicButtonUI
+import kotlin.math.abs
 
 private val PANEL_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 80)
 private val PANEL_BORDER = JBUI.Borders.empty(4, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
@@ -66,8 +67,9 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
     background = PICKER_BACKGROUND_COLOR
 
     addListener {
+      val hue = it / 360f
       val hsbValues = Color.RGBtoHSB(model.color.red, model.color.green, model.color.blue, null)
-      val rgb = Color.HSBtoRGB(it, hsbValues[1], hsbValues[2])
+      val rgb = Color.HSBtoRGB(hue, hsbValues[1], hsbValues[2])
       val argb = (model.color.alpha shl 24) or (rgb and 0x00FFFFFF)
       val newColor = Color(argb, true)
       model.setColor(newColor, this@ColorAdjustPanel)
@@ -124,8 +126,12 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
       colorIndicator.color = color
     }
 
-    val hsbValues = Color.RGBtoHSB(color.red, color.green, color.blue, null)
-    hueSlider.value = hsbValues[0]
+    val hue = Color.RGBtoHSB(color.red, color.green, color.blue, null)[0]
+    val hueDegree = Math.round(hue * 360)
+    // Don't change hueSlider.value when (hueSlider.value, hueDegree) is (0, 360) or (360, 0).
+    if (abs(hueSlider.value - hueDegree) != 360) {
+      hueSlider.value = hueDegree
+    }
 
     alphaSlider.sliderBackgroundColor = color
     if (alphaSlider.value != color.alpha) {

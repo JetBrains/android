@@ -66,7 +66,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
       _knobPosition = valueToKnobPosition(newValue)
     }
 
-  private val myPolygonToDraw = Polygon()
+  private val polygonToDraw = Polygon()
 
   private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(T) -> Unit>()
 
@@ -98,9 +98,8 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
           e.wheelRotation < 0 -> -e.scrollAmount
           else -> e.scrollAmount
         }
-        val knobPosition = valueToKnobPosition(value)
-        val newKnobPosition = Math.max(0, Math.min(knobPosition + amount, sliderWidth))
-        value = knobPositionToValue(newKnobPosition)
+        val newKnobPosition = Math.max(0, Math.min(_knobPosition + amount, sliderWidth))
+        knobPosition = newKnobPosition
       }
       e.consume()
     }
@@ -122,16 +121,16 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
     with (actionMap) {
       put(ACTION_SLIDE_LEFT, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { slideLeft(1) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(-1) }
       })
       put(ACTION_SLIDE_LEFT_STEP, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { slideLeft(10) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(-10) }
       })
       put(ACTION_SLIDE_RIGHT, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { slideRight(1) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(1) }
       })
       put(ACTION_SLIDE_RIGHT_STEP, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { slideRight(10) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(10) }
       })
     }
 
@@ -156,8 +155,8 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   }
 
   private fun processMouse(e: MouseEvent) = runAndUpdateIfNeeded {
-    val knobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
-    value = knobPositionToValue(knobPosition)
+    val newKnobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
+    knobPosition = newKnobPosition
   }
 
   fun addListener(listener: (T) -> Unit) {
@@ -170,9 +169,14 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
   protected abstract fun valueToKnobPosition(value: T): Int
 
-  protected abstract fun slideLeft(size : Int)
+  private fun doSlide(shift: Int) {
+    value = slide(shift)
+  }
 
-  protected abstract fun slideRight(size: Int)
+  /**
+   * return the new value after sliding. The [shift] is the amount of sliding.
+   */
+  protected abstract fun slide(shift: Int): T
 
   override fun getPreferredSize(): Dimension = JBUI.size(100, 22)
 

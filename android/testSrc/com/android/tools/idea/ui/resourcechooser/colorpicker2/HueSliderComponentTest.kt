@@ -30,13 +30,13 @@ class HueSliderComponentTest {
     slider.setSize(1000, 100)
 
     slider.knobPosition = 0
-    assertEquals(0f, slider.value)
+    assertEquals(0, slider.value)
 
     slider.knobPosition = slider.sliderWidth / 2
-    assertEquals(0.5f, slider.value, 0.01f)
+    assertEquals(180, slider.value)
 
     slider.knobPosition = slider.sliderWidth
-    assertEquals(1.0f, slider.value)
+    assertEquals(360, slider.value)
   }
 
   @Test
@@ -44,14 +44,14 @@ class HueSliderComponentTest {
     val slider = HueSliderComponent()
     slider.setSize(1000, 100)
 
-    slider.value = 0f
+    slider.value = 0
     assertEquals(0, slider.knobPosition)
 
     // The mapping between knobPosition and value may have some bias due to the floating issue. Bias is acceptable.
-    slider.value = 0.5f
+    slider.value = 180
     assertEquals(slider.sliderWidth / 2, slider.knobPosition, ceil(slider.sliderWidth / 2f))
 
-    slider.value = 1.0f
+    slider.value = 360
     assertEquals(slider.sliderWidth, slider.knobPosition)
   }
 
@@ -66,13 +66,13 @@ class HueSliderComponentTest {
       val action = slider.getActionForKeyStroke(key)!!
       val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
 
-      slider.value = 0.5f
+      slider.value = 180
       action.actionPerformed(actionEvent)
-      assertEquals(0.49f, slider.value)
+      assertEquals(180 - SLIDE_UNIT, slider.value)
 
-      slider.value = 0.0f
+      slider.value = 0
       action.actionPerformed(actionEvent)
-      assertEquals(0.0f, slider.value)
+      assertEquals(0, slider.value)
     }
 
     run {
@@ -81,17 +81,17 @@ class HueSliderComponentTest {
       val action = slider.getActionForKeyStroke(key)!!
       val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
 
-      slider.value = 0.5f
+      slider.value = 180
       action.actionPerformed(actionEvent)
-      assertEquals(0.40f, slider.value)
+      assertEquals(180 - 10 * SLIDE_UNIT, slider.value)
 
-      slider.value = 0.0f
+      slider.value = 0
       action.actionPerformed(actionEvent)
-      assertEquals(0.0f, slider.value)
+      assertEquals(0, slider.value)
 
-      slider.value = 0.04f
+      slider.value = 6
       action.actionPerformed(actionEvent)
-      assertEquals(0.0f, slider.value)
+      assertEquals(0, slider.value)
     }
 
     run {
@@ -100,13 +100,13 @@ class HueSliderComponentTest {
       val action = slider.getActionForKeyStroke(key)!!
       val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
 
-      slider.value = 0.5f
+      slider.value = 180
       action.actionPerformed(actionEvent)
-      assertEquals(0.51f, slider.value)
+      assertEquals(180 + SLIDE_UNIT, slider.value)
 
-      slider.value = 1.0f
+      slider.value = 360
       action.actionPerformed(actionEvent)
-      assertEquals(1.0f, slider.value)
+      assertEquals(360, slider.value)
     }
 
     run {
@@ -115,17 +115,17 @@ class HueSliderComponentTest {
       val action = slider.getActionForKeyStroke(key)!!
       val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
 
-      slider.value = 0.5f
+      slider.value = 180
       action.actionPerformed(actionEvent)
-      assertEquals(0.60f, slider.value)
+      assertEquals(180 + SLIDE_UNIT * 10, slider.value)
 
-      slider.value = 1.0f
+      slider.value = 360
       action.actionPerformed(actionEvent)
-      assertEquals(1.0f, slider.value)
+      assertEquals(360, slider.value)
 
-      slider.value = 0.93f
+      slider.value = 355
       action.actionPerformed(actionEvent)
-      assertEquals(1.0f, slider.value)
+      assertEquals(360, slider.value)
     }
   }
 
