@@ -23,11 +23,11 @@ import java.io.FileInputStream
 
 class SketchTestUtils {
   companion object {
-    fun parsePage(path: String) : SketchPage {
+    fun parsePage(path: String): SketchPage {
       return SketchParser.parsePage(FileInputStream(File(path)))!!
     }
 
-    fun parseDocument(path: String) : SketchDocument {
+    fun parseDocument(path: String): SketchDocument {
       return SketchParser.parseDocument(FileInputStream(File(path)))!!
     }
   }

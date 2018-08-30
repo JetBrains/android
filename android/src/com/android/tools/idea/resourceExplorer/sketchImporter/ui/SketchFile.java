@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -43,10 +46,37 @@ import org.jetbrains.annotations.Nullable;
 public class SketchFile {
   private SketchDocument myDocument;
   private List<SketchPage> myPages = new ArrayList<>();
+  private SymbolsLibrary mySymbolsLibrary = new SymbolsLibrary();
   // TODO the rest of the structure as classes are created
 
   public void addPage(@NotNull SketchPage page) {
     myPages.add(page);
+    mySymbolsLibrary.addSymbols(getAllSymbolMasters(page));
+  }
+
+  @NotNull
+  private static ImmutableList<SketchSymbolMaster> getAllSymbolMasters(@NotNull SketchPage page) {
+    ImmutableList.Builder<SketchSymbolMaster> masters = new ImmutableList.Builder<>();
+    for (SketchLayer layer : page.getLayers()) {
+      masters.addAll(getSymbolMasters(layer));
+    }
+
+    return masters.build();
+  }
+
+  @NotNull
+  private static ImmutableList<SketchSymbolMaster> getSymbolMasters(@NotNull SketchLayer layer) {
+    ImmutableList.Builder<SketchSymbolMaster> masters = new ImmutableList.Builder<>();
+    if (layer instanceof SketchLayerable) {
+      if (layer instanceof SketchSymbolMaster) {
+        masters.add((SketchSymbolMaster)layer);
+      }
+      for (SketchLayer subLayer : ((SketchLayerable)layer).getLayers()) {
+        masters.addAll(getSymbolMasters(subLayer));
+      }
+    }
+
+    return masters.build();
   }
 
   @NotNull
@@ -95,6 +125,11 @@ public class SketchFile {
     }
 
     return null;
+  }
+
+  @NotNull
+  public SymbolsLibrary getSymbolsLibrary() {
+    return mySymbolsLibrary;
   }
 
   /**
