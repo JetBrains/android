@@ -66,7 +66,7 @@ public final class AndroidJUnitConfigurationType extends SimpleConfigurationType
 
   @NotNull
   @Override
-  public String getConfigurationPropertyName() {
+  public String getTag() {
     return "androidJunit";
   }
 }
