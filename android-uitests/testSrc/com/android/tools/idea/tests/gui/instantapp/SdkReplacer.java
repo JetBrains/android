@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.instantapp;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.pico.DefaultPicoContainer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -39,6 +40,7 @@ public class SdkReplacer {
 
     replaceService(new InstantAppSdks() {
       @Override
+      @NotNull
       public File getOrInstallInstantAppSdk() {
         if (sdkLocation == null) {
           throw new LoadInstantAppSdkException("No SDK location set");

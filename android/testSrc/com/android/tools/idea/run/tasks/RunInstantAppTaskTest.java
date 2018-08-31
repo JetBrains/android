@@ -22,7 +22,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.android.instantapps.sdk.api.RunHandler;
-import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestCase;
@@ -46,7 +46,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   private final ImmutableList<ApkInfo> apkInfos = ImmutableList.of(apkInfo);
 
   private InstantAppSdks instantAppSdks;
-  @Mock private Sdk sdkLib;
+  @Mock private ExtendedSdk sdkLib;
   @Mock private RunHandler runHandler;
   @Mock private IDevice device;
   @Mock private LaunchStatus launchStatus;

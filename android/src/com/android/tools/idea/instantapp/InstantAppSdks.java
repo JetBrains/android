@@ -24,7 +24,8 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
+import com.google.android.instantapps.sdk.api.SdkLoader;
 import com.google.android.instantapps.sdk.api.TelemetryManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -32,14 +33,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
-import java.net.MalformedURLException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ServiceLoader;
 
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
@@ -52,7 +49,12 @@ public class InstantAppSdks {
   @NotNull private static final String INSTANT_APP_SDK_PATH = FD_EXTRAS + ";google;instantapps";
   private static final String SDK_LIB_JAR_PATH = "tools/lib.jar";
 
-  private Sdk cachedSdkLib = null;
+  @VisibleForTesting static final String UPGRADE_PROMPT_TEXT =
+    "Required Google Play Instant SDK must be updated to run this task. Do you want to update it now?";
+  @VisibleForTesting static final LoadInstantAppSdkException COULD_NOT_LOAD_NEW_SDK_EXCEPTION =
+    new LoadInstantAppSdkException("Could not load required version of the Google Play Instant SDK");
+
+  private ExtendedSdk cachedSdkLib = null;
 
   @NotNull
   public static InstantAppSdks getInstance() {
@@ -101,8 +103,7 @@ public class InstantAppSdks {
 
   private static void updateSdk() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      int result = Messages.showYesNoDialog(
-        "Required Google Play Instant SDK must be updated to run this task. Do you want to update it now?", "Google Play Instant", null);
+      int result = Messages.showYesNoDialog(UPGRADE_PROMPT_TEXT, "Google Play Instant", null);
       if (result == Messages.OK) {
         ModelWizardDialog dialog = createDialogForPaths(null, ImmutableList.of(INSTANT_APP_SDK_PATH));
         if (dialog != null) {
@@ -138,42 +139,41 @@ public class InstantAppSdks {
    * apps. Returns null if it could not be loaded.
    */
   @NotNull
-  public Sdk loadLibrary() {
+  public ExtendedSdk loadLibrary() {
     return loadLibrary(true);
   }
 
   @NotNull
   @VisibleForTesting
-  Sdk loadLibrary(boolean attemptUpgrades) {
+  ExtendedSdk loadLibrary(boolean attemptUpgrades) {
     if (cachedSdkLib == null) {
-      try {
-        File sdkRoot = getOrInstallInstantAppSdk();
+      File sdkRoot = getOrInstallInstantAppSdk();
 
-        File jar = sdkRoot.toPath().resolve(SDK_LIB_JAR_PATH).toFile();
+      File jar = sdkRoot.toPath().resolve(SDK_LIB_JAR_PATH).toFile();
 
-        if (!jar.exists()) {
-          // This SDK is too old and is lacking the library JAR
-          if (attemptUpgrades) {
-            updateSdk();
-            return loadLibrary(false);
-          } else {
-            throw new LoadInstantAppSdkException("Could not load required version of the Google Play Instant SDK");
-          }
+      if (!jar.exists()) {
+        // This SDK is too old and is lacking the library JAR
+        if (attemptUpgrades) {
+          updateSdk();
+          return loadLibrary(false);
         }
-
-        // Note that this needs to use a ClassLoader that will provide a source location for
-        // classes, because the library uses its own JAR location as a reference point to find
-        // binaries that it needs.
-        // IMPORTANT: This class loader must NOT be closed or subsequent attempts to use library classes will fail!
-        URLClassLoader childClassLoader = new URLClassLoader(new URL[]{jar.toURI().toURL()}, getClass().getClassLoader());
-        cachedSdkLib = ServiceLoader.load(Sdk.class, childClassLoader).iterator().next();
-
-        // Populate version information
-        cachedSdkLib.getTelemetryManager()
-          .setAppProperties(TelemetryManager.HostApplication.ANDROID_STUDIO, ApplicationInfo.getInstance().getFullVersion());
+        else {
+          throw COULD_NOT_LOAD_NEW_SDK_EXCEPTION;
+        }
       }
-      catch (MalformedURLException e) {
-        throw new LoadInstantAppSdkException(e);
+
+      cachedSdkLib = new SdkLoader().loadSdk(
+        jar,
+        TelemetryManager.HostApplication.ANDROID_STUDIO, ApplicationInfo.getInstance().getFullVersion());
+      if (cachedSdkLib == null) {
+        if (attemptUpgrades) {
+          // This SDK contains a library JAR that's too old
+          updateSdk();
+          return loadLibrary(false);
+        }
+        else {
+          throw COULD_NOT_LOAD_NEW_SDK_EXCEPTION;
+        }
       }
     }
 
@@ -190,12 +190,10 @@ public class InstantAppSdks {
   }
 
   public static class LoadInstantAppSdkException extends RuntimeException {
-    @VisibleForTesting
     public LoadInstantAppSdkException(@NotNull String message) {
       super(message);
     }
-
-    private LoadInstantAppSdkException(@NotNull Throwable cause) {
+    public LoadInstantAppSdkException(@NotNull Throwable cause) {
       super(cause);
       }
   }
