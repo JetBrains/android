@@ -230,7 +230,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
       // Start event
       LifecycleEvent action = LifecycleEvent.COMPLETED;
-      myData.add(startTime, new ActivityAction(startTime, endTime, action, activityName));
+      myData.add(startTime, new LifecycleAction(startTime, endTime, action, activityName));
     }
   }
 

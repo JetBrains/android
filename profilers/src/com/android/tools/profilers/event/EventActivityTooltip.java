@@ -16,7 +16,7 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profilers.ProfilerMonitorTooltip;
@@ -34,25 +34,25 @@ public class EventActivityTooltip extends ProfilerMonitorTooltip<EventMonitor> {
   // Find the activity that overlaps a specific time, the activities are sorted so if there are multiple the first
   // one we encounter will be the one that is presented in the UI.
   @Nullable
-  public ActivityAction getActivityAt(double time) {
+  public LifecycleAction getActivityAt(double time) {
     List<SeriesData<EventAction<LifecycleEvent>>> activitySeries =
       getMonitor().getActivityEvents().getRangedSeries().getSeries();
     for (SeriesData<EventAction<LifecycleEvent>> series : activitySeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
-        return (ActivityAction)series.value;
+        return (LifecycleAction)series.value;
       }
     }
     return null;
   }
 
   @NotNull
-  public List<ActivityAction> getFragmentsAt(double time) {
+  public List<LifecycleAction> getFragmentsAt(double time) {
     List<SeriesData<EventAction<LifecycleEvent>>> fragmentSeries =
       getMonitor().getFragmentEvents().getRangedSeries().getSeries();
-    ArrayList<ActivityAction> fragments = new ArrayList<>();
+    ArrayList<LifecycleAction> fragments = new ArrayList<>();
     for (SeriesData<EventAction<LifecycleEvent>> series : fragmentSeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
-        fragments.add((ActivityAction)series.value);
+        fragments.add((LifecycleAction)series.value);
       }
     }
     return fragments;

@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
@@ -88,7 +88,7 @@ public class StackedEventComponent extends AnimatedComponent {
     // cache off a path to draw.
     for (int i = 0; i < size; i++) {
       SeriesData<EventAction<LifecycleEvent>> seriesData = series.get(i);
-      ActivityAction data = (ActivityAction)seriesData.value;
+      LifecycleAction data = (LifecycleAction)seriesData.value;
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
       // width of our chart.
       double endTime = data.getEndUs() == 0 ? max : data.getEndUs();
@@ -144,7 +144,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
       String text = "";
       if (event.getType() != LifecycleEvent.NONE) {
-        text = ((ActivityAction)event).getData();
+        text = ((LifecycleAction)event).getName();
       }
       double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
       double lifetime = event.getEndUs();

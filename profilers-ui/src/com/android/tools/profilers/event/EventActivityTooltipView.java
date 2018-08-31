@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
@@ -82,17 +81,17 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
   }
 
   private void showStackedEventInfo(ProfilerTimeline timeline, Range dataRange, Range range) {
-    ActivityAction activity = myActivityTooltip.getActivityAt(range.getMin());
+    LifecycleAction activity = myActivityTooltip.getActivityAt(range.getMin());
     if (activity != null) {
       // Set the label to [Activity] [Length of time activity was active]
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
       setTimelineText(timeline.getDataRange(), activity.getStartUs(), endTime);
-      myActivityNameLabel.setText(activity.getData());
+      myActivityNameLabel.setText(activity.getName());
       // TODO: b/113512506 Render fragment information with customized component
       if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-        List<ActivityAction> fragments = myActivityTooltip.getFragmentsAt(range.getMin());
+        List<LifecycleAction> fragments = myActivityTooltip.getFragmentsAt(range.getMin());
         String htmlText = "<html>" +
-                          Joiner.on("<br>").join(fragments.stream().map(fragment -> fragment.getData()).sorted()
+                          Joiner.on("<br>").join(fragments.stream().map(fragment -> fragment.getName()).sorted()
                                                           .collect(Collectors.toList())) +
                           "</html>";
         myFragmentsLabel.setText(htmlText);
