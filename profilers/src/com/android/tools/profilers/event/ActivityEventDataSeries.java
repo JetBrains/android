@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.ActivityAction;
 import com.android.tools.adtui.model.event.EventAction;
-import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEventType>> {
+public class ActivityEventDataSeries implements DataSeries<EventAction<LifecycleEvent>> {
 
   @NotNull private ProfilerClient myClient;
   @NotNull private final Common.Session mySession;
@@ -43,8 +43,8 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
   }
 
   @Override
-  public List<SeriesData<EventAction<StackedEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<StackedEventType>>> seriesData = new ArrayList<>();
+  public List<SeriesData<EventAction<LifecycleEvent>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<LifecycleEvent>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
 
     // TODO: update getComponentData to accept a fragment filter. There isn't a significant amount of data here,
@@ -67,17 +67,17 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
       boolean haveEvent = false;
       for (int i = 0; i < data.getStateChangesCount(); i++) {
         EventProfiler.ActivityStateData state = data.getStateChanges(i);
-        StackedEventType action = StackedEventType.NONE;
+        LifecycleEvent lifecycleEvent = LifecycleEvent.NONE;
         String displayString = data.getName();
         // Match start states with end states.
         switch (state.getState()) {
           case ADDED:
           case RESUMED:
-            action = StackedEventType.ACTIVITY_STARTED;
+            lifecycleEvent = LifecycleEvent.STARTED;
             actionStart = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
             break;
           case DESTROYED:
-            // This case is a fallthrough to set the action, and end time used in creating the proper UI event.
+            // This case is a fallthrough to set the lifecycle, and end time used in creating the proper UI event.
 
             // In the UI we track the end of an activity when the activity gets paused.
             // We also listen to the destroyed event here in case the app stops and we force a destroyed event.
@@ -93,7 +93,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
           case REMOVED:
             // Remove is also a fallthrough as this is the event that gets set when we terminate a fragment.
           case PAUSED:
-            action = StackedEventType.ACTIVITY_COMPLETED;
+            lifecycleEvent = LifecycleEvent.COMPLETED;
             actionEnd = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
             haveEvent = true;
             break;
@@ -118,8 +118,9 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
         // We create a UI event each time we match a start and end event, or if we are at the end of our events, and we
         // have a start, or end event. We can have a start event if we scrubbed and the end event is out of range.
         // We can have an end only event if we scrubbed and the start event is out of range.
-        if (haveEvent || (i == data.getStateChangesCount() - 1 && action != StackedEventType.NONE)) {
-          seriesData.add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, action, displayString, data.getHash())));
+        if (haveEvent || (i == data.getStateChangesCount() - 1 && lifecycleEvent != LifecycleEvent.NONE)) {
+          seriesData
+            .add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, lifecycleEvent, displayString, data.getHash())));
           actionEnd = 0;
           actionStart = 0;
           // This is needed as we may have the following scenario,

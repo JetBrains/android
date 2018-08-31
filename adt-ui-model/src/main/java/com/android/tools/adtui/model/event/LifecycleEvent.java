@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.model.event;
 
-public enum StackedEventType {
+public enum LifecycleEvent {
   NONE,
-  ACTIVITY_STARTED,
-  ACTIVITY_COMPLETED
+  STARTED,
+  COMPLETED
 }

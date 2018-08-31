@@ -22,7 +22,6 @@ import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.event.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -64,9 +63,9 @@ public class EventVisualTest extends VisualTest {
 
   private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<ActionType>> myData;
+  private DefaultDataSeries<EventAction<ActionType>> myUserEventData;
 
-  private DefaultDataSeries<EventAction<StackedEventType>> myActivityData;
+  private DefaultDataSeries<EventAction<LifecycleEvent>> myActivityLifecycleData;
 
   private AnimatedTimeRange myAnimatedRange;
 
@@ -74,8 +73,8 @@ public class EventVisualTest extends VisualTest {
 
   private ResizingAxisComponentModel myTimeAxisModel;
 
-  private EventModel<ActionType> myEventModel;
-  private EventModel<StackedEventType> myStackedEventModel;
+  private EventModel<ActionType> myUserEventModel;
+  private EventModel<LifecycleEvent> myActivityLifecycleModel;
 
 
   @Override
@@ -84,12 +83,12 @@ public class EventVisualTest extends VisualTest {
     Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     Range xTimelineRange = new Range(0, 0);
 
-    myData = new DefaultDataSeries<>();
-    myActivityData = new DefaultDataSeries<>();
-    myEventModel = new EventModel<>(new RangedSeries<>(xRange, myData));
-    mySimpleEventComponent = new SimpleEventComponent<>(myEventModel, MOCK_RENDERERS);
-    myStackedEventModel = new EventModel<>(new RangedSeries<>(xRange, myActivityData));
-    myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
+    myUserEventData = new DefaultDataSeries<>();
+    myActivityLifecycleData = new DefaultDataSeries<>();
+    myUserEventModel = new EventModel<>(new RangedSeries<>(xRange, myUserEventData));
+    mySimpleEventComponent = new SimpleEventComponent<>(myUserEventModel, MOCK_RENDERERS);
+    myActivityLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myActivityLifecycleData));
+    myStackedEventComponent = new StackedEventComponent(myActivityLifecycleModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
@@ -117,7 +116,7 @@ public class EventVisualTest extends VisualTest {
   private void performTapAction() {
     long now = System.currentTimeMillis();
     EventAction<ActionType> event = new EventAction<>(now, now, ActionType.TOUCH);
-    myData.add(now, event);
+    myUserEventData.add(now, event);
   }
 
   private void addActivityCreatedEvent() {
@@ -168,7 +167,7 @@ public class EventVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<ActionType> event =
           new EventAction<>(mDownTime, nowUs, ActionType.TOUCH);
-        myData.add(nowUs, event);
+        myUserEventData.add(nowUs, event);
       }
     });
     controls.add(tapButton);
@@ -247,16 +246,16 @@ public class EventVisualTest extends VisualTest {
 
     private void addSelf() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventType> event =
-        new ActivityAction(myStartTimeUs, 0, StackedEventType.ACTIVITY_STARTED, myName);
-      myActivityData.add(nowUs, event);
+      EventAction<LifecycleEvent> event =
+        new ActivityAction(myStartTimeUs, 0, LifecycleEvent.STARTED, myName);
+      myActivityLifecycleData.add(nowUs, event);
     }
 
     public void tearDown() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventType> event =
-        new ActivityAction(myStartTimeUs, nowUs, StackedEventType.ACTIVITY_COMPLETED, myName);
-      myActivityData.add(nowUs, event);
+      EventAction<LifecycleEvent> event =
+        new ActivityAction(myStartTimeUs, nowUs, LifecycleEvent.COMPLETED, myName);
+      myActivityLifecycleData.add(nowUs, event);
     }
   }
 }

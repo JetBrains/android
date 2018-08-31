@@ -17,8 +17,8 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.SimpleEventType;
-import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profilers.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,13 +27,13 @@ import java.util.function.Supplier;
 public class EventMonitor extends ProfilerMonitor {
 
   @NotNull
-  private final EventModel<SimpleEventType> mySimpleEvents;
+  private final EventModel<UserEvent> myUserEvents;
 
   @NotNull
-  private final EventModel<StackedEventType> myActivityEvents;
+  private final EventModel<LifecycleEvent> myActivityEvents;
 
   @NotNull
-  private final EventModel<StackedEventType> myFragmentEvents;
+  private final EventModel<LifecycleEvent> myFragmentEvents;
 
   private boolean myEnabled;
 
@@ -44,8 +44,8 @@ public class EventMonitor extends ProfilerMonitor {
 
     assert myProfilers.getClient() != null;
 
-    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getSession());
-    mySimpleEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
+    UserEventDataSeries events = new UserEventDataSeries(myProfilers.getClient(), myProfilers.getSession());
+    myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
     ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
@@ -66,17 +66,17 @@ public class EventMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public EventModel<SimpleEventType> getSimpleEvents() {
-    return mySimpleEvents;
+  public EventModel<UserEvent> getUserEvents() {
+    return myUserEvents;
   }
 
   @NotNull
-  public EventModel<StackedEventType> getActivityEvents() {
+  public EventModel<LifecycleEvent> getActivityEvents() {
     return myActivityEvents;
   }
 
   @NotNull
-  public EventModel<StackedEventType> getFragmentEvents() {
+  public EventModel<LifecycleEvent> getFragmentEvents() {
     return myFragmentEvents;
   }
 
