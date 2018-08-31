@@ -163,7 +163,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
           hasCancelled = true
           myExecutor.shutdownNow()
           objectOutputStream.close()
-          (ApplicationManager.getApplication() as ApplicationImpl).exit(true, true)
+          System.exit(0)  // Unlike ApplicationImpl.exit, this will shut the client down even if the EDT is unresponsive.
         }
       }
     }
