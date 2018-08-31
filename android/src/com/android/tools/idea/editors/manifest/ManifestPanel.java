@@ -88,8 +88,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1176,13 +1176,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                                       boolean hasFocus) {
       if (value instanceof ManifestTreeNode) {
         ManifestTreeNode node = (ManifestTreeNode)value;
-
-        // on GTK theme the Tree.isFileColorsEnabled does not work, so we fall back to using the background
-        if (UIUtil.isUnderGTKLookAndFeel()) {
-          // we need to make the colors saturated, but with alpha, so the selector and foreground text still work
-          setBackground(ColorUtil.withAlpha(harder(getNodeColor(node.getUserObject())), 0.2));
-          setOpaque(true);
-        }
 
         setIcon(null);
 
