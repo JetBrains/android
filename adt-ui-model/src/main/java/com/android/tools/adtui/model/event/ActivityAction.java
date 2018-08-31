@@ -15,17 +15,17 @@
  */
 package com.android.tools.adtui.model.event;
 
-public class ActivityAction extends EventAction<StackedEventType> {
+public class ActivityAction extends EventAction<LifecycleEvent> {
   // Title to be displayed in the UI.
   private String myData;
   // Hash of activity/fragment that uniquely identifies that object.
   private long myHash;
 
-  public ActivityAction(long start, long end, StackedEventType action, String data) {
+  public ActivityAction(long start, long end, LifecycleEvent action, String data) {
     this(start, end, action, data, 0);
   }
 
-  public ActivityAction(long start, long end, StackedEventType action, String data, long hash) {
+  public ActivityAction(long start, long end, LifecycleEvent action, String data, long hash) {
     super(start, end, action);
     myData = data;
     myHash = hash;

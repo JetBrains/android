@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.model.event;
 
-public enum SimpleEventType {
+public enum UserEvent {
   TOUCH,
   KEYBOARD,
   ROTATION

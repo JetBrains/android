@@ -20,7 +20,7 @@ import com.android.tools.adtui.eventrenderer.EventIconRenderer;
 import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
-import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.profilers.ProfilerMonitorTooltip;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.Stage;
@@ -36,16 +36,16 @@ import java.util.function.Supplier;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
-  private static final Map<SimpleEventType, SimpleEventRenderer<SimpleEventType>> RENDERERS;
+  private static final Map<UserEvent, SimpleEventRenderer<UserEvent>> RENDERERS;
 
   static {
     RENDERERS = new HashMap<>();
-    RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer<>());
-    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
-    RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer<>());
+    RENDERERS.put(UserEvent.TOUCH, new TouchEventRenderer<>());
+    RENDERERS.put(UserEvent.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
+    RENDERERS.put(UserEvent.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
-  private SimpleEventComponent<SimpleEventType> myEventComponent;
+  private SimpleEventComponent<UserEvent> myEventComponent;
   private StackedEventComponent myActivityComponent;
 
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
@@ -61,7 +61,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
       myActivityComponent = new StackedEventComponent(getMonitor().getActivityEvents());
     }
     if (myEventComponent == null) {
-      myEventComponent = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
+      myEventComponent = new SimpleEventComponent<>(getMonitor().getUserEvents(), RENDERERS);
     }
   }
 

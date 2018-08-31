@@ -38,7 +38,7 @@ import com.android.tools.profilers.energy.EnergyEventsDataSeries
 import com.android.tools.profilers.energy.EnergyUsageDataSeries
 import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.ActivityEventDataSeries
-import com.android.tools.profilers.event.SimpleEventDataSeries
+import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.GcStatsDataSeries
@@ -109,7 +109,7 @@ class DataSeriesPerformanceTest {
     val studioProfilers = StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
     val dataSeriesToTest = mapOf(Pair("Event-Activities", ActivityEventDataSeries(client, session, false)),
-                                 Pair("Event-Interactions", SimpleEventDataSeries(client, session)),
+                                 Pair("Event-Interactions", UserEventDataSeries(client, session)),
                                  Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
                                  Pair("Energy-Events",
                                       MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,

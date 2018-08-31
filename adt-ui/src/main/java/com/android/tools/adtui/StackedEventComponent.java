@@ -20,9 +20,8 @@ import com.android.tools.adtui.model.event.ActivityAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBFont;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -47,17 +46,17 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final int FONT_SPACING = 10;
 
   @NotNull
-  private final EventModel<StackedEventType> myModel;
+  private final EventModel<LifecycleEvent> myModel;
 
   /**
    * This map is used to pair actions, to their draw location. This is used primarily to store the
    * location where to draw the name of the incoming event.
    */
-  private HashMap<EventAction<StackedEventType>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
+  private HashMap<EventAction<LifecycleEvent>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
   private List<EventRenderData> myActivities = new ArrayList<>();
   private boolean myRender;
 
-  public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
+  public StackedEventComponent(@NotNull EventModel<LifecycleEvent> model) {
     myModel = model;
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
@@ -80,7 +79,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
     myActivities.clear();
     myActionToDrawLocationMap.clear();
-    List<SeriesData<EventAction<StackedEventType>>> series = myModel.getRangedSeries().getSeries();
+    List<SeriesData<EventAction<LifecycleEvent>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     // Loop through the data series looking at all of the start events, and stop events.
@@ -88,7 +87,7 @@ public class StackedEventComponent extends AnimatedComponent {
     // Once we find a stop event we determine the draw order, name, start and stop locations and
     // cache off a path to draw.
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<StackedEventType>> seriesData = series.get(i);
+      SeriesData<EventAction<LifecycleEvent>> seriesData = series.get(i);
       ActivityAction data = (ActivityAction)seriesData.value;
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
       // width of our chart.
@@ -138,13 +137,13 @@ public class StackedEventComponent extends AnimatedComponent {
     ListIterator<EventRenderData> itor = myActivities.listIterator();
     while (itor.hasNext()) {
       EventRenderData renderData = itor.next();
-      EventAction<StackedEventType> event = renderData.getAction();
+      EventAction<LifecycleEvent> event = renderData.getAction();
       g2d.setColor(event.getEndUs() == 0 ? ENABLED_ACTION : DISABLED_ACTION);
       Shape shape = scale.createTransformedShape(renderData.getPath());
       g2d.fill(shape);
 
       String text = "";
-      if (event.getType() != StackedEventType.NONE) {
+      if (event.getType() != LifecycleEvent.NONE) {
         text = ((ActivityAction)event).getData();
       }
       double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
@@ -173,10 +172,10 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private static class EventRenderData {
 
-    private final EventAction<StackedEventType> mAction;
+    private final EventAction<LifecycleEvent> mAction;
     private final Rectangle2D mPath;
 
-    public EventAction<StackedEventType> getAction() {
+    public EventAction<LifecycleEvent> getAction() {
       return mAction;
     }
 
@@ -184,7 +183,7 @@ public class StackedEventComponent extends AnimatedComponent {
       return mPath;
     }
 
-    public EventRenderData(EventAction<StackedEventType> action, Rectangle2D path) {
+    public EventRenderData(EventAction<LifecycleEvent> action, Rectangle2D path) {
       mAction = action;
       mPath = path;
     }

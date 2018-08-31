@@ -197,9 +197,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static final String PACKAGE_PREFIX = "com.example.myapplication.";
 
     protected StackedEventComponent myStackedEventComponent;
-    private EventModel<StackedEventType> myStackedEventModel;
+    private EventModel<LifecycleEvent> myStackedEventModel;
 
-    private DefaultDataSeries<EventAction<StackedEventType>> myData;
+    private DefaultDataSeries<EventAction<LifecycleEvent>> myData;
 
     ActivityEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -229,7 +229,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[0]; // arbitrary activity
 
       // Start event
-      StackedEventType action = StackedEventType.ACTIVITY_COMPLETED;
+      LifecycleEvent action = LifecycleEvent.COMPLETED;
       myData.add(startTime, new ActivityAction(startTime, endTime, action, activityName));
     }
   }

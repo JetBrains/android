@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.KeyboardData;
-import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -35,19 +35,19 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEventType>> {
+public class UserEventDataSeries implements DataSeries<EventAction<UserEvent>> {
 
   @NotNull private ProfilerClient myClient;
   @NotNull private final Common.Session mySession;
 
-  public SimpleEventDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session) {
+  public UserEventDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session) {
     myClient = client;
     mySession = session;
   }
 
   @Override
-  public List<SeriesData<EventAction<SimpleEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<SimpleEventType>>> seriesData = new ArrayList<>();
+  public List<SeriesData<EventAction<UserEvent>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<UserEvent>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setSession(mySession)
@@ -59,12 +59,12 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
       long actionEnd = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
       switch (data.getType()) {
         case ROTATION:
-          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, SimpleEventType.ROTATION)));
+          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, UserEvent.ROTATION)));
           break;
         case UNSPECIFIED:
           break;
         case TOUCH:
-          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, SimpleEventType.TOUCH)));
+          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, UserEvent.TOUCH)));
           break;
         case KEY:
           seriesData.add(

@@ -18,7 +18,7 @@ package com.android.tools.profilers.event;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.ActivityAction;
 import com.android.tools.adtui.model.event.EventAction;
-import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profilers.ProfilerMonitorTooltip;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,9 +35,9 @@ public class EventActivityTooltip extends ProfilerMonitorTooltip<EventMonitor> {
   // one we encounter will be the one that is presented in the UI.
   @Nullable
   public ActivityAction getActivityAt(double time) {
-    List<SeriesData<EventAction<StackedEventType>>> activitySeries =
+    List<SeriesData<EventAction<LifecycleEvent>>> activitySeries =
       getMonitor().getActivityEvents().getRangedSeries().getSeries();
-    for (SeriesData<EventAction<StackedEventType>> series : activitySeries) {
+    for (SeriesData<EventAction<LifecycleEvent>> series : activitySeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
         return (ActivityAction)series.value;
       }
@@ -47,10 +47,10 @@ public class EventActivityTooltip extends ProfilerMonitorTooltip<EventMonitor> {
 
   @NotNull
   public List<ActivityAction> getFragmentsAt(double time) {
-    List<SeriesData<EventAction<StackedEventType>>> activitySeries =
+    List<SeriesData<EventAction<LifecycleEvent>>> fragmentSeries =
       getMonitor().getFragmentEvents().getRangedSeries().getSeries();
     ArrayList<ActivityAction> fragments = new ArrayList<>();
-    for (SeriesData<EventAction<StackedEventType>> series : activitySeries) {
+    for (SeriesData<EventAction<LifecycleEvent>> series : fragmentSeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
         fragments.add((ActivityAction)series.value);
       }

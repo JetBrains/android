@@ -19,8 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
-import com.android.tools.adtui.model.event.SimpleEventType;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
@@ -88,13 +87,13 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
     double endTime = event.getEndUs() == 0 ? dataRange.getMax() : event.getEndUs();
     setTimelineText(timeline.getDataRange(), event.getStartUs(), endTime);
     String label = "";
-    if (event.getType() == SimpleEventType.KEYBOARD) {
+    if (event.getType() == UserEvent.KEYBOARD) {
       label = "Key Event - Press";
     }
-    else if (event.getType() == SimpleEventType.TOUCH) {
+    else if (event.getType() == UserEvent.TOUCH) {
       label = "Touch Event - Press";
     }
-    else if (event.getType() == SimpleEventType.ROTATION) {
+    else if (event.getType() == UserEvent.ROTATION) {
       label = "Rotation Event";
     }
     myContentLabel.setText(label);
@@ -114,14 +113,14 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
   private EventAction getEventAt(double time) {
     double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
     long hoverWidthAsTime = (long)timePerPixel * HOVER_OVER_WIDTH_PX;
-    List<SeriesData<EventAction<SimpleEventType>>> activitySeries = getMonitor().getSimpleEvents().getRangedSeries().getSeries();
-    for (SeriesData<EventAction<SimpleEventType>> series : activitySeries) {
+    List<SeriesData<EventAction<UserEvent>>> userEventSeries = getMonitor().getUserEvents().getRangedSeries().getSeries();
+    for (SeriesData<EventAction<UserEvent>> series : userEventSeries) {
       // If the series has a really small length it might be impossible to mouse over, so we add a range to make it
       // easier to mouse over.
       // If the event is a key event, because we don't draw a duration for key events we ignore the duration and use the
       // hover width to show the tooltip.
       if (series.value.getEndUs() - series.value.getStartUs() <= hoverWidthAsTime / 2 ||
-          series.value.getType() == SimpleEventType.KEYBOARD) {
+          series.value.getType() == UserEvent.KEYBOARD) {
         if (series.value.getStartUs() - hoverWidthAsTime / 2 <= time && series.value.getStartUs() + hoverWidthAsTime / 2 >= time) {
           return series.value;
         }
