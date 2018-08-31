@@ -268,6 +268,45 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/src/test/pkg/AuthDemo.java", "java");
   }
 
+  public void testColors() throws Exception {
+    myFixture.addFileToProject("/src/androidx/annotation/ColorRes.java",
+                               "" +
+                               "package androidx.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Documented;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Documented\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                               "public @interface ColorRes {\n" +
+                               "}\n");
+    myFixture.addFileToProject("/src/androidx/annotation/ColorInt.java",
+                               "" +
+                               "package androidx.annotation;\n" +
+                               "\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({PARAMETER,METHOD,LOCAL_VARIABLE,FIELD})\n" +
+                               "public @interface ColorInt {\n" +
+                               "}");
+
+    doTestNoFix(new AndroidLintResourceAsColorInspection(),
+                "/src/test/pkg/Colors.kt", "kt");
+  }
+
   public void testInefficientWeight() throws Exception {
     doTestWithFix(new AndroidLintInefficientWeightInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.zero.dp"),
