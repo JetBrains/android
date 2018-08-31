@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.testing.TestProjectPaths
+import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
@@ -83,7 +84,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
               release (test)""".trimIndent()
     var treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
 
     targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.libs", "lib2"))
 
@@ -135,7 +136,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
                   (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
     treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
 
     targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.jlib", "lib4"))
     expectedProjectStructure = """
@@ -193,30 +194,30 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
                           (via) lib1:1.0 (com.example.libs)
           modulePlus
               debug
-                  (via) lib3:0.9.1 (com.example.jlib)
+                  (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
                               (by) implementation
               release
-                  (via) lib3:0.9.1 (com.example.jlib)
+                  (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
                               (by) implementation
               debug (androidTest)
-                  (via) lib3:0.9.1 (com.example.jlib)
+                  (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
               debug (test)
-                  (via) lib3:0.9.1 (com.example.jlib)
+                  (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
               release (test)
-                  (via) lib3:0.9.1 (com.example.jlib)
+                  (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
     treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
   }
 
   private fun findModelsForSelection(groupId: String, name: String): List<List<PsAndroidDependency>> {
