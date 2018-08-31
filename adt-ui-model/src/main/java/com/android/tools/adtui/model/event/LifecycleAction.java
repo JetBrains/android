@@ -15,24 +15,24 @@
  */
 package com.android.tools.adtui.model.event;
 
-public class ActivityAction extends EventAction<LifecycleEvent> {
-  // Title to be displayed in the UI.
-  private String myData;
+public class LifecycleAction extends EventAction<LifecycleEvent> {
+  // Text to be displayed in the UI.
+  private String myName;
   // Hash of activity/fragment that uniquely identifies that object.
   private long myHash;
 
-  public ActivityAction(long start, long end, LifecycleEvent action, String data) {
-    this(start, end, action, data, 0);
+  public LifecycleAction(long start, long end, LifecycleEvent action, String name) {
+    this(start, end, action, name, 0);
   }
 
-  public ActivityAction(long start, long end, LifecycleEvent action, String data, long hash) {
+  public LifecycleAction(long start, long end, LifecycleEvent action, String name, long hash) {
     super(start, end, action);
-    myData = data;
+    myName = name;
     myHash = hash;
   }
 
-  public String getData() {
-    return myData;
+  public String getName() {
+    return myName;
   }
 
   public long getHash() {
@@ -41,17 +41,17 @@ public class ActivityAction extends EventAction<LifecycleEvent> {
 
   @Override
   public int hashCode() {
-    // Setting custom hashcode so we can compare two ActivityAction objects without having them be the exact same object.
-    return  myData.hashCode() ^ Long.hashCode(getStartUs()) ^ Long.hashCode(getEndUs()) ^ getType().hashCode() ^ Long.hashCode(getHash());
+    // Setting custom hashcode so we can compare two LifecycleAction objects without having them be the exact same object.
+    return  myName.hashCode() ^ Long.hashCode(getStartUs()) ^ Long.hashCode(getEndUs()) ^ getType().hashCode() ^ Long.hashCode(getHash());
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof ActivityAction)) {
+    if (!(obj instanceof LifecycleAction)) {
       return false;
     }
-    ActivityAction other = (ActivityAction)obj;
-    return myData.equals(other.myData) &&
+    LifecycleAction other = (LifecycleAction)obj;
+    return myName.equals(other.myName) &&
            getStartUs() == other.getStartUs() &&
            getEndUs() == other.getEndUs() &&
            getType() == other.getType() &&

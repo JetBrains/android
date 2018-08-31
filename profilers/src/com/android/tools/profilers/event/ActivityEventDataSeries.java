@@ -18,8 +18,8 @@ package com.android.tools.profilers.event;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.event.ActivityAction;
 import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
@@ -120,7 +120,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<Lifecycle
         // We can have an end only event if we scrubbed and the start event is out of range.
         if (haveEvent || (i == data.getStateChangesCount() - 1 && lifecycleEvent != LifecycleEvent.NONE)) {
           seriesData
-            .add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, lifecycleEvent, displayString, data.getHash())));
+            .add(new SeriesData<>(actionStart, new LifecycleAction(actionStart, actionEnd, lifecycleEvent, displayString, data.getHash())));
           actionEnd = 0;
           actionStart = 0;
           // This is needed as we may have the following scenario,

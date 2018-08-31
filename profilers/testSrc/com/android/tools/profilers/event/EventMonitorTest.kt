@@ -16,7 +16,7 @@
 package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.event.ActivityAction
+import com.android.tools.adtui.model.event.LifecycleAction
 import com.android.tools.adtui.model.event.EventAction
 import com.android.tools.adtui.model.event.KeyboardAction
 import com.android.tools.adtui.model.event.UserEvent
@@ -164,11 +164,11 @@ class EventMonitorTest {
     val series = monitor.activityEvents.rangedSeries.series
     assertThat(series).hasSize(2) // fragment shouldn't be returned
 
-    assertThat(series[0].value).isInstanceOf(ActivityAction::class.java)
-    assertThat((series[0].value as ActivityAction).data).isEqualTo("activity 1")
+    assertThat(series[0].value).isInstanceOf(LifecycleAction::class.java)
+    assertThat((series[0].value as LifecycleAction).name).isEqualTo("activity 1")
 
-    assertThat(series[1].value).isInstanceOf(ActivityAction::class.java)
-    assertThat((series[1].value as ActivityAction).data).isEqualTo("activity 2")
+    assertThat(series[1].value).isInstanceOf(LifecycleAction::class.java)
+    assertThat((series[1].value as LifecycleAction).name).isEqualTo("activity 2")
   }
 
   @Test
@@ -197,7 +197,7 @@ class EventMonitorTest {
     val series = monitor.fragmentEvents.rangedSeries.series
     assertThat(series).hasSize(1) // activities shouldn't be returned
 
-    assertThat(series[0].value).isInstanceOf(ActivityAction::class.java)
-    assertThat((series[0].value as ActivityAction).data).isEqualTo("fragment 1")
+    assertThat(series[0].value).isInstanceOf(LifecycleAction::class.java)
+    assertThat((series[0].value as LifecycleAction).name).isEqualTo("fragment 1")
   }
 }

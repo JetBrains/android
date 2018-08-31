@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -71,7 +71,7 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, 0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.STARTED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(ACTIVITY_NAME);
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(ACTIVITY_NAME);
   }
 
   @Test
@@ -96,7 +96,7 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
       String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
@@ -124,7 +124,7 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
       String.format("%s - %s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.STOPPED.toString().toLowerCase(),
                     EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
@@ -161,13 +161,13 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_START_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
       String.format("%s - %s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase(),
                     EventProfiler.ActivityStateData.ActivityState.REMOVED.toString().toLowerCase()));
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
       String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
@@ -185,7 +185,7 @@ public class ActivityEventDataSeriesTest {
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
       String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
@@ -204,7 +204,7 @@ public class ActivityEventDataSeriesTest {
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(ACTIVITY_NAME);
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(ACTIVITY_NAME);
   }
 
   @Test
@@ -238,11 +238,11 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, 0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.STARTED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(ACTIVITY_NAME);
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(ACTIVITY_NAME);
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
       String.format("%s - %s", ACTIVITY_NAME_2, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
   }
 
@@ -274,7 +274,7 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
-    assertThat(((ActivityAction)event.value).getData()).isEqualTo(FRAGMENT_NAME);
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(FRAGMENT_NAME);
   }
 
   private static void verifyActivity(SeriesData<EventAction<LifecycleEvent>> event, long endTime) {

@@ -16,24 +16,46 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.SimpleEventComponent;
+import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.eventrenderer.EventIconRenderer;
 import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
-import com.android.tools.adtui.model.event.*;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleAction;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class EventVisualTest extends VisualTest {
 
@@ -247,14 +269,14 @@ public class EventVisualTest extends VisualTest {
     private void addSelf() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
       EventAction<LifecycleEvent> event =
-        new ActivityAction(myStartTimeUs, 0, LifecycleEvent.STARTED, myName);
+        new LifecycleAction(myStartTimeUs, 0, LifecycleEvent.STARTED, myName);
       myActivityLifecycleData.add(nowUs, event);
     }
 
     public void tearDown() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
       EventAction<LifecycleEvent> event =
-        new ActivityAction(myStartTimeUs, nowUs, LifecycleEvent.COMPLETED, myName);
+        new LifecycleAction(myStartTimeUs, nowUs, LifecycleEvent.COMPLETED, myName);
       myActivityLifecycleData.add(nowUs, event);
     }
   }
