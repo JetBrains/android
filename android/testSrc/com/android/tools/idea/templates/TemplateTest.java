@@ -15,6 +15,46 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_TEMPLATES;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.util.stream.Collectors.toList;
+import static org.mockito.Mockito.mock;
+
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -32,7 +72,7 @@ import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
@@ -75,16 +115,6 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.WaitFor;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.inspections.lint.ProblemData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -95,20 +125,26 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
-import static com.google.common.truth.Truth.assertWithMessage;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.util.stream.Collectors.toList;
-import static org.mockito.Mockito.mock;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.inspections.lint.ProblemData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Test for template instantiation.
@@ -1528,11 +1564,12 @@ public class TemplateTest extends AndroidGradleTestCase {
     return projectName + specialChars + ',' + nonAsciiChars;
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void createProject(@NotNull TestNewProjectWizardState projectState, boolean syncProject) throws Exception {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
-      IconGenerator iconGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
+      IconGenerator iconGenerator = new LauncherIconGenerator(myFixture.getProject(), minSdkVersion, null);
       try {
         iconGenerator.outputName().set("ic_launcher");
         iconGenerator.sourceAsset().setValue(new ImageAsset());

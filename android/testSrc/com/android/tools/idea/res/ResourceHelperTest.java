@@ -145,19 +145,19 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   public void testColorToString() {
     Color c = new Color(0x0fff0000, true);
-    assertEquals("#0fff0000", ResourceHelper.colorToString(c));
+    assertEquals("#0FFF0000", ResourceHelper.colorToString(c));
 
     c = new Color(0x00ff00);
-    assertEquals("#00ff00", ResourceHelper.colorToString(c));
+    assertEquals("#00FF00", ResourceHelper.colorToString(c));
 
     c = new Color(0x00000000, true);
     assertEquals("#00000000", ResourceHelper.colorToString(c));
 
     Color color = new Color(0x11, 0x22, 0x33, 0xf0);
-    assertEquals("#f0112233", ResourceHelper.colorToString(color));
+    assertEquals("#F0112233", ResourceHelper.colorToString(color));
 
     color = new Color(0xff, 0xff, 0xff, 0x00);
-    assertEquals("#00ffffff", ResourceHelper.colorToString(color));
+    assertEquals("#00FFFFFF", ResourceHelper.colorToString(color));
   }
 
   public void testDisabledStateListStates() {
@@ -282,7 +282,8 @@ public class ResourceHelperTest extends AndroidTestCase {
     VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     assertNotNull(rr);
-    ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
+    ResourceValue rv = rr.getResolvedResource(
+        new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "empty_state_list"));
     assertNotNull(rv);
     assertNull(ResourceHelper.resolveColor(rr, rv, myModule.getProject()));
   }

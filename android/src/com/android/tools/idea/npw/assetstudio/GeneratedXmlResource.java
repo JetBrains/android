@@ -17,19 +17,18 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.annotations.NonNull;
-
-import java.nio.file.Path;
+import com.android.ide.common.util.PathString;
 
 /** A {@link GeneratedIcon} that is defined by an XML document. */
 public final class GeneratedXmlResource extends GeneratedIcon {
     @NonNull private final String name;
-    @NonNull private final Path outputPath;
+    @NonNull private final PathString outputPath;
     @NonNull private final IconCategory category;
     @NonNull private final String xmlText;
 
     public GeneratedXmlResource(
             @NonNull String name,
-            @NonNull Path outputPath,
+            @NonNull PathString outputPath,
             @NonNull IconCategory category,
             @NonNull String xmlText) {
         this.name = name;
@@ -46,7 +45,7 @@ public final class GeneratedXmlResource extends GeneratedIcon {
 
     @NonNull
     @Override
-    public Path getOutputPath() {
+    public PathString getOutputPath() {
         return outputPath;
     }
 

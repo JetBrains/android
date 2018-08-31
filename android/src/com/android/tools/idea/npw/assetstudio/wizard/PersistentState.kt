@@ -22,7 +22,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.ColorUtil
 import java.awt.Color
 import java.io.File
-import java.util.*
+import java.util.TreeMap
 
 /**
  * Convenience method for loading component state.
@@ -142,6 +142,16 @@ class PersistentState {
     catch (e: IllegalArgumentException) {
       defaultValue
     }
+  }
+
+  /**
+   * Returns the decoded value with the given [id], or null if not found or not a valid value. The provided
+   * [decoder] function is used to decode the [String] value. If the [decoder] function doesn't recognize
+   * a string value, it should throw an [IllegalArgumentException].
+   */
+  fun <T> getDecoded(id: String, decoder: (String) -> T): T? {
+    val value = get(id)
+    return if (value == null) null else try { decoder(value) } catch (_: IllegalArgumentException) { null }
   }
 
   /**
@@ -267,6 +277,14 @@ class PersistentState {
    */
   fun <T : java.lang.Enum<*>> set(id: String, value: T?, defaultValue: T) {
     set(id, if (value == null || value == defaultValue) null else value.name())
+  }
+
+  /**
+   * Encodes the given value of an arbitrary type and associates it with the given [id]. The provided [encoder]
+   * function is used to convert the value to a [String].
+   */
+  fun <T> setEncoded(id: String, value: T?, encoder: (T) -> String) {
+    set(id, if (value == null) null else encoder(value))
   }
 
   /**

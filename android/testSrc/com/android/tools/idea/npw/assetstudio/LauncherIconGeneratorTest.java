@@ -95,8 +95,10 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     super.setUp();
     makeSureThatProjectVirtualFileIsNotNull();
 
-    myIconGenerator = new LauncherIconGenerator(myFacet, 15);
+    DrawableRenderer renderer = new DrawableRenderer(myFacet);
+    myIconGenerator = new LauncherIconGenerator(getProject(), 15, renderer);
     disposeOnTearDown(myIconGenerator);
+    disposeOnTearDown(renderer);
     myIconGenerator.outputName().set("ic_launcher");
     myIconGenerator.foregroundLayerName().set("ic_launcher_foreground");
     myIconGenerator.backgroundLayerName().set("ic_launcher_background");
@@ -140,7 +142,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     for (String filename : expectedFilenames) {
       File file = new File(myProjectPaths.getModuleRoot(), filename);
       GeneratedIcon icon = pathIconMap.get(file);
-      assertTrue(filename + " icon is not generated.", icon != null);
+      assertNotNull(filename + " icon is not generated.", icon);
       File goldenFile = new File(goldenDir, filename);
       if (!goldenFile.exists()) {
         createGolden(goldenFile, icon);

@@ -15,34 +15,43 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.utils.XmlUtils.formatFloatAttribute;
+
 import com.android.SdkConstants;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.CharSequences;
-import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableSet;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.util.LineSeparator;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.io.IOException;
-
-import static com.android.SdkConstants.ANDROID_URI;
-
 /**
  * Methods for manipulating vector drawables.
  */
 public class VectorDrawableTransformer {
+  private static final ImmutableSet<String> NAMES_OF_HANDLED_ATTRIBUTES =
+      ImmutableSet.of("width", "height", "viewportWidth", "viewportHeight", "tint", "alpha");
+  private static final String INDENT = "  ";
+  private static final String DOUBLE_INDENT = INDENT + INDENT;
+
   /** Do not instantiate. All methods are static. */
   private VectorDrawableTransformer() {}
 
   /**
-   * Transforms a vector drawable to fit in a rectangle with the {@code targetSize} dimensions.
-   * Conceptually, the transformation includes of the following steps:
+   * Transforms a vector drawable to fit in a rectangle with the {@code targetSize} dimensions and optionally
+   * applies tint and opacity to it.
+   * Conceptually, the scaling transformation includes of the following steps:
    * <ul>
    *   <li>The drawable is resized and centered in a rectangle of the target size</li>
    *   <li>If {@code clipRectangle} is not null, the drawable is clipped, resized and re-centered again</li>
@@ -53,14 +62,15 @@ public class VectorDrawableTransformer {
    * @param originalDrawable the original drawable, preserved intact by the method
    * @param targetSize the size of the target rectangle
    * @param scaleFactor a scale factor to apply
-   * @param clipRectangle an optional clip rectangle in coordinates expressed as fraction of
-   *     the {@code targetSize}
+   * @param clipRectangle an optional clip rectangle in coordinates expressed as fraction of the {@code targetSize}
+   * @param tint an optional tint to apply to the drawable
+   * @param opacity opacity to apply to the drawable
    * @return the transformed drawable; may be the same as the original if no transformation was
    *     required, or if the drawable is not a vector one
    */
   @NotNull
-  public static String resizeAndCenter(@NotNull String originalDrawable, @NotNull Dimension targetSize, double scaleFactor,
-                                       @Nullable Rectangle2D clipRectangle) {
+  public static String transform(@NotNull String originalDrawable, @NotNull Dimension targetSize, double scaleFactor,
+                                 @Nullable Rectangle2D clipRectangle, @Nullable Color tint, double opacity) {
     KXmlParser parser = new KXmlParser();
 
     try {
@@ -78,6 +88,18 @@ public class VectorDrawableTransformer {
         return originalDrawable; // Not a vector drawable.
       }
 
+      String originalTintValue = parser.getAttributeValue(ANDROID_URI, "tint");
+      String tintValue = tint == null ? originalTintValue : ResourceHelper.colorToString(tint);
+
+      String originalAlphaValue = parser.getAttributeValue(ANDROID_URI, "alpha");
+      if (originalAlphaValue != null) {
+        opacity *= parseDoubleValue(originalAlphaValue, "");
+      }
+      String alphaValue = formatFloatAttribute(opacity);
+      if (alphaValue.equals("1")) {
+        alphaValue = null; // No need to set the default opacity.
+      }
+
       double targetWidth = targetSize.getWidth();
       double targetHeight = targetSize.getHeight();
       double width = targetWidth;
@@ -87,8 +109,10 @@ public class VectorDrawableTransformer {
         String suffix = getSuffix(widthValue);
         width = getDoubleAttributeValue(parser, ANDROID_URI, "width", suffix);
         height = getDoubleAttributeValue(parser, ANDROID_URI, "height", suffix);
+
         //noinspection FloatingPointEquality -- safe in this context since all integer values are representable as double.
-        if (suffix.equals("dp") && width == targetWidth && height == targetHeight && scaleFactor == 1 && clipRectangle == null) {
+        if (suffix.equals("dp") && width == targetWidth && height == targetHeight && scaleFactor == 1 && clipRectangle == null &&
+            Objects.equals(tintValue, originalTintValue) && Objects.equals(alphaValue, originalAlphaValue)) {
           return originalDrawable; // No transformation is needed.
         }
         if (Double.isNaN(width) || Double.isNaN(height)) {
@@ -148,51 +172,51 @@ public class VectorDrawableTransformer {
         String prefix = parser.getNamespacePrefix(i);
         String uri = parser.getNamespaceUri(i);
         if (!SdkConstants.ANDROID_NS_NAME.equals(prefix) || !SdkConstants.NS_RESOURCES.equals(uri)) {
-          result.append(String.format("%s        %s:%s=\"%s\"", lineSeparator, SdkConstants.XMLNS, prefix, uri));
+          result.append(String.format("%s%s%s:%s=\"%s\"", lineSeparator, DOUBLE_INDENT, SdkConstants.XMLNS, prefix, uri));
         }
       }
 
-      result.append(String.format(
-          "%s        android:width=\"%sdp\"" +
-          "%s        android:height=\"%sdp\"" +
-          "%s        android:viewportWidth=\"%s\"" +
-          "%s        android:viewportHeight=\"%s\"",
-          lineSeparator, XmlUtils.formatFloatAttribute(targetWidth),
-          lineSeparator, XmlUtils.formatFloatAttribute(targetHeight),
-          lineSeparator, XmlUtils.formatFloatAttribute(viewportWidth),
-          lineSeparator, XmlUtils.formatFloatAttribute(viewportHeight)));
+      result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(targetWidth)));
+      result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(targetHeight)));
+      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(viewportWidth)));
+      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(viewportHeight)));
+      if (tintValue != null) {
+        result.append(String.format("%s%sandroid:tint=\"%s\"", lineSeparator, DOUBLE_INDENT, tintValue));
+      }
+      if (alphaValue != null) {
+        result.append(String.format("%s%sandroid:alpha=\"%s\"", lineSeparator, DOUBLE_INDENT, alphaValue));
+      }
 
       // Copy remaining attributes.
       for (int i = 0; i < parser.getAttributeCount(); i++) {
         String prefix = parser.getAttributePrefix(i);
         String name = parser.getAttributeName(i);
-        if (!SdkConstants.ANDROID_NS_NAME.equals(prefix) ||
-            (!"width".equals(name) && !"height".equals(name) && !"viewportWidth".equals(name) && !"viewportHeight".equals(name))) {
+        if (!SdkConstants.ANDROID_NS_NAME.equals(prefix) || !NAMES_OF_HANDLED_ATTRIBUTES.contains(name)) {
           if (prefix != null) {
             name = prefix + ':' + name;
           }
-          result.append(String.format("%s        %s=\"%s\"", lineSeparator, name, parser.getAttributeValue(i)));
+          result.append(String.format("%s%s%s=\"%s\"", lineSeparator, DOUBLE_INDENT, name, parser.getAttributeValue(i)));
         }
       }
       result.append('>');
 
       String indent = "";
-      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? XmlUtils.formatFloatAttribute(x) : null;
-      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? XmlUtils.formatFloatAttribute(y) : null;
+      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatAttribute(x) : null;
+      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatAttribute(y) : null;
       if (translateX != null || translateY != null) {
         // Wrap the contents of the drawable into a translation group.
-        result.append(lineSeparator);
-        result.append("    <group");
+        result.append(lineSeparator).append(INDENT);
+        result.append("<group");
         String delimiter = " ";
         if (translateX != null) {
           result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
-          delimiter = lineSeparator + "            ";
+          delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
         }
         if (translateY != null) {
           result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
         }
         result.append('>');
-        indent = "    ";
+        indent = INDENT;
       }
 
       // Copy the contents before the </vector> tag.
@@ -209,7 +233,7 @@ public class VectorDrawableTransformer {
         result.append(lineSeparator);
       }
       if (translateX != null || translateY != null) {
-        result.append(String.format("    </group>%s", lineSeparator));
+        result.append(INDENT).append(String.format("</group>%s", lineSeparator));
       }
       // Copy the closing </vector> tag and the remainder of the document.
       while (parser.nextToken() != XmlPullParser.END_DOCUMENT) {
@@ -232,12 +256,17 @@ public class VectorDrawableTransformer {
     if (separator != null) {
       return separator.getSeparatorString();
     }
-    return CodeStyleSettingsManager.getInstance().getCurrentSettings().getLineSeparator();
+    return CodeStyle.getDefaultSettings().getLineSeparator();
   }
 
+  @SuppressWarnings("SameParameterValue")
   private static double getDoubleAttributeValue(@NotNull KXmlParser parser, @NotNull String namespaceUri, @NotNull String attributeName,
                                                 @NotNull String expectedSuffix) {
     String value = parser.getAttributeValue(namespaceUri, attributeName);
+    return parseDoubleValue(value, expectedSuffix);
+  }
+
+  private static double parseDoubleValue(String value, @NotNull String expectedSuffix) {
     if (value == null || !value.endsWith(expectedSuffix)) {
       return Double.NaN;
     }

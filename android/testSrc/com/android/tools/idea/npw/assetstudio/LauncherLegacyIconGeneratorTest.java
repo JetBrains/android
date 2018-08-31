@@ -15,46 +15,34 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
-import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator.LauncherLegacyOptions;
-import com.intellij.openapi.util.Disposer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
+import com.android.tools.idea.npw.assetstudio.IconGeneratorTestUtil.SourceType;
+import com.google.common.collect.ImmutableList;
+import java.awt.Color;
 import java.io.IOException;
+import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Unit tests for {@link LauncherLegacyIconGenerator} class.
  */
-@RunWith(JUnit4.class)
-public class LauncherLegacyIconGeneratorTest {
-  @SuppressWarnings("SameParameterValue")
-  private static void checkGraphic(
-      @NonNull String baseName,
-      @NonNull IconGenerator.Shape shape,
-      @NonNull IconGenerator.Style style,
-      boolean crop,
-      int background,
-      boolean generateWebIcon)
-      throws IOException {
-    LauncherLegacyOptions options = new LauncherLegacyOptions();
-    options.shape = shape;
-    options.crop = crop;
-    options.style = style;
-    options.backgroundColor = background;
-    options.generateWebIcon = generateWebIcon;
-
-    LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(15);
-    try {
-      BitmapGeneratorTests.checkGraphic(5 + (generateWebIcon ? 1 : 0), "launcher", baseName, generator, options);
-    } finally {
-      Disposer.dispose(generator);
-    }
+public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
+  private void checkGraphic(@NotNull SourceType sourceType) throws IOException {
+    LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(getProject(), 15, null);
+    disposeOnTearDown(generator);
+    generator.shape().set(IconGenerator.Shape.CIRCLE);
+    //generator.cropped().set(true);
+    generator.backgroundColor().set(new Color(0xFF0000));
+    List<String> expectedFolders =
+        ImmutableList.of("", "mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
+    IconGeneratorTestUtil.checkGraphic(generator, sourceType, "red_circle", 5, expectedFolders, "launcher");
   }
 
-  @Test
-  public void testLauncher_simpleCircle() throws Exception {
-    checkGraphic("red_simple_circle", IconGenerator.Shape.CIRCLE, IconGenerator.Style.SIMPLE, true, 0xFF0000, true);
+  public void testPngCircle() throws Exception {
+    checkGraphic(SourceType.PNG);
+  }
+
+  public void testSvgCircle() throws Exception {
+    checkGraphic(SourceType.SVG);
   }
 }
