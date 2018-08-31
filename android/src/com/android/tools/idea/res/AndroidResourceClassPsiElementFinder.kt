@@ -24,7 +24,7 @@ import com.intellij.psi.search.GlobalSearchScope
 /**
  * Adapter for [LightResourceClassService] to satisfy the [PsiElementFinder] interface.
  */
-class AndroidResourceClassPsiElementFinder(val lightResourceClassService: LightResourceClassService) : PsiElementFinder() {
+class AndroidResourceClassPsiElementFinder(private val lightResourceClassService: LightResourceClassService) : PsiElementFinder() {
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope) = findClasses(qualifiedName, scope).firstOrNull()
 

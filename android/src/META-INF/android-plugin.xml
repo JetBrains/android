@@ -1103,6 +1103,13 @@
 
     <!-- Finder for light packages, runs last. Light packages are only used if regular PsiPackages don't exist for light classes. -->
     <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiPackageFinder" order="last"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.res.AndroidResourcesShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.res.AndroidManifestShortNamesCache"/>
+
+    <weigher key="proximity"
+             implementationClass="com.android.tools.idea.res.AndroidLightClassWeigher"
+             id="javaInheritance"
+             order="before explicitlyImported"/>
 
     <resolveScopeEnlarger implementation="org.jetbrains.android.AndroidResolveScopeEnlarger" />
 

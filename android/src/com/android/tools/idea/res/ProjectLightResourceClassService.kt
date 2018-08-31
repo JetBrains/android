@@ -18,8 +18,8 @@ package com.android.tools.idea.res
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.projectmodel.ExternalLibrary
-import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.findAllLibrariesWithResources
+import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache
 import com.android.tools.idea.util.androidFacet
@@ -119,7 +119,7 @@ class ProjectLightResourceClassService(
     }
 
     for (aarLibrary in findDependenciesWithResources(module).values) {
-      result.add(getAarRClasses(aarLibrary, getAarPackageName(aarLibrary)))
+      result.add(getAarRClasses(aarLibrary))
     }
 
     return result.mapNotNull { (namespaced, nonNamespaced) ->
@@ -166,7 +166,7 @@ class ProjectLightResourceClassService(
     return getAllAars().get(packageName).asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
   }
 
-  private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String): ResourceClasses {
+  private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
@@ -193,6 +193,16 @@ class ProjectLightResourceClassService(
     else {
       null
     }
+  }
+
+  override fun getAllLightRClasses(): Collection<PsiClass> {
+    val libraryClasses = findAllLibrariesWithResources(project).values.asSequence().map { getAarRClasses(it) }
+    val moduleClasses = projectFacetManager.getFacets(AndroidFacet.ID).asSequence().map { getModuleRClasses(it) }
+
+    return (libraryClasses + moduleClasses)
+      .flatMap { sequenceOf(it.namespaced, it.nonNamespaced) }
+      .filterNotNull()
+      .toList()
   }
 
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
