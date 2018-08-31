@@ -24,18 +24,27 @@ import com.android.tools.adtui.model.Range;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
@@ -56,6 +65,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private static final int PADDING = 1;
   private static final int INITIAL_Y_POSITION = 0;
   private static final int HEIGHT_PADDING = 15;
+  private static final int MOUSE_WHEEL_SCROLL_FACTOR = 8;
 
   private final Orientation myOrientation;
 
@@ -138,7 +148,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   /**
    * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge
    * convenience to set this directly.
-   *
+   * <p>
    * It is up to the caller to make sure that the node specified here actually belongs to this
    * chart. Otherwise, the call will have no effect.
    */
@@ -387,22 +397,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       @Override
       public void mouseDragged(MouseEvent e) {
         // First, handle Y range.
-        // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
-        int contentHeight = getMaximumHeight();
-        // The height of the GUI component to draw the contents.
-        int viewHeight = getHeight();
         double deltaY = e.getPoint().y - myLastPoint.y;
         deltaY = getOrientation() == Orientation.BOTTOM_UP ? deltaY : -deltaY;
-        if (myYRange.getMin() + deltaY < INITIAL_Y_POSITION) {
-          // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
-          deltaY = INITIAL_Y_POSITION - myYRange.getMin();
-        }
-        else if (myYRange.getMin() + viewHeight + deltaY > contentHeight) {
-          // User attempts to drag the chart's toe (the innermost frame on call stacks) away from the boundary. No.
-          // Note that the chart may be taller than the stacks, so we need to limit the delta.
-          deltaY = Math.max(0, contentHeight - viewHeight - myYRange.getMin());
-        }
-        getYRange().shift(deltaY);
+        shiftYRange(deltaY);
 
         // Second, handle X Range.
         double deltaX = e.getPoint().x - myLastPoint.x;
@@ -420,13 +417,37 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
         myLastPoint = e.getPoint();
       }
 
+      private void shiftYRange(double deltaY) {
+        // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
+        int contentHeight = getMaximumHeight();
+        // The height of the GUI component to draw the contents.
+        int viewHeight = getHeight();
+        if (myYRange.getMin() + deltaY < INITIAL_Y_POSITION) {
+          // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
+          deltaY = INITIAL_Y_POSITION - myYRange.getMin();
+        }
+        else if (myYRange.getMin() + viewHeight + deltaY > contentHeight) {
+          // User attempts to drag the chart's toe (the innermost frame on call stacks) away from the boundary. No.
+          // Note that the chart may be taller than the stacks, so we need to limit the delta.
+          deltaY = Math.max(0, contentHeight - viewHeight - myYRange.getMin());
+        }
+        getYRange().shift(deltaY);
+      }
+
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
-        double cursorRange = positionToRange(e.getX());
-        double leftDelta = (cursorRange - myXRange.getMin()) / ZOOM_FACTOR * e.getWheelRotation();
-        double rightDelta = (myXRange.getMax() - cursorRange) / ZOOM_FACTOR * e.getWheelRotation();
-        myXRange.set(Math.max(myGlobalXRange.getMin(), myXRange.getMin() - leftDelta),
-                     Math.min(myGlobalXRange.getMax(), myXRange.getMax() + rightDelta));
+        if (AdtUiUtils.isActionKeyDown(e)) {
+          double cursorRange = positionToRange(e.getX());
+          double leftDelta = (cursorRange - myXRange.getMin()) / ZOOM_FACTOR * e.getWheelRotation();
+          double rightDelta = (myXRange.getMax() - cursorRange) / ZOOM_FACTOR * e.getWheelRotation();
+          myXRange.set(Math.max(myGlobalXRange.getMin(), myXRange.getMin() - leftDelta),
+                       Math.min(myGlobalXRange.getMax(), myXRange.getMax() + rightDelta));
+        }
+        else {
+          double deltaY = e.getPreciseWheelRotation() * MOUSE_WHEEL_SCROLL_FACTOR;
+          deltaY = getOrientation() == Orientation.TOP_DOWN ? deltaY : -deltaY;
+          shiftYRange(deltaY);
+        }
       }
     };
     addMouseWheelListener(adapter);
@@ -482,7 +503,8 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
     /**
      * Creates a builder for {@link HTreeChart<N>}
-     * @param xRange - the range of the chart's visible area
+     *
+     * @param xRange   - the range of the chart's visible area
      * @param renderer - a {@link HRenderer<N>} which is responsible for rendering a single node.
      */
     public Builder(@Nullable N root, @NotNull Range xRange, @NotNull HRenderer<N> renderer) {
