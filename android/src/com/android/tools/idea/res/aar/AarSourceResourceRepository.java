@@ -28,8 +28,10 @@ import com.android.ide.common.resources.ResourceRepositories;
 import com.android.ide.common.resources.ResourceSet;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.util.PathString;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
+import com.android.projectmodel.ResourceFolder;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -42,6 +44,7 @@ import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -90,23 +93,40 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
   }
 
   /**
-   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#get} instead of this method.
+   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this method.
    *
    * @param resourceDirectory the directory containing resources
    * @param libraryName the name of the library
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull File resourceDirectory, @Nullable String libraryName) {
-    return create(resourceDirectory, ResourceNamespace.RES_AUTO, libraryName);
+  public static AarSourceResourceRepository create(@NotNull File resourceDirectory,
+                                                   @Nullable String libraryName) {
+    return create(resourceDirectory, null, ResourceNamespace.RES_AUTO, libraryName);
+  }
+
+  /**
+   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this method.
+   *
+   * @param resourceFolder location where the resource files located. It contains a resource directory and a resource list should be loaded.
+   *                      A null resource list indicates that all files contained in {@code resourceFolder#root} should be loaded
+   * @param libraryName the name of the library
+   * @return the created resource repository
+   */
+  @NotNull
+  public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder,
+                                                   @Nullable String libraryName) {
+    return create(resourceFolder.getRoot().toFile(), resourceFolder.getResources(), ResourceNamespace.RES_AUTO, libraryName);
   }
 
   @NotNull
-  private static AarSourceResourceRepository create(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+  private static AarSourceResourceRepository create(@NotNull File resourceDirectory,
+                                                    @Nullable Collection<PathString> resourceFiles,
+                                                    @NotNull ResourceNamespace namespace,
                                                     @Nullable String libraryName) {
     AarSourceResourceRepository repository = new AarSourceResourceRepository(resourceDirectory, namespace, libraryName);
     try {
-      ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, namespace, libraryName);
+      ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, resourceFiles, repository.getNamespace(), libraryName);
       ResourceRepositories.updateTableFromMerger(resourceMerger, repository.getFullTable());
     }
     catch (Exception e) {
@@ -114,16 +134,16 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     }
 
     repository.loadRTxt(resourceDirectory.getParentFile());
-
     return repository;
   }
 
   @VisibleForTesting
   @NotNull
-  public static AarSourceResourceRepository createForTest(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+  public static AarSourceResourceRepository createForTest(@NotNull File resourceDirectory,
+                                                          @NotNull ResourceNamespace namespace,
                                                           @Nullable String libraryName) {
     assert ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
-    return create(resourceDirectory, namespace, libraryName);
+    return create(resourceDirectory, null, namespace, libraryName);
   }
 
   /**
@@ -171,16 +191,29 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     }
   }
 
-  private static ResourceMerger createResourceMerger(File file, ResourceNamespace namespace, String libraryName) {
+  private static ResourceMerger createResourceMerger(@NotNull File resFolder,
+                                                     @Nullable Collection<PathString> resourceFiles,
+                                                     @NotNull ResourceNamespace namespace,
+                                                     @NotNull String libraryName) {
     ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
     ResourceMerger merger = new ResourceMerger(0);
 
-    ResourceSet resourceSet = new ResourceSet(file.getName(), namespace, libraryName, false /* validateEnabled */);
-    File rDotTxt = new File(file.getParent(), FN_RESOURCE_TEXT);
+    ResourceSet resourceSet = new ResourceSet(resFolder.getName(), namespace, libraryName, false /* validateEnabled */);
+    File rDotTxt = new File(resFolder.getParent(), FN_RESOURCE_TEXT);
     if (!rDotTxt.exists()) {
       resourceSet.setShouldParseResourceIds(true);
     }
-    resourceSet.addSource(file);
+
+    // resourceFileRelativePaths contains resource files to be parsed.
+    // If it's null, whole resource folder should be parsed
+    if (resourceFiles == null) {
+      resourceSet.addSource(resFolder);
+    }
+    else {
+      for (PathString resourceFile : resourceFiles) {
+        resourceSet.addSource(resourceFile.toFile());
+      }
+    }
     resourceSet.setTrackSourcePositions(false);
     try {
       resourceSet.loadFromFiles(logger);
