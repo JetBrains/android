@@ -150,7 +150,7 @@ class PagePresenter(private val sketchPage: SketchPage,
     val drawableFileGenerator = DrawableFileGenerator(facet.module.project)
     return page.artboards
       .associate { artboard ->
-        drawableFileGenerator.generateFile(
+        drawableFileGenerator.generateDrawableFile(
           VectorDrawable(artboard, createAllDrawableShapes(artboard, symbolsLibrary))) to AssetOptions(artboard)
       }
   }
