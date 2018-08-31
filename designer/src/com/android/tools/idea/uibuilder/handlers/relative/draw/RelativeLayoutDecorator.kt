@@ -46,7 +46,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     component.children.forEach { child ->
       child.buildDisplayList(time, list, sceneContext)
 
-      if (sceneContext.showOnlySelection()) {
+      if (sceneContext.showOnlySelection() && !child.isSelected) {
         return@forEach
       }
 
