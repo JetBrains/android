@@ -113,8 +113,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private long myPendingCaptureStartTime = INVALID_START_TIME;
   private long myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
 
-  @NotNull private final AllocationSamplingRangeDataSeries myAllocationSamplingRateDataSeries;
-  @NotNull private final DurationDataModel<AllocationSamplingRangeDurationData> myAllocationSamplingRateDurations;
+  @NotNull private final AllocationSamplingRateDataSeries myAllocationSamplingRateDataSeries;
+  @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
   @NotNull private final AllocationSamplingRateUpdatable myAllocationSamplingRateUpdatable;
   @NotNull private LiveAllocationSamplingMode myLiveAllocationSamplingMode;
 
@@ -192,7 +192,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myDeallocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
 
     myAllocationSamplingRateUpdatable  = new AllocationSamplingRateUpdatable();
-    myAllocationSamplingRateDataSeries = new AllocationSamplingRangeDataSeries(myClient, mySessionData);
+    myAllocationSamplingRateDataSeries = new AllocationSamplingRateDataSeries(myClient, mySessionData);
     myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
 
     // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
@@ -842,15 +842,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
       // Find the last sampling info and see if it is different from the current, if so,
       double dataRangeMaxUs = getStudioProfilers().getTimeline().getDataRange().getMax();
-      List<SeriesData<AllocationSamplingRangeDurationData>> data =
+      List<SeriesData<AllocationSamplingRateDurationData>> data =
         myAllocationSamplingRateDataSeries.getDataForXRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
 
-      if (data.size() == 0) {
+      if (data.isEmpty()) {
         // No data available. Keep the current settings.
         return;
       }
 
-      AllocationSamplingRange samplingInfo = data.get(data.size() - 1).value.getSamplingInfo();
+      AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getNewRateEvent();
       LiveAllocationSamplingMode mode =
         LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval());
       setLiveAllocationSamplingModelInternal(mode);

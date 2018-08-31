@@ -15,6 +15,8 @@
  */
 package com.android.tools.datastore.service;
 
+import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFORMANT;
+
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.DeviceId;
@@ -22,27 +24,60 @@ import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
-import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.NativeSymbolsPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFORMANT;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
   private static final BackingNamespace LIVE_ALLOCATION_NAMESPACE = new BackingNamespace("LiveAllocations", PERFORMANT);
@@ -302,6 +337,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
     MemoryData response = myStatsTable.getData(request);
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
+    MemoryData response = MemoryData.newBuilder().addAllAllocSamplingRateEvents(
+      myAllocationsTable.getAllocationSamplingRateEvents(request.getSession().getSessionId(), request.getStartTime(), request.getEndTime()))
+                                    .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

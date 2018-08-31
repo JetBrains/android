@@ -68,14 +68,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private static final AllocationsInfo FINISHED_LIVE_ALLOCATION_INFO = AllocationsInfo
     .newBuilder().setStartTime(BASE_TIME_NS).setEndTime(delayTimeFromBase(1)).setLegacy(false).build();
 
-  private static final AllocationSamplingRange FINISHED_ALLOCATION_SAMPLING_INFO = AllocationSamplingRange
-    .newBuilder().setStartTime(BASE_TIME_NS).setEndTime(delayTimeFromBase(1))
-    .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(0)).build();
-
-  private static final AllocationSamplingRange IN_PROGRESS_ALLOCATION_SAMPLING_INFO = AllocationSamplingRange
-    .newBuilder().setStartTime(delayTimeFromBase(1)).setEndTime(Long.MAX_VALUE)
-    .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)).build();
-
   private static final HeapDumpInfo DEFAULT_DUMP_INFO = HeapDumpInfo
     .newBuilder().setStartTime(BASE_TIME_NS).setEndTime(delayTimeFromBase(1)).build();
 
@@ -141,8 +133,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
-    myFakeMemoryService.addAllocationSamplingRange(FINISHED_ALLOCATION_SAMPLING_INFO);
-    myFakeMemoryService.addAllocationSamplingRange(IN_PROGRESS_ALLOCATION_SAMPLING_INFO);
     getPollTicker().run();
 
     MemoryRequest request = MemoryRequest
@@ -157,8 +147,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addHeapDumpInfos(DEFAULT_DUMP_INFO)
       .addHeapDumpInfos(ERROR_DUMP_INFO)
       .addHeapDumpInfos(NOT_READY_DUMP_INFO)
-      .addAllocationSamplingRanges(FINISHED_ALLOCATION_SAMPLING_INFO)
-      .addAllocationSamplingRanges(IN_PROGRESS_ALLOCATION_SAMPLING_INFO)
       .build();
     StreamObserver<MemoryData> observer = mock(StreamObserver.class);
     myMemoryService.getData(request, observer);
@@ -175,8 +163,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
-    myFakeMemoryService.addAllocationSamplingRange(FINISHED_ALLOCATION_SAMPLING_INFO);
-    myFakeMemoryService.addAllocationSamplingRange(IN_PROGRESS_ALLOCATION_SAMPLING_INFO);
     getPollTicker().run();
 
     MemoryRequest request = MemoryRequest
@@ -624,10 +610,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     public void addHeapDumpInfos(@NotNull HeapDumpInfo info) {
       myResponseBuilder.addHeapDumpInfos(info);
-    }
-
-    public void addAllocationSamplingRange(@NotNull AllocationSamplingRange info) {
-      myResponseBuilder.addAllocationSamplingRanges(info);
     }
 
     public void setTriggerHeapDumpInfo(@Nullable HeapDumpInfo info) {

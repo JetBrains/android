@@ -140,10 +140,6 @@ public class MemoryDataPoller extends PollRunner {
       }
     }
 
-    for (int i = 0; i < response.getAllocationSamplingRangesCount(); i++) {
-      myMemoryStatsTable.insertOrReplaceAllocationSamplingRange(mySession, response.getAllocationSamplingRanges(i));
-    }
-
     // O+ allocation tracking fetches data continuously and does not go through the following code path - hence we filter out those samples.
     fetchLegacyAllocData(allocDumpsToFetch.stream().filter(AllocationsInfo::getLegacy).collect(Collectors.toList()));
     fetchHeapDumpData(heapDumpsToFetch);
