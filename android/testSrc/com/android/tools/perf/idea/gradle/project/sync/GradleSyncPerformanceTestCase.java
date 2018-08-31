@@ -41,6 +41,8 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
   private static final int INITIAL_DROPS = 5;
   private static final int NUM_SAMPLES = 10;
   private static final String BENCHMARK_PROJECT = "Android Studio Sync Test";
+  private static final String INITIAL_SYNC_METRIC_PREFIX = "Initial ";
+  private static final String REGULAR_SYNC_METRIC_PREFIX = "Regular ";
   private TestUsageTracker myUsageTracker;
   private VirtualTimeScheduler myScheduler;
 
@@ -84,18 +86,15 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
     Logger log = getLogger();
 
     try {
-      Metric metric = new Metric(getMetricName());
-      Benchmark initialBenchmark = new Benchmark.Builder("Initial sync time")
+      Benchmark benchmark = new Benchmark.Builder(getBenchmarkName())
         .setProject(BENCHMARK_PROJECT)
-        .build();
-      Benchmark regularBenchmark = new Benchmark.Builder("Regular sync time")
-        .setProject(BENCHMARK_PROJECT)
+        .setDescription("Measure time required to sync " + getBenchmarkName() + " project")
         .build();
 
       // Measure initial sync (already synced when loadProject was called)
       GradleSyncStats initialStats = getLastSyncStats();
-      printStats("Initial sync", initialStats, log);
-      metric.addSamples(initialBenchmark, new Metric.MetricSample(Instant.now().toEpochMilli(), initialStats.getTotalTimeMs()));
+      printStats(INITIAL_SYNC_METRIC_PREFIX + getSyncType(), initialStats, log);
+      benchmark.log(INITIAL_SYNC_METRIC_PREFIX + getSyncType(), initialStats.getTotalTimeMs());
 
       // Drop some runs to stabilize readings
       for (int drop = 0; drop < INITIAL_DROPS; drop++) {
@@ -105,24 +104,25 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
       }
 
       // perform actual samples
+      Metric regularMetric = new Metric(REGULAR_SYNC_METRIC_PREFIX + getSyncType());
       for (int sample = 0; sample < NUM_SAMPLES; sample++) {
         requestSyncAndWait();
         GradleSyncStats sampleStats = getLastSyncStats();
         printStats("Sample " + sample, sampleStats, log);
         if (sampleStats != null) {
           measurements.add(sampleStats.getTotalTimeMs());
-          metric.addSamples(regularBenchmark, new Metric.MetricSample(Instant.now().toEpochMilli(), sampleStats.getTotalTimeMs()));
+          regularMetric.addSamples(benchmark, new Metric.MetricSample(Instant.now().toEpochMilli(), sampleStats.getTotalTimeMs()));
         }
       }
-      metric.commit();
+      regularMetric.commit();
     }
     catch(Exception e) {
       throw new RuntimeException(e);
     }
     finally {
       log.info("Average: " + measurements.stream().mapToLong(Long::longValue).average().orElse(0));
-      log.info("min: " + measurements.stream().mapToLong(Long::longValue).min().orElse(0));
-      log.info("max: " + measurements.stream().mapToLong(Long::longValue).max().orElse(0));
+      log.info("    min: " + measurements.stream().mapToLong(Long::longValue).min().orElse(0));
+      log.info("    max: " + measurements.stream().mapToLong(Long::longValue).max().orElse(0));
     }
   }
 
@@ -154,5 +154,8 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
   public abstract String getRelativePath();
 
   @NotNull
-  public abstract String getMetricName();
+  public abstract String getBenchmarkName();
+
+  @NotNull
+  public abstract String getSyncType();
 }
