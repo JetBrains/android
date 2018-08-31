@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventActivityTooltip extends ProfilerMonitorTooltip<EventMonitor> {
-  public EventActivityTooltip(@NotNull EventMonitor eventMonitor) {
+public class LifecycleTooltip extends ProfilerMonitorTooltip<EventMonitor> {
+  public LifecycleTooltip(@NotNull EventMonitor eventMonitor) {
     super(eventMonitor);
   }
 

@@ -93,8 +93,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
-    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
-    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     if (isEnergyProfilerEnabled) {
       getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
     }

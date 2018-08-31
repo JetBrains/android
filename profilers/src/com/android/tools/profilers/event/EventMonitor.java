@@ -47,10 +47,10 @@ public class EventMonitor extends ProfilerMonitor {
     UserEventDataSeries events = new UserEventDataSeries(myProfilers.getClient(), myProfilers.getSession());
     myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
-    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), false);
+    LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
 
-    ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), true);
+    LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), true);
     myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
 
     myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
@@ -90,7 +90,7 @@ public class EventMonitor extends ProfilerMonitor {
     if (myTooltipBuilder != null) {
       return myTooltipBuilder.get();
     }
-    return new EventActivityTooltip(this);
+    return new LifecycleTooltip(this);
   }
 
   public void setTooltipBuilder(Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip) {

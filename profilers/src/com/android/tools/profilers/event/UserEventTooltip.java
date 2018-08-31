@@ -18,8 +18,8 @@ package com.android.tools.profilers.event;
 import com.android.tools.profilers.ProfilerMonitorTooltip;
 import org.jetbrains.annotations.NotNull;
 
-public class EventSimpleEventTooltip extends ProfilerMonitorTooltip<EventMonitor> {
-  public EventSimpleEventTooltip(@NotNull EventMonitor eventMonitor) {
+public class UserEventTooltip extends ProfilerMonitorTooltip<EventMonitor> {
+  public UserEventTooltip(@NotNull EventMonitor eventMonitor) {
     super(eventMonitor);
   }
 }

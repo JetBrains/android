@@ -32,10 +32,10 @@ import java.awt.*;
 import java.util.List;
 import org.jetbrains.annotations.TestOnly;
 
-public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
+public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
 
   @NotNull
-  private final EventActivityTooltip myActivityTooltip;
+  private final LifecycleTooltip myLifecycleTooltip;
 
   @NotNull
   private JLabel myActivityNameLabel;
@@ -46,9 +46,9 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
   @NotNull
   private JLabel myFragmentsLabel;
 
-  public EventActivityTooltipView(StageView parent, @NotNull EventActivityTooltip tooltip) {
+  public LifecycleTooltipView(StageView parent, @NotNull LifecycleTooltip tooltip) {
     super(tooltip.getMonitor());
-    myActivityTooltip = tooltip;
+    myLifecycleTooltip = tooltip;
 
     // Callback on the data range so the active event time gets updated properly.
     getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
@@ -81,7 +81,7 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
   }
 
   private void showStackedEventInfo(ProfilerTimeline timeline, Range dataRange, Range range) {
-    LifecycleAction activity = myActivityTooltip.getActivityAt(range.getMin());
+    LifecycleAction activity = myLifecycleTooltip.getActivityAt(range.getMin());
     if (activity != null) {
       // Set the label to [Activity] [Length of time activity was active]
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
@@ -89,7 +89,7 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
       myActivityNameLabel.setText(activity.getName());
       // TODO: b/113512506 Render fragment information with customized component
       if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-        List<LifecycleAction> fragments = myActivityTooltip.getFragmentsAt(range.getMin());
+        List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(range.getMin());
         String htmlText = "<html>" +
                           Joiner.on("<br>").join(fragments.stream().map(fragment -> fragment.getName()).sorted()
                                                           .collect(Collectors.toList())) +

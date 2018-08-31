@@ -30,13 +30,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-public class ActivityEventDataSeries implements DataSeries<EventAction<LifecycleEvent>> {
+public class LifecycleEventDataSeries implements DataSeries<EventAction<LifecycleEvent>> {
 
   @NotNull private ProfilerClient myClient;
   @NotNull private final Common.Session mySession;
   private final boolean myFragmentsOnly;
 
-  public ActivityEventDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session, boolean fragmentOnly) {
+  public LifecycleEventDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session, boolean fragmentOnly) {
     myClient = client;
     mySession = session;
     myFragmentsOnly = fragmentOnly;
