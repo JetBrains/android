@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.res
 
+import com.android.ide.common.util.PathString
+import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache
@@ -54,7 +57,9 @@ class TestAppResourceRepository private constructor(
         val aarCache = AarResourceRepositoryCache.getInstance()
         subRepositories.addAll(
           dependencies.androidLibraries.asSequence()
-            .map { aarCache.getSourceRepository(File(it.resFolder), it.artifactAddress) }
+            .map { aarCache.getSourceRepository(
+              ExternalLibrary(address = it.artifactAddress,
+                              resFolder = RecursiveResourceFolder(PathString(it.resFolder)))) }
         )
       }
 

@@ -184,7 +184,7 @@ class ProjectLightResourceClassService(
           NamespacedAarRClass(
             psiManager,
             packageName,
-            aarResourceRepositoryCache.getProtoRepository(resApk, aarLibrary.address),
+            aarResourceRepositoryCache.getProtoRepository(aarLibrary),
             ResourceNamespace.fromPackageName(packageName)
           )
         },

@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.util.PathString;
+import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ResourceFolder;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Cache of AAR resource repositories. This class is thread-safe.
  */
 public final class AarResourceRepositoryCache {
   private final Cache<File, AarProtoResourceRepository> myProtoRepositories = CacheBuilder.newBuilder().softValues().build();
-  private final Cache<File, AarSourceResourceRepository> mySourceRepositories = CacheBuilder.newBuilder().softValues().build();
+  private final Cache<ResourceFolder, AarSourceResourceRepository> mySourceRepositories = CacheBuilder.newBuilder().softValues().build();
 
   /**
    * Returns the cache.
@@ -44,27 +46,49 @@ public final class AarResourceRepositoryCache {
   /**
    * Returns a cached or a newly created source resource repository.
    *
-   * @param aarDirectory the directory containing unpacked contents of an AAR
-   * @param libraryName the name of the library
+   * @param library aar library
+   * @throws IllegalArgumentException if {@code library} doesn't contain resources or its resource folder doesn't point to local file system directory
    * @return the resource repository
    */
   @NotNull
-  public AarSourceResourceRepository getSourceRepository(@NotNull File aarDirectory, @Nullable String libraryName) {
-    return getRepository(aarDirectory,
+  public AarSourceResourceRepository getSourceRepository(@NotNull ExternalLibrary library) {
+    ResourceFolder resFolder = library.getResFolder();
+    String libraryName = library.getAddress();
+    if (resFolder == null) {
+      throw new IllegalArgumentException("No resource for " + libraryName);
+    }
+
+    File resourceDirectory = resFolder.getRoot().toFile();
+    if (resourceDirectory == null) {
+      throw new IllegalArgumentException("Cannot find resource directory " + resFolder.getRoot() + " for " + libraryName);
+    }
+    return getRepository(resFolder,
                          libraryName,
                          mySourceRepositories,
-                         () -> AarSourceResourceRepository.create(aarDirectory, libraryName));
+                         () -> AarSourceResourceRepository
+                           .create(resFolder, libraryName));
   }
 
   /**
    * Returns a cached or a newly created proto resource repository.
    *
-   * @param resApkFile the aapt static library file
-   * @param libraryName the name of the library
+   * @param library aar library
+   * @throws IllegalArgumentException if {@code library} doesn't contain res.apk or its res.apk isn't a file on the local file system
    * @return the resource repository
    */
   @NotNull
-  public AarProtoResourceRepository getProtoRepository(@NotNull File resApkFile, @Nullable String libraryName) {
+  public AarProtoResourceRepository getProtoRepository(@NotNull ExternalLibrary library) {
+    PathString resApkPath = library.getResApkFile();
+    String libraryName = library.getAddress();
+    if (resApkPath == null) {
+      throw new IllegalArgumentException("No res.apk for " + libraryName);
+    }
+
+    File resApkFile = resApkPath.toFile();
+    if (resApkFile == null) {
+      throw new IllegalArgumentException("Cannot find " + resApkPath + " for " + libraryName);
+    }
+
     return getRepository(resApkFile,
                          libraryName,
                          myProtoRepositories,
@@ -72,11 +96,11 @@ public final class AarResourceRepositoryCache {
   }
 
   @NotNull
-  private static <T extends AarSourceResourceRepository> T getRepository(@NotNull File file,
-                                                                         @Nullable String libraryName,
-                                                                         @NotNull Cache<File, T> cache,
-                                                                         @NotNull Supplier<T> factory) {
-    T aarRepository = CacheUtils.getAndUnwrap(cache, file, factory::get);
+  private static <K, T extends AarSourceResourceRepository> T getRepository(@NotNull K key,
+                                                                            @Nullable String libraryName,
+                                                                            @NotNull Cache<K, T> cache,
+                                                                            @NotNull Supplier<T> factory) {
+    T aarRepository = CacheUtils.getAndUnwrap(cache, key, factory::get);
 
     if (!Objects.equals(libraryName, aarRepository.getLibraryName())) {
       assert false : "Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName();
@@ -87,9 +111,12 @@ public final class AarResourceRepositoryCache {
     return aarRepository;
   }
 
-  public void remove(@NotNull File aarDirectory) {
-    myProtoRepositories.invalidate(aarDirectory);
-    mySourceRepositories.invalidate(aarDirectory);
+  public void removeProtoRepository(@NotNull File resApkFile) {
+    myProtoRepositories.invalidate(resApkFile);
+  }
+
+  public void removeSourceRepository(@NotNull ResourceFolder resourceFolder) {
+    mySourceRepositories.invalidate(resourceFolder);
   }
 
   public void clear() {

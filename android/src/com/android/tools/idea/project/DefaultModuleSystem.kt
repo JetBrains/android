@@ -23,6 +23,7 @@ import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
+import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
@@ -125,7 +126,7 @@ class DefaultModuleSystem(val module: Module) :
           address = libraryName,
           manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
           classJars = if (classesJar == null) emptyList() else listOf(classesJar),
-          resFolder = resFolder,
+          resFolder = RecursiveResourceFolder(resFolder),
           symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
           resApkFile = resApk
         ))

@@ -25,6 +25,7 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ResourceFolder;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -565,29 +566,9 @@ public class ResourceRepositoryManager implements Disposable {
     for (ExternalLibrary library: libraries) {
       AarSourceResourceRepository aarRepository;
       if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
-        if (library.getResFolder() == null) {
-          continue;
-        }
-        File resFolder = library.getResFolder().toFile();
-        if (resFolder == null) {
-          LOG.warn("Cannot find res folder for " + library.getAddress());
-          continue;
-        }
-        aarRepository = AarResourceRepositoryCache.getInstance().getSourceRepository(resFolder, library.getAddress());
+        aarRepository = AarResourceRepositoryCache.getInstance().getSourceRepository(library);
       } else {
-        PathString resApkPath = library.getResApkFile();
-        if (resApkPath == null) {
-          LOG.warn("No res.apk for " + library.getAddress());
-          continue;
-        }
-
-        File resApkFile = resApkPath.toFile();
-        if (resApkFile == null) {
-          LOG.warn("Cannot find res.apk for " + library.getAddress());
-          continue;
-        }
-
-        aarRepository = AarResourceRepositoryCache.getInstance().getProtoRepository(resApkFile, library.getAddress());
+        aarRepository = AarResourceRepositoryCache.getInstance().getProtoRepository(library);
       }
       result.put(library, aarRepository);
     }
