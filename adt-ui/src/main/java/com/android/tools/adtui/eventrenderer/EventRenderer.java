@@ -27,7 +27,7 @@ import java.awt.image.BufferedImage;
 /**
  * Interface to define how events should be rendered in the event timeline.
  */
-public interface SimpleEventRenderer<E> {
+public interface EventRenderer<E> {
 
   /**
    * Primary draw function for events. This function will get called only when an event is supposed to have something drawn.

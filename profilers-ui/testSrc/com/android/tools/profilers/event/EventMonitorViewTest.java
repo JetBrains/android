@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.SimpleEventComponent;
-import com.android.tools.adtui.StackedEventComponent;
+import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
-import com.intellij.ui.HyperlinkLabel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,8 +62,8 @@ public class EventMonitorViewTest {
     // First verify the enabled hierarchy is correct.
     Component[] children = myMonitorView.getComponent().getComponents();
     assertEquals(2, children.length);
-    assertTrue(children[0] instanceof SimpleEventComponent);
-    assertTrue(children[1] instanceof StackedEventComponent);
+    assertTrue(children[0] instanceof EventComponent);
+    assertTrue(children[1] instanceof ActivityComponent);
 
     myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));

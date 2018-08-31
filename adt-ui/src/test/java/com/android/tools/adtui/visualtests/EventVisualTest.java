@@ -19,11 +19,11 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.SimpleEventComponent;
-import com.android.tools.adtui.StackedEventComponent;
+import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.eventrenderer.EventIconRenderer;
 import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
-import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
+import com.android.tools.adtui.eventrenderer.EventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -67,7 +67,7 @@ public class EventVisualTest extends VisualTest {
     "MultiplayerActivity"
   };
 
-  private static final Map<ActionType, SimpleEventRenderer<ActionType>> MOCK_RENDERERS;
+  private static final Map<ActionType, EventRenderer<ActionType>> MOCK_RENDERERS;
   static {
     MOCK_RENDERERS = new HashMap<>();
     MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer<>());
@@ -79,9 +79,9 @@ public class EventVisualTest extends VisualTest {
 
   private ArrayList<MockActivity> myOpenActivities;
 
-  private SimpleEventComponent<ActionType> mySimpleEventComponent;
+  private EventComponent<ActionType> myEventComponent;
 
-  private StackedEventComponent myStackedEventComponent;
+  private ActivityComponent myActivityComponent;
 
   private AxisComponent myTimeAxis;
 
@@ -108,9 +108,9 @@ public class EventVisualTest extends VisualTest {
     myUserEventData = new DefaultDataSeries<>();
     myActivityLifecycleData = new DefaultDataSeries<>();
     myUserEventModel = new EventModel<>(new RangedSeries<>(xRange, myUserEventData));
-    mySimpleEventComponent = new SimpleEventComponent<>(myUserEventModel, MOCK_RENDERERS);
+    myEventComponent = new EventComponent<>(myUserEventModel, MOCK_RENDERERS);
     myActivityLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myActivityLifecycleData));
-    myStackedEventComponent = new StackedEventComponent(myActivityLifecycleModel);
+    myActivityComponent = new ActivityComponent(myActivityLifecycleModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
@@ -127,7 +127,7 @@ public class EventVisualTest extends VisualTest {
 
   @Override
   protected List<AnimatedComponent> getDebugInfoComponents() {
-    return Arrays.asList(mySimpleEventComponent, myStackedEventComponent);
+    return Arrays.asList(myEventComponent, myActivityComponent);
   }
 
   @Override
@@ -206,8 +206,8 @@ public class EventVisualTest extends VisualTest {
   private JLayeredPane createMockTimeline() {
     JLayeredPane timelinePane = new JLayeredPane();
     timelinePane.add(myTimeAxis);
-    timelinePane.add(mySimpleEventComponent);
-    timelinePane.add(myStackedEventComponent);
+    timelinePane.add(myEventComponent);
+    timelinePane.add(myActivityComponent);
     timelinePane.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {

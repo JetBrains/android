@@ -23,7 +23,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
+public class EventIconRenderer<E> implements EventRenderer<E> {
   private static int BORDER_MARGIN = 2;
 
   @NotNull private Icon myIcon;
@@ -50,7 +50,7 @@ public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
                    double length,
                    boolean isMouseOver,
                    EventAction<E> notUsedData) {
-    Icon icon = SimpleEventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground());
+    Icon icon = EventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground());
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -myIconWidth / 2, 0);
