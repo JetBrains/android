@@ -60,8 +60,7 @@ public class AndroidRunConfigurations {
   public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
     Module module = facet.getModule();
     RunManager runManager = RunManager.getInstance(module.getProject());
-    AndroidRunConfigurationType runConfigurationType = AndroidRunConfigurationType.getInstance();
-    RunnerAndConfigurationSettings settings = runManager.createRunConfiguration(module.getName(), runConfigurationType.getFactory());
+    RunnerAndConfigurationSettings settings = runManager.createConfiguration(module.getName(), AndroidRunConfigurationType.class);
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
 

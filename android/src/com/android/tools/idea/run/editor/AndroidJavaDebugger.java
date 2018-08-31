@@ -18,9 +18,9 @@ package com.android.tools.idea.run.editor;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.run.tasks.AndroidTestOrchestratorJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
-import com.android.tools.idea.run.tasks.AndroidTestOrchestratorJavaDebuggerTask;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
@@ -30,7 +30,6 @@ import com.intellij.execution.ExecutionHelper;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.remote.RemoteConfiguration;
@@ -129,9 +128,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     }
 
     // Create run configuration
-    RemoteConfigurationType remoteConfigurationType = RemoteConfigurationType.getInstance();
-    ConfigurationFactory factory = remoteConfigurationType.getFactory();
-    RunnerAndConfigurationSettings runSettings = RunManager.getInstance(project).createRunConfiguration(runConfigName, factory);
+    RunnerAndConfigurationSettings runSettings = RunManager.getInstance(project).createConfiguration(runConfigName, RemoteConfigurationType.class);
 
     RemoteConfiguration configuration = (RemoteConfiguration)runSettings.getConfiguration();
     configuration.HOST = "localhost";
