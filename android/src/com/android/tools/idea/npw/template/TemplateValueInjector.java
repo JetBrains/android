@@ -42,6 +42,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.plugins.PluginManager;
@@ -423,7 +424,16 @@ public final class TemplateValueInjector {
 
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
-    myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
+    String kotlinVersion = provider.getKotlinVersion();
+    myTemplateValues.put(ATTR_KOTLIN_VERSION, kotlinVersion);
+    if (isEAP(kotlinVersion)) {
+      myTemplateValues.put(ATTR_KOTLIN_EAP_REPO, true);
+      myTemplateValues.put(ATTR_KOTLIN_EAP_REPO_URL, KOTLIN_EAP_REPO_URL);
+    }
+  }
+
+  private boolean isEAP(String version) {
+    return version.contains("rc") || version.contains("eap") || version.contains("-M");
   }
 
   private void addBuildToolVersion(@Nullable Project project, @NotNull Revision buildToolRevision) {
