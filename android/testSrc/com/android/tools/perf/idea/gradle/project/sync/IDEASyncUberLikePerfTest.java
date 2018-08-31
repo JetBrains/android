@@ -15,23 +15,23 @@
  */
 package com.android.tools.perf.idea.gradle.project.sync;
 
-import static com.android.tools.idea.testing.TestProjectPaths.SYNC_PERF_AVERAGE_PROJECT;
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_PERF_UBER_LIKE_PROJECT;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Measure performance for Single variant sync using the average project.
+ * Measure performance for IDEA sync using the Uber like project.
  */
-public class SVSyncAveragePerfTest extends SVSyncPerformanceTestCase {
+public class IDEASyncUberLikePerfTest extends IDEASyncPerformanceTestCase {
   @NotNull
   @Override
   public String getBenchmarkName() {
-    return "Average";
+    return "Uber Like";
   }
 
   @NotNull
   @Override
   public String getRelativePath() {
-    return SYNC_PERF_AVERAGE_PROJECT;
+    return SYNC_PERF_UBER_LIKE_PROJECT;
   }
 }
