@@ -87,10 +87,10 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
       // Set the label to [Activity] [Length of time activity was active]
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
       setTimelineText(timeline.getDataRange(), activity.getStartUs(), endTime);
-      List<ActivityAction> fragments = myActivityTooltip.getFragmentsAt(range.getMin());
       myActivityNameLabel.setText(activity.getData());
       // TODO: b/113512506 Render fragment information with customized component
       if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
+        List<ActivityAction> fragments = myActivityTooltip.getFragmentsAt(range.getMin());
         String htmlText = "<html>" +
                           Joiner.on("<br>").join(fragments.stream().map(fragment -> fragment.getData()).sorted()
                                                           .collect(Collectors.toList())) +
