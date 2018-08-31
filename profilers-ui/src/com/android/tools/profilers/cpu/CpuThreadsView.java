@@ -26,7 +26,6 @@ import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
-import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
@@ -40,7 +39,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
@@ -62,8 +60,7 @@ final class CpuThreadsView {
   @NotNull
   private final AspectObserver myObserver;
 
-  @Nullable
-  private Rectangle myLastHoveredThreadBoundsInPanelSpace;
+  private int myLastHoveredRow = -1;
 
   public CpuThreadsView(@NotNull CpuProfilerStage stage) {
     myStage = stage;
@@ -171,28 +168,49 @@ final class CpuThreadsView {
       }
     });
 
-    myThreads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
-    myThreads.addMouseMotionListener(new MouseAdapter() {
+    MouseAdapter adapter = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)) {
       @Override
       public void mouseMoved(MouseEvent e) {
-        if (myLastHoveredThreadBoundsInPanelSpace != null) {
-          myPanel.repaint(myLastHoveredThreadBoundsInPanelSpace);
-          myLastHoveredThreadBoundsInPanelSpace = null;
-        }
+        super.mouseMoved(e);
+        handleMoved(e);
+      }
 
-        int row = myThreads.locationToIndex(e.getPoint());
-        if (row != -1) {
-          myLastHoveredThreadBoundsInPanelSpace = SwingUtilities.convertRectangle(myThreads, myThreads.getCellBounds(row, row), myPanel);
-          myPanel.repaint(myLastHoveredThreadBoundsInPanelSpace);
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        super.mouseEntered(e);
+        myLastHoveredRow = -1;
+        handleMoved(e);
+      }
 
-          CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(row);
+      @Override
+      public void mouseExited(MouseEvent e) {
+        repaintLastHoveredRow();
+        myLastHoveredRow = -1;
+        super.mouseExited(e);
+      }
+
+      private void handleMoved(MouseEvent e) {
+        repaintLastHoveredRow();
+
+        myLastHoveredRow = myThreads.locationToIndex(e.getPoint());
+        if (myLastHoveredRow != -1) {
+          repaintLastHoveredRow();
+          CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(myLastHoveredRow);
           if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
             CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
             tooltip.setThread(model.getName(), model.getStateSeries());
           }
         }
       }
-    });
+
+      private void repaintLastHoveredRow() {
+        if (myLastHoveredRow != -1) {
+          myPanel.repaint(SwingUtilities.convertRectangle(myThreads, myThreads.getCellBounds(myLastHoveredRow, myLastHoveredRow), myPanel));
+        }
+      }
+    };
+    myThreads.addMouseListener(adapter);
+    myThreads.addMouseMotionListener(adapter);
   }
 
   /**
