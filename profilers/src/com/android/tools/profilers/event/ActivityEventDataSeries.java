@@ -16,20 +16,19 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.event.ActivityAction;
-import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.StackedEventType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEventType>> {
 
@@ -120,8 +119,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
         // have a start, or end event. We can have a start event if we scrubbed and the end event is out of range.
         // We can have an end only event if we scrubbed and the start event is out of range.
         if (haveEvent || (i == data.getStateChangesCount() - 1 && action != StackedEventType.NONE)) {
-          seriesData.add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, action, displayString, data.getHash(),
-                                                                          data.getFragmentData().getActivityContextHash())));
+          seriesData.add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, action, displayString, data.getHash())));
           actionEnd = 0;
           actionStart = 0;
           // This is needed as we may have the following scenario,
