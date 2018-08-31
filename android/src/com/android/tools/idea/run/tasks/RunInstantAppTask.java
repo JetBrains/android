@@ -28,7 +28,7 @@ import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +117,7 @@ public class RunInstantAppTask implements LaunchTask {
     }
 
     try {
-      Sdk aiaSdk = mySdk.loadLibrary();
+      ExtendedSdk aiaSdk = mySdk.loadLibrary();
       // If null, this entire task will not be called
       assert aiaSdk != null;
       StatusCode status = aiaSdk.getRunHandler().runInstantApp(
@@ -210,6 +210,7 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   @TestOnly
+  @NotNull
   public Collection<ApkInfo> getPackages() {
     return myPackages;
   }

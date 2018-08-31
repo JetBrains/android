@@ -71,8 +71,8 @@ filegroup(
 
 # managed by go/iml_to_build
 java_import(
-    name = "instantapps-api-1.0",
-    jars = ["instantapps-api-1.0.jar"],
+    name = "instantapps-api-1.5",
+    jars = ["instantapps-api-1.5.jar"],
     visibility = ["//visibility:public"],
 )
 
