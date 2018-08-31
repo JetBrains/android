@@ -15,27 +15,44 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
+
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.ui.*;
+import com.android.tools.idea.observable.ui.ColorProperty;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
+import com.android.tools.idea.observable.ui.SliderValueProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.ImmutableMap;
@@ -50,20 +67,27 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A panel which allows the configuration of an icon, by specifying the source asset used to
@@ -130,7 +154,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JPanel myForegroundClipartAssetRowPanel;
   private JPanel myForegroundTextAssetRowPanel;
   private ImageAssetBrowser myForegroundImageAssetBrowser;
-  private VectorIconButton myForegroundClipartAssetButton;
+  private ClipartIconButton myForegroundClipartAssetButton;
   private TextAssetEditor myForegroundTextAssetEditor;
   private JBLabel myForegroundLayerNameLabel;
   private JLabel myForegroundAssetTypeLabel;
@@ -282,7 +306,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
                                     @NotNull BoolProperty showGrid,
                                     @NotNull BoolProperty showSafeZone,
                                     @NotNull AbstractProperty<Density> previewDensity,
-                                    @NotNull ValidatorPanel validatorPanel) {
+                                    @NotNull ValidatorPanel validatorPanel,
+                                    @Nullable DrawableRenderer renderer) {
     super(new BorderLayout());
     AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
@@ -291,7 +316,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myShowGrid = showGrid;
     myShowSafeZone = showSafeZone;
     myPreviewDensity = previewDensity;
-    myIconGenerator = new LauncherIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    myIconGenerator =
+        new LauncherIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
 
     DefaultComboBoxModel<Shape> legacyShapesModel = new DefaultComboBoxModel<>();
@@ -365,14 +391,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myLegacyIconShapeLabel.setLabelFor(myLegacyIconShapeComboBox);
     myWebIconShapeLabel.setLabelFor(myWebIconShapeComboBox);
 
-    // TODO Use ImageAsset for clip art.
-    VectorAsset clipartAsset = myForegroundClipartAssetButton.getAsset();
-    // Source material icons are provided in a vector graphics format, but their default resolution
-    // is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
-    // a fair bit. The chosen number is a multiple of IMAGE_SIZE_FULL_BLEED_DP that is not less than
-    // the Web icon size. The latter condition prevents the generated Web icon from looking blurry.
-    clipartAsset.outputWidth().set(IMAGE_SIZE_FULL_BLEED_DP.width * 8);
-    clipartAsset.outputHeight().set(IMAGE_SIZE_FULL_BLEED_DP.width * 8);
+    ImageAsset clipartAsset = myForegroundClipartAssetButton.getAsset();
 
     myForegroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_FOREGROUND_ASSET_TYPE, ForegroundAssetType.values(),
                                                               myForegroundImageRadioButton, myForegroundClipartRadioButton,
@@ -529,7 +548,11 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       BaseAsset asset = myForegroundActiveAsset.get();
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundTrimmed, asset.trimmed());
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundResizePercent, asset.scalingPercent());
-      myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, asset.color());
+      OptionalValueProperty<Color> assetColor = asset.color();
+      if (assetColor.getValueOrNull() == null) {
+        assetColor.setValue(myForegroundColor.get());
+      }
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, ObjectProperty.wrap(assetColor));
       myForegroundActiveAssetBindings.bind(foregroundIsResizable, asset.isResizable());
       if (asset instanceof ImageAsset) {
         myForegroundActiveAssetBindings.bind(myForegroundAssetValidityState, ((ImageAsset)asset).getValidityState());

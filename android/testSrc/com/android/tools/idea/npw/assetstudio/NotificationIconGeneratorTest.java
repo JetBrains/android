@@ -15,45 +15,30 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator.NotificationOptions;
-import com.intellij.openapi.util.Disposer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
+import com.android.tools.idea.npw.assetstudio.IconGeneratorTestUtil.SourceType;
+import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
-@RunWith(JUnit4.class)
-public class NotificationIconGeneratorTest {
+public class NotificationIconGeneratorTest extends AndroidTestCase {
 
-  private static void checkGraphic(String baseName, int minSdk, String folderName, int expectedCount) throws IOException {
-    NotificationOptions options = new NotificationOptions();
-
-    NotificationIconGenerator generator = new NotificationIconGenerator(minSdk);
-    try {
-      BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
-    } finally {
-      Disposer.dispose(generator);
-    }
+  private void checkGraphic(@NotNull SourceType sourceType) throws IOException {
+    NotificationIconGenerator generator = new NotificationIconGenerator(getProject(), 14, null);
+    disposeOnTearDown(generator);
+    List<String> expectedFolders =
+        sourceType == SourceType.PNG ?
+            ImmutableList.of("drawable-xxxhdpi", "drawable-xxhdpi", "drawable-xhdpi", "drawable-hdpi", "drawable-mdpi") :
+            ImmutableList.of("drawable-anydpi-v24", "drawable-xxhdpi", "drawable-xhdpi", "drawable-hdpi", "drawable-mdpi");
+    IconGeneratorTestUtil.checkGraphic(generator, sourceType, "ic_stat_1", 0, expectedFolders, "notification");
   }
 
-  @SuppressWarnings("SameParameterValue")
-  private static void checkGraphic(String baseName) throws IOException {
-    checkGraphic(baseName, 1, "notification", 15);
+  public void testPngSource() throws Exception {
+    checkGraphic(SourceType.PNG);
   }
 
-  @Test
-  public void testNotification1() throws Exception {
-    checkGraphic("ic_stat_1");
-  }
-
-  @Test
-  public void testNotification2() throws Exception {
-    checkGraphic("ic_stat_1", 9 /* minSdk */, "notification-v9+", 10 /* fileCount */);
-  }
-
-  @Test
-  public void testNotification3() throws Exception {
-    checkGraphic("ic_stat_1", 11, "notification-v11+", 5);
+  public void testSvgSource() throws Exception {
+    checkGraphic(SourceType.SVG);
   }
 }

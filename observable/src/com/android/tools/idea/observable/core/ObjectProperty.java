@@ -19,7 +19,9 @@ import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.expressions.value.TransformOptionalExpression;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all properties that return a generic (e.g. not int, String, bool, etc.), non-null
@@ -70,8 +72,8 @@ public abstract class ObjectProperty<T> extends AbstractProperty<T> implements O
       myOptionalProperty.setValue(value);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public U get() {
       return myOptionalProperty.getValue();
     }
@@ -79,6 +81,11 @@ public abstract class ObjectProperty<T> extends AbstractProperty<T> implements O
     @Override
     public void onInvalidated(@NotNull ObservableValue<?> sender) {
       notifyInvalidated();
+    }
+
+    @Override
+    protected boolean isValueEqual(@Nullable U value) {
+      return Objects.equal(myOptionalProperty.getValueOrNull(), value);
     }
   }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.javadoc;
 
 import com.intellij.codeInsight.documentation.DocumentationManager;
@@ -45,10 +44,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   }
 
   /**
-     * Test that the project can fetch documentation at the caret point (which is expected to be set
-     * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
-     * the actual documentation returned and will be responsible for asserting expected values.
-     */
+   * Test that the project can fetch documentation at the caret point (which is expected to be set
+   * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
+   * the actual documentation returned and will be responsible for asserting expected values.
+   */
   private void checkJavadoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
     VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
@@ -272,7 +271,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<html><body>" +
                  "<table style=\"background-color:rgb(255,255,255);width:200px;text-align:center;vertical-align:middle;\" border=\"0\">" +
                  "<tr height=\"100\">" + "" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">#ffffff</td>" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">#FFFFFF</td>" +
                  "</tr></table><BR/>" +
                  "@android:color/white => #ffffffff<BR/>" +
                  "</body></html>");
@@ -301,15 +300,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "<table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80FFFFFF</td></tr></table></td><td>Not enabled</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#FFFFFF</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80FFFFFF</td></tr></table></td><td>Not enabled</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#FFFFFF</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
@@ -317,11 +316,11 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Default</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#FFFFFF</td></tr></table></td><td>Default</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr></table></td><td>Activated</td><td><BR/>" +
                  "@android:color/primary_text_dark => primary_text_dark.xml<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#aa44aa</td></tr></table></td><td>Default</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#AA44AA</td></tr></table></td><td>Default</td><td><BR/>" +
                  "@color/fourth => #aa44aa<BR/>" +
                  "</td></tr></table><BR/>" +
                  "@color/first => @color/second => @color/third => third.xml<BR/>" +

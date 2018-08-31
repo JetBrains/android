@@ -16,40 +16,28 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.function.Consumer;
+import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * Generates icons in a background thread using {@link IconGenerator} instances.
  */
 public class IconGenerationProcessor {
-  @NotNull private final List<Request> myImageRequests = new ArrayList<>();
+  @Nullable private Request myQueuedRequest;
   @Nullable private Request myRunningRequest;
 
-  public void enqueue(@NotNull AndroidIconType iconType, @NotNull IconGenerator iconGenerator,
-                      @NotNull Consumer<IconGeneratorResult> onDone) {
+  public void enqueue(@NotNull IconGenerator iconGenerator, @NotNull Consumer<IconGeneratorResult> onDone) {
     ApplicationManager.getApplication().assertIsDispatchThread();
-
-    // If there is at least one request with the same icon type, ignore this one
-    if (myImageRequests.stream().anyMatch(x -> Objects.equals(x.getIconType(), iconType))) {
-      return;
-    }
 
     if (iconGenerator.sourceAsset().get().isPresent()) {
       IconGenerator.Options options = iconGenerator.createOptions(true);
-      Request request = new Request(iconType, iconGenerator, options, onDone);
-      myImageRequests.add(request);
+      myQueuedRequest = new Request(iconGenerator, options, onDone);
     }
 
     processNextRequest();
@@ -58,15 +46,16 @@ public class IconGenerationProcessor {
   private void processNextRequest() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
+    if (myQueuedRequest == null) {
+      return;
+    }
+
     if (myRunningRequest != null) {
-      return;
+      myRunningRequest.cancel();
     }
 
-    if (myImageRequests.isEmpty()) {
-      return;
-    }
-
-    myRunningRequest = myImageRequests.remove(0);
+    myRunningRequest = myQueuedRequest;
+    myQueuedRequest = null;
     Worker worker = new Worker(myRunningRequest, () -> {
       ApplicationManager.getApplication().assertIsDispatchThread();
       myRunningRequest = null;
@@ -81,17 +70,15 @@ public class IconGenerationProcessor {
   }
 
   private static class Request {
-    @NotNull private final AndroidIconType myType;
     @NotNull private final IconGenerator myIconGenerator;
     @NotNull private final Consumer<IconGeneratorResult> myOnDone;
     @NotNull private final IconGenerator.Options myOptions;
     @Nullable private IconGeneratorResult myGeneratorResult;
+    private boolean isCanceled;
 
-    public Request(@NotNull AndroidIconType iconType,
-                   @NotNull IconGenerator iconGenerator,
+    public Request(@NotNull IconGenerator iconGenerator,
                    @NotNull IconGenerator.Options options,
                    @NotNull Consumer<IconGeneratorResult> onDone) {
-      myType = iconType;
       myIconGenerator = iconGenerator;
       myOptions = options;
       myOnDone = onDone;
@@ -104,12 +91,17 @@ public class IconGenerationProcessor {
     }
 
     public void done() {
-      myOnDone.accept(myGeneratorResult);
+      if (!isCanceled) {
+        myOnDone.accept(myGeneratorResult);
+      }
     }
 
-    @NotNull
-    public AndroidIconType getIconType() {
-      return myType;
+    public void cancel() {
+      isCanceled = true;
+    }
+
+    public boolean isCanceled() {
+      return isCanceled;
     }
   }
 
@@ -123,11 +115,11 @@ public class IconGenerationProcessor {
     }
 
     @Override
-    protected Void doInBackground() throws Exception {
-      long nanoStart = System.nanoTime();
+    protected Void doInBackground() {
+      long start = System.currentTimeMillis();
       myRequest.run();
-      long nanoEnd = System.nanoTime();
-      getLog().info(String.format("Icons generated in %,d ms", (nanoEnd - nanoStart) / 1_000_000));
+      long end = System.currentTimeMillis();
+      getLog().info(String.format("Icons generated in %.2g sec", (end - start) / 1000.));
       return null;
     }
 

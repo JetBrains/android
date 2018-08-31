@@ -17,15 +17,20 @@ package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.AbstractProperty;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.ui.ColorUtil;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * Base class for all asset types which can be converted into Android icons. See also
@@ -35,18 +40,17 @@ import java.awt.image.BufferedImage;
  * bound to and modified by UI widgets.
  */
 public abstract class BaseAsset implements PersistentStateComponent<PersistentState> {
-  @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons.
-  private static final Color DEFAULT_COLOR = Color.BLACK;
-
   private static final String TRIMMED_PROPERTY = "trimmed";
   private static final String PADDING_PERCENT_PROPERTY = "paddingPercent";
   private static final String SCALING_PERCENT_PROPERTY = "scalingPercent";
   private static final String COLOR_PROPERTY = "color";
+  private static final String OPACITY_PERCENT_PROPERTY = "opacityPercent";
 
   private final BoolProperty myTrimmed = new BoolValueProperty();
   private final IntProperty myPaddingPercent = new IntValueProperty(0);
   private final IntProperty myScalingPercent = new IntValueProperty(100);
-  private final ObjectProperty<Color> myColor = new ObjectValueProperty<>(DEFAULT_COLOR);
+  private final OptionalValueProperty<Color> myColor = new OptionalValueProperty<>();
+  private final IntProperty myOpacityPercent = new IntValueProperty(100);
 
   /**
    * Whether or not transparent space should be removed from the asset before rendering.
@@ -76,8 +80,13 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
    * A color to use when rendering this image. Not all asset types are affected by this color.
    */
   @NotNull
-  public ObjectProperty<Color> color() {
+  public OptionalValueProperty<Color> color() {
     return myColor;
+  }
+
+  @NotNull
+  public IntProperty opacityPercent() {
+    return myOpacityPercent;
   }
 
   /**
@@ -103,7 +112,8 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
     state.set(TRIMMED_PROPERTY, myTrimmed.get(), false);
     state.set(PADDING_PERCENT_PROPERTY, myPaddingPercent.get(), 0);
     state.set(SCALING_PERCENT_PROPERTY, myScalingPercent.get(), 100);
-    state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
+    state.setEncoded(COLOR_PROPERTY, myColor.getValueOrNull(), color -> ColorUtil.toHex(color));
+    state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     return state;
   }
 
@@ -112,6 +122,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
     myTrimmed.set(state.get(TRIMMED_PROPERTY, false));
     myPaddingPercent.set(state.get(PADDING_PERCENT_PROPERTY, 0));
     myScalingPercent.set(state.get(SCALING_PERCENT_PROPERTY, 100));
-    myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
+    myColor.setNullableValue(state.getDecoded(COLOR_PROPERTY, rgb -> ColorUtil.fromHex(rgb)));
+    myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
   }
 }
