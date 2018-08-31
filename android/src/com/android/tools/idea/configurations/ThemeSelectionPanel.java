@@ -18,8 +18,10 @@ package com.android.tools.idea.configurations;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
@@ -59,6 +61,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,9 +113,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myExcludedThemes = excludedThemes;
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    myFrameworkThemes = ThemeUtils.getFrameworkThemeNames(themeResolver, myExcludedThemes);
-    myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, myExcludedThemes);
-    myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, myExcludedThemes);
+    StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
+    Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, myExcludedThemes, baseThemes);
+    myFrameworkThemes = baseThemes.length == 0
+                        ? ThemeUtils.getFrameworkThemeNames(themeResolver, filter)
+                        : Collections.emptyList();
+    myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, filter);
+    myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, filter);
 
     String currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(configuration.getTheme());
     touchTheme(currentTheme, myExcludedThemes);
@@ -289,6 +296,12 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
             themes.add(theme);
           }
         }
+        for (String theme : myLibraryThemes) {
+          if (theme.startsWith(HOLO_LIGHT_PREFIX) || theme.startsWith(LIGHT_PREFIX) || theme.startsWith(DEVICE_LIGHT_PREFIX)
+              || theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
+            themes.add(theme);
+          }
+        }
         break;
       case DEVICE:
         for (String theme : myFrameworkThemes) {
@@ -304,6 +317,11 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
           }
         }
         for (String theme : myFrameworkThemes) {
+          if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
+            themes.add(theme);
+          }
+        }
+        for (String theme : myLibraryThemes) {
           if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
             themes.add(theme);
           }
@@ -469,34 +487,35 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         topLevel.add(ThemeCategory.RECENT);
       }
 
-      if (!getThemes(ThemeCategory.MANIFEST).isEmpty()) {
-        topLevel.add(ThemeCategory.MANIFEST);
-      }
-
-      if (!getThemes(ThemeCategory.PROJECT).isEmpty()) {
-        topLevel.add(ThemeCategory.PROJECT);
-      }
-
+      addCategory(topLevel, ThemeCategory.MANIFEST);
+      addCategory(topLevel, ThemeCategory.PROJECT);
       AndroidModuleInfo info = AndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
-        topLevel.add(ThemeCategory.MATERIAL);
-        topLevel.add(ThemeCategory.MATERIAL_LIGHT);
+        addCategory(topLevel, ThemeCategory.MATERIAL);
+        addCategory(topLevel, ThemeCategory.MATERIAL_LIGHT);
       }
 
-      topLevel.add(ThemeCategory.HOLO);
-      topLevel.add(ThemeCategory.HOLO_LIGHT);
+      addCategory(topLevel, ThemeCategory.HOLO);
+      addCategory(topLevel, ThemeCategory.HOLO_LIGHT);
+
       if (info == null || info.getMinSdkVersion().getFeatureLevel() <= 14) {
-        topLevel.add(ThemeCategory.CLASSIC);
-        topLevel.add(ThemeCategory.CLASSIC_LIGHT);
+        addCategory(topLevel, ThemeCategory.CLASSIC);
+        addCategory(topLevel, ThemeCategory.CLASSIC_LIGHT);
       }
-      topLevel.add(ThemeCategory.DEVICE);
-      topLevel.add(ThemeCategory.DIALOGS);
-      topLevel.add(ThemeCategory.LIGHT);
-      topLevel.add(ThemeCategory.ALL);
+      addCategory(topLevel, ThemeCategory.DEVICE);
+      addCategory(topLevel, ThemeCategory.DIALOGS);
+      addCategory(topLevel, ThemeCategory.LIGHT);
+      addCategory(topLevel, ThemeCategory.ALL);
       myLabels.put(ThemeCategory.ROOT, topLevel);
 
       // TODO: Use tree to add nesting; e.g. add holo light as a category under holo?
       //myLabels.put(ThemeCategory.LIGHT, Arrays.asList(ThemeCategory.ALL, ThemeCategory.DIALOGS));
+    }
+
+    private void addCategory(@NotNull List<ThemeCategory> categories, @NotNull ThemeCategory category) {
+      if (!getThemes(category).isEmpty()) {
+        categories.add(category);
+      }
     }
 
     @Override
