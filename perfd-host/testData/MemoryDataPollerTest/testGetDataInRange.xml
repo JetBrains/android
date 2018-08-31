@@ -141,19 +141,6 @@ allocations_info {
   end_time: 9223372036854775807
   legacy: true
 }
-allocation_sampling_ranges {
-  start_time: 86400000000000
-  end_time: 86401000000000
-  sampling_rate {
-  }
-}
-allocation_sampling_ranges {
-  start_time: 86401000000000
-  end_time: 9223372036854775807
-  sampling_rate {
-    sampling_num_interval: 1
-  }
-}
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
         <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
@@ -189,19 +176,6 @@ allocations_info {
   start_time: 86401000000000
   end_time: 9223372036854775807
   legacy: true
-}
-allocation_sampling_ranges {
-  start_time: 86400000000000
-  end_time: 86401000000000
-  sampling_rate {
-  }
-}
-allocation_sampling_ranges {
-  start_time: 86401000000000
-  end_time: 9223372036854775807
-  sampling_rate {
-    sampling_num_interval: 1
-  }
 }
 </message>
     </GrpcCall>

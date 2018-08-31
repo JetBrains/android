@@ -691,22 +691,22 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Ensure that changing the sampling interval alone does nothing if live allocation is not used.
     AllocationsInfo legacyAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(true).build();
-    AllocationSamplingRange sampleMode = AllocationSamplingRange.newBuilder()
+    AllocationSamplingRateEvent sampleMode = AllocationSamplingRateEvent.newBuilder()
       .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(legacyAllocInfo).addAllocationSamplingRanges(sampleMode).build());
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(legacyAllocInfo).addAllocSamplingRateEvents(sampleMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocationSamplingRanges(sampleMode).build());
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(sampleMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
     assertThat(samplingAspectChange[0]).isEqualTo(1);
 
-    AllocationSamplingRange noneMode = AllocationSamplingRange.newBuilder()
+    AllocationSamplingRateEvent noneMode = AllocationSamplingRateEvent.newBuilder()
       .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(0)).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocationSamplingRanges(noneMode).build());
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(noneMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(2);
@@ -716,9 +716,11 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testAllocationSamplingRateCorrectlyInitialized() {
     // If the sampling mode is already available from the memory service, make sure the memory stage is correctly initialized to that value.
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    AllocationSamplingRange fullTrackingMode = AllocationSamplingRange.newBuilder()
-                                                              .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocationSamplingRanges(fullTrackingMode).build());
+    AllocationSamplingRateEvent fullTrackingMode = AllocationSamplingRateEvent
+      .newBuilder()
+      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1))
+      .build();
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(fullTrackingMode).build());
 
     MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers, myMockLoader);
     assertThat(stage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
