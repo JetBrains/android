@@ -166,8 +166,13 @@ public final class TooltipComponent extends AnimatedComponent {
       }
 
       private void handleMove(MouseEvent e) {
+        Point nextPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
+        if (myLastPoint != null && myLastPoint.equals(nextPoint)) {
+          return; // Mouse detected a movement, but not enough to cross pixel boundaries.
+        }
+
         repaintIfVisible(myTooltipContent.getSize()); // Repaint previous location.
-        myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
+        myLastPoint = nextPoint;
         if (!isVisible()) {
           // If we turn invisible, then reset the anti-flap size.
           // This won't work in all cases, since the content could set itself to invisible.

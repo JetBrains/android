@@ -112,7 +112,12 @@ public final class RangeTooltipComponent extends AnimatedComponent {
       }
 
       private void handleMove(MouseEvent e) {
-        myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), RangeTooltipComponent.this);
+        Point nextPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), RangeTooltipComponent.this);
+        if (myLastPoint != null && myLastPoint.equals(nextPoint)) {
+          return; // Mouse detected a movement, but not enough to cross pixel boundaries.
+        }
+
+        myLastPoint = nextPoint;
         refreshRanges();
       }
     };
