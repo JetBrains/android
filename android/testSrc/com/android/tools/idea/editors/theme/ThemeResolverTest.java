@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -38,12 +41,10 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import org.jetbrains.android.AndroidTestCase;
 
 public class ThemeResolverTest extends AndroidTestCase {
   /*
@@ -150,6 +151,32 @@ public class ThemeResolverTest extends AndroidTestCase {
                                                        null,
                                                        FolderConfiguration.createDefault());
     new ThemeResolver(configuration);
+  }
+
+  public void testRequiredBaseThemesWithNoDesignLibraryPresent() {
+    VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    assertThat(themeResolver.requiredBaseThemes()).isEmpty();
+  }
+
+  public void testRequiredBaseThemesWithDesignLibraryPresent() {
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
+    ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
+    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
+    projectSystem.addDependency(GoogleMavenArtifactId.DESIGN, myModule, new GradleVersion(1338, 600614));
+
+    myFixture.addFileToProject("res/values/values.xml", "<resources>\n" +
+                                                        "    <style name=\"Platform.AppCompat\" parent=\"Theme.Material\"/>\n" +
+                                                        "    <style name=\"Platform.AppCompat.Light\" parent=\"Theme.Material.Light\"/>\n" +
+                                                        "</resources>\n");
+
+    VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    assertThat(Arrays.stream(themeResolver.requiredBaseThemes()).map(style -> style.getName()).collect(Collectors.toList()))
+      .containsExactly("Platform.AppCompat", "Platform.AppCompat.Light");
   }
 
   public void testRecommendedThemesNoDependencies() {

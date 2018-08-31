@@ -17,9 +17,11 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
@@ -28,12 +30,12 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ThemeMenuAction extends DropDownAction {
 
@@ -112,6 +114,7 @@ public class ThemeMenuAction extends DropDownAction {
       return;
     }
     ThemeResolver themeResolver = new ThemeResolver(myRenderContext.getConfiguration());
+    StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
 
     // This is the selected theme in layout editor, may be different with the theme used at runtime.
     String currentThemeName = getCurrentTheme();
@@ -126,11 +129,12 @@ public class ThemeMenuAction extends DropDownAction {
 
     // Add project themes exclude the default theme.
     Set<String> excludedThemes = defaultTheme != null ? ImmutableSet.of(defaultTheme) : ImmutableSet.of();
-    List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemeNames(themeResolver, excludedThemes);
+    Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, excludedThemes, baseThemes);
+    List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemeNames(themeResolver, filter);
     addThemes(projectThemeWithoutDefaultTheme, currentThemeName, false);
 
     // Add recommended themes.
-    List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(themeResolver, excludedThemes);
+    List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(themeResolver, filter);
     addThemes(recommendedThemes, currentThemeName, true);
 
     Configuration config = myRenderContext.getConfiguration();

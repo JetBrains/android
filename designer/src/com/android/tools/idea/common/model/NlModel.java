@@ -178,7 +178,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (resolver == null || material2Theme == null || appTheme == null) {
       return ThreeState.NO;
     }
-    return ThreeState.fromBoolean(resolver.themeIsParentOf(material2Theme, appTheme));
+    return ThreeState.fromBoolean(resolver.themeIsChildOfAny(appTheme, material2Theme));
   }
 
   @Nullable
