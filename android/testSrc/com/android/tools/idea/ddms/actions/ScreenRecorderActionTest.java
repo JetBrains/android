@@ -20,10 +20,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ScreenRecorderOptions;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -104,5 +106,29 @@ public final class ScreenRecorderActionTest {
 
     assertTrue(myPresentation.isEnabled());
     assertEquals("Screen Record", myPresentation.getText());
+  }
+
+  @Test
+  public void getEmulatorScreenRecorderOptions() {
+    ScreenRecorderOptions options = new ScreenRecorderOptions.Builder()
+      .setBitRate(6)
+      .setSize(600, 400)
+      .build();
+
+    assertEquals(
+      "--size 600x400 --bit-rate 6000000 /sdcard/1.mp4",
+      ScreenRecorderAction.getEmulatorScreenRecorderOptions("/sdcard/1.mp4", options));
+
+    options = new ScreenRecorderOptions.Builder()
+      .setTimeLimit(100, TimeUnit.SECONDS)
+      .build();
+
+    assertEquals("--time-limit 100 /sdcard/1.mp4", ScreenRecorderAction.getEmulatorScreenRecorderOptions("/sdcard/1.mp4", options));
+
+    options = new ScreenRecorderOptions.Builder()
+      .setTimeLimit(4, TimeUnit.MINUTES)
+      .build();
+
+    assertEquals("--time-limit 180 /sdcard/1.mp4", ScreenRecorderAction.getEmulatorScreenRecorderOptions("/sdcard/1.mp4", options));
   }
 }
