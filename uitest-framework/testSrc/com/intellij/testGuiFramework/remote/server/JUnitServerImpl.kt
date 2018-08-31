@@ -162,6 +162,9 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     if (process != null && !process.waitFor(5, TimeUnit.SECONDS)) {
       LOG.warn("Client didn't shut down when asked nicely; shutting it down forcibly.")
       process.destroyForcibly()
+      val systemDir = GuiTests.getSystemDirPath()
+      FileUtil.delete(systemDir) // ensure lock files are removed, which would prevent startup for the next test
+      FileUtil.ensureExists(systemDir)
     }
   }
 
