@@ -282,6 +282,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     stats.setExecutor(executor.getId());
     stats.setApplyChanges(!forceColdswap);
 
+    updateExtraRunStats(stats);
+
     boolean couldHaveHotswapped = false;
     DeviceFutures deviceFutures = null;
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
@@ -723,6 +725,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    */
   public boolean supportsInstantRun() {
     return false;
+  }
+
+  public void updateExtraRunStats(RunStats runStats) {
+
   }
 
   // Overridden in subclasses that allow customization of deployment user id

@@ -25,6 +25,7 @@ import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.MultiUserUtils;
+import com.android.tools.idea.stats.RunStats;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -347,5 +348,11 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
     }
     return null;
+  }
+
+  @Override
+  public void updateExtraRunStats(RunStats runStats) {
+    runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
+    runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
   }
 }
