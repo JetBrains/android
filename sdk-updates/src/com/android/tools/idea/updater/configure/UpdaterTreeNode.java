@@ -17,7 +17,6 @@ package com.android.tools.idea.updater.configure;
 
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.ui.ThreeStateCheckBox;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -167,10 +166,6 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
       setBackground(null);
       myTextRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
-      if (UIUtil.isUnderGTKLookAndFeel()) {
-        final Color background = selected ? UIUtil.getTreeSelectionBackground() : UIUtil.getTreeTextBackground();
-        UIUtil.changeBackGround(this, background);
-      }
       node.customizeRenderer(this, tree, selected, expanded, leaf, row, hasFocus);
       revalidate();
 
