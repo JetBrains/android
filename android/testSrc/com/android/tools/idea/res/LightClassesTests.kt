@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -370,6 +371,13 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           """.trimIndent()
         )
       }
+      addAarDependency(myModule, "anotherLib", "com.example.anotherLib") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+          """
+          int string another_lib_string 0x7f010001
+          """.trimIndent()
+        )
+      }
     }
 
     fun testTopLevelClass() {
@@ -421,6 +429,48 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "another_aar_string", "class")
+    }
+
+    fun testRClassCompletion_java() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+        import com.example.anotherLib.Foo; // See assertion below.
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R${caret});
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
+
+      // MainActivity has an import for a class from com.example.anotherLib, which would put com.example.anotherLib.R at the top if not for
+      // AndroidLightClassWeigher.
+      val firstSuggestion = myFixture.lookupElements?.first()?.psiElement
+      assertThat(firstSuggestion).isInstanceOf(ModulePackageRClass::class.java)
+      assertThat((firstSuggestion as PsiClass).qualifiedName).isEqualTo("p1.p2.R")
+
+      assertThat(
+        this.myFixture.lookupElements!!
+          .mapNotNull { it.psiElement as? PsiClass }
+          .filter { it.name == "R" }
+          .map { it.qualifiedName }
+      ).containsExactly(
+        "p1.p2.R",
+        "com.example.mylibrary.R",
+        "com.example.anotherLib.R"
+      )
     }
   }
 }

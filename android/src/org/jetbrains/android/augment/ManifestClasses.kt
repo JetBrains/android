@@ -18,7 +18,12 @@ package org.jetbrains.android.augment
 import com.android.SdkConstants
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.intellij.openapi.util.text.StringUtil.getShortName
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -33,7 +38,7 @@ import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
  * Manifest class for a given module.
  */
 class ManifestClass(
-  private val facet: AndroidFacet,
+  val facet: AndroidFacet,
   psiManager: PsiManager
 ) : AndroidClassWithOnlyInnerClassesBase(
   SdkConstants.FN_MANIFEST_BASE,

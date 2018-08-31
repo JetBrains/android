@@ -51,4 +51,10 @@ public interface LightResourceClassService {
    */
   @Nullable
   PsiPackage findRClassPackage(@NotNull String qualifiedName);
+
+  /**
+   * Returns all light R classes.
+   */
+  @NotNull
+  Collection<? extends PsiClass> getAllLightRClasses();
 }
