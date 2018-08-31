@@ -26,6 +26,7 @@ import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
+import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
@@ -43,7 +44,7 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
-    if(StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.get()) {
+    if(StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.get() && !hasFeaturePlugin(project)) {
       return ImmutableList.of(
         new FeatureTemplateGalleryEntry(false),
         new FeatureTemplateGalleryEntry(true)
@@ -53,6 +54,11 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
         new FeatureTemplateGalleryEntry(false)
       );
     }
+  }
+
+  private boolean hasFeaturePlugin(Project project) {
+    return StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.get() && AndroidGradleModuleUtils
+      .projectContainsFeatureModule(project);
   }
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
