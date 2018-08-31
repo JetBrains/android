@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
+import com.android.tools.adtui.eventrenderer.EventRenderer;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
@@ -31,15 +31,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A chart component that renders a series of events as icons.
+ * A chart component that renders a series of enumerated events as icons.
+ * The code that creates this class is also responsible for providing a map
+ * of {@link EventRenderer}s for rendering each event enu type.
  */
-public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
+public class EventComponent<E extends Enum<E>> extends AnimatedComponent {
 
   @NotNull
   private final EventModel<E> myModel;
 
   @NotNull
-  private final Map<E, SimpleEventRenderer<E>> mRenderers;
+  private final Map<E, EventRenderer<E>> mRenderers;
 
   @NotNull
   private final ArrayList<EventRenderData<E>> mIconsToDraw;
@@ -51,7 +53,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   /**
    * Component that renders EventActions as a series of icons.
    */
-  public SimpleEventComponent(@NotNull EventModel<E> model, @NotNull Map<E, SimpleEventRenderer<E>> renderers) {
+  public EventComponent(@NotNull EventModel<E> model, @NotNull Map<E, EventRenderer<E>> renderers) {
     myModel = model;
     mRenderers = renderers;
     mIconsToDraw = new ArrayList<>();
@@ -136,7 +138,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     AffineTransform translate = AffineTransform
       .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
     EventAction<E> action = data.getAction();
-    SimpleEventRenderer<E> renderer = mRenderers.get(action.getType());
+    EventRenderer<E> renderer = mRenderers.get(action.getType());
     renderer.draw(this,
                   g2d,
                   translate,

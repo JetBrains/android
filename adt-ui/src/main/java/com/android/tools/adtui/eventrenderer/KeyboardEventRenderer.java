@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import java.util.Map;
 
-public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
+public class KeyboardEventRenderer<E> implements EventRenderer<E> {
 
   private static final JBFont FONT = JBFont.create(new Font(null, Font.BOLD, 11));
   private static final int ROUND_ARC = 5;
@@ -121,7 +121,7 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   private void drawIcon(Component parent, Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
     Icon icon = BORDERED_KEYBOARD_ICON_CACHE
       .computeIfAbsent(new KeyboardIconCacheKey(action.getData().toString(), parent.getBackground(), BORDER_MARGIN),
-                       key -> SimpleEventRenderer
+                       key -> EventRenderer
                          .createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN,
                                                               parent.getBackground()));
     AffineTransform originalTransform = g2d.getTransform();

@@ -33,9 +33,9 @@ import java.util.List;
 import static com.android.tools.adtui.common.AdtUiUtils.*;
 
 /**
- * A chart component that renders lines with a title that have the ability to stack.
+ * A component that renders activities and their fragments.
  */
-public class StackedEventComponent extends AnimatedComponent {
+public class ActivityComponent extends AnimatedComponent {
 
   private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
   private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
@@ -56,7 +56,7 @@ public class StackedEventComponent extends AnimatedComponent {
   private List<EventRenderData> myActivities = new ArrayList<>();
   private boolean myRender;
 
-  public StackedEventComponent(@NotNull EventModel<LifecycleEvent> model) {
+  public ActivityComponent(@NotNull EventModel<LifecycleEvent> model) {
     myModel = model;
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
