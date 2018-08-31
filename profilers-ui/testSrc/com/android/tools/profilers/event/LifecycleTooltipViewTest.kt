@@ -25,15 +25,15 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
-class EventActivityTooltipViewTest {
+class LifecycleTooltipViewTest {
 
-  private lateinit var myActivityTooltipView: FakeEventActivityTooltipView
+  private lateinit var myActivityTooltipView: FakeLifecycleTooltipView
   private lateinit var myIdeProfilerServices: FakeIdeProfilerServices
   private var myTimer: FakeTimer = FakeTimer()
   private lateinit var myMonitor: EventMonitor
   private var myEventService = FakeEventService()
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("EventActivityTooltipViewTest", myEventService)
+  val myGrpcChannel = FakeGrpcChannel("LifecycleTooltipViewTest", myEventService)
 
   @Before
   fun setup() {
@@ -42,7 +42,7 @@ class EventActivityTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
-    myActivityTooltipView = FakeEventActivityTooltipView(view.stageView, EventActivityTooltip(myMonitor))
+    myActivityTooltipView = FakeLifecycleTooltipView(view.stageView, LifecycleTooltip(myMonitor))
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)
     val timelineRange = TimeUnit.SECONDS.toMicros(5)
     myMonitor.timeline.dataRange.set(0.0, timelineRange.toDouble())
@@ -166,8 +166,8 @@ class EventActivityTooltipViewTest {
     return builder.build()
   }
 
-  private class FakeEventActivityTooltipView(parent: StageView<*>, tooltip: EventActivityTooltip) :
-      EventActivityTooltipView(parent, tooltip) {
+  private class FakeLifecycleTooltipView(parent: StageView<*>, tooltip: LifecycleTooltip) :
+    LifecycleTooltipView(parent, tooltip) {
 
     init {
       createComponent()

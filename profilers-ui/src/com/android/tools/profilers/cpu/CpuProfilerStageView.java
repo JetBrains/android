@@ -37,11 +37,11 @@ import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
-import com.android.tools.profilers.event.EventActivityTooltip;
-import com.android.tools.profilers.event.EventActivityTooltipView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.event.EventSimpleEventTooltip;
-import com.android.tools.profilers.event.EventSimpleEventTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -180,8 +180,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
-    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
-    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 

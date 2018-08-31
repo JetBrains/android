@@ -24,14 +24,14 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
-class EventSimpleEventTooltipViewTest {
+class UserEventTooltipViewTest {
 
-  private var mySimpleEventTooltipView: FakeEventSimpleEventTooltipView? = null
+  private var mySimpleEventTooltipView: FakeUserEventTooltipView? = null
   private var myTimer: FakeTimer = FakeTimer()
   private var myMonitor: EventMonitor? = null
   private var myEventService = FakeEventService()
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("EventSimpleEventTooltipViewTest", myEventService)
+  val myGrpcChannel = FakeGrpcChannel("UserEventTooltipViewTest", myEventService)
 
   @Before
   fun setup() {
@@ -44,7 +44,8 @@ class EventSimpleEventTooltipViewTest {
     view.stageView.component.setBounds(0,0,1024,1024)
     profilers.timeline.viewRange.min = 0.0
     profilers.timeline.viewRange.max = TimeUnit.SECONDS.toNanos(1) * 1.0
-    mySimpleEventTooltipView = FakeEventSimpleEventTooltipView(view.stageView, EventSimpleEventTooltip(myMonitor!!))
+    mySimpleEventTooltipView = FakeUserEventTooltipView(view.stageView,
+                                                        UserEventTooltip(myMonitor!!))
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)
     val timelineRange = TimeUnit.SECONDS.toMicros(5)
     myMonitor!!.timeline.dataRange.set(0.0, timelineRange.toDouble())
@@ -87,8 +88,8 @@ class EventSimpleEventTooltipViewTest {
   }
 
 
-  private class FakeEventSimpleEventTooltipView(parent: StageView<*>, tooltip: EventSimpleEventTooltip) :
-      EventSimpleEventTooltipView(parent, tooltip) {
+  private class FakeUserEventTooltipView(parent: StageView<*>, tooltip: UserEventTooltip) :
+    UserEventTooltipView(parent, tooltip) {
 
     init {
       createComponent()

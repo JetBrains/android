@@ -82,7 +82,7 @@ class EventMonitorTest {
 
   @Test
   fun tooltipBuilderShouldGenerateTooltip() {
-    val tooltip = EventActivityTooltip(monitor)
+    val tooltip = LifecycleTooltip(monitor)
     monitor.setTooltipBuilder{ tooltip }
     assertThat(monitor.buildTooltip()).isEqualTo(tooltip)
   }

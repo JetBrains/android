@@ -42,15 +42,15 @@ public class ActivityEventDataSeriesTest {
 
   FakeEventService myEventService = new FakeEventService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myEventService);
-  private ActivityEventDataSeries myActivitySeries;
-  private ActivityEventDataSeries myFragmentSeries;
+  private LifecycleEventDataSeries myActivitySeries;
+  private LifecycleEventDataSeries myFragmentSeries;
 
   @Before
   public void setUp() {
     myActivitySeries =
-      new ActivityEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, false);
+      new LifecycleEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, false);
     myFragmentSeries =
-      new ActivityEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, true);
+      new LifecycleEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, true);
   }
 
   @Test

@@ -51,8 +51,8 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     super(profilersView, energyProfilerStage);
 
     getTooltipBinder().bind(EnergyStageTooltip.class, EnergyStageTooltipView::new);
-    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
-    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
 
     JBSplitter verticalSplitter = new JBSplitter(true);
     verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);

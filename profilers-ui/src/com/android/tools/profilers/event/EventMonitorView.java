@@ -73,8 +73,8 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   @Override
   public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
-    registerComponent(myEventComponent, () -> new EventSimpleEventTooltip(getMonitor()), tooltip, stage);
-    registerComponent(myActivityComponent, () -> new EventActivityTooltip(getMonitor()), tooltip, stage);
+    registerComponent(myEventComponent, () -> new UserEventTooltip(getMonitor()), tooltip, stage);
+    registerComponent(myActivityComponent, () -> new LifecycleTooltip(getMonitor()), tooltip, stage);
   }
 
   private void registerComponent(JComponent component,

@@ -33,7 +33,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
+public class UserEventTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
 
   private static final int HOVER_OVER_WIDTH_PX = 16;
 
@@ -48,7 +48,7 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
 
   protected JComponent myComponent;
 
-  public EventSimpleEventTooltipView(StageView parent, @NotNull EventSimpleEventTooltip tooltip) {
+  public UserEventTooltipView(StageView parent, @NotNull UserEventTooltip tooltip) {
     super(tooltip.getMonitor());
 
     myComponent = parent.getComponent();
