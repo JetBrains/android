@@ -43,6 +43,13 @@ public final class FakeUi {
     layout();
   }
 
+  /**
+   * Force a re-layout of all components scoped by this FakeUi instance, for example in response to
+   * a parent's bounds changing.
+   *
+   * Note: The constructor automatically forces a layout pass. You should only need to call this
+   * method if you update the UI after constructing the FakeUi.
+   */
   public void layout() {
     new TreeWalker(myRoot).descendantStream().forEach(Component::doLayout);
   }
