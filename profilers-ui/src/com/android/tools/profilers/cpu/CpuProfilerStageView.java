@@ -37,9 +37,9 @@ import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
+import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
-import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -167,7 +167,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                    timeline.getDataRange(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
-                                                   this::showTooltipSeekComponent);
+                                                   this::shouldShowTooltipSeekComponent);
 
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
@@ -349,7 +349,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
    */
   @VisibleForTesting
-  boolean showTooltipSeekComponent() {
-    return myStage.getTooltip() instanceof CpuUsageTooltip && myUsageView.showTooltipSeekComponent();
+  boolean shouldShowTooltipSeekComponent() {
+    return myStage.getTooltip() instanceof CpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
   }
 }

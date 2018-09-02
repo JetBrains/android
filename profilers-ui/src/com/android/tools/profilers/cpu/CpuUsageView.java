@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.*;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +75,8 @@ abstract class CpuUsageView extends JBPanel {
    * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible when mouse is over {@link CpuUsageView}.
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
    */
-  boolean showTooltipSeekComponent() {
+  @VisibleForTesting
+  boolean shouldShowTooltipSeekComponent() {
     return mySelectionComponent.shouldShowSeekComponent();
   }
 
