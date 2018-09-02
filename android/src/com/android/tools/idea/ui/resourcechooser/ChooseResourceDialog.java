@@ -62,6 +62,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.speedSearch.FilteringTableModel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.MultiMap;
