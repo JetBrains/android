@@ -56,7 +56,7 @@ public final class AndroidJUnitConfigurationType extends SimpleConfigurationType
   @NotNull
   @Override
   public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-    return new AndroidJUnitConfiguration("", project, getFactory());
+    return new AndroidJUnitConfiguration("", project, this);
   }
 
   @NotNull
