@@ -189,7 +189,6 @@ class CpuProfilerStageViewTest {
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
-    val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
     // Select valid capture no dialog should be presented.
     myStage.setAndSelectCapture(0)
     assertThat(myIdeServices.balloonTitle).isNull()
