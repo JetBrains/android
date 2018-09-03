@@ -101,6 +101,10 @@ public class WebpNativeLibHelper {
     String adtPath = PathManager.getHomePath() + "/../adt/idea/adt-ui" + libPath;
 
     File adtFile = new File(adtPath);
+    // try IDEA dev environment
+    if (!adtFile.exists()) adtFile = new File(PluginPathManager.getPluginHomePath("android") + "/../adt-ui" + libPath);
+    // try IDEA production layout
+    if (!adtFile.exists()) adtFile = new File(PluginPathManager.getPluginHomePath("android") + libPath);
     return adtFile.exists() ? adtFile : new File(PluginPathManager.getPluginHome("android"), "lib");
   }
 
