@@ -156,7 +156,7 @@ public class CheckFancyStroke extends JPanel {
   public static void main(String[] args) {
     JFrame f = new JFrame("CheckFancyStroke");
     f.setBounds(new Rectangle(1400, 900));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     CheckFancyStroke p = new CheckFancyStroke();
     f.setContentPane(p);
     f.validate();

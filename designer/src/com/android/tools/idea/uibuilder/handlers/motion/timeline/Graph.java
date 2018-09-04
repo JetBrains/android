@@ -473,7 +473,7 @@ public class Graph extends JPanel {
 
     JFrame f = new JFrame("enclosing_type");
     f.setBounds(new Rectangle(623, 660));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     JPanel base = new JPanel(new BorderLayout());
     JPanel ctl = new JPanel();
     base.add(ctl, BorderLayout.SOUTH);

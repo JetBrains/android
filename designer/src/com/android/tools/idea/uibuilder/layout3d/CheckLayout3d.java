@@ -117,7 +117,7 @@ public class CheckLayout3d extends JPanel {
 
     p.myDisplay3D.setTriData(new Layout(img, views));
 
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     f.setVisible(true);
   }
   public static void main(String[] args) {
@@ -131,7 +131,7 @@ public class CheckLayout3d extends JPanel {
     if (args.length < 1 || !args[0].equals("-r")) {
       p.loadPref();
     }
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     f.setVisible(true);
   }
 }
