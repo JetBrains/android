@@ -18,6 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
@@ -106,9 +107,6 @@ public class DynamicFeaturesParameters {
     return myTable;
   }
 
-  @TestOnly
-  Object getTableDisplayValueAt(int rowIndex, int columnIndex) { return myTableModel.getDisplayValueAt(rowIndex, columnIndex); }
-  
   /**
    * Returns the list of disabled feature names
    */
@@ -309,16 +307,6 @@ public class DynamicFeaturesParameters {
       return null;
     }
 
-    public Object getDisplayValueAt(int rowIndex, int columnIndex) {
-      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
-        return myFeatures.get(rowIndex).isChecked;
-      }
-      else if (columnIndex == FEATURE_NAME_COLUMN_INDEX) {
-        return myFeatures.get(rowIndex).getDisplayName();
-      }
-      return null;
-    }
-
     @Override
     public void setValueAt(@Nullable Object aValue, int rowIndex, int columnIndex) {
       DynamicFeatureRow row = myFeatures.get(rowIndex);
@@ -363,7 +351,8 @@ public class DynamicFeaturesParameters {
     }
   }
 
-  private class FeatureNameCellRenderer extends StripedRowCellRenderer {
+  @VisibleForTesting
+  class FeatureNameCellRenderer extends StripedRowCellRenderer {
     @Override
     @NotNull
     public Component getTableCellRendererComponent(@NotNull JTable table, @Nullable Object value,
@@ -376,6 +365,7 @@ public class DynamicFeaturesParameters {
       }
       UIManager.put(UIUtil.TABLE_FOCUS_CELL_BACKGROUND_PROPERTY, color);
       DynamicFeatureRow featureRow = myTableModel.myFeatures.get(row);
+      this.setText(featureRow.getDisplayName());
       component.setEnabled(isSelected || featureRow.isEnabled);
       return component;
     }
