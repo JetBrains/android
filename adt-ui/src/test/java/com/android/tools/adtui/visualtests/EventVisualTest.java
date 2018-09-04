@@ -89,6 +89,8 @@ public class EventVisualTest extends VisualTest {
 
   private DefaultDataSeries<EventAction<LifecycleEvent>> myActivityLifecycleData;
 
+  private DefaultDataSeries<EventAction<LifecycleEvent>> myFragmentLifecycleData;
+
   private AnimatedTimeRange myAnimatedRange;
 
   private AnimatedTimeRange myTimelineRange;
@@ -97,6 +99,7 @@ public class EventVisualTest extends VisualTest {
 
   private EventModel<ActionType> myUserEventModel;
   private EventModel<LifecycleEvent> myActivityLifecycleModel;
+  private EventModel<LifecycleEvent> myFragmentLifecycleModel;
 
 
   @Override
@@ -107,10 +110,12 @@ public class EventVisualTest extends VisualTest {
 
     myUserEventData = new DefaultDataSeries<>();
     myActivityLifecycleData = new DefaultDataSeries<>();
+    myFragmentLifecycleData = new DefaultDataSeries<>();
     myUserEventModel = new EventModel<>(new RangedSeries<>(xRange, myUserEventData));
     myEventComponent = new EventComponent<>(myUserEventModel, MOCK_RENDERERS);
     myActivityLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myActivityLifecycleData));
-    myActivityComponent = new ActivityComponent(myActivityLifecycleModel);
+    myFragmentLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myFragmentLifecycleData));
+    myActivityComponent = new ActivityComponent(myActivityLifecycleModel, myFragmentLifecycleModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();

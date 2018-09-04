@@ -37,8 +37,11 @@ import static com.android.tools.adtui.common.AdtUiUtils.*;
  */
 public class ActivityComponent extends AnimatedComponent {
 
+  public static final int EVENT_LINE_WIDTH_PX = 2;
   private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
   private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
+  private static final Color EVENT_LINE = new JBColor(0x898B8E, 0x999A9A);
+
   private static final int SEGMENT_SPACING = 5;
 
   private static final float DEFAULT_LINE_THICKNESS = .3f;
@@ -46,19 +49,19 @@ public class ActivityComponent extends AnimatedComponent {
   private static final int FONT_SPACING = 10;
 
   @NotNull
-  private final EventModel<LifecycleEvent> myModel;
+  private final EventModel<LifecycleEvent> myActivityModel;
 
-  /**
-   * This map is used to pair actions, to their draw location. This is used primarily to store the
-   * location where to draw the name of the incoming event.
-   */
-  private HashMap<EventAction<LifecycleEvent>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
-  private List<EventRenderData> myActivities = new ArrayList<>();
+  @NotNull
+  private final EventModel<LifecycleEvent> myFragmentModel;
+
+  private List<ActivityRenderData> myActivities = new ArrayList<>();
+  private List<Double> myFragmentPositions = new ArrayList<>();
   private boolean myRender;
 
-  public ActivityComponent(@NotNull EventModel<LifecycleEvent> model) {
-    myModel = model;
-    myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
+  public ActivityComponent(@NotNull EventModel<LifecycleEvent> activityModel, @NotNull EventModel<LifecycleEvent> fragmentModel) {
+    myActivityModel = activityModel;
+    myFragmentModel = fragmentModel;
+    myActivityModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
 
@@ -68,8 +71,8 @@ public class ActivityComponent extends AnimatedComponent {
   }
 
   private void renderActivity() {
-    double min = myModel.getRangedSeries().getXRange().getMin();
-    double max = myModel.getRangedSeries().getXRange().getMax();
+    double min = myActivityModel.getRangedSeries().getXRange().getMin();
+    double max = myActivityModel.getRangedSeries().getXRange().getMax();
 
     // A map of EventAction started events to their start time, so we can correlate these to
     // EventAction competed events with the EventAction start events. This is done this way as
@@ -78,16 +81,11 @@ public class ActivityComponent extends AnimatedComponent {
     // A queue of open index values, this allows us to pack our events without leaving gaps.
 
     myActivities.clear();
-    myActionToDrawLocationMap.clear();
-    List<SeriesData<EventAction<LifecycleEvent>>> series = myModel.getRangedSeries().getSeries();
-    int size = series.size();
-
     // Loop through the data series looking at all of the start events, and stop events.
     // For each start event we store off its EventAction until we find an associated stop event.
     // Once we find a stop event we determine the draw order, name, start and stop locations and
     // cache off a path to draw.
-    for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<LifecycleEvent>> seriesData = series.get(i);
+    for (SeriesData<EventAction<LifecycleEvent>> seriesData : myActivityModel.getRangedSeries().getSeries()) {
       LifecycleAction data = (LifecycleAction)seriesData.value;
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
       // width of our chart.
@@ -100,7 +98,7 @@ public class ActivityComponent extends AnimatedComponent {
       Rectangle2D.Double rect =
         new Rectangle2D.Double(normalizedStartPosition, 1 - DEFAULT_LINE_THICKNESS, normalizedEndPosition - normalizedStartPosition,
                                DEFAULT_LINE_THICKNESS);
-      myActivities.add(new EventRenderData(data, rect));
+      myActivities.add(new ActivityRenderData(data, rect));
     }
 
     myActivities.sort((erd1, erd2) -> {
@@ -115,6 +113,17 @@ public class ActivityComponent extends AnimatedComponent {
       }
       return erd1.getAction().getStartUs() - erd2.getAction().getStartUs() >= 0 ? 1 : -1;
     });
+
+    myFragmentPositions.clear();
+    for (SeriesData<EventAction<LifecycleEvent>> seriesData : myFragmentModel.getRangedSeries().getSeries()) {
+      LifecycleAction data = (LifecycleAction)seriesData.value;
+      if (data.getEndUs() >= min && data.getEndUs() < max) {
+        myFragmentPositions.add((data.getEndUs() - min) / (max - min));
+      }
+      if (data.getStartUs() >= min && data.getStartUs() < max) {
+        myFragmentPositions.add((data.getStartUs() - min) / (max - min));
+      }
+    }
   }
 
   @Override
@@ -131,12 +140,12 @@ public class ActivityComponent extends AnimatedComponent {
   private void drawActivity(Graphics2D g2d, Dimension dim) {
     int scaleFactor = dim.width;
     AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
-    double min = myModel.getRangedSeries().getXRange().getMin();
-    double max = myModel.getRangedSeries().getXRange().getMax();
+    double min = myActivityModel.getRangedSeries().getXRange().getMin();
+    double max = myActivityModel.getRangedSeries().getXRange().getMax();
     FontMetrics metrics = g2d.getFontMetrics();
-    ListIterator<EventRenderData> itor = myActivities.listIterator();
+    ListIterator<ActivityRenderData> itor = myActivities.listIterator();
     while (itor.hasNext()) {
-      EventRenderData renderData = itor.next();
+      ActivityRenderData renderData = itor.next();
       EventAction<LifecycleEvent> event = renderData.getAction();
       g2d.setColor(event.getEndUs() == 0 ? ENABLED_ACTION : DISABLED_ACTION);
       Shape shape = scale.createTransformedShape(renderData.getPath());
@@ -168,9 +177,16 @@ public class ActivityComponent extends AnimatedComponent {
       g2d.setColor(DEFAULT_FONT_COLOR);
       g2d.drawString(text, startPosition, FONT_SPACING);
     }
+
+    g2d.setColor(EVENT_LINE);
+    for (Double normalizedPosition : myFragmentPositions) {
+      g2d.fill(scale.createTransformedShape(
+        new Rectangle2D.Double(normalizedPosition, 1 - DEFAULT_LINE_THICKNESS, EVENT_LINE_WIDTH_PX / dim.getWidth(),
+                               DEFAULT_LINE_THICKNESS)));
+    }
   }
 
-  private static class EventRenderData {
+  private static class ActivityRenderData {
 
     private final EventAction<LifecycleEvent> mAction;
     private final Rectangle2D mPath;
@@ -183,7 +199,7 @@ public class ActivityComponent extends AnimatedComponent {
       return mPath;
     }
 
-    public EventRenderData(EventAction<LifecycleEvent> action, Rectangle2D path) {
+    public ActivityRenderData(EventAction<LifecycleEvent> action, Rectangle2D path) {
       mAction = action;
       mPath = path;
     }
