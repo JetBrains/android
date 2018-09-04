@@ -20,16 +20,17 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
+import com.intellij.facet.Facet;
+import com.intellij.facet.ProjectWideFacetAdapter;
+import com.intellij.facet.ProjectWideFacetListenersRegistry;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
-import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
-import com.intellij.ide.projectView.impl.ProjectTreeStructure;
-import com.intellij.ide.projectView.impl.ProjectViewTree;
+import com.intellij.ide.projectView.impl.*;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -51,6 +52,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,6 +83,29 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   public AndroidProjectViewPane(Project project) {
     super(project);
+    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<Facet>() {
+      @Override
+      public void facetAdded(@NotNull Facet facet) {
+        somethingChanged();
+      }
+
+      @Override
+      public void facetRemoved(@NotNull Facet facet) {
+        somethingChanged();
+      }
+
+      private void somethingChanged() {
+        ProjectView projectView = ProjectView.getInstance(project);
+        AbstractProjectViewPane pane = projectView.getProjectViewPaneById(ID);
+        boolean visible = isInitiallyVisible();
+        if (visible && pane == null) {
+          projectView.addProjectPane(AndroidProjectViewPane.this);
+        }
+        else if (!visible && pane != null) {
+          projectView.removeProjectPane(pane);
+        }
+      }
+    });
   }
 
   @Override
@@ -104,6 +129,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     // used for sorting the sequence of panes, but the weight cannot match any existing pane's weight
     // IDEA's panes start with 0 (project view pane) and go up (1 for package view, favorites seems to use 4, ..)
     return 142;
+  }
+
+  @Override
+  public boolean isInitiallyVisible() {
+    return AndroidUtils.hasAndroidFacets(myProject);
   }
 
   @NotNull
