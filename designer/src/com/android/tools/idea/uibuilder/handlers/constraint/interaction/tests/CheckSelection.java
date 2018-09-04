@@ -300,7 +300,7 @@ public class CheckSelection extends JPanel {
   public static void main(String[] args) {
     JFrame f = new JFrame("CurveToDistance");
     f.setBounds(new Rectangle(623, 660));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     CheckSelection p = new CheckSelection();
     f.setContentPane(p);
     f.validate();

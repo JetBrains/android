@@ -70,7 +70,7 @@ public class CheckDisplayList extends JPanel {
   public static void main(String[] args) {
     JFrame f = new JFrame("Spring");
     f.setBounds(new Rectangle(1100, 1100));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     CheckDisplayList p = new CheckDisplayList();
     f.setContentPane(p);
     f.validate();
