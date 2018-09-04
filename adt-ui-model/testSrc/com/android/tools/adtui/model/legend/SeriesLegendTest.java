@@ -39,7 +39,19 @@ public class SeriesLegendTest {
   public void legendValueIsNaGivenNoData() {
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new LongDataSeries());
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
-    assertEquals("N/A", legend.getValue());
+    assertEquals(SeriesLegend.UNAVAILABLE_MESSAGE, legend.getValue());
+  }
+
+  @Test
+  public void legendValueIsNaGivenFailedPredicate() {
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new LongDataSeries());
+    SeriesLegend legend = new SeriesLegend(series,
+                                           new MockAxisFormatter(1, 1, 1),
+                                           new Range(0, 100),
+                                           series.getName(),
+                                           Interpolatable.SegmentInterpolator,
+                                           range -> false);
+    assertEquals(SeriesLegend.UNAVAILABLE_MESSAGE, legend.getValue());
   }
 
   @Test

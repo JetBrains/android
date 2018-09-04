@@ -29,7 +29,7 @@ class AllocationSamplingRateDataSeriesTest {
 
   private val myService = FakeMemoryService()
 
-  @Rule
+  @get:Rule
   var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myService)
 
   @Test
