@@ -60,9 +60,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.model.Interpolatable.RoundedSegmentInterpolator;
-import static com.android.tools.adtui.model.Interpolatable.SegmentInterpolator;
-
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
   public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
@@ -146,16 +143,24 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myConfiguration = new MemoryProfilerConfiguration(this);
 
     myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, mySessionData)));
-
+    myAllocationSamplingRateDataSeries = new AllocationSamplingRateDataSeries(myClient, mySessionData);
+    myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
     myDetailedMemoryUsage = new DetailedMemoryUsage(profilers, this);
 
     myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
+    myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
+    myAllocationSamplingRateDurations.setAttachPredicate(data ->
+      MemoryProfilerStage.LiveAllocationSamplingMode
+        .getModeFromFrequency(data.value.getOldRateEvent().getSamplingRate().getSamplingNumInterval()) ==
+      MemoryProfilerStage.LiveAllocationSamplingMode.FULL
+    );
+    myAllocationSamplingRateUpdatable  = new AllocationSamplingRateUpdatable();
 
     myMemoryAxis = new ClampedAxisComponentModel.Builder(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER).build();
     myObjectsAxis = new ClampedAxisComponentModel.Builder(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER).build();
 
-    myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
-    myTooltipLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);
+    myLegends = new MemoryStageLegends(this, profilers.getTimeline().getDataRange(), false);
+    myTooltipLegends = new MemoryStageLegends(this, profilers.getTimeline().getTooltipRange(), true);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
@@ -191,15 +196,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myAllocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
     myDeallocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
-
-    myAllocationSamplingRateUpdatable  = new AllocationSamplingRateUpdatable();
-    myAllocationSamplingRateDataSeries = new AllocationSamplingRateDataSeries(myClient, mySessionData);
-    myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
-    myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), SegmentInterpolator);
-    myAllocationSamplingRateDurations.setAttachPredicate(data ->
-      LiveAllocationSamplingMode.getModeFromFrequency(data.value.getOldRateEvent().getSamplingRate().getSamplingNumInterval()) ==
-      LiveAllocationSamplingMode.FULL
-    );
 
     // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
     // It will be set properly in the AllocationSamplingRateUpdatable.
@@ -771,8 +767,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final SeriesLegend myObjectsLegend;
     @NotNull private final EventLegend<GcDurationData> myGcDurationLegend;
 
-    public MemoryStageLegends(@NotNull DetailedMemoryUsage usage, @NotNull Range range, boolean isTooltip) {
+    public MemoryStageLegends(@NotNull MemoryProfilerStage memoryStage, @NotNull Range range, boolean isTooltip) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      DetailedMemoryUsage usage = memoryStage.getDetailedMemoryUsage();
       myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
       myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
       myGraphicsLegend = new SeriesLegend(usage.getGraphicsSeries(), MEMORY_AXIS_FORMATTER, range);
@@ -780,7 +777,25 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myCodeLegend = new SeriesLegend(usage.getCodeSeries(), MEMORY_AXIS_FORMATTER, range);
       myOtherLegend = new SeriesLegend(usage.getOtherSeries(), MEMORY_AXIS_FORMATTER, range);
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
-      myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, RoundedSegmentInterpolator);
+      myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, usage.getObjectsSeries().getName(),
+                                         Interpolatable.RoundedSegmentInterpolator, r -> {
+        if (!memoryStage.useLiveAllocationTracking()) {
+          // if live allocation is not enabled, show the object series as long as there is data.
+          return true;
+        }
+
+        // Controls whether the series should be shown by looking at whether there is a FULL tracking mode event within the query range.
+        List<SeriesData<AllocationSamplingRateDurationData>> data =
+          usage.getAllocationSamplingRateDurations().getSeries().getDataSeries().getDataForXRange(r);
+
+        if (data.isEmpty()) {
+          return false;
+        }
+
+        AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getOldRateEvent();
+        return LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval()) ==
+               LiveAllocationSamplingMode.FULL;
+      });
       myGcDurationLegend =
         new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
           .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDurationUs(), true));

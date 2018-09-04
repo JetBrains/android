@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -542,6 +543,70 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     assertThat(legends.getOtherLegend().getName()).isEqualTo("Others");
     assertThat(legends.getOtherLegend().getValue()).isEqualTo("60 KB");
+  }
+
+  @Test
+  public void testAllocatedLegendChangesBasedOnSamplingMode() {
+    // Perfa needs to be running for "Allocated" series to show.
+    myProfilerService.setAgentStatus(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    long time = TimeUnit.MICROSECONDS.toNanos(2);
+    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
+    MemoryData.AllocStatsSample allocStatsSample =
+      MemoryData.AllocStatsSample.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100).build();
+    AllocationSamplingRateEvent trackingMode = AllocationSamplingRateEvent
+      .newBuilder()
+      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+        MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
+      ))
+      .build();
+    MemoryData memoryData = MemoryData.newBuilder()
+                                      .setEndTimestamp(time)
+                                      .addAllocationsInfo(liveAllocInfo)
+                                      .addAllocSamplingRateEvents(trackingMode)
+                                      .addAllocStatsSamples(allocStatsSample)
+                                      .build();
+    myService.setMemoryData(memoryData);
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+    assertThat(legends.getObjectsLegend().getName()).isEqualTo("Allocated");
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("100");
+
+    // Now change sampling mode to sampled, the Allocated legend should show "N/A"
+    memoryData = memoryData.toBuilder()
+                           .clearAllocStatsSamples()
+                           .clearAllocSamplingRateEvents()
+                           .addAllocSamplingRateEvents(
+                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+                               MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
+                             )))
+                           .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
+                           .build();
+    myService.setMemoryData(memoryData);
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
+
+    // Now change sampling mode to none, the Allocated legend should still show "N/A"
+    memoryData = memoryData.toBuilder()
+                           .clearAllocSamplingRateEvents()
+                           .addAllocSamplingRateEvents(
+                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+                               MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()
+                             )))
+                           .build();
+    myService.setMemoryData(memoryData);
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
+
+    // Value should update once sampling mode is set back to full.
+    memoryData = memoryData.toBuilder()
+                           .clearAllocSamplingRateEvents()
+                           .addAllocSamplingRateEvents(
+                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+                               MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
+                             )))
+                           .build();
+    myService.setMemoryData(memoryData);
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("200");
   }
 
   @Test

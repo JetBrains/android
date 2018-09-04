@@ -20,6 +20,8 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,11 +34,14 @@ import java.util.List;
  */
 public final class SeriesLegend implements Legend {
 
+  @VisibleForTesting final static String UNAVAILABLE_MESSAGE = "N/A";
+
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;
   @NotNull private final BaseAxisFormatter myFormatter;
   @NotNull private final String myName;
   @NotNull private final Interpolatable<Long, Double> myInterpolator;
+  @NotNull private final Predicate<Range> myDisplayFilter;
 
   public SeriesLegend(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
     this(series, formatter, range, Interpolatable.SegmentInterpolator);
@@ -54,21 +59,44 @@ public final class SeriesLegend implements Legend {
                       @NotNull Range range,
                       @NotNull String name,
                       @NotNull Interpolatable<Long, Double> interpolator) {
+    this(series, formatter, range, name, interpolator, val -> true);
+  }
+
+  /**
+   * @param series            the series containing the data source.
+   * @param formatter         the formatter to use for rendering the series data
+   * @param range             the range to query data from
+   * @param name              the title/name of the legend
+   * @param interpolator      the interpolate to use for calculating values between data points
+   * @param displayFilter     determines whether the legend should be display at a particular range
+   */
+  public SeriesLegend(@NotNull RangedContinuousSeries series,
+                      @NotNull BaseAxisFormatter formatter,
+                      @NotNull Range range,
+                      @NotNull String name,
+                      @NotNull Interpolatable<Long, Double> interpolator,
+                      @NotNull Predicate<Range> displayFilter) {
     myRange = range;
     mySeries = series;
     myFormatter = formatter;
     myName = name;
     myInterpolator = interpolator;
+    myDisplayFilter = displayFilter;
   }
 
   @Nullable
   @Override
   public String getValue() {
     double time = myRange.getMax();
-    List<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
+    Range range = new Range(time, time);
+    if (!myDisplayFilter.test(range)) {
+      return UNAVAILABLE_MESSAGE;
+    }
+
+    List<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(range);
     if (data.isEmpty()) {
       // SeriesLegend should always show up, even when data is absent.
-      return "N/A";
+      return UNAVAILABLE_MESSAGE;
     }
     return myFormatter.getFormattedString(mySeries.getYRange().getLength(), getInterpolatedValueAt(time, data), true);
   }

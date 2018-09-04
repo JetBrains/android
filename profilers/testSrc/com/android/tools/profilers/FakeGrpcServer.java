@@ -128,6 +128,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
 
     @Override
+    public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> response) {
+      response.onNext(MemoryData.getDefaultInstance());
+      response.onCompleted();
+    }
+
+    @Override
     public void listHeapDumpInfos(ListDumpInfosRequest request,
                                   StreamObserver<ListHeapDumpInfosResponse> response) {
       response.onNext(ListHeapDumpInfosResponse.getDefaultInstance());

@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +34,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull private final RangedContinuousSeries myOtherSeries;
   @NotNull private final RangedContinuousSeries myObjectsSeries;
   @NotNull private final DurationDataModel<GcDurationData> myGcDurations;
+  @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
 
   public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull MemoryProfilerStage memoryProfilerStage) {
     super(profilers);
@@ -55,6 +55,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
     myObjectsSeries = new RangedContinuousSeries("Allocated", profilers.getTimeline().getViewRange(), getObjectsRange(), series);
 
     myGcDurations = memoryProfilerStage.getGcStatsModel();
+    myAllocationSamplingRateDurations = memoryProfilerStage.getAllocationSamplingRateDurations();
 
     add(myJavaSeries);
     add(myNativeSeries);
@@ -108,6 +109,11 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull
   public DurationDataModel<GcDurationData> getGcDurations() {
     return myGcDurations;
+  }
+
+  @NotNull
+  public DurationDataModel<AllocationSamplingRateDurationData> getAllocationSamplingRateDurations() {
+    return myAllocationSamplingRateDurations;
   }
 
   @Override
