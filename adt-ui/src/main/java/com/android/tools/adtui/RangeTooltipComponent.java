@@ -154,7 +154,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     }
 
     // Repaint the area where the highlight/seek line will be only when the range is not empty and the highlight/seek line is turned on.
-    if (!myHighlightRange.isEmpty() && myShowSeekComponent.get()) {
+    if (isHighlightRangeVisible() && myShowSeekComponent.get()) {
       float x = rangeToX(myHighlightRange.getMin());
       int minX = (int)Math.floor(x - HIGHLIGHT_WIDTH / 2.0);
       int width = (int)Math.ceil(x + HIGHLIGHT_WIDTH / 2.0) - minX;
