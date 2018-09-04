@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.event;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.EventAction;
@@ -46,12 +47,12 @@ public class LifecycleTooltip extends ProfilerMonitorTooltip<EventMonitor> {
   }
 
   @NotNull
-  public List<LifecycleAction> getFragmentsAt(double time) {
+  public List<LifecycleAction> getFragmentsAt(@NotNull Range range) {
     List<SeriesData<EventAction<LifecycleEvent>>> fragmentSeries =
       getMonitor().getFragmentEvents().getRangedSeries().getSeries();
     ArrayList<LifecycleAction> fragments = new ArrayList<>();
     for (SeriesData<EventAction<LifecycleEvent>> series : fragmentSeries) {
-      if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
+      if (series.value.getStartUs() <= range.getMax() && (series.value.getEndUs() > range.getMin() || series.value.getEndUs() == 0)) {
         fragments.add((LifecycleAction)series.value);
       }
     }

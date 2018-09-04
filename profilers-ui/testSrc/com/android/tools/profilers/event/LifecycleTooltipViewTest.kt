@@ -23,7 +23,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Font
 import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 class LifecycleTooltipViewTest {
 
@@ -43,6 +46,9 @@ class LifecycleTooltipViewTest {
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     myActivityTooltipView = FakeLifecycleTooltipView(view.stageView, LifecycleTooltip(myMonitor))
+    view.stageView.component.setBounds(0, 0, 1024, 256)
+    profilers.timeline.viewRange.min = 0.0
+    profilers.timeline.viewRange.max = TimeUnit.SECONDS.toMicros(10).toDouble()
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)
     val timelineRange = TimeUnit.SECONDS.toMicros(5)
     myMonitor.timeline.dataRange.set(0.0, timelineRange.toDouble())
@@ -52,25 +58,55 @@ class LifecycleTooltipViewTest {
   @Test
   fun tooltipActivityAndFragmentLabelsHaveExpectedText() {
     myIdeProfilerServices.enableFragments(true)
+
+    val activityEndTimeNs = TimeUnit.SECONDS.toNanos(4)
+    val fragmentEndTimeNs = TimeUnit.SECONDS.toNanos(5)
+
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
                                                                   TEST_START_TIME_NS),
                                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
                                                                   TEST_START_TIME_NS),
-                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                                                                  activityEndTimeNs)),
                          0))
     for (fragmentName in FRAGMENT_NAMES) {
       myEventService.addActivityEvent(
         buildActivityEvent(fragmentName,
-                           arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                           arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS),
+                                   ActivityStateData(EventProfiler.ActivityStateData.ActivityState.REMOVED, fragmentEndTimeNs)),
                            fragmentName.hashCode().toLong()))
     }
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
-    assertThat(myActivityTooltipView.headingText).matches("00:01.001")
-    assertThat(myActivityTooltipView.activityNameText).matches(ACTIVITY_NAME)
-    assertThat(myActivityTooltipView.fragmentsText).matches("<html>TestFragment1<br>TestFragment2</html>")
-    assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
-    myIdeProfilerServices.enableFragments(false)
+    // Check text when hovering over event line for adding fragment.
+    assertThat(myActivityTooltipView.headingText).isEqualTo("00:01.001")
+    assertThat(myActivityTooltipView.activityNameText).isEqualTo(ACTIVITY_NAME)
+
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel,
+                                      arrayOf(FragmentTextEntry("TestFragment1", Font.BOLD),
+                                              FragmentTextEntry("TestFragment2", Font.BOLD)))
+    assertThat(myActivityTooltipView.durationText).isEqualTo("00:01.000 - 00:04.000")
+
+    // Check text when hovering over activity bar.
+    var tooltipTime = TimeUnit.SECONDS.toMicros(2).toDouble()
+    myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
+    assertThat(myActivityTooltipView.headingText).isEqualTo("00:02.000")
+    assertThat(myActivityTooltipView.activityNameText).isEqualTo(ACTIVITY_NAME)
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel,
+                                      arrayOf(FragmentTextEntry("TestFragment1", Font.PLAIN),
+                                              FragmentTextEntry("TestFragment2", Font.PLAIN)))
+    assertThat(myActivityTooltipView.durationText).isEqualTo("00:01.000 - 00:04.000")
+
+    // Check text when hovering over event line for removing fragment.
+    // All activity related label should be empty since the activity has already been paused.
+    tooltipTime = TimeUnit.SECONDS.toMicros(5).toDouble()
+    myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
+    assertThat(myActivityTooltipView.headingText).isEqualTo("00:05.000")
+    assertThat(myActivityTooltipView.activityNameText).isEqualTo("")
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel,
+                                      arrayOf(FragmentTextEntry("TestFragment1", Font.ITALIC),
+                                              FragmentTextEntry("TestFragment2", Font.ITALIC)))
+    assertThat(myActivityTooltipView.durationText).isEqualTo("")
   }
 
   @Test
@@ -92,8 +128,23 @@ class LifecycleTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.activityNameText).matches(ACTIVITY_NAME)
-    assertThat(myActivityTooltipView.fragmentsText).matches("")
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf())
     assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
+  }
+
+
+  private fun fragmentPanelContainsExpectedText(fragmentPanel: JPanel, expectedTextEntries: Array<FragmentTextEntry>) {
+    assertThat(fragmentPanel.componentCount).isEqualTo(expectedTextEntries.size)
+    for (i in expectedTextEntries.indices) {
+      assertThat((fragmentPanel.getComponent(i) as JLabel).text).isEqualTo(expectedTextEntries[i].text)
+      when (expectedTextEntries[i].fontStyle) {
+        Font.BOLD -> assertThat((fragmentPanel.getComponent(i) as JLabel).font.isBold).isTrue()
+        Font.ITALIC -> assertThat((fragmentPanel.getComponent(i) as JLabel).font.isItalic).isTrue()
+        else -> { // Note the block
+          assertThat((fragmentPanel.getComponent(i) as JLabel).font.isPlain).isTrue()
+        }
+      }
+    }
   }
 
   @Test
@@ -127,15 +178,17 @@ class LifecycleTooltipViewTest {
   @Test
   fun testGetActivityTitleTextCompleted() {
     myEventService.addActivityEvent(
-        buildActivityEvent(ACTIVITY_NAME,
-            arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
-                TEST_START_TIME_NS), ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
-                TEST_START_TIME_NS), ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
-                TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1)),
-                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
-                TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1))),
-            0
-        ))
+      buildActivityEvent(ACTIVITY_NAME,
+                         arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                                                   TEST_START_TIME_NS),
+                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                                   TEST_START_TIME_NS),
+                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                                                   TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1)),
+                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                                                   TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1))),
+                         0
+      ))
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.activityNameText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
@@ -154,14 +207,14 @@ class LifecycleTooltipViewTest {
                                  contextHash: Long): EventProfiler.ActivityData {
     val builder = EventProfiler.ActivityData.newBuilder()
     builder.setPid(ProfilersTestData.SESSION_DATA.pid)
-        .setName(name)
-        .setHash(name.hashCode().toLong())
-        .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash))
+      .setName(name)
+      .setHash(name.hashCode().toLong())
+      .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash))
     for (state in states) {
       builder.addStateChanges(EventProfiler.ActivityStateData.newBuilder()
-          .setState(state.activityState)
-          .setTimestamp(state.activityStateTime)
-          .build())
+                                .setState(state.activityState)
+                                .setTimestamp(state.activityStateTime)
+                                .build())
     }
     return builder.build()
   }
@@ -178,10 +231,9 @@ class LifecycleTooltipViewTest {
 
     val durationText: String
       get() = durationLabel.text
-
-    val fragmentsText: String
-      get() = fragmentsLabel.text
   }
+
+  private data class FragmentTextEntry(val text: String, val fontStyle: Int)
 
   private class ActivityStateData constructor(var activityState: EventProfiler.ActivityStateData.ActivityState, var activityStateTime: Long)
 
