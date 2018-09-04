@@ -25,6 +25,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +38,7 @@ public class AndroidModularizeAction extends BaseRefactoringAction {
 
   @Override
   protected boolean isAvailableForFile(PsiFile file) {
-    return file != null && file.getFileType() == StdFileTypes.JAVA;
+    return file != null && file.getFileType() == StdFileTypes.JAVA && AndroidUtils.hasAndroidFacets(file.getProject());
   }
 
   @Override
