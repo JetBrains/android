@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,17 +41,17 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
   @Override
   public void update(AnActionEvent anActionEvent) {
     final Project project = anActionEvent.getData(CommonDataKeys.PROJECT);
-    anActionEvent.getPresentation().setEnabledAndVisible(project != null && MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED.get());
+    anActionEvent.getPresentation().setEnabledAndVisible(isEnabled(project));
   }
 
   @Override
   protected boolean isEnabledOnDataContext(DataContext dataContext) {
-    return true;
+    return isEnabled(CommonDataKeys.PROJECT.getData(dataContext));
   }
 
   @Override
   protected boolean isEnabledOnElements(@NotNull PsiElement[] elements) {
-    return true;
+    return elements.length > 0 && isEnabled(elements[0].getProject());
   }
 
   @Nullable
@@ -64,4 +65,8 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
     return true;
   }
 
+  private static boolean isEnabled(@Nullable Project project) {
+    if (project == null || !MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED.get()) return false;
+    return AndroidUtils.hasAndroidFacets(project);
+  }
 }
