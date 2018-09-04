@@ -158,7 +158,7 @@ public class TimeLine extends JPanel {
     JFrame f = new JFrame("timeline");
     f.setContentPane(p);
     f.setBounds(100, 100, 1200, 800);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     f.setVisible(true);
   }
 }

@@ -46,7 +46,7 @@ object CommonControlPortfolio {
 
     //Create and set up the window.
     val frame = JFrame("Common Controls")
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
     //Set up the content pane.
     addComponentsToPane(frame.contentPane)
