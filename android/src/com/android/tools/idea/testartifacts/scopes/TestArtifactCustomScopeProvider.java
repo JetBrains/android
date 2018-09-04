@@ -28,9 +28,11 @@ import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.ui.Colored;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,11 +48,16 @@ import java.util.List;
  */
 public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
   private static List<NamedScope> SCOPES = ImmutableList.of(new UnitTestsScope(), new AndroidTestsScope());
+  private final Project myProject;
+
+  public TestArtifactCustomScopeProvider(Project project) {
+    myProject = project;
+  }
 
   @NotNull
   @Override
   public List<NamedScope> getCustomScopes() {
-    return SCOPES;
+    return AndroidUtils.hasAndroidFacets(myProject) ? SCOPES : Collections.emptyList();
   }
 
   @Override
