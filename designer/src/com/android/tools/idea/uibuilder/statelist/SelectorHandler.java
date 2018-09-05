@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.statelist;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,5 +47,11 @@ public final class SelectorHandler extends ViewGroupHandler {
       default:
         return super.getIcon(component);
     }
+  }
+
+  @Override
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    // The default behaviour of a ViewHandler is to add the "Expand horizontally" and "Expand vertically" actions.
+    // This does not make sense for state lists, so instead no action is added to the toolbar
   }
 }

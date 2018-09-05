@@ -108,6 +108,13 @@ public enum NlLayoutType {
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return FileDescriptionUtils.isResourceOfTypeContainingTag(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
     }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      // This returns an empty toolbar instead of using the default one
+      return new ToolbarActionGroups(surface);
+    }
   },
 
   UNKNOWN(false) {
