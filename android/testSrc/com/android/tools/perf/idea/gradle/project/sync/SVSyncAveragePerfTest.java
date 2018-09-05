@@ -26,7 +26,7 @@ public class SVSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
   public String getMetricName() {
-    return "Average Project Single Variant sync";
+    return "Average-Project-Single-Variant-sync";
   }
 
   @NotNull
