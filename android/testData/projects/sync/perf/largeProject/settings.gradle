@@ -1,3 +1,0 @@
-rootProject.name = 'largeProject'
-
-include 'androidAppModule0','androidAppModule1','androidAppModule2','androidAppModule3','androidAppModule4','androidAppModule5','androidAppModule6','androidAppModule7','androidAppModule8','androidAppModule9','androidAppModule10','androidAppModule11','androidAppModule12','androidAppModule13','androidAppModule14','androidAppModule15','androidAppModule16','androidAppModule17','androidAppModule18','androidAppModule19','androidAppModule20','module0','module1','module2','module3','module4','module5','module6','module7','module8','module9'

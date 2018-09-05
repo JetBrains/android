@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-
     }
     dependencies {
         classpath "com.android.tools.build:gradle:3.2.0-dev"
@@ -8,7 +7,6 @@ buildscript {
 }
 allprojects {
     repositories {
-
     }
 }
 task clean(type: Delete) {
