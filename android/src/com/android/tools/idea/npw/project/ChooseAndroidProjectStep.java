@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
+import com.android.tools.idea.npw.template.ConfigureNavigationTypeStep;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -34,23 +42,23 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.components.JBList;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.io.File;
-import java.util.*;
-import java.util.List;
-
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * First page in the New Project wizard that allows user to select the Form Factor (Mobile, Wear, TV, etc) and its
@@ -80,11 +88,16 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     myNewProjectModuleModel = new NewProjectModuleModel(getModel());
     RenderTemplateModel renderModel = myNewProjectModuleModel.getExtraRenderTemplateModel();
 
-    return newArrayList(
-      new ConfigureAndroidProjectStep(myNewProjectModuleModel, getModel()),
-      new ConfigureCppSupportStep(getModel()),
-      new ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), newArrayList())
-    );
+    List<ModelWizardStep> steps = newArrayList(new ConfigureAndroidProjectStep(myNewProjectModuleModel, getModel()));
+    if (StudioFlags.NPW_NAVIGATION_SUPPORT.get()) {
+      ConfigureNavigationTypeStep navigationTypeSteps =
+        new ConfigureNavigationTypeStep(getModel(), myNewProjectModuleModel,
+                                        message("android.wizard.activity.navigation.configure"));
+      steps.add(navigationTypeSteps);
+    }
+    steps.add(new ConfigureCppSupportStep(getModel()));
+    steps.add(new ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), newArrayList()));
+    return steps;
   }
 
   @Override
