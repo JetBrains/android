@@ -16,11 +16,15 @@
 package com.android.tools.idea.testartifacts.junit;
 
 import com.intellij.diagnostic.logging.LogConfigurationPanel;
-import com.intellij.execution.*;
+import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
+import com.intellij.execution.JavaRunConfigurationExtensionManager;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.junit.*;
+import com.intellij.execution.junit.JUnitConfiguration;
+import com.intellij.execution.junit.TestObject;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.testframework.TestSearchScope;
@@ -37,10 +41,8 @@ import java.util.Collection;
  * Android implementation of {@link JUnitConfiguration} so some behaviors can be overridden.
  */
 public class AndroidJUnitConfiguration extends JUnitConfiguration {
-  public AndroidJUnitConfiguration(@NotNull String name,
-                                   @NotNull Project project,
-                                   @NotNull ConfigurationFactory configurationFactory) {
-    super(name, project, new JUnitConfiguration.Data() {
+  public AndroidJUnitConfiguration(@NotNull Project project, @NotNull ConfigurationFactory configurationFactory) {
+    super(project, new JUnitConfiguration.Data() {
       @Override
       public TestObject getTestObject(@NotNull JUnitConfiguration configuration) {
         AndroidTestObject testObject = fromString(TEST_OBJECT, configuration, ExecutionEnvironmentBuilder.create(
@@ -75,7 +77,7 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
   public Module[] getModulesToCompile() {
     if (TEST_PACKAGE.equals(getPersistentData().TEST_OBJECT) && (getPersistentData().getScope() == TestSearchScope.WHOLE_PROJECT)) {
       Collection<Module> modules = getAllModules();
-      return modules.toArray(new Module[modules.size()]);
+      return modules.toArray(Module.EMPTY_ARRAY);
     }
     return getModules();
   }
