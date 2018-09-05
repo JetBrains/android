@@ -35,7 +35,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -120,8 +121,7 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
   private static AndroidJUnitConfiguration createConfiguration(@NotNull Project project,
                                                                @NotNull String packageQualifiedName,
                                                                @NotNull Module module) {
-    AndroidJUnitConfiguration configuration =
-      new AndroidJUnitConfiguration("", project, AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0]);
+    AndroidJUnitConfiguration configuration = new AndroidJUnitConfiguration(project, AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0]);
     configuration.getPersistentData().TEST_OBJECT = JUnitConfiguration.TEST_PACKAGE;
     configuration.getPersistentData().PACKAGE_NAME = packageQualifiedName;
     configuration.getPersistentData().setScope(TestSearchScope.WHOLE_PROJECT);
