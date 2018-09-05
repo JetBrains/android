@@ -22,16 +22,26 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Measure performance for IDEA sync using the average project.
  */
-public class IDEASyncAveragePerfTest extends IDEASyncPerformanceTestCase {
+public class IDEASyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
-  public String getBenchmarkName() {
-    return "Average";
+  public String getMetricName() {
+    return "Average Project IDEA sync";
   }
 
   @NotNull
   @Override
   public String getRelativePath() {
     return SYNC_PERF_AVERAGE_PROJECT;
+  }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
   }
 }

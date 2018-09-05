@@ -22,16 +22,26 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Measure performance for Single variant sync using the average project.
  */
-public class SVSyncAveragePerfTest extends SVSyncPerformanceTestCase {
+public class SVSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
-  public String getBenchmarkName() {
-    return "Average";
+  public String getMetricName() {
+    return "Average Project Single Variant sync";
   }
 
   @NotNull
   @Override
   public String getRelativePath() {
     return SYNC_PERF_AVERAGE_PROJECT;
+  }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return true;
+  }
+
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return true;
   }
 }

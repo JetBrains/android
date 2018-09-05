@@ -31,9 +31,9 @@ android {
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':androidAppModule1')
     implementation project(':androidAppModule2')
     implementation project(':module0')
+    implementation project(':androidAppModule1')
     implementation "com.android.support.constraint:constraint-layout:1.0.2"
     testImplementation "junit:junit:4.12"
 }
