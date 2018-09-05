@@ -115,6 +115,7 @@ public class TemplateMetadata {
   public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 
   public static final String ATTR_INCLUDE_NAV_CONTROLLER = "includeNavController";
+  public static final String ATTR_NAVIGATION_TYPE = "navigationType";
   public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
   public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
   public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin

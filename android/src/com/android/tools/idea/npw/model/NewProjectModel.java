@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProje
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.instantapp.InstantApps;
+import com.android.tools.idea.npw.platform.NavigationType;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
@@ -99,6 +100,7 @@ public class NewProjectModel extends WizardModel {
   private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
   private final BoolProperty myUseAndroidx = new BoolValueProperty();
+  private final OptionalProperty<NavigationType> myNavigationType  = new OptionalValueProperty<>(NavigationType.NONE);
 
   private  NewProjectExtraInfo myNewProjectExtraInfo;
 
@@ -206,6 +208,11 @@ public class NewProjectModel extends WizardModel {
   @NotNull
   public Map<String, Object> getTemplateValues() {
     return myTemplateValues;
+  }
+
+  @NotNull
+  public OptionalProperty<NavigationType> navigationType() {
+    return myNavigationType;
   }
 
   /**
@@ -394,6 +401,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
+      myTemplateValues.put(ATTR_NAVIGATION_TYPE, myNavigationType.getValue());
 
       if (StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
         String offlineReposString = getOfflineReposString();

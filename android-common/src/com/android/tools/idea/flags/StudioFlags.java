@@ -76,6 +76,11 @@ public final class StudioFlags {
     "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
     false);
 
+  public static final Flag<Boolean> NPW_NAVIGATION_SUPPORT = Flag.create(
+    NPW, "navigation.support", "Add a navigation support for each template",
+    "Add a option what type of Navigation is added in the created Activity in the selected template",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(

@@ -20,8 +20,7 @@ import freemarker.template.*;
 import java.util.List;
 
 /**
- * Method invoked by FreeMarker to convert a CamelCase word into
- * underscore_names.
+ * Method invoked by FreeMarker to convert a underscore_names word into CamelCase.
  */
 public class FmUnderscoreToCamelCaseMethod implements TemplateMethodModelEx {
   @Override
