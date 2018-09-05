@@ -34,8 +34,7 @@ import org.jetbrains.annotations.NotNull;
  * The toolbar component of {@link CpuProfilerStage}.
  */
 public abstract class CpuProfilerToolbar {
-  @VisibleForTesting
-  static final String RECORD_TEXT = "Record";
+  public static final String RECORD_TEXT = "Record";
   public static final String STOP_TEXT = "Stop";
 
   @NotNull protected final CpuProfilerStage myStage;

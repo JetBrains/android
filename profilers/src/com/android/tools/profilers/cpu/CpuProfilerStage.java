@@ -459,6 +459,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // Set the profiler mode to EXPANDED to make sure that L3 panel is shown.
       setProfilerMode(ProfilerMode.EXPANDED);
     }
+
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuNewRecordingWorkflowEnabled()) {
+      // In the new recording workflow it is always expanded mode.
+      setProfilerMode(ProfilerMode.EXPANDED);
+    }
   }
 
   @Override

@@ -138,14 +138,6 @@ class CpuCaptureViewTest {
     assertThat(tabPane.getTitleAt(0)).matches("Trace Events")
   }
 
-  @Test
-  fun interactionDisabledWhenHelpTipPane() {
-    val capturePane = CpuCaptureView.HelpTipPane(stageView)
-    val toolbar = TreeWalker(capturePane).descendants().filterIsInstance<CapturePane.Toolbar>().first()
-    val tab = TreeWalker(capturePane).descendants().filterIsInstance<CommonTabbedPane>().first()
-    assertThat(toolbar.isEnabled).isFalse()
-    assertThat(tab.isEnabled).isFalse()
-  }
 
   @Test
   fun interactionDisabledWhenParsingPane() {
@@ -157,7 +149,12 @@ class CpuCaptureViewTest {
   }
 
   @Test
-  fun showsHelpTipPaneWhenSelectingRangeWithNoCapture() {
+  fun showsRecordingInitiatorPaneInitially() {
+    assertThat(getCapturePane()).isInstanceOf(RecordingInitiatorPane::class.java)
+  }
+
+  @Test
+  fun showsRecordingInitiatorPaneWhenSelectingRangeWithNoCapture() {
     stageView.timeline.apply {
       dataRange.set(0.0, 200.0)
       viewRange.set(0.0, 200.0)
@@ -173,7 +170,7 @@ class CpuCaptureViewTest {
       clear()
       set(105.0, 110.0)
     }
-    assertThat(getCapturePane()).isInstanceOf(CpuCaptureView.HelpTipPane::class.java)
+    assertThat(getCapturePane()).isInstanceOf(RecordingInitiatorPane::class.java)
   }
 
   @Test

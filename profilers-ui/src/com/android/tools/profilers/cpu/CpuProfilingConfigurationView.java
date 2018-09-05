@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class CpuProfilingConfigurationView {
+public class CpuProfilingConfigurationView {
   /**
    * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
    */
@@ -62,7 +62,7 @@ class CpuProfilingConfigurationView {
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
   @NotNull private final JComboBox<ProfilingConfiguration> myComboBox;
 
-  CpuProfilingConfigurationView(@NotNull CpuProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  public CpuProfilingConfigurationView(@NotNull CpuProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
     myComboBox = new ComboBox<>(new DefaultComboBoxModel<ProfilingConfiguration>() {
@@ -84,7 +84,7 @@ class CpuProfilingConfigurationView {
 
   @VisibleForTesting
   @NotNull
-  ProfilingConfiguration getProfilingConfiguration() {
+  public ProfilingConfiguration getProfilingConfiguration() {
     // Show fake, short-lived API_INITIATED_TRACING_PROFILING_CONFIG while API-initiated tracing is in progress.
     if (myStage.isApiInitiatedTracingInProgress()) {
       return API_INITIATED_TRACING_PROFILING_CONFIG;
