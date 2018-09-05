@@ -82,6 +82,11 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
     return new ConfigurationFactory[]{myFactory};
   }
 
+  @Override
+  public String getHelpTopic() {
+    return "reference.dialogs.rundebug.AndroidTestRunConfigurationType";
+  }
+
   public ConfigurationFactory getFactory() {
     return myFactory;
   }
