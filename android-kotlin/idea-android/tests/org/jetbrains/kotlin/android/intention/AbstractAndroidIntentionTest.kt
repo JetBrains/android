@@ -28,8 +28,7 @@ import java.io.File
 
 abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
-        val testFile = File(path)
-        val testFileText = FileUtil.loadFile(testFile)
+        val testFileText = FileUtil.loadFile(File(testDataPath, path))
         val intentionClassName = InTextDirectivesUtils.findStringWithPrefixes(testFileText, "// INTENTION_CLASS: ")
                                  ?: error("Intention class not found!")
 
@@ -44,7 +43,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
                 ConfigLibraryUtil.configureKotlinRuntime(myFixture.module)
             }
 
-            val customManifestPath = "${testFile.path}.AndroidManifest.xml"
+            val customManifestPath = "$path.AndroidManifest.xml"
             if (FileUtil.exists("$testDataPath/$customManifestPath")) {
                 deleteManifest()
                 myFixture.copyFileToProject(customManifestPath, SdkConstants.FN_ANDROID_MANIFEST_XML)

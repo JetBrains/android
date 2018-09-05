@@ -29,7 +29,7 @@ abstract class AbstractAndroidRenameTest : KotlinAndroidTestCase() {
         myFixture.configureFromExistingVirtualFile(virtualFile)
         myFixture.renameElement(myFixture.elementAtCaret, NEW_ID_NAME)
         myFixture.checkResultByFile("$path/expected/${getTestName(true)}.kt")
-        assertResourcesEqual("$path/expected/res")
+        assertResourcesEqual("$testDataPath/$path/expected/res")
     }
 
     fun assertResourcesEqual(expectedPath: String) {

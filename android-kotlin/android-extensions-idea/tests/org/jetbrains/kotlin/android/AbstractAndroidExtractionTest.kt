@@ -28,7 +28,7 @@ abstract class AbstractAndroidExtractionTest: KotlinAndroidTestCase() {
         val virtualFile = myFixture.copyFileToProject(testFilePath, "src/" + getTestName(true) + ".kt")
         myFixture.configureFromExistingVirtualFile(virtualFile)
 
-        checkExtract(ExtractTestFiles(testFilePath, myFixture.file)) { file ->
+        checkExtract(ExtractTestFiles("$testDataPath/$testFilePath", myFixture.file)) { file ->
             doExtractFunction(myFixture, file as KtFile)
         }
     }

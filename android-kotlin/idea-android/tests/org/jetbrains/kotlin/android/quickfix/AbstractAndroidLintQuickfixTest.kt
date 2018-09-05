@@ -33,7 +33,7 @@ abstract class AbstractAndroidLintQuickfixTest : KotlinAndroidTestCase() {
     }
 
     fun doTest(path: String) {
-        val fileText = FileUtil.loadFile(File(path), true)
+        val fileText = FileUtil.loadFile(File(testDataPath, path), true)
         val intentionText = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// INTENTION_TEXT: ") ?: error("Empty intention text")
         val mainInspectionClassName = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// INSPECTION_CLASS: ") ?: error("Empty inspection class name")
         val dependency = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// DEPENDENCY: ")
@@ -53,7 +53,7 @@ abstract class AbstractAndroidLintQuickfixTest : KotlinAndroidTestCase() {
         if (intentionAvailable) {
             val intention = myFixture.getAvailableIntention(intentionText) ?: error("Failed to find intention")
             myFixture.launchAction(intention)
-            myFixture.checkResultByFile(path + ".expected")
+            myFixture.checkResultByFile("$path.expected")
         }
         else {
             assertNull("Intention should not be available", myFixture.availableIntentions.find { it.text == intentionText })
