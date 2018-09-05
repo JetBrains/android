@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import sun.swing.SwingUtilities2;
+import com.intellij.util.ui.UIUtilities;
 
 import javax.swing.*;
 import javax.swing.plaf.UIResource;
@@ -161,19 +161,19 @@ public class SimpleTabUI extends BasicTabbedPaneUI {
           }
         }
         g.setColor(fg);
-        SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
-                                                  title, mnemIndex,
-                                                  textRect.x, textRect.y + metrics.getAscent());
+        UIUtilities.drawStringUnderlineCharAt(tabPane, g,
+                                              title, mnemIndex,
+                                              textRect.x, textRect.y + metrics.getAscent());
       }
       else { // tab disabled
         g.setColor(tabPane.getBackgroundAt(tabIndex).brighter());
-        SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
-                                                  title, mnemIndex,
-                                                  textRect.x, textRect.y + metrics.getAscent());
+        UIUtilities.drawStringUnderlineCharAt(tabPane, g,
+                                              title, mnemIndex,
+                                              textRect.x, textRect.y + metrics.getAscent());
         g.setColor(tabPane.getBackgroundAt(tabIndex).darker());
-        SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
-                                                  title, mnemIndex,
-                                                  textRect.x - 1, textRect.y + metrics.getAscent() - 1);
+        UIUtilities.drawStringUnderlineCharAt(tabPane, g,
+                                              title, mnemIndex,
+                                              textRect.x - 1, textRect.y + metrics.getAscent() - 1);
       }
     }
   }

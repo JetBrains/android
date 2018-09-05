@@ -18,8 +18,8 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
@@ -247,7 +247,7 @@ public class FlatTabbedPane extends JTabbedPane {
       int selectedIndex = tabPane.getSelectedIndex();
       boolean isSelected = selectedIndex == tabIndex;
       Font font = tabPane.getFont();
-      FontMetrics metrics = SwingUtilities2.getFontMetrics(tabPane, g, font);
+      FontMetrics metrics = UIUtilities.getFontMetrics(tabPane, g, font);
 
       if (isSelected) {
         g.setColor(myActiveColor);
