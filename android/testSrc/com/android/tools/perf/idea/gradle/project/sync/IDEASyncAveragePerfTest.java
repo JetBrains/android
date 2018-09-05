@@ -26,7 +26,7 @@ public class IDEASyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
   public String getMetricName() {
-    return "Average Project IDEA sync";
+    return "Average-Project-IDEA-sync";
   }
 
   @NotNull
