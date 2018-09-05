@@ -56,7 +56,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
       @NotNull
       @Override
       public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-        AndroidJUnitConfiguration configuration = new AndroidJUnitConfiguration("", project, this);
+        AndroidJUnitConfiguration configuration = new AndroidJUnitConfiguration(project, this);
         configuration.setVMParameters("-ea");
         configuration.setWorkingDirectory("$MODULE_DIR$");
         return configuration;
