@@ -27,7 +27,6 @@ import com.intellij.build.events.impl.FileMessageEventImpl;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Contract;
@@ -44,7 +43,6 @@ import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser
  * Parser got errors returned by the Android Gradle Plugin in AGPBI json format.
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
-  private static final Logger LOG = Logger.getInstance(GradleBuildOutputParser.class);
   private static final String MESSAGES_GROUP = "Android errors";
   @VisibleForTesting static final String END_DETAIL = "* Try:";
 
@@ -81,8 +79,8 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   }
 
   /**
-   * PRocess an error message stored in myBufferedLines
-   * @param consumer
+   * Process an error message stored in myBufferedLines
+   * @param messageConsumer
    */
   private void processMessage(@NotNull Consumer<MessageEvent> messageConsumer) {
     assert myBuildId != null;
@@ -136,8 +134,9 @@ public class GradleBuildOutputParser implements BuildOutputParser {
         return MessageEvent.Kind.ERROR;
       case SIMPLE:
         return MessageEvent.Kind.SIMPLE;
+      default:
+        return MessageEvent.Kind.ERROR;
     }
-    return MessageEvent.Kind.ERROR;
   }
 
   /**
