@@ -69,4 +69,9 @@ public final class AndroidJUnitConfigurationType extends SimpleConfigurationType
   public String getTag() {
     return "androidJunit";
   }
+
+  @Override
+  public String getHelpTopic() {
+    return "reference.dialogs.rundebug.AndroidJUnit";
+  }
 }
