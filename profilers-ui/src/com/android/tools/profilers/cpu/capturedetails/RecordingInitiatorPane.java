@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
 import java.awt.FontMetrics;
 import javax.swing.JButton;
@@ -39,7 +40,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 /**
  * A {@link CapturePane} that contains necessary components to start recording a method trace (e.g "Record" button
@@ -112,8 +112,8 @@ class RecordingInitiatorPane extends CapturePane {
 
   @NotNull
   private JComponent createHelpTipInstructions() {
-    FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(this, ProfilerFonts.H3_FONT);
-    FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(this, ProfilerFonts.STANDARD_FONT);
+    FontMetrics headerMetrics = UIUtilities.getFontMetrics(this, ProfilerFonts.H3_FONT);
+    FontMetrics bodyMetrics = UIUtilities.getFontMetrics(this, ProfilerFonts.STANDARD_FONT);
     return new InstructionsPanel.Builder(
       new TextInstruction(headerMetrics, HELP_TIP_TITLE),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),

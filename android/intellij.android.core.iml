@@ -168,5 +168,6 @@
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin" level="project" />
+    <orderEntry type="library" name="Java Compatibility" level="project" />
   </component>
 </module>
