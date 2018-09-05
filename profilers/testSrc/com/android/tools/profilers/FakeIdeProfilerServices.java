@@ -129,6 +129,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCpuApiTracingEnabled = false;
 
   /**
+   * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
+   */
+  private boolean myCpuNewRecordingWorkflowEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -236,7 +241,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isCpuNewRecordingWorkflowEnabled() {
-        return false;
+        return myCpuNewRecordingWorkflowEnabled;
       }
 
       @Override
@@ -475,5 +480,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableImportTrace(boolean enabled) {
     myImportCpuTraceEnabled = enabled;
+  }
+
+  public void enableCpuNewRecordingWorkflow(boolean enabled) {
+    myCpuNewRecordingWorkflowEnabled = enabled;
   }
 }
