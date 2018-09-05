@@ -160,11 +160,13 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
   }
 
   protected void copyResourceDirectoryForTest(String path) {
-    File testFile = new File(path);
+    File testFile = new File(getTestDataPath(), path);
     if (testFile.isFile()) {
-      myFixture.copyDirectoryToProject(testFile.getParent() + "/res", "res");
+      myFixture.copyDirectoryToProject(new File(path).getParent() + "/res", "res");
     } else if (testFile.isDirectory()) {
-      myFixture.copyDirectoryToProject(testFile.getPath() + "/res", "res");
+      myFixture.copyDirectoryToProject(path + "/res", "res");
+    } else {
+      throw new RuntimeException("Could not find resource directory for test");
     }
   }
 
