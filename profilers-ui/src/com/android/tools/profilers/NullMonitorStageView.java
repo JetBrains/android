@@ -19,8 +19,8 @@ import com.android.tools.adtui.instructions.*;
 import com.intellij.ui.JBColor;
 import icons.StudioIcons;
 import icons.StudioIllustrations;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -121,7 +121,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
   public RenderInstruction[] getMessageInstructions() {
     Font font = myTitle.getFont().deriveFont(12.0f);
     List<RenderInstruction> instructions = new ArrayList<>();
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(myInstructionsWrappingPanel, font);
+    FontMetrics metrics = UIUtilities.getFontMetrics(myInstructionsWrappingPanel, font);
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       instructions.add(new TextInstruction(metrics, "Click "));
       instructions.add(new IconInstruction(StudioIcons.Common.ADD, PROFILING_INSTRUCTIONS_ICON_PADDING, null));

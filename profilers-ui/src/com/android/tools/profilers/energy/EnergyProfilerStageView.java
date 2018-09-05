@@ -30,9 +30,9 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -284,7 +284,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
       new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT), "Select a range to inspect energy events"))
+        new TextInstruction(UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT), "Select a range to inspect energy events"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionPanel -> parent.remove(instructionPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();

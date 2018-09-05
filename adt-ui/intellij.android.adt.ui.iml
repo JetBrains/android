@@ -36,5 +36,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="Java Compatibility" level="project" />
   </component>
 </module>

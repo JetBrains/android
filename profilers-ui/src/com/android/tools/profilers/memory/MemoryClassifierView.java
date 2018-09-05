@@ -37,10 +37,10 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableColumnModel;
@@ -354,18 +354,18 @@ final class MemoryClassifierView extends AspectObserver {
 
     if (myStage.getSelectedCapture().isExportable()) {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
+        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
+        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
                             HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
         .setColors(JBColor.foreground(), null)
         .build();
     }
     else {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
+        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
+        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
                             HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
         .setColors(JBColor.foreground(), null)
         .build();

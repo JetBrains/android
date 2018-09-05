@@ -44,6 +44,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.FontMetrics;
@@ -53,7 +54,6 @@ import java.awt.event.MouseListener;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSizing {
@@ -273,7 +273,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
+    FontMetrics metrics = UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     InstructionsPanel panel =
       new InstructionsPanel.Builder(new TextInstruction(metrics, "Click Record to start capturing CPU activity"))
         .setEaseOut(myStage.getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))

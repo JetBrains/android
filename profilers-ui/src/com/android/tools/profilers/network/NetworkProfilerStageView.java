@@ -62,6 +62,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -77,7 +78,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-import sun.swing.SwingUtilities2;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
@@ -135,9 +135,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     JPanel infoPanel = new JPanel(new BorderLayout());
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, ProfilerFonts.H3_FONT), "Network profiling data unavailable"),
+      new TextInstruction(UIUtilities.getFontMetrics(infoPanel, ProfilerFonts.H3_FONT), "Network profiling data unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, ProfilerFonts.STANDARD_FONT),
+      new TextInstruction(UIUtilities.getFontMetrics(infoPanel, ProfilerFonts.STANDARD_FONT),
                           "There is no information for the network traffic you've selected."),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new UrlInstruction(ProfilerFonts.STANDARD_FONT, "Learn More",
@@ -301,7 +301,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT),
+      new InstructionsPanel.Builder(new TextInstruction(UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT),
                                                         "Select a range to inspect network traffic"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)

@@ -24,9 +24,9 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.SwingUtilities2;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -34,9 +34,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
-  private final FontMetrics BOLD_FONT_METRICS = SwingUtilities2.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.BOLD));
+  private final FontMetrics BOLD_FONT_METRICS = UIUtilities.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.BOLD));
   private final FontMetrics ITALIC_FONT_METRICS =
-    SwingUtilities2.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.ITALIC));
+    UIUtilities.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.ITALIC));
 
   private final int VERTICAL_MARGIN_PX = JBUI.scale(8);
   private final int VERTICAL_PADDING_PX = VERTICAL_MARGIN_PX;

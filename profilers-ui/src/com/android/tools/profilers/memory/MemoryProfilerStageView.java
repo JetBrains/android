@@ -51,10 +51,10 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -686,7 +686,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                         ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
                         : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
+    FontMetrics metrics = UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     if (getStage().useLiveAllocationTracking()) {
       RenderInstruction[] liveAllocInstructions = {
         new TextInstruction(metrics, "Select a range to inspect allocations"),

@@ -16,8 +16,8 @@
 package com.android.tools.adtui.instructions;
 
 import com.android.annotations.VisibleForTesting;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,7 +63,7 @@ public final class TextInstruction extends RenderInstruction {
     assert (mySize.height <= bounds.height);
     g2d.setColor(c.getForeground());
     g2d.setFont(myFont);
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(c, myFont);
+    FontMetrics metrics = UIUtilities.getFontMetrics(c, myFont);
     Rectangle2D newBounds = myFont.getStringBounds(myText, metrics.getFontRenderContext());
     mySize.setSize((int)newBounds.getWidth(), (int)newBounds.getHeight());
     int textY = bounds.y + metrics.getAscent() + ((bounds.height - mySize.height) / 2);

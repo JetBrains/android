@@ -21,8 +21,8 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.profilers.ProfilerFonts;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,7 +52,7 @@ abstract class CaptureDetailsView {
     JPanel panel = new JPanel(new BorderLayout());
     InstructionsPanel info =
       new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(panel, ProfilerFonts.H3_FONT), NO_DATA_FOR_THREAD_MESSAGE))
+        new TextInstruction(UIUtilities.getFontMetrics(panel, ProfilerFonts.H3_FONT), NO_DATA_FOR_THREAD_MESSAGE))
         .setColors(JBColor.foreground(), null)
         .build();
     panel.add(info, BorderLayout.CENTER);
@@ -64,7 +64,7 @@ abstract class CaptureDetailsView {
     JPanel panel = new JPanel(new BorderLayout());
     InstructionsPanel info =
       new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(panel, ProfilerFonts.H3_FONT), NO_DATA_FOR_RANGE_MESSAGE))
+        new TextInstruction(UIUtilities.getFontMetrics(panel, ProfilerFonts.H3_FONT), NO_DATA_FOR_RANGE_MESSAGE))
         .setColors(JBColor.foreground(), null)
         .build();
     panel.add(info, BorderLayout.CENTER);

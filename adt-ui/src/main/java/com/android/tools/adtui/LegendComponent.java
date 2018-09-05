@@ -25,11 +25,11 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtilities;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -225,9 +225,9 @@ public class LegendComponent extends AnimatedComponent {
         name += ": ";
       }
 
-      myInstructions.add(new TextInstruction(SwingUtilities2.getFontMetrics(this, getFont()), name));
+      myInstructions.add(new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), name));
       if (StringUtil.isNotEmpty(value)) {
-        TextInstruction valueInstruction = new TextInstruction(SwingUtilities2.getFontMetrics(this, getFont()), value);
+        TextInstruction valueInstruction = new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), value);
         myInstructions.add(valueInstruction);
         if (myOrientation != Orientation.VERTICAL) {
           // In order to prevent one legend's value changing causing the other legends from jumping
