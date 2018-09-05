@@ -23,7 +23,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import sun.swing.SwingUtilities2;
+import com.intellij.util.ui.UIUtilities;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -117,11 +117,11 @@ public class StatefulButtonUI extends BasicButtonUI {
     }
     g.setColor(fg);
 
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(c, g);
+    FontMetrics metrics = UIUtilities.getFontMetrics(c, g);
     int mnemonicIndex = DarculaLaf.isAltPressed() ? button.getDisplayedMnemonicIndex() : -1;
     if (model.isEnabled()) {
 
-      SwingUtilities2.drawStringUnderlineCharAt(c, g, text, mnemonicIndex,
+      UIUtilities.drawStringUnderlineCharAt(c, g, text, mnemonicIndex,
                                                 textRect.x + getTextShiftOffset(),
                                                 textRect.y + metrics.getAscent() + getTextShiftOffset());
     }
@@ -132,11 +132,11 @@ public class StatefulButtonUI extends BasicButtonUI {
 
   protected void paintDisabledText(Graphics g, String text, JComponent c, Rectangle textRect, FontMetrics metrics) {
     g.setColor(DISABLED_TEXT_SHADOW);
-    SwingUtilities2.drawStringUnderlineCharAt(c, g, text, -1,
+    UIUtilities.drawStringUnderlineCharAt(c, g, text, -1,
                                               textRect.x + getTextShiftOffset() + 1,
                                               textRect.y + metrics.getAscent() + getTextShiftOffset() + 1);
     g.setColor(DISABLED_TEXT);
-    SwingUtilities2.drawStringUnderlineCharAt(c, g, text, -1,
+    UIUtilities.drawStringUnderlineCharAt(c, g, text, -1,
                                               textRect.x + getTextShiftOffset(),
                                               textRect.y + metrics.getAscent() + getTextShiftOffset());
   }
