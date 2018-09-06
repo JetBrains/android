@@ -29,8 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.impl.ProjectManagerImpl;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.*;
@@ -79,7 +78,7 @@ public class GradleFilePsiMerger {
       project2 = project;
     }
     else {
-      project2 = ((ProjectManagerImpl)ProjectManager.getInstance()).newProject("MergingOnly", "", false, true);
+      project2 = ProjectManagerEx.getInstanceEx().newProject("MergingOnly", "", false, true);
       assert project2 != null;
       ((StartupManagerImpl)StartupManager.getInstance(project2)).runStartupActivities();
       projectNeedsCleanup = true;
