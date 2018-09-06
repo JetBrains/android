@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.profiler;
 
+import static com.android.fakeadbserver.DeviceState.HostConnectionType.USB;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.FakeAdbServer;
@@ -30,6 +33,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,11 +42,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-
-import static com.android.fakeadbserver.DeviceState.HostConnectionType.USB;
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidProfilerTest {
@@ -127,7 +126,9 @@ public class AndroidProfilerTest {
 
   private static void benchmarkMethod(@NotNull Benchmark benchmark, @NotNull Runnable method) {
     long benchmarkStart = System.currentTimeMillis();
+    long memoryUsedInitially = getMemoryUsed();
     try {
+      System.gc();
       method.run();
     }
     catch (Exception e) {
@@ -135,7 +136,13 @@ public class AndroidProfilerTest {
       throw e;
     }
     finally {
+      System.gc();
       benchmark.log("total_time", System.currentTimeMillis() - benchmarkStart);
+      benchmark.log("total_mem", getMemoryUsed() - memoryUsedInitially);
     }
+  }
+
+  private static long getMemoryUsed() {
+    return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
   }
 }
