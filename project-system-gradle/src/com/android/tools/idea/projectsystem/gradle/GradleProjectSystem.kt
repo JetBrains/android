@@ -27,7 +27,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.res.ResourceTypeClassFinder
+import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
@@ -45,12 +45,12 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val myPsiElementFinders: List<PsiElementFinder> = run {
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       listOf(
-        ResourceTypeClassFinder.INSTANCE,
+        AndroidInnerClassFinder.INSTANCE,
         AndroidManifestClassPsiElementFinder.getInstance(project),
         AndroidResourceClassPsiElementFinder(getLightResourceClassService())
       )
     } else {
-      listOf(ResourceTypeClassFinder.INSTANCE)
+      listOf(AndroidInnerClassFinder.INSTANCE)
     }
   }
 

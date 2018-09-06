@@ -136,7 +136,7 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
     }
   }
 
-  private void copyRJavaAndManifestJava() throws IOException {
+  private void copyRJavaAndManifestJava() {
     copyRJavaToGeneratedSources();
     if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       myFixture.copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
