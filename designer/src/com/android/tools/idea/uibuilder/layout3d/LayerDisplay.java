@@ -144,7 +144,7 @@ public class LayerDisplay {
       public static final Window FOCUSED_WINDOW = new Window("<Focused Window>", -1);
       private String title;
       private int hashCode;
-      public Window(String title, int hashCode) {
+      Window(String title, int hashCode) {
         this.title = title;
         this.hashCode = hashCode;
       }
@@ -335,7 +335,7 @@ public class LayerDisplay {
     private static class BooleanResultReader extends MultiLineReceiver {
       private final boolean[] mResult;
 
-      public BooleanResultReader(boolean[] result) {
+      BooleanResultReader(boolean[] result) {
         mResult = result;
       }
 

@@ -224,7 +224,7 @@ public class AndroidModularizePreviewPanel {
   private static class CodeAndResourcesTreeTable extends TreeTableView {
     private final EventDispatcher<CheckboxTreeListener> myEventDispatcher;
 
-    public CodeAndResourcesTreeTable(CheckedTreeNode root, CheckboxTree.CheckboxTreeCellRenderer renderer, final ColumnInfo[] columns) {
+    CodeAndResourcesTreeTable(CheckedTreeNode root, CheckboxTree.CheckboxTreeCellRenderer renderer, final ColumnInfo[] columns) {
       super(new ListTreeTableModelOnColumns(root, columns));
       final TreeTableTree tree = getTree();
       myEventDispatcher = EventDispatcher.create(CheckboxTreeListener.class);

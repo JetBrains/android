@@ -157,7 +157,7 @@ public final class NHandler implements GfxinfoHandler {
     private boolean myFoundProfileSection = false;
     private boolean myInTimingSection = false;
 
-    public ProcessStatReceiver() {
+    ProcessStatReceiver() {
       super();
       reset();
     }

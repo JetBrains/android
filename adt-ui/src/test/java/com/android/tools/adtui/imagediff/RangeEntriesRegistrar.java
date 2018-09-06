@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
-  public RangeEntriesRegistrar() {
+  RangeEntriesRegistrar() {
     registerSimpleHorizontalRange();
     registerMultipleSeriesHorizontalRange();
     registerSimpleVerticalRange();

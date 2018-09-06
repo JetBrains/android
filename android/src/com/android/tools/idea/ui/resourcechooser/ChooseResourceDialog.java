@@ -1273,7 +1273,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     @NotNull private ResourceChooserGroup[] myGroups = new ResourceChooserGroup[0];
     @NotNull private final ResourceType myType;
 
-    public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
+    ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
                          @NotNull Collection<String> attrs) {
       myType = type;
 

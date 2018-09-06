@@ -69,7 +69,7 @@ class StackTraceExpander {
    */
   private boolean myIsInTrace;
 
-  public StackTraceExpander(@NotNull String stackTraceLinePrefix, @NotNull String stackTraceCauseLinePrefix) {
+  StackTraceExpander(@NotNull String stackTraceLinePrefix, @NotNull String stackTraceCauseLinePrefix) {
     myStackTracePrefix = stackTraceLinePrefix;
     myCauseLinePrefix = stackTraceCauseLinePrefix;
 

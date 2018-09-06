@@ -181,7 +181,7 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
     public int myIndex;
     public Instance myInstance;
 
-    public InstanceListItem(int index, @NotNull Instance instance) {
+    InstanceListItem(int index, @NotNull Instance instance) {
       myIndex = index;
       myInstance = instance;
     }
@@ -196,7 +196,7 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
     public int myIndex;
     public AnalysisResultEntry myEntry;
 
-    public EntryListItem(int index, @NotNull AnalysisResultEntry entry) {
+    EntryListItem(int index, @NotNull AnalysisResultEntry entry) {
       myIndex = index;
       myEntry = entry;
     }

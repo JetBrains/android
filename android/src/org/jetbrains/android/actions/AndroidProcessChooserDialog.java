@@ -522,7 +522,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     private boolean myShowSerial;
     private DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch,
+    MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch,
                                      boolean showSerial,
                                      @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       mySpeedSearch = treeSpeedSearch;

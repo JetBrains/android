@@ -200,7 +200,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     private boolean removeConstraintLayout = true; // Remove dependencies on constraint-layout, which was not supported in old plugins.
     private boolean resetActivityMain = true;
 
-    public TestSettings(@NotNull String gradleVersion, @NotNull String pluginVersion) {
+    TestSettings(@NotNull String gradleVersion, @NotNull String pluginVersion) {
       this.gradleVersion = gradleVersion;
       this.pluginVersion = pluginVersion;
     }

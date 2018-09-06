@@ -612,7 +612,7 @@ public class ModelWizardTest {
   private static class FakeModelException extends RuntimeException {
     private final WizardModel myModel;
 
-    public FakeModelException(WizardModel model) {
+    FakeModelException(WizardModel model) {
       myModel = model; }
 
     public WizardModel getModel() {
@@ -637,7 +637,7 @@ public class ModelWizardTest {
    * class.
    */
   private static abstract class NoUiStep<M extends WizardModel> extends ModelWizardStep<M> {
-    public NoUiStep(@NotNull M model) {
+    NoUiStep(@NotNull M model) {
       super(model, "");
     }
 
@@ -649,7 +649,7 @@ public class ModelWizardTest {
   }
 
   private static class DummyStep extends NoUiStep<DummyModel> {
-    public DummyStep(@NotNull DummyModel model) {
+    DummyStep(@NotNull DummyModel model) {
       super(model);
     }
   }
@@ -657,7 +657,7 @@ public class ModelWizardTest {
   private static class ShouldSkipStep extends NoUiStep<DummyModel> {
     private boolean myEntered;
 
-    public ShouldSkipStep(@NotNull DummyModel model) {
+    ShouldSkipStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -677,7 +677,7 @@ public class ModelWizardTest {
   }
 
   private static class PreventNavigatingForwardStep extends NoUiStep<DummyModel> {
-    public PreventNavigatingForwardStep(@NotNull DummyModel model) {
+    PreventNavigatingForwardStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -689,7 +689,7 @@ public class ModelWizardTest {
   }
 
   private static class PreventNavigatingBackwardStep extends NoUiStep<DummyModel> {
-    public PreventNavigatingBackwardStep(@NotNull DummyModel model) {
+    PreventNavigatingBackwardStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -702,7 +702,7 @@ public class ModelWizardTest {
   private static class DisposedStep extends NoUiStep<DummyModel> {
     private boolean myDisposed;
 
-    public DisposedStep(@NotNull DummyModel model) {
+    DisposedStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -719,7 +719,7 @@ public class ModelWizardTest {
   private static class RecordFinishedModel extends WizardModel {
     private final List<RecordFinishedModel> myRecordInto;
 
-    public RecordFinishedModel(List<RecordFinishedModel> recordInto) {
+    RecordFinishedModel(List<RecordFinishedModel> recordInto) {
       myRecordInto = recordInto;
     }
 
@@ -732,7 +732,7 @@ public class ModelWizardTest {
   private static class RecordFinishedStep extends NoUiStep<RecordFinishedModel> {
     private boolean myShouldShow = true;
 
-    public RecordFinishedStep(@NotNull RecordFinishedModel model) {
+    RecordFinishedStep(@NotNull RecordFinishedModel model) {
       super(model);
     }
 
@@ -802,7 +802,7 @@ public class ModelWizardTest {
   private static class NameStep extends NoUiStep<PersonModel> {
     private final String myName;
 
-    public NameStep(PersonModel model, String name) {
+    NameStep(PersonModel model, String name) {
       super(model);
       myName = name; // Normally, this would be set in some UI, but this is just a test
     }
@@ -816,7 +816,7 @@ public class ModelWizardTest {
   private static class AgeStep extends NoUiStep<PersonModel> {
     private final int myAge;
 
-    public AgeStep(PersonModel model, int age) {
+    AgeStep(PersonModel model, int age) {
       super(model);
       myAge = age; // Normally, this would be set in some UI, but this is just a test
     }
@@ -830,7 +830,7 @@ public class ModelWizardTest {
   private static class TitleStep extends NoUiStep<OccupationModel> {
     private final String myTitle;
 
-    public TitleStep(OccupationModel model, String title) {
+    TitleStep(OccupationModel model, String title) {
       super(model);
       myTitle = title; // Normally, this would be set in some UI, but this is just a test
     }
@@ -887,7 +887,7 @@ public class ModelWizardTest {
   private static class FakeStepException extends RuntimeException {
     private final ModelWizardStep<?> myStep;
 
-    public FakeStepException(ModelWizardStep<?> step) {
+    FakeStepException(ModelWizardStep<?> step) {
       myStep = step;
     }
 

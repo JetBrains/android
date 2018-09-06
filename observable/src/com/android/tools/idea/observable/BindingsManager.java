@@ -163,7 +163,7 @@ public final class BindingsManager {
       }
     }
 
-    public OneWayBinding(SettableValue<T> dest, ObservableValue<T> src, ObservableValue<Boolean> enabled) {
+    OneWayBinding(SettableValue<T> dest, ObservableValue<T> src, ObservableValue<Boolean> enabled) {
       myDest = dest;
       mySrc = src;
       myEnabled = enabled;
@@ -197,7 +197,7 @@ public final class BindingsManager {
       }
     };
 
-    public TwoWayBinding(SettableValue<T> lhs, SettableValue<T> rhs) {
+    TwoWayBinding(SettableValue<T> lhs, SettableValue<T> rhs) {
       myLhs = lhs;
       myRhs = rhs;
       myLhs.addListener(myLeftChangedListener);
@@ -222,7 +222,7 @@ public final class BindingsManager {
     private final SettableValue<T> myDest;
     private final ObservableValue<T> mySrc;
 
-    public DestUpdater(SettableValue<T> dest, ObservableValue<T> src) {
+    DestUpdater(SettableValue<T> dest, ObservableValue<T> src) {
       myDest = dest;
       mySrc = src;
     }

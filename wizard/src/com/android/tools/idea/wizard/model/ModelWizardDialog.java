@@ -239,7 +239,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
    * By associating actions with those properties, we can easily bind UI buttons to them.
    */
   private abstract class ModelWizardDialogAction extends DialogWrapperAction {
-    public ModelWizardDialogAction(@NotNull String name) {
+    ModelWizardDialogAction(@NotNull String name) {
       super(name);
     }
 
@@ -363,7 +363,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
       return myExtraAction.isPresent();
     }
 
-    public StepActionWrapper() {
+    StepActionWrapper() {
       super("");
 
       myExtraAction = myWizard.getExtraAction();

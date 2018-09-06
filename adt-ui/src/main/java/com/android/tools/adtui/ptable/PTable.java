@@ -448,7 +448,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     // don't launch a full editor, just perform a quick toggle
     private final boolean myToggleOnly;
 
-    public MyEnterAction(boolean toggleOnly) {
+    MyEnterAction(boolean toggleOnly) {
       myToggleOnly = toggleOnly;
     }
 
@@ -477,7 +477,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   private class MyExpandCurrentAction extends AbstractAction {
     private final boolean myExpand;
 
-    public MyExpandCurrentAction(boolean expand) {
+    MyExpandCurrentAction(boolean expand) {
       myExpand = expand;
     }
 

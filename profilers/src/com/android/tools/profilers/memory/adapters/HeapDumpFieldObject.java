@@ -49,7 +49,7 @@ final class HeapDumpFieldObject implements FieldObject {
 
   private final int myHashCode;
 
-  public HeapDumpFieldObject(@NotNull HeapDumpCaptureObject captureObject, @NotNull Instance parentInstance, @NotNull FieldValue field) {
+  HeapDumpFieldObject(@NotNull HeapDumpCaptureObject captureObject, @NotNull Instance parentInstance, @NotNull FieldValue field) {
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {

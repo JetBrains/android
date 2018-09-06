@@ -44,7 +44,7 @@ final class GuiPerfLogger extends TestWatcher {
   @NotNull private final Benchmark myTimeBenchmark;
   @NotNull private final Benchmark myMemoryBenchmark;
 
-  public GuiPerfLogger(@NotNull Description description) {
+  GuiPerfLogger(@NotNull Description description) {
     myBenchmarkLogger = new BenchmarkLogger(description.getDisplayName());
 
     myTimeBenchmark = new Benchmark(UI_TEST_TIME_BENCHMARK);

@@ -27,7 +27,7 @@ abstract class DefinitionReference implements DataBindingXmlReferenceContributor
   protected final PsiElement myElement;
   protected final PsiElement myTarget;
 
-  public DefinitionReference(@NotNull PsiElement element, PsiElement resolveTo) {
+  DefinitionReference(@NotNull PsiElement element, PsiElement resolveTo) {
     this(element, resolveTo, getElementRange(element));
   }
 
@@ -37,7 +37,7 @@ abstract class DefinitionReference implements DataBindingXmlReferenceContributor
     return startOffsetInParent > 0 ? element.getTextRange().shiftRight(-startOffsetInParent) : element.getTextRange();
   }
 
-  public DefinitionReference(@NotNull PsiElement element, PsiElement resolveTo, @NotNull TextRange range) {
+  DefinitionReference(@NotNull PsiElement element, PsiElement resolveTo, @NotNull TextRange range) {
     myElement = element;
     myTarget = resolveTo;
     myTextRange = range;

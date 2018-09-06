@@ -39,7 +39,7 @@ public class AspectModelTest {
     @Nullable public Aspect lastAspect;
     private AspectModel<Aspect> myModel;
 
-    public Observer(AspectModel<Aspect> model, Aspect... observedAspects) {
+    Observer(AspectModel<Aspect> model, Aspect... observedAspects) {
       if (observedAspects.length > 0) {
         myObserved = Arrays.asList(observedAspects);
       }

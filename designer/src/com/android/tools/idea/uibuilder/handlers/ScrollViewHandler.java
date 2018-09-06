@@ -154,7 +154,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   static class ToggleRenderModeAction extends ToggleViewAction {
-    public ToggleRenderModeAction() {
+    ToggleRenderModeAction() {
       super(AndroidDesignerIcons.ViewportRender, AndroidDesignerIcons.NormalRender, "Toggle Viewport Render Mode", null);
     }
 

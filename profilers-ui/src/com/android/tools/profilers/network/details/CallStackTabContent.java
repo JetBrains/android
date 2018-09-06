@@ -36,7 +36,7 @@ final class CallStackTabContent extends TabContent {
   @NotNull
   private final StackTraceView myStackTraceView;
 
-  public CallStackTabContent(@NotNull NetworkConnectionsModel model, @NotNull StackTraceView stackTraceView) {
+  CallStackTabContent(@NotNull NetworkConnectionsModel model, @NotNull StackTraceView stackTraceView) {
     myConnectionsModel = model;
     myStackTraceView = stackTraceView;
   }

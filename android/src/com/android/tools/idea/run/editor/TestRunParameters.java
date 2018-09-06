@@ -159,7 +159,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   }
 
   private class MyMethodBrowser extends BrowseModuleValueActionListener {
-    public MyMethodBrowser() {
+    MyMethodBrowser() {
       super(myProject);
     }
 

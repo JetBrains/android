@@ -246,7 +246,7 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     @NotNull
     private final String myValue;
 
-    public TestGradleValue(@NotNull String value) {
+    TestGradleValue(@NotNull String value) {
       myValue = value;
     }
 

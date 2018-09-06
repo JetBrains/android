@@ -42,7 +42,7 @@ public class SwingUtil {
 
     private JComboBox comboBox;
 
-    public Actions(String name, JComboBox comboBox) {
+    Actions(String name, JComboBox comboBox) {
       super(name);
       this.comboBox = comboBox;
     }

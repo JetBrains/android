@@ -96,7 +96,7 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
     private final CustomPanel myPanel;
     private NlComponent myComponent;
 
-    public LayoutCustomPanelInspectorComponent(CustomPanel panel) {
+    LayoutCustomPanelInspectorComponent(CustomPanel panel) {
       myPanel = panel;
     }
 

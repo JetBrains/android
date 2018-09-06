@@ -45,7 +45,7 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   }
 
   static class ZoomToFitAction extends SetZoomAction {
-    public ZoomToFitAction(@NotNull DesignSurface surface) {
+    ZoomToFitAction(@NotNull DesignSurface surface) {
       super(surface, ZoomType.FIT);
     }
 

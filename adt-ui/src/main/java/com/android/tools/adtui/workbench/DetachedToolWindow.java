@@ -47,12 +47,12 @@ class DetachedToolWindow<T> implements Disposable {
   private final ToolWindowEx myToolWindow;
   private AttachedToolWindow<T> myCorrespondingToolWindow;
 
-  public DetachedToolWindow(@NotNull Project project,
+  DetachedToolWindow(@NotNull Project project,
                             @NotNull ToolWindowDefinition<T> definition) {
     this(definition, ToolWindowManager.getInstance(project));
   }
 
-  public DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+  DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                             @NotNull ToolWindowManager toolWindowManager) {
     myContent = definition.getFactory().create();
     myToolWindow = createToolWindow(toolWindowManager, definition);

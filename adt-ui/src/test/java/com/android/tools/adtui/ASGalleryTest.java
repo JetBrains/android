@@ -163,7 +163,7 @@ public final class ASGalleryTest extends PlatformTestCase {
     public String myLabel;
     public Image myImage;
 
-    public ModelObject(int number) {
+    ModelObject(int number) {
       myNumber = number;
     }
 

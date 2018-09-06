@@ -1043,7 +1043,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {
 
-    public ManifestTreeNode(@NotNull Node obj) {
+    ManifestTreeNode(@NotNull Node obj) {
       super(obj);
     }
 
@@ -1154,7 +1154,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     private final SimpleTextAttributes myValueAttributes;
     private final SimpleTextAttributes myPrefixAttributes;
 
-    public SyntaxHighlightingCellRenderer() {
+    SyntaxHighlightingCellRenderer() {
       EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
       Color tagNameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_TAG_NAME).getForegroundColor();
       Color nameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_ATTRIBUTE_NAME).getForegroundColor();
@@ -1217,7 +1217,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private class FileColorTree extends Tree {
-    public FileColorTree() {
+    FileColorTree() {
       setFont(myDefaultFont);
       setBackground(myBackgroundColor);
     }

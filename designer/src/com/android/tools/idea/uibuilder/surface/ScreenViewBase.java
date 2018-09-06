@@ -46,7 +46,7 @@ abstract class ScreenViewBase extends SceneView {
   private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
-  public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+  ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
   }
 

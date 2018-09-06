@@ -89,10 +89,10 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
     @Nullable private String myPackageNamePattern;
     private boolean myPackageNameIsRegex = true;
 
-    public FilterData() {
+    FilterData() {
     }
 
-    public FilterData(@NotNull FilterData otherEntry) {
+    FilterData(@NotNull FilterData otherEntry) {
       myName = otherEntry.myName;
       myLogMessagePattern = otherEntry.myLogMessagePattern;
       myLogMessageIsRegex = otherEntry.myLogMessageIsRegex;

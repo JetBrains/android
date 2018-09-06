@@ -38,7 +38,7 @@ abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTreeModel {
   private final AspectObserver myAspectObserver;
   private final AspectModel<Aspect> myAspectModel;
 
-  public CpuTreeModel(@NotNull Range range, @NotNull T node) {
+  CpuTreeModel(@NotNull Range range, @NotNull T node) {
     super(new DefaultMutableTreeNode(node));
     myRange = range;
     myCurrentRange = new Range();

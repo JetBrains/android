@@ -143,7 +143,7 @@ public final class TreeWalker {
   private static final class AncestorIterator implements Iterator<Component> {
     Component currComponent;
 
-    public AncestorIterator(Component root) {
+    AncestorIterator(Component root) {
       currComponent = root;
     }
 
@@ -163,7 +163,7 @@ public final class TreeWalker {
   private static final class BfsDescendantIterator implements Iterator<Component> {
     private final Queue<Component> myDescendants = new Queue<>(10);
 
-    public BfsDescendantIterator(Component root) {
+    BfsDescendantIterator(Component root) {
       myDescendants.addLast(root);
     }
 
@@ -190,7 +190,7 @@ public final class TreeWalker {
   private static final class DfsDescendantIterator implements Iterator<Component> {
     private final Stack<Component> myDescendants = new Stack<>();
 
-    public DfsDescendantIterator(Component root) {
+    DfsDescendantIterator(Component root) {
       myDescendants.push(root);
     }
 

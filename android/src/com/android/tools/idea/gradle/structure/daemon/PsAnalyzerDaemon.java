@@ -212,7 +212,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
   private class IssuesComputed extends Update {
     @NotNull private final PsModel myModel;
 
-    public IssuesComputed(@NotNull PsModel model) {
+    IssuesComputed(@NotNull PsModel model) {
       super(model);
       myModel = model;
     }

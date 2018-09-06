@@ -313,7 +313,7 @@ public class ASGallery<E> extends JBList {
   private static final class ToOptionalFunction<P, R> implements Function<P, Optional<R>> {
     private final Function<P, R> myFunction;
 
-    public ToOptionalFunction(Function<P, R> function) {
+    ToOptionalFunction(Function<P, R> function) {
       myFunction = function;
     }
 
@@ -447,7 +447,7 @@ public class ASGallery<E> extends JBList {
   private static class TextOnlyCellRenderer extends AbstractCellRenderer {
     private JLabel myLabel;
 
-    public TextOnlyCellRenderer(String label) {
+    TextOnlyCellRenderer(String label) {
       // If no image, create a single JLabel for the whole cell.
       JLabel jlabel;
       jlabel = new JLabel(label);
@@ -472,7 +472,7 @@ public class ASGallery<E> extends JBList {
     private JPanel myPanel;
     private JLabel myLabel;
 
-    public TextAndImageCellRenderer(Font font, String label, Image image) {
+    TextAndImageCellRenderer(Font font, String label, Image image) {
       // If there is an image, create a panel with the image at the top and
       // the label at the bottom. Also take care of selection highlighting.
       // +-Panel-------+

@@ -414,7 +414,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     @NotNull
     final List<ResourceType>  types;
 
-    public ResourceTypeAllowedValues(@NotNull List<ResourceType> types) {
+    ResourceTypeAllowedValues(@NotNull List<ResourceType> types) {
       this.types = types;
     }
 

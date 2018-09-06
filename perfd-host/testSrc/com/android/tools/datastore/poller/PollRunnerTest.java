@@ -49,7 +49,7 @@ public class PollRunnerTest {
     private boolean myTestDone = false;
     private boolean myTestPassed = true;
 
-    public PollRunnerMinimalImpl(int count, long minimumDelayNs) {
+    PollRunnerMinimalImpl(int count, long minimumDelayNs) {
       super(POLLING_DELAY_NS);
       myTickCallCount = count;
       myMinimumDelayNs = minimumDelayNs;

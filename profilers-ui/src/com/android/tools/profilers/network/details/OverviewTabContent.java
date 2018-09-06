@@ -81,7 +81,7 @@ final class OverviewTabContent extends TabContent {
 
   private JPanel myPanel;
 
-  public OverviewTabContent(@NotNull FeatureConfig features,
+  OverviewTabContent(@NotNull FeatureConfig features,
                             @NotNull IdeProfilerComponents components,
                             @NotNull NetworkConnectionsModel model) {
     myFeatures = features;
@@ -325,7 +325,7 @@ final class OverviewTabContent extends TabContent {
    * This is a label with bold font and does not wrap.
    */
   static final class NoWrapBoldLabel extends BoldLabel {
-    public NoWrapBoldLabel(String text) {
+    NoWrapBoldLabel(String text) {
       super("<nobr>" + text + "</nobr>");
     }
   }
@@ -335,7 +335,7 @@ final class OverviewTabContent extends TabContent {
    */
   private static class WrappedHyperlink extends JTextArea {
 
-    public WrappedHyperlink(@NotNull String url) {
+    WrappedHyperlink(@NotNull String url) {
       super(url);
       setLineWrap(true);
       setEditable(false);

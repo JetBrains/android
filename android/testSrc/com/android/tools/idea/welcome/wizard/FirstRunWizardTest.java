@@ -124,7 +124,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   private static final class SingleStepWizard extends DynamicWizard {
     @NotNull private final DynamicWizardStep myStep;
 
-    public SingleStepWizard(@NotNull DynamicWizardStep step) {
+    SingleStepWizard(@NotNull DynamicWizardStep step) {
       super(null, null, "Single Step Wizard");
       myStep = step;
     }

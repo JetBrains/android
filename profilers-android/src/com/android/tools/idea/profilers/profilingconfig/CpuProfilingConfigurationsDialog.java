@@ -127,7 +127,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     private int myDeviceLevel;
 
-    public ProfilingConfigurable(Project project,
+    ProfilingConfigurable(Project project,
                                  CpuProfilerConfigModel model,
                                  int deviceLevel,
                                  FeatureTracker featureTracker) {
@@ -260,7 +260,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
        */
       private JLabel myLabel;
 
-      public ProfilingConfigurationsListCellRenderer() {
+      ProfilingConfigurationsListCellRenderer() {
         myLabel = new JLabel();
         Border marginLeft = new EmptyBorder(0, 10, 0, 0);
         myLabel.setBorder(marginLeft);
@@ -300,7 +300,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
      */
     private class MyAddAction extends AnAction implements AnActionButtonRunnable, AnActionButtonUpdater {
 
-      public MyAddAction() {
+      MyAddAction() {
         super("Add Configuration", "Add a new configuration", IconUtil.getAddIcon());
       }
 
@@ -357,7 +357,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
      */
     private class MyRemoveAction extends AnAction implements AnActionButtonRunnable, AnActionButtonUpdater {
 
-      public MyRemoveAction() {
+      MyRemoveAction() {
         super("Remove Configuration", "Remove the selected configuration", IconUtil.getRemoveIcon());
       }
 
@@ -400,7 +400,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       private int myMoveDownCount;
 
-      public MyMoveAction(String actionText, int moveDownCount, Icon icon) {
+      MyMoveAction(String actionText, int moveDownCount, Icon icon) {
         super(actionText, null, icon);
         myMoveDownCount = moveDownCount;
       }

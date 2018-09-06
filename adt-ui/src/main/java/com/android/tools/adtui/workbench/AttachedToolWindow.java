@@ -71,7 +71,7 @@ class AttachedToolWindow<T> implements Disposable {
   private boolean myAutoHideOpen;
   private int myToolOrder;
 
-  public AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+  AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                             @NotNull ButtonDragListener<T> dragListener,
                             @NotNull String workBenchName,
                             @NotNull SideModel<T> model) {
@@ -413,7 +413,7 @@ class AttachedToolWindow<T> implements Disposable {
     private final Component myDragImage;
     private final Point myDragPoint;
 
-    public DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
+    DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
       myMouseEvent = mouseEvent;
       myDragImage = dragImage;
       myDragPoint = dragPoint;
@@ -455,7 +455,7 @@ class AttachedToolWindow<T> implements Disposable {
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    public MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
+    MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -582,7 +582,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class SearchAction extends AnAction {
-    public SearchAction() {
+    SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.Actions.Find);
@@ -595,7 +595,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class GearAction extends AnAction {
-    public GearAction() {
+    GearAction() {
       super("More Options");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.General.GearPlain);
@@ -616,7 +616,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class HideAction extends AnAction {
-    public HideAction() {
+    HideAction() {
       super(UIBundle.message("tool.window.hide.action.name"));
       update(getTemplatePresentation());
     }
@@ -646,12 +646,12 @@ class AttachedToolWindow<T> implements Disposable {
   private class TogglePropertyTypeAction extends ToggleAction {
     private final PropertyType myProperty;
 
-    public TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(text);
       myProperty = property;
     }
 
-    public TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
       myProperty = property;
       copyFrom(action);
     }
@@ -668,11 +668,11 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class ToggleOppositePropertyTypeAction extends TogglePropertyTypeAction {
-    public ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(property, text);
     }
 
-    public ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
       super(property, action);
     }
 
@@ -688,7 +688,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class SwapAction extends AnAction {
-    public SwapAction() {
+    SwapAction() {
       super("Swap");
     }
 

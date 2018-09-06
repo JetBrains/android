@@ -89,7 +89,7 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
     private final Map<String, String> myPropertyNameUiNameMap;
     private final String myTitle;
 
-    public NavigationInspectorComponent(@NotNull Map<String, NlProperty> properties,
+    NavigationInspectorComponent(@NotNull Map<String, NlProperty> properties,
                                         @NotNull NavPropertiesManager propertiesManager,
                                         Map<String, String> propertyNameUiNameMap, String title) {
       myEditors = new ArrayList<>(propertyNameUiNameMap.size());

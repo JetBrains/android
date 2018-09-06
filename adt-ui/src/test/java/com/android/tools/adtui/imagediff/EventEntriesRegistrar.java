@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
-  public EventEntriesRegistrar() {
+  EventEntriesRegistrar() {
     registerAddActivityEvent();
     registerAddRunningActivityEvent();
     registerMultipleStackedActivitiesEvent();

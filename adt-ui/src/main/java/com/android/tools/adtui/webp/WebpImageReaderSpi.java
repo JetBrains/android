@@ -120,7 +120,7 @@ public class WebpImageReaderSpi extends ImageReaderSpi {
     private final int[] myHeightOut = new int[1];
     private int myError;
 
-    public WebpReader(ImageReaderSpi originatingProvider) {
+    WebpReader(ImageReaderSpi originatingProvider) {
       super(originatingProvider);
     }
 

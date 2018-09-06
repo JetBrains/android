@@ -492,7 +492,7 @@ public class SingleWidgetView extends JPanel {
       mShow = show;
     }
 
-    public AspectButton(ColorSet colorSet) {
+    AspectButton(ColorSet colorSet) {
       mColorSet = colorSet;
       mColor = new Color(mColorSet.getInspectorFillColor().getRGB() & 0x88FFFFFF, true);
       setPreferredSize(size);
@@ -574,7 +574,7 @@ public class SingleWidgetView extends JPanel {
       mShow = show;
     }
 
-    public ConnectButton(ColorSet colorSet) {
+    ConnectButton(ColorSet colorSet) {
       mColorSet = colorSet;
       setPreferredSize(size);
       setSize(size);

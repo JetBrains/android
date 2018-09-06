@@ -269,7 +269,7 @@ public class HeapDumpInstanceObjectTest {
   private static class FakeHeapDumpCaptureObject extends HeapDumpCaptureObject {
     private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
-    public FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client) {
+    FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
             new FakeFeatureTracker());
     }

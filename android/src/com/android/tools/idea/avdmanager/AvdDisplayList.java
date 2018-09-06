@@ -368,7 +368,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     private Icon baseIcon;
     private Icon highlightedIcon;
 
-    public HighlightableIconPair(@Nullable Icon theBaseIcon) {
+    HighlightableIconPair(@Nullable Icon theBaseIcon) {
       baseIcon = theBaseIcon;
       if (theBaseIcon != null) {
         highlightedIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(theBaseIcon);
@@ -556,12 +556,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     };
 
-    public AvdIconColumnInfo(@NotNull String name, int width) {
+    AvdIconColumnInfo(@NotNull String name, int width) {
       super(name);
       myWidth = width;
     }
 
-    public AvdIconColumnInfo(@NotNull String name) {
+    AvdIconColumnInfo(@NotNull String name) {
       this(name, JBUI.scale(50));
     }
 
@@ -670,13 +670,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
      */
     private final Map<AvdInfo, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
 
-    public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
+    AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
       myWidth = numVisibleActions == -1 ? -1 : JBUI.scale(45) * numVisibleActions + JBUI.scale(75);
     }
 
-    public AvdActionsColumnInfo(@NotNull String name) {
+    AvdActionsColumnInfo(@NotNull String name) {
       this(name, -1);
     }
 
@@ -738,7 +738,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   private class AvdSizeColumnInfo extends AvdColumnInfo {
 
-    public AvdSizeColumnInfo(@NotNull String name) {
+    AvdSizeColumnInfo(@NotNull String name) {
       super(name);
     }
 

@@ -595,12 +595,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       };
     }
 
-    public DeviceColumnInfo(@NotNull String name, int width) {
+    DeviceColumnInfo(@NotNull String name, int width) {
       super(name);
       myWidth = width;
     }
 
-    public DeviceColumnInfo(String name) {
+    DeviceColumnInfo(String name) {
       this(name, -1);
     }
 
@@ -640,7 +640,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       }
     };
 
-    public PlayStoreColumnInfo(String name) {
+    PlayStoreColumnInfo(String name) {
       super(name);
     }
 

@@ -588,7 +588,7 @@ class CpuCaptureView {
      */
     @NotNull private final Range myMasterRange;
 
-    public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
+    FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
       // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
       // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
       // Users can zoom-in and then view only part of the flame chart. Since a part of flame chart may not correspond to a continuous
@@ -751,7 +751,7 @@ class CpuCaptureView {
     private final boolean myShowPercentage;
     private final int myAlignment;
 
-    public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+    DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       myGetter = getter;
       myShowPercentage = showPercentage;
       myAlignment = alignment;
@@ -803,7 +803,7 @@ class CpuCaptureView {
      */
     private double myPercentage;
 
-    public DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+    DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       super(getter, showPercentage, alignment);
       mySparklineColor = ProfilerColors.CPU_CAPTURE_SPARKLINE;
       myPercentage = Double.NEGATIVE_INFINITY;

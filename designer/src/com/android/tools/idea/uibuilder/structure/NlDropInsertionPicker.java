@@ -39,7 +39,7 @@ class NlDropInsertionPicker {
   /**
    * @param tree The tree used to find the insertion point
    */
-  public NlDropInsertionPicker(@NotNull NlComponentTree tree) {
+  NlDropInsertionPicker(@NotNull NlComponentTree tree) {
     this((JTree)tree);
   }
 

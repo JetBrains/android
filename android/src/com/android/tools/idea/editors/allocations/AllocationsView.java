@@ -627,7 +627,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     @NotNull
     private String myGroupByName;
 
-    public ChangeGroupAction(@NotNull String groupByName) {
+    ChangeGroupAction(@NotNull String groupByName) {
       super(groupByName);
       myGroupByName = groupByName;
     }
@@ -639,7 +639,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   }
 
   class ShowChartAction extends ToggleAction {
-    public ShowChartAction() {
+    ShowChartAction() {
       super("Show/Hide Chart", "Shows/hides the allocation chart and stack trace", AndroidIcons.Sunburst);
     }
 

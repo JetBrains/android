@@ -675,7 +675,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     private final String myDisplayName;
     private final AndroidLintQuickFix[] myFixes;
 
-    public CompositeLintFix(String displayName, AndroidLintQuickFix[] myFixes) {
+    CompositeLintFix(String displayName, AndroidLintQuickFix[] myFixes) {
       myDisplayName = displayName;
       this.myFixes = myFixes;
     }
@@ -709,7 +709,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   static class RemoteAttributeFix implements AndroidLintQuickFix {
     private final SetAttribute myData;
 
-    public RemoteAttributeFix(SetAttribute data) {
+    RemoteAttributeFix(SetAttribute data) {
       myData = data;
     }
 
@@ -801,7 +801,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     private final LocalQuickFix[] myFixes;
     private ProblemGroup myGroup;
 
-    public NonTextFileProblemDescriptor(@NotNull PsiFileSystemItem file, @NotNull String message, @NotNull LocalQuickFix[] fixes) {
+    NonTextFileProblemDescriptor(@NotNull PsiFileSystemItem file, @NotNull String message, @NotNull LocalQuickFix[] fixes) {
       myFile = file;
       myMessage = message;
       myFixes = fixes;

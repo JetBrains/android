@@ -305,7 +305,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   private static class ResolvePath implements Function<File, VirtualFile> {
     private final File mySourceDir;
 
-    public ResolvePath(File sourceDir) {
+    ResolvePath(File sourceDir) {
       mySourceDir = sourceDir;
     }
 

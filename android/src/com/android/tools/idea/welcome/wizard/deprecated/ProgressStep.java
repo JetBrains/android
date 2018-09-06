@@ -166,7 +166,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     private final double myStart;
     private final double myPortion;
 
-    public ProgressPortionReporter(@NotNull ProgressIndicator indicator, double start, double portion) {
+    ProgressPortionReporter(@NotNull ProgressIndicator indicator, double start, double portion) {
       super(indicator);
       myStart = start;
       myPortion = portion;

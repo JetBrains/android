@@ -42,7 +42,7 @@ class LinearDragHandler extends DragHandler {
   private final LinearDragTarget myDragTarget;
   private static final List<Target> ourEmptyTargetList = ImmutableList.of();
 
-  public LinearDragHandler(@NotNull ViewEditor editor,
+  LinearDragHandler(@NotNull ViewEditor editor,
                            @NotNull LinearLayoutHandler handler,
                            @NotNull SceneComponent layout,
                            @NotNull List<NlComponent> components,

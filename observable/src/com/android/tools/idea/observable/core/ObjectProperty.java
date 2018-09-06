@@ -60,7 +60,7 @@ public abstract class ObjectProperty<T> extends AbstractProperty<T> implements O
   private static final class OptionalWrapper<U> extends ObjectProperty<U> implements InvalidationListener {
     private final OptionalProperty<U> myOptionalProperty;
 
-    public OptionalWrapper(@NotNull OptionalProperty<U> optionalProperty) {
+    OptionalWrapper(@NotNull OptionalProperty<U> optionalProperty) {
       myOptionalProperty = optionalProperty;
       myOptionalProperty.addWeakListener(this);
     }

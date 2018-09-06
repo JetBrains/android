@@ -131,7 +131,7 @@ final class ConnectionsView {
   @NotNull
   private final AspectObserver myAspectObserver;
 
-  public ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
+  ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
     myStage = stageView.getStage();
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());

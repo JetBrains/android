@@ -173,7 +173,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     @NotNull private final String myTitle;
     @NotNull private final String myText;
 
-    public Section(@NotNull String title, @Nullable String text) {
+    Section(@NotNull String title, @Nullable String text) {
       myTitle = title;
       myText = StringUtil.notNullize(text);
     }

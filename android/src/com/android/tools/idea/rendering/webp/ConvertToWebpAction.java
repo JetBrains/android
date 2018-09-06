@@ -241,7 +241,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     private List<VirtualFile> myParentFolders;
     private List<WebpConvertedFile> myConvertedFiles;
 
-    public WebpConversionTask(Project project,
+    WebpConversionTask(Project project,
                               WebpConversionSettings settings,
                               boolean showBalloon,
                               Collection<VirtualFile> files) {

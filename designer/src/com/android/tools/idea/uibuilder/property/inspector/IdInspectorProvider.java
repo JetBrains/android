@@ -91,7 +91,7 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
     private NlProperty myLayoutWidth;
     private NlProperty myLayoutHeight;
 
-    public IdInspectorComponent(@NotNull PropertiesManager propertiesManager) {
+    IdInspectorComponent(@NotNull PropertiesManager propertiesManager) {
       myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
       myWidthEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myHeightEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);

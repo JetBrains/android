@@ -82,7 +82,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
 
   private class MyInnerClass extends ResourceTypeClassBase {
 
-    public MyInnerClass(String name) {
+    MyInnerClass(String name) {
       super(AndroidInternalRClass.this, name);
     }
 

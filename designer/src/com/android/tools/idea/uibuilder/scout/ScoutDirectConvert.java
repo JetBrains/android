@@ -76,7 +76,7 @@ public class ScoutDirectConvert {
     Dir mMddTargetMargin;
     int mConstrained;
 
-    public Convert(String attribute, Dir addTargetMargin, boolean parent, int constraint, String... constraintAttributes) {
+    Convert(String attribute, Dir addTargetMargin, boolean parent, int constraint, String... constraintAttributes) {
       mRelativeAttribute = attribute;
       mAttachToParent = parent;
       mConstrained = constraint;

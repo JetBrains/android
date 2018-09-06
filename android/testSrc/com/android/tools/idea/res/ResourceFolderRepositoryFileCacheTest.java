@@ -312,7 +312,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   private static class MockProjectWithName extends MockProjectEx {
     private final String myName;
 
-    public MockProjectWithName(@NotNull Disposable parentDisposable, String name) {
+    MockProjectWithName(@NotNull Disposable parentDisposable, String name) {
       super(parentDisposable);
       myName = name;
     }

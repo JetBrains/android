@@ -341,7 +341,7 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
     @NotNull private final Map<IDevice, AndroidLogcatService.LogcatListener> myLogListeners = new HashMap<>();
     @NotNull private final Object myLock = new Object();
 
-    public LogcatOutputCapture(@NotNull String applicationId) {
+    LogcatOutputCapture(@NotNull String applicationId) {
       myApplicationId = applicationId;
     }
 

@@ -134,7 +134,7 @@ public class PreviewProviderTest extends LayoutTestCase {
   // Disable security manager during tests (for bazel)
   private static class MyRenderService extends RenderService {
 
-    public MyRenderService(@NotNull AndroidFacet facet) {
+    MyRenderService(@NotNull AndroidFacet facet) {
       super(facet);
     }
 

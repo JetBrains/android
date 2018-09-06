@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.SdkConstants.*;
 
 class ConvertNamespaceQuickFix implements AndroidLintQuickFix {
-  public ConvertNamespaceQuickFix() {
+  ConvertNamespaceQuickFix() {
   }
 
   @Override

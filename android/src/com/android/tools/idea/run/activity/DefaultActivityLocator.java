@@ -242,7 +242,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   private static class RealActivityWrapper extends ActivityWrapper {
     private final Activity myActivity;
 
-    public RealActivityWrapper(Activity activity) {
+    RealActivityWrapper(Activity activity) {
       myActivity = activity;
     }
 
@@ -311,7 +311,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   private static class ActivityAliasWrapper extends ActivityWrapper {
     private final ActivityAlias myAlias;
 
-    public ActivityAliasWrapper(ActivityAlias activityAlias) {
+    ActivityAliasWrapper(ActivityAlias activityAlias) {
       myAlias = activityAlias;
     }
 
@@ -380,7 +380,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   private static class ElementActivityWrapper extends ActivityWrapper {
     private final Element myActivity;
 
-    public ElementActivityWrapper(Element activity) {
+    ElementActivityWrapper(Element activity) {
       myActivity = activity;
     }
 

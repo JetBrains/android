@@ -339,7 +339,7 @@ public class IntelliJStackTraceViewTest {
   private static class FakeCodeElement implements CodeElement {
     @NotNull private final CodeLocation myCodeLocation;
 
-    public FakeCodeElement(@NotNull CodeLocation codeLocation) {
+    FakeCodeElement(@NotNull CodeLocation codeLocation) {
       myCodeLocation = codeLocation;
     }
 

@@ -144,7 +144,7 @@ public class StudioFirstRunWelcomeScreen implements WelcomeScreen {
   private class DelegatingListener implements WindowListener {
     @NotNull private final WindowListener[] myIdeaListeners;
 
-    public DelegatingListener(@NotNull WindowListener[] ideaListeners) {
+    DelegatingListener(@NotNull WindowListener[] ideaListeners) {
       myIdeaListeners = ideaListeners;
     }
 

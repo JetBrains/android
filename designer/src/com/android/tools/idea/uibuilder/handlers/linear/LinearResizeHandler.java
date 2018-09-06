@@ -62,7 +62,7 @@ class LinearResizeHandler extends DefaultResizeHandler {
 
   protected LinearLayoutHandler myHandler;
 
-  public LinearResizeHandler(@NotNull ViewEditor editor,
+  LinearResizeHandler(@NotNull ViewEditor editor,
                              @NotNull LinearLayoutHandler handler,
                              @NotNull NlComponent component,
                              @Nullable SegmentType horizontalEdgeType,

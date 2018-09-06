@@ -632,7 +632,7 @@ public final class SunburstChart extends LegacyAnimatedComponent {
       return zoom * depth + getBorder() * 2.0f;
     }
 
-    public Slice(float value) {
+    Slice(float value) {
       this.value = value;
       this.depth = 1.0f;
       this.hover = 0.0f;

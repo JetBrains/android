@@ -449,7 +449,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private static class SizeRenderer extends ColoredTreeCellRenderer {
     private final boolean myUseDownloadSize;
 
-    public SizeRenderer(boolean useDownloadSize) {
+    SizeRenderer(boolean useDownloadSize) {
       myUseDownloadSize = useDownloadSize;
       setTextAlign(SwingConstants.RIGHT);
     }

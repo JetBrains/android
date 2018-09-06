@@ -173,10 +173,10 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     public int y;
 
     @SuppressWarnings("unused")  // Invoked by reflection
-    public Point() {
+    Point() {
     }
 
-    public Point(int x, int y) {
+    Point(int x, int y) {
       this.x = x;
       this.y = y;
     }

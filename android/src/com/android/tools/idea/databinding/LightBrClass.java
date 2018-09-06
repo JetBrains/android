@@ -207,7 +207,7 @@ public class LightBrClass extends AndroidLightClassBase {
    */
   static class LightBRField extends LightField implements ModificationTracker {
 
-    public LightBRField(@NotNull PsiManager manager, @NotNull PsiField field, @NotNull PsiClass containingClass) {
+    LightBRField(@NotNull PsiManager manager, @NotNull PsiField field, @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
     }
 

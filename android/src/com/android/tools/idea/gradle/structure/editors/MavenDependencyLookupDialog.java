@@ -122,7 +122,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
     @Nullable private final String myDescription;
 
-    public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
+    Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
       myGroupId = groupId;
       myArtifactId = artifactId;
       myVersion = version;

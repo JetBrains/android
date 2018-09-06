@@ -163,7 +163,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
   }
 
   private class SearchForAvailableUpdates extends Update {
-    public SearchForAvailableUpdates() {
+    SearchForAvailableUpdates() {
       super(getContext().getProject());
     }
 
@@ -200,7 +200,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
   }
 
   private class UpdatesAvailable extends Update {
-    public UpdatesAvailable() {
+    UpdatesAvailable() {
       super(getContext().getProject());
     }
 

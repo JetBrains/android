@@ -130,7 +130,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
     private final String myLookupPrefix;
     private final Set<String> myFilteringSet;
 
-    public MyReference(@NotNull PsiElement element,
+    MyReference(@NotNull PsiElement element,
                        @NotNull PsiClass aClass,
                        @NotNull String lookupPrefix,
                        @Nullable Set<String> filteringSet) {

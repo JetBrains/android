@@ -266,7 +266,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
 
   private static class NameCacheProvider extends ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingInfo> {
 
-    public NameCacheProvider(DataBindingProjectComponent component) {
+    NameCacheProvider(DataBindingProjectComponent component) {
       super(component);
     }
 
@@ -277,7 +277,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   }
 
   private static class FacetNameCacheProvider extends ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> {
-    public FacetNameCacheProvider(AndroidFacet facet) {
+    FacetNameCacheProvider(AndroidFacet facet) {
       super(facet, null);
     }
 

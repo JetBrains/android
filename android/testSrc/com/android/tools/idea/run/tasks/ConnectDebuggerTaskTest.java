@@ -247,7 +247,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     private int myTickCount = 0;
     @NotNull private final Tickable myOnTick;
 
-    public TestConnectDebuggerTask(@NotNull Set<String> applicationIds,
+    TestConnectDebuggerTask(@NotNull Set<String> applicationIds,
                                    @NotNull AndroidDebugger debugger,
                                    @NotNull Project project,
                                    boolean monitorRemoteProcess,

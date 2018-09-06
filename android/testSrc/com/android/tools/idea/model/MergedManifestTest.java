@@ -286,7 +286,7 @@ public class MergedManifestTest extends AndroidTestCase {
   private static class TestAndroidTarget implements IAndroidTarget {
     private final int mApiLevel;
 
-    public TestAndroidTarget(int apiLevel) {
+    TestAndroidTarget(int apiLevel) {
       mApiLevel = apiLevel;
     }
 

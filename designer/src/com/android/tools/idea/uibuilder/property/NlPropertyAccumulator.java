@@ -33,13 +33,13 @@ class NlPropertyAccumulator {
   private final Predicate<NlPropertyItem> myFilter;
   private PTableGroupItem myGroupNode;
 
-  public NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix) {
+  NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix) {
     myGroupName = groupName;
     myPrefix = prefix;
     myFilter = null;
   }
 
-  public NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix, @NotNull Predicate<NlPropertyItem> isApplicable) {
+  NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix, @NotNull Predicate<NlPropertyItem> isApplicable) {
     myGroupName = groupName;
     myPrefix = prefix;
     myFilter = isApplicable;

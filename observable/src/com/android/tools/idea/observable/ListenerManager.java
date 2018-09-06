@@ -212,7 +212,7 @@ public final class ListenerManager {
     private final ObservableValue<?> myObservable;
     private final InvalidationListener myListener;
 
-    public ListenerPairing(ObservableValue<?> src, InvalidationListener listener) {
+    ListenerPairing(ObservableValue<?> src, InvalidationListener listener) {
       myObservable = src;
       myListener = listener;
 

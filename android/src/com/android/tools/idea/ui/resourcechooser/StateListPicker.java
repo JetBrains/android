@@ -204,7 +204,7 @@ public class StateListPicker extends JPanel {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
-    public ValueActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
+    ValueActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
     }
@@ -280,7 +280,7 @@ public class StateListPicker extends JPanel {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
-    public AlphaActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
+    AlphaActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
     }
@@ -405,7 +405,7 @@ public class StateListPicker extends JPanel {
     private final JBLabel myAlphaErrorLabel;
     private AlphaActionListener myAlphaActionListener;
 
-    public StateComponent(@NotNull Project project) {
+    StateComponent(@NotNull Project project) {
       super(BoxLayout.PAGE_AXIS);
 
       myResourceComponent = new ResourceComponent(project, true);

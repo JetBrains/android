@@ -56,11 +56,11 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final String myMemoizedLabel;
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-  public HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
-                                @Nullable InstanceObject classInstanceObject,
-                                @NotNull Instance instance,
-                                @NotNull ClassDb.ClassEntry classEntry,
-                                @Nullable ValueType precomputedValueType) {
+  HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
+                         @Nullable InstanceObject classInstanceObject,
+                         @NotNull Instance instance,
+                         @NotNull ClassDb.ClassEntry classEntry,
+                         @Nullable ValueType precomputedValueType) {
     myCaptureObject = captureObject;
     myClassInstanceObject = classInstanceObject;
     myInstance = instance;

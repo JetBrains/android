@@ -103,7 +103,7 @@ public class SeriesLegendTest {
 
     @NotNull List<SeriesData<Long>> myDataList;
 
-    public TestDataSeries(@NotNull List<SeriesData<Long>> data) {
+    TestDataSeries(@NotNull List<SeriesData<Long>> data) {
       myDataList = data;
     }
 

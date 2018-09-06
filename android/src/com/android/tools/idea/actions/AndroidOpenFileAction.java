@@ -190,14 +190,14 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     @NotNull Validator.Result result;
     @Nullable VirtualFile file;
 
-    public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
+    ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
       this.result = result;
       this.file = file;
     }
   }
 
   private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
-    public ProjectOnlyFileChooserDescriptor() {
+    ProjectOnlyFileChooserDescriptor() {
       super(true);
       setTitle(IdeBundle.message("title.open.project"));
     }
@@ -206,7 +206,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
     private final FileChooserDescriptor myStandardDescriptor = createSingleFileNoJarsDescriptor().withHideIgnored(false);
 
-    public ProjectOrFileChooserDescriptor() {
+    ProjectOrFileChooserDescriptor() {
       super(true);
       setTitle(IdeBundle.message("title.open.file.or.project"));
     }

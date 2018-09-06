@@ -35,7 +35,7 @@ class SystemFonts {
 
   private final Map<String, FontFamily> myFonts;
 
-  public SystemFonts(@NotNull DownloadableFontCacheServiceImpl service) {
+  SystemFonts(@NotNull DownloadableFontCacheServiceImpl service) {
     myFonts = createFonts(service);
   }
 

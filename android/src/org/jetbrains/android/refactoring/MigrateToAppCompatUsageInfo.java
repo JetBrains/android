@@ -29,11 +29,11 @@ import org.jetbrains.annotations.Nullable;
 
 abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
-  public MigrateToAppCompatUsageInfo(@NotNull PsiReference reference) {
+  MigrateToAppCompatUsageInfo(@NotNull PsiReference reference) {
     super(reference);
   }
 
-  public MigrateToAppCompatUsageInfo(@NotNull PsiElement element) {
+  MigrateToAppCompatUsageInfo(@NotNull PsiElement element) {
     super(element);
   }
 
@@ -53,7 +53,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeMethodUsageInfo extends MigrateToAppCompatUsageInfo {
     final AppCompatMigrationEntry.MethodMigrationEntry myEntry;
 
-    public ChangeMethodUsageInfo(PsiReference ref, @NotNull AppCompatMigrationEntry.MethodMigrationEntry entry) {
+    ChangeMethodUsageInfo(PsiReference ref, @NotNull AppCompatMigrationEntry.MethodMigrationEntry entry) {
       super(ref);
       myEntry = entry;
     }
@@ -77,7 +77,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ClassMigrationUsageInfo extends MigrateToAppCompatUsageInfo {
     final AppCompatMigrationEntry.ClassMigrationEntry mapEntry;
 
-    public ClassMigrationUsageInfo(@NotNull UsageInfo info, @NotNull AppCompatMigrationEntry.ClassMigrationEntry mapEntry) {
+    ClassMigrationUsageInfo(@NotNull UsageInfo info, @NotNull AppCompatMigrationEntry.ClassMigrationEntry mapEntry) {
       //noinspection ConstantConditions
       super(info.getElement());
       this.mapEntry = mapEntry;
@@ -162,7 +162,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
     private final String mySuggestedSuperClass;
 
-    public ChangeCustomViewUsageInfo(@NotNull PsiElement element, @NotNull String suggestedSuperClass) {
+    ChangeCustomViewUsageInfo(@NotNull PsiElement element, @NotNull String suggestedSuperClass) {
       super(element);
       mySuggestedSuperClass = suggestedSuperClass;
     }
@@ -187,7 +187,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ReplaceMethodUsageInfo extends MigrateToAppCompatUsageInfo {
     private final ReplaceMethodCallMigrationEntry myEntry;
 
-    public ReplaceMethodUsageInfo(@NotNull PsiReference element, @NotNull ReplaceMethodCallMigrationEntry entry) {
+    ReplaceMethodUsageInfo(@NotNull PsiReference element, @NotNull ReplaceMethodCallMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
@@ -244,7 +244,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeXmlTagUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AppCompatMigrationEntry.XmlTagMigrationEntry myEntry;
 
-    public ChangeXmlTagUsageInfo(@NotNull PsiElement element,
+    ChangeXmlTagUsageInfo(@NotNull PsiElement element,
                                  @NotNull AppCompatMigrationEntry.XmlTagMigrationEntry entry) {
       super(element);
       myEntry = entry;
@@ -273,7 +273,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeXmlAttrUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AttributeMigrationEntry myEntry;
 
-    public ChangeXmlAttrUsageInfo(@NotNull PsiElement element, @NotNull AttributeMigrationEntry entry) {
+    ChangeXmlAttrUsageInfo(@NotNull PsiElement element, @NotNull AttributeMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
@@ -301,7 +301,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeXmlAttrValueUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AttributeValueMigrationEntry myEntry;
 
-    public ChangeXmlAttrValueUsageInfo(@NotNull PsiElement element, @NotNull AttributeValueMigrationEntry entry) {
+    ChangeXmlAttrValueUsageInfo(@NotNull PsiElement element, @NotNull AttributeValueMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }

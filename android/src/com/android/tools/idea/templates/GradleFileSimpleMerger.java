@@ -89,7 +89,7 @@ public class GradleFileSimpleMerger {
     private GroovyLexer myLexer = new GroovyLexer();
     private IElementType myType = null;
 
-    public SimpleGradleBuildFileParser(@NotNull String source) {
+    SimpleGradleBuildFileParser(@NotNull String source) {
       myLexer = new GroovyLexer();
       myLexer.start(source);
       myType = myLexer.getTokenType();
@@ -365,7 +365,7 @@ public class GradleFileSimpleMerger {
     @Nullable
     protected Ast myParam;  // list of statements
 
-    public AstNode(@NotNull String id) {
+    AstNode(@NotNull String id) {
       myId = id;
     }
 
@@ -548,7 +548,7 @@ public class GradleFileSimpleMerger {
   private static class ValueAst extends Ast {
     private String myValue;
 
-    public ValueAst(@NotNull String value) {
+    ValueAst(@NotNull String value) {
       myValue = value;
     }
 
@@ -571,7 +571,7 @@ public class GradleFileSimpleMerger {
   private static class ValueListAst extends Ast {
     private Set<String> myValues;
 
-    public ValueListAst(@NotNull List<String> values) {
+    ValueListAst(@NotNull List<String> values) {
       myValues = Sets.newLinkedHashSetWithExpectedSize(values.size() + 5);
       myValues.addAll(values);
     }
@@ -608,7 +608,7 @@ public class GradleFileSimpleMerger {
     @NotNull
     private String myText;
 
-    public UnknownAstNode(@NotNull String text) {
+    UnknownAstNode(@NotNull String text) {
       myText = text;
     }
 
@@ -652,7 +652,7 @@ public class GradleFileSimpleMerger {
     private int myIndent;
     private StringBuilder myBuilder;
 
-    public PrintContext() {
+    PrintContext() {
       myBuilder = new StringBuilder();
       myIndent = 0;
     }
@@ -713,7 +713,7 @@ public class GradleFileSimpleMerger {
     private final Project myProject;
     private final String myFilter;
 
-    public MergeContext(@Nullable Project project, @Nullable String supportLibVersionFilter) {
+    MergeContext(@Nullable Project project, @Nullable String supportLibVersionFilter) {
       myProject = project;
       myFilter = supportLibVersionFilter;
     }

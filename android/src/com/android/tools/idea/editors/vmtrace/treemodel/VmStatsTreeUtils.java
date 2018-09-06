@@ -84,7 +84,7 @@ public class VmStatsTreeUtils {
     private boolean myFontCanDisplayFigureSpace;
     private double mySpacesPerFigureSpaceChar = -1;
 
-    public ProfileTimeRenderer() {
+    ProfileTimeRenderer() {
       myPercentFormat = NumberFormat.getPercentInstance(Locale.getDefault());
       myPercentFormat.setMaximumFractionDigits(1);
       myPercentFormat.setMinimumFractionDigits(1);
@@ -145,7 +145,7 @@ public class VmStatsTreeUtils {
   private static class TableHeaderCellRenderer implements TableCellRenderer {
     private final TableCellRenderer myDefaultRenderer;
 
-    public TableHeaderCellRenderer(TreeTable table) {
+    TableHeaderCellRenderer(TreeTable table) {
       myDefaultRenderer = table.getTableHeader().getDefaultRenderer();
       if (myDefaultRenderer instanceof DefaultTableCellRenderer) {
         ((DefaultTableCellRenderer)myDefaultRenderer).setHorizontalAlignment(SwingConstants.CENTER);

@@ -1041,7 +1041,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private ColorPipette myPicker;
     private final boolean myOpacityInPercent;
 
-    public ColorPickerDialog(Component parent,
+    ColorPickerDialog(Component parent,
                              String caption,
                              @Nullable Color preselectedColor,
                              boolean enableOpacity,

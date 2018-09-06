@@ -58,7 +58,7 @@ class FontEditor implements FileEditor {
   private final JPanel myRootPanel;
   private float myCurrentFontSize;
 
-  public FontEditor(@NotNull VirtualFile file) {
+  FontEditor(@NotNull VirtualFile file) {
     myFile = file;
     myRootPanel = new JPanel(new BorderLayout());
     myTextArea = new JTextArea(BorderLayout.CENTER);

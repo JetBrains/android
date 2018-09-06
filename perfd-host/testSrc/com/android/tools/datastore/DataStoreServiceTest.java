@@ -197,7 +197,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     private List<String> myCreatedDbPaths;
     private List<DataStoreDatabase.Characteristic> myCreatedCharacteristics;
 
-    public FakeDataStoreService(@NotNull String serviceName,
+    FakeDataStoreService(@NotNull String serviceName,
                                 @NotNull String datastoreDirectory,
                                 Consumer<Runnable> fetchExecutor) {
       super(serviceName, datastoreDirectory, fetchExecutor);

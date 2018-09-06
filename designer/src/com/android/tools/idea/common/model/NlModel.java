@@ -408,7 +408,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
      */
     private final Map<XmlTag, TagSnapshot> myTagToSnapshot = Maps.newHashMap();
 
-    public ModelUpdater(@NotNull NlModel model) {
+    ModelUpdater(@NotNull NlModel model) {
       myModel = model;
     }
 

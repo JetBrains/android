@@ -643,7 +643,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     @NotNull final String myName;
     @SuppressWarnings("deprecation") Pair<ResourceType, String> myPair;
 
-    public TypedResourceName(@Nullable ResourceType type, @NotNull String name) {
+    TypedResourceName(@Nullable ResourceType type, @NotNull String name) {
       myType = type;
       myName = name;
     }

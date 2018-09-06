@@ -155,7 +155,7 @@ public final class BatchInvokerTest {
     private final int myId;
     private final int myAmount;
 
-    public AddToValue(int id, @NotNull IntWrapper target, int amount) {
+    AddToValue(int id, @NotNull IntWrapper target, int amount) {
       myTarget = target;
       myId = id;
       myAmount = amount;
@@ -192,7 +192,7 @@ public final class BatchInvokerTest {
     @NotNull private final BatchInvoker myOwningInvoker;
     @Nullable private Runnable myOther;
 
-    public DeferRunnable(@NotNull BatchInvoker owningInvoker) {
+    DeferRunnable(@NotNull BatchInvoker owningInvoker) {
       myOwningInvoker = owningInvoker;
     }
 

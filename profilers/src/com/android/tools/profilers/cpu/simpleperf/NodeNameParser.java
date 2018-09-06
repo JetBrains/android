@@ -167,7 +167,7 @@ class NodeNameParser {
     @NotNull private final String myName;
     @NotNull private final String myClassOrNamespace;
 
-    public ModelInfo(@NotNull String name, @NotNull String classOrNamespace) {
+    ModelInfo(@NotNull String name, @NotNull String classOrNamespace) {
       myName = name;
       myClassOrNamespace = classOrNamespace;
     }

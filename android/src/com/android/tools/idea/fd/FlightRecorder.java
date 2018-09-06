@@ -309,7 +309,7 @@ public class FlightRecorder {
     private final Path myBasePath;
     private final InstantRunBuildInfo myBuildInfo;
 
-    public BuildInfoRecorderTask(Path logsRoot,
+    BuildInfoRecorderTask(Path logsRoot,
                                  LocalDateTime dateTime,
                                  InstantRunBuildInfo instantRunBuildInfo) {
       myBasePath = logsRoot.resolve(timeStampToFolder(dateTime));

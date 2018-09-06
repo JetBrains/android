@@ -173,7 +173,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
     private StringPreview myPreview;
     private String myPreviewString;
 
-    public PreviewFeature(@NotNull FileEditor editor, @NotNull Module module) {
+    PreviewFeature(@NotNull FileEditor editor, @NotNull Module module) {
       super(editor, module.getProject());
       myModule = module;
     }

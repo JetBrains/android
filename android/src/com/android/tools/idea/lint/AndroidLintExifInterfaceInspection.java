@@ -64,7 +64,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
   }
 
   private static class ReplaceExifFix extends DefaultLintQuickFix {
-    public ReplaceExifFix() {
+    ReplaceExifFix() {
       super("Update all references in this file");
     }
 

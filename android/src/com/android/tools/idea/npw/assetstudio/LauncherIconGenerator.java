@@ -1345,7 +1345,7 @@ public class LauncherIconGenerator extends IconGenerator {
     @NotNull public BufferedImage background;
     @NotNull public BufferedImage foreground;
 
-    public Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
+    Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
       this.background = background;
       this.foreground = foreground;
     }

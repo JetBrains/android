@@ -35,7 +35,7 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
   private volatile String myName;
   private volatile LightModifierList myModifierList;
 
-  public AndroidLightField(@NotNull String name,
+  AndroidLightField(@NotNull String name,
                            @NotNull PsiClass context,
                            @NotNull PsiType type,
                            boolean isFinal,

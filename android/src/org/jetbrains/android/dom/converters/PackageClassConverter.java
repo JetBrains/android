@@ -288,7 +288,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     private final boolean myCompleteOnlyModuleClasses;
     private final boolean myIncludeTests;
 
-    public MyReference(PsiElement element,
+    MyReference(PsiElement element,
                        TextRange range,
                        String basePackage,
                        boolean startsWithPoint,

@@ -198,7 +198,7 @@ public class SelectSdkDialog extends DialogWrapper {
   private static class BrowseFolderListener extends ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> {
     private final String myDefaultPath;
 
-    public BrowseFolderListener(@Nullable String title,
+    BrowseFolderListener(@Nullable String title,
                                 ComponentWithBrowseButton<JTextField> textField,
                                 FileChooserDescriptor fileChooserDescriptor,
                                 @Nullable String defaultPath) {

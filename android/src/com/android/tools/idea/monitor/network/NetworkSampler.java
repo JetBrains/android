@@ -171,7 +171,7 @@ public class NetworkSampler extends DeviceSampler {
 
     private int myUid;
 
-    public UidReceiver() {
+    UidReceiver() {
       myUid = -1;
     }
 
@@ -219,7 +219,7 @@ public class NetworkSampler extends DeviceSampler {
     private long myTxBytes;
     private boolean myIsFileMissing;
 
-    public NetworkStatsReceiver(int uid) {
+    NetworkStatsReceiver(int uid) {
       this.myUid = uid;
       this.myRxBytes = 0L;
       this.myTxBytes = 0L;

@@ -446,7 +446,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     private int myCount = 0;
     private final int myTotal;
 
-    public AnnotateTask(Project project, SequentialModalProgressTask progressTask, UsageInfo[] infos) {
+    AnnotateTask(Project project, SequentialModalProgressTask progressTask, UsageInfo[] infos) {
       myProject = project;
       myInfos = infos;
       myTask = progressTask;

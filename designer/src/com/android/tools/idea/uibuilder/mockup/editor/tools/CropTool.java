@@ -132,7 +132,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    * ToggleButton to toggle the crop mode
    */
   private class ToggleCrop extends ToggleAction {
-    public ToggleCrop() {
+    ToggleCrop() {
       // TODO: add new Icons to StudioIcons and replace this.
       getTemplatePresentation().setIcon(AndroidIcons.Mockup.Crop);
     }
@@ -161,7 +161,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
 
     public static final String TITLE = "Match component ratio";
 
-    public MatchComponentRatio() {
+    MatchComponentRatio() {
       // TODO: add new Icons to StudioIcons and replace this.
       super(TITLE, TITLE, AndroidIcons.Mockup.MatchWidget);
     }

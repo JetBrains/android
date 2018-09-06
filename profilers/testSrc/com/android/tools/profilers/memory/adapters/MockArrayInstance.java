@@ -29,7 +29,7 @@ class MockArrayInstance extends ArrayInstance {
   @NotNull private final Object[] myArrayValues;
   private final int myRootDistance;
 
-  public MockArrayInstance(int id, @NotNull Type arrayType, int length, int rootDistance) {
+  MockArrayInstance(int id, @NotNull Type arrayType, int length, int rootDistance) {
     super(id, null /* StackTrace - don't care */, arrayType, length, 0 /* valuesOffset - don't care */);
     myArrayValues = new Object[length];
     myRootDistance = rootDistance;

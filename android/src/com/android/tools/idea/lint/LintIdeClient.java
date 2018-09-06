@@ -651,7 +651,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   private static class EditorLintClient extends LintIdeClient {
     private final State myState;
 
-    public EditorLintClient(@NotNull State state) {
+    EditorLintClient(@NotNull State state) {
       super(state.getModule().getProject());
       myState = state;
     }
@@ -782,7 +782,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     private final AnalysisScope myScope;
     private final Set<Issue> myIssues;
 
-    public BatchLintClient(@NotNull Project project,
+    BatchLintClient(@NotNull Project project,
                            @NotNull Map<Issue, Map<File, List<ProblemData>>> problemMap,
                            @NotNull AnalysisScope scope,
                            @NotNull Set<Issue> issues) {
@@ -1005,7 +1005,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     private final XmlElement myNode;
     private Object myClientData;
 
-    public LocationHandle(File file, XmlElement node) {
+    LocationHandle(File file, XmlElement node) {
       myFile = file;
       myNode = node;
     }

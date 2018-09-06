@@ -121,7 +121,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
   private class MyUpdate extends Update {
     private final Set<VirtualFile> myFiles;
 
-    public MyUpdate(@NotNull Set<VirtualFile> files) {
+    MyUpdate(@NotNull Set<VirtualFile> files) {
       super(files);
       myFiles = files;
     }

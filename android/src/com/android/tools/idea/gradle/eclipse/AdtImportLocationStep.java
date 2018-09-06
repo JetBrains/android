@@ -45,7 +45,7 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
   private boolean myIsPathChangedByUser;
   private File mySourceProject;
 
-  public AdtImportLocationStep(WizardContext context) {
+  AdtImportLocationStep(WizardContext context) {
     super(context);
 
     myDestinationLabel.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));

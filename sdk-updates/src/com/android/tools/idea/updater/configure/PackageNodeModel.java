@@ -37,7 +37,7 @@ class PackageNodeModel {
   private SelectedState myState;
   private final String myTitle;
 
-  public PackageNodeModel(@NotNull UpdatablePackage pkg) {
+  PackageNodeModel(@NotNull UpdatablePackage pkg) {
     RepoPackage representative = pkg.getRepresentative();
     String name = representative.getDisplayName();
     String suffix = representative.getPath().substring(representative.getPath().lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);

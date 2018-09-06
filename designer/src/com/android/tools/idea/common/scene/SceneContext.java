@@ -188,7 +188,7 @@ public class SceneContext {
   private static class SceneViewTransform extends SceneContext {
     SceneView mySceneView;
 
-    public SceneViewTransform(SceneView sceneView) {
+    SceneViewTransform(SceneView sceneView) {
       mySceneView = sceneView;
     }
 

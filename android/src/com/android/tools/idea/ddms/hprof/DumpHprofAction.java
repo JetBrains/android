@@ -69,7 +69,7 @@ public class DumpHprofAction extends AbstractClientAction {
     private final EventData myEvents;
     private EventData.Event myEvent;
 
-    public HprofRequest(Client client, EventData events) {
+    HprofRequest(Client client, EventData events) {
       myClient = client;
       myEvents = events;
       myResponse = new CountDownLatch(1);

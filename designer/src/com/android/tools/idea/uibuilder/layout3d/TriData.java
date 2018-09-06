@@ -62,7 +62,7 @@ public class TriData {
 
   public void print() {
     class F extends DecimalFormat {
-      public F() {
+      F() {
         super("      ##0.000");
       }
 

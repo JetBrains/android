@@ -28,7 +28,7 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
   private final ResourceChooserGroup[] myGroups;
   private final Object[][] myItems;
 
-  public ResourceTreeContentProvider(ResourceChooserGroup[] groups) {
+  ResourceTreeContentProvider(ResourceChooserGroup[] groups) {
     myGroups = groups;
     myItems = new Object[groups.length][];
   }

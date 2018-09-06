@@ -194,7 +194,7 @@ public class ScreenRecorderAction {
     private final CollectingOutputReceiver myReceiver;
     private String mHostTmpFileName = null;
 
-    public ScreenRecorderTask(@NotNull Project project,
+    ScreenRecorderTask(@NotNull Project project,
                               @NotNull IDevice device,
                               @NotNull CountDownLatch completionLatch,
                               @NotNull CollectingOutputReceiver receiver,
@@ -309,7 +309,7 @@ public class ScreenRecorderAction {
     private final String myLocalPath;
     private final IDevice myDevice;
 
-    public PullRecordingTask(@Nullable Project project, @NotNull IDevice device, @NotNull String localFilePath) {
+    PullRecordingTask(@Nullable Project project, @NotNull IDevice device, @NotNull String localFilePath) {
       super(project, TITLE, false);
       myDevice = device;
       myLocalPath = localFilePath;

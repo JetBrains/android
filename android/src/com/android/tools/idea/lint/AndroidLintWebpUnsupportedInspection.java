@@ -39,7 +39,7 @@ public class AndroidLintWebpUnsupportedInspection extends AndroidLintInspectionB
   }
 
   static class ConvertWebpToPngFix extends DefaultLintQuickFix {
-    public ConvertWebpToPngFix() {
+    ConvertWebpToPngFix() {
       super("Convert image to PNG");
     }
 

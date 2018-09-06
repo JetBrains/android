@@ -523,7 +523,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private static class DeviceListSpeedSearch extends ListSpeedSearch {
-    public DeviceListSpeedSearch(JBList list) {
+    DeviceListSpeedSearch(JBList list) {
       super(list);
     }
 
@@ -544,7 +544,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private static class MyDoubleClickListener extends DoubleClickListener implements Disposable {
     private DoubleClickListener myDelegate;
 
-    public MyDoubleClickListener(DoubleClickListener delegate, Disposable parent) {
+    MyDoubleClickListener(DoubleClickListener delegate, Disposable parent) {
       myDelegate = delegate;
       Disposer.register(parent, this);
     }

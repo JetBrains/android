@@ -898,7 +898,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
 
     public boolean isMirrored;
 
-    public StreamComponent(int valueSize, @NotNull String id, @NotNull Color color, boolean isMirrored) {
+    StreamComponent(int valueSize, @NotNull String id, @NotNull Color color, boolean isMirrored) {
       this.values = new float[valueSize];
       this.currentValue = 0;
       this.id = id;
@@ -914,7 +914,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
 
     @Nullable public StreamComponent stream2;
 
-    public LabelRow(@NotNull StreamComponent stream1, @Nullable StreamComponent stream2) {
+    LabelRow(@NotNull StreamComponent stream1, @Nullable StreamComponent stream2) {
       this.stream1 = stream1;
       this.stream2 = stream2;
     }

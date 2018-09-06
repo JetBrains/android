@@ -66,7 +66,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
   private static class FragmentNode extends PsiTreeElementBase<XmlTag> {
     private final Fragment myElement;
 
-    public FragmentNode(@NotNull Fragment element) {
+    FragmentNode(@NotNull Fragment element) {
       super(element.getXmlTag());
       myElement = element;
     }
@@ -139,7 +139,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
   private static class LayoutNode extends PsiTreeElementBase<XmlTag> {
     private final LayoutViewElement myElement;
 
-    public LayoutNode(@NotNull LayoutViewElement element) {
+    LayoutNode(@NotNull LayoutViewElement element) {
       super(element.getXmlTag());
       myElement = element;
     }

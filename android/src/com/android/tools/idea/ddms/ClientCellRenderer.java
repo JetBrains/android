@@ -31,11 +31,11 @@ final class ClientCellRenderer extends ColoredListCellRenderer<Client> {
   @NotNull
   private final String myEmptyText;
 
-  public ClientCellRenderer() {
+  ClientCellRenderer() {
     this("");
   }
 
-  public ClientCellRenderer(@NotNull String emptyText) {
+  ClientCellRenderer(@NotNull String emptyText) {
     myEmptyText = emptyText;
   }
 

@@ -54,7 +54,7 @@ public class InstallContext {
     private volatile R myResult;
     private volatile E myException;
 
-    public Wrapper(ThrowableComputable<R, E> runnable) {
+    Wrapper(ThrowableComputable<R, E> runnable) {
       myRunnable = runnable;
     }
 

@@ -59,11 +59,11 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
   private static class MyPackageReferenceSet extends PackageReferenceSet {
     final int myStartInElement;
 
-    public MyPackageReferenceSet(String s, PsiElement element) {
+    MyPackageReferenceSet(String s, PsiElement element) {
       this(s, element, ElementManipulators.getOffsetInElement(element));
     }
 
-    public MyPackageReferenceSet(String str, PsiElement element, int startInElement) {
+    MyPackageReferenceSet(String str, PsiElement element, int startInElement) {
       super(str, element, startInElement);
       myStartInElement = startInElement;
     }
@@ -91,7 +91,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
     private final MyPackageReferenceSet myReferenceSet;
     private final TextRange myTextRange;
 
-    public MyPsiPackageReference(MyPackageReferenceSet referenceSet, TextRange textRange, int index) {
+    MyPsiPackageReference(MyPackageReferenceSet referenceSet, TextRange textRange, int index) {
       super(referenceSet, textRange, index);
       myReferenceSet = referenceSet;
       myTextRange = textRange;

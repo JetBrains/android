@@ -461,7 +461,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
     @NotNull private TreeBuilder myModel;
     @NotNull private String[] myVarNames;
 
-    public InstanceNode(@NotNull TreeBuilder model, @NotNull Instance userObject, @NotNull String... varNames) {
+    InstanceNode(@NotNull TreeBuilder model, @NotNull Instance userObject, @NotNull String... varNames) {
       super(userObject);
       myModel = model;
       myVarNames = varNames;

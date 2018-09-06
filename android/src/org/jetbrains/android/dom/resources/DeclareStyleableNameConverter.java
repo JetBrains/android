@@ -48,7 +48,7 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
     private final GenericDomValue<String> myValue;
     private final AndroidFacet myFacet;
 
-    public MyReference(@NotNull AndroidFacet facet, @NotNull GenericDomValue<String> value) {
+    MyReference(@NotNull AndroidFacet facet, @NotNull GenericDomValue<String> value) {
       super(DomUtil.getValueElement(value), true);
       myFacet = facet;
       myValue = value;

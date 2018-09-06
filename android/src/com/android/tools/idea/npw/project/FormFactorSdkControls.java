@@ -65,7 +65,7 @@ final class FormFactorSdkControls {
    * @param disposable The parent Disposable for this component.
    * @param formFactor The FormFactor these controls govern.
    */
-  public FormFactorSdkControls(@NotNull Disposable disposable, @NotNull FormFactor formFactor) {
+  FormFactorSdkControls(@NotNull Disposable disposable, @NotNull FormFactor formFactor) {
     myDisposable = disposable;
     myFormFactor = formFactor;
     myInclusionCheckBox.setText(formFactor.toString());

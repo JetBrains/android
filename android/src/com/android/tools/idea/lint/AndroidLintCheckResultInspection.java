@@ -53,7 +53,7 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
   static class ReplaceCallFix extends DefaultLintQuickFix {
     private final String mySuggest;
 
-    public ReplaceCallFix(@NotNull String suggest) {
+    ReplaceCallFix(@NotNull String suggest) {
       super(null);
       mySuggest = suggest;
     }

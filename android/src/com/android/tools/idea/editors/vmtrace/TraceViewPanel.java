@@ -290,7 +290,7 @@ public class TraceViewPanel {
    * This allows {@link VmTraceEditorSearchAction} to identify the editor from the current context of an event.
    */
   private class TraceViewCanvasWrapper extends TraceViewCanvas implements DataProvider {
-    public TraceViewCanvasWrapper() {
+    TraceViewCanvasWrapper() {
       addMouseListener(new MouseAdapter() {
         @Override
         public void mouseReleased(MouseEvent e) {

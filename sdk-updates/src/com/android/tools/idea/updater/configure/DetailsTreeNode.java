@@ -34,7 +34,7 @@ class DetailsTreeNode extends UpdaterTreeNode {
   private final ChangeListener myChangeListener;
   private SdkUpdaterConfigurable myConfigurable;
 
-  public DetailsTreeNode(@NotNull PackageNodeModel state,
+  DetailsTreeNode(@NotNull PackageNodeModel state,
                          @Nullable ChangeListener changeListener,
                          @NotNull SdkUpdaterConfigurable configurable) {
     myModel = state;

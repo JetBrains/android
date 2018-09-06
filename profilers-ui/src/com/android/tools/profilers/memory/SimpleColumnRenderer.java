@@ -29,7 +29,7 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
   @NotNull private final Function<MemoryObjectTreeNode<T>, Icon> myIconGetter;
   private final int myAlignment;
 
-  public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
+  SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
                               @NotNull Function<MemoryObjectTreeNode<T>, Icon> iconGetter,
                               int alignment) {
     myTextGetter = textGetter;

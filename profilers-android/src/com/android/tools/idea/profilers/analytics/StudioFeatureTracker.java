@@ -283,7 +283,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
 
-    public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
+    Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
       myCurrStage = stage;
     }

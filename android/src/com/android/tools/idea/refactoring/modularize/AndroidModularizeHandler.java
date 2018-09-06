@@ -125,7 +125,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
     private final Queue<PsiElement> myVisitQueue = new ArrayDeque<>();
     private final AndroidCodeAndResourcesGraph.Builder myGraphBuilder = new AndroidCodeAndResourcesGraph.Builder();
 
-    public CodeAndResourcesReferenceCollector(@NotNull Project project) {
+    CodeAndResourcesReferenceCollector(@NotNull Project project) {
       myProject = project;
     }
 

@@ -550,7 +550,7 @@ public class MenuPreviewRenderer {
     public final boolean enabled;
     public final int checkable;
 
-    public MenuItem(XmlTag tag, int ordering, int checkable, boolean visible, boolean enabled) {
+    MenuItem(XmlTag tag, int ordering, int checkable, boolean visible, boolean enabled) {
       this.tag = tag;
       this.ordering = ordering;
       this.checkable = checkable;

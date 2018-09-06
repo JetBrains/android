@@ -261,7 +261,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
     @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
 
-    public DataStoreClient(@NotNull Channel channel) {
+    DataStoreClient(@NotNull Channel channel) {
       myChannel = channel;
       myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
       myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);

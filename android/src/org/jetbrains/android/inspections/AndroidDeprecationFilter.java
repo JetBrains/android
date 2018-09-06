@@ -132,7 +132,7 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
     @NotNull
     private final SmartPsiElementPointer<PsiElement> myElement;
 
-    public ReplaceSuperClassFix(@NotNull PsiElement element, @NotNull String qualifiedName) {
+    ReplaceSuperClassFix(@NotNull PsiElement element, @NotNull String qualifiedName) {
       myQualifiedName = qualifiedName;
       myElement = SmartPointerManager.getInstance(element.getProject()).createSmartPsiElementPointer(element);
     }

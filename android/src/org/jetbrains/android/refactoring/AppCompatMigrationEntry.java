@@ -77,7 +77,7 @@ class AppCompatMigrationEntry {
 
   protected final int myType;
 
-  public AppCompatMigrationEntry(int type) {
+  AppCompatMigrationEntry(int type) {
     myType = type;
   }
 
@@ -95,7 +95,7 @@ class AppCompatMigrationEntry {
     public static final int FLAG_MENU = 0x02;
     public static final int FLAG_STYLE = 0x04;
 
-    public XmlElementMigration(int type) {
+    XmlElementMigration(int type) {
       super(type);
     }
 
@@ -123,7 +123,7 @@ class AppCompatMigrationEntry {
     final String myNewNamespace;
     final int myFlags;
 
-    public XmlTagMigrationEntry(@NonNull String oldTagName,
+    XmlTagMigrationEntry(@NonNull String oldTagName,
                                 @Nullable String oldNamespace,
                                 @NonNull String newTagName,
                                 @Nullable String newNamespace,
@@ -164,7 +164,7 @@ class AppCompatMigrationEntry {
     private final int myFlags;
     @NonNull private final Set<String> myTagNames;
 
-    public AttributeMigrationEntry(@NonNull String oldAttributeName,
+    AttributeMigrationEntry(@NonNull String oldAttributeName,
                                    @NonNull String oldNamespace,
                                    @NonNull String newAttributeName,
                                    @NonNull String newNamespace,
@@ -210,7 +210,7 @@ class AppCompatMigrationEntry {
     final int myFlags;
     final Set<String> myTagNames;
 
-    public AttributeValueMigrationEntry(@NonNull String oldAttrValue,
+    AttributeValueMigrationEntry(@NonNull String oldAttrValue,
                                         @NonNull String newAttrValue,
                                         @NonNull String attributeName,
                                         @NonNull String namespace,
@@ -252,7 +252,7 @@ class AppCompatMigrationEntry {
     @NonNull final String myOldName;
     @NonNull final String myNewName;
 
-    public ClassMigrationEntry(@NotNull String oldName, @NotNull String newName) {
+    ClassMigrationEntry(@NotNull String oldName, @NotNull String newName) {
       super(CHANGE_CLASS);
       myOldName = oldName;
       myNewName = newName;

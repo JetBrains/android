@@ -321,7 +321,7 @@ public class TutorialStep extends JPanel {
     // so we cache the value (which should be the same across instantiations) each time the scrollpane is created.
     private int myScrollBarHeight = 0;
 
-    public CodePane(StepElementData element) {
+    CodePane(StepElementData element) {
       // Default to JAVA rather than PLAIN_TEXT display for better support for quoted strings and properties.
       super(element.getCode() != null ? element.getCode() : "", myProject,
             element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
@@ -453,7 +453,7 @@ public class TutorialStep extends JPanel {
       private JScrollPane myParentScrollPane;
       private JScrollPane currentScrollPane;
 
-      public CodeMouseWheelListener(JScrollPane scroll) {
+      CodeMouseWheelListener(JScrollPane scroll) {
         currentScrollPane = scroll;
         myScrollBar = currentScrollPane.getVerticalScrollBar();
       }

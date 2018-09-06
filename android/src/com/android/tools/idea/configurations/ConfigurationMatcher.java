@@ -104,7 +104,7 @@ public class ConfigurationMatcher {
     final State state;
     final ConfigBundle bundle;
 
-    public ConfigMatch(@NotNull FolderConfiguration testConfig,
+    ConfigMatch(@NotNull FolderConfiguration testConfig,
                        @NotNull Device device,
                        @NotNull State state,
                        @NotNull ConfigBundle bundle) {
@@ -751,7 +751,7 @@ public class ConfigurationMatcher {
     private final SparseIntArray mDensitySort = new SparseIntArray(4);
     private final Map<String, Integer> mIdRank;
 
-    public PhoneConfigComparator(Map<String, Integer> idRank) {
+    PhoneConfigComparator(Map<String, Integer> idRank) {
       int i = 0;
       mDensitySort.put(Density.HIGH.getDpiValue(), ++i);
       mDensitySort.put(Density.MEDIUM.getDpiValue(), ++i);

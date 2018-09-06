@@ -132,7 +132,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     private int myErrors;
     private int myWarnings;
 
-    public MergedProjectTaskNotification(ProjectTaskNotification callback, int expectedResults) {
+    MergedProjectTaskNotification(ProjectTaskNotification callback, int expectedResults) {
       myCallback = callback;
       myExpectedResults = expectedResults;
     }

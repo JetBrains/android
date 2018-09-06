@@ -86,7 +86,7 @@ public final class ObjectPropertyTest {
     private String myName;
     private int myAge;
 
-    public Person(String name, int age) {
+    Person(String name, int age) {
       myName = name;
       myAge = age;
     }

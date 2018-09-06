@@ -46,7 +46,7 @@ class AddUsesFeatureQuickFix extends DefaultLintQuickFix {
 
   private final String myFeatureName;
 
-  public AddUsesFeatureQuickFix(@NotNull String featureName) {
+  AddUsesFeatureQuickFix(@NotNull String featureName) {
     super("Add uses-feature tag");
     myFeatureName = featureName;
   }

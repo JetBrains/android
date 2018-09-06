@@ -270,7 +270,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   private class TestAndroidTreeStructure extends TestProjectTreeStructure {
-    public TestAndroidTreeStructure(Project project, Disposable parentDisposable) {
+    TestAndroidTreeStructure(Project project, Disposable parentDisposable) {
       super(project, parentDisposable);
     }
 

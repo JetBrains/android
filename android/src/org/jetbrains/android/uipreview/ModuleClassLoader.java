@@ -67,7 +67,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     public final long timestamp;
     public final long length;
 
-    public ClassModificationTimestamp(long timestamp, long length) {
+    ClassModificationTimestamp(long timestamp, long length) {
       this.timestamp = timestamp;
       this.length = length;
     }

@@ -73,7 +73,7 @@ public class MockupInspectorProvider implements InspectorProvider<NlPropertiesMa
     private NlProperty myOpacityProperty;
     private TextFieldWithBrowseButton myFileChooser;
 
-    public MockupInspectorComponent(@NotNull Project project) {
+    MockupInspectorComponent(@NotNull Project project) {
       myOpacityEditor = NlReferenceEditor.createForInspector(project, DEFAULT_LISTENER);
       myFileChooser = createFileChooserButton();
     }

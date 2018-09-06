@@ -36,7 +36,7 @@ class EclipseImportModule extends ImportModule {
   private List<ImportModule> myDirectDependencies;
   private List<ImportModule> myAllDependencies;
 
-  public EclipseImportModule(@NonNull GradleImport importer, @NonNull EclipseProject project) {
+  EclipseImportModule(@NonNull GradleImport importer, @NonNull EclipseProject project) {
     super(importer);
     myProject = project;
     myProject.setModule(this);

@@ -129,18 +129,18 @@ public class DataBindingOutputParser implements PatternAwareOutputParser {
     public Location parentLocation;
 
     // for XML unmarshalling
-    public Location() {
+    Location() {
       startOffset = endOffset = startLine = endLine = NaN;
     }
 
-    public Location(@NotNull Location other) {
+    Location(@NotNull Location other) {
       startOffset = other.startOffset;
       endOffset = other.endOffset;
       startLine = other.startLine;
       endLine = other.endLine;
     }
 
-    public Location(int startLine, int startOffset, int endLine, int endOffset) {
+    Location(int startLine, int startOffset, int endLine, int endOffset) {
       this.startOffset = startOffset;
       this.startLine = startLine;
       this.endLine = endLine;

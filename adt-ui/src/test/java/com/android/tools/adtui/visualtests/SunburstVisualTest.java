@@ -208,11 +208,11 @@ public class SunburstVisualTest extends VisualTest {
 
     private int mValue;
 
-    public DataNode() {
+    DataNode() {
       this(0, 0);
     }
 
-    public DataNode(int count, int value) {
+    DataNode(int count, int value) {
       mCount = count;
       mValue = value;
     }

@@ -308,7 +308,7 @@ public class ChooseSystemImagePanel extends JPanel
   private class ClassificationRowFilter extends RowFilter<ListTableModel<SystemImageDescription>, Integer> {
     private final SystemImageClassification myClassification;
 
-    public ClassificationRowFilter(@NotNull SystemImageClassification classification) {
+    ClassificationRowFilter(@NotNull SystemImageClassification classification) {
       myClassification = classification;
     }
 

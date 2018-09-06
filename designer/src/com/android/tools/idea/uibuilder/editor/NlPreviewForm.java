@@ -226,7 +226,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     public final SceneView screenView;
     public boolean valid = true;
 
-    public Pending(XmlFile file, NlModel model) {
+    Pending(XmlFile file, NlModel model) {
       this.file = file;
       this.model = model;
       screenView = mySurface.getCurrentSceneView();

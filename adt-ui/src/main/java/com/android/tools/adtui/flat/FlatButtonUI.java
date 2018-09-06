@@ -28,7 +28,7 @@ class FlatButtonUI extends BasicButtonUI {
   private final MouseAdapter myAdapter;
   private boolean myHover;
 
-  public FlatButtonUI() {
+  FlatButtonUI() {
     myAdapter = new MouseAdapter() {
       @Override
       public void mouseEntered(MouseEvent e) {

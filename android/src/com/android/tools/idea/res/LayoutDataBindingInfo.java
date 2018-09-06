@@ -60,7 +60,7 @@ class LayoutDataBindingInfo implements DataBindingInfo {
   private String myConfigurationName;
   private MergedDataBindingInfo myMergedInfo;
 
-  public LayoutDataBindingInfo(@NonNull AndroidFacet facet, @NonNull PsiResourceFile psiResourceFile, @NonNull String className,
+  LayoutDataBindingInfo(@NonNull AndroidFacet facet, @NonNull PsiResourceFile psiResourceFile, @NonNull String className,
                                @NonNull String packageName, boolean classNameSpecifiedByUser) {
     myFacet = facet;
     myNonConfigurationClassName = className;

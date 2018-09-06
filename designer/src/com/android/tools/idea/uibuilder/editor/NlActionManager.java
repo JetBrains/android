@@ -118,7 +118,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   private static class AndroidRefactoringActionWrapper extends AnAction {
     private final AnAction myRefactoringAction;
 
-    public AndroidRefactoringActionWrapper(@NotNull String text, @NotNull AnAction refactoringAction) {
+    AndroidRefactoringActionWrapper(@NotNull String text, @NotNull AnAction refactoringAction) {
       super(text, null, null);
       myRefactoringAction = refactoringAction;
       getTemplatePresentation().setDescription(refactoringAction.getTemplatePresentation().getDescription());
@@ -353,7 +353,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private final List<NlComponent> mySelectedChildren;
     private Presentation myCurrentPresentation;
 
-    public DirectViewActionWrapper(@NotNull Project project,
+    DirectViewActionWrapper(@NotNull Project project,
                                    @NotNull DirectViewAction action,
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
@@ -450,7 +450,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private Presentation myCurrentPresentation;
     private ToggleViewActionWrapper myGroupSibling;
 
-    public ToggleViewActionWrapper(@NotNull Project project,
+    ToggleViewActionWrapper(@NotNull Project project,
                                    @NotNull ToggleViewAction action,
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
@@ -547,7 +547,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private final List<NlComponent> mySelectedChildren;
     private Presentation myCurrentPresentation;
 
-    public ViewActionMenuWrapper(@NotNull ViewActionMenu action,
+    ViewActionMenuWrapper(@NotNull ViewActionMenu action,
                                  @NotNull ViewEditor editor,
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
@@ -615,7 +615,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private final List<NlComponent> mySelectedChildren;
     private Presentation myCurrentPresentation;
 
-    public ViewActionToolbarMenuWrapper(@NotNull NestedViewActionMenu action,
+    ViewActionToolbarMenuWrapper(@NotNull NestedViewActionMenu action,
                                         @NotNull ViewEditor editor,
                                         @NotNull ViewHandler handler,
                                         @NotNull NlComponent component,

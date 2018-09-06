@@ -157,11 +157,11 @@ public class MemoryObjectTreeNodeTest {
   private static class TestMemoryObject implements MemoryObject {
     private final int myNum;
 
-    public TestMemoryObject() {
+    TestMemoryObject() {
       this(-1);
     }
 
-    public TestMemoryObject(int num) {
+    TestMemoryObject(int num) {
       myNum = num;
     }
 

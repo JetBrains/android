@@ -541,7 +541,7 @@ public final class AndroidSdkUtils {
     private final Future<AndroidDebugBridge> myFuture;
     private boolean myCancelled; // set/read only on EDT
 
-    public MyMonitorBridgeConnectionTask(@Nullable Project project, Future<AndroidDebugBridge> future) {
+    MyMonitorBridgeConnectionTask(@Nullable Project project, Future<AndroidDebugBridge> future) {
       super(project, "Waiting for adb", true);
       myFuture = future;
     }

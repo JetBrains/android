@@ -70,7 +70,7 @@ class ExtractStyleDialog extends DialogWrapper {
 
   private static final String SEARCH_STYLE_APPLICATIONS_PROPERTY = "AndroidExtractStyleSearchStyleApplications";
 
-  public ExtractStyleDialog(@NotNull Module module,
+  ExtractStyleDialog(@NotNull Module module,
                             @NotNull String fileName,
                             @Nullable String parentStyleName,
                             @NotNull List<String> dirNames,

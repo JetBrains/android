@@ -107,7 +107,7 @@ public class PathMappingTableFixture extends JTableFixture {
   private static class PathMappingTableCellFixture extends JTableCellFixture {
     private final JTableFixture tableFixture;
 
-    public PathMappingTableCellFixture(JTableFixture table, TableCell cell) {
+    PathMappingTableCellFixture(JTableFixture table, TableCell cell) {
       super(table, cell);
       this.tableFixture = table;
     }

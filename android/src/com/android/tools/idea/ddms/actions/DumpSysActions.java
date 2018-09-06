@@ -55,7 +55,7 @@ public class DumpSysActions {
     private final String myService;
     private final Project myProject;
 
-    public MyDumpSysAction(@NotNull Project p, @NotNull DeviceContext context, @NotNull String service, @NotNull String description) {
+    MyDumpSysAction(@NotNull Project p, @NotNull DeviceContext context, @NotNull String service, @NotNull String description) {
       super(context, description, null, null);
 
       myProject = p;
@@ -74,7 +74,7 @@ public class DumpSysActions {
 
     private final DeviceStateCache<CompletableFuture> myCache;
 
-    public MyDumpProcStatsAction(@NotNull Project p, @NotNull DeviceContext context, @NotNull String service, @NotNull String description) {
+    MyDumpProcStatsAction(@NotNull Project p, @NotNull DeviceContext context, @NotNull String service, @NotNull String description) {
       super(p, context, service, description);
 
       myCache = new DeviceStateCache<>(p);

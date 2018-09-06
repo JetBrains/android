@@ -47,7 +47,7 @@ class ResourceChooserGroup {
   // instead. For now, we just filter them out:
   public static final boolean FILTER_OUT_PRIVATE = true;
 
-  public ResourceChooserGroup(@NotNull String label,
+  ResourceChooserGroup(@NotNull String label,
                               @NotNull ResourceType type,
                               @NotNull AndroidFacet facet,
                               boolean framework,
@@ -92,7 +92,7 @@ class ResourceChooserGroup {
     sortItems();
   }
 
-  public ResourceChooserGroup(@NotNull String label, @NotNull ResourceType type,
+  ResourceChooserGroup(@NotNull String label, @NotNull ResourceType type,
                               @NotNull AndroidFacet facet, @NotNull Collection<String> attrs) {
     myType = type;
     myLabel = label;

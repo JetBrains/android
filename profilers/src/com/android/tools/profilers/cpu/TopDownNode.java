@@ -28,7 +28,7 @@ import java.util.TreeMap;
 class TopDownNode extends CpuTreeNode<TopDownNode> {
   private static final String INVALID_ID = "";
 
-  public TopDownNode(@NotNull CaptureNode node) {
+  TopDownNode(@NotNull CaptureNode node) {
     super(node.getData() == null ? INVALID_ID : node.getData().getId());
     addNode(node);
 

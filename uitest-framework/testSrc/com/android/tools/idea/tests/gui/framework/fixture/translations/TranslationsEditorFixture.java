@@ -198,7 +198,7 @@ public final class TranslationsEditorFixture {
     private final JTableCheckBoxEditorCellWriter checkBoxWriter;
     private final JTableTextComponentEditorCellWriter textComponentWriter;
 
-    public TranslationsEditorTableCellWriter(@NotNull Robot robot) {
+    TranslationsEditorTableCellWriter(@NotNull Robot robot) {
       super(robot);
       checkBoxWriter = new JTableCheckBoxEditorCellWriter(robot);
       textComponentWriter = new JTableTextComponentEditorCellWriter(robot) {

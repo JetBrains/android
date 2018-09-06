@@ -113,7 +113,7 @@ public class NlPTableTest extends AndroidTestCase {
   private class NlSimpleGroupItem extends NlPTableGroupItem {
     private final String myName;
 
-    public NlSimpleGroupItem(@NotNull String name, @NotNull List<PTableItem> children) {
+    NlSimpleGroupItem(@NotNull String name, @NotNull List<PTableItem> children) {
       myName = name;
       setChildren(children);
     }

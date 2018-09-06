@@ -29,7 +29,7 @@ abstract class ModuleProvider {
   private static class MyNewModuleProvider extends ModuleProvider {
     private final ModuleProvidingTask myTask;
 
-    public MyNewModuleProvider(@NotNull ModuleProvidingTask task) {
+    MyNewModuleProvider(@NotNull ModuleProvidingTask task) {
       myTask = task;
     }
 
@@ -65,7 +65,7 @@ abstract class ModuleProvider {
   private static class MyExistingModuleProvider extends ModuleProvider {
     private final Module myModule;
 
-    public MyExistingModuleProvider(Module module) {
+    MyExistingModuleProvider(Module module) {
       myModule = module;
     }
 

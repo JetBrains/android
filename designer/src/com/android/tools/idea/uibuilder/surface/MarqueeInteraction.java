@@ -108,7 +108,7 @@ public class MarqueeInteraction extends Interaction {
     /**
      * Constructs a new {@link MarqueeLayer}.
      */
-    public MarqueeLayer() {
+    MarqueeLayer() {
     }
 
     /**

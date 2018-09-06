@@ -601,7 +601,7 @@ public class ComponentsSplitter extends JPanel implements Disposable {
 
     private boolean myWasPressedOnMe;
 
-    public Divider(boolean isFirst, boolean isOnePixel) {
+    Divider(boolean isFirst, boolean isOnePixel) {
       super(new GridBagLayout());
       myIsOnePixel = isOnePixel;
       setFocusable(false);

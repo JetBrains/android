@@ -41,7 +41,7 @@ final class HttpDataViewModel {
   private final NetworkConnectionsModel myModel;
   private final HttpData myHttpData;
 
-  public HttpDataViewModel(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
+  HttpDataViewModel(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
     myModel = model;
     myHttpData = httpData;
   }

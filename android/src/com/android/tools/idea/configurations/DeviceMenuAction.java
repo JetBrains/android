@@ -322,7 +322,7 @@ public class DeviceMenuAction extends DropDownAction {
   private class SetDeviceAction extends ConfigurationAction {
     private final Device myDevice;
 
-    public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
+    SetDeviceAction(@NotNull ConfigurationHolder renderContext,
                            @NotNull final String title,
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,
@@ -380,7 +380,7 @@ public class DeviceMenuAction extends DropDownAction {
   private class SetCustomDeviceAction extends ConfigurationAction {
     private final Device myDevice;
 
-    public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext, @Nullable final Device device) {
+    SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext, @Nullable final Device device) {
       super(renderContext, "Custom");
       myDevice = device;
       if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {

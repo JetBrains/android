@@ -361,7 +361,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     @NotNull public final DeployTargetState myState;
     @NotNull public final DeployTargetConfigurable<DeployTargetState> myConfigurable;
 
-    public DeployTargetInfo(@NotNull DeployTargetProvider<DeployTargetState> provider,
+    DeployTargetInfo(@NotNull DeployTargetProvider<DeployTargetState> provider,
                             @NotNull DeployTargetState state,
                             @NotNull DeployTargetConfigurable<DeployTargetState> configurable) {
       myProvider = provider;
@@ -373,7 +373,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
   private static final class Context implements DeployTargetConfigurableContext {
     private final Module myModule;
 
-    public Context(@NotNull Module module) {
+    Context(@NotNull Module module) {
       myModule = module;
     }
 
@@ -395,7 +395,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
   private static class UseSameDevicesOption implements DoNotAskOption {
     @NotNull private final ShowChooserTargetProvider.State myState;
 
-    public UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
+    UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
       myState = state;
     }
 

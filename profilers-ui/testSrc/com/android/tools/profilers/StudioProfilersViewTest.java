@@ -311,7 +311,7 @@ public class StudioProfilersViewTest {
 
   static class FakeView extends StageView<FakeStage> {
 
-    public FakeView(@NotNull StudioProfilersView profilersView, @NotNull FakeStage stage) {
+    FakeView(@NotNull StudioProfilersView profilersView, @NotNull FakeStage stage) {
       super(profilersView, stage);
     }
 
