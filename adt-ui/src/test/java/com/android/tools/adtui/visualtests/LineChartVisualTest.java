@@ -103,7 +103,6 @@ public class LineChartVisualTest extends VisualTest {
       mData.add(series);
     }
     model.addAll(mRangedData);
-    RangedContinuousSeries firstSeries = mRangedData.get(0);
 
     mDurationData1 = new DefaultDataSeries<>();
     mDurationData2 = new DefaultDataSeries<>();
@@ -117,8 +116,6 @@ public class LineChartVisualTest extends VisualTest {
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
-    LineConfig customMaskConfig = LineConfig.copyOf(mLineChart.getLineConfig(firstSeries)).setMasked(true);
-    mDurationRendererBlocking.addCustomLineConfig(firstSeries, customMaskConfig);
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
     model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
@@ -131,13 +128,13 @@ public class LineChartVisualTest extends VisualTest {
       }
       return  true;
     });
+    model2.setRenderSeriesPredicate((data, series) -> !series.getName().equals("Widgets #0"));
     mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.BLACK)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Attached")
       .setStroke(new BasicStroke(1))
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
-    mDurationRendererAttached.addCustomLineConfig(firstSeries, customMaskConfig);
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
     mLineChart.addCustomRenderer(mDurationRendererAttached);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererBlocking);
