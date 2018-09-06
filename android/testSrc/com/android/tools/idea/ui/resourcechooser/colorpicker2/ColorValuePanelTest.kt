@@ -17,6 +17,9 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.IdeaTestCase
 import java.awt.Color
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.KeyStroke
 import kotlin.math.roundToInt
 
 class ColorValuePanelTest : IdeaTestCase() {
@@ -295,5 +298,70 @@ class ColorValuePanelTest : IdeaTestCase() {
     panel.updateAlarm.flush()
 
     assertEquals("128", panel.alphaField.text)
+  }
+
+  fun testUpAndDownOnColorField() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+
+    run {
+      panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0)
+      val action = panel.alphaField.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(panel.alphaField, 0, key.keyChar.toString(), key.modifiers)
+
+      model.setColor(Color(0, 0, 0, 128), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(129, panel.alphaField.colorValue)
+
+      model.setColor(Color(0, 0, 0, 255), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(255, panel.alphaField.colorValue)
+    }
+
+    run {
+      panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.PERCENTAGE
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0)
+      val action = panel.alphaField.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(panel.alphaField, 0, key.keyChar.toString(), key.modifiers)
+
+      model.setColor(Color(0, 0, 0, 128), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(51, panel.alphaField.colorValue)
+
+      model.setColor(Color(0, 0, 0, 255), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(100, panel.alphaField.colorValue)
+    }
+
+    run {
+      panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.BYTE
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0)
+      val action = panel.alphaField.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(panel.alphaField, 0, key.keyChar.toString(), key.modifiers)
+
+      model.setColor(Color(0, 0, 0, 128), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(127, panel.alphaField.colorValue)
+
+      model.setColor(Color(0, 0, 0, 0), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(0, panel.alphaField.colorValue)
+    }
+
+    run {
+      panel.currentAlphaFormat = ColorValuePanel.AlphaFormat.PERCENTAGE
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0)
+      val action = panel.alphaField.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(panel.alphaField, 0, key.keyChar.toString(), key.modifiers)
+
+      model.setColor(Color(0, 0, 0, 128), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(49, panel.alphaField.colorValue)
+
+      model.setColor(Color(0, 0, 0, 0), null)
+      action.actionPerformed(actionEvent)
+      assertEquals(0, panel.alphaField.colorValue)
+    }
   }
 }
