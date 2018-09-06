@@ -54,6 +54,7 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull private final OptionalProperty<TemplateHandle> myRenderTemplateHandle = new OptionalValueProperty<>();
 
   @NotNull private final BoolProperty myHasCompanionApp = new BoolValueProperty();
+  @NotNull private final BoolProperty myDynamicInstantApp = new BoolValueProperty();
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myProjectModel = projectModel;
@@ -69,6 +70,11 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull
   public BoolProperty instantApp() {
     return myNewModuleModel.instantApp();
+  }
+
+  @NotNull
+  public BoolProperty dynamicInstantApp() {
+    return myDynamicInstantApp;
   }
 
   @NotNull
@@ -147,6 +153,8 @@ public final class NewProjectModuleModel extends WizardModel {
 
     new TemplateValueInjector(myNewModuleModel.getTemplateValues())
       .setProjectDefaults(project, myNewModuleModel.applicationName().get());
+
+    projectTemplateValues.put(ATTR_IS_DYNAMIC_INSTANT_APP, myDynamicInstantApp.get());
 
     myNewModuleModel.handleFinished();
     if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself

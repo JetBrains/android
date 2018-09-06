@@ -372,6 +372,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // pass the file path to the gradle task.
       File deviceSpecFile = deviceSpec.writeToJsonTempFile();
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
+      if (configuration instanceof AndroidAppRunConfigurationBase) {
+        if (((AndroidAppRunConfigurationBase)configuration).DEPLOY_AS_INSTANT) {
+          properties.add(createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true));
+        }
+      }
     }
     else {
       // For non bundle tool deploy tasks, we have one argument per device spec property
@@ -385,6 +390,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       }
       if (!deviceSpec.getBuildAbis().isEmpty()) {
         properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.getBuildAbis())));
+      }
+      if (configuration instanceof AndroidAppRunConfigurationBase) {
+        if (((AndroidAppRunConfigurationBase)configuration).DEPLOY_AS_INSTANT) {
+          properties.add(createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true));
+        }
       }
     }
     return properties;

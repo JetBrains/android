@@ -102,7 +102,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
                                            int index,
                                            boolean isSelected,
                                            boolean cellHasFocus) {
-        if (isSelected && !cellHasFocus) {
+        if (isSelected && !list.hasFocus()) {
           setBackground(UIUtil.getListUnfocusedSelectionBackground());
           mySelectionForeground = UIUtil.getListForeground();
         }
@@ -120,7 +120,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         else if (NavComponentHelperKt.isNavigation(component)) {
           icon = NESTED_GRAPH;
         }
-        if (isSelected && cellHasFocus) {
+        if (isSelected && list.hasFocus()) {
           icon = WHITE_ICONS.get(icon);
         }
         setIcon(icon);

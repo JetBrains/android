@@ -16,7 +16,6 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import com.android.tools.layoutlib.annotations.NotNull;
-
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 

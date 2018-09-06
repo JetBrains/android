@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,6 @@ public class IncludeSet {
   @NotNull private static final String TAKE_NEXT_SENTINEL = "TAKE_NEXT_SENTINEL";
   @NotNull private static final Pattern PATTERN = Pattern.compile("://", Pattern.LITERAL);
   @NotNull private final LinkedHashSet<String> myIncludes = new LinkedHashSet<>();
-  @NotNull private final Set<String> mySeenIncludes = new HashSet<>();
 
   /**
    * When passed a --sysroot flag clang or gcc append "usr/include" to it. We need to find the same path.
@@ -156,5 +154,22 @@ public class IncludeSet {
   @Override
   public String toString() {
     return myIncludes.toString();
+  }
+
+  @Override
+  final public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof IncludeSet)) {
+      return false;
+    }
+    IncludeSet that = (IncludeSet) obj;
+    return Objects.equals(this.myIncludes, that.myIncludes);
+  }
+
+  @Override
+  final public int hashCode() {
+    return this.myIncludes.hashCode();
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
-import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;

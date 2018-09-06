@@ -40,6 +40,7 @@ public final class LaunchOptions {
     private boolean mySkipNoopApkInstallations = true;
     private boolean myForceStopRunningApp = true;
     private final Map<String, Object> myExtraOptions = new HashMap<>();
+    private boolean myDeployAsInstant = false;
 
     private Builder() {
     }
@@ -54,7 +55,8 @@ public final class LaunchOptions {
                                myClearLogcatBeforeStart,
                                mySkipNoopApkInstallations,
                                myForceStopRunningApp,
-                               myExtraOptions);
+                               myExtraOptions,
+                               myDeployAsInstant);
     }
 
     @NotNull
@@ -109,6 +111,12 @@ public final class LaunchOptions {
       myDisabledDynamicFeatures = ImmutableList.copyOf(disabledDynamicFeatures);
       return this;
     }
+
+    @NotNull
+    public Builder setDeployAsInstant(boolean deployAsInstant) {
+      myDeployAsInstant = deployAsInstant;
+      return this;
+    }
   }
 
   @NotNull
@@ -125,6 +133,7 @@ public final class LaunchOptions {
   private final boolean mySkipNoopApkInstallations;
   private final boolean myForceStopRunningApp;
   private final Map<String, Object> myExtraOptions;
+  private final boolean myDeployAsInstant;
 
   private LaunchOptions(boolean deploy,
                         @Nullable String pmInstallOptions,
@@ -134,7 +143,8 @@ public final class LaunchOptions {
                         boolean clearLogcatBeforeStart,
                         boolean skipNoopApkInstallations,
                         boolean forceStopRunningApp,
-                        @NotNull Map<String, Object> extraOptions) {
+                        @NotNull Map<String, Object> extraOptions,
+                        boolean deployAsInstant) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
     myDisabledDynamicFeatures = disabledDynamicFeatures;
@@ -144,6 +154,7 @@ public final class LaunchOptions {
     mySkipNoopApkInstallations = skipNoopApkInstallations;
     myForceStopRunningApp = forceStopRunningApp;
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
+    myDeployAsInstant = deployAsInstant;
   }
 
   public boolean isDeploy() {
@@ -184,4 +195,6 @@ public final class LaunchOptions {
   public Object getExtraOption(@NotNull String key) {
     return myExtraOptions.get(key);
   }
+
+  public boolean isDeployAsInstant() { return myDeployAsInstant; }
 }

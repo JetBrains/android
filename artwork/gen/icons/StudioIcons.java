@@ -308,6 +308,19 @@ public class StudioIcons {
       public static final Icon INFER_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/infer-constraints.png"); // 16x16
       public static final Icon INSERT_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/insert-horiz-chain.png"); // 16x16
       public static final Icon INSERT_VERT_CHAIN = load("/studio/icons/layout-editor/toolbar/insert-vert-chain.png"); // 16x16
+      public static final Icon CONSTRAIN_MENU = load("/studio/icons/layout-editor/toolbar/constraint/constrain.png"); // 16x16
+      public static final Icon CONSTRAIN_TOP_SRC = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-top.png"); // 16x16
+      public static final Icon CONSTRAIN_BOTTOM_SRC = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-bottom.png"); // 16x16
+      public static final Icon CONSTRAIN_START_SRC = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-start.png"); // 16x16
+      public static final Icon CONSTRAIN_END_SRC = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-end.png"); // 16x16
+      public static final Icon CONSTRAIN_TOP_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-top.png"); // 16x16
+      public static final Icon CONSTRAIN_BOTTOM_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-bottom.png"); // 16x16
+      public static final Icon CONSTRAIN_START_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-start.png"); // 16x16
+      public static final Icon CONSTRAIN_END_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-end.png"); // 16x16
+      public static final Icon CONSTRAIN_TOP_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-top.png"); // 16x16
+      public static final Icon CONSTRAIN_BOTTOM_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-bottom.png"); // 16x16
+      public static final Icon CONSTRAIN_START_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-start.png"); // 16x16
+      public static final Icon CONSTRAIN_END_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-end.png"); // 16x16
       public static final Icon LANGUAGE = load("/studio/icons/layout-editor/toolbar/language.png"); // 16x16
       public static final Icon LEFT_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/left-aligned-constraint.png"); // 16x16
       public static final Icon LEFT_ALIGNED = load("/studio/icons/layout-editor/toolbar/left-aligned.png"); // 16x16
@@ -445,6 +458,7 @@ public class StudioIcons {
 
   public static class Profiler {
     public static class Events {
+      public static final Icon ALLOCATION_TRACKING_CHANGE = load("/studio/icons/profiler/events/allocation-tracking-change.png"); // 22x22
       public static final Icon BACK_BUTTON = load("/studio/icons/profiler/events/back-button.png"); // 22x22
       public static final Icon GARBAGE_EVENT = load("/studio/icons/profiler/events/garbage-event.png"); // 22x22
       public static final Icon GPS = load("/studio/icons/profiler/events/gps.png"); // 22x22

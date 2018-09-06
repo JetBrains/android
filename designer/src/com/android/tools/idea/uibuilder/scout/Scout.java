@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.scout;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -51,7 +50,7 @@ public class Scout {
     ExpandHorizontally, CenterHorizontallyInParent, CenterVerticallyInParent, CenterVertically,
     CenterHorizontally, CreateHorizontalChain, CreateVerticalChain, ConnectTop, ConnectBottom, ConnectStart, ConnectEnd,
     ChainVerticalRemove, ChainHorizontalRemove, ChainVerticalMoveUp, ChainVerticalMoveDown, ChainHorizontalMoveLeft, ChainHorizontalMoveRight,
-    ChainInsertHorizontal, ChainInsertVertical
+    ChainInsertHorizontal, ChainInsertVertical,
   }
 
   private static int sMargin = 8;
@@ -84,13 +83,39 @@ public class Scout {
 
   /**
    * Arrange widgets and commit the result
-   * @param type type of arranging
-   * @param widgets list of widgets to work on
+   *
+   * @param type             type of arranging
+   * @param widgets          list of widgets to work on
    * @param applyConstraints only align or apply constraints
    */
   public static void arrangeWidgetsAndCommit(Arrange type, List<NlComponent> widgets, boolean applyConstraints) {
     arrangeWidgets(type, widgets, applyConstraints);
     commit(widgets, "Arrange Widgets");
+  }
+
+
+  public enum Connect {
+    ConnectTopToTop,
+    ConnectTopToBottom,
+    ConnectBottomToTop,
+    ConnectBottomToBottom,
+    ConnectStartToStart,
+    ConnectStartToEnd,
+    ConnectEndToStart,
+    ConnectEndToEnd,
+    ConnectBaseLineToBaseLine,
+    ConnectToParentTop,
+    ConnectToParentBottom,
+    ConnectToParentStart,
+    ConnectToParentEnd,
+  }
+
+  public static void connect(List<NlComponent> widgets, Connect action, boolean reverse, boolean margin) {
+      ScoutConnectArrange.connect(widgets, action, reverse, margin);
+  }
+
+  public static boolean connectCheck(List<NlComponent> widgets, Connect test, boolean reverse) {
+    return ScoutConnectArrange.connectCheck(widgets, test, reverse);
   }
 
   /**

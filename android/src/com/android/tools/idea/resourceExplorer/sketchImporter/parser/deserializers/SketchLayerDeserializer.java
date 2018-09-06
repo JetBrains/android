@@ -15,17 +15,24 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.*;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBitmap;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapeGroup;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSlice;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchText;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.diagnostic.Logger;
+import java.lang.reflect.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Type;
 
 /**
  * Since abstract classes (such as {@link SketchLayer} cannot be instantiated, GSON needs to know how to handle fields of type

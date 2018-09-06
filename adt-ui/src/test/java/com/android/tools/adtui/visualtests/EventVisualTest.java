@@ -16,25 +16,46 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.eventrenderer.EventIconRenderer;
 import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
-import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
+import com.android.tools.adtui.eventrenderer.EventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
-import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
-import com.android.tools.adtui.model.event.*;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleAction;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class EventVisualTest extends VisualTest {
 
@@ -46,7 +67,7 @@ public class EventVisualTest extends VisualTest {
     "MultiplayerActivity"
   };
 
-  private static final Map<ActionType, SimpleEventRenderer<ActionType>> MOCK_RENDERERS;
+  private static final Map<ActionType, EventRenderer<ActionType>> MOCK_RENDERERS;
   static {
     MOCK_RENDERERS = new HashMap<>();
     MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer<>());
@@ -58,15 +79,15 @@ public class EventVisualTest extends VisualTest {
 
   private ArrayList<MockActivity> myOpenActivities;
 
-  private SimpleEventComponent<ActionType> mySimpleEventComponent;
+  private EventComponent<ActionType> myEventComponent;
 
-  private StackedEventComponent myStackedEventComponent;
+  private ActivityComponent myActivityComponent;
 
   private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<ActionType>> myData;
+  private DefaultDataSeries<EventAction<ActionType>> myUserEventData;
 
-  private DefaultDataSeries<EventAction<StackedEventType>> myActivityData;
+  private DefaultDataSeries<EventAction<LifecycleEvent>> myActivityLifecycleData;
 
   private AnimatedTimeRange myAnimatedRange;
 
@@ -74,8 +95,8 @@ public class EventVisualTest extends VisualTest {
 
   private ResizingAxisComponentModel myTimeAxisModel;
 
-  private EventModel<ActionType> myEventModel;
-  private EventModel<StackedEventType> myStackedEventModel;
+  private EventModel<ActionType> myUserEventModel;
+  private EventModel<LifecycleEvent> myActivityLifecycleModel;
 
 
   @Override
@@ -84,12 +105,12 @@ public class EventVisualTest extends VisualTest {
     Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     Range xTimelineRange = new Range(0, 0);
 
-    myData = new DefaultDataSeries<>();
-    myActivityData = new DefaultDataSeries<>();
-    myEventModel = new EventModel<>(new RangedSeries<>(xRange, myData));
-    mySimpleEventComponent = new SimpleEventComponent<>(myEventModel, MOCK_RENDERERS);
-    myStackedEventModel = new EventModel<>(new RangedSeries<>(xRange, myActivityData));
-    myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
+    myUserEventData = new DefaultDataSeries<>();
+    myActivityLifecycleData = new DefaultDataSeries<>();
+    myUserEventModel = new EventModel<>(new RangedSeries<>(xRange, myUserEventData));
+    myEventComponent = new EventComponent<>(myUserEventModel, MOCK_RENDERERS);
+    myActivityLifecycleModel = new EventModel<>(new RangedSeries<>(xRange, myActivityLifecycleData));
+    myActivityComponent = new ActivityComponent(myActivityLifecycleModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
@@ -106,7 +127,7 @@ public class EventVisualTest extends VisualTest {
 
   @Override
   protected List<AnimatedComponent> getDebugInfoComponents() {
-    return Arrays.asList(mySimpleEventComponent, myStackedEventComponent);
+    return Arrays.asList(myEventComponent, myActivityComponent);
   }
 
   @Override
@@ -117,7 +138,7 @@ public class EventVisualTest extends VisualTest {
   private void performTapAction() {
     long now = System.currentTimeMillis();
     EventAction<ActionType> event = new EventAction<>(now, now, ActionType.TOUCH);
-    myData.add(now, event);
+    myUserEventData.add(now, event);
   }
 
   private void addActivityCreatedEvent() {
@@ -168,7 +189,7 @@ public class EventVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<ActionType> event =
           new EventAction<>(mDownTime, nowUs, ActionType.TOUCH);
-        myData.add(nowUs, event);
+        myUserEventData.add(nowUs, event);
       }
     });
     controls.add(tapButton);
@@ -185,8 +206,8 @@ public class EventVisualTest extends VisualTest {
   private JLayeredPane createMockTimeline() {
     JLayeredPane timelinePane = new JLayeredPane();
     timelinePane.add(myTimeAxis);
-    timelinePane.add(mySimpleEventComponent);
-    timelinePane.add(myStackedEventComponent);
+    timelinePane.add(myEventComponent);
+    timelinePane.add(myActivityComponent);
     timelinePane.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
@@ -247,16 +268,16 @@ public class EventVisualTest extends VisualTest {
 
     private void addSelf() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventType> event =
-        new ActivityAction(myStartTimeUs, 0, StackedEventType.ACTIVITY_STARTED, myName);
-      myActivityData.add(nowUs, event);
+      EventAction<LifecycleEvent> event =
+        new LifecycleAction(myStartTimeUs, 0, LifecycleEvent.STARTED, myName);
+      myActivityLifecycleData.add(nowUs, event);
     }
 
     public void tearDown() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventType> event =
-        new ActivityAction(myStartTimeUs, nowUs, StackedEventType.ACTIVITY_COMPLETED, myName);
-      myActivityData.add(nowUs, event);
+      EventAction<LifecycleEvent> event =
+        new LifecycleAction(myStartTimeUs, nowUs, LifecycleEvent.COMPLETED, myName);
+      myActivityLifecycleData.add(nowUs, event);
     }
   }
 }

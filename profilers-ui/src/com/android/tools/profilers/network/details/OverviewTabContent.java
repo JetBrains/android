@@ -30,12 +30,13 @@ import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import com.android.tools.profilers.network.ConnectionsStateChart;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.NetworkState;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
-import com.android.tools.profilers.stacktrace.DataViewer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
@@ -54,6 +55,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
 import javax.swing.BoxLayout;
@@ -98,7 +100,7 @@ final class OverviewTabContent extends TabContent {
     myModel = model;
   }
 
-  private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
+  private static JComponent createFields(@NotNull HttpData httpData, @Nullable BufferedImage image) {
     JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit-,40px,*").setVGap(TabUiUtils.SECTION_VGAP));
 
     int row = 0;
@@ -116,10 +118,10 @@ final class OverviewTabContent extends TabContent {
       myFieldsPanel.add(statusCode, new TabularLayout.Constraint(row, 2));
     }
 
-    if (payloadDimension != null) {
+    if (image != null) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Dimension"), new TabularLayout.Constraint(row, 0));
-      JLabel dimension = new JLabel(String.format("%d x %d", (int)payloadDimension.getWidth(), (int)payloadDimension.getHeight()));
+      JLabel dimension = new JLabel(String.format("%d x %d", image.getWidth(), image.getHeight()));
       myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
 
@@ -277,7 +279,8 @@ final class OverviewTabContent extends TabContent {
     responsePayloadComponent.setName(ID_RESPONSE_PAYLOAD_VIEWER);
 
     myPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
-    myPanel.add(createFields(data, payloadViewer.getImageDimension()), new TabularLayout.Constraint(1, 0));
+    BufferedImage image = payloadViewer instanceof ImageDataViewer ? ((ImageDataViewer)payloadViewer).getImage() : null;
+    myPanel.add(createFields(data, image), new TabularLayout.Constraint(1, 0));
   }
 
   @Override

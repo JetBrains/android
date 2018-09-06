@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Refers to objects that have the "_class" field set to be one of the following:

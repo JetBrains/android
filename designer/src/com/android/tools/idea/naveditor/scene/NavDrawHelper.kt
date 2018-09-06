@@ -91,6 +91,19 @@ val FRAGMENT_BORDER_SPACING = JBUI.scale(2f)
 @NavCoordinate
 val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUI.scale(2)
 
+@NavCoordinate
+val HEADER_ICON_SIZE = JBUI.scale(14f)
+@NavCoordinate
+val HEADER_TEXT_PADDING = JBUI.scale(2f)
+@NavCoordinate
+val HEADER_PADDING = JBUI.scale(8f)
+
+@JvmField
+@NavCoordinate
+val HEADER_HEIGHT = HEADER_ICON_SIZE + HEADER_PADDING
+@NavCoordinate
+val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
+
 fun frameColor(context: SceneContext, component: SceneComponent): Color {
   val colorSet = context.colorSet
 

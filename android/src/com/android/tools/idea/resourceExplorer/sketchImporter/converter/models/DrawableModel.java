@@ -16,7 +16,6 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicContextSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,14 +26,12 @@ public class DrawableModel {
   @Nullable private SketchGradient gradient;
   private int strokeColor;
   @Nullable private String strokeWidth;
-  @Nullable private SketchGraphicContextSettings graphicContextSettings;
   private boolean isClipPath;
   private boolean breaksMaskChain;
   private boolean isLastShape;
 
   public DrawableModel(@NotNull String pathDataParam,
                        int fillColorParam,
-                       @Nullable SketchGraphicContextSettings graphicContextSettingsParam,
                        @Nullable SketchGradient gradientParam,
                        int strokeColorParam,
                        @Nullable String strokeWidthParam,
@@ -43,7 +40,6 @@ public class DrawableModel {
                        boolean isLastShapeParam) {
     pathData = pathDataParam;
     fillColor = fillColorParam;
-    graphicContextSettings = graphicContextSettingsParam;
     strokeColor = strokeColorParam;
     strokeWidth = strokeWidthParam;
     gradient = gradientParam;
@@ -73,11 +69,6 @@ public class DrawableModel {
   @Nullable
   public SketchGradient getGradient() {
     return gradient;
-  }
-
-  @Nullable
-  public SketchGraphicContextSettings getGraphicContextSettings() {
-    return graphicContextSettings;
   }
 
   /**

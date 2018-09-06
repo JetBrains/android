@@ -102,8 +102,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (myFacet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP ||
-          !InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+      if (!shouldDeployAsInstant() || !InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
@@ -158,13 +157,14 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
+    if (shouldDeployAsInstant()) {
       if (InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
         DeepLinkLaunch.State state =
           (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
         assert state != null;
-        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK));
+        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
       } else {
         tasks.add(new DeployInstantAppTask(myProject, myApkProvider.getApks(device)));
       }
@@ -172,7 +172,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
 
       // Add tasks for each apk (or split-apk) returned by the apk provider
-      List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
       tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
                                      apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
                                      apkInfo -> new SplitApkDeployTask(myProject,
@@ -270,5 +269,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @Override
   public boolean monitorRemoteProcess() {
     return myRunConfig.monitorRemoteProcess();
+  }
+
+  private boolean shouldDeployAsInstant() {
+    return (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
+            myLaunchOptions.isDeployAsInstant());
   }
 }

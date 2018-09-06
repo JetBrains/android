@@ -17,6 +17,9 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import org.junit.Assert.*
 import org.junit.Test
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.KeyStroke
 import kotlin.math.ceil
 
 class HueSliderComponentTest {
@@ -27,13 +30,13 @@ class HueSliderComponentTest {
     slider.setSize(1000, 100)
 
     slider.knobPosition = 0
-    assertEquals(0f, slider.value)
+    assertEquals(0, slider.value)
 
     slider.knobPosition = slider.sliderWidth / 2
-    assertEquals(0.5f, slider.value, 0.01f)
+    assertEquals(180, slider.value)
 
     slider.knobPosition = slider.sliderWidth
-    assertEquals(1.0f, slider.value)
+    assertEquals(360, slider.value)
   }
 
   @Test
@@ -41,15 +44,89 @@ class HueSliderComponentTest {
     val slider = HueSliderComponent()
     slider.setSize(1000, 100)
 
-    slider.value = 0f
+    slider.value = 0
     assertEquals(0, slider.knobPosition)
 
     // The mapping between knobPosition and value may have some bias due to the floating issue. Bias is acceptable.
-    slider.value = 0.5f
+    slider.value = 180
     assertEquals(slider.sliderWidth / 2, slider.knobPosition, ceil(slider.sliderWidth / 2f))
 
-    slider.value = 1.0f
+    slider.value = 360
     assertEquals(slider.sliderWidth, slider.knobPosition)
+  }
+
+  @Test
+  fun testKeyEvent() {
+    val slider = HueSliderComponent()
+    slider.setSize(1000, 100)
+
+    run {
+      // Test left key
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0)
+      val action = slider.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
+
+      slider.value = 180
+      action.actionPerformed(actionEvent)
+      assertEquals(180 - SLIDE_UNIT, slider.value)
+
+      slider.value = 0
+      action.actionPerformed(actionEvent)
+      assertEquals(0, slider.value)
+    }
+
+    run {
+      // Test left key with alt
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK)
+      val action = slider.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
+
+      slider.value = 180
+      action.actionPerformed(actionEvent)
+      assertEquals(180 - 10 * SLIDE_UNIT, slider.value)
+
+      slider.value = 0
+      action.actionPerformed(actionEvent)
+      assertEquals(0, slider.value)
+
+      slider.value = 6
+      action.actionPerformed(actionEvent)
+      assertEquals(0, slider.value)
+    }
+
+    run {
+      // Test right key
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0)
+      val action = slider.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
+
+      slider.value = 180
+      action.actionPerformed(actionEvent)
+      assertEquals(180 + SLIDE_UNIT, slider.value)
+
+      slider.value = 360
+      action.actionPerformed(actionEvent)
+      assertEquals(360, slider.value)
+    }
+
+    run {
+      // Test right key with alt
+      val key = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK)
+      val action = slider.getActionForKeyStroke(key)!!
+      val actionEvent = ActionEvent(slider, 0, key.keyChar.toString(), key.modifiers)
+
+      slider.value = 180
+      action.actionPerformed(actionEvent)
+      assertEquals(180 + SLIDE_UNIT * 10, slider.value)
+
+      slider.value = 360
+      action.actionPerformed(actionEvent)
+      assertEquals(360, slider.value)
+
+      slider.value = 355
+      action.actionPerformed(actionEvent)
+      assertEquals(360, slider.value)
+    }
   }
 
   private fun assertEquals(expect: Int, actual: Int, delta: Number) = assertEquals(expect.toDouble(), actual.toDouble(), delta.toDouble())

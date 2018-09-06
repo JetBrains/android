@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PathModel extends ShapeModel {
 
@@ -31,8 +29,7 @@ public class PathModel extends ShapeModel {
   private final Path2D.Double path;
 
   public PathModel(@NotNull Path2D.Double shape,
-                   @Nullable SketchFill fill,
-                   @Nullable SketchBorder border,
+                   @Nullable SketchStyle style,
                    boolean flippedHorizontal,
                    boolean flippedVertical,
                    boolean closed,
@@ -41,9 +38,9 @@ public class PathModel extends ShapeModel {
                    @NotNull Point2D.Double framePosition,
                    boolean hasClippingMask,
                    boolean shouldBreakMaskChain,
-                   boolean isLastShapeGroup) {
-    super(shape, fill, border, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
-          shouldBreakMaskChain, isLastShapeGroup);
+                   boolean isLastShapeGroup, double parentOpacity) {
+    super(shape, style, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
+          shouldBreakMaskChain, isLastShapeGroup, parentOpacity);
     path = shape;
   }
 
@@ -51,9 +48,9 @@ public class PathModel extends ShapeModel {
     if (!isClosed) {
       closeShape();
     }
-    return new AreaModel(new Area(path), shapeFill, shapeBorder, isFlippedHorizontal, isFlippedVertical, isClosed, rotationDegrees,
+    return new AreaModel(new Area(path), shapeStyle, isFlippedHorizontal, isFlippedVertical, isClosed, rotationDegrees,
                          shapeOperation,
-                         shapeFrameCoordinates, hasClippingMask, shouldBreakMaskChain, isLastShape);
+                         shapeFrameCoordinates, hasClippingMask, shouldBreakMaskChain, isLastShape, myParentOpacity);
   }
 
   private void closeShape() {
@@ -65,9 +62,6 @@ public class PathModel extends ShapeModel {
     AffineTransform transform = computeAffineTransform();
 
     path.transform(transform);
-
-    if (shapeGradient != null) {
-      shapeGradient.applyTransformation(transform);
-    }
+    transformGradient(transform);
   }
 }

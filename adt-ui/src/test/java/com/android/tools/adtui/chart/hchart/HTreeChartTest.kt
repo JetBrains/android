@@ -17,6 +17,7 @@ package com.android.tools.adtui.chart.hchart
 
 import com.android.tools.adtui.model.DefaultHNode
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import org.junit.Before
 import org.junit.Test
@@ -24,6 +25,7 @@ import org.junit.Test
 import java.awt.*
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.SystemInfo.isMac
 import java.awt.geom.Rectangle2D
 
 class HTreeChartTest {
@@ -33,7 +35,7 @@ class HTreeChartTest {
   // We make the chart's dimension to be shorter than the tree's height, so we can test dragging
   // towards north and south.
   private val myContentHeight = 75
-  // The total heigh is the height of the content plus the height of the padding.
+  // The total height is the height of the content plus the height of the padding.
   private val myTotalHeight = myContentHeight + 10
   private val myViewHeight = 50
   // Y axis' initial position, which is the north/south boundary of a top-down/bottom-up chart.
@@ -47,7 +49,7 @@ class HTreeChartTest {
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
 
-    myChart = HTreeChart.Builder(HNodeTree(0,5,2), myRange, FakeRenderer())
+    myChart = HTreeChart.Builder(HNodeTree(0, 5, 2), myRange, FakeRenderer())
       .setGlobalXRange(Range(0.0, 100.0))
       .setOrientation(orientation)
       .build()
@@ -73,6 +75,11 @@ class HTreeChartTest {
       }
     }
     return subroot
+  }
+
+  private fun getFakeActionKey() = when (isMac) {
+    true -> FakeKeyboard.Key.META
+    false -> FakeKeyboard.Key.CTRL
   }
 
   @Test
@@ -257,6 +264,7 @@ class HTreeChartTest {
     setUp(HTreeChart.Orientation.TOP_DOWN)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(40, 20, -1)
     assertThat(myRange.min).isWithin(EPSILON).of(2.0)
     assertThat(myRange.max).isWithin(EPSILON).of(97.0)
@@ -269,6 +277,7 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(10.0, 60.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(40, 20, 5)
     assertThat(myRange.min).isWithin(EPSILON).of(5.0)
     assertThat(myRange.max).isWithin(EPSILON).of(67.5)
@@ -281,6 +290,7 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(1.0, 51.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(80, 20, 5)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(53.5)
@@ -293,6 +303,7 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(49.0, 99.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(20, 20, 5)
     assertThat(myRange.min).isWithin(EPSILON).of(46.5)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
@@ -305,12 +316,35 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(10.0, 90.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(25, 20, 15)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
   }
 
-  class FakeRenderer: DefaultHRenderer<String>() {
+  @Test
+  fun testChartMouseWheelScrollUp() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    myUi.mouse.wheel(25, 25, 1)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(2.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(2.0)
+  }
+
+  @Test
+  fun testChartMouseWheelScrollDown() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    myUi.mouse.wheel(25, 25, -1)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(18.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(18.0)
+  }
+
+  class FakeRenderer : DefaultHRenderer<String>() {
     override fun getFillColor(nodeData: String) = Color.white
 
     override fun generateFittingText(nodeData: String, rect: Rectangle2D, fontMetrics: FontMetrics) = ""

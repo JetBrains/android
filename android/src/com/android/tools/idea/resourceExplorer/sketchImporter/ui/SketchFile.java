@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class to hold the contents of a .sketch file, which is actually a zip archive with the following structure as per the
@@ -38,6 +38,7 @@ import java.util.List;
  * </ul>
  */
 public class SketchFile {
+  private SketchDocument myDocument;
   private List<SketchPage> myPages = new ArrayList<>();
   // TODO the rest of the structure as classes are created
 
@@ -48,6 +49,15 @@ public class SketchFile {
   @NotNull
   public List<SketchPage> getPages() {
     return myPages;
+  }
+
+  public void setDocument(@NotNull SketchDocument document) {
+    myDocument = document;
+  }
+
+  @NotNull
+  public SketchDocument getDocument() {
+    return myDocument;
   }
 
   /**

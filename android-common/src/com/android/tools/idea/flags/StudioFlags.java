@@ -78,6 +78,11 @@ public final class StudioFlags {
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
+  public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
+    PROFILER, "event.fragment", "Enable fragment profiling",
+    "Shows fragment information in event profiler's activity bar and tooltip.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
     PROFILER, "show.session", "Enable the sessions panel",
     "Shows the sessions panel used for managing and navigating profiling data.",
@@ -130,6 +135,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_MEMORY_SNAPSHOT = Flag.create(
     PROFILER, "memory.livealloc.snapshot", "Enable Memory Class Histogram Display",
     "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
+    true);
+
+  public static final Flag<Boolean> PROFILER_SAMPLE_LIVE_ALLOCATIONS = Flag.create(
+    PROFILER, "memory.livealloc.sampled", "Enable Sampled Live Allocation Tracking",
+    "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
     true);
 
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
@@ -388,8 +398,26 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS = Flag.create(
     UAB, "hide.instant.modules", "Hide Instant Modules for non-feature plugin Project",
-    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be avialble",
-    false
+    "If a user is working on an older instant app project, they will be able to create instant modules. Otherwise the option won't be available",
+    true
+  );
+
+  public static final Flag<Boolean> UAB_INSTANT_DYNAMIC_FEATURE_MODULE = Flag.create(
+    UAB, "instant.dynamic.feature.modules", "Enable Instant Dynamic Feature Template",
+    "If enabled, the new module wizard will include the template for instant dynamic feature modules",
+    true
+  );
+
+  public static final Flag<Boolean> UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP = Flag.create(
+    UAB, "dynamic.instant.app", "When Instant is checked, only create app module with dist:module in manifest",
+    "If enabled, when the user checks the instant checkbox when creating a new project, then a project with only an app module and with dist:module in the manifest",
+    true
+  );
+
+  public static final Flag<Boolean> UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS = Flag.create(
+    UAB, "enable.ia.run.configs", "Enable new instant app run configuration options",
+    "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow.",
+    true
   );
 
   private StudioFlags() {

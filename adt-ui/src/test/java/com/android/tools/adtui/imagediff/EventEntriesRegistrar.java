@@ -126,7 +126,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleTapEvent() {
-    register(new SimpleEventImageDiffEntry("event_simple_tap_baseline.png") {
+    register(new EventIconsImageDiffEntry("event_simple_tap_baseline.png") {
 
       @Override
       protected void generateTestData() {
@@ -137,7 +137,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleTapAndHoldEvent() {
-    register(new SimpleEventImageDiffEntry("event_simple_tap_and_hold_baseline.png") {
+    register(new EventIconsImageDiffEntry("event_simple_tap_and_hold_baseline.png") {
 
       @Override
       protected void generateTestData() {
@@ -148,7 +148,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerMultipleTapEvents() {
-    register(new SimpleEventImageDiffEntry("event_simple_multiple_tap_baseline.png") {
+    register(new EventIconsImageDiffEntry("event_simple_multiple_tap_baseline.png") {
 
       @Override
       protected void generateTestData() {
@@ -161,7 +161,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleEventExpandingComponent() {
-    register(new SimpleEventImageDiffEntry("event_simple_expanding_event.png") {
+    register(new EventIconsImageDiffEntry("event_simple_expanding_event.png") {
 
       @Override
       protected void generateTestData() {
@@ -185,7 +185,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       protected void setUp() {
         super.setUp();
         // Dispatch a mouse moved event to set our mose position.
-        mySimpleEventComponent.dispatchEvent(new MouseEvent(mySimpleEventComponent, MouseEvent.MOUSE_MOVED, 0, 0, 32, 0, 0, false));
+        myEventComponent.dispatchEvent(new MouseEvent(myEventComponent, MouseEvent.MOUSE_MOVED, 0, 0, 32, 0, 0, false));
       }
     });
   }
@@ -196,10 +196,10 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final String PACKAGE_PREFIX = "com.example.myapplication.";
 
-    protected StackedEventComponent myStackedEventComponent;
-    private EventModel<StackedEventType> myStackedEventModel;
+    protected ActivityComponent myActivityComponent;
+    private EventModel<LifecycleEvent> myStackedEventModel;
 
-    private DefaultDataSeries<EventAction<StackedEventType>> myData;
+    private DefaultDataSeries<EventAction<LifecycleEvent>> myData;
 
     ActivityEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -213,13 +213,13 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     protected void setUp() {
       myData = new DefaultDataSeries<>();
       myStackedEventModel = new EventModel<>(new RangedSeries<>(myXRange, myData));
-      myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
-      myStackedEventComponent.setFont(ImageDiffUtil.getDefaultFont());
-      myContentPane.add(myStackedEventComponent, BorderLayout.CENTER);
+      myActivityComponent = new ActivityComponent(myStackedEventModel);
+      myActivityComponent.setFont(ImageDiffUtil.getDefaultFont());
+      myContentPane.add(myActivityComponent, BorderLayout.CENTER);
     }
 
     protected void setUpActivityComponent(int contentPaneHeight) {
-      myStackedEventComponent.setFont(ImageDiffUtil.getDefaultFont());
+      myActivityComponent.setFont(ImageDiffUtil.getDefaultFont());
       Dimension contentPaneDimension = new Dimension(myContentPane.getWidth(), contentPaneHeight);
       myContentPane.setSize(contentPaneDimension);
       myContentPane.setPreferredSize(contentPaneDimension);
@@ -229,12 +229,12 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[0]; // arbitrary activity
 
       // Start event
-      StackedEventType action = StackedEventType.ACTIVITY_COMPLETED;
-      myData.add(startTime, new ActivityAction(startTime, endTime, action, activityName));
+      LifecycleEvent action = LifecycleEvent.COMPLETED;
+      myData.add(startTime, new LifecycleAction(startTime, endTime, action, activityName));
     }
   }
 
-  private static abstract class SimpleEventImageDiffEntry extends AnimatedComponentImageDiffEntry {
+  private static abstract class EventIconsImageDiffEntry extends AnimatedComponentImageDiffEntry {
     enum EventTypeDiffEntry {
       TAP,
       FRAME_GOOD,
@@ -245,7 +245,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int ICON_HEIGHT = 16;
 
-    private static final Map<EventTypeDiffEntry, SimpleEventRenderer> MOCK_RENDERERS;
+    private static final Map<EventTypeDiffEntry, EventRenderer> MOCK_RENDERERS;
 
     static {
       MOCK_RENDERERS = new HashMap();
@@ -254,13 +254,13 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_BAD, new ExpandingEventRenderer(Color.RED));
     }
 
-    protected SimpleEventComponent mySimpleEventComponent;
+    protected EventComponent myEventComponent;
 
     protected EventModel myEventModel;
 
     private DefaultDataSeries<EventAction<EventTypeDiffEntry>> myData;
 
-    SimpleEventImageDiffEntry(String baselineFilename) {
+    EventIconsImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
     }
 
@@ -276,8 +276,8 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     protected void setUp() {
       myData = new DefaultDataSeries<>();
       myEventModel = new EventModel(new RangedSeries<>(myXRange, myData));
-      mySimpleEventComponent = new SimpleEventComponent(myEventModel, MOCK_RENDERERS);
-      myContentPane.add(mySimpleEventComponent, BorderLayout.CENTER);
+      myEventComponent = new EventComponent(myEventModel, MOCK_RENDERERS);
+      myContentPane.add(myEventComponent, BorderLayout.CENTER);
     }
 
     protected void performEvent(long startTime, long endTime, EventTypeDiffEntry entry) {

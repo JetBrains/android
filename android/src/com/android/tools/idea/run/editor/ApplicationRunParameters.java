@@ -17,6 +17,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -43,6 +44,7 @@ import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +72,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   private ConfigurableCardPanel myLaunchOptionsCardPanel;
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
   private JComponent myDynamicFeaturesParametersComponent;
+  private JBCheckBox myInstantAppDeployCheckBox;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
@@ -100,6 +103,8 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
 
     myAmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'am start' command");
 
+    myInstantAppDeployCheckBox.addActionListener(this);
+
     LaunchOptionConfigurableContext context = new LaunchOptionConfigurableContext() {
       @Nullable
       @Override
@@ -115,6 +120,8 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     myConfigurables = builder.build();
 
     myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
+
+    myInstantAppDeployCheckBox.setVisible(StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get());
   }
 
   private void createUIComponents() {
@@ -141,6 +148,9 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
       LaunchOption option = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
       myAmOptionsLabeledComponent.setVisible(option != NoLaunch.INSTANCE);
       myLaunchOptionsCardPanel.select(myConfigurables.get(option.getId()), true);
+    }
+    else if (source == myInstantAppDeployCheckBox) {
+      myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), myInstantAppDeployCheckBox.isSelected());
     }
   }
 
@@ -177,6 +187,12 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   public void resetFrom(@NotNull AndroidAppRunConfigurationBase configuration) {
     InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.DEPLOY_APK_FROM_BUNDLE, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
+
+    myInstantAppDeployCheckBox.setSelected(myInstantAppDeployCheckBox.isEnabled() && configuration.DEPLOY_AS_INSTANT);
+    Module currentModule = myModuleSelector.getModule();
+    if (currentModule != null) {
+      myDynamicFeaturesParameters.updateBasedOnInstantState(currentModule, myInstantAppDeployCheckBox.isSelected());
+    }
 
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       String artifactName = StringUtil.notNullize(configuration.ARTIFACT_NAME);
@@ -229,6 +245,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
     configuration.DEPLOY = installOption != InstallOption.NOTHING;
     configuration.DEPLOY_APK_FROM_BUNDLE = installOption == InstallOption.APK_FROM_BUNDLE;
+    configuration.DEPLOY_AS_INSTANT = myInstantAppDeployCheckBox.isSelected();
     configuration.ARTIFACT_NAME = "";
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       Object item = myCustomArtifactLabeledComponent.getComponent().getSelectedItem();
@@ -354,13 +371,21 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
       myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
     }
     else {
+      // Enable instant app deploy checkbox if module is instant enabled
+      myInstantAppDeployCheckBox.setEnabled(model.getSelectedVariant().isInstantAppCompatible());
+
       myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
     }
+
     myDeployOptionCombo.setEnabled(!isInstantApp);
     myCustomArtifactLabeledComponent.setEnabled(!isInstantApp);
 
     myLaunchOptionCombo.setEnabled(!isInstantApp);
-    myDynamicFeaturesParameters.setActiveModule(currentModule);
+    myDynamicFeaturesParameters.setActiveModule(currentModule,
+                                                (model.getSelectedVariant().isInstantAppCompatible()
+                                                && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
+                                                ? DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED
+                                                : DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
   }
 
   private static class ArtifactRenderer extends ListCellRendererWrapper {

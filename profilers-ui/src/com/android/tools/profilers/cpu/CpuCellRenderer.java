@@ -83,8 +83,10 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
         }
         // Second we pass the updated position of the mouse.
         if (myHoveredIndex >= 0) {
-          // JLists don't support hover and this behavior is custom implementation. So repaint must be queued manually.
-          list.repaint(list.getCellBounds(myHoveredIndex, myHoveredIndex));
+          if (myHoveredIndex != oldHoveredIndex) {
+            // JLists don't support hover and this behavior is custom implementation. So repaint must be queued manually.
+            list.repaint(list.getCellBounds(myHoveredIndex, myHoveredIndex));
+          }
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
           chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_MOVED));
         }

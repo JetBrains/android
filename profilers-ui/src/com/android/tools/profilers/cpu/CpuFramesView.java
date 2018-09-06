@@ -66,7 +66,6 @@ public class CpuFramesView {
         boolean hasElements = size != 0;
         myPanel.setVisible(hasElements);
         myPanel.setExpanded(hasElements);
-        myPanel.getParent().revalidate();
       }
 
       @Override
@@ -77,7 +76,7 @@ public class CpuFramesView {
       public void intervalRemoved(ListDataEvent e) {
       }
     });
-    // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myKernels|.
+    // |myPanel| does not receive any mouse events, because all mouse events are consumed by |myFrames|.
     // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU mouse events
     // directly into the top-level component (i.e to |myPanel|) instead of its child.
     DelegateMouseEventHandler.delegateTo(myPanel)
@@ -123,6 +122,7 @@ public class CpuFramesView {
     HideablePanel framesPanel = new HideablePanel.Builder("FRAMES", frames)
       .setShowSeparator(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+      .setInitiallyExpanded(false)
       .build();
 
     CpuListScrollPane scrollingFrames = new CpuListScrollPane(myFrames, framesPanel);

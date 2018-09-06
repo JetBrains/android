@@ -20,12 +20,13 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
+import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -65,7 +66,15 @@ class CpuProfilingConfigurationView {
   CpuProfilingConfigurationView(@NotNull CpuProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
-    myComboBox = new ComboBox<>();
+    myComboBox = new ComboBox<>(new DefaultComboBoxModel<ProfilingConfiguration>() {
+      @Override
+      public void setSelectedItem(Object item) {
+        if (item == CONFIG_SEPARATOR_ENTRY) {
+          return;
+        }
+        super.setSelectedItem(item);
+      }
+    });
     configureProfilingConfigCombo();
   }
 
@@ -186,9 +195,14 @@ class CpuProfilingConfigurationView {
                                                   boolean selected,
                                                   boolean hasFocus) {
       if (value == CONFIG_SEPARATOR_ENTRY) {
-        return new JSeparator();
+        JSeparator separator = new JSeparator();
+        separator.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+        return separator;
       }
-      return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
+      Component listCellRendererComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus);
+      listCellRendererComponent
+        .setBackground(selected ? ProfilerColors.CPU_PROFILING_CONFIGURATIONS_SELECTED : ProfilerColors.DEFAULT_BACKGROUND);
+      return listCellRendererComponent;
     }
 
     @Override
@@ -198,8 +212,8 @@ class CpuProfilingConfigurationView {
                                          boolean selected,
                                          boolean hasFocus) {
       if (value == EDIT_CONFIGURATIONS_ENTRY) {
-        setIcon(AllIcons.Actions.EditSource);
-        append("Edit configurations...");
+        setIcon(StudioIcons.Common.EDIT);
+        append("Edit Configurations...");
       }
       else {
         append(value.getName());

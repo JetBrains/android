@@ -23,7 +23,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.RoundRectangle2D;
 
-public class ExpandingEventRenderer<E> implements SimpleEventRenderer<E> {
+public class ExpandingEventRenderer<E> implements EventRenderer<E> {
   private static final int LINE_WIDTH = 12;
   private final Color myLineColor;
 

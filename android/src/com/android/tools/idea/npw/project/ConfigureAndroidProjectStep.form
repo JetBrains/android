@@ -176,8 +176,8 @@
         </constraints>
         <properties>
           <font style="1"/>
-          <label value="Include Instant Apps support"/>
-          <text value="Include Instant Apps support"/>
+          <label value="This project will support instant apps"/>
+          <text value="This project will support instant apps"/>
         </properties>
       </component>
       <component id="25f85" class="javax.swing.JCheckBox" binding="myWearCheck">

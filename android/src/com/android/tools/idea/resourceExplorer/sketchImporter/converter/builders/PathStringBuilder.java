@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class PathStringBuilder {
 
@@ -84,7 +83,6 @@ public class PathStringBuilder {
   }
 
   /**
-   *
    * Method that trims the doubles to a specified precision. DecimalFormat is used
    * instead of the String.format(..) because DecimalFormat can detect triailing zeros
    * in decimals and remove them, while String.format simply displays the zeros as well.

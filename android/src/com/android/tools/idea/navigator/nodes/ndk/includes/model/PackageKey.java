@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * Package grouping key. This key groups packages by package type, package name, and base folder for the package family.
  */
-public class PackageKey {
+final public class PackageKey {
   // The packaging kind. For example, NDK component.
   @NotNull
   public final PackageType myPackageType;

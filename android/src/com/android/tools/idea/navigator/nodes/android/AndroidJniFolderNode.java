@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,8 +47,17 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static org.jetbrains.android.facet.AndroidSourceType.CPP;
 
 public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implements FolderGroupNode {
+
+  @NotNull
+  final private VirtualFile myBuildFileFolder;
+
+  final private int myCachedHashCode;
+
   AndroidJniFolderNode(@NotNull Project project, @NotNull NdkModuleModel ndkModuleModel, @NotNull ViewSettings settings) {
     super(project, ndkModuleModel, settings);
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    myBuildFileFolder = Objects.requireNonNull(fileSystem.findFileByIoFile(ndkModuleModel.getRootDirPath()));
+    myCachedHashCode = myBuildFileFolder.hashCode();
   }
 
   @Override
@@ -140,6 +150,11 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
     return CPP;
   }
 
+  /**
+   * equals and hashCode in IntelliJ 'Node' classes is used to re-indentify effectively the same node in the tree across actions like
+   * sync. The identity of the AndroidJniFolderNode is the single Android.mk or CMakeLists.txt. This is why only myBuildFileFolder is
+   * considered to be part of the identity.
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -148,17 +163,18 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    if (!super.equals(o)) {
-      return false;
-    }
     AndroidJniFolderNode that = (AndroidJniFolderNode)o;
-    return getValue() == that.getValue();
+    return Objects.equals(myBuildFileFolder, that.myBuildFileFolder);
   }
 
   @Override
   public int hashCode() {
-    int result = super.hashCode();
-    return 31 * result + getNdkModel().hashCode();
+    return myCachedHashCode;
+  }
+
+  @Override
+  public String toString() {
+    return "cpp";
   }
 
   @NotNull

@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
-import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link GradleDependencyManager}.
@@ -40,6 +41,8 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
   private static final GradleCoordinate APP_COMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
   private static final GradleCoordinate RECYCLER_VIEW_DEPENDENCY = new GradleCoordinate("com.android.support", "recyclerview-v7", "+");
   private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
+  private static final GradleCoordinate VECTOR_DRAWABLE_DEPENDENCY =
+    new GradleCoordinate("com.android.support", "support-vector-drawable", "+");
 
   private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
@@ -133,6 +136,20 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missing.size()).isEqualTo(1);
     assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
     assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
+  }
+
+  public void testCanAddDependencyWhichAlreadyIsAnIndirectDependency() throws Exception {
+    loadSimpleApplication();
+
+    // Make sure the app module depends on the vector drawable library:
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(myModules.getAppModule());
+    assertTrue(GradleUtil.dependsOn(gradleModel, VECTOR_DRAWABLE_DEPENDENCY.getId()));
+
+    // Now check that the vector drawable library is NOT an explicit dependency:
+    List<GradleCoordinate> vectorDrawable = Collections.singletonList(VECTOR_DRAWABLE_DEPENDENCY);
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(myModules.getAppModule(), vectorDrawable);
+    assertFalse(missing.isEmpty());
   }
 
   private boolean isRecyclerViewRegistered() {

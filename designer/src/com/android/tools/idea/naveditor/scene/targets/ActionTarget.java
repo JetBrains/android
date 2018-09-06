@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.HOVER;
+import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.NORMAL;
+import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
+import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.BOTTOM;
+import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.LEFT;
+import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.RIGHT;
+import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.TOP;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -37,15 +45,11 @@ import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-
-import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.*;
-import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An Action in the navigation editor
@@ -162,12 +166,6 @@ public class ActionTarget extends BaseTarget {
     }
 
     Rectangle2D.Float destRect = myDestination.fillDrawRect2D(0,null);
-    myDestination.getTargets().forEach(t -> {
-      if (t instanceof NavBaseTarget) {
-        Rectangle2D.Float.union(destRect, ((NavBaseTarget)t).getBounds(), destRect);
-      }
-    });
-
 
     myDestRect = Coordinates.getSwingRectDip(view, destRect);
     mySourceRect = sourceRect;
@@ -175,8 +173,17 @@ public class ActionTarget extends BaseTarget {
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
 
     NavColorSet colorSet = (NavColorSet)sceneContext.getColorSet();
-    Color color = selected ? colorSet.getSelectedActions()
-                           : mIsOver || myHighlighted ? colorSet.getHighlightedActions() : colorSet.getActions();
+    Color color = colorSet.getActions();
+    DrawAction.DrawMode drawMode = NORMAL;
+
+    if (selected || myHighlighted) {
+      color = colorSet.getSelectedActions();
+      drawMode = SELECTED;
+    }
+    else if (mIsOver) {
+      color = colorSet.getHighlightedActions();
+      drawMode = HOVER;
+    }
 
     if (sourceId.equals(targetId)) {
       renderSelfAction(list, sceneContext, color);
@@ -185,8 +192,7 @@ public class ActionTarget extends BaseTarget {
 
     ActionType type = NavComponentHelperKt.getActionType(myNlComponent, getComponent().getScene().getRoot().getNlComponent());
 
-    DrawAction.buildDisplayList(list, type, sourceRect, myDestRect,
-                                selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
+    DrawAction.buildDisplayList(list, type, sourceRect, myDestRect, drawMode);
 
     ConnectionDirection direction = getDestinationDirection(sourceRect, myDestRect);
     Point2D.Float arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
@@ -286,7 +292,11 @@ public class ActionTarget extends BaseTarget {
 
   @NotNull
   private static Point2D.Float getArrowPoint(@NotNull SceneContext context, @NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
-    return shiftPoint(getConnectionPoint(rectangle, direction), direction, context.getSwingDimension(ACTION_PADDING));
+    @NavCoordinate int shiftY = ACTION_PADDING;
+    if (direction == TOP) {
+      shiftY += (int)JBUI.scale(NavDrawHelperKt.HEADER_HEIGHT);
+    }
+    return shiftPoint(getConnectionPoint(rectangle, direction), direction, context.getSwingDimension(shiftY));
   }
 
   @NotNull
@@ -296,9 +306,9 @@ public class ActionTarget extends BaseTarget {
 
   @NotNull
   private static Point2D.Float getEndPoint(@NotNull SceneContext context, @NotNull Rectangle2D.Float rectangle, @NotNull ConnectionDirection direction) {
-    return shiftPoint(getConnectionPoint(rectangle, direction),
+    return shiftPoint(getArrowPoint(context, rectangle, direction),
                       direction,
-                      context.getSwingDimension((int)NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING) - 1);
+                      context.getSwingDimension((int)NavSceneManager.ACTION_ARROW_PARALLEL) - 1);
   }
 
   @NotNull

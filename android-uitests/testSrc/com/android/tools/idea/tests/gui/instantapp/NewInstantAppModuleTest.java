@@ -15,32 +15,34 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import com.intellij.util.xml.GenericAttributeValue;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.Nullable;
-import org.junit.*;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
-
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import com.intellij.util.xml.GenericAttributeValue;
+import java.io.IOException;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Test that newly created Instant App modules do not have errors in them
@@ -120,10 +122,10 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleLocalApplication();
-    addNewFeatureModule("feature");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
+    addNewFeatureModule("feature1");
 
-    Module module = guiTest.ideFrame().getModule("feature");
+    Module module = guiTest.ideFrame().getModule("feature1");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
     Manifest manifest = facet.getManifest();
@@ -133,7 +135,7 @@ public class NewInstantAppModuleTest {
       GenericAttributeValue<String> packageAttribute = manifest.getPackage();
       assertNotNull(packageAttribute);
       assertThat(packageAttribute.isValid()).isTrue();
-      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia.feature");
+      assertThat(packageAttribute.getStringValue()).isEqualTo("com.thebigg.aia.simpleoldinstantapp.feature1");
     });
   }
 

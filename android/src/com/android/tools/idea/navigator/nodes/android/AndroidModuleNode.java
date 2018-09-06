@@ -17,13 +17,15 @@ package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
+import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
-import com.android.tools.idea.res.SampleDataResourceRepository;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.PresentationData;
@@ -43,11 +45,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
 
@@ -122,18 +124,19 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
-    try {
-      VirtualFile sampleDataDirectory = SampleDataResourceRepository.getSampleDataDir(facet, false);
-      PsiDirectory sampleDataPsi = sampleDataDirectory != null ? PsiManager.getInstance(project).findDirectory(sampleDataDirectory) : null;
-      if (sampleDataPsi != null) {
-        result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
-      }
-    }
-    catch (IOException ignore) {
-      // The folder doesn't exist so we do not add it
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
+    PsiDirectory sampleDataPsi = getPsiDirectory(project, moduleSystem.getSampleDataDirectory());
+    if (sampleDataPsi != null) {
+      result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
     }
 
     return result;
+  }
+
+  @Nullable
+  private static PsiDirectory getPsiDirectory(@NotNull Project project, @Nullable PathString path) {
+    VirtualFile virtualFile = toVirtualFile(path);
+    return virtualFile != null ? PsiManager.getInstance(project).findDirectory(virtualFile): null;
   }
 
   @NotNull

@@ -182,20 +182,23 @@ public class DeviceMenuAction extends DropDownAction {
 
     Map<DeviceGroup, List<Device>> groupedDevices = DeviceUtils.getSuitableDevices(configuration);
 
-    addDeviceSection(groupedDevices.get(DeviceGroup.NEXUS), current);
-    addDeviceSection(groupedDevices.get(DeviceGroup.NEXUS_XL), current);
-    addDeviceSection(groupedDevices.get(DeviceGroup.NEXUS_TABLET), current);
-    addDeviceSection(groupedDevices.get(DeviceGroup.WEAR), current);
-    addDeviceSection(groupedDevices.get(DeviceGroup.TV), current);
+    addDeviceSection(groupedDevices, DeviceGroup.NEXUS, current);
+    addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, current);
+    addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, current);
+    addDeviceSection(groupedDevices, DeviceGroup.WEAR, current);
+    addDeviceSection(groupedDevices, DeviceGroup.TV, current);
     addCustomDeviceSection(current);
     addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
-    addGenericDeviceSection(groupedDevices.get(DeviceGroup.GENERIC), current);
+    addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), current);
     add(new RunAndroidAvdManagerAction("Add Device Definition..."));
 
     return true;
   }
 
-  private void addDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
+  private void addDeviceSection(@NotNull Map<DeviceGroup, List<Device>> groupedDevices,
+                                @NotNull DeviceGroup group,
+                                @Nullable Device current) {
+    List<Device> devices = groupedDevices.getOrDefault(group, Collections.emptyList());
     if (!devices.isEmpty()) {
       boolean first = true;
       for (final Device device : devices) {

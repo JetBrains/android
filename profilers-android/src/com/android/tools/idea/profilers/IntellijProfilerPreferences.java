@@ -65,8 +65,18 @@ public class IntellijProfilerPreferences implements ProfilerPreferences {
   }
 
   @Override
+  public void setFloat(@NotNull String name, float value, float defaultValue) {
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, defaultValue);
+  }
+
+  @Override
   public void setInt(@NotNull String name, int value) {
     myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0);
+  }
+
+  @Override
+  public void setInt(@NotNull String name, int value, int defaultValue) {
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, defaultValue);
   }
 
   @Override

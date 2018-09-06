@@ -32,14 +32,14 @@ class ColorAdjustPanelTest : IdeaTestCase() {
 
     model.setColor(Color.BLUE, null)
     assertEquals(Color.BLUE, indicator.color)
-    val blueHSB = Color.RGBtoHSB(Color.BLUE.red, Color.BLUE.green, Color.BLUE.blue, null)
-    assertEquals(blueHSB[0], hueSlide.value)
+    val blueHue = Color.RGBtoHSB(Color.BLUE.red, Color.BLUE.green, Color.BLUE.blue, null)[0]
+    assertEquals(Math.round(blueHue * 360), hueSlide.value)
     assertEquals(Color.BLUE, alphaSlide.sliderBackgroundColor)
 
     model.setColor(Color.YELLOW, null)
     assertEquals(Color.YELLOW, indicator.color)
-    val yellowHSB = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)
-    assertEquals(yellowHSB[0], hueSlide.value)
+    val yellowHue = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)[0]
+    assertEquals(Math.round(yellowHue * 360), hueSlide.value)
     assertEquals(Color.YELLOW, alphaSlide.sliderBackgroundColor)
   }
 }

@@ -146,6 +146,14 @@ public class RunStats {
     myEvent.getRunEventBuilder().setLaunchedDevices(b);
   }
 
+  public void setDeployedAsInstant(boolean instant) {
+    myEvent.getRunEventBuilder().setDeployedAsInstant(instant);
+  }
+
+  public void setDeployedFromBundle(boolean fromBundle) {
+    myEvent.getRunEventBuilder().setDeployedFromBundle(fromBundle);
+  }
+
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {

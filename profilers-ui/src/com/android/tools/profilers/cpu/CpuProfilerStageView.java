@@ -37,11 +37,11 @@ import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
-import com.android.tools.profilers.event.EventActivityTooltip;
-import com.android.tools.profilers.event.EventActivityTooltipView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.event.EventSimpleEventTooltip;
-import com.android.tools.profilers.event.EventSimpleEventTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -148,13 +148,27 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     super(profilersView, stage);
     myStage = stage;
     myCaptureView = new CpuCaptureView(this);
+
+    myThreads = new CpuThreadsView(myStage);
+    myCpus = new CpuKernelsView(myStage);
+    myFrames = new CpuFramesView(myStage);
+
     if (myStage.isImportTraceMode()) {
+      myUsageView = new CpuUsageView.ImportModeView(myStage);
       myToolbar = new CpuProfilerToolbar.ImportMode(myStage);
     } else {
+      myUsageView = new CpuUsageView.NormalModeView(myStage);
       myToolbar = new CpuProfilerToolbar.NormalMode(stage, getIdeComponents());
     }
 
     ProfilerTimeline timeline = getTimeline();
+    myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
+                                                   timeline.getViewRange(),
+                                                   timeline.getDataRange(),
+                                                   getTooltipPanel(),
+                                                   getProfilersView().getComponent(),
+                                                   this::showTooltipSeekComponent);
+
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::onCaptureSelection)
@@ -166,23 +180,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
-    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
-    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    if (myStage.isImportTraceMode()) {
-      myUsageView = new CpuUsageView.ImportModeView(myStage);
-    } else {
-      myUsageView = new CpuUsageView.NormalModeView(myStage);
-    }
-
-    myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
-                                                   timeline.getViewRange(),
-                                                   timeline.getDataRange(),
-                                                   getTooltipPanel(),
-                                                   getProfilersView().getComponent(),
-                                                   this::showTooltipSeekComponent);
     if (!myStage.isImportTraceMode()) {
       myTooltipComponent.registerListenersOn(myUsageView);
       MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
@@ -202,35 +204,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
     }
 
-    JComponent timeAxis = buildTimeAxis(myStage.getStudioProfilers());
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
-
     TabularLayout mainLayout = new TabularLayout("*");
     mainLayout.setRowSizing(MONITOR_PANEL_ROW, PanelSpacing.MONITOR.toString());
     mainLayout.setRowSizing(DETAILS_PANEL_ROW, PanelSpacing.DETAILS.toString());
     final JPanel mainPanel = new JBPanel(mainLayout);
     mainPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    TabularLayout detailsLayout = new TabularLayout("*");
-    detailsLayout.setRowSizing(DETAILS_FRAMES_PANEL_ROW, PanelSpacing.FRAME.toString());
-    detailsLayout.setRowSizing(DETAILS_KERNEL_PANEL_ROW, PanelSpacing.KERNEL.toString());
-    detailsLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS.toString());
-    final JPanel detailsPanel = new JBPanel(detailsLayout);
-    detailsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-
-    myThreads = new CpuThreadsView(myStage);
-    myCpus = new CpuKernelsView(myStage);
-    myFrames = new CpuFramesView(myStage);
-    addFramesPanelToDetails(detailsPanel);
-    addKernelPanelToDetails(detailsPanel);
-    addThreadsPanelToDetails(detailsPanel);
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
-    mainPanel.add(detailsPanel, new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
+    mainPanel.add(createCpuStatePanel(), new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
 
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
-    details.add(timeAxis, new TabularLayout.Constraint(3, 0));
-    details.add(scrollbar, new TabularLayout.Constraint(4, 0));
+    details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
+    details.add(new ProfilerScrollbar(timeline, details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
     mySplitter = new JBSplitter(true);
@@ -252,26 +238,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
   }
 
-  private void addThreadsPanelToDetails(@NotNull JPanel detailsPanel) {
+  @NotNull
+  private JPanel createCpuStatePanel() {
+    TabularLayout cpuStateLayout = new TabularLayout("*");
+    JPanel cpuStatePanel = new JBPanel(cpuStateLayout);
+
+    cpuStatePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    cpuStateLayout.setRowSizing(DETAILS_FRAMES_PANEL_ROW, PanelSpacing.FRAME.toString());
+    cpuStateLayout.setRowSizing(DETAILS_KERNEL_PANEL_ROW, PanelSpacing.KERNEL.toString());
+    cpuStateLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS.toString());
+
+    //region CpuThreadsView
     myTooltipComponent.registerListenersOn(myThreads.getComponent());
-    detailsPanel.add(myThreads.getComponent(), new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
-  }
+    cpuStatePanel.add(myThreads.getComponent(), new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
+    //endregion
 
-  /**
-   * Makes sure the selected capture fits entirely in user's view range.
-   */
-  private void ensureCaptureInViewRange() {
-    CpuCapture capture = myStage.getCapture();
-    assert capture != null;
-
-    // Give a padding to the capture. 5% of the view range on each side.
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-    double padding = timeline.getViewRange().getLength() * 0.05;
-    // Now makes sure the capture range + padding is within view range and in the middle if possible.
-    timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
-  }
-
-  private void addKernelPanelToDetails(@NotNull JPanel detailsPanel) {
+    //region CpuKernelsView
     myCpus.getComponent().addComponentListener(new ComponentAdapter() {
       // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
       // the first component occupies. For when we are showing Kernel elements we want to take up more space
@@ -289,12 +271,29 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     });
     myTooltipComponent.registerListenersOn(myCpus.getComponent());
-    detailsPanel.add(myCpus.getComponent(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
+    cpuStatePanel.add(myCpus.getComponent(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
+    //endregion
+
+    //region CpuFramesView
+    myTooltipComponent.registerListenersOn(myFrames.getComponent());
+    cpuStatePanel.add(myFrames.getComponent(), new TabularLayout.Constraint(DETAILS_FRAMES_PANEL_ROW, 0));
+    //endregion
+
+    return cpuStatePanel;
   }
 
-  private void addFramesPanelToDetails(@NotNull JPanel detailsPanel) {
-    myTooltipComponent.registerListenersOn(myFrames.getComponent());
-    detailsPanel.add(myFrames.getComponent(), new TabularLayout.Constraint(DETAILS_FRAMES_PANEL_ROW, 0));
+  /**
+   * Makes sure the selected capture fits entirely in user's view range.
+   */
+  private void ensureCaptureInViewRange() {
+    CpuCapture capture = myStage.getCapture();
+    assert capture != null;
+
+    // Give a padding to the capture. 5% of the view range on each side.
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    double padding = timeline.getViewRange().getLength() * 0.05;
+    // Now makes sure the capture range + padding is within view range and in the middle if possible.
+    timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {

@@ -19,9 +19,11 @@ The basic architecture is based on a cooperative multithreading model, with the 
     <form>
         Filter Root: <input type="text" id="root_filter_element" placeholder="e.g. SomeAwtOrSwingComponentType"><br>
     </form>
-    <canvas width="1280" height="1024" id="canvas" />
-    <script>
+    <p id="components_rendered"></p>
 
+    <canvas width="1280" height="1024" id="canvas" />
+
+    <script>
         c = document.getElementById("canvas");
         var ctx = c.getContext("2d");
 
@@ -256,6 +258,7 @@ The basic architecture is based on a cooperative multithreading model, with the 
             for (var i = 0; i < rootNode.length; i++) {
                 ingest(result, rootNode[i], [0.0, 0.0], null, true, [0.0, 0.0], isRootFilterEnabled(rootFilter) ? rootFilter : null);
             }
+            document.getElementById("components_rendered").innerHTML = "Components Rendered: " + (result.primary.length + result.secondary.length);
             rectGroups.push(result);
         }
 

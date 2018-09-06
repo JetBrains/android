@@ -24,6 +24,7 @@ import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
@@ -89,6 +90,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   public void setUp() throws Exception {
     when(myDataStore.getNativeSymbolizer()).thenReturn(new NopSymbolizer());
     when(myDataStore.getMemoryClient(any())).thenReturn(MemoryServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
     getPollTicker().run();
   }

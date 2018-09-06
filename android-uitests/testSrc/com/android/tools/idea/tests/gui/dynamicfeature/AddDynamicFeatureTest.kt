@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.dynamicfeature
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,6 +38,10 @@ class AddDynamicFeatureTest {
   @JvmField
   val guiTest = GuiTestRule()
 
+  @After
+  fun tearDown() {
+    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.clearOverride()
+  }
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
    * new module wizard.
@@ -70,6 +78,121 @@ class AddDynamicFeatureTest {
       .open("app/src/main/res/values/strings.xml")
       .currentFileContents.run {
       assertThat(this).contains("""<string name="title_dynamic_feature">Module Title</string>""")
+    }
+  }
+
+  /**
+   * Verifies that user is able to add a Instant Dynamic Feature Module through the
+   * new module wizard. The app module (base) does not contain the "dist:module" tag.
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Go to File -> New module to open the new module dialog wizard.
+   * 3. Follow through the wizard to add a new Dynamic Feature Module (Instant App), accepting defaults.
+   * 4. Complete the wizard and wait for the build to complete.
+   * Verify:
+   * 1. The new Dynamic Feature Module is shown in the project explorer pane.
+   * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
+   * "dist:fusing include" are set to false.
+   * 3. Module Title contains @string/title_dynamic_feature
+   * 4. "dist:instant" is set to true
+   * 5. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
+   * new string was added for the dynamic feature title
+   * 6. Check the app (base module) Manifest contains the attribute "dist:instant" set to true
+   * </pre>
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addInstantDynamicModule_baseHasNoModule() {
+    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
+    val ideFrame = guiTest.importSimpleLocalApplication()
+    createInstantDynamicModule(ideFrame)
+
+    ideFrame.editor
+      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""dist:onDemand="false"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
+      assertThat(this).contains("""dist:instant="true"""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/res/values/strings.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<string name="title_dynamic_feature">Module Title</string>""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""dist:instant="true"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+    }
+  }
+
+  /**
+   * Same as the test above, except the fusing check box is checked. Verify the "dist:fusing" attribute is set to true
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addInstantDynamicModuleWithFusing_baseHasNoModule() {
+    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    createInstantDynamicModuleWithFusing(ideFrame)
+
+    ideFrame.editor
+      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""dist:instant="true"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""dist:instant="true"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+    }
+  }
+
+  /**
+   * Same as above, except the "dist:module" tag and "dist:instant="true"" attribute is added to the app module manifest
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addInstantDynamicModuleWithFusing_baseHasModule() {
+    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    var editor = guiTest.ideFrame().getEditor()
+    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
+    editor.moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
+    editor.enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
+    editor.moveBetween("google.simpleapplication\" >", "")
+    editor.enterText("""<dist:module instant="false" />""")
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
+
+    createInstantDynamicModuleWithFusing(ideFrame)
+
+    ideFrame.editor
+      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""dist:instant="true"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""dist:instant="true"""")
+      assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
+      assertThat(this).doesNotContain("""dist:instant="false""")
     }
   }
 
@@ -224,6 +347,27 @@ class AddDynamicFeatureTest {
       .projectView
       .selectAndroidPane()
       .clickPath("dynamic_feature")
+
+    return ideFrame
+  }
+
+  private fun createInstantDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(ideFrame)
+      .clickNextToInstantDynamicFeature()
+      .wizard()
+      .clickFinish()
+
+    return ideFrame
+  }
+
+  private fun createInstantDynamicModuleWithFusing(ideFrame: IdeFrameFixture): IdeFrameFixture {
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(ideFrame)
+      .clickNextToInstantDynamicFeature()
+      .checkFusingCheckbox()
+      .wizard()
+      .clickFinish()
 
     return ideFrame
   }

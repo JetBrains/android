@@ -74,6 +74,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myExportCpuTraceEnabled = false;
 
   /**
+   * Toggle for faking fragments UI support in tests.
+   */
+  private boolean myFragmentsEnabled = true;
+
+  /**
    * Can toggle for tests via {@link #enableImportTrace(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myImportCpuTraceEnabled = false;
@@ -240,6 +245,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isFragmentsEnabled() {
+        return myFragmentsEnabled;
+      }
+
+      @Override
       public boolean isImportCpuTraceEnabled() {
         return myImportCpuTraceEnabled;
       }
@@ -250,6 +260,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLiveAllocationsEnabled() {
         return myLiveTrackingEnabled;
+      }
+
+      @Override
+      public boolean isLiveAllocationsSamplingEnabled() {
+        return true;
       }
 
       @Override
@@ -417,6 +432,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableEnergyProfiler(boolean enabled) {
     myEnergyProfilerEnabled = enabled;
+  }
+
+  public void enableFragments(boolean enabled) {
+    myFragmentsEnabled = enabled;
   }
 
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }

@@ -15,6 +15,22 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
+import static com.android.tools.idea.templates.Parameter.Constraint;
+import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_INSTANT_APP_WRAPPER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORMFACTOR;
+import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
+import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
@@ -43,29 +59,20 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.DOT_XML;
-import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
-import static com.android.tools.idea.templates.Parameter.Constraint;
-import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
-import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
 /**
  * Handler which manages instantiating FreeMarker templates, copying resources
@@ -249,8 +256,18 @@ public class Template {
                                          .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
       UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      if (paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER) instanceof Boolean && (Boolean) paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER)) {
+      if (Boolean.TRUE.equals(paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER))) {
         aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_PROJECT);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
+      }
+
+      if (title.equals("Android Project") && Boolean.TRUE.equals(paramMap.get(ATTR_IS_DYNAMIC_INSTANT_APP))) {
+        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
+      }
+
+      if (Boolean.TRUE.equals(paramMap.get(ATTR_DYNAMIC_IS_INSTANT_MODULE))) {
+        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE);
         UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
       }
     }
@@ -342,6 +359,8 @@ public class Template {
         return TemplateRenderer.ANDROID_INSTANT_APP_PROJECT;
       case "Instant App":
         return TemplateRenderer.ANDROID_INSTANT_APP_MODULE;
+      case "Dynamic Feature (Instant App)":
+        return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
     }

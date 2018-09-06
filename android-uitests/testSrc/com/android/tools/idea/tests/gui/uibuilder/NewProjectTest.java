@@ -178,6 +178,7 @@ public class NewProjectTest {
     assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).isFile();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/113197543
   @Test
   public void testIncludeNavControllerWithKotlin() throws Exception {
     newProject("Kotlin", true);
@@ -187,6 +188,7 @@ public class NewProjectTest {
     assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).isFile();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/113197543
   @Test
   public void testDontIncludeNavController() throws Exception {
     newProject("Java", false);

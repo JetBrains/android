@@ -119,6 +119,8 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
       table.resolveNativeBacktrace(session, backtrace);
     });
     methodCalls.add((table) -> table.queryNotsymbolizedNativeFrames(session, 0));
+    methodCalls.add((table) -> table.insertOrReplaceAllocationSamplingRateEvent(session, AllocationSamplingRateEvent.getDefaultInstance()));
+    methodCalls.add((table) -> table.getAllocationSamplingRateEvents(session.getSessionId(), 0, 0));
     return methodCalls;
   }
 
@@ -960,5 +962,26 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
     contexts = getTable().getAllocationContexts(VALID_SESSION, 8, 9);
     assertThat(contexts.getAllocatedClassesCount()).isEqualTo(1);
     assertThat(contexts.getAllocatedClasses(0)).isEqualTo(doubleClass.toBuilder().setClassName("double").build());
+  }
+
+  @Test
+  public void testInsertAndGetAllocationSamplingRateEvents() {
+    AllocationSamplingRateEvent oldSamplingRate = AllocationSamplingRateEvent.newBuilder().setTimestamp(2).build();
+    AllocationSamplingRateEvent newSamplingRate = AllocationSamplingRateEvent.newBuilder().setTimestamp(3).build();
+
+    getTable().insertOrReplaceAllocationSamplingRateEvent(VALID_SESSION, oldSamplingRate);
+    getTable().insertOrReplaceAllocationSamplingRateEvent(VALID_SESSION, newSamplingRate);
+
+    List<AllocationSamplingRateEvent> result = getTable().getAllocationSamplingRateEvents(VALID_SESSION.getSessionId(), 0, 1);
+    assertThat(result.isEmpty()).isTrue();
+
+    result = getTable().getAllocationSamplingRateEvents(VALID_SESSION.getSessionId(), 1, 2);
+    assertThat(result).containsExactly(oldSamplingRate);
+
+    result = getTable().getAllocationSamplingRateEvents(VALID_SESSION.getSessionId(), 1, 3);
+    assertThat(result).containsExactly(oldSamplingRate, newSamplingRate).inOrder();
+
+    result = getTable().getAllocationSamplingRateEvents(INVALID_SESSION.getSessionId(), 0, Long.MAX_VALUE);
+    assertThat(result.isEmpty()).isTrue();
   }
 }

@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchExportOptions;
-import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -131,11 +128,6 @@ public abstract class SketchLayer {
 
   public boolean shouldBreakMaskChain() {
     return shouldBreakMaskChain;
-  }
-
-  @NotNull
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastLayer) {
-    return ImmutableList.of();
   }
 }
 

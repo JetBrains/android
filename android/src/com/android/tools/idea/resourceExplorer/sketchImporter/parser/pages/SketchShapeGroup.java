@@ -15,15 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AreaModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
-import com.google.common.collect.ImmutableList;
 import java.awt.Rectangle;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
 
 public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
@@ -80,82 +74,6 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
 
   public short getWindingRule() {
     return windingRule;
-  }
-
-  /**
-   * Method that generates the shape model of the shape in the SketchShapeGroup object.
-   * <p>
-   * Shape operations can only be performed on Area objects, and to make sure that the conversion
-   * between {@link Path2D.Double} to {@link java.awt.geom.Area} is correct, the {@link Path2D.Double} object must be closed
-   */
-  @NotNull
-  @Override
-  public ImmutableList<ShapeModel> createShapeModels(@NotNull Point2D.Double parentCoords, boolean isLastShapeGroup) {
-    SketchFill[] fills = getStyle().getFills();
-    SketchBorder[] borders = getStyle().getBorders();
-    SketchFill shapeGroupFill = fills != null ? fills[0] : null;
-    SketchBorder shapeGroupBorder = borders != null ? borders[0] : null;
-
-    // If the shape does not have a fill or border, it will not be visible in the VectorDrawable file. However,
-    // clipping paths don't need fills and colors to have an effect, but they still need to be included in the
-    // DrawableModel list.
-    if (shapeGroupBorder == null && shapeGroupFill == null && !hasClippingMask) {
-      return ImmutableList.of();
-    }
-
-    Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + getFrame().getX(),
-                                                        parentCoords.getY() + getFrame().getY());
-
-    SketchLayer[] layers = getLayers();
-    SketchShapePath baseSketchShapePath = (SketchShapePath)layers[0];
-
-    Path2D.Double baseShapePath = baseSketchShapePath.getPath2D();
-    PathModel finalShape = new PathModel(baseShapePath,
-                                         shapeGroupFill,
-                                         shapeGroupBorder,
-                                         baseSketchShapePath.isFlippedHorizontal(),
-                                         baseSketchShapePath.isFlippedVertical(),
-                                         baseSketchShapePath.isClosed(),
-                                         baseSketchShapePath.getRotation(),
-                                         getBooleanOperation(),
-                                         baseSketchShapePath.getFramePosition(),
-                                         hasClippingMask,
-                                         shouldBreakMaskChain,
-                                         isLastShapeGroup);
-
-    // If the shapegroup has just one layer, there will be no shape operation.
-    // Therefore, no conversion to area needed.
-    // Therefore, the path does not necessarily have to be closed.
-    if (layers.length == 1) {
-      return ImmutableList.of(transformShapeGroup(finalShape, newParentCoords));
-    }
-
-    // If the shapegroup has multiple layers, there definitely are some shape operations to be performed.
-    // Therefore, the path needs to be closed and converted into an Area before applying anything.
-    AreaModel finalArea = finalShape.convertToArea();
-    finalArea.applyTransformations();
-
-    for (int i = 1; i < layers.length; i++) {
-      SketchShapePath path = (SketchShapePath)layers[i];
-
-      PathModel pathModel = path.createPathModel();
-      AreaModel areaModel = pathModel.convertToArea();
-      areaModel.applyTransformations();
-      finalArea.applyOperation(areaModel);
-    }
-
-    // The shapeGroup itself and its components altogether can be rotated or flipped.
-    return ImmutableList.of(transformShapeGroup(finalArea, newParentCoords));
-  }
-
-  @NotNull
-  private ShapeModel transformShapeGroup(@NotNull ShapeModel finalShape, @NotNull Point2D.Double newParentCoords) {
-    finalShape.setRotation(getRotation());
-    finalShape.setMirroring(isFlippedHorizontal(), isFlippedVertical());
-    finalShape.setTranslation(newParentCoords);
-    finalShape.applyTransformations();
-
-    return finalShape;
   }
 }
 

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-
 public class SketchGradientStop {
-  private final Color color;
+  private Color color;
   private final double position;
 
   public SketchGradientStop(@NotNull Color color, double position) {
@@ -35,5 +34,9 @@ public class SketchGradientStop {
 
   public double getPosition() {
     return position;
+  }
+
+  public void setColor(@NotNull Color color) {
+    this.color = color;
   }
 }

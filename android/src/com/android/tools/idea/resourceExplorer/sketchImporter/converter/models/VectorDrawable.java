@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.createAllDrawableShapes;
+
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.layoutlib.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.List;
 
 public class VectorDrawable {
@@ -30,7 +30,7 @@ public class VectorDrawable {
   @NotNull private String myName;
 
   public VectorDrawable(@NotNull SketchArtboard artboard) {
-    myDrawableModels = artboard.createAllDrawableShapes();
+    myDrawableModels = createAllDrawableShapes(artboard);
     myViewportDimension = myArtboardDimension = artboard.getFrame();
     myName = artboard.getName();
   }
