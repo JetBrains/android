@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPalette
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -129,15 +130,13 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
       .setOriginalColor(initialColor)
       .addSaturationBrightnessComponent()
       .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
-      .addColorValuePanel()
+      .addColorValuePanel().withFocus()
       .addSeparator()
-      .addCustomComponent(object: ColorPickerComponentProvider {
-        override fun createComponent(colorPickerModel: ColorPickerModel): JComponent {
-          return MaterialColorPalette(colorPickerModel)
-        }
-      })
+      .addCustomComponent(MaterialColorPaletteProvider)
       .addSeparator()
       .addOperationPanel(okCallback, cancelCallback)
+      .focusWhenDisplay(true)
+      .setFocusCycleRoot(true)
       .build()
 
     dialog.show(panel, null, location)
