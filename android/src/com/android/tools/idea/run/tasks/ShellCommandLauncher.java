@@ -59,7 +59,7 @@ public class ShellCommandLauncher {
   private static class AndroidLaunchReceiver extends CollectingOutputReceiver {
     private final LaunchStatus myLaunchStatus;
 
-    public AndroidLaunchReceiver(@NotNull LaunchStatus state) {
+    AndroidLaunchReceiver(@NotNull LaunchStatus state) {
       myLaunchStatus = state;
     }
 

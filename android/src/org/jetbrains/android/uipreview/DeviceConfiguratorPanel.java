@@ -706,7 +706,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     private final List<Density> myList;
     private Density mySelected = null;
 
-    public DensityComboBoxModel() {
+    DensityComboBoxModel() {
       myList = new ArrayList<Density>();
       for (Density density : Density.values()) {
         if (density.isRecommended()) {

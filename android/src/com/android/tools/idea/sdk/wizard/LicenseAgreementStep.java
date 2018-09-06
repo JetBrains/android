@@ -298,7 +298,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     public RemotePackage myPackage;
     public License license;
 
-    public Change(@NotNull RemotePackage p, @NotNull License license) {
+    Change(@NotNull RemotePackage p, @NotNull License license) {
       this.myPackage = p;
       this.license = license;
     }

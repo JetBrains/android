@@ -307,7 +307,7 @@ public class ColumnTreeBuilder {
     @NotNull
     private final JTable myTable;
 
-    public ColumnTreeScrollPanel(@NotNull JTree tree, @NotNull JTable table) {
+    ColumnTreeScrollPanel(@NotNull JTree tree, @NotNull JTable table) {
       super((new TabularLayout("Fit,*")));
       myTree = tree;
       myTable = table;
@@ -348,7 +348,7 @@ public class ColumnTreeBuilder {
       setUI(new RangeScrollBarUI());
     }
 
-    public ColumnTreeScrollBar(@NotNull JTable table) {
+    ColumnTreeScrollBar(@NotNull JTable table) {
       super(Adjustable.HORIZONTAL);
       myTable = table;
     }
@@ -370,7 +370,7 @@ public class ColumnTreeBuilder {
     @NotNull
     private final JTree myTree;
 
-    public ColumnLayout(@NotNull JTree tree, @NotNull TableColumnModel columnModel) {
+    ColumnLayout(@NotNull JTree tree, @NotNull TableColumnModel columnModel) {
       myTree = tree;
       myColumnModel = columnModel;
     }
@@ -428,7 +428,7 @@ public class ColumnTreeBuilder {
    * widgets.
    */
   private static class ColumnTreeCellRenderer extends JPanel implements TreeCellRenderer {
-    public ColumnTreeCellRenderer(JTree tree, TableColumnModel columnModel) {
+    ColumnTreeCellRenderer(JTree tree, TableColumnModel columnModel) {
       super(new ColumnLayout(tree, columnModel));
     }
 
@@ -755,7 +755,7 @@ public class ColumnTreeBuilder {
     @NotNull
     private final JTree myTree;
 
-    public TreeWrapperPanel(JTable table, JTree tree) {
+    TreeWrapperPanel(JTable table, JTree tree) {
       super(new BorderLayout());
 
       myTree = tree;

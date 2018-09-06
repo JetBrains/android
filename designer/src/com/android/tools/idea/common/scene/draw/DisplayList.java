@@ -80,7 +80,7 @@ public class DisplayList {
              + myDirection;
     }
 
-    public Connection(String s) {
+    Connection(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x1 = Integer.parseInt(sp[c++]);
@@ -90,7 +90,7 @@ public class DisplayList {
       myDirection = Integer.parseInt(sp[c]);
     }
 
-    public Connection(@SwingCoordinate int x1, @SwingCoordinate int y1, @SwingCoordinate int x2, @SwingCoordinate int y2, int direction) {
+    Connection(@SwingCoordinate int x1, @SwingCoordinate int y1, @SwingCoordinate int x2, @SwingCoordinate int y2, int direction) {
       this.x1 = x1;
       this.y1 = y1;
       this.x2 = x2;
@@ -161,7 +161,7 @@ public class DisplayList {
       return "Rect," + x + "," + y + "," + width + "," + height + "," + Integer.toHexString(color.getRGB());
     }
 
-    public Rect(String s) {
+    Rect(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x = Integer.parseInt(sp[c++]);
@@ -172,7 +172,7 @@ public class DisplayList {
       color = new Color((int)Long.parseLong(sp[c], 16));
     }
 
-    public Rect(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, Color c) {
+    Rect(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, Color c) {
       super(x, y, width, height);
       color = c;
     }
@@ -202,7 +202,7 @@ public class DisplayList {
       return CLIP_LEVEL;
     }
 
-    public Clip(String s) {
+    Clip(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x = Integer.parseInt(sp[c++]);
@@ -211,7 +211,7 @@ public class DisplayList {
       height = Integer.parseInt(sp[c]);
     }
 
-    public Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
+    Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
 
@@ -275,7 +275,7 @@ public class DisplayList {
       return TARGET_LEVEL;
     }
 
-    public Line(String s) {
+    Line(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x1 = Integer.parseInt(sp[c++]);
@@ -286,7 +286,7 @@ public class DisplayList {
       color = new Color((int)Long.parseLong(sp[c], 16));
     }
 
-    public Line(SceneContext transform,
+    Line(SceneContext transform,
                 @AndroidDpCoordinate float x1,
                 @AndroidDpCoordinate float y1,
                 @AndroidDpCoordinate float x2,
@@ -376,12 +376,12 @@ public class DisplayList {
     private ArrayList<DrawCommand> myCommands = new ArrayList<>();
     private int myLevel;
 
-    public CommandSet(DrawCommand[] commands, int start, int end) {
+    CommandSet(DrawCommand[] commands, int start, int end) {
       this(commands, start, end, COMPONENT_LEVEL);
     }
 
     @SuppressWarnings("ManualArrayToCollectionCopy")
-    public CommandSet(DrawCommand[] commands, int start, int end, int level) {
+    CommandSet(DrawCommand[] commands, int start, int end, int level) {
       myLevel = level;
       if (commands.length == 0) {
         return;

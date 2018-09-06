@@ -136,7 +136,7 @@ public class DumpSysAction {
     private final CountDownLatch myCompletionLatch;
     private final CollectingOutputReceiver myReceiver;
 
-    public ShellTask(@NotNull Project project, @NotNull CountDownLatch completionLatch, @NotNull CollectingOutputReceiver receiver) {
+    ShellTask(@NotNull Project project, @NotNull CountDownLatch completionLatch, @NotNull CollectingOutputReceiver receiver) {
       super(project, TITLE, true);
 
       myCompletionLatch = completionLatch;

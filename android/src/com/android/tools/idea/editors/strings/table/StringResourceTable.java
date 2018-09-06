@@ -279,7 +279,7 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
   }
 
   static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
-    public ThreeStateTableRowSorter(M model) {
+    ThreeStateTableRowSorter(M model) {
       super(model);
     }
 

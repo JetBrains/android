@@ -644,7 +644,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     @Nullable private final AbstractProperty<?> myProperty;
     @NotNull private final WantGrow myWantGrow;
 
-    public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
+    RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
       myHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
       JBLabel headerLabel = new JBLabel(headerText + ":");
       myHeader.add(headerLabel);
@@ -657,7 +657,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       headerLabel.setLabelFor(myComponent);
     }
 
-    public RowEntry(@NotNull ParameterComponentProvider<T> componentProvider, @NotNull WantGrow stretch) {
+    RowEntry(@NotNull ParameterComponentProvider<T> componentProvider, @NotNull WantGrow stretch) {
       myHeader = null;
       myWantGrow = stretch;
       myComponentProvider = componentProvider;
@@ -763,7 +763,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private final class ResetParameterAction extends AnAction {
     @NotNull private final Parameter myParameter;
 
-    public ResetParameterAction(@NotNull Parameter parameter) {
+    ResetParameterAction(@NotNull Parameter parameter) {
       super("Restore default value", "Discards any user modifications made to this parameter", AllIcons.General.Reset);
       myParameter = parameter;
     }

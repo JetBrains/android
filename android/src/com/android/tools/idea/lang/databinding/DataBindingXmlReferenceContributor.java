@@ -296,7 +296,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
   private static class PsiFieldReference extends DefinitionReference {
 
-    public PsiFieldReference(@NotNull PsiDbRefExpr refExpr, @NotNull PsiField field) {
+    PsiFieldReference(@NotNull PsiDbRefExpr refExpr, @NotNull PsiField field) {
       super(refExpr, field, refExpr.getId().getTextRange().shiftRight(-refExpr.getStartOffsetInParent()));
     }
 
@@ -315,11 +315,11 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
   private static class PsiMethodReference extends DefinitionReference {
 
-    public PsiMethodReference(@NotNull PsiDbCallExpr expr, @NotNull PsiMethod method) {
+    PsiMethodReference(@NotNull PsiDbCallExpr expr, @NotNull PsiMethod method) {
       super(expr, method, expr.getRefExpr().getId().getTextRange().shiftRight(-expr.getStartOffsetInParent()));
     }
 
-    public PsiMethodReference(@NotNull PsiDbRefExpr expr, @NotNull PsiMethod method) {
+    PsiMethodReference(@NotNull PsiDbRefExpr expr, @NotNull PsiMethod method) {
       super(expr, method, expr.getId().getTextRange().shiftRight(-expr.getStartOffsetInParent()));
     }
 
@@ -339,7 +339,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   private static class VariableDefinitionReference extends DefinitionReference {
     private final PsiModelClass myModelClass;
 
-    public VariableDefinitionReference(@NotNull PsiElement element,
+    VariableDefinitionReference(@NotNull PsiElement element,
                                        @NotNull XmlTag resolveTo,
                                        @NotNull PsiDataBindingResourceItem variable,
                                        @NotNull DataBindingInfo dataBindingInfo,
@@ -372,7 +372,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   private static class ImportDefinitionReference extends DefinitionReference {
     private final PsiModelClass myModelClass;
 
-    public ImportDefinitionReference(@NotNull PsiElement element,
+    ImportDefinitionReference(@NotNull PsiElement element,
                                      @NotNull XmlTag resolveTo,
                                      @NotNull PsiDataBindingResourceItem variable,
                                      @NotNull Module module) {
@@ -402,7 +402,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
   private static class ClassDefinitionReference extends DefinitionReference {
 
-    public ClassDefinitionReference(@NotNull PsiElement element, @NotNull PsiClass resolveTo) {
+    ClassDefinitionReference(@NotNull PsiElement element, @NotNull PsiClass resolveTo) {
       super(element, resolveTo);
     }
 
@@ -427,7 +427,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     private final PsiPackage myTarget;
     private final TextRange myTextRange;
 
-    public PackageReference(@NotNull PsiElement element, @NotNull PsiPackage target) {
+    PackageReference(@NotNull PsiElement element, @NotNull PsiPackage target) {
       myElement = element;
       myTarget = target;
       myTextRange = myElement.getTextRange().shiftRight(-myElement.getStartOffsetInParent());

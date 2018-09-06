@@ -250,7 +250,7 @@ public class TargetMenuAction extends DropDownAction {
   private static class SetTargetAction extends ConfigurationAction {
     private final IAndroidTarget myTarget;
 
-    public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
+    SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
                            @NotNull final IAndroidTarget target, final boolean select) {
       super(renderContext, title, select ? AllIcons.Actions.Checked : null);
       myTarget = target;

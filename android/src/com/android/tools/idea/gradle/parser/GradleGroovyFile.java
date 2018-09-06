@@ -67,7 +67,7 @@ class GradleGroovyFile {
   protected final VirtualFile myFile;
   protected GroovyFile myGroovyFile = null;
 
-  public GradleGroovyFile(@NotNull VirtualFile file, @NotNull Project project) {
+  GradleGroovyFile(@NotNull VirtualFile file, @NotNull Project project) {
     myProject = project;
     myFile = file;
     reload();

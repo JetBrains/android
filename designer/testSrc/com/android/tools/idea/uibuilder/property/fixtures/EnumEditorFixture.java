@@ -282,7 +282,7 @@ public class EnumEditorFixture extends EditorFixtureBase {
     private boolean myPopupIsVisible;
     private JComboBox myCombo;
 
-    public ComboUI(@NotNull JComboBox comboBox) {
+    ComboUI(@NotNull JComboBox comboBox) {
       super(comboBox);
       myCombo = comboBox;
     }

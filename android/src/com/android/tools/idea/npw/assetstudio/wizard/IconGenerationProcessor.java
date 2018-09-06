@@ -87,7 +87,7 @@ public class IconGenerationProcessor {
     @NotNull private final IconGenerator.Options myOptions;
     @Nullable private IconGeneratorResult myGeneratorResult;
 
-    public Request(@NotNull AndroidIconType iconType,
+    Request(@NotNull AndroidIconType iconType,
                    @NotNull IconGenerator iconGenerator,
                    @NotNull IconGenerator.Options options,
                    @NotNull Consumer<IconGeneratorResult> onDone) {
@@ -117,7 +117,7 @@ public class IconGenerationProcessor {
     @NotNull private final Request myRequest;
     @NotNull private final Runnable myOnDone;
 
-    public Worker(@NotNull Request request, @NotNull Runnable onDone) {
+    Worker(@NotNull Request request, @NotNull Runnable onDone) {
       myRequest = request;
       myOnDone = onDone;
     }

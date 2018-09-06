@@ -104,7 +104,7 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
 
     private Exception myException;
 
-    public RunHprofConvAndSaveTask(@Nullable Project project, @NotNull VirtualFile source, @NotNull File destination) {
+    RunHprofConvAndSaveTask(@Nullable Project project, @NotNull VirtualFile source, @NotNull File destination) {
       super(project, AndroidBundle.message("android.profiler.hprof.actions.conv"), false);
 
       mySource = source;

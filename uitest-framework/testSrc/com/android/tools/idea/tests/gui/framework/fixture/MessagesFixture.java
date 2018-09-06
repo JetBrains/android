@@ -136,7 +136,7 @@ public class MessagesFixture {
   }
 
   private static class MacSheetPanelFixture extends JPanelFixture implements Delegate {
-    public MacSheetPanelFixture(@NotNull Robot robot, @NotNull JPanel target) {
+    MacSheetPanelFixture(@NotNull Robot robot, @NotNull JPanel target) {
       super(robot, target);
     }
 

@@ -56,7 +56,7 @@ class AndroidSdkConfigurableForm {
 
   private boolean myFreeze = false;
 
-  public AndroidSdkConfigurableForm(@NotNull SdkModel sdkModel, @NotNull final SdkModificator sdkModificator) {
+  AndroidSdkConfigurableForm(@NotNull SdkModel sdkModel, @NotNull final SdkModificator sdkModificator) {
     mySdkModel = sdkModel;
     myInternalJdkComboBox.setModel(myJdksModel);
     myInternalJdkComboBox.setRenderer(new ListCellRendererWrapper() {

@@ -445,7 +445,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
   private static class MyDesignSurfaceListener implements DesignSurfaceListener {
     MockupEditor myEditor;
 
-    public MyDesignSurfaceListener(@NotNull MockupEditor editor) {
+    MyDesignSurfaceListener(@NotNull MockupEditor editor) {
       myEditor = editor;
     }
 
@@ -524,7 +524,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
   private static class MyModelListener implements ModelListener {
     private final MockupEditor myMockupEditor;
 
-    public MyModelListener(MockupEditor mockupEditor) {
+    MyModelListener(MockupEditor mockupEditor) {
       myMockupEditor = mockupEditor;
     }
 

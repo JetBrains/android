@@ -236,7 +236,7 @@ public class EventVisualTest extends VisualTest {
     String myName;
     long myStartTimeUs;
 
-    public MockActivity() {
+    MockActivity() {
       myName = EventVisualTest.ACTIVITY_NAMES[(int)(Math.random() * ACTIVITY_NAMES.length)];
       myStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
       addSelf();

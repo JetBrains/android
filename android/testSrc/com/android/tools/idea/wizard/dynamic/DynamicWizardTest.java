@@ -114,7 +114,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     private final JLabel myLabel = new JLabel("a label");
     private final boolean myIsVisible;
 
-    public LabelStep(boolean isVisible) {
+    LabelStep(boolean isVisible) {
       myIsVisible = isVisible;
     }
 
@@ -166,7 +166,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
   private class VisibilityTestWizard extends DynamicWizard {
     private final DynamicWizardStep[] mySteps;
 
-    public VisibilityTestWizard(DynamicWizardStep... steps) {
+    VisibilityTestWizard(DynamicWizardStep... steps) {
       super(null, null, "test wizard");
       disposeOnTearDown(getDisposable());
       mySteps = steps;

@@ -297,7 +297,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     final Collection<PsiFileResourceQueueEntry> myPsiFileResourceQueue = new ArrayList<>();
     final Collection<PsiValueResourceQueueEntry> myPsiValueResourceQueue = new ArrayList<>();
 
-    public InitialScanState(ResourceMerger merger, File resourceDir) {
+    InitialScanState(ResourceMerger merger, File resourceDir) {
       myResourceMerger = merger;
       assert myResourceMerger.getDataSets().size() == 1;
       myResourceSet = myResourceMerger.getDataSets().get(0);
@@ -347,7 +347,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     public final ResourceFolderType folderType;
     public final FolderConfiguration folderConfiguration;
 
-    public PsiFileResourceQueueEntry(VirtualFile file, String qualifiers,
+    PsiFileResourceQueueEntry(VirtualFile file, String qualifiers,
                                      ResourceFolderType folderType, FolderConfiguration folderConfiguration) {
       this.file = file;
       this.qualifiers = qualifiers;
@@ -364,7 +364,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     public final String qualifiers;
     public final FolderConfiguration folderConfiguration;
 
-    public PsiValueResourceQueueEntry(VirtualFile file, String qualifiers, FolderConfiguration folderConfiguration) {
+    PsiValueResourceQueueEntry(VirtualFile file, String qualifiers, FolderConfiguration folderConfiguration) {
       this.file = file;
       this.qualifiers = qualifiers;
       this.folderConfiguration = folderConfiguration;

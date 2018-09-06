@@ -48,7 +48,7 @@ public class NlIssueTest {
     private final String category;
     private final HighlightSeverity mySeverity;
 
-    public TestIssue(@NotNull String summary,
+    TestIssue(@NotNull String summary,
                      @NotNull String description,
                      @Nullable NlComponent source,
                      @NotNull String category,

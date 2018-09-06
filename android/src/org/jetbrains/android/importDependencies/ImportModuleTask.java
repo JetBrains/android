@@ -27,7 +27,7 @@ class ImportModuleTask extends ModuleProvidingTask {
   private final String myModuleFilePath;
   private final VirtualFile myContentRoot;
 
-  public ImportModuleTask(@NotNull Project project,
+  ImportModuleTask(@NotNull Project project,
                           @NotNull String moduleFilePath,
                           @NotNull VirtualFile contentRoot) {
     myModuleFilePath = moduleFilePath;

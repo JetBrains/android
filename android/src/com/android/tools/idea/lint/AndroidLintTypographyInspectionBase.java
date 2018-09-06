@@ -22,7 +22,7 @@ import org.jetbrains.android.inspections.lint.TypographyQuickFix;
 import org.jetbrains.annotations.NotNull;
 
 abstract class AndroidLintTypographyInspectionBase extends AndroidLintInspectionBase {
-  public AndroidLintTypographyInspectionBase(String displayName, Issue issue) {
+  AndroidLintTypographyInspectionBase(String displayName, Issue issue) {
     super(displayName, issue);
   }
 

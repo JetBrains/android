@@ -483,7 +483,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   static class LightDataBindingMethod extends LightMethod {
     private PsiElement myNavigationElement;
 
-    public LightDataBindingMethod(@NotNull PsiElement navigationElement,
+    LightDataBindingMethod(@NotNull PsiElement navigationElement,
                                   @NotNull PsiManager manager,
                                   @NotNull PsiMethod method,
                                   @NotNull PsiClass containingClass,
@@ -517,7 +517,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   static class LightDataBindingField extends LightField {
     private final DataBindingInfo.ViewWithId myViewWithId;
 
-    public LightDataBindingField(DataBindingInfo.ViewWithId viewWithId,
+    LightDataBindingField(DataBindingInfo.ViewWithId viewWithId,
                                  @NotNull PsiManager manager,
                                  @NotNull PsiField field,
                                  @NotNull PsiClass containingClass) {

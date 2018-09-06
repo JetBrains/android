@@ -380,7 +380,7 @@ public class DragDropInteraction extends Interaction {
     /**
      * Constructs a new {@link DragLayer}.
      */
-    public DragLayer() {
+    DragLayer() {
     }
 
     @Override

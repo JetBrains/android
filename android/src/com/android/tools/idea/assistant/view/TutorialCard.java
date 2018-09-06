@@ -278,7 +278,7 @@ public class TutorialCard extends CardViewPanel {
 
     public Direction myDirection;
 
-    public StepButton(String label, Direction direction, ActionListener listener) {
+    StepButton(String label, Direction direction, ActionListener listener) {
       super(label, TutorialChooser.NAVIGATION_KEY, listener);
       myDirection = direction;
       setContentAreaFilled(false);
@@ -305,7 +305,7 @@ public class TutorialCard extends CardViewPanel {
   // Determine why the border, contentfill, etc are reset to default on theme change. Note that this doesn't persist across restart.
   private class BackButton extends NavigationButton {
 
-    public BackButton(String label) {
+    BackButton(String label) {
       super(label, TutorialChooser.NAVIGATION_KEY, myListener);
       setIcon(AllIcons.Actions.Back);
       setHorizontalTextPosition(RIGHT);

@@ -21,7 +21,7 @@ class AndroidInlineStyleDialog extends InlineOptionsDialog {
   private final XmlTag myStyleTag;
 
 
-  public AndroidInlineStyleDialog(@NotNull Project project,
+  AndroidInlineStyleDialog(@NotNull Project project,
                                   @NotNull PsiElement styleElement,
                                   @NotNull XmlTag styleTag,
                                   @NotNull String styleName,

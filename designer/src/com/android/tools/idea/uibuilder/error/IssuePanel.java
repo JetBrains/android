@@ -531,7 +531,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     private final JLabel mySourceLabel = createLabel("Source");
     private int[] myColumnsX;
 
-    public ColumnHeaderPanel() {
+    ColumnHeaderPanel() {
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
       mySourceLabel.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 1, 0, 0, JBColor.border()),

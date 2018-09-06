@@ -97,7 +97,7 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
     private final int myMinVersion;
     private final int myMaxVersion;
 
-    public MyReference(@NotNull PsiElement element, @NotNull PsiClass permissionClass, int minVersion, int maxVersion) {
+    MyReference(@NotNull PsiElement element, @NotNull PsiClass permissionClass, int minVersion, int maxVersion) {
       super(element, true);
       myPermissionClass = permissionClass;
       myMinVersion = minVersion;

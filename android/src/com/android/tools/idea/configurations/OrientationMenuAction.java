@@ -254,7 +254,7 @@ public class OrientationMenuAction extends DropDownAction {
     private final Project myProject;
     private final VirtualFile myFile;
 
-    public SwitchToVariationAction(@NotNull String title, @NotNull Project project, @NotNull VirtualFile file, boolean select) {
+    SwitchToVariationAction(@NotNull String title, @NotNull Project project, @NotNull VirtualFile file, boolean select) {
       super(title, null, null);
       myFile = file;
       myProject = project;
@@ -277,7 +277,7 @@ public class OrientationMenuAction extends DropDownAction {
     @NotNull private EditorDesignSurface mySurface;
     @Nullable private String myNewFolder;
 
-    public CreateVariationAction(@NotNull EditorDesignSurface surface, @NotNull String title, @Nullable String newFolder) {
+    CreateVariationAction(@NotNull EditorDesignSurface surface, @NotNull String title, @Nullable String newFolder) {
       super(title, null, null);
       mySurface = surface;
       myNewFolder = newFolder;

@@ -32,7 +32,7 @@ class MockClassInstance extends ClassInstance {
   private final int myRootDistance;
   @NotNull private final String myClassName;
 
-  public MockClassInstance(int id, int rootDistance, @NotNull String className) {
+  MockClassInstance(int id, int rootDistance, @NotNull String className) {
     super(id, null /* StackTrace - don't care */, 0 /* valuesOffset - don't care */);
     myRootDistance = rootDistance;
     myClassName = className;

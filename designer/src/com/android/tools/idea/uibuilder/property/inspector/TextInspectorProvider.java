@@ -129,7 +129,7 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
     private NlProperty myAlignment;
     private NlProperty myColor;
 
-    public TextInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
+    TextInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
       Project project = propertiesManager.getProject();
       myTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myDesignTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);

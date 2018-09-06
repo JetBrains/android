@@ -915,7 +915,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     @NotNull private final Icon myIcon;
 
-    public NamedIcon(@NotNull String name, @NotNull Icon icon) {
+    NamedIcon(@NotNull String name, @NotNull Icon icon) {
       myName = name;
       myIcon = icon;
     }

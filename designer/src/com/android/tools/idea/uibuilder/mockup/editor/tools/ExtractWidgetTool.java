@@ -322,11 +322,11 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     Icon myIcon;
     boolean myHandleListComponent;
 
-    public CreatorAction(String androidClassName, String title, Icon icon) {
+    CreatorAction(String androidClassName, String title, Icon icon) {
      this(androidClassName, title, icon, false);
     }
 
-    public CreatorAction(String androidClassName, String title, Icon icon, boolean handleListComponent) {
+    CreatorAction(String androidClassName, String title, Icon icon, boolean handleListComponent) {
       myAndroidClassName = androidClassName;
       myTitle = title;
       myIcon = icon;

@@ -810,7 +810,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     private final boolean myChooseFile;
     private final Condition<VirtualFile> myFilter;
 
-    public MyFolderFieldListener(TextFieldWithBrowseButton textField,
+    MyFolderFieldListener(TextFieldWithBrowseButton textField,
                                  VirtualFile defaultDir,
                                  boolean chooseFile,
                                  @Nullable Condition<VirtualFile> filter) {

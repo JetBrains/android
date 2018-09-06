@@ -78,7 +78,7 @@ public final class WelcomeScreenWindowListener {
   private static class DelegatingListener extends DirectListener {
     @NotNull private final WindowListener myIdeaListener;
 
-    public DelegatingListener(@NotNull FirstRunWizardHost host, @NotNull WindowListener ideaListener) {
+    DelegatingListener(@NotNull FirstRunWizardHost host, @NotNull WindowListener ideaListener) {
       super(host);
       myIdeaListener = ideaListener;
     }
@@ -127,7 +127,7 @@ public final class WelcomeScreenWindowListener {
   private static class DirectListener extends WindowAdapter {
     private final WeakReference<FirstRunWizardHost> myHostReference;
 
-    public DirectListener(@NotNull FirstRunWizardHost host) {
+    DirectListener(@NotNull FirstRunWizardHost host) {
       // Let the instance leave
       myHostReference = new WeakReference<FirstRunWizardHost>(host);
     }

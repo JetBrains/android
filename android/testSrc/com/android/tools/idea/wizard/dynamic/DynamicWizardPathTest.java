@@ -195,7 +195,7 @@ public class DynamicWizardPathTest extends AndroidTestBase {
   }
 
   private static class DummyDynamicWizard extends DynamicWizard {
-    public DummyDynamicWizard() {
+    DummyDynamicWizard() {
       super(null, null, "DummyWizard");
     }
 

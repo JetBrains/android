@@ -121,7 +121,7 @@ public class DatabaseTableTest {
       myStop = true;
     }
 
-    public TableTest(CountDownLatch latch) {
+    TableTest(CountDownLatch latch) {
       myLatch = latch;
     }
 

@@ -263,7 +263,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
     private final Icon myImage;
     private final String myText;
 
-    public WhatsNewDialog(@NotNull Project project, @NotNull Icon image, @Nullable String text) {
+    WhatsNewDialog(@NotNull Project project, @NotNull Icon image, @Nullable String text) {
       super(project, false);
       setModal(true);
       myImage = image;

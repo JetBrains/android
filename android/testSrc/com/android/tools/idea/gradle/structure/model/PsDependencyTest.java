@@ -148,11 +148,11 @@ public class PsDependencyTest {
     @NotNull
     private final String myName;
 
-    public TestDependencyModel() {
+    TestDependencyModel() {
       myName = "Default Name";
     }
 
-    public TestDependencyModel(@NotNull String name) {
+    TestDependencyModel(@NotNull String name) {
       myName = name;
     }
 

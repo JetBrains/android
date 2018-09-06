@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 class AndroidFinalPackagePresentation extends SourceItemPresentation {
   private final FacetPointer<AndroidFacet> myFacetPointer;
 
-  public AndroidFinalPackagePresentation(@Nullable FacetPointer<AndroidFacet> facetPointer) {
+  AndroidFinalPackagePresentation(@Nullable FacetPointer<AndroidFacet> facetPointer) {
     myFacetPointer = facetPointer;
   }
 

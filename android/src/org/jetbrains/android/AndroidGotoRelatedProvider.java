@@ -300,7 +300,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   private static class MyGotoRelatedLayoutItem extends GotoRelatedItem {
     private final PsiFile myFile;
 
-    public MyGotoRelatedLayoutItem(@NotNull PsiFile file) {
+    MyGotoRelatedLayoutItem(@NotNull PsiFile file) {
       super(file, "Layout Files");
       myFile = file;
     }
@@ -315,7 +315,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
   private static class MyGotoManifestItem extends GotoRelatedItem {
 
-    public MyGotoManifestItem(@NotNull XmlAttributeValue attributeValue) {
+    MyGotoManifestItem(@NotNull XmlAttributeValue attributeValue) {
       super(attributeValue);
     }
 

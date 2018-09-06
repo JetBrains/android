@@ -45,7 +45,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   private boolean myAdditionalActionPerformed;
   private String myFilter;
 
-  public PalettePanelToolContent() {
+  PalettePanelToolContent() {
     myComponent = new JPanel();
     myFocusComponent = new JLabel();
     myGearAction = new AnAction("GearAction") {

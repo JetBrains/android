@@ -27,7 +27,7 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   private State myState = new State();
 
-  public AndroidDataSource() {
+  AndroidDataSource() {
     super("", "org.sqlite.JDBC", "", null, null);
   }
 

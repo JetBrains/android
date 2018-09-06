@@ -292,7 +292,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     private final String myReferenceTo;
     private final Module myModule;
 
-    public AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
+    AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
       super(referenceFrom, range, true);
       myReferenceTo = referenceTo;
       myModule = module;
@@ -354,7 +354,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   private static class ClassReference extends PsiReferenceBase<PsiElement> {
     @NotNull private final PsiElement myResolveTo;
 
-    public ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
+    ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
       super(element, range, true);
       myResolveTo = resolveTo;
     }

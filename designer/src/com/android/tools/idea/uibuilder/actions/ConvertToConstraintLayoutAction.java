@@ -214,7 +214,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private NlComponent myRoot;
     private NlComponent myLayout;
 
-    public ConstraintLayoutConverter(@NotNull SceneView screenView,
+    ConstraintLayoutConverter(@NotNull SceneView screenView,
                                      @NotNull NlComponent target,
                                      boolean flatten,
                                      boolean includeIds,

@@ -34,7 +34,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
   private static final BaseAxisFormatter NETWORK_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 2, 5);
 
-  public LegendComponentRegistrar() {
+  LegendComponentRegistrar() {
     registerSimpleLegendComponent();
   }
   private void registerSimpleLegendComponent() {

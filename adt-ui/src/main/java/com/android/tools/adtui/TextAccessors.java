@@ -56,7 +56,7 @@ public final class TextAccessors {
   private static class JTextComponentTextAccessor implements TextAccessor {
     private final JComponent myComponent;
 
-    public JTextComponentTextAccessor(JComponent component) {
+    JTextComponentTextAccessor(JComponent component) {
       myComponent = component;
     }
 
@@ -74,7 +74,7 @@ public final class TextAccessors {
   private static class JLabelTextAccessor implements TextAccessor {
     private final JLabel myComponent;
 
-    public JLabelTextAccessor(JLabel component) {
+    JLabelTextAccessor(JLabel component) {
       myComponent = component;
     }
 
@@ -92,7 +92,7 @@ public final class TextAccessors {
   private static class AbstractButtonTextAccessor implements TextAccessor {
     private final AbstractButton myComponent;
 
-    public AbstractButtonTextAccessor(AbstractButton component) {
+    AbstractButtonTextAccessor(AbstractButton component) {
       myComponent = component;
     }
 
@@ -110,7 +110,7 @@ public final class TextAccessors {
   private static class ActionButtonTextAccessor implements TextAccessor {
     private final ActionButton myComponent;
 
-    public ActionButtonTextAccessor(ActionButton component) {
+    ActionButtonTextAccessor(ActionButton component) {
       myComponent = component;
     }
 

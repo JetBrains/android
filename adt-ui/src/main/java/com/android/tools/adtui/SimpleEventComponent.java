@@ -111,7 +111,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
       return mEndTimestamp;
     }
 
-    public EventRenderData(long startTimestamp, long endTimestamp, EventAction<E> action) {
+    EventRenderData(long startTimestamp, long endTimestamp, EventAction<E> action) {
       mStartTimestamp = startTimestamp;
       mEndTimestamp = endTimestamp;
       mAction = action;

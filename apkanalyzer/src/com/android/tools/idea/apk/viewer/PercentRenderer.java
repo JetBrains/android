@@ -37,7 +37,7 @@ class PercentRenderer extends ColoredTreeCellRenderer {
     double getFraction(@NotNull JTree tree, @NotNull Object value, int row);
   }
 
-  public PercentRenderer(@NotNull PercentProvider provider) {
+  PercentRenderer(@NotNull PercentProvider provider) {
     myProvider = provider;
   }
 

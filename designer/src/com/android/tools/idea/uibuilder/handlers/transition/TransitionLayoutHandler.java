@@ -175,7 +175,7 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
       myTransitionHandler = transitionLayoutComponent != null ? new TransitionLayoutComponentHelper(transitionLayoutComponent) : null;
     }
 
-    public AnimationPositionPanel() {
+    AnimationPositionPanel() {
       setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
       add(new JLabel("Animation position:"));
       JSlider slider = new JSlider();

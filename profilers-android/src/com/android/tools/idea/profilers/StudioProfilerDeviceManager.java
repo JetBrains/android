@@ -85,7 +85,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
    */
   private Map<IDevice, PerfdProxy> myDeviceProxies;
 
-  public StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
+  StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
     myDataStoreService = dataStoreService;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
@@ -174,7 +174,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private int myLocalPort;
     private PerfdProxy myPerfdProxy;
 
-    public PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
+    PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
       super("Perfd Thread: " + device.getSerialNumber());
       myDataStore = datastore;
       myDevice = device;

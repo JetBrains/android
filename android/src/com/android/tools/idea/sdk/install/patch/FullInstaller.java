@@ -41,7 +41,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   private File myUnzippedPackage;
   private File myGeneratedPatch;
 
-  public FullInstaller(@Nullable LocalPackage existing,
+  FullInstaller(@Nullable LocalPackage existing,
                        @NotNull RemotePackage p,
                        @NotNull RepoManager mgr,
                        @NotNull Downloader downloader,

@@ -153,7 +153,7 @@ public class FlatTabbedPane extends JTabbedPane {
     @NotNull private Insets myTabAreaInsets;
     @NotNull private Insets myContentBorderInsets;
 
-    public FlatTabbedPaneUI() {
+    FlatTabbedPaneUI() {
       myActiveColor = DEFAULT_ACTIVE_COLOR;
       myInactiveColor = DEFAULT_INACTIVE_COLOR;
       myHoverColor = DEFAULT_HOVER_COLOR;

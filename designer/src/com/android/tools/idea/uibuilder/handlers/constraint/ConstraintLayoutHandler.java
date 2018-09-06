@@ -268,7 +268,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    */
   static class DisappearingActionMenu extends ViewActionMenu {
 
-    public DisappearingActionMenu(@NotNull String menuName,
+    DisappearingActionMenu(@NotNull String menuName,
                                   @Nullable Icon icon,
                                   @NotNull List<ViewAction> actions) {
       super(menuName, icon, actions);
@@ -500,7 +500,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
-    public ToggleAutoConnectAction() {
+    ToggleAutoConnectAction() {
       super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect",
             "Turn Off Autoconnect");
     }
@@ -615,7 +615,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static class ToggleVisibilityAction extends ToggleViewAction {
     String mType;
 
-    public ToggleVisibilityAction(String type, String text, boolean defaultValue) {
+    ToggleVisibilityAction(String type, String text, boolean defaultValue) {
       super(null, AllIcons.Actions.Checked, text, text);
       mType = type;
       ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type, defaultValue));
@@ -706,7 +706,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     final int myType;
 
-    public AddElementAction(int type, Icon icon, String text) {
+    AddElementAction(int type, Icon icon, String text) {
       super(icon, text);
       myType = type;
     }
@@ -1050,7 +1050,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private int myMarginIconValue;
     private Icon myMarginIcon;
 
-    public MarginSelector() {
+    MarginSelector() {
       setLabel("Default Margins"); // tooltip
       myMarginPopup.setActionListener((e) -> setMargin());
     }

@@ -141,7 +141,7 @@ public abstract class InstallOperation<Return, Argument> {
     private final InstallOperation<Return, Argument> myFirst;
     private final InstallOperation<FinalResult, Return> mySecond;
 
-    public OperationChain(InstallOperation<Return, Argument> first, InstallOperation<FinalResult, Return> second) {
+    OperationChain(InstallOperation<Return, Argument> first, InstallOperation<FinalResult, Return> second) {
       super(first.myContext, 0);
       myFirst = first;
       mySecond = second;
@@ -169,7 +169,7 @@ public abstract class InstallOperation<Return, Argument> {
   private static class FunctionWrapper<Return, Argument> extends InstallOperation<Return, Argument> {
     @NotNull private final Function<Argument, Return> myRunnable;
 
-    public FunctionWrapper(@NotNull InstallContext context, @NotNull Function<Argument, Return> runnable, double progressShare) {
+    FunctionWrapper(@NotNull InstallContext context, @NotNull Function<Argument, Return> runnable, double progressShare) {
       super(context, progressShare);
       myRunnable = runnable;
     }

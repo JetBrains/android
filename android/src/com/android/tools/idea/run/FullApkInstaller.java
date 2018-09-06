@@ -138,7 +138,7 @@ public class FullApkInstaller {
     private final ConsolePrinter myPrinter;
     private final String myPmInstallOptions;
 
-    public ApkInstaller(@NotNull ConsolePrinter printer, @NotNull String remotePath, @Nullable String pmInstallOptions) {
+    ApkInstaller(@NotNull ConsolePrinter printer, @NotNull String remotePath, @Nullable String pmInstallOptions) {
       myPrinter = printer;
       myRemotePath = remotePath;
       myPmInstallOptions = pmInstallOptions;

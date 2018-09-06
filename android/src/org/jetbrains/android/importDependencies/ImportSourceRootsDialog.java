@@ -19,7 +19,7 @@ import java.util.List;
 class ImportSourceRootsDialog extends DialogWrapper {
   private final ElementsChooser<JavaModuleSourceRoot> mySourcePathsChooser;
 
-  public ImportSourceRootsDialog(@NotNull Project project, @NotNull List<JavaModuleSourceRoot> sourceRoots) {
+  ImportSourceRootsDialog(@NotNull Project project, @NotNull List<JavaModuleSourceRoot> sourceRoots) {
     super(project, false);
 
     setTitle(AndroidBundle.message("android.import.dependencies.source.roots.dialog.title"));

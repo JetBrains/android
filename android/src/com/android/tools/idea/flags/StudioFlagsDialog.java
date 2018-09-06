@@ -350,7 +350,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
     private final Flag<T> myFlag;
     private final BoolProperty myOverridden;
 
-    public FlagProperty(Flag<T> flag) {
+    FlagProperty(Flag<T> flag) {
       myFlag = flag;
       myOverridden = new BoolValueProperty(myFlag.isOverridden());
     }

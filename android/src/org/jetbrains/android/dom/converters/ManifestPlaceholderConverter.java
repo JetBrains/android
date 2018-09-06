@@ -115,7 +115,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
     private final String[] myValues;
     private final String myName;
 
-    public PlaceholderReference(@NotNull PsiElement element, TextRange range, String[] values) {
+    PlaceholderReference(@NotNull PsiElement element, TextRange range, String[] values) {
       super(element, range, true);
 
       myName = range.substring(element.getText());

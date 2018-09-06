@@ -128,7 +128,7 @@ public class ResourceTablePanel implements HyperlinkListener {
     private final List<Pair<FolderConfiguration,String>> myPairs;
     private final ResourceChooserItem myItem;
 
-    public ResourceTableModel(@NotNull ResourceChooserItem item) {
+    ResourceTableModel(@NotNull ResourceChooserItem item) {
       myItem = item;
       myPairs = item.getQualifiersAndValues();
     }

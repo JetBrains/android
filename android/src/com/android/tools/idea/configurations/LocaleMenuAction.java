@@ -252,7 +252,7 @@ public class LocaleMenuAction extends DropDownAction {
   private class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
 
-    public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
+    SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
       super(renderContext, title);
@@ -311,7 +311,7 @@ public class LocaleMenuAction extends DropDownAction {
 
   private class EditTranslationAction extends AnAction {
 
-    public EditTranslationAction() {
+    EditTranslationAction() {
       super("Edit Translations...", null, null);
     }
 

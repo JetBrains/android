@@ -116,7 +116,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   private static class MyInputValidator implements InputValidator {
     @NotNull private final Module myModule;
 
-    public MyInputValidator(@NotNull Module module) {
+    MyInputValidator(@NotNull Module module) {
       myModule = module;
     }
 

@@ -456,7 +456,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class LauncherIconsPreviewPanel extends PreviewIconsPanel {
-    public LauncherIconsPreviewPanel() {
+    LauncherIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -525,7 +525,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class LauncherLegacyIconsPreviewPanel extends PreviewIconsPanel {
-    public LauncherLegacyIconsPreviewPanel() {
+    LauncherLegacyIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -547,13 +547,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class ActionBarIconsPreviewPanel extends PreviewIconsPanel {
-    public ActionBarIconsPreviewPanel() {
+    ActionBarIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
   }
 
   private static class NotificationIconsPreviewPanel extends PreviewIconsPanel {
-    public NotificationIconsPreviewPanel() {
+    NotificationIconsPreviewPanel() {
       super("", Theme.DARK, new CategoryIconMap.NotificationFilter(
         NotificationIconGenerator.Version.V11));
     }

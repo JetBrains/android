@@ -346,7 +346,7 @@ public class DeviceSelectionPopup extends DialogWrapper {
 
     AffineTransform myTransform = new AffineTransform();
 
-    public MyPreviewPanel() {
+    MyPreviewPanel() {
       setPreferredSize(new Dimension(100, 600));
     }
 

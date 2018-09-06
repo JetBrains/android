@@ -183,7 +183,7 @@ public class StackedEventComponent extends AnimatedComponent {
       return mPath;
     }
 
-    public EventRenderData(EventAction<StackedEventType> action, Rectangle2D path) {
+    EventRenderData(EventAction<StackedEventType> action, Rectangle2D path) {
       mAction = action;
       mPath = path;
     }

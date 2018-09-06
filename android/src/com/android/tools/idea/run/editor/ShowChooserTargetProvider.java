@@ -164,7 +164,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   private static class ShowChooserConfigurable implements DeployTargetConfigurable<State> {
     private final JBCheckBox myCheckbox;
 
-    public ShowChooserConfigurable() {
+    ShowChooserConfigurable() {
       myCheckbox = new JBCheckBox("Use same device for future launches");
     }
 

@@ -19,7 +19,7 @@ class ParentStyleUsageData implements StyleUsageData {
   private final AndroidResourceReferenceBase myReference;
   private final Style myStyle;
 
-  public ParentStyleUsageData(@NotNull Style style,
+  ParentStyleUsageData(@NotNull Style style,
                               @NotNull AndroidResourceReferenceBase reference) {
     myReference = reference;
     myStyle = style;

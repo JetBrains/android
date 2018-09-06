@@ -299,7 +299,7 @@ public class ViewAndColorForm {
      * @param colorList The color list to display
      * @param listener  The listener to call when a color is clicked
      */
-    public ColorPanel(@NotNull List<Color> colorList, @NotNull ColorSelectedListener listener) {
+    ColorPanel(@NotNull List<Color> colorList, @NotNull ColorSelectedListener listener) {
       super();
       setOpaque(true);
       setMinimumSize(new Dimension(USED_SPACE, USED_SPACE));

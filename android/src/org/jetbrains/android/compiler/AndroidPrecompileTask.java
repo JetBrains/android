@@ -389,7 +389,7 @@ public class AndroidPrecompileTask implements CompileTask {
     private final Project myProject;
     private final Set<ExcludeEntryDescription> myEntriesToRemove;
 
-    public MyCompilationStatusListener(Project project, Set<ExcludeEntryDescription> entriesToRemove) {
+    MyCompilationStatusListener(Project project, Set<ExcludeEntryDescription> entriesToRemove) {
       myProject = project;
       myEntriesToRemove = entriesToRemove;
     }

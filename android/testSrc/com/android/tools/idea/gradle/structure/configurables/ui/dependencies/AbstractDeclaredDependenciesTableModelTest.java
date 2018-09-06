@@ -106,7 +106,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
   private class PsAndroidModuleStub extends PsAndroidModule {
     @NotNull private final List<PsAndroidDependency> myDeclaredDependencies;
 
-    public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
+    PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
       super(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class), mock(GradleBuildModel.class));
       myDeclaredDependencies = declaredDependencies;
     }

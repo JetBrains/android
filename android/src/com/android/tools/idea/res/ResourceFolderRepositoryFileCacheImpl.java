@@ -59,11 +59,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   private final File myRootDir;
 
-  public ResourceFolderRepositoryFileCacheImpl() {
+  ResourceFolderRepositoryFileCacheImpl() {
     myRootDir = new File(PathManager.getSystemPath(), CACHE_DIRECTORY);
   }
 
-  public ResourceFolderRepositoryFileCacheImpl(File rootDirParent) {
+  ResourceFolderRepositoryFileCacheImpl(File rootDirParent) {
     myRootDir = new File(rootDirParent, CACHE_DIRECTORY);
   }
 
@@ -243,7 +243,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     private static final int MAX_PROJECT_CACHES = 12;
 
-    public ManageLruProjectFilesTask(@NotNull Project project) {
+    ManageLruProjectFilesTask(@NotNull Project project) {
       myProject = project;
     }
 
@@ -368,7 +368,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   static class PruneTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
-    public PruneTask(@NotNull Project project) {
+    PruneTask(@NotNull Project project) {
       myProject = project;
     }
 

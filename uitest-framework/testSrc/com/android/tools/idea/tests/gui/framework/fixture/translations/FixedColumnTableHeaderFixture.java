@@ -29,7 +29,7 @@ class FixedColumnTableHeaderFixture extends JTableHeaderFixture {
   final FixedColumnTable myTable;
   final JTableHeaderFixture myFixed;
 
-  public FixedColumnTableHeaderFixture(@NotNull Robot robot, @NotNull JTableHeader target) {
+  FixedColumnTableHeaderFixture(@NotNull Robot robot, @NotNull JTableHeader target) {
     super(robot, target);
     myTable = (FixedColumnTable)target.getTable();
     myFixed = new JTableHeaderFixture(robot, (JTableHeader)((JScrollPane)myTable.getParent().getParent())

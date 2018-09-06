@@ -869,12 +869,12 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     @Nullable
     private final AttributeFilter myFilter;
 
-    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
+    AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
       super(root, logger, true);
       this.myFilter = filter;
     }
 
-    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
+    AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
       super(file, logger, true);
       this.myFilter = filter;
     }

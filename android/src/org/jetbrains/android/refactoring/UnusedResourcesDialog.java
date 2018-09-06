@@ -27,7 +27,7 @@ class UnusedResourcesDialog extends RefactoringDialog {
   private final UnusedResourcesProcessor myProcessor;
   private StateRestoringCheckBox myCbIncludeIds;
 
-  public UnusedResourcesDialog(Project project, UnusedResourcesProcessor processor) {
+  UnusedResourcesDialog(Project project, UnusedResourcesProcessor processor) {
     super(project, true);
     myProcessor = processor;
     setTitle("Remove Unused Resources");

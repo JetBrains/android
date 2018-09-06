@@ -45,7 +45,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     public boolean booleanAttributeFalseDefault = false;
     public int flagAttribute = 987;
 
-    public DefaultValues(int width, int height) {
+    DefaultValues(int width, int height) {
       super(width, height);
     }
 
@@ -58,7 +58,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
   private static class LinearLayoutParams extends LinearLayout.LayoutParams {
     public int intAttribute = -1;
 
-    public LinearLayoutParams() {
+    LinearLayoutParams() {
       super(0, 0);
     }
   }

@@ -224,7 +224,7 @@ public class ResizeInteraction extends Interaction {
    * the current resize handler, if any
    */
   private class ResizeLayer extends Layer {
-    public ResizeLayer() {
+    ResizeLayer() {
     }
 
     @Override

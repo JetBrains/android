@@ -38,7 +38,7 @@ class CreateNewModuleTask extends ModuleProvidingTask {
   private final Project myProject;
   private final VirtualFile myContentRoot;
 
-  public CreateNewModuleTask(@NotNull Project project, @NotNull VirtualFile contentRoot) {
+  CreateNewModuleTask(@NotNull Project project, @NotNull VirtualFile contentRoot) {
     myContentRoot = contentRoot;
     myProject = project;
   }

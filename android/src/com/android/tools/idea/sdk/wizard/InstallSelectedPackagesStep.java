@@ -413,7 +413,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     private ModelWizard.Facade myWizard;
     private InstallTask myTask;
 
-    public BackgroundAction() {
+    BackgroundAction() {
       super("Background");
     }
 

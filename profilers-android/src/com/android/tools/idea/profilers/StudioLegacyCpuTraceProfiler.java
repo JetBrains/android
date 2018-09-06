@@ -299,7 +299,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
      */
     @Nullable CpuProfilingAppStopResponse.Builder myStopResponseBuilder;
 
-    public LegacyProfilingRecord(@NotNull CpuProfilingAppStartRequest request,
+    LegacyProfilingRecord(@NotNull CpuProfilingAppStartRequest request,
                                  long timestamp,
                                  @NotNull CpuProfilingAppStartResponse.Builder startResponseBuilder) {
       myStartRequest = request;

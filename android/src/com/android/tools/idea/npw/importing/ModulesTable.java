@@ -255,7 +255,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
   private static class ModuleComparator implements Comparator<ModuleToImport> {
     @Nullable private final VirtualFile myImportPath;
 
-    public ModuleComparator(@Nullable VirtualFile importPath) {
+    ModuleComparator(@Nullable VirtualFile importPath) {
       myImportPath = importPath;
     }
 

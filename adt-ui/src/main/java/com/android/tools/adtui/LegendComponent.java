@@ -286,7 +286,7 @@ public class LegendComponent extends AnimatedComponent {
     @NotNull private final Color myColor;
     @NotNull private final Color myBorderColor;
 
-    public IconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
+    IconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
       switch (type) {
         case BOX:
         case LINE:

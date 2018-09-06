@@ -98,7 +98,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     private final File myFile;
     private final ResourceResolver myResourceResolver;
 
-    public GutterIconClickAction(File file, ResourceResolver resourceResolver) {
+    GutterIconClickAction(File file, ResourceResolver resourceResolver) {
       myFile = file;
       myResourceResolver = resourceResolver;
     }

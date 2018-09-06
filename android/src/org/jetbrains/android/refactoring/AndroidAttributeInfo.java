@@ -12,7 +12,7 @@ class AndroidAttributeInfo {
   private final String myName;
   private final String myPackage;
 
-  public AndroidAttributeInfo(@NotNull String name, @Nullable String aPackage) {
+  AndroidAttributeInfo(@NotNull String name, @Nullable String aPackage) {
     myName = name;
     myPackage = aPackage;
   }

@@ -196,7 +196,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     int myWrapWidth;
     int myWrapHeight;
 
-    public DimensionInfo(NlComponent component, ScoutWidget widget) {
+    DimensionInfo(NlComponent component, ScoutWidget widget) {
       // Record the bounds for use by Scout
       myWidth = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
       myHeight = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT);

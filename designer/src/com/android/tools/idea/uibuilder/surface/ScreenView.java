@@ -59,7 +59,7 @@ public class ScreenView extends ScreenViewBase {
 
     private final ScreenViewBase myScreenView;
 
-    public MyBottomLayer(@NotNull ScreenViewBase screenView) {
+    MyBottomLayer(@NotNull ScreenViewBase screenView) {
       myScreenView = screenView;
     }
 

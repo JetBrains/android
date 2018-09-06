@@ -363,7 +363,7 @@ class PsiResourceItem extends ResourceItem {
   }
 
   private class PsiTextResourceValue extends TextResourceValue {
-    public PsiTextResourceValue(ResourceUrl url, String textValue, String rawXmlValue, String libraryName) {
+    PsiTextResourceValue(ResourceUrl url, String textValue, String rawXmlValue, String libraryName) {
       super(url, textValue, rawXmlValue, libraryName);
     }
 

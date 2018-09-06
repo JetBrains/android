@@ -32,7 +32,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   private final MouseAdapter myHoverAdapter;
   private boolean myHover;
 
-  public FlatComboBoxUI() {
+  FlatComboBoxUI() {
 
     myHoverAdapter = new MouseAdapter() {
       @Override
@@ -138,7 +138,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   }
 
   private static class FlatArrowButton extends JButton {
-    public FlatArrowButton() {
+    FlatArrowButton() {
       setUI(null);
     }
 

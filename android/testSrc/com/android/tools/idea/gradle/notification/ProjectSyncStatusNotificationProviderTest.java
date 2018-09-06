@@ -142,7 +142,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     private boolean myDumb;
     private DumbModeListener myPublisher;
 
-    public OurMockDumbService(@NotNull Project project) {
+    OurMockDumbService(@NotNull Project project) {
       super(project);
       myDumb = false;
       myPublisher = project.getMessageBus().syncPublisher(DUMB_MODE);

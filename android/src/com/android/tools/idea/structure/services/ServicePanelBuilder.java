@@ -185,7 +185,7 @@ public final class ServicePanelBuilder {
     private int myCurrCol;
     private int myCurrRow;
 
-    public UiGrid(@NotNull String colDefinitions) {
+    UiGrid(@NotNull String colDefinitions) {
       TabularLayout layout = new TabularLayout(colDefinitions).setVGap(10);
       myNumCols = layout.getNumColumns();
       myPanel = new JPanel(layout);

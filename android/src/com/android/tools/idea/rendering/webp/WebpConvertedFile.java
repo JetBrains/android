@@ -37,7 +37,7 @@ class WebpConvertedFile {
   public byte[] encoded;
   public long saved;
 
-  public WebpConvertedFile(@NotNull VirtualFile sourceFile, long sourceFileSize) {
+  WebpConvertedFile(@NotNull VirtualFile sourceFile, long sourceFileSize) {
     this.sourceFile = sourceFile;
     this.sourceFileSize = sourceFileSize;
   }

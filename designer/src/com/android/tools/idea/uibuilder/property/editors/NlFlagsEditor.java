@@ -193,7 +193,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
    */
   private static class CustomTextField extends JTextField {
 
-    public CustomTextField() {
+    CustomTextField() {
       setBorder(new DarculaTextBorder());
     }
   }

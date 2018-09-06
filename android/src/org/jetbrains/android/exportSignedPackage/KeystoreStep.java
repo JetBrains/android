@@ -66,7 +66,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
 
-  public KeystoreStep(ExportSignedPackageWizard wizard, boolean useGradleForSigning) {
+  KeystoreStep(ExportSignedPackageWizard wizard, boolean useGradleForSigning) {
     myWizard = wizard;
     myUseGradleForSigning = useGradleForSigning;
     final Project project = wizard.getProject();

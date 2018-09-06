@@ -51,7 +51,7 @@ final class RequestTabContent extends TabContent {
   private final NetworkConnectionsModel myModel;
   private JPanel myPanel;
 
-  public RequestTabContent(@NotNull IdeProfilerComponents components,
+  RequestTabContent(@NotNull IdeProfilerComponents components,
                            @NotNull NetworkConnectionsModel model) {
     myComponents = components;
     myModel = model;

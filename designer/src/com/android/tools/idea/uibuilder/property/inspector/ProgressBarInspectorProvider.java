@@ -90,7 +90,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider<NlPropert
     @Nullable private NlProperty myDesignVisibility;
     private NlProperty myIndeterminate;
 
-    public ProgressBarInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
+    ProgressBarInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
       myInspector = propertiesManager.getInspector();
       Project project = propertiesManager.getProject();
       myStyleEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);

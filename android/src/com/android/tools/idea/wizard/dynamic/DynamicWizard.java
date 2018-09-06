@@ -662,7 +662,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   private class WizardUpdate extends Update {
-    public WizardUpdate() {
+    WizardUpdate() {
       super("Wizard Update");
     }
 

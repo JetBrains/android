@@ -97,7 +97,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       super(name, true);
     }
 
-    public UndeletableNamedObject(NamedObject obj) {
+    UndeletableNamedObject(NamedObject obj) {
       super(obj);
     }
   }

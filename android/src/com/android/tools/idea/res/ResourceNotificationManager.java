@@ -656,7 +656,7 @@ public class ResourceNotificationManager {
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;
 
-    public FileEventObserver(Module module) {
+    FileEventObserver(Module module) {
       myModule = module;
     }
 
@@ -715,7 +715,7 @@ public class ResourceNotificationManager {
     private final Configuration myConfiguration;
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
 
-    public ConfigurationEventObserver(Configuration configuration) {
+    ConfigurationEventObserver(Configuration configuration) {
       myConfiguration = configuration;
     }
 

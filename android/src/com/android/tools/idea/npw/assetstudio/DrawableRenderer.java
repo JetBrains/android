@@ -65,7 +65,7 @@ class DrawableRenderer implements Disposable {
    *
    * @param facet the Android facet
    */
-  public DrawableRenderer(@NotNull AndroidFacet facet) {
+  DrawableRenderer(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
@@ -142,7 +142,7 @@ class DrawableRenderer implements Disposable {
     @NotNull private final Project myProject;
     @NotNull private final RenderLogger myLogger;
 
-    public MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
+    MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
       myProject = project;
       myLogger = logger;
     }

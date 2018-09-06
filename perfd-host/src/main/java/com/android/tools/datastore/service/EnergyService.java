@@ -97,7 +97,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     /**
      * Generates a bunch of random data samples, between 0 and {@code bound}.
      */
-    public RandomData(int bound) {
+    RandomData(int bound) {
       Random random = new Random();
       for (int i = 0; i < NUM_VALUES; i++) {
         values[i] = random.nextInt(bound);

@@ -635,7 +635,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
      */
     private final UpdatableManager myUpdatableManager;
 
-    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
+    ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
       myLabel = new JLabel();
       myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
       Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
@@ -729,7 +729,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       private final StateChart<CpuProfilerStage.ThreadState> myChart;
       private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
 
-      public StateChartData(StateChart<CpuProfilerStage.ThreadState> chart, StateChartModel<CpuProfilerStage.ThreadState> model) {
+      StateChartData(StateChart<CpuProfilerStage.ThreadState> chart, StateChartModel<CpuProfilerStage.ThreadState> model) {
         myChart = chart;
         myModel = model;
       }

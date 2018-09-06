@@ -201,7 +201,7 @@ public class DeviceExplorerPanel {
   private static class NameRenderer extends ColoredTreeCellRenderer {
     @NotNull private final TreeSpeedSearch mySpeedSearch;
 
-    public NameRenderer(@NotNull TreeSpeedSearch speedSearch) {
+    NameRenderer(@NotNull TreeSpeedSearch speedSearch) {
       mySpeedSearch = speedSearch;
     }
 

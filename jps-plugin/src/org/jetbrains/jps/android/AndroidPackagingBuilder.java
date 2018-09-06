@@ -227,7 +227,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
   private static class MyExcludedSourcesFilter implements Condition<File> {
     private final JpsCompilerExcludes myExcludes;
 
-    public MyExcludedSourcesFilter(@NotNull JpsProject project) {
+    MyExcludedSourcesFilter(@NotNull JpsProject project) {
       myExcludes = JpsJavaExtensionService.getInstance().getOrCreateCompilerConfiguration(project).getCompilerExcludes();
     }
 

@@ -36,7 +36,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
   ArrayList<Target> myHitTargets = new ArrayList<>();
   Target mySkipTarget = null;
 
-  public SceneHitListener(@NotNull SelectionModel selectionModel) {
+  SceneHitListener(@NotNull SelectionModel selectionModel) {
     mySelectionModel = selectionModel;
     myPicker.setSelectListener(this);
   }

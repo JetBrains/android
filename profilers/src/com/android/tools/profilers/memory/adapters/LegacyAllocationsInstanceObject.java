@@ -43,7 +43,7 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
   @NotNull private final ValueObject.ValueType myValueType;
   @NotNull private final ThreadId myThreadId;
 
-  public LegacyAllocationsInstanceObject(@NotNull LegacyAllocationEvent event,
+  LegacyAllocationsInstanceObject(@NotNull LegacyAllocationEvent event,
                                          @NotNull ClassEntry allocationClassEntry,
                                          @NotNull AllocationStack callStack) {
     myEvent = event;

@@ -298,7 +298,7 @@ public final class StringResource {
 
     private final boolean myStringValid;
 
-    public ResourceItemEntry() {
+    ResourceItemEntry() {
       myResourceItem = null;
       myString = "";
       myStringValid = true;

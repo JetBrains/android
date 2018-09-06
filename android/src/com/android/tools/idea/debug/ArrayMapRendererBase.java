@@ -157,7 +157,7 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
   }
 
   private class MyArrayMapSizeEvaluator extends CachedEvaluator {
-    public MyArrayMapSizeEvaluator() {
+    MyArrayMapSizeEvaluator() {
       setReferenceExpression(new TextWithImportsImpl(CodeFragmentKind.EXPRESSION, "size()", "", StdFileTypes.JAVA));
     }
 

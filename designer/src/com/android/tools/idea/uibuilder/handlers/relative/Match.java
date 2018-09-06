@@ -64,7 +64,7 @@ class Match {
    * @param type    the type of constraint this is a match for
    * @param delta   the signed distance between the matched edges
    */
-  public Match(Segment edge, Segment with, ConstraintType type, int delta) {
+  Match(Segment edge, Segment with, ConstraintType type, int delta) {
     this.edge = edge;
     this.with = with;
     this.type = type;

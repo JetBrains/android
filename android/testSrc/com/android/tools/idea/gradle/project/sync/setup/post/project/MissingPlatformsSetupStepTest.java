@@ -80,7 +80,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
   private static class MySyncMessages extends GradleSyncMessagesStub {
     private Map<String, Integer> myMessageCountByGroup = new HashMap<>();
 
-    public MySyncMessages(@NotNull Project project) {
+    MySyncMessages(@NotNull Project project) {
       super(project);
     }
 

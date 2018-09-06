@@ -43,7 +43,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
   private final JPanel myEmpty;
   private final Splitter mySplitter;
 
-  public SidePanel(@NotNull Side side, @NotNull SideModel<T> model) {
+  SidePanel(@NotNull Side side, @NotNull SideModel<T> model) {
     super(new BorderLayout());
     mySide = side;
     mySplitter = new MySplitter();
@@ -102,7 +102,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
   }
 
   private static class MySplitter extends Splitter {
-    public MySplitter() {
+    MySplitter() {
       super(true);
       setDividerWidth(9);
     }

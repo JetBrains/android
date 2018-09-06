@@ -140,7 +140,7 @@ public class FirstRunWizard extends DynamicWizard {
   }
 
   private class FirstRunProgressStep extends ConsolidatedProgressStep {
-    public FirstRunProgressStep() {
+    FirstRunProgressStep() {
       super(getDisposable(), myHost);
       setPaths(myPaths);
     }

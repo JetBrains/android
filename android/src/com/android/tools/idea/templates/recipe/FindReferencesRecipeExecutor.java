@@ -27,7 +27,7 @@ import java.io.IOException;
 final class FindReferencesRecipeExecutor implements RecipeExecutor {
   private final RenderingContext myContext;
 
-  public FindReferencesRecipeExecutor(@NotNull RenderingContext context) {
+  FindReferencesRecipeExecutor(@NotNull RenderingContext context) {
     myContext = context;
   }
 

@@ -109,7 +109,7 @@ public class AbstractPropertyTest {
       return myDouble;
     }
 
-    public ObjectWithNoObservableProperties(boolean bool, int integer, double aDouble, String string) {
+    ObjectWithNoObservableProperties(boolean bool, int integer, double aDouble, String string) {
       myBool = bool;
       myInteger = integer;
       myDouble = aDouble;

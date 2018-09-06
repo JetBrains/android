@@ -59,7 +59,7 @@ class InstallTask extends Task.Backgroundable {
   private Function<List<RepoPackage>, Void> myCompleteCallback;
   private final SettingsController mySettingsController;
 
-  public InstallTask(@NotNull InstallerFactory installerFactory,
+  InstallTask(@NotNull InstallerFactory installerFactory,
                      @NotNull AndroidSdkHandler sdkHandler,
                      @NotNull SettingsController settings,
                      @NotNull ProgressIndicator logger) {

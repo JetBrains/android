@@ -56,7 +56,7 @@ public final class SelectedItemPropertyTest {
   private static class TestString {
     public String myString;
 
-    public TestString(String string) {
+    TestString(String string) {
       myString = string;
     }
   }

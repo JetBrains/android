@@ -46,7 +46,7 @@ class DomPsiParser extends XmlParser {
   private final LintIdeClient myClient;
   private AccessToken myReadLock;
 
-  public DomPsiParser(LintIdeClient client) {
+  DomPsiParser(LintIdeClient client) {
     myClient = client;
   }
 
@@ -211,7 +211,7 @@ class DomPsiParser extends XmlParser {
   private static class LintXmlPosition extends LintIdePosition {
     private @NonNull Node myNode;
 
-    public LintXmlPosition(@NonNull Node node, int offset) {
+    LintXmlPosition(@NonNull Node node, int offset) {
       super(offset);
       myNode = node;
     }
@@ -233,7 +233,7 @@ class DomPsiParser extends XmlParser {
     private final Node myNode;
     private Object myClientData;
 
-    public LocationHandle(File file, Node node) {
+    LocationHandle(File file, Node node) {
       myFile = file;
       myNode = node;
     }

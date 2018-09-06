@@ -1262,7 +1262,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     private int minSdk;
     private int minBuild;
 
-    public Option(String id, int minSdk, int minBuild) {
+    Option(String id, int minSdk, int minBuild) {
       this.id = id;
       this.minSdk = minSdk;
       this.minBuild = minBuild;

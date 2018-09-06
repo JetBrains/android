@@ -898,7 +898,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   private class MyLayeredPane extends JLayeredPane implements Magnificator, DataProvider {
-    public MyLayeredPane() {
+    MyLayeredPane() {
 
       // Enable pinching to zoom
       putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
@@ -989,7 +989,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private static class GlassPane extends JComponent {
     private static final long EVENT_FLAGS = AWTEvent.KEY_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK;
 
-    public GlassPane() {
+    GlassPane() {
       enableEvents(EVENT_FLAGS);
     }
 

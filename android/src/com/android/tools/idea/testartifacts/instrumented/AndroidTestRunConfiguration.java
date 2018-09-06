@@ -490,7 +490,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     @NotNull private final Map<String, String> myInstrumentationTestRunnerArguments;
     @Nullable private final IdeAndroidArtifact myArtifact;
 
-    public MyApplicationLaunchTask(@Nullable String runner,
+    MyApplicationLaunchTask(@Nullable String runner,
                                    @NotNull String testPackage,
                                    boolean waitForDebugger,
                                    @NotNull Map<String, String> arguments,

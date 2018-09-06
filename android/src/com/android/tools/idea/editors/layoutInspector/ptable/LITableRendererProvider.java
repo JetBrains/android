@@ -71,7 +71,7 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
   private static class LIItemCellRenderer extends PTableCellRenderer {
     private final JPanel myPanel;
 
-    public LIItemCellRenderer() {
+    LIItemCellRenderer() {
       myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
       myPanel.add(this, BorderLayout.CENTER);
     }

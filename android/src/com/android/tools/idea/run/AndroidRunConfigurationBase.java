@@ -814,7 +814,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeviceFutures futures;
     boolean couldHaveHotswapped;
 
-    public PrepareSessionResult(DeviceFutures futures, boolean couldHaveHotswapped) {
+    PrepareSessionResult(DeviceFutures futures, boolean couldHaveHotswapped) {
       this.futures = futures;
       this.couldHaveHotswapped = couldHaveHotswapped;
     }

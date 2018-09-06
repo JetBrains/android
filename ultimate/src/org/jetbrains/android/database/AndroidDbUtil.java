@@ -457,7 +457,7 @@ class AndroidDbUtil {
     private final StringBuilder myOutputBuilder = new StringBuilder();
     private final boolean myAndroid43;
 
-    public MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator, @NotNull IDevice device) {
+    MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator, @NotNull IDevice device) {
       myProgressIndicator = progressIndicator;
       myAndroid43 = "18".equals(device.getProperty(IDevice.PROP_BUILD_API_LEVEL));
     }
@@ -496,7 +496,7 @@ class AndroidDbUtil {
   private static class MySyncProgressMonitor implements SyncService.ISyncProgressMonitor {
     private final ProgressIndicator myProgressIndicator;
 
-    public MySyncProgressMonitor(@NotNull ProgressIndicator progressIndicator) {
+    MySyncProgressMonitor(@NotNull ProgressIndicator progressIndicator) {
       myProgressIndicator = progressIndicator;
     }
 

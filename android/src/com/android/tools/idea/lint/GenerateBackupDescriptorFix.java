@@ -67,7 +67,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
 
   private final ResourceUrl myUrl;
 
-  public GenerateBackupDescriptorFix(@NotNull ResourceUrl url) {
+  GenerateBackupDescriptorFix(@NotNull ResourceUrl url) {
     myUrl = url;
   }
 

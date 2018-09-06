@@ -100,7 +100,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     private final String myPermissionName;
     private final int myMaxVersion;
 
-    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, int maxVersion) {
+    AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, int maxVersion) {
       super(null);
       myFacet = facet;
       myPermissionName = permissionName;
@@ -202,7 +202,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     private final Set<String> myRevocablePermissions;
     private final SmartPsiElementPointer<PsiElement> myCall;
 
-    public AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiElement call,
+    AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiElement call,
                                  @NotNull Set<String> revocablePermissions) {
       super("Add permission check");
       myFacet = facet;

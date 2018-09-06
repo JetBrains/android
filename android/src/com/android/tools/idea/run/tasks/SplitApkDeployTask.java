@@ -120,7 +120,7 @@ public class SplitApkDeployTask implements LaunchTask {
     private final List<File> myApks;
     private final List<String> myInstallOptions;
 
-    public SplitApkInstaller(@NotNull ConsolePrinter printer, @NotNull List<File> apks, @NotNull List<String> installOptions) {
+    SplitApkInstaller(@NotNull ConsolePrinter printer, @NotNull List<File> apks, @NotNull List<String> installOptions) {
       myPrinter = printer;
       myApks = apks;
       myInstallOptions = installOptions;

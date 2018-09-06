@@ -442,7 +442,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     private final List<Component> myComponents;
     private boolean myExpanded;
 
-    public ExpandableGroup(@NotNull JLabel label) {
+    ExpandableGroup(@NotNull JLabel label) {
       myLabel = label;
       myComponents = new ArrayList<>(4);
       myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()));

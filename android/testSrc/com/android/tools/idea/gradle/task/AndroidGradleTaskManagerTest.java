@@ -83,7 +83,7 @@ public class AndroidGradleTaskManagerTest {
   private static class RequestMatcher implements ArgumentMatcher<GradleBuildInvoker.Request> {
     private final GradleBuildInvoker.Request myRequest;
 
-    public RequestMatcher(GradleBuildInvoker.Request request) {
+    RequestMatcher(GradleBuildInvoker.Request request) {
       myRequest = request;
     }
 

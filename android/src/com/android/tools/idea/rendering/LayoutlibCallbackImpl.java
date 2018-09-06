@@ -844,7 +844,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
      */
     private boolean hasToolsNamespace;
 
-    public NamedParser(@Nullable String name) {
+    NamedParser(@Nullable String name) {
       myName = name;
     }
 

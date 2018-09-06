@@ -218,7 +218,7 @@ public class AdbFileTransfer {
     private final long myTotalBytes;
     private long myCurrentBytes;
 
-    public SingleFileProgressMonitor(@NotNull Executor callbackExecutor,
+    SingleFileProgressMonitor(@NotNull Executor callbackExecutor,
                                      @NotNull FileTransferProgress progress,
                                      long totalBytes) {
       myCallbackExecutor = callbackExecutor;

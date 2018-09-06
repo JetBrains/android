@@ -42,7 +42,7 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
   private Multimap<String, ResourceItem> myDuplicates;
   private LayoutDataBindingInfo myDataBindingInfo;
 
-  public PsiResourceFile(@NonNull PsiFile file, @NonNull ResourceItem item, @NonNull String qualifiers,
+  PsiResourceFile(@NonNull PsiFile file, @NonNull ResourceItem item, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
     super(DUMMY_FILE, item, qualifiers, folderConfiguration);
     myFile = file;
@@ -50,7 +50,7 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
     myFolderType = folderType;
   }
 
-  public PsiResourceFile(@NonNull PsiFile file, @NonNull List<ResourceItem> items, @NonNull String qualifiers,
+  PsiResourceFile(@NonNull PsiFile file, @NonNull List<ResourceItem> items, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
     super(DUMMY_FILE, items, qualifiers, folderConfiguration);
     myFile = file;

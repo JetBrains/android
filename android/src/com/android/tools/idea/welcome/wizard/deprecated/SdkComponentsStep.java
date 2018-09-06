@@ -352,7 +352,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     private final RendererCheckBox myCheckBox;
     private Border myEmptyBorder;
 
-    public SdkComponentRenderer() {
+    SdkComponentRenderer() {
       myPanel = new RendererPanel();
       myCheckBox = new RendererCheckBox();
       myCheckBox.setOpaque(false);
@@ -542,7 +542,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   private static final class ComponentsTableModel extends AbstractTableModel {
     private final List<Pair<ComponentTreeNode, Integer>> myComponents;
 
-    public ComponentsTableModel(final ComponentTreeNode component) {
+    ComponentsTableModel(final ComponentTreeNode component) {
       ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components = ImmutableList.builder();
       // Note that root component is not present in the table model so the tree appears to have multiple roots
       traverse(component.getImmediateChildren(), 0, components);

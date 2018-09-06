@@ -184,7 +184,7 @@ public class PTableModelTest extends TestCase {
   private static class SimpleItem extends PTableGroupItem {
     private final String myName;
 
-    public SimpleItem(@NotNull String name) {
+    SimpleItem(@NotNull String name) {
       myName = name;
     }
 

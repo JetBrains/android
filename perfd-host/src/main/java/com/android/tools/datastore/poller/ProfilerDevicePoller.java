@@ -35,7 +35,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
     public final Common.Device device;
     public final Set<Common.Process> processes = new HashSet<>();
 
-    public DeviceData(Common.Device device) {
+    DeviceData(Common.Device device) {
       this.device = device;
     }
   }

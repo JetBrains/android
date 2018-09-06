@@ -94,7 +94,7 @@ public final class ActivityComboProvider extends ParameterComponentProvider<Refe
   private static final class OnlyShowActivities implements JavaCodeFragment.VisibilityChecker {
     @NotNull private final Module myModule;
 
-    public OnlyShowActivities(@NotNull Module module) {
+    OnlyShowActivities(@NotNull Module module) {
       myModule = module;
     }
 
@@ -135,7 +135,7 @@ public final class ActivityComboProvider extends ParameterComponentProvider<Refe
     @NotNull private final Module myModule;
     @Nullable private ReferenceEditorComboWithBrowseButton myOwner;
 
-    public ChooseClassActionListener(@NotNull Module module) {
+    ChooseClassActionListener(@NotNull Module module) {
       myModule = module;
     }
 

@@ -261,7 +261,7 @@ public class NlDropInsertionPickerTest {
    */
   private class DummyTree extends JTree {
 
-    public DummyTree() {
+    DummyTree() {
       super(new NlComponentTreeModel(myModel));
       expandAllNodes(0, getRowCount());
     }
@@ -325,7 +325,7 @@ public class NlDropInsertionPickerTest {
     private final int myId;
     @Nullable private DummyComponentGroup myDummyParent = null;
 
-    public DummyComponent(int id, @NotNull NlModel model, boolean hasSibling) {
+    DummyComponent(int id, @NotNull NlModel model, boolean hasSibling) {
       super(model, EmptyXmlTag.INSTANCE, mock(SmartPsiElementPointer.class));
       mySibling = hasSibling;
       myId = id;
@@ -375,7 +375,7 @@ public class NlDropInsertionPickerTest {
     private static final DummyComponent[] EMPTY_COMPONENTS = new DummyComponent[0];
     @NotNull private DummyComponent[] myChildren = EMPTY_COMPONENTS;
 
-    public DummyComponentGroup(int i, @NotNull NlModel model, boolean hasSibling) {
+    DummyComponentGroup(int i, @NotNull NlModel model, boolean hasSibling) {
       super(i, model, hasSibling);
     }
 
@@ -418,7 +418,7 @@ public class NlDropInsertionPickerTest {
      * @param xPosition Mock x coordinate of the node in the tree.
      *                  0 is the root, and we increment by 10 for each deeper level
      */
-    public DummyTreePath(@NotNull NlComponent lastComponent, TreePath parent, int xPosition) {
+    DummyTreePath(@NotNull NlComponent lastComponent, TreePath parent, int xPosition) {
       super(parent, lastComponent);
       myPosition = xPosition;
     }

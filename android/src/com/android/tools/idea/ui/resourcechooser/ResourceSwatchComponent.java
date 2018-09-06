@@ -431,7 +431,7 @@ public class ResourceSwatchComponent extends JPanel {
   }
 
   private static class PaddedRoundedBorder extends RoundedLineBorder {
-    public PaddedRoundedBorder(@NotNull Color color) {
+    PaddedRoundedBorder(@NotNull Color color) {
       super(color, ARC_SIZE);
     }
 

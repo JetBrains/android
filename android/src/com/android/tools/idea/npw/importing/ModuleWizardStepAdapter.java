@@ -116,7 +116,7 @@ public final class ModuleWizardStepAdapter extends ModelWizardStep<ModuleWizardS
   static class AdapterModel extends WizardModel {
     private final ModuleWizardStep myStep;
 
-    public AdapterModel(@NotNull ModuleWizardStep step) {
+    AdapterModel(@NotNull ModuleWizardStep step) {
       myStep = step;
     }
 

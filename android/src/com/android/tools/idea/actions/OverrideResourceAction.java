@@ -480,7 +480,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     private final PsiDirectory myDirectory;
     private PsiElement[] myCreatedElements = PsiElement.EMPTY_ARRAY;
 
-    public ResourceDirectorySelector(final Project project, final PsiDirectory directory) {
+    ResourceDirectorySelector(final Project project, final PsiDirectory directory) {
       super(project, "Select Resource Directory");
       myDirectory = directory;
     }

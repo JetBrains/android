@@ -49,7 +49,7 @@ class MergedDataBindingInfo implements DataBindingInfo {
 
   private final CachedValue<List<PsiDataBindingResourceItem>>[] myResourceItemCache;
 
-  public MergedDataBindingInfo(List<LayoutDataBindingInfo> infoList) {
+  MergedDataBindingInfo(List<LayoutDataBindingInfo> infoList) {
     myInfoList = infoList;
     myBaseInfo = selectBaseInfo();
     CachedValuesManager cacheManager = CachedValuesManager.getManager(myBaseInfo.getProject());

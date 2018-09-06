@@ -67,7 +67,7 @@ public class RotatedLabel extends JLabel {
   private class RotatedLabelUI extends LabelUI {
     private final ComponentUI myUI;
 
-    public RotatedLabelUI(ComponentUI delegate) {
+    RotatedLabelUI(ComponentUI delegate) {
       myUI = delegate;
     }
 

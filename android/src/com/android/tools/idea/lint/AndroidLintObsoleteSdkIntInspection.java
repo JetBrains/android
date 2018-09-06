@@ -116,7 +116,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
     private final AndroidVersion minSdkVersion;
     List<VirtualFile> sourceFolders;
 
-    public MergeResourceFolderFix(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull String destFolderName,
+    MergeResourceFolderFix(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull String destFolderName,
                                   AndroidVersion minSdkVersion) {
       this.facet = facet;
       this.dir = dir;

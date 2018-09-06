@@ -922,7 +922,7 @@ public class AvdManagerConnection {
     private final IdDisplay myTag;
     private final int myRequiredMajorRevision;
 
-    public SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
+    SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
       myFeatureLevel = featureLevel;
       myTag = tag;
       myRequiredMajorRevision = requiredMajorRevision;

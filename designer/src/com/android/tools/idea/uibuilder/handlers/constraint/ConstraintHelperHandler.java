@@ -306,7 +306,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
     public static final DataFlavor BARRIER_FLAVOR = new DataFlavor(BarrierTransferable.class, "Barrier Item");
     private final List<String> myBarrierReferences;
 
-    public BarrierTransferable(List<String> barrierReferences) {
+    BarrierTransferable(List<String> barrierReferences) {
       myBarrierReferences = barrierReferences;
     }
 

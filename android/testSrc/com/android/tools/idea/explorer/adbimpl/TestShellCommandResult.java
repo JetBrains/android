@@ -22,11 +22,11 @@ class TestShellCommandResult {
   @Nullable private String myOutput;
   @Nullable private Exception myError;
 
-  public TestShellCommandResult(@NotNull String output) {
+  TestShellCommandResult(@NotNull String output) {
     this.myOutput = output;
   }
 
-  public TestShellCommandResult(@NotNull Exception error) {
+  TestShellCommandResult(@NotNull Exception error) {
     this.myError = error;
   }
 

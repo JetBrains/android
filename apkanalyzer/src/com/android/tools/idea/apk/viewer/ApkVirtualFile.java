@@ -28,7 +28,7 @@ import java.nio.file.Path;
 class ApkVirtualFile extends BinaryLightVirtualFile {
   @Nullable private final Path parentPath;
 
-  public ApkVirtualFile(@NotNull String filename, @Nullable Path parentPath, @NotNull byte[] content) {
+  ApkVirtualFile(@NotNull String filename, @Nullable Path parentPath, @NotNull byte[] content) {
     super(filename, content);
     this.parentPath = parentPath;
   }

@@ -167,7 +167,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
   private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
     private final File myAdb;
 
-    public CreateBridgeTask(@NotNull File adb) {
+    CreateBridgeTask(@NotNull File adb) {
       myAdb = adb;
     }
 

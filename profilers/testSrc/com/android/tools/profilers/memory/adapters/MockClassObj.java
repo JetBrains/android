@@ -33,7 +33,7 @@ class MockClassObj extends ClassObj {
   @NotNull private final Map<Field, Object> myStaticFields = new LinkedHashMap<>();
   private final int myRootDistance;
 
-  public MockClassObj(int id, @NotNull String className, int rootDistance) {
+  MockClassObj(int id, @NotNull String className, int rootDistance) {
     super(id, null /* StackTrace - don't care */, className, 0 /* offset - don't care */);
     myRootDistance = rootDistance;
   }

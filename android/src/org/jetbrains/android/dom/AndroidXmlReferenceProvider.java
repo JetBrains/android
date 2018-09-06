@@ -122,7 +122,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
     private final String myBaseClassQName;
     private final boolean myStartTag;
 
-    public MyClassOrPackageReference(@NotNull XmlTag tag,
+    MyClassOrPackageReference(@NotNull XmlTag tag,
                                      @NotNull PsiElement nameElement,
                                      @NotNull TextRange rangeInNameElement,
                                      boolean isPackage,

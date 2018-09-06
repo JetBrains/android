@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
-  public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                   @Nullable Common.Session session,
                                   @NotNull FeatureTracker featureTracker) {
     super(client, session, featureTracker);

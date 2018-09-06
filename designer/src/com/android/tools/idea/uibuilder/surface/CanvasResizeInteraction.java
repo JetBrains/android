@@ -509,7 +509,7 @@ public class CanvasResizeInteraction extends Interaction {
     private int myBigDimension;
     private int mySmallDimension;
 
-    public DeviceLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
+    DeviceLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
                        int pxWidth, int pxHeight, @NotNull String name) {
       myDesignSurface = designSurface;
       myScreenView = screenView;
@@ -551,7 +551,7 @@ public class CanvasResizeInteraction extends Interaction {
     private BufferedImage myOrientationImage;
     private ScreenOrientation myLastOrientation;
 
-    public OrientationLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration) {
+    OrientationLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration) {
       myDesignSurface = designSurface;
       myScreenView = screenView;
       myConfiguration = configuration;
@@ -636,7 +636,7 @@ public class CanvasResizeInteraction extends Interaction {
     private int myTotalHeight;
     private int myTotalWidth;
 
-    public SizeBucketLayer() {
+    SizeBucketLayer() {
       JScrollPane scrollPane = myDesignSurface.getScrollPane();
       JComponent layeredPane = myDesignSurface.getLayeredPane();
       myTotalHeight = layeredPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();

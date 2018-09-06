@@ -35,7 +35,7 @@ class PatchUninstaller extends AbstractUninstaller implements PatchOperation {
   private File myEmptyDir;
   private File myGeneratedPatch;
 
-  public PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+  PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
     super(p, mgr, fop);
     myPatcher = PatchInstallerUtil.getLatestPatcher(getRepoManager());
     myEmptyDir = FileOpUtils.getNewTempDir("PatchUninstaller", mFop);

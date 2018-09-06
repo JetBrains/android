@@ -318,7 +318,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final InstallContext myContext;
     private boolean myRepoWasMerged = false;
 
-    public MergeOperation(File repo, InstallContext context, double progressRatio) {
+    MergeOperation(File repo, InstallContext context, double progressRatio) {
       super(context, progressRatio);
       myRepo = repo;
       myContext = context;
@@ -365,7 +365,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     @Nullable private final String myInstallerTimestamp;
     @NotNull private final ModalityState myModalityState;
 
-    public SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
+    SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
       myInstallerTimestamp = installerTimestamp;
       myModalityState = modalityState;
     }
@@ -388,7 +388,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final Collection<? extends InstallableComponent> mySelectedComponents;
     private final AndroidSdkHandler mySdkHandler;
 
-    public ConfigureComponents(InstallContext installContext,
+    ConfigureComponents(InstallContext installContext,
                                Collection<? extends InstallableComponent> selectedComponents,
                                AndroidSdkHandler sdkHandler) {
       myInstallContext = installContext;

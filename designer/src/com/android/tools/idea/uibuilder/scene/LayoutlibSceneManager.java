@@ -905,7 +905,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     private final ViewInfo myViewInfo;
 
-    public ViewInfoTagSnapshotNode(ViewInfo info) {
+    ViewInfoTagSnapshotNode(ViewInfo info) {
       myViewInfo = info;
     }
 
