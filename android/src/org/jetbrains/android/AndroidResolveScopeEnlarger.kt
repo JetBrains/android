@@ -35,6 +35,10 @@ import org.jetbrains.android.facet.AndroidFacet
  * This way references can be correctly resolved and offer variants for code completion. Note that for every module and AAR we create two
  * `R` classes: namespaced and non-namespaced. It's through this [ResolveScopeEnlarger] that the right classes are added to the resolution
  * process.
+ *
+ * For Kotlin code, this is called with the moduleFile (the `*.iml` file) instead of the source file, because Kotlin scoping works
+ * per-module in the IDE plugin. Unless `module.moduleFile` is null (when the iml doesn't exist, e.g. when tests don't create one) in which
+ * case the enlargers cannot be called.
  */
 class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
