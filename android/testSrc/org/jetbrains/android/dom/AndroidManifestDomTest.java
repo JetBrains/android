@@ -1,5 +1,7 @@
 package org.jetbrains.android.dom;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -10,13 +12,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.List;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
   private static final String API_LEVELS_URL = "https://developer.android.com/guide/topics/manifest/uses-sdk-element.html#ApiLevels";
@@ -426,7 +425,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
 
   public void testJavaHighlighting() throws Throwable {
     copyFileToProject("PermissionsManifest.xml", "AndroidManifest.xml");
-    copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
+    copyManifestJavaToGeneratedSources();
     doTestJavaHighlighting("p1.p2");
   }
 

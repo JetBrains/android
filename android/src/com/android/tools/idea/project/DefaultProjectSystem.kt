@@ -24,7 +24,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.res.ResourceTypeClassFinder
+import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -83,12 +83,12 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun getPsiElementFinders(): List<PsiElementFinder> {
     return if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
       listOf(
-        ResourceTypeClassFinder.INSTANCE,
+        AndroidInnerClassFinder.INSTANCE,
         AndroidManifestClassPsiElementFinder.getInstance(project),
         AndroidResourceClassPsiElementFinder(getLightResourceClassService())
       )
     } else {
-      listOf(ResourceTypeClassFinder.INSTANCE)
+      listOf(AndroidInnerClassFinder.INSTANCE)
     }
   }
 

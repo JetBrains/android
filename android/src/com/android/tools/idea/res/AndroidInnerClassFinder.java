@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -23,29 +24,36 @@ import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.List;
+import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.augment.AndroidPsiAugmentProvider;
+import org.jetbrains.android.augment.ManifestClass;
+import org.jetbrains.android.augment.ManifestInnerClass;
 import org.jetbrains.android.augment.ModuleResourceTypeClass;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
- * A {@link PsiElementFinder} for finding inner classes of R classes, e.g. {@code R.string}.
+ * A {@link PsiElementFinder} for finding inner classes of R and Manifest classes, e.g. {@code R.string}.
  *
- * As the top-level R class for a given package is either generated or augmented, new inner classes may be added by creating instances of
+ * <p>As the top-level R class for a given package is either generated or augmented, new inner classes may be added by creating instances of
  * {@link ModuleResourceTypeClass}. Both modes (generating the R class from scratch or augmenting an existing one) support retrieving such
  * inner class by calling {@link PsiClass#findInnerClassByName(String, boolean)}, so this is exactly what this {@link PsiElementFinder} does
  * if it suspects the class in question is an inner class of an R class.
  *
+ * <p>This is used when trying to find the class using {@link JavaPsiFacade} and also by Kotlin IDE plugin when resolving references to
+ * inner classes.
+ *
  * @see AndroidPsiAugmentProvider
  * @see ModuleResourceTypeClass
  * @see ModulePackageRClass
+ * @see ManifestClass
+ * @see ManifestInnerClass
  */
-public class ResourceTypeClassFinder extends PsiElementFinder {
+public class AndroidInnerClassFinder extends PsiElementFinder {
 
-  public static final ResourceTypeClassFinder INSTANCE = new ResourceTypeClassFinder();
+  public static final AndroidInnerClassFinder INSTANCE = new AndroidInnerClassFinder();
 
   @Nullable
   @Override
@@ -69,11 +77,14 @@ public class ResourceTypeClassFinder extends PsiElementFinder {
     String shortName = qualifiedName.substring(lastDot + 1);
     String parentName = qualifiedName.substring(0, lastDot);
 
-    if (shortName.isEmpty() || !parentName.endsWith(".R")) {
+    if (shortName.isEmpty() || !(parentName.endsWith(".R") || parentName.endsWith(".Manifest"))) {
       return PsiClass.EMPTY_ARRAY;
     }
     List<PsiClass> result = new SmartList<>();
     for (PsiClass parentClass : JavaPsiFacade.getInstance(project).findClasses(parentName, scope)) {
+      if (StudioFlags.IN_MEMORY_R_CLASSES.get() && !(parentClass instanceof AndroidLightClassBase)) {
+        continue;
+      }
       ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));
     }
     return result.isEmpty() ? PsiClass.EMPTY_ARRAY : result.toArray(PsiClass.EMPTY_ARRAY);
