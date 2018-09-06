@@ -27,12 +27,9 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
-
-import javax.annotation.concurrent.GuardedBy;
-import javax.swing.*;
+import com.intellij.openapi.util.Disposer;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -46,6 +43,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.concurrent.GuardedBy;
+import javax.swing.JComponent;
+import javax.swing.Scrollable;
+import javax.swing.SwingWorker;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
 
 /**
  * Generic UI component for rendering.
@@ -126,7 +129,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     }
   };
 
-  private class InvalidateTask extends SwingWorker<Void, Void> {
+  private class InvalidateTask extends SwingWorker<Void, Void> implements Disposable {
+    private boolean myDone;
+
     @Override
     protected Void doInBackground() throws Exception {
       do {
@@ -151,20 +156,31 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     protected void done() {
       try {
         get();
-      } catch (ExecutionException ex) {
-        Throwable t = ex.getCause();
-        if (t instanceof RuntimeException) {
+        repaint();
+      } catch (ExecutionException e) {
+        Throwable t = e.getCause();
+        if (t instanceof ProcessCanceledException) {
+          // The task has been canceled.
+        } else if (t instanceof RuntimeException) {
           throw (RuntimeException) t;
         } else if (t instanceof Error) {
           throw (Error) t;
         } else {
           throw new RuntimeException(t);
         }
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
+      } catch (InterruptedException e) {
+        // The task has been canceled.
+      } finally {
+        myDone = true;
+        Disposer.dispose(this); // Unregister from Disposer.
       }
+    }
 
-      repaint();
+    @Override
+    public void dispose() {
+      if (!myDone) {
+        cancel(true);
+      }
     }
   }
 
@@ -252,7 +268,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     if (myDocument != null) {
       myPendingInvalidates.set(true);
       if (!myRunningInvalidates.get()) {
-        new InvalidateTask().execute();
+        InvalidateTask invalidateTask = new InvalidateTask();
+        Disposer.register(this, invalidateTask); // The task will be canceled if it still running when this panel is disposed.
+        invalidateTask.execute();
       }
     }
   }
