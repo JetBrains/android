@@ -33,6 +33,9 @@ import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*
+import javax.swing.KeyStroke
+import java.awt.event.KeyEvent
+
 
 private const val COLOR_BUTTON_ROW = 2
 private const val COLOR_BUTTON_COLUMN = 8
@@ -46,6 +49,11 @@ private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 4, 8, 4)
 private val COLOR_BUTTON_PREFERRED_SIZE = JBUI.size(34)
 private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(7)
 /**
+ * This value is not adjusted by component size.
+ */
+private const val COLOR_BUTTON_FOCUS_BORDER_WIDTH = 3
+
+/**
  * The border of color block which provides the constraint to background color.
  */
 private val COLOR_BUTTON_INNER_BORDER = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
@@ -54,12 +62,12 @@ private const val COLOR_BUTTON_ROUND_CORNER_ARC = 5
 class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
   @get:TestOnly
-  val colorButtons = Array(COLOR_BUTTON_ROW * COLOR_BUTTON_COLUMN, {
+  val colorButtons = Array(COLOR_BUTTON_ROW * COLOR_BUTTON_COLUMN) {
     ColorButton().apply {
       background = PICKER_BACKGROUND_COLOR
       addActionListener { pickerModel.setColor(color, ColorPalette@this) }
     }
-  })
+  }
 
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -157,6 +165,11 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
         repaint()
       }
     })
+
+    with (getInputMap(JComponent.WHEN_FOCUSED)) {
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "pressed")
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), "released")
+    }
   }
 
   override fun paintComponent(g: Graphics) {
@@ -170,6 +183,7 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
     g.color = background
     g.fillRect(0, 0, width, height)
 
+
     if (status == Status.HOVER || status == Status.PRESSED) {
       val l = insets.left / 2
       val t = insets.top / 2
@@ -178,6 +192,15 @@ class ColorButton(var color: Color = Color.WHITE): JButton() {
 
       val focusColor = UIUtil.getFocusedBoundsColor() ?: Color.LIGHT_GRAY
       g.color = if (status == Status.HOVER) focusColor else focusColor.darker()
+      g2d.fillRoundRect(l, t, w, h, 7, 7)
+    }
+    else if (isFocusOwner) {
+      val l = insets.left - COLOR_BUTTON_FOCUS_BORDER_WIDTH
+      val t = insets.top - COLOR_BUTTON_FOCUS_BORDER_WIDTH
+      val w = width - l - insets.right + COLOR_BUTTON_FOCUS_BORDER_WIDTH
+      val h = height - t - insets.bottom + COLOR_BUTTON_FOCUS_BORDER_WIDTH
+
+      g.color = UIUtil.getFocusedFillColor() ?: Color.BLUE.brighter()
       g2d.fillRoundRect(l, t, w, h, 7, 7)
     }
 

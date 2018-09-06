@@ -19,8 +19,19 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.JBUI
 import java.awt.Color
+import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
-import javax.swing.*
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.AbstractAction
+import javax.swing.Action
+import javax.swing.BoxLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JSeparator
+import javax.swing.KeyStroke
+import javax.swing.LayoutFocusTraversalPolicy
 
 val PICKER_BACKGROUND_COLOR = JBColor(Color(252, 252, 252), Color(64, 64, 64))
 val PICKER_TEXT_COLOR = Color(186, 186, 186)
@@ -40,6 +51,9 @@ class ColorPickerBuilder {
   private val componentsToBuild = mutableListOf<JComponent>()
   private val model = ColorPickerModel()
   private var originalColor: Color? = null
+  private var requestFocusWhenDisplay = false
+  private var focusCycleRoot = false
+  private var focusedComponentIndex = -1
   private val actionMap = mutableMapOf<KeyStroke, Action>()
   private val colorListeners = mutableListOf<ColorListener>()
 
@@ -59,8 +73,16 @@ class ColorPickerBuilder {
    */
   fun addOperationPanel(okOperation: ((Color) -> Unit)?, cancelOperation: ((Color) -> Unit)?) = apply {
     componentsToBuild.add(OperationPanel(model, okOperation, cancelOperation))
+    if (cancelOperation != null) {
+      addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true), object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent?) = cancelOperation.invoke(model.color)
+      })
+    }
   }
 
+  /**
+   * Add the custom components in to color picker.
+   */
   fun addCustomComponent(provider: ColorPickerComponentProvider) = apply { componentsToBuild.add(provider.createComponent(model)) }
 
   fun addSeparator() = apply {
@@ -69,6 +91,31 @@ class ColorPickerBuilder {
     separator.preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, SEPARATOR_HEIGHT)
     componentsToBuild.add(separator)
   }
+
+  /**
+   * Set if Color Picker should request focus when it is displayed.<br>
+   *
+   * The default value is **false**
+   */
+  fun focusWhenDisplay(focusWhenDisplay: Boolean) = apply { requestFocusWhenDisplay = focusWhenDisplay }
+
+  /**
+   * Set if Color Picker is the root of focus cycle.<br>
+   * Set to true to makes the focus traversal inside this Color Picker only. This is useful when the Color Picker is used in an independent
+   * window, e.g. a popup component or dialog.<br>
+   *
+   * The default value is **false**.
+   *
+   * @see Component.isFocusCycleRoot
+   */
+  fun setFocusCycleRoot(focusCycleRoot: Boolean) = apply { this.focusCycleRoot = focusCycleRoot }
+
+  /**
+   * When getting the focus, focus to the last added component.<br>
+   * If this function is called multiple times, only the last time effects.<br>
+   * By default, nothing is focused in ColorPicker.
+   */
+  fun withFocus() = apply { focusedComponentIndex = componentsToBuild.size - 1 }
 
   fun addKeyAction(keyStroke: KeyStroke, action: Action) = apply { actionMap[keyStroke] = action }
 
@@ -82,30 +129,48 @@ class ColorPickerBuilder {
     val width: Int = componentsToBuild.map { it.preferredSize.width }.max()!!
     val height = componentsToBuild.map { it.preferredSize.height }.sum()
 
-    val panel = JPanel()
+    val defaultFocusComponent = componentsToBuild.getOrNull(focusedComponentIndex)
+
+    val panel = object : JPanel() {
+      override fun requestFocusInWindow() = defaultFocusComponent?.requestFocusInWindow() ?: false
+
+      override fun addNotify() {
+        super.addNotify()
+        if (requestFocusWhenDisplay) {
+          requestFocusInWindow()
+        }
+      }
+    }
     panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
     panel.border = PICKER_BORDER
     panel.preferredSize = Dimension(width, height)
     panel.background = PICKER_BACKGROUND_COLOR
-
-    for (component in componentsToBuild) {
-      panel.add(component)
-    }
 
     val c = originalColor
     if (c != null) {
       model.setColor(c, null)
     }
 
+    for (component in componentsToBuild) {
+      panel.add(component)
+    }
+
+    panel.isFocusCycleRoot = focusCycleRoot
+    panel.isFocusTraversalPolicyProvider = true
+    panel.focusTraversalPolicy = MyFocusTraversalPolicy(defaultFocusComponent)
+
     actionMap.forEach { keyStroke, action ->
       val key = keyStroke.toString()
       panel.actionMap.put(key, action)
-      panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, key)
+      panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(keyStroke, key)
     }
 
     colorListeners.forEach { model.addListener(it) }
 
-    panel.repaint()
     return panel
   }
+}
+
+private class MyFocusTraversalPolicy(val defaultComponent: Component?) : LayoutFocusTraversalPolicy() {
+  override fun getDefaultComponent(aContainer: Container?): Component? = defaultComponent
 }

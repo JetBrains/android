@@ -19,9 +19,9 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
 import com.google.gson.annotations.SerializedName;
+import java.awt.Color;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable {
   private final SketchStyle style;

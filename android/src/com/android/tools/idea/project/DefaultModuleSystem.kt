@@ -30,7 +30,9 @@ import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.util.toPathString
+import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -40,7 +42,10 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-class DefaultModuleSystem(val module: Module) : AndroidModuleSystem, ClassFileFinder by ModuleBasedClassFileFinder(module) {
+class DefaultModuleSystem(val module: Module) :
+  AndroidModuleSystem,
+  ClassFileFinder by ModuleBasedClassFileFinder(module),
+  SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
   override fun registerDependency(coordinate: GradleCoordinate) {}
 

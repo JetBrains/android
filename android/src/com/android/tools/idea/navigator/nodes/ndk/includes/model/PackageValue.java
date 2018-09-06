@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue.SortOrderKey.PACKAGING;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue.SortOrderKey.PACKAGING;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A collection of includes that represents a single logical package that has multiple include folders.
- *
+ * <p>
  * Visually, it will be a folder structure like this in the Android Project View:
  *
  * <pre>
@@ -38,7 +38,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeV
  *                   protobuf.h
  * </pre>
  */
-public class PackageValue extends ClassifiedIncludeValue {
+final public class PackageValue extends ClassifiedIncludeValue {
 
   @NotNull
   public final PackageKey myKey;
@@ -95,5 +95,24 @@ public class PackageValue extends ClassifiedIncludeValue {
   @Override
   public File getPackageFamilyBaseFolder() {
     return myKey.myPackagingFamilyBaseFolder;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof PackageValue)) {
+      return false;
+    }
+    PackageValue that = (PackageValue)obj;
+    return Objects.equals(this.myCommonRelativeFolder, that.myCommonRelativeFolder) &&
+           Objects.equals(this.myIncludes, that.myIncludes) &&
+           Objects.equals(this.myKey, that.myKey);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.myCommonRelativeFolder, this.myIncludes, this.myKey);
   }
 }

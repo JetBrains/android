@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.SdkConstants;
-import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.ImageUtils;
@@ -27,8 +25,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
-import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.module.FormFactorApiComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -150,7 +146,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
+    if(StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
+      myBindings.bindTwoWay(getModel().dynamicInstantApp(), new SelectedProperty(myInstantAppCheck));
+    } else {
+      myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
+    }
     myBindings.bindTwoWay(getModel().includeNavController(), new SelectedProperty(myNavigationControllerCheck));
     myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
 

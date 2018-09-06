@@ -17,15 +17,10 @@ package com.android.tools.datastore.database;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Interface a {@link com.android.tools.datastore.ServicePassThrough} object returns to indicate this object is
@@ -132,6 +127,40 @@ public abstract class DataStoreTable<T extends Enum> {
     getStatementMap().put(statement, myConnection.prepareStatement(stmt, statementFlags));
   }
 
+  /**
+   * Executes a bulk operation on the table. This is an optimization when inserting / deleting multiple items from
+   * the database.
+   * @param statement which statement to execute
+   * @param batchParams a list of objects to be put into the database.
+   * @param paramConverter a callback that converts each object to an array of data. The array of data will be applied to the input params
+   *                       of the specified statement.
+   */
+  protected <K> void executeBatch(@NotNull T statement, @NotNull List<K> batchParams, @NotNull Function<K, Object[]> paramConverter) {
+    if (isClosed()) {
+      return;
+    }
+    try {
+      PreparedStatement stmt = getStatementMap().get(statement);
+      batchParams.forEach((object) -> {
+        try {
+          applyParams(stmt, paramConverter.apply(object));
+          stmt.addBatch();
+        } catch (SQLException ex) {
+          onError(ex);
+        }
+      });
+      int[] results = stmt.executeBatch();
+      for(int i = 0; i < results.length; i++) {
+        if (results[i] == Statement.EXECUTE_FAILED) {
+          throw new SQLException(String.format("Failed to insert batch element %d with result %d", i, results[i]));
+        }
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+  }
+
   protected void execute(@NotNull T statement, Object... params) {
     if (isClosed()) {
       return;
@@ -155,6 +184,15 @@ public abstract class DataStoreTable<T extends Enum> {
     return stmt.executeQuery();
   }
 
+  protected ResultSet executeOneTimeQuery(@NotNull String sql, Object[] params) throws SQLException {
+    if (isClosed()) {
+      return new EmptyResultSet();
+    }
+    PreparedStatement statement = myConnection.prepareStatement(sql);
+    applyParams(statement, params);
+    return statement.executeQuery();
+  }
+
   protected void applyParams(@NotNull PreparedStatement statement, Object... params) throws SQLException {
     for (int i = 0; params != null && i < params.length; i++) {
       if (params[i] == null) {
@@ -162,9 +200,6 @@ public abstract class DataStoreTable<T extends Enum> {
       }
       else if (params[i] instanceof String) {
         statement.setString(i + 1, (String)params[i]);
-      }
-      else if (params[i] instanceof Boolean) {
-        statement.setBoolean(i + 1, (boolean)params[i]);
       }
       else if (params[i] instanceof Integer) {
         statement.setLong(i + 1, (int)params[i]);

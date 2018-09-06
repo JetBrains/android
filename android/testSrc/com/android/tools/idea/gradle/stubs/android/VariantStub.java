@@ -145,4 +145,9 @@ public class VariantStub implements IdeVariant {
   public Collection<IdeBaseArtifact> getTestArtifacts() {
     return Collections.emptyList();
   }
+
+  @Override
+  public boolean isInstantAppCompatible() {
+    return false;
+  }
 }

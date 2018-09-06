@@ -293,6 +293,38 @@ public class DynamicAppUtils {
     return targetDevices.stream().allMatch(device -> device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP);
   }
 
+  /**
+   * Returns the list of dynamic feature {@link Module modules} that depend on this base module and are instant app compatible.
+   */
+  @NotNull
+  public static List<Module> getDependentInstantFeatureModules(@NotNull Module module) {
+    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
+    if (androidModule == null) {
+      return ImmutableList.of();
+    }
+    return getDependentInstantFeatureModules(module.getProject(), androidModule.getAndroidProject());
+  }
+
+  /**
+   * Returns the list of dynamic feature {@link Module modules} that depend on this base module and are instant app compatible.
+   */
+  @NotNull
+  public static List<Module> getDependentInstantFeatureModules(@NotNull Project project, @NotNull AndroidProject androidProject) {
+    Map<String, Module> featureMap = getDynamicFeaturesMap(project);
+    return androidProject.getDynamicFeatures().stream()
+                         .map(featurePath -> featureMap.get(featurePath))
+                         .filter(Objects::nonNull)
+                         .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().isInstantAppCompatible())
+                         .collect(Collectors.toList());
+  }
+
+  public static boolean isFeatureEnabled(@NotNull List<String> myDisabledFeatures, @NotNull ApkFileUnit apkFileUnit) {
+    return myDisabledFeatures.stream().noneMatch(m -> featureNameEquals(apkFileUnit, m));
+  }
+
+  public static boolean featureNameEquals(@NotNull ApkFileUnit apkFileUnit, @NotNull String featureName) {
+    return StringUtil.equals(featureName.replace('-', '_'), apkFileUnit.getModuleName());
+  }
 
   @NotNull
   private static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {

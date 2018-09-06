@@ -111,7 +111,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                        "WHERE (Session = ?) AND (Address = ?)"),
     QUERY_NATIVE_FRAMES_TO_SYMBOLIZE("SELECT Address, Offset, Module FROM Memory_NativeFrames " +
                                      "WHERE (Session = ?) AND Symbolized = 0 " +
-                                     "LIMIT ?");
+                                     "LIMIT ?"),
+
+    INSERT_OR_REPLACE_ALLOCATION_SAMPLING_RATE_EVENT(
+      "INSERT OR REPLACE INTO Memory_AllocationSamplingRateEvent (Session, Timestamp, Data) VALUES (?, ?, ?)"),
+    QUERY_ALLOCATION_SAMPLING_RATE_EVENTS_BY_TIME(
+      "SELECT Data FROM Memory_AllocationSamplingRateEvent WHERE Session = ? AND Timestamp > ? AND Timestamp <= ? ORDER BY Timestamp ASC");
 
 
     @NotNull private final String mySqlStatement;
@@ -162,6 +167,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       createTable("Memory_JniGlobalReferences", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "RefValue INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "AllocThreadId INTEGER", "FreeThreadId INTEGER",
                   "AllocBacktrace BLOB", "FreeBacktrace BLOB", "PRIMARY KEY(Session, Tag, RefValue)");
+      createTable("Memory_AllocationSamplingRateEvent", "Session INTEGER NOT NULL", "Timestamp INTEGER", "Data BLOB",
+                  "PRIMARY KEY(Session, Timestamp)");
 
       createIndex("Memory_AllocationEvents", 0, "Session", "AllocTime");
       createIndex("Memory_AllocationEvents", 1, "Session", "FreeTime");
@@ -711,6 +718,25 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     catch (SQLException ex) {
       onError(ex);
     }
+  }
+
+  public void insertOrReplaceAllocationSamplingRateEvent(@NotNull Common.Session session, @NotNull AllocationSamplingRateEvent event) {
+    execute(INSERT_OR_REPLACE_ALLOCATION_SAMPLING_RATE_EVENT, session.getSessionId(), event.getTimestamp(), event.toByteArray());
+  }
+
+  @NotNull
+  public List<AllocationSamplingRateEvent> getAllocationSamplingRateEvents(long sessionId, long startTime, long endTime) {
+    List<AllocationSamplingRateEvent> results = new ArrayList<>();
+    try {
+      ResultSet resultSet = executeQuery(QUERY_ALLOCATION_SAMPLING_RATE_EVENTS_BY_TIME, sessionId, startTime, endTime);
+      while (resultSet.next()) {
+        results.add(AllocationSamplingRateEvent.newBuilder().mergeFrom(resultSet.getBytes(1)).build());
+      }
+    }
+    catch (SQLException | InvalidProtocolBufferException ex) {
+      onError(ex);
+    }
+    return results;
   }
 
   /**

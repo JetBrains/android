@@ -66,8 +66,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     getTooltipBinder().bind(NetworkRadioTooltip.class, NetworkRadioTooltipView::new);
     getTooltipBinder().bind(NetworkTrafficTooltip.class, NetworkTrafficTooltipView::new);
-    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
-    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
 
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));

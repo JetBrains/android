@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.res
 
-import com.android.SdkConstants.FD_SAMPLE_DATA
+import com.android.ide.common.util.PathString
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
+import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.*
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
-import org.jetbrains.android.facet.AndroidRootUtil
-import java.io.IOException
+import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -41,6 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
 internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter(), VirtualFileListener {
+  private val reposToInvalidate = ContainerUtil.createWeakValueMap<PathString, SampleDataResourceRepository>()
   private var subscribed = AtomicBoolean(false)
 
   companion object {
@@ -49,6 +52,12 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
     @JvmStatic fun getInstance(project: Project) = ServiceManager.getService(project, SampleDataListener::class.java)!!
 
     @JvmStatic fun ensureSubscribed(project: Project) = getInstance(project).ensureSubscribed()
+
+    @JvmStatic
+    private fun SampleDataResourceRepository.invalidateBecauseOf(modifiedPath: PathString) {
+      LOG.info("Invalidating SampleDataResourceRepository because $modifiedPath was modified.")
+      invalidate()
+    }
   }
 
   /**
@@ -68,9 +77,8 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
    *   2. The file is actually in the module's sample data directory (as opposed
    *      to just having FD_SAMPLE_DATA in its path somewhere).
    */
-  private fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    return !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && isSampleDataFile(facet, file)
-  }
+  private fun isRelevant(file: VirtualFile, facet: AndroidFacet) =
+    !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && facet.module.isSampleDataFile(file)
 
   /**
    * Used to fail fast when we can quickly tell that a file has nothing to do with sample data.
@@ -78,52 +86,86 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
   private fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
 
   /**
-   * Returns true if the given [VirtualFile] is part of the sample data directory associated with the given
-   * [AndroidFacet] (or if the file is the sample data directory itself).
+   * If a modification of the given [file] means that a [SampleDataResourceRepository] should
+   * be invalidated, this function returns that repository. Otherwise, it returns null.
    */
-  private fun isSampleDataFile(facet: AndroidFacet, file: VirtualFile): Boolean {
-    if (isSampleDataDirectory(facet, file)) return true
+  private fun findRepoToInvalidate(file: VirtualFile): SampleDataResourceRepository? {
+    if (!isPossiblyRelevant(file)) return null
+    val facet = AndroidFacet.getInstance(file, project) ?: return null
 
-    return try {
-      val sampleDataDir = SampleDataResourceRepository.getSampleDataDir(facet, false)
-      sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false)
-    }
-    catch (e: IOException) {
-      LOG.warn("Error getting sample data directory", e)
-      false
+    return if (isRelevant(file, facet)) {
+      SampleDataResourceRepository.getInstance(facet)
+    } else {
+      null
     }
   }
 
-  private fun isSampleDataDirectory(facet: AndroidFacet, file: VirtualFile): Boolean {
-    return file.name == FD_SAMPLE_DATA && file.parent == AndroidRootUtil.getMainContentRoot(facet)
+  /**
+   * Used to handle virtual file changes *after* they've already taken place.
+   */
+  private fun fileChanged(file: VirtualFile) {
+    findRepoToInvalidate(file)?.invalidateBecauseOf(file.toPathString())
   }
-
-  private fun virtualFileChanged(file: VirtualFile) {
-    if (!isPossiblyRelevant(file)) return
-
-    // We need the module that the file belongs to in order to get the facet, but the module
-    // won't be available in the event that the file was just deleted. We use the file's parent
-    // to get the facet instead.
-    val facet = file.parent?.let { AndroidFacet.getInstance(it, project) } ?: return
-
-    if (isRelevant(file, facet)) {
-      LOG.info("Invalidating SampleDataResourceRepository because ${file.path} was modified.")
-      SampleDataResourceRepository.getInstance(facet).invalidate()
-    }
-  }
-
-  override fun propertyChanged(event: VirtualFilePropertyEvent) = virtualFileChanged(event.file)
-  override fun fileCreated(event: VirtualFileEvent) = virtualFileChanged(event.file)
-  override fun fileDeleted(event: VirtualFileEvent) = virtualFileChanged(event.file)
-  override fun fileMoved(event: VirtualFileMoveEvent) = virtualFileChanged(event.file)
 
   private fun psiFileChanged(event: PsiTreeChangeEvent) {
-    event.file?.virtualFile?.let { virtualFileChanged(it) }
+    event.file?.virtualFile?.let { fileChanged(it) }
   }
 
+  /**
+   * To be called *before* a virtual file changes. If the pending change would
+   * mean that a [SampleDataResourceRepository] should be invalidated, then this
+   * function marks that repository for invalidation. Once the file change actually
+   * happens, callers should then call [pendingFileChangeComplete] to ensure that
+   * the repository is invalidated.
+   *
+   * This function is useful for situations where it would be difficult to determine
+   * the relevance of a virtual file event after it's already taken place. For example,
+   * a virtual file will no longer be associated with an [AndroidFacet] after it's been
+   * deleted, making it difficult to obtain the corresponding [SampleDataResourceRepository]
+   * after the fact.
+   */
+  private fun fileChangePending(file: VirtualFile) {
+    findRepoToInvalidate(file)?.let { repo ->
+      reposToInvalidate[file.toPathString()] = repo
+    }
+  }
+
+  /**
+   * To be called *after* a virtual file change whose relevance was determined beforehand
+   * with a call to [fileChangePending]. If the virtual file change was deemed relevant,
+   * this function will invalidate the appropriate repository.
+   */
+  private fun pendingFileChangeComplete(path: PathString) {
+    reposToInvalidate.remove(path)?.invalidateBecauseOf(path)
+  }
+
+  override fun beforeFileMovement(event: VirtualFileMoveEvent) = fileChangePending(event.file)
+
+  override fun fileMoved(event: VirtualFileMoveEvent) {
+    // In case the file was moved *out* of the sample data directory
+    pendingFileChangeComplete(event.oldParent.toPathString().resolve(event.fileName))
+    // In case the file was moved *into* the sample data directory
+    fileChanged(event.file)
+  }
+
+  override fun beforeFileDeletion(event: VirtualFileEvent) = fileChangePending(event.file)
+
+  override fun fileDeleted(event: VirtualFileEvent) = pendingFileChangeComplete(event.file.toPathString())
+
+  override fun propertyChanged(event: VirtualFilePropertyEvent) = fileChanged(event.file)
+  override fun fileCreated(event: VirtualFileEvent) = fileChanged(event.file)
   override fun childAdded(event: PsiTreeChangeEvent) = psiFileChanged(event)
+  override fun childMoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childRemoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childReplaced(event: PsiTreeChangeEvent) = psiFileChanged(event)
-  override fun childMoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
   override fun childrenChanged(event: PsiTreeChangeEvent) = psiFileChanged(event)
+}
+
+/**
+ * Returns true if the given [VirtualFile] is part of the sample data directory associated with this
+ * [Module] (or if the file is the sample data directory itself).
+ */
+private fun Module.isSampleDataFile(file: VirtualFile): Boolean {
+  val sampleDataDir = getModuleSystem().getSampleDataDirectory() ?: return false
+  return file.toPathString().startsWith(sampleDataDir)
 }

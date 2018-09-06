@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -545,6 +546,70 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testAllocatedLegendChangesBasedOnSamplingMode() {
+    // Perfa needs to be running for "Allocated" series to show.
+    myProfilerService.setAgentStatus(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    long time = TimeUnit.MICROSECONDS.toNanos(2);
+    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
+    MemoryData.AllocStatsSample allocStatsSample =
+      MemoryData.AllocStatsSample.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100).build();
+    AllocationSamplingRateEvent trackingMode = AllocationSamplingRateEvent
+      .newBuilder()
+      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+        MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
+      ))
+      .build();
+    MemoryData memoryData = MemoryData.newBuilder()
+                                      .setEndTimestamp(time)
+                                      .addAllocationsInfo(liveAllocInfo)
+                                      .addAllocSamplingRateEvents(trackingMode)
+                                      .addAllocStatsSamples(allocStatsSample)
+                                      .build();
+    myService.setMemoryData(memoryData);
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+    assertThat(legends.getObjectsLegend().getName()).isEqualTo("Allocated");
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("100");
+
+    // Now change sampling mode to sampled, the Allocated legend should show "N/A"
+    memoryData = memoryData.toBuilder()
+                           .clearAllocStatsSamples()
+                           .clearAllocSamplingRateEvents()
+                           .addAllocSamplingRateEvents(
+                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+                               MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
+                             )))
+                           .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
+                           .build();
+    myService.setMemoryData(memoryData);
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
+
+    // Now change sampling mode to none, the Allocated legend should still show "N/A"
+    memoryData = memoryData.toBuilder()
+                           .clearAllocSamplingRateEvents()
+                           .addAllocSamplingRateEvents(
+                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+                               MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()
+                             )))
+                           .build();
+    myService.setMemoryData(memoryData);
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
+
+    // Value should update once sampling mode is set back to full.
+    memoryData = memoryData.toBuilder()
+                           .clearAllocSamplingRateEvents()
+                           .addAllocSamplingRateEvents(
+                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+                               MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
+                             )))
+                           .build();
+    myService.setMemoryData(memoryData);
+    assertThat(legends.getObjectsLegend().getValue()).isEqualTo("200");
+  }
+
+  @Test
   public void testLegendsOrder() {
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
     List<String> legendNames = legends.getLegends().stream()
@@ -672,5 +737,71 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.getSelectionModel().set(5, 10);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
+  }
+
+  @Test
+  public void testAllocationSamplingRateUpdates() {
+    int[] samplingAspectChange = {0};
+    myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
+                                                                 () -> samplingAspectChange[0]++);
+
+    // Ensure that the default is sampled.
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    assertThat(samplingAspectChange[0]).isEqualTo(0);
+
+    // Ensure that advancing the timer does not change the mode if there are no AllocationSamplingRange.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    assertThat(samplingAspectChange[0]).isEqualTo(0);
+
+    // Ensure that changing the sampling interval alone does nothing if live allocation is not used.
+    AllocationsInfo legacyAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(true).build();
+    AllocationSamplingRateEvent sampleMode = AllocationSamplingRateEvent.newBuilder()
+      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)).build();
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(legacyAllocInfo).addAllocSamplingRateEvents(sampleMode).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    assertThat(samplingAspectChange[0]).isEqualTo(0);
+
+    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(sampleMode).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+    assertThat(samplingAspectChange[0]).isEqualTo(1);
+
+    AllocationSamplingRateEvent noneMode = AllocationSamplingRateEvent.newBuilder()
+      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(0)).build();
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(noneMode).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+    assertThat(samplingAspectChange[0]).isEqualTo(2);
+  }
+
+  @Test
+  public void testAllocationSamplingRateCorrectlyInitialized() {
+    // If the sampling mode is already available from the memory service, make sure the memory stage is correctly initialized to that value.
+    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
+    AllocationSamplingRateEvent fullTrackingMode = AllocationSamplingRateEvent
+      .newBuilder()
+      .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1))
+      .build();
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(fullTrackingMode).build());
+
+    MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(stage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+  }
+
+  @Test
+  public void testAllocationSamplingModePersistsAcrossStages() {
+    // Ensure that the default is sampled.
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    myStage.requestLiveAllocationSamplingModeUpdate(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+
+    MemoryProfilerStage newStage1 = new MemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(newStage1.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+    newStage1.requestLiveAllocationSamplingModeUpdate(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+
+    MemoryProfilerStage newStage2 = new MemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(newStage2.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
   }
 }

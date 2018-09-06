@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureDynamicFeatureStepFixture, W> {
@@ -62,4 +64,11 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
     waitUntilShowing(robot(), target(), JLabelMatcher.withText("Configure On-Demand Options"));
     return new ConfigureDynamicFeatureDeliveryStepFixture<>(wizard(), (JRootPane)wizard().target());
   }
+
+  @NotNull
+  public ConfigureDynamicFeatureStepFixture<W> checkFusingCheckbox() {
+    new JCheckBoxFixture(robot(), robot().finder().findByType(target(), JCheckBox.class)).select();
+    return this;
+  }
+
 }

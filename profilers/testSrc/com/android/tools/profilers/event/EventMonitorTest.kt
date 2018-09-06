@@ -16,10 +16,10 @@
 package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.event.ActivityAction
+import com.android.tools.adtui.model.event.LifecycleAction
 import com.android.tools.adtui.model.event.EventAction
 import com.android.tools.adtui.model.event.KeyboardAction
-import com.android.tools.adtui.model.event.SimpleEventType
+import com.android.tools.adtui.model.event.UserEvent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profilers.*
@@ -82,7 +82,7 @@ class EventMonitorTest {
 
   @Test
   fun tooltipBuilderShouldGenerateTooltip() {
-    val tooltip = EventActivityTooltip(monitor)
+    val tooltip = LifecycleTooltip(monitor)
     monitor.setTooltipBuilder{ tooltip }
     assertThat(monitor.buildTooltip()).isEqualTo(tooltip)
   }
@@ -124,16 +124,16 @@ class EventMonitorTest {
     val unspecified = EventProfiler.SystemData.newBuilder().setEventId(4).setType(EventProfiler.SystemData.SystemEventType.UNSPECIFIED).build()
     eventService.addSystemEvent(unspecified)
 
-    val series = monitor.simpleEvents.rangedSeries.series
+    val series = monitor.userEvents.rangedSeries.series
     assertThat(series).hasSize(3) // unspecified shouldn't be returned.
 
-    assertThat(series[0].value.type).isEqualTo(SimpleEventType.ROTATION)
+    assertThat(series[0].value.type).isEqualTo(UserEvent.ROTATION)
     assertThat(series[0].value).isInstanceOf(EventAction::class.java)
 
-    assertThat(series[1].value.type).isEqualTo(SimpleEventType.TOUCH)
+    assertThat(series[1].value.type).isEqualTo(UserEvent.TOUCH)
     assertThat(series[1].value).isInstanceOf(EventAction::class.java)
 
-    assertThat(series[2].value.type).isEqualTo(SimpleEventType.KEYBOARD)
+    assertThat(series[2].value.type).isEqualTo(UserEvent.KEYBOARD)
     assertThat(series[2].value).isInstanceOf(KeyboardAction::class.java)
     assertThat((series[2].value as KeyboardAction).data.toString()).isEqualTo("Some Text")
   }
@@ -164,11 +164,11 @@ class EventMonitorTest {
     val series = monitor.activityEvents.rangedSeries.series
     assertThat(series).hasSize(2) // fragment shouldn't be returned
 
-    assertThat(series[0].value).isInstanceOf(ActivityAction::class.java)
-    assertThat((series[0].value as ActivityAction).data).isEqualTo("activity 1")
+    assertThat(series[0].value).isInstanceOf(LifecycleAction::class.java)
+    assertThat((series[0].value as LifecycleAction).name).isEqualTo("activity 1")
 
-    assertThat(series[1].value).isInstanceOf(ActivityAction::class.java)
-    assertThat((series[1].value as ActivityAction).data).isEqualTo("activity 2")
+    assertThat(series[1].value).isInstanceOf(LifecycleAction::class.java)
+    assertThat((series[1].value as LifecycleAction).name).isEqualTo("activity 2")
   }
 
   @Test
@@ -197,7 +197,7 @@ class EventMonitorTest {
     val series = monitor.fragmentEvents.rangedSeries.series
     assertThat(series).hasSize(1) // activities shouldn't be returned
 
-    assertThat(series[0].value).isInstanceOf(ActivityAction::class.java)
-    assertThat((series[0].value as ActivityAction).data).isEqualTo("fragment 1")
+    assertThat(series[0].value).isInstanceOf(LifecycleAction::class.java)
+    assertThat((series[0].value as LifecycleAction).name).isEqualTo("fragment 1")
   }
 }

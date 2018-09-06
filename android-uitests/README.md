@@ -33,6 +33,10 @@ Or use the handy:
 
     x11vnc -display :30519 -localhost & vncviewer :0
 
+To avoid accidentally clicking something in the instance of Android Studio
+running as part of the test, you can pass --ViewOnly to vncviewer, e.g.
+
+    vncviewer --ViewOnly :0
 
 ## Running on a specific virtual server
 
@@ -40,6 +44,6 @@ Another option is to run a server first like this:
 
     Xfvb :1234
 
-And set the argument `--test_env=DISPLAY:1234` to tell the test to use that one. Then you can connect to it as described above.
+And set the argument `--test_env=DISPLAY=:1234` to tell the test to use that one. Then you can connect to it as described above.
 
 

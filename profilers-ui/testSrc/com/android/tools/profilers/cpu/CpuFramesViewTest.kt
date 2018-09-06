@@ -15,9 +15,12 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.*
+import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ExpandedItemListCellRendererWrapper
 import org.junit.Before
@@ -61,6 +64,22 @@ class CpuFramesViewTest {
     val framesView = CpuFramesView(stage)
     val frames = TreeWalker(framesView.component).descendants().filterIsInstance(JList::class.java).first()
     assertThat(frames.background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+  }
+
+  @Test
+  fun expandedOnAtrace() {
+    val framesView = CpuFramesView(stage)
+    val hideablePanel = TreeWalker(framesView.component).descendants().filterIsInstance<HideablePanel>().first()
+
+    val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)
+    val capture = AtraceParser(1).parse(traceFile, 0)
+
+    assertThat(framesView.component.isVisible).isFalse()
+    assertThat(hideablePanel.isExpanded).isFalse()
+    stage.capture = capture
+    // After we set a capture it should be visible and expanded.
+    assertThat(framesView.component.isVisible).isTrue()
+    assertThat(hideablePanel.isExpanded).isTrue()
   }
 
   @Test

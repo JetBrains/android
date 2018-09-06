@@ -19,7 +19,7 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedInclu
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageFamilyValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
-import com.intellij.ide.projectView.PresentationData;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
@@ -45,12 +44,13 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
  * Native App Glue <- another module
  */
 public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue> {
-  protected PackagingFamilyViewNode(@NotNull IncludeSet includeFolders,
+  protected PackagingFamilyViewNode(@NotNull VirtualFile buildFileFolder,
+                                    @NotNull IncludeSet includeFolders,
                                     @Nullable Project project,
                                     @NotNull PackageFamilyValue include,
                                     @NotNull ViewSettings viewSettings,
                                     boolean showPackageType) {
-    super(include, includeFolders, showPackageType, project, viewSettings);
+    super(buildFileFolder, include, includeFolders, showPackageType, project, viewSettings);
   }
 
   @NotNull
@@ -66,13 +66,13 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
     List<AbstractTreeNode> children = new ArrayList<>();
     PackageFamilyValue value = getPackageFamilyValue();
     for (ClassifiedIncludeValue child : value.myIncludes) {
-      children.add(createIncludeView(child, myIncludeFolders, false, getProject(), getSettings()));
+      children.add(createIncludeView(myBuildFileFolder, child, myIncludeFolders, false, getProject(), getSettings()));
     }
     return children;
   }
 
   @Override
-  protected void update(@NotNull PresentationData presentation) {
+  final void writeDescription(@NotNull PresentationDataWrapper presentation) {
     presentation.addText(getPackageFamilyValue().getPackageType().myDescription, REGULAR_ATTRIBUTES);
     presentation.addText(String.format(" (%s)", getPackageFamilyValue().getPackagingFamilyBaseFolderNameRelativeToHome()), GRAY_ATTRIBUTES);
   }
@@ -91,11 +91,5 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
       }
     }
     return false;
-  }
-
-  @NotNull
-  @Override
-  public String toString() {
-    return getValue().toString();
   }
 }

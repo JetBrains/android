@@ -15,27 +15,31 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.ColorDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.PointDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchDocumentDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.diagnostic.Logger;
-import org.apache.commons.io.FilenameUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.io.*;
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SketchParser {
   private static final Logger LOG = Logger.getInstance(SketchParser.class);
@@ -60,7 +64,10 @@ public class SketchParser {
         if (FilenameUtils.getExtension(entryName).equals("json")) {
           switch (entryName) {
             case "document.json":
-              // TODO
+              SketchDocument document = parseDocument(zip.getInputStream(entry));
+              if (document != null) {
+                sketchFile.setDocument(document);
+              }
               break;
             case "meta.json":
               // TODO
@@ -94,7 +101,7 @@ public class SketchParser {
   @Nullable
   public static SketchPage parsePage(@NotNull InputStream in) {
     try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
-      return getPage(reader);
+      return buildGson().fromJson(reader, SketchPage.class);
     }
     catch (Exception e) {
       LOG.warn("Could not read page from input stream.", e);
@@ -104,20 +111,37 @@ public class SketchParser {
   }
 
   /**
+   * Read document (json) from an input stream.
+   *
+   * @return a {@link SketchPage} or {@code null} if the parsing failed
+   */
+  @Nullable
+  public static SketchDocument parseDocument(@NotNull InputStream in) {
+    try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
+      return buildGson().fromJson(reader, SketchDocument.class);
+    }
+    catch (Exception e) {
+      LOG.warn("Could not read document from input stream.", e);
+    }
+
+    return null;
+  }
+
+  /**
    * Parse page data (represented as JSON) from a reader
    *
-   * @return a {@link SketchPage} or {@code null} if the {@code json} is at EOF
+   * @return a {@link Gson} or {@code null} if the {@code json} is at EOF
    * @throws JsonSyntaxException if there was a problem reading from the Reader
    * @throws JsonIOException     if json is not a valid representation for an object of type
    */
-  @Nullable
-  private static SketchPage getPage(@NotNull Reader reader) throws JsonSyntaxException, JsonIOException {
+  @NotNull
+  private static Gson buildGson() throws JsonSyntaxException, JsonIOException {
     // Tells GSON which deserializers to use for special classes and parses the file
-    Gson gson = new GsonBuilder()
+    return new GsonBuilder()
+      .registerTypeAdapter(SketchDocument.class, new SketchDocumentDeserializer())
       .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
       .registerTypeAdapter(Color.class, new ColorDeserializer())
       .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
       .create();
-    return gson.fromJson(reader, SketchPage.class);
   }
 }

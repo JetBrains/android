@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -93,6 +95,14 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
     chooseModuleType("Dynamic Feature Module");
+    clickNext();
+    JRootPane rootPane = findStepWithTitle("Configure your module");
+    return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToInstantDynamicFeature() {
+    chooseModuleType(message("android.wizard.module.new.dynamic.module.instant"));
     clickNext();
     JRootPane rootPane = findStepWithTitle("Configure your module");
     return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);

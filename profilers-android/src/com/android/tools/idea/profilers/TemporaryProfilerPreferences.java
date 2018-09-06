@@ -80,12 +80,32 @@ public final class TemporaryProfilerPreferences implements ProfilerPreferences {
 
   @Override
   public void setFloat(@NotNull String name, float value) {
-    ourPreferenceMap.put(name, Float.toString(value));
+    setFloat(name, value, 0f);
+  }
+
+  @Override
+  public void setFloat(@NotNull String name, float value, float defaultValue) {
+    if (Float.compare(value, defaultValue) == 0) {
+      ourPreferenceMap.remove(name);
+    }
+    else {
+      ourPreferenceMap.put(name, Float.toString(value));
+    }
   }
 
   @Override
   public void setInt(@NotNull String name, int value) {
-    ourPreferenceMap.put(name, Integer.toString(value));
+    setInt(name, value, 0);
+  }
+
+  @Override
+  public void setInt(@NotNull String name, int value, int defaultValue) {
+    if (value == defaultValue) {
+      ourPreferenceMap.remove(name);
+    }
+    else {
+      ourPreferenceMap.put(name, Integer.toString(value));
+    }
   }
 
   @Override

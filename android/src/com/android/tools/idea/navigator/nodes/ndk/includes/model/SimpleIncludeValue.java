@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -24,7 +25,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeV
 /**
  * Information about a single include path.
  */
-public class SimpleIncludeValue extends ClassifiedIncludeValue {
+final public class SimpleIncludeValue extends ClassifiedIncludeValue {
 
   @NotNull
   private final PackageType myPackageType;
@@ -75,5 +76,26 @@ public class SimpleIncludeValue extends ClassifiedIncludeValue {
   @Override
   public File getPackageFamilyBaseFolder() {
     return myPackagingFamilyBaseFolder;
+  }
+
+  @Override
+  final public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof SimpleIncludeValue)) {
+      return false;
+    }
+    SimpleIncludeValue that = (SimpleIncludeValue) obj;
+    return Objects.equals(this.myPackageType, that.myPackageType)
+           && Objects.equals(this.mySimplePackageName, that.mySimplePackageName)
+           && Objects.equals(this.myRelativeIncludeSubFolder, that.myRelativeIncludeSubFolder)
+           && Objects.equals(this.myIncludeFolder, that.myIncludeFolder)
+           && Objects.equals(this.myPackagingFamilyBaseFolder, that.myPackagingFamilyBaseFolder);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myPackageType, mySimplePackageName, myRelativeIncludeSubFolder, myIncludeFolder, myPackagingFamilyBaseFolder);
   }
 }

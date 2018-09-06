@@ -17,6 +17,8 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -146,27 +148,41 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @NotNull
   @Override
   public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
-    return new DataViewer() {
-      private final JComponent DUMMY_COMPONENT = new JPanel();
+    if (contentType.isImageType()) {
+      return new ImageDataViewer() {
+        private final BufferedImage DUMMY_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        private final JComponent DUMMY_COMPONENT = new JLabel(new ImageIcon(DUMMY_IMAGE));
 
-      @NotNull
-      @Override
-      public JComponent getComponent() {
-        return DUMMY_COMPONENT;
-      }
+        @NotNull
+        @Override
+        public BufferedImage getImage() {
+          return DUMMY_IMAGE;
+        }
 
-      @Nullable
-      @Override
-      public Dimension getImageDimension() {
-        return null;
-      }
+        @NotNull
+        @Override
+        public JComponent getComponent() {
+          return DUMMY_COMPONENT;
+        }
+      };
+    }
+    else {
+      return new DataViewer() {
+        private final JComponent DUMMY_COMPONENT = new JPanel();
 
-      @NotNull
-      @Override
-      public Style getStyle() {
-        return Style.RAW;
-      }
-    };
+        @NotNull
+        @Override
+        public JComponent getComponent() {
+          return DUMMY_COMPONENT;
+        }
+
+        @NotNull
+        @Override
+        public Style getStyle() {
+          return Style.RAW;
+        }
+      };
+    }
   }
 
   @NotNull

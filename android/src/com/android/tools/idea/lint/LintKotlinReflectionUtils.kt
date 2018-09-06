@@ -47,7 +47,7 @@ fun computeKotlinArgumentMapping(call: UCallExpression, method: PsiMethod):
   val loader = receiver.javaClass.classLoader
 
   val service = ServiceManager.getService(receiver.project,
-      Class.forName("org.jetbrains.uast.kotlin.KotlinUastBindingContextProviderService", true, loader)) ?: return null
+      Class.forName("org.jetbrains.uast.kotlin.KotlinUastResolveProviderService", true, loader)) ?: return null
 
   val ktElementClass = Class.forName("org.jetbrains.kotlin.psi.KtElement", true, loader)
   val bindingContextClass = Class.forName("org.jetbrains.kotlin.resolve.BindingContext", true, loader)
@@ -95,7 +95,6 @@ fun computeKotlinArgumentMapping(call: UCallExpression, method: PsiMethod):
     if (!mapping.isEmpty()) {
       return mapping
     }
-
   }
 
   return null

@@ -111,6 +111,7 @@ class ColorValuePanel(private val model: ColorPickerModel)
     border = PANEL_BORDER
     preferredSize = PREFERRED_PANEL_SIZE
     background = PICKER_BACKGROUND_COLOR
+    isFocusable = false
 
     val c = GridBagConstraints()
     c.fill = GridBagConstraints.HORIZONTAL
@@ -156,6 +157,8 @@ class ColorValuePanel(private val model: ColorPickerModel)
 
     model.addListener(this)
   }
+
+  override fun requestFocusInWindow() = alphaField.requestFocusInWindow()
 
   private fun createAlphaLabel() = object : ButtonPanel() {
 
@@ -397,8 +400,16 @@ class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 e
       override fun focusGained(e: FocusEvent?) {
         selectAll()
       }
+
+      override fun focusLost(e: FocusEvent?) {
+        val size = document?.length ?: return
+        selectionStart = size
+        selectionEnd = size
+      }
     })
   }
+
+  override fun isFocusable() = true
 
   val colorValue: Int
     get() {

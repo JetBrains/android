@@ -58,7 +58,8 @@ fun InputStream.buffered(): InputStream
  * if there is no VirtualFile for the resource.
  */
 @JvmOverloads
-fun PathString.toVirtualFile(refresh: Boolean = false): VirtualFile? {
+fun PathString?.toVirtualFile(refresh: Boolean = false): VirtualFile? {
+  this ?: return null
   // Ensure that IntelliJ's virtual filesystems are mounted (ensures that PathString-to-VirtualFile lookups work from unit tests
   // or if performed very early during startup).
   VirtualFileSystemOpener.mount()

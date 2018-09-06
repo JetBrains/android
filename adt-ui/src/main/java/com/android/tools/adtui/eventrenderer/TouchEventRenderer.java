@@ -24,7 +24,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 
-public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
+public class TouchEventRenderer<E> implements EventRenderer<E> {
 
   private static final JBColor HOLD_COLOR = new JBColor(new Color(0x66E2739A, true),
                                                         new Color(0x66E27BA4, true));

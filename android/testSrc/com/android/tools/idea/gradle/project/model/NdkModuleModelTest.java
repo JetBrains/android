@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Test;
 
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.google.common.truth.Truth.assertThat;
@@ -29,5 +32,10 @@ public class NdkModuleModelTest extends AndroidGradleTestCase {
     assertNotNull(ndkModuleModel);
     // Verify that the name contains both of variant and abi.
     assertThat(ndkModuleModel.getNdkVariantNames()).contains("armRelease-x86");
+  }
+
+  public void testEqualsHash() {
+    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(IncludeSet.class);
+    equalsVerifier.verify();
   }
 }

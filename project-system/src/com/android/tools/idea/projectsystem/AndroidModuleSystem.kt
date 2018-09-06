@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem: ClassFileFinder {
+interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   /**
    * Requests information about the folder layout for the module. This can be used to determine
    * where files of various types should be written.
@@ -45,6 +45,8 @@ interface AndroidModuleSystem: ClassFileFinder {
    * When there are multiple versions of the artifact that satisfy the above conditions, the latest
    * stable artifact is selected. In the event that a stable artifact does not exist this function
    * will fallback to searching for preview artifacts.
+   * <p>
+   * **Note**: This function may perform read actions.
    */
   fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate?
 
@@ -59,6 +61,8 @@ interface AndroidModuleSystem: ClassFileFinder {
    * Query coordinate a:b:+ will return a:b:123 if a:b:123 is registered with the build system.
    * Query coordinate a:b:456 will return null if a:b:456 is not registered, even if a:b:123 is.
    * Use [AndroidModuleSystem.getResolvedDependency] if you want the resolved dependency.
+   * <p>
+   * **Note**: This function may perform read actions.
    */
   @Throws(DependencyManagementException::class)
   fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate?
@@ -71,6 +75,8 @@ interface AndroidModuleSystem: ClassFileFinder {
    * Query coordinate a:b:123 will return a:b:123 if version 123 of that artifact is a resolved dependency.
    * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
    * Use [AndroidModuleSystem.getRegisteredDependency] if you want the registered dependency.
+   * <p>
+   * **Note**: This function will not acquire any locks during it's operation.
    */
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
@@ -78,11 +84,15 @@ interface AndroidModuleSystem: ClassFileFinder {
   /**
    * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
    * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
+   * <p>
+   * **Note**: This function will perform a write action.
    */
   fun registerDependency(coordinate: GradleCoordinate)
 
   /**
    * Returns the resolved libraries that this module depends on.
+   * <p>
+   * **Note**: This function will not acquire read/write locks during it's operation.
    */
   fun getResolvedDependentLibraries(): Collection<Library>
 

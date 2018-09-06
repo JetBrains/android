@@ -132,14 +132,9 @@ class SingleAssetCard : JPanel(BorderLayout()) {
   }
 
   /**
-   * The height of the [thumbnail] container that should be used to compute the height of the thumbnail component
+   * The size of the [thumbnail] container that should be used to compute the size of the thumbnail component
    */
-  val thumbnailHeight: Int get() = contentWrapper.height
-
-  /**
-   * The width of the [thumbnail] container that should be used to compute the width of the thumbnail component
-   */
-  val thumbnailWidth: Int get() = contentWrapper.width
+  val thumbnailSize: Dimension get() = contentWrapper.preferredSize
 
   /**
    * Set the width of the whole view. The height is computed using a fixed ratio of [VIEW_HEIGHT_WIDTH_RATIO].

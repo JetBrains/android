@@ -20,9 +20,9 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
@@ -49,12 +49,13 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
  * protobuf <- this class
  */
 public class PackagingViewNode extends IncludeViewNode<PackageValue> {
-  protected PackagingViewNode(@NotNull IncludeSet includeFolders,
+  protected PackagingViewNode(@NotNull VirtualFile buildFileFolder,
+                              @NotNull IncludeSet includeFolders,
                               @Nullable Project project,
                               @NotNull PackageValue dependency,
                               @NotNull ViewSettings viewSettings,
                               boolean showPackageType) {
-    super(dependency, includeFolders, showPackageType, project, viewSettings);
+    super(buildFileFolder, dependency, includeFolders, showPackageType, project, viewSettings);
   }
 
   @NotNull
@@ -91,7 +92,7 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
   }
 
   @Override
-  protected void update(@NotNull PresentationData presentation) {
+  protected void writeDescription(@NotNull PresentationDataWrapper presentation) {
     presentation.setIcon(AllIcons.Nodes.JavaModuleRoot);
     PackageValue value = getPackageValue();
     presentation.addText(value.getSimplePackageName(), REGULAR_ATTRIBUTES);

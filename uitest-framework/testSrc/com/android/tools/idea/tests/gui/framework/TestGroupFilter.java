@@ -29,7 +29,7 @@ class TestGroupFilter extends Filter {
 
   @Override
   public boolean shouldRun(Description description) {
-    return (description.isTest() && testGroupOf(description) == testGroup)
+    return (description.isTest() && description.getTestClass() != null && testGroupOf(description) == testGroup)
            || description.getChildren().stream().anyMatch(this::shouldRun);
   }
 

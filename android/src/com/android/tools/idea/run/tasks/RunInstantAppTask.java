@@ -16,7 +16,9 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantAppSdks;
+import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -24,16 +26,28 @@ import com.google.android.instantapps.sdk.api.HandlerResult;
 import com.google.android.instantapps.sdk.api.ProgressIndicator;
 import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.google.android.instantapps.sdk.api.Sdk;
+import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.jetbrains.annotations.TestOnly;
 
+import static com.android.SdkConstants.DOT_ZIP;
 import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
 import static com.google.android.instantapps.sdk.api.RunHandler.SetupBehavior;
 
@@ -43,11 +57,19 @@ public class RunInstantAppTask implements LaunchTask {
   @NotNull private final Collection<ApkInfo> myPackages;
   @Nullable private final String myDeepLink;
   @NotNull private final InstantAppSdks mySdk;
+  @NotNull private final List<String> myDisabledFeatures;
+  @Nullable private Path myTempDir;
 
-  public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link) {
+  public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link, @NotNull List<String> disabledFeatures) {
     myPackages = packages;
     myDeepLink = link;
     mySdk = InstantAppSdks.getInstance();
+    myDisabledFeatures = disabledFeatures;
+    myTempDir = null;
+  }
+
+  public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link) {
+    this(packages, link, ImmutableList.of());
   }
 
   @NotNull
@@ -81,7 +103,14 @@ public class RunInstantAppTask implements LaunchTask {
     }
 
     ApkInfo apkInfo = myPackages.iterator().next();
-    File zipFile = apkInfo.getFile();
+    File zipFile;
+    try {
+      zipFile = createDeploymentFile(apkInfo);
+    } catch (IOException e) {
+      printer.stderr("Could not create temporary archive for package.");
+      return false;
+    }
+
 
     URL url = null;
     if (myDeepLink != null && !myDeepLink.isEmpty()) {
@@ -125,6 +154,15 @@ public class RunInstantAppTask implements LaunchTask {
       printer.stderr(e.toString());
       getLogger().error(new RunInstantAppException(e));
       return false;
+    } finally {
+      if (myTempDir != null) {
+        zipFile.delete();
+        try {
+          Files.deleteIfExists(myTempDir);
+        } catch (IOException e) {
+          printer.stderr("Could not delete temporary directory for instant app deploy.");
+        }
+      }
     }
   }
 
@@ -146,7 +184,39 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   @NotNull
+  private File createDeploymentFile(ApkInfo apkInfo) throws IOException {
+    List<ApkFileUnit> apkFiles = apkInfo.getFiles();
+    if (apkFiles.size() == 1) {
+      return apkFiles.get(0).getApkFile();
+    } else {
+      // TODO: Zip up apks for now, change API to support List of Files in the future.
+      myTempDir = Files.createTempDirectory(apkInfo.getApplicationId());
+      File zipFile = new File(myTempDir.toFile(), apkInfo.getApplicationId() + DOT_ZIP);
+      try (ZipOutputStream zipOutputStream =
+          new ZipOutputStream(new FileOutputStream(zipFile))) {
+        for (ApkFileUnit apkFileUnit : apkFiles) {
+          if (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)) {
+            File apkFile = apkFileUnit.getApkFile();
+            try (FileInputStream fileInputStream = new FileInputStream(apkFile)) {
+              byte[] inputBuffer = IOUtils.toByteArray(fileInputStream);
+              zipOutputStream.putNextEntry(new ZipEntry(apkFile.getName()));
+              zipOutputStream.write(inputBuffer, 0, inputBuffer.length);
+              zipOutputStream.closeEntry();
+            }
+          }
+        }
+      }
+      return zipFile;
+    }
+  }
+
+  @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(RunInstantAppTask.class);
+  }
+
+  @TestOnly
+  public Collection<ApkInfo> getPackages() {
+    return myPackages;
   }
 }

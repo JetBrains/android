@@ -22,6 +22,7 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
+import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -111,6 +112,22 @@ class CpuKernelsViewTest {
     TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first().let { panel ->
       assertThat(panel.text).contains("KERNEL (4)")
     }
+  }
+
+  @Test
+  fun expandedOnAtraceCapture() {
+    val kernelsView = CpuKernelsView(stage)
+    val hideablePanel = TreeWalker(kernelsView.component).descendants().filterIsInstance<HideablePanel>().first()
+
+    val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)
+    val capture = AtraceParser(1).parse(traceFile, 0)
+
+    assertThat(kernelsView.component.isVisible).isFalse()
+    assertThat(hideablePanel.isExpanded).isFalse()
+    stage.capture = capture
+    // After we set a capture it should be visible and expanded.
+    assertThat(kernelsView.component.isVisible).isTrue()
+    assertThat(hideablePanel.isExpanded).isTrue()
   }
 
   @Test

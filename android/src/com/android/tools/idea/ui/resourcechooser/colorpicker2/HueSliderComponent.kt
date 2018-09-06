@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.android.annotations.VisibleForTesting
 import java.awt.*
 import java.awt.geom.Point2D
+import kotlin.math.max
+import kotlin.math.min
 
 private val COLORS = arrayOf(Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED)
 private val POINTS = COLORS.mapIndexed { index, color ->
@@ -28,17 +31,20 @@ private val POINTS = COLORS.mapIndexed { index, color ->
   }
 }.toFloatArray()
 
-class HueSliderComponent : SliderComponent<Float>(0f) {
+@VisibleForTesting
+const val SLIDE_UNIT = 1
 
-  override fun knobPositionToValue(knobPosition: Int): Float {
-    val sliderWidth = sliderWidth
-    return if (sliderWidth > 0) knobPosition.toFloat() / sliderWidth else 0f
+class HueSliderComponent : SliderComponent<Int>(0) {
+
+  override fun knobPositionToValue(knobPosition: Int): Int {
+    return if (sliderWidth > 0) Math.round(360 * knobPosition.toFloat() / sliderWidth) else 0
   }
 
-  override fun valueToKnobPosition(value: Float): Int = Math.round(value * sliderWidth)
+  override fun valueToKnobPosition(value: Int): Int = Math.round(value / 360f * sliderWidth)
+
+  override fun slide(shift: Int) = max(0, min(value + shift * SLIDE_UNIT, 360))
 
   override fun paintSlider(g2d: Graphics2D) {
-    val sliderWidth = width - leftPadding - rightPadding
     g2d.paint = LinearGradientPaint(Point2D.Double(0.0, 0.0), Point2D.Double(sliderWidth.toDouble(), 0.0), POINTS, COLORS)
     g2d.fillRect(leftPadding, topPadding, sliderWidth, height - topPadding - bottomPadding)
   }

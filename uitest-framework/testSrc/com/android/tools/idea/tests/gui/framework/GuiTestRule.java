@@ -112,12 +112,12 @@ public class GuiTestRule implements TestRule {
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
       .around(new LogStartAndStop())
-      .around(myOuterTimeout) // all Rules other than LogStartAndStop should be inside myOuterTimeout
-      .around(new IdeControl())
+      .around(myRobotTestRule)
+      .around(myOuterTimeout) // Rules should be inside this timeout when possible
+      .around(new IdeControl(myRobotTestRule::getRobot))
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
       .around(myCurrentProjectSystem)
-      .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
       .around(new NpwControl())

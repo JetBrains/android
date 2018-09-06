@@ -134,10 +134,14 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       getResultsInfo(QUERY_HEAP_INFO_BY_TIME, sessionId, startTime, endTime, HeapDumpInfo.getDefaultInstance());
     List<AllocationsInfo> allocationSamples =
       getResultsInfo(QUERY_ALLOCATION_INFO_BY_TIME, sessionId, startTime, endTime, AllocationsInfo.getDefaultInstance());
-    MemoryData.Builder response = MemoryData
-      .newBuilder().addAllMemSamples(memorySamples).addAllAllocStatsSamples(allocStatsSamples).addAllGcStatsSamples(gcStatsSamples)
-      .addAllHeapDumpInfos(heapDumpSamples).addAllAllocationsInfo(allocationSamples);
-    return response.build();
+    return MemoryData
+      .newBuilder()
+      .addAllMemSamples(memorySamples)
+      .addAllAllocStatsSamples(allocStatsSamples)
+      .addAllGcStatsSamples(gcStatsSamples)
+      .addAllHeapDumpInfos(heapDumpSamples)
+      .addAllAllocationsInfo(allocationSamples)
+      .build();
   }
 
   public void insertMemory(@NotNull Common.Session session, @NotNull List<MemoryData.MemorySample> samples) {
@@ -217,7 +221,6 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     }
     return null;
   }
-
 
   /**
    * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.

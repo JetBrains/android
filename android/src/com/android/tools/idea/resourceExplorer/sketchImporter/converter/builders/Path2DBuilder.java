@@ -19,7 +19,6 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath;
 import com.android.tools.layoutlib.annotations.NotNull;
-
 import java.awt.geom.Path2D;
 
 public class Path2DBuilder {

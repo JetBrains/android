@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 
 import javax.swing.*
 import java.awt.*
@@ -32,6 +33,14 @@ private val KNOB_COLOR = Color(255, 255, 255)
 private val KNOB_BORDER_COLOR = JBColor(Color(100, 100, 100), Color(64, 64, 64))
 private val KNOB_BORDER_STROKE = BasicStroke(1.5f)
 private const val KNOB_WIDTH = 5
+private const val KNOB_CORNER_ARC = 5
+private const val FOCUS_BORDER_CORNER_ARC = 5
+private const val FOCUS_BORDER_WIDTH = 3
+
+private const val ACTION_SLIDE_LEFT = "actionSlideLeft"
+private const val ACTION_SLIDE_LEFT_STEP = "actionSlideLeftStep"
+private const val ACTION_SLIDE_RIGHT = "actionSlideRight"
+private const val ACTION_SLIDE_RIGHT_STEP = "actionSlideRightStep"
 
 abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
@@ -57,7 +66,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
       _knobPosition = valueToKnobPosition(newValue)
     }
 
-  private val myPolygonToDraw = Polygon()
+  private val polygonToDraw = Polygon()
 
   private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(T) -> Unit>()
 
@@ -83,32 +92,71 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
     })
 
     addMouseWheelListener { e ->
-      val amount = when {
-        e.scrollType == MouseWheelEvent.WHEEL_UNIT_SCROLL -> e.unitsToScroll * e.scrollAmount
-        e.wheelRotation < 0 -> -e.scrollAmount
-        else -> e.scrollAmount
+      runAndUpdateIfNeeded {
+        val amount = when {
+          e.scrollType == MouseWheelEvent.WHEEL_UNIT_SCROLL -> e.unitsToScroll * e.scrollAmount
+          e.wheelRotation < 0 -> -e.scrollAmount
+          else -> e.scrollAmount
+        }
+        val newKnobPosition = Math.max(0, Math.min(_knobPosition + amount, sliderWidth))
+        knobPosition = newKnobPosition
       }
-      val knobPosition = valueToKnobPosition(value)
-      val newKnobPosition = Math.max(0, Math.min(knobPosition + amount, sliderWidth))
-      value = knobPositionToValue(newKnobPosition)
-
-      repaint()
-      fireValueChanged()
+      e.consume()
     }
+
+    this.addFocusListener(object : FocusAdapter() {
+      override fun focusGained(e: FocusEvent?) {
+        repaint()
+      }
+      override fun focusLost(e: FocusEvent?) {
+        repaint()
+      }
+    })
 
     this.addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent?) {
         repaint()
       }
     })
+
+    with (actionMap) {
+      put(ACTION_SLIDE_LEFT, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(-1) }
+      })
+      put(ACTION_SLIDE_LEFT_STEP, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(-10) }
+      })
+      put(ACTION_SLIDE_RIGHT, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(1) }
+      })
+      put(ACTION_SLIDE_RIGHT_STEP, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(10) }
+      })
+    }
+
+    with (getInputMap(WHEN_FOCUSED)) {
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_SLIDE_LEFT)
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_DOWN_MASK), ACTION_SLIDE_LEFT_STEP)
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_SLIDE_RIGHT)
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK), ACTION_SLIDE_RIGHT_STEP)
+    }
   }
 
-  private fun processMouse(e: MouseEvent) {
-    val knobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
-    value = knobPositionToValue(knobPosition)
-
+  /**
+   * Helper function to execute the code and check if needs to invoke [repaint] and/or [fireValueChanged]
+   */
+  private fun runAndUpdateIfNeeded(task: () -> Unit) {
+    val oldValue = value
+    task()
     repaint()
-    fireValueChanged()
+    if (oldValue != value) {
+      fireValueChanged()
+    }
+  }
+
+  private fun processMouse(e: MouseEvent) = runAndUpdateIfNeeded {
+    val newKnobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
+    knobPosition = newKnobPosition
   }
 
   fun addListener(listener: (T) -> Unit) {
@@ -121,16 +169,35 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
   protected abstract fun valueToKnobPosition(value: T): Int
 
+  private fun doSlide(shift: Int) {
+    value = slide(shift)
+  }
+
+  /**
+   * return the new value after sliding. The [shift] is the amount of sliding.
+   */
+  protected abstract fun slide(shift: Int): T
+
   override fun getPreferredSize(): Dimension = JBUI.size(100, 22)
 
   override fun getMinimumSize(): Dimension = JBUI.size(50, 22)
 
   override fun getMaximumSize(): Dimension = Dimension(Integer.MAX_VALUE, preferredSize.height)
 
+  override fun isFocusable() = true
+
   override fun setToolTipText(text: String) = Unit
 
   override fun paintComponent(g: Graphics) {
     val g2d = g as Graphics2D
+    if (isFocusOwner) {
+      g2d.color = UIUtil.getFocusedFillColor() ?: Color.BLUE.brighter()
+      val left = leftPadding - FOCUS_BORDER_WIDTH
+      val top = topPadding - FOCUS_BORDER_WIDTH
+      val width = width - left - rightPadding + FOCUS_BORDER_WIDTH
+      val height = height - top - bottomPadding + FOCUS_BORDER_WIDTH
+      g2d.fillRoundRect(left, top, width, height, FOCUS_BORDER_CORNER_ARC, FOCUS_BORDER_CORNER_ARC)
+    }
     paintSlider(g2d)
     drawKnob(g2d, leftPadding + valueToKnobPosition(value))
   }
@@ -147,13 +214,12 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
     val knobTop = topPadding / 2
     val knobWidth = KNOB_WIDTH
     val knobHeight = height - (topPadding + bottomPadding) / 2
-    val knobCornerArc = 5
 
     g2d.color = KNOB_COLOR
-    g2d.fillRoundRect(knobLeft, knobTop, knobWidth, knobHeight, knobCornerArc, knobCornerArc)
+    g2d.fillRoundRect(knobLeft, knobTop, knobWidth, knobHeight, KNOB_CORNER_ARC, KNOB_CORNER_ARC)
     g2d.color = KNOB_BORDER_COLOR
     g2d.stroke = KNOB_BORDER_STROKE
-    g2d.drawRoundRect(knobLeft, knobTop, knobWidth, knobHeight, knobCornerArc, knobCornerArc)
+    g2d.drawRoundRect(knobLeft, knobTop, knobWidth, knobHeight, KNOB_CORNER_ARC, KNOB_CORNER_ARC)
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)
     g2d.stroke = originalStroke

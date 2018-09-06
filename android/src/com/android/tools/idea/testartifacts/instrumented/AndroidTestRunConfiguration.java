@@ -31,6 +31,7 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.UsageTrackerTestRunListener;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;

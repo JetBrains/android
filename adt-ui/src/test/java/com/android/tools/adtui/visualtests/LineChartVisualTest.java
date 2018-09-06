@@ -117,16 +117,15 @@ public class LineChartVisualTest extends VisualTest {
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
-    LineConfig customMaskConfig = LineConfig.copyOf(mLineChart.getLineConfig(firstSeries));
-    customMaskConfig.addMaskedSeries(firstSeries);
+    LineConfig customMaskConfig = LineConfig.copyOf(mLineChart.getLineConfig(firstSeries)).setMasked(true);
     mDurationRendererBlocking.addCustomLineConfig(firstSeries, customMaskConfig);
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
     model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
-    model2.setAttachPredicate(x -> {
+    model2.setAttachPredicate(duration -> {
       List<SeriesData<DefaultDurationData>> series = series3.getSeries();
       for (SeriesData<DefaultDurationData> data : series) {
-        if (data.x <= x && (data.value.getDurationUs() == Long.MAX_VALUE || (data.x + data.value.getDurationUs()) >= x)) {
+        if (data.x <= duration.x && (data.value.getDurationUs() == Long.MAX_VALUE || (data.x + data.value.getDurationUs()) >= duration.x)) {
           return false;
         }
       }

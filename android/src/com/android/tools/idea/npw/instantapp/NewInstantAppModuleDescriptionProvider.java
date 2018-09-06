@@ -15,41 +15,36 @@
  */
 package com.android.tools.idea.npw.instantapp;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.model.NewModuleModel;
-import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
-import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
-import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
-import com.android.tools.idea.npw.template.TemplateHandle;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-
-import java.awt.*;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
 import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
 import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
+import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
+import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.intellij.openapi.project.Project;
+import java.awt.Image;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class NewInstantAppModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
     if(StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.get() &&
-       !projectContainsFeatureModule(project)) {
+       !AndroidGradleModuleUtils.projectContainsFeatureModule(project)) {
       return Arrays.asList();
     }
     return Arrays.asList(
@@ -154,17 +149,5 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       return new ConfigureInstantAppModuleStep(new NewInstantAppModuleModel(model.getProject().getValue(), myTemplateHandle, model.getProjectSyncInvoker()), getName());
     }
-  }
-
-  private boolean projectContainsFeatureModule(Project project) {
-
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
-    for(Module module : ModuleManager.getInstance(project).getModules()) {
-      List<String> plugins = PluginModel.extractNames(projectBuildModel.getModuleBuildModel(module).plugins());
-      if(plugins.contains("com.android.feature")) {
-        return true;
-      }
-    }
-    return false;
   }
 }

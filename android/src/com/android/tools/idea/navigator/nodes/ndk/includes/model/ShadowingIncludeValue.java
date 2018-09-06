@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -35,7 +36,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeV
  * Then the view is supposed to present this in a way that is intuitive to the user.
  * For example, show just path1/stdio.h and maybe place path2/stdio.h into an include_next subfolder.
  */
-public class ShadowingIncludeValue extends IncludeValue {
+final public class ShadowingIncludeValue extends IncludeValue {
 
   @NotNull
   public final ImmutableList<SimpleIncludeValue> myIncludes;
@@ -57,5 +58,22 @@ public class ShadowingIncludeValue extends IncludeValue {
   @NotNull
   public Collection<File> getIncludePathsInOrder() {
     return myIncludes.stream().map(value -> value.myIncludeFolder).collect(Collectors.toList());
+  }
+
+  @Override
+  final public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof ShadowingIncludeValue)) {
+      return false;
+    }
+    ShadowingIncludeValue that = (ShadowingIncludeValue) obj;
+    return Objects.equals(this.myIncludes, that.myIncludes) && Objects.equals(this.myExcludes, that.myExcludes);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myIncludes, myExcludes);
   }
 }

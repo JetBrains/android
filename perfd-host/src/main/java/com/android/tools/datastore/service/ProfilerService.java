@@ -21,6 +21,7 @@ import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
@@ -31,9 +32,7 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -46,6 +45,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   @NotNull private final LogService myLogService;
   private final ProfilerTable myTable;
   @NotNull private final DataStoreService myService;
+  @NotNull private final UnifiedEventsTable myUnifiedEventsTable;
+  // This is a temp map, as we move to channel id this will be removed.
+  private final HashMap<Long, DeviceId> mySessionIdToDevice;
 
   public ProfilerService(@NotNull DataStoreService service,
                          Consumer<Runnable> fetchExecutor,
@@ -54,6 +56,8 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     myFetchExecutor = fetchExecutor;
     myLogService = logService;
     myTable = new ProfilerTable();
+    myUnifiedEventsTable = new UnifiedEventsTable();
+    mySessionIdToDevice = new HashMap<>();
   }
 
   @NotNull
@@ -131,6 +135,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     else {
       BeginSessionResponse response = client.beginSession(request);
       getLogger().info("Session (ID " + response.getSession().getSessionId() + ") begins.");
+      mySessionIdToDevice.put(response.getSession().getSessionId(), DeviceId.of(request.getDeviceId()));
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
       myTable.insertOrUpdateSession(response.getSession(),
@@ -242,5 +247,32 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myTable.initialize(connection);
+    myUnifiedEventsTable.initialize(connection);
+  }
+
+  @Override
+  public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(mySessionIdToDevice.get(request.getCommand().getStreamId()));
+    responseObserver.onNext(client.execute(request));
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getEvents(GetEventsRequest request, StreamObserver<GetEventsResponse> responseObserver) {
+    GetEventsResponse.Builder response = GetEventsResponse.newBuilder();
+    Collection<Event> events = myUnifiedEventsTable.queryUnifiedEvents(request);
+    response.addAllEvents(events);
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getEventGroups(GetEventGroupsRequest request, StreamObserver<GetEventGroupsResponse> responseObserver) {
+    GetEventGroupsResponse.Builder response = GetEventGroupsResponse.newBuilder();
+    Collection<EventGroup> events = myUnifiedEventsTable.queryUnifiedEventGroups(request);
+    response.addAllGroups(events);
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
   }
 }

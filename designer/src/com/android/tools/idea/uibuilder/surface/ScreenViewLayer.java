@@ -235,6 +235,13 @@ public class ScreenViewLayer extends Layer {
     int sw = (int)Math.round(myScreenViewVisibleSize.width * xScaleFactor);
     int sh = (int)Math.round(myScreenViewVisibleSize.height * yScaleFactor);
 
+    if (sx + sw > image.getWidth()) {
+      sw = image.getWidth() - sx;
+    }
+    if (sy + sy > image.getHeight()) {
+      sh = image.getHeight() - sy;
+    }
+
     BufferedImage imageCopy = image.getCopy(sx, sy, sw, sh);
     if (imageCopy == null) {
       return;

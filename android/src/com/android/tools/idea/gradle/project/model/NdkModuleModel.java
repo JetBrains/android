@@ -35,7 +35,6 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static java.util.Collections.sort;
-import static java.util.stream.Collectors.toList;
 
 public class NdkModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -329,5 +328,48 @@ public class NdkModuleModel implements ModuleModel {
     else {
       populateForSingleVariantSync();
     }
+  }
+
+  @Override
+  public int hashCode() {
+    // Hashcode should consist of what's written in writeObject. Everything else is derived from these so those don't matter wrt to
+    // identity.
+    return Objects.hash(
+      myModuleName,
+      myRootDirPath,
+      myAndroidProject,
+      mySelectedVariantName,
+      myVariantAbi);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof NdkModuleModel)) {
+      return false;
+    }
+    NdkModuleModel that = (NdkModuleModel) obj;
+    if (!Objects.equals(this.myModuleName, that.myModuleName)) {
+      return false;
+    }
+    if (!Objects.equals(this.myRootDirPath, that.myRootDirPath)) {
+      return false;
+    }
+    if (!Objects.equals(this.myAndroidProject, that.myAndroidProject)) {
+      return false;
+    }
+    if (!Objects.equals(this.mySelectedVariantName, that.mySelectedVariantName)) {
+      return false;
+    }
+    if (!Objects.equals(this.myVariantAbi, that.myVariantAbi)) {
+      return false;
+    }
+
+    return true;
   }
 }

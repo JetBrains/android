@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,6 +26,12 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 public class TestIncludeSet {
+
+  @Test
+  public void testEqualsHash() {
+    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(IncludeSet.class);
+    equalsVerifier.verify();
+  }
 
   @Test
   public void testExtractHeadersFromCompilerFlagsRealWorld() {

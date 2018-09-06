@@ -20,6 +20,7 @@ import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.client.JUnitClient;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import com.intellij.testGuiFramework.remote.transport.TransportMessage;
+import java.util.function.Supplier;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -36,15 +37,20 @@ public class IdeControl extends TestWatcher {
 
   public static RestartIdeMessage restartMessage = null;
 
+  private Supplier<Robot> robotSupplier;
+
+  public IdeControl(Supplier<Robot> robotSupplier) {
+    this.robotSupplier = robotSupplier;
+  }
+
   /**
    * This test rule ensures that the IDE has initialized fully before proceeding with a test.
    */
   @Override
   public void starting(Description description) {
+    Robot robot = robotSupplier.get();
     GuiActionRunner.executeInEDT(false);
-    Robot robot = null;
     try {
-      robot = BasicRobot.robotWithCurrentAwtHierarchy();
       WindowFinder.findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
         @Override
         protected boolean isMatching(@NotNull Frame frame) {
@@ -53,9 +59,6 @@ public class IdeControl extends TestWatcher {
       }).withTimeout(TimeUnit.MINUTES.toMillis(1)).using(robot);
     } finally {
       GuiActionRunner.executeInEDT(true);
-      if (robot != null) {
-        robot.cleanUpWithoutDisposingWindows();
-      }
     }
   }
 

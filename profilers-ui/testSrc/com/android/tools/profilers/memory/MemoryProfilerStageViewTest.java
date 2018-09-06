@@ -332,6 +332,30 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(items[10].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
   }
 
+  @Test
+  public void testToolbar() {
+    // Test toolbar configuration for pre-O.
+    MemoryProfilerStageView view1 = new MemoryProfilerStageView(myProfilersView, myStage);
+    JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
+    assertThat(toolbar.getComponents()).asList().containsExactly(
+      view1.getGarbageCollectionButtion(),
+      view1.getHeapDumpButton(),
+      view1.getAllocationButton(),
+      view1.getAllocationCaptureElaspedTimeLabel()
+    );
+
+    // Test toolbar configuration for O+;
+    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).build());
+    MemoryProfilerStageView view2 = new MemoryProfilerStageView(myProfilersView, myStage);
+    toolbar = (JPanel)view2.getToolbar().getComponent(0);
+    assertThat(toolbar.getComponents()).asList().containsExactly(
+      view2.getGarbageCollectionButtion(),
+      view2.getHeapDumpButton(),
+      view2.getAllocationSamplingRateDropDown()
+    );
+  }
+
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,
                                @Nullable HeapSet expectedHeapSet,
                                @Nullable ClassSet expectedClassSet,

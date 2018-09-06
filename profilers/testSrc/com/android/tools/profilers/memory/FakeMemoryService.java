@@ -15,20 +15,59 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
+
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeBacktrace;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
@@ -145,6 +184,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     response.onNext(myMemoryData != null ? myMemoryData
                                          : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
     response.onCompleted();
+  }
+
+  @Override
+  public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
+    responseObserver
+      .onNext(myMemoryData != null ? myMemoryData : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
+    responseObserver.onCompleted();
   }
 
   @Override

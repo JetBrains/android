@@ -16,7 +16,6 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
@@ -266,7 +265,7 @@ public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
     assertThat(response.getAllocationStacksCount()).isEqualTo(0);
   }
 
-  private static void verifyMemoryDataResultCounts(@NotNull MemoryProfiler.MemoryData result,
+  private static void verifyMemoryDataResultCounts(@NotNull MemoryData result,
                                                    int numMemSample,
                                                    int numAllocStatsSample,
                                                    int numGcStatsSample,

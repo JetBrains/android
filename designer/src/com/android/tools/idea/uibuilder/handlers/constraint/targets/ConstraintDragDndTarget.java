@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -128,5 +129,23 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, positionY);
       }
     }
+  }
+
+  private int getLeftTargetOrigin(SceneComponent target) {
+    int origin = target.getDrawX();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
+    if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF) != null) {
+      origin += target.getDrawWidth();
+    }
+    return origin;
+  }
+
+  protected int getTopTargetOrigin(SceneComponent target) {
+    int origin = target.getDrawY();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
+    if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF) != null) {
+      origin += target.getDrawHeight();
+    }
+    return origin;
   }
 }

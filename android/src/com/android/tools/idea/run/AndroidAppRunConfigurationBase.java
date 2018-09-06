@@ -25,6 +25,7 @@ import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.MultiUserUtils;
+import com.android.tools.idea.stats.RunStats;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -78,6 +79,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   // Deploy options
   public boolean DEPLOY = true;
   public boolean DEPLOY_APK_FROM_BUNDLE = false;
+  public boolean DEPLOY_AS_INSTANT = false;
   public String ARTIFACT_NAME = "";
   public String PM_INSTALL_OPTIONS = "";
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
@@ -134,7 +136,8 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       .setDeploy(DEPLOY)
       .setPmInstallOptions(PM_INSTALL_OPTIONS)
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
-      .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
+      .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
+      .setDeployAsInstant(DEPLOY_AS_INSTANT);
   }
 
   @NotNull
@@ -233,7 +236,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     if (module == null) {
       return true;
     }
-    return DynamicAppUtils.isInstantRunSupported(module);
+    return DynamicAppUtils.isInstantRunSupported(module) && !DEPLOY_AS_INSTANT;
   }
 
   @Override
@@ -345,5 +348,11 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
     }
     return null;
+  }
+
+  @Override
+  public void updateExtraRunStats(RunStats runStats) {
+    runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
+    runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
   }
 }

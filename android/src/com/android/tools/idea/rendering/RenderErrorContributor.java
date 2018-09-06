@@ -805,7 +805,7 @@ public class RenderErrorContributor {
   private void reportOtherProblems(@NotNull RenderLogger logger, RenderTask task) {
     List<RenderProblem> messages = logger.getMessages();
 
-    if (messages == null || messages.isEmpty()) {
+    if (messages.isEmpty()) {
       return;
     }
 

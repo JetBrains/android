@@ -18,10 +18,23 @@ package com.android.tools.idea.uibuilder.handlers.relative.draw
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.SceneMouseInteraction
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
 class RelativeLayoutDecoratorTest: SceneTest() {
+
+  private var originalShowOnlySelection = false
+
+  override fun setUp() {
+    super.setUp()
+    originalShowOnlySelection = SceneContext.get().showOnlySelection()
+  }
+
+  override fun tearDown() {
+    SceneContext.get().setShowOnlySelection(originalShowOnlySelection)
+    super.tearDown()
+  }
 
   override fun createModel(): ModelBuilder {
     return model("relative.xml",
@@ -59,7 +72,7 @@ DrawProgressBar,225,225,50,50
 DrawNlComponentFrame,225,225,50,50,1,100,100
 UNClip
 """
-
+    SceneContext.get().setShowOnlySelection(false)
     checkModelDrawCommand(myModel, expectedSerializedList)
   }
 
@@ -79,7 +92,7 @@ DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 UNClip
 """
-
+    SceneContext.get().setShowOnlySelection(false)
     checkModelDrawCommand(builder.build(), expectedDrawCommand)
   }
 
@@ -129,7 +142,7 @@ HorizontalZigZagLineCommand - (0, 225, 250)
 HorizontalZigZagLineCommand - (275, 500, 250)
 UNClip
 """
-
+    SceneContext.get().setShowOnlySelection(false)
     checkModelDrawCommand(builder.build(), expectedDrawCommand)
   }
 
@@ -179,7 +192,7 @@ DrawVerticalArrowCommand - (475, 490, 500)
 DrawHorizontalArrowCommand - (490, 485, 485)
 UNClip
 """
-
+    SceneContext.get().setShowOnlySelection(false)
     checkModelDrawCommand(builder.build(), expectedDrawCommand)
   }
 
@@ -275,8 +288,92 @@ DrawHorizontalArrowCommand - (225, 280, 280)
 DrawVerticalDashedLineCommand: (225, 225) - (225, 285)
 UNClip
 """
-
+    SceneContext.get().setShowOnlySelection(false)
     checkModelDrawCommand(builder.build(), expectedDrawCommand)
+  }
+
+  fun testShowOnlySelectedComponent() {
+    val builder = model("relative.xml",
+                        component(RELATIVE_LAYOUT)
+                          .id("@+id/root")
+                          .withBounds(0, 0, 1000, 1000)
+                          .width("1000dp")
+                          .height("1000dp")
+                          .withAttribute("android:padding", "20dp")
+                          .children(
+                            component(PROGRESS_BAR)
+                              .id("@+id/a")
+                              .withBounds(450, 450, 100, 100)
+                              .width("100dp")
+                              .height("100dp")
+                              .withAttribute("android:layout_centerInParent", "true"),
+                            component(CHECK_BOX)
+                              .id("@+id/e")
+                              .withBounds(450, 530,60, 20)
+                              .width("100dp")
+                              .height("20dp")
+                              .withAttribute("android:layout_alignStart", "@+id/a")
+                              .withAttribute("android:layout_alignBottom", "@+id/a")
+                              .withAttribute("android:layout_marginStart", "-10dp")
+                              .withAttribute("android:layout_marginBottom", "-10dp"),
+                            component(SEEK_BAR)
+                              .id("@+id/f")
+                              .withBounds(490, 450, 60, 20)
+                              .width("100dp")
+                              .height("20dp")
+                              .withAttribute("android:layout_alignEnd", "@+id/a")
+                              .withAttribute("android:layout_alignTop", "@+id/a")
+                              .withAttribute("android:layout_marginEnd", "-10dp")
+                              .withAttribute("android:layout_marginTop", "-10dp"),
+                            component(SWITCH)
+                              .id("@+id/g")
+                              .withBounds(550, 430, 60, 20)
+                              .width("100dp")
+                              .height("20dp")
+                              .text("switch")
+                              .withAttribute("android:layout_toEndOf", "@+id/a")
+                              .withAttribute("android:layout_above", "@+id/a"),
+                            component(IMAGE_BUTTON)
+                              .id("@+id/h")
+                              .withBounds(390, 550, 60, 20)
+                              .width("100dp")
+                              .height("20dp")
+                              .withAttribute("android:layout_toStartOf", "@+id/a")
+                              .withAttribute("android:layout_below", "@+id/a")
+                          )
+    )
+
+    val expectedDrawCommand =
+      """DrawComponentBackground,0,0,500,500,1
+Clip,0,0,500,500
+DrawComponentBackground,225,225,50,50,1
+DrawProgressBar,225,225,50,50
+DrawComponentBackground,225,265,30,10,1
+DrawCheckbox,225,265,30,10,0,0,0.0,""
+DrawComponentBackground,245,225,30,10,1
+DrawSeekBar,245,225,30,10
+DrawComponentBackground,275,215,30,10,1
+DrawSwitch,275,215,30,10,0,0,false,false,2,2,14,1.0,"switch"
+DrawComponentBackground,195,275,30,10,3
+DrawNlComponentFrame,195,275,30,10,3,20,20
+DrawResize,193,273,4,4,0
+DrawResize,193,283,4,4,0
+DrawResize,223,273,4,4,0
+DrawResize,223,283,4,4,0
+DrawAnchor,192,277,6,6,0
+DrawAnchor,207,271,6,6,0
+DrawAnchor,222,277,6,6,0
+DrawAnchor,207,283,6,6,0
+DrawVerticalArrowCommand - (210, 275, 275)
+DrawHorizontalDashedLineCommand: (195, 275) - (275, 275)
+DrawHorizontalArrowCommand - (225, 280, 280)
+DrawVerticalDashedLineCommand: (225, 225) - (225, 285)
+UNClip
+"""
+    val model = builder.build()
+    SceneContext.get().setShowOnlySelection(true)
+    model.surface.selectionModel.setSelection(listOf(model.find("h")))
+    checkModelDrawCommand(model, expectedDrawCommand)
   }
 
   private fun checkModelDrawCommand(model: SyncNlModel, expectedSerializedCommand: String) {

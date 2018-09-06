@@ -58,7 +58,7 @@ class DurationDataRendererTest {
     }
     val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
-    durationData.setAttachPredicate { x -> x == 6L}
+    durationData.setAttachPredicate { data -> data.x == 6L}
 
     // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
     val mockIcon = mock(Icon::class.java)
