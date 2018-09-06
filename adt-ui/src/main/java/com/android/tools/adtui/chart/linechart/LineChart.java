@@ -417,7 +417,9 @@ public class LineChart extends AnimatedComponent {
     }
 
     // 1st pass - draw all the lines in the background.
-    drawLines(g2d, transformedPaths, myLinePathSeries, configs);
+    for (int i = 0; i < transformedPaths.size(); ++i) {
+      drawLine(g2d, transformedPaths.get(i), configs.get(i));
+    }
 
     // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
     myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathSeries));
@@ -425,39 +427,25 @@ public class LineChart extends AnimatedComponent {
     addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawStartTime) / 1e6);
   }
 
-  public static void drawLines(Graphics2D g2d,
-                               List<Path2D> transformedPaths,
-                               List<RangedContinuousSeries> seriesList,
-                               List<LineConfig> configs) {
-    assert transformedPaths.size() == configs.size() && seriesList.size() == configs.size();
+  public static void drawLine(@NotNull Graphics2D g2d,
+                              @NotNull Path2D path,
+                              @NotNull LineConfig config) {
+    g2d.setColor(config.getColor());
+    g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());
+    if (config.isStepped()) {
+      // In stepped mode, everything is at right angles, and turning off anti-aliasing
+      // in this case makes everything look sharper in a good way.
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
+    else {
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    }
 
-    for (int i = 0; i < transformedPaths.size(); ++i) {
-      Path2D path = transformedPaths.get(i);
-      RangedContinuousSeries series = seriesList.get(i);
-      LineConfig config = configs.get(i);
-      Color lineColor = config.getColor();
-
-      if (config.isMasked()) {
-        continue;
-      }
-
-      g2d.setColor(lineColor);
-      g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());
-      if (config.isStepped()) {
-        // In stepped mode, everything is at right angles, and turning off anti-aliasing
-        // in this case makes everything look sharper in a good way.
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-      }
-      else {
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      }
-
-      if (config.isFilled()) {
-        g2d.fill(path);
-      }
-      else {
-        g2d.draw(path);
-      }
+    if (config.isFilled()) {
+      g2d.fill(path);
+    }
+    else {
+      g2d.draw(path);
     }
   }
 

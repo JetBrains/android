@@ -19,27 +19,29 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class AllocationSamplingRateDurationData implements DurationData {
-  @NotNull private final AllocationSamplingRateEvent myOldRateEvent;
-  @NotNull private final AllocationSamplingRateEvent myNewRateEvent;
+  @Nullable private final AllocationSamplingRateEvent myPreviousRateEvent;
+  @NotNull private final AllocationSamplingRateEvent myCurrentRateEvent;
   private final long myDurationUs;
 
-  public AllocationSamplingRateDurationData(@NotNull AllocationSamplingRateEvent oldRateEvent,
-                                            @NotNull AllocationSamplingRateEvent newRateEvent) {
-    myOldRateEvent = oldRateEvent;
-    myNewRateEvent = newRateEvent;
-    myDurationUs = TimeUnit.NANOSECONDS.toMicros(newRateEvent.getTimestamp() - oldRateEvent.getTimestamp());
+  public AllocationSamplingRateDurationData(long durationUs,
+                                            @Nullable AllocationSamplingRateEvent previousRateEvent,
+                                            @NotNull AllocationSamplingRateEvent currentRateEvent) {
+    myDurationUs = durationUs;
+    myPreviousRateEvent = previousRateEvent;
+    myCurrentRateEvent = currentRateEvent;
+  }
+
+  @Nullable
+  public AllocationSamplingRateEvent getPreviousRateEvent() {
+    return myPreviousRateEvent;
   }
 
   @NotNull
-  public AllocationSamplingRateEvent getOldRateEvent() {
-    return myOldRateEvent;
-  }
-
-  @NotNull
-  public AllocationSamplingRateEvent getNewRateEvent() {
-    return myNewRateEvent;
+  public AllocationSamplingRateEvent getCurrentRateEvent() {
+    return myCurrentRateEvent;
   }
 
   @Override

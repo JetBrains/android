@@ -148,12 +148,23 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
     myDetailedMemoryUsage = new DetailedMemoryUsage(profilers, this);
 
+    myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->
+      // Do not show the object series during a heap dump.
+     !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName())
+    );
     myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
     myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
     myAllocationSamplingRateDurations.setAttachPredicate(data ->
-      MemoryProfilerStage.LiveAllocationSamplingMode
-        .getModeFromFrequency(data.value.getOldRateEvent().getSamplingRate().getSamplingNumInterval()) ==
-      MemoryProfilerStage.LiveAllocationSamplingMode.FULL
+       // The DurationData should attach to the Objects series at both the start and end of the FULL tracking mode region.
+       (data.value.getPreviousRateEvent() != null &&
+        data.value.getPreviousRateEvent().getSamplingRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue()) ||
+       data.value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue()
+    );
+    myAllocationSamplingRateDurations.setRenderSeriesPredicate((data, series) ->
+      // Only show the object series if live allocation is not enabled or if the current sampling rate is FULL.
+      !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName()) ||
+      (!useLiveAllocationTracking() ||
+       data.value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue())
     );
     myAllocationSamplingRateUpdatable  = new AllocationSamplingRateUpdatable();
 
@@ -793,7 +804,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
           return false;
         }
 
-        AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getOldRateEvent();
+        AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getCurrentRateEvent();
         return LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval()) ==
                LiveAllocationSamplingMode.FULL;
       });
@@ -879,7 +890,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         return;
       }
 
-      AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getNewRateEvent();
+      AllocationSamplingRateEvent samplingInfo = data.get(data.size() - 1).value.getCurrentRateEvent();
       LiveAllocationSamplingMode mode =
         LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingRate().getSamplingNumInterval());
       setLiveAllocationSamplingModelInternal(mode);
