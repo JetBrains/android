@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
 import com.android.tools.perflogger.Benchmark;
+import com.android.tools.perflogger.MedianWindowDeviationAnalyzer;
 import com.google.common.truth.Correspondence;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.openapi.project.Project;
@@ -137,8 +138,12 @@ public class AndroidProfilerTest {
     }
     finally {
       System.gc();
-      benchmark.log("total_time", System.currentTimeMillis() - benchmarkStart);
-      benchmark.log("total_mem", getMemoryUsed() - memoryUsedInitially);
+      benchmark.log("total_time",
+                    System.currentTimeMillis() - benchmarkStart,
+                    new MedianWindowDeviationAnalyzer.Builder().build());
+      benchmark.log("total_mem",
+                    getMemoryUsed() - memoryUsedInitially,
+                    new MedianWindowDeviationAnalyzer.Builder().build());
     }
   }
 
