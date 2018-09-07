@@ -91,7 +91,7 @@ public class NewImageAssetTest {
                                          "app/src/main/res/drawable-hdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxxhdpi/ic_stat_name.png");
+                                         "app/src/main/res/drawable-anydpi-v24/ic_stat_name.xml");
   }
 
   @NotNull
