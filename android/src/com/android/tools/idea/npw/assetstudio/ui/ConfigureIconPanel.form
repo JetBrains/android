@@ -75,7 +75,7 @@
                         </constraints>
                         <properties>
                           <text value="Image"/>
-                          <toolTipText value="Select an image from disk to generate Android icons for your app."/>
+                          <toolTipText value="Select an image, e.g. PNG, SVG, PSD, or a drawable from disk to generate Android icons for your app."/>
                         </properties>
                       </component>
                     </children>
