@@ -160,7 +160,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
     @Override
     protected void paintComponent(Graphics g) {
       Dimension size = getSize();
-      AllIcons.General.ComboArrowDown.paintIcon(this, g, 0, size.height / 2 - 2);
+      AllIcons.General.ArrowDownSmall.paintIcon(this, g, 0, size.height / 2 - 2);
     }
   }
 }

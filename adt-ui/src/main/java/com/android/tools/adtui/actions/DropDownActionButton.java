@@ -39,7 +39,7 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BU
  */
 public class DropDownActionButton extends ActionButtonWithText implements TextAccessor {
 
-  private static final Icon DROP_DOWN_ICON = AllIcons.General.Combo3;
+  private static final Icon DROP_DOWN_ICON = AllIcons.General.ArrowDown;
   private static final int ICON_TEXT_SPACE = JBUI.scale(4);
   private static final JBInsets INSETS = JBUI.insets(0, 4, 0, 2);
 
