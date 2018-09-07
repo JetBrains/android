@@ -63,6 +63,7 @@ import java.util.concurrent.TimeUnit;
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
   public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
+  public static final LiveAllocationSamplingMode DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE = LiveAllocationSamplingMode.SAMPLED;
 
   static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
@@ -201,7 +202,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     // It will be set properly in the AllocationSamplingRateUpdatable.
     myLiveAllocationSamplingMode = LiveAllocationSamplingMode.getModeFromFrequency(
       profilers.getIdeServices().getPersistentProfilerPreferences()
-               .getInt(LIVE_ALLOCATION_SAMPLING_PREF, LiveAllocationSamplingMode.SAMPLED.getValue())
+               .getInt(LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue())
     );
     myAllocationSamplingRateUpdatable.update(0);
   }
@@ -684,7 +685,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    */
   public void requestLiveAllocationSamplingModeUpdate(@NotNull LiveAllocationSamplingMode mode) {
     getStudioProfilers().getIdeServices().getPersistentProfilerPreferences().setInt(
-      LIVE_ALLOCATION_SAMPLING_PREF, mode.getValue(), LiveAllocationSamplingMode.SAMPLED.getValue()
+      LIVE_ALLOCATION_SAMPLING_PREF, mode.getValue(), DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue()
     );
 
     try {
@@ -910,7 +911,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     @NotNull
     static LiveAllocationSamplingMode getModeFromFrequency(int frequency) {
-      return MAP.getOrDefault(frequency, SAMPLED);
+      return MAP.getOrDefault(frequency, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE);
     }
   }
 }
