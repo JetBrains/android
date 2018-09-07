@@ -86,7 +86,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "Data BLOB");
       createUniqueIndex("Cpu_Data", "Session", "Timestamp");
       createUniqueIndex("Cpu_Trace", "Session", "TraceId");
-      createUniqueIndex("Thread_Activities", "Session", "ThreadId", "Timestamp");
+      createUniqueIndex("Thread_Activities", "Session", "Timestamp", "State");
       createUniqueIndex("Profiling_State", "Session", "Timestamp");
     }
     catch (SQLException ex) {
@@ -118,7 +118,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       "SELECT t1.ThreadId, t1.Name, t1.State, ? as ReqStart FROM Thread_Activities AS t1 " +
                       "JOIN (SELECT ThreadId, MAX(Timestamp) AS Timestamp " +
                       "FROM Thread_Activities WHERE Session = ? AND Timestamp <= ? GROUP BY ThreadId) AS t2 " +
-                      "ON t1.ThreadId = t2.ThreadId AND t1.Timestamp = t2.Timestamp AND t1.State <> 'DEAD' " +
+                      "ON t1.ThreadId = t2.ThreadId AND t1.Timestamp = t2.Timestamp " +
+                      "WHERE t1.Session = ? AND t1.Timestamp <= ? AND t1.State <> 'DEAD' " +
                       "UNION ALL " +
                       // Then fetch all the activities that happened in the request interval
                       "SELECT ThreadId, Name, State, Timestamp FROM Thread_Activities " +
@@ -181,14 +182,18 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     Map<Integer, GetThreadsResponse.Thread.Builder> threads = new TreeMap<>();
     try {
       ResultSet activities = executeQuery(CpuStatements.QUERY_THREAD_ACTIVITIES,
-                                          // Used as the timestamp of the states that happened before the request
+                                          // Used as the timestamp of the states that happened before the request.
                                           request.getStartTimestamp(),
+                                          // Used to get the the states that happened before the request.
                                           request.getSession().getSessionId(),
-                                          // Used to get the the states that happened before the request
                                           request.getStartTimestamp(),
+                                          // Used for index.
                                           request.getSession().getSessionId(),
+                                          request.getStartTimestamp(),
+                                          // Used for all activities that happened in the request interval.
                                           // The start and end timestamps below are used to get the activities that
-                                          // happened in the interval (start, end]
+                                          // happened in the interval (start, end].
+                                          request.getSession().getSessionId(),
                                           request.getStartTimestamp(),
                                           request.getEndTimestamp());
       while (activities.next()) {
