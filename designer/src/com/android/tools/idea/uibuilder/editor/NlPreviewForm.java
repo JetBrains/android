@@ -462,12 +462,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
   public void fileClosed(@NotNull FileEditorManager editorManager, @NotNull VirtualFile file) {
-    if (myEditor != null) {
+    if (myEditor != null && file.equals(myFile)) {
       if (ArrayUtil.find(editorManager.getAllEditors(file), myEditor) < 0) {
         setActiveModel(null);
       }
     }
-    if (myPendingEditor != null) {
+    if (myPendingEditor != null && file.equals(myPendingEditor.getFile())) {
       if (ArrayUtil.find(editorManager.getAllEditors(file), myPendingEditor) < 0) {
         myPendingEditor = null;
       }
