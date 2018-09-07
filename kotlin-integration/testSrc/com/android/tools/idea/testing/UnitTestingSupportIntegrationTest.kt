@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.impl.ExecutionManagerKtImpl
@@ -78,6 +83,14 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       log("Command-line tests done")
       VirtualFileManager.getInstance().syncRefresh()
       log("Vfs synced")
+    }
+  }
+
+  override fun tearDown() {
+    try {
+      UsageTracker.cleanAfterTesting()
+    } finally {
+      super.tearDown()
     }
   }
 
@@ -214,6 +227,9 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     val testingFinished = CountDownLatch(1)
     val failure = AtomicReference<Throwable>()
 
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    UsageTracker.setWriterForTest(tracker)
+
     runInEdtAndWait {
       try {
         val busConnection = myFixture.project.messageBus.connect(project)
@@ -255,10 +271,24 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
     // Make sure we don't hang the entire build here.
     assertTrue("Timed out", testingFinished.await(1, TimeUnit.MINUTES))
+    UsageTracker.cleanAfterTesting()
+
     failure.get()?.let { throw it }
 
     log("Checking $className")
     assertThat(passingTests).containsExactlyElementsIn(expectedTests)
     assertThat(failingTests).isEmpty()
+
+    val events = tracker.usages
+      .map { it.studioEvent }
+      .filter { it.kind == AndroidStudioEvent.EventKind.TEST_RUN }
+
+    assertThat(events).hasSize(1)
+    val testRun = events.single().testRun
+
+    assertThat(testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_TEST)
+    assertThat(testRun.testKind).isEqualTo(TestRun.TestKind.UNIT_TEST)
+    assertThat(testRun.numberOfTestsExecuted).isEqualTo(expectedTests.size)
+    assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.7.1")
   }
 }
