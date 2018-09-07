@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
@@ -369,11 +370,24 @@ public class TemplateTest extends AndroidGradleTestCase {
     templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
 
+  private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
+    Integer targetApi = (Integer) templateMap.get(ATTR_TARGET_API);
+    if (targetApi != null && targetApi >= 22) {
+      projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
+      templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
+    }
+  });
+
   //--- Activity templates ---
 
   @TemplateCheck
   public void testNewBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewBasicActivityWithAndroidx() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
   }
 
   @TemplateCheck
@@ -1423,6 +1437,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProjectNow(@NotNull String projectName,
                                @NotNull TestNewProjectWizardState projectState,
                                @Nullable TestTemplateWizardState activityState) throws Exception {
+    //if (activityState != null && activityState.get(ATTR_ANDROIDX_SUPPORT) != Boolean.TRUE) {
+    //  return;
+    //}
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
