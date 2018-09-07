@@ -37,6 +37,13 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
   private final boolean myDebugRenderingEnabled;
 
   /**
+   * The current frame that the mouse is over.
+   */
+  private AtraceFrame myHighlightedFrame = AtraceFrame.EMPTY;
+
+  private JList<CpuFramesModel.FrameState> myCpuStates;
+
+  /**
    * Creates a new {@link CpuFramesCellRenderer}, this cell renderer creates a label, as well as a {@link StateChart} for each element
    * in the list. The {@link AtraceDataSeries} returned by {@link CpuFramesModel.FrameState} is used to populate the {@link StateChart}.
    * All items with a process id matching the process id passed in are highlighted one color, while everything else is a different color.
@@ -44,6 +51,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
   public CpuFramesCellRenderer(@NotNull FeatureConfig featureConfig,
                                @NotNull JList<CpuFramesModel.FrameState> cpuStateList) {
     super(cpuStateList);
+    myCpuStates = cpuStateList;
     myDebugRenderingEnabled = featureConfig.isPerformanceMonitoringEnabled();
   }
 
@@ -83,6 +91,29 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
     return panel;
   }
 
+  private void repaint() {
+    myCpuStates.repaint();
+  }
+
+  void setHighlightedFrame(@NotNull AtraceFrame frame) {
+    if (myHighlightedFrame != frame) {
+      myHighlightedFrame = frame;
+      // We force the whole list to be repainted as we need the associated frame to be repainted as well.
+      repaint();
+    }
+  }
+
+  /**
+   * Checks if the frame should be highlighted or not.
+   * A frame should be highlighted if the mouse is over it or over a frame that is associated with it.
+   */
+  private boolean isFrameHighlighted(@NotNull AtraceFrame frame) {
+    if (myHighlightedFrame == AtraceFrame.EMPTY) {
+      return false;
+    }
+    return frame == myHighlightedFrame || frame == myHighlightedFrame.getAssociatedFrame();
+  }
+
   /**
    * Returns a {@link StateChart} corresponding to a given thread or create a new one if it doesn't exist.
    */
@@ -98,11 +129,16 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
                                                             @Override
                                                             public Color getColor(boolean isMouseOver,
                                                                                   @NotNull AtraceFrame value) {
+                                                              boolean isHighlighted = isFrameHighlighted(value);
                                                               switch (value.getPerfClass()) {
                                                                 case BAD:
-                                                                  return ProfilerColors.SLOW_FRAME_COLOR;
+                                                                  return isHighlighted
+                                                                         ? ProfilerColors.SLOW_FRAME_COLOR_HIGHLIGHTED
+                                                                         : ProfilerColors.SLOW_FRAME_COLOR;
                                                                 case GOOD:
-                                                                  return ProfilerColors.NORMAL_FRAME_COLOR;
+                                                                  return isHighlighted
+                                                                         ? ProfilerColors.NORMAL_FRAME_COLOR_HIGHLIGHTED
+                                                                         : ProfilerColors.NORMAL_FRAME_COLOR;
                                                                 default:
                                                                   return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
                                                               }

@@ -30,6 +30,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JSeparator
 
 class CpuFrameTooltipViewTest {
 
@@ -67,15 +69,81 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun textUpdateOnRangeChange() {
-    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0)),
-                               SeriesData(2, AtraceFrame(0, { _ -> 1L }, 0)))
+    val mainFrame = AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)
+    val renderFrame = AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)
+    mainFrame.associatedFrame = renderFrame
+    renderFrame.associatedFrame = mainFrame
+
+    val frames = mutableListOf(SeriesData(0, mainFrame), SeriesData(2, renderFrame))
     val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
     tooltip.setFrameSeries(series)
     val labels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
-    assertThat(labels).hasSize(3)
+    assertThat(labels).hasSize(7)
     assertThat(labels[0].text).isEqualTo("00:00.000")
-    assertThat(labels[1].text).contains("CPU Time:")
-    assertThat(labels[2].text).contains("Total Time:")
+    assertThat(labels[1].text).contains("Main Thread:")
+    assertThat(labels[2].text).contains("CPU Time:")
+    assertThat(labels[3].text).contains("Total Time:")
+    assertThat(labels[4].text).contains("Render Thread:")
+    assertThat(labels[5].text).contains("CPU Time:")
+    assertThat(labels[6].text).contains("Total Time:")
+
+    val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
+    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
+    assertThat(panels).hasSize(4)
+
+    assertThat(panels[1].isVisible).isTrue()
+    assertThat(panels[2].isVisible).isTrue()
+    assertThat(panels[3].isVisible).isTrue()
+
+    assertThat(separator.isVisible).isTrue()
+  }
+
+  @Test
+  fun renderFramePanelAndSeparatorShouldBeHidden() {
+    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)))
+    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    tooltip.setFrameSeries(series)
+    val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
+    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
+    assertThat(panels).hasSize(4)
+
+    assertThat(panels[1].isVisible).isTrue()
+    assertThat(panels[2].isVisible).isTrue()
+    assertThat(panels[3].isVisible).isFalse()
+
+    assertThat(separator.isVisible).isFalse()
+  }
+
+  @Test
+  fun mainFramePanelAndSeparatorShouldBeHidden() {
+    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)))
+    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    tooltip.setFrameSeries(series)
+    val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
+    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
+    assertThat(panels).hasSize(4)
+
+    assertThat(panels[1].isVisible).isTrue()
+    assertThat(panels[2].isVisible).isFalse()
+    assertThat(panels[3].isVisible).isTrue()
+
+    assertThat(separator.isVisible).isFalse()
+  }
+
+  @Test
+  fun allPanelsShouldBeHidden() {
+    val frames = mutableListOf<SeriesData<AtraceFrame>>()
+    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    tooltip.setFrameSeries(series)
+    val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
+    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
+    assertThat(panels).hasSize(4)
+
+    assertThat(panels[1].isVisible).isFalse()
+    assertThat(panels[2].isVisible).isFalse()
+    assertThat(panels[3].isVisible).isFalse()
+
+    assertThat(separator.isVisible).isFalse()
   }
 
   private class FakeCpuFrameTooltipView(

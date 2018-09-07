@@ -34,8 +34,11 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
 
   @NotNull private final AspectObserver myAspectObserver;
 
+  /**
+   * The default value such that any frame taking longer than this value will be marked as bad.
+   */
   //TODO (b/74404740): Make this configurable.
-  private static final long SLOW_FRAME_RATE_US = TimeUnit.MILLISECONDS.toMicros(17);
+  public static final long SLOW_FRAME_RATE_US = TimeUnit.MILLISECONDS.toMicros(17);
 
   public CpuFramesModel(@NotNull Range range, @NotNull CpuProfilerStage stage) {
     myRange = range;

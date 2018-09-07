@@ -27,11 +27,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * An atrace frame represents all events that happen on a specified thread,
  * Each frame implements parts of {@link DurationData} for easy use in UI components.
- * The frame is a container and is produced by {@link AtraceFrameFactory}.
+ * The frame is a container and is produced by {@link AtraceFrameManager}.
  */
 public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements DurationData {
   private static final double SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1);
-  public static final AtraceFrame EMPTY = new AtraceFrame(0, (t) -> 0L, 0);
+  public static final AtraceFrame EMPTY = new AtraceFrame(0, (t) -> 0L, 0, FrameThread.OTHER);
 
   /**
    * A rating for this frame's performance, based against some expected time. The expected time
@@ -51,6 +51,19 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
      */
     BAD,
   }
+
+  public enum FrameThread {
+    MAIN,
+    RENDER,
+    OTHER,
+  }
+
+  /**
+   * Links to the frame associated with this frame.
+   * If this frame is a main thread frame, then the associated frame is the render thread frame that is created by this frame.
+   * If this frame is a render thread frame, then the associated frame is the main thread frame that created this render thread frame.
+   */
+  private AtraceFrame myAssociatedFrame;
 
   /**
    * Range that represents the absolute min and max times of all ranges contained within this frame.
@@ -79,16 +92,31 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
 
   private final int myThreadId;
 
+  private final FrameThread myThread;
+
   /**
    * Constructs a basic frame that has no slice information.
    */
-  public AtraceFrame(int threadId, @NotNull Function<Double, Long> bootClockSecondsToMonoUs, long longFrameTimeUs) {
+  public AtraceFrame(int threadId, @NotNull Function<Double, Long> bootClockSecondsToMonoUs, long longFrameTimeUs, FrameThread thread) {
     super(0, 0, PerfClass.NOT_SET);
     myTotalRangeSeconds = new Range();
     myBootClockSecondsToMonoUs = bootClockSecondsToMonoUs;
     myLongFrameTimeUs = longFrameTimeUs;
     myThreadId = threadId;
     myPerfClass = PerfClass.NOT_SET;
+    myThread = thread;
+  }
+
+  public FrameThread getThread() {
+    return myThread;
+  }
+
+  public void setAssociatedFrame(AtraceFrame associatedFrame) {
+    myAssociatedFrame = associatedFrame;
+  }
+
+  public AtraceFrame getAssociatedFrame() {
+    return myAssociatedFrame;
   }
 
   /**
@@ -152,7 +180,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
   }
 
   /**
-   * Function called by the {@link AtraceFrameFactory} to add slices to the frame that fall within the scope of the frame.
+   * Function called by the {@link AtraceFrameManager} to add slices to the frame that fall within the scope of the frame.
    *
    * @param sliceGroup Top level slice group that occurs within this frame.
    * @param range      Range of the sliceGroup.
