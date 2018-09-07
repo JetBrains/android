@@ -705,7 +705,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private AbstractAction createNewResourceAction() {
-    return new AbstractAction("New Resource", AllIcons.General.ComboArrowDown) {
+    return new AbstractAction("New Resource", AllIcons.General.ArrowDownSmall) {
       @Override
       public void actionPerformed(ActionEvent e) {
         JComponent component = (JComponent)e.getSource();
