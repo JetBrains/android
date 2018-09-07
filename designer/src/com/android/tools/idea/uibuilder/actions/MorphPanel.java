@@ -82,13 +82,13 @@ public class MorphPanel extends JPanel {
     myOkButton.addActionListener(e -> doOkAction());
     setupTextTagField(oldTag);
     setupButtonList(tagSuggestions);
-    myShowMoreLabel.setIcon(AllIcons.General.ComboArrowRight);
+    myShowMoreLabel.setIcon(AllIcons.General.ArrowRight);
     myShowMoreLabel.setText("Show XML preview");
     myShowMoreLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
         myEditor.setVisible(!myEditor.isVisible());
-        myShowMoreLabel.setIcon(myEditor.isVisible() ? AllIcons.General.ComboArrowDown : AllIcons.General.ComboArrowRight);
+        myShowMoreLabel.setIcon(myEditor.isVisible() ? AllIcons.General.ArrowDownSmall : AllIcons.General.ArrowRight);
         Window window = UIUtil.getWindow(e.getComponent());
         if (window != null) {
           window.pack();
