@@ -127,7 +127,7 @@ public class AddRemoveCppDependencyTest {
     ideFixture
       .openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
       .selectCMakeBuildSystem()
-      .enterCMakeListsPath(guiTest.getProjectPath("app/CMakeLists.txt").getAbsolutePath())
+      .enterCMakeListsPath(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath())
       .clickOk()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
