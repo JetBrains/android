@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator.INVALID_COLOR_VALUE;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator.INVALID_BORDER_WIDTH_VALUE;
 import static java.awt.geom.PathIterator.SEG_CLOSE;
 import static java.awt.geom.PathIterator.SEG_CUBICTO;
 import static java.awt.geom.PathIterator.SEG_LINETO;
@@ -24,10 +22,6 @@ import static java.awt.geom.PathIterator.SEG_MOVETO;
 import static java.awt.geom.PathIterator.SEG_QUADTO;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.PathStringBuilder;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
@@ -38,8 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class ShapeModel {
 
-  protected final double myParentOpacity;
-  @Nullable protected SketchStyle shapeStyle;
+  private static final int DEFAULT_BORDER_WIDTH_VALUE = 0;
+  private static final int DEFAULT_COLOR_VALUE = 0;
+
+  @Nullable protected StyleModel shapeStyle;
   protected boolean isFlippedHorizontal;
   protected boolean isFlippedVertical;
   protected boolean isClosed;
@@ -52,7 +48,7 @@ public abstract class ShapeModel {
   @NotNull private Shape shape;
 
   public ShapeModel(@NotNull Shape shape,
-                    @Nullable SketchStyle style,
+                    @Nullable StyleModel style,
                     boolean flippedHorizontal,
                     boolean flippedVertical,
                     boolean closed,
@@ -61,10 +57,8 @@ public abstract class ShapeModel {
                     @NotNull Point2D.Double framePosition,
                     boolean hasClippingMask,
                     boolean shouldBreakMaskChain,
-                    boolean isLastShapeGroup,
-                    double parentOpacity) {
+                    boolean isLastShapeGroup) {
     this.shape = shape;
-    myParentOpacity = parentOpacity;
     isFlippedHorizontal = flippedHorizontal;
     isFlippedVertical = flippedVertical;
     isClosed = closed;
@@ -74,12 +68,7 @@ public abstract class ShapeModel {
     this.hasClippingMask = hasClippingMask;
     this.shouldBreakMaskChain = shouldBreakMaskChain;
     isLastShape = isLastShapeGroup;
-
-    if (style != null) {
-      shapeStyle = style;
-      shapeStyle.makeGradientRelative(this.shape);
-      shapeStyle.applyParentOpacity(myParentOpacity);
-    }
+    shapeStyle = style;
   }
 
   @NotNull
@@ -92,42 +81,30 @@ public abstract class ShapeModel {
   }
 
   @Nullable
-  public SketchBorder getShapeBorder() {
-    SketchBorder[] sketchBorders = shapeStyle != null ? shapeStyle.getBorders() : null;
-    return sketchBorders != null ? sketchBorders[0] : null;
+  public BorderModel getShapeBorder() {
+    return shapeStyle != null ? shapeStyle.getBorder() : null;
   }
 
-  public int getBorderColor(){
-    SketchBorder sketchBorder = getShapeBorder();
-    return sketchBorder != null ? sketchBorder.getColor().getRGB() : INVALID_COLOR_VALUE;
+  public int getBorderColor() {
+    return getShapeBorder() != null ? getShapeBorder().getColor().getRGB() : DEFAULT_COLOR_VALUE;
   }
 
-  public int getBorderWidth(){
-    SketchBorder sketchBorder = getShapeBorder();
-    return sketchBorder != null ? sketchBorder.getThickness() : INVALID_BORDER_WIDTH_VALUE;
+  public int getBorderWidth() {
+    return getShapeBorder() != null ? getShapeBorder().getWidth() : DEFAULT_BORDER_WIDTH_VALUE;
   }
 
   @Nullable
-  public SketchFill getFill() {
-    SketchFill[] sketchFills = shapeStyle != null ? shapeStyle.getFills() : null;
-    return sketchFills != null ? sketchFills[0] : null;
+  public FillModel getFill() {
+    return shapeStyle != null ? shapeStyle.getFill() : null;
   }
 
-  public int getFillColor(){
-    SketchFill sketchFill = getFill();
-    return sketchFill != null ? sketchFill.getColor().getRGB() : INVALID_COLOR_VALUE;
-  }
-
-  //Method will be removed once this CL is merged with the StyleModel CL
-  public boolean hasFillEnabled(){
-    SketchFill fill = getFill();
-    return fill != null && fill.isEnabled();
+  public int getFillColor() {
+    return getFill() != null ? getFill().getColor().getRGB() : DEFAULT_COLOR_VALUE;
   }
 
   @Nullable
-  public SketchGradient getGradient(){
-    SketchFill fill = getFill();
-    return fill != null ? fill.getGradient() : null;
+  public GradientModel getGradient() {
+    return getFill() != null ? getFill().getGradientModel() : null;
   }
 
   /**
@@ -239,9 +216,8 @@ public abstract class ShapeModel {
    * @param transform
    */
   protected void transformGradient(@NotNull AffineTransform transform) {
-    SketchFill[] shapeFills = shapeStyle != null ? shapeStyle.getFills() : null;
-    SketchFill shapeFill = shapeFills != null && shapeFills.length != 0 ? shapeFills[0] : null;
-    SketchGradient shapeGradient = shapeFill != null ? shapeFill.getGradient() : null;
+    FillModel shapeFill = shapeStyle != null ? shapeStyle.getFill() : null;
+    GradientModel shapeGradient = shapeFill != null ? shapeFill.getGradientModel() : null;
     if (shapeGradient != null) {
       shapeGradient.applyTransformation(transform);
     }
@@ -249,7 +225,7 @@ public abstract class ShapeModel {
 
   public void applyOpacity(double parentOpacity) {
     if (shapeStyle != null) {
-      shapeStyle.applyParentOpacity(parentOpacity);
+      shapeStyle.applyOpacity(parentOpacity);
     }
   }
 

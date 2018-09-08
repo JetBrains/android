@@ -20,11 +20,16 @@ import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.dese
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AreaModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.BorderModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.FillModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.GradientModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.GradientStopModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StyleModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignSymbol;
@@ -36,11 +41,14 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchCurvePoint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchExportFormat;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradientStop;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicsContextSettings;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapeGroup;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.android.tools.layoutlib.annotations.NotNull;
@@ -50,6 +58,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import org.jetbrains.annotations.Nullable;
 
 public class SketchToStudioConverter {
   public static final int DEFAULT_OPACITY = 1;
@@ -98,7 +107,7 @@ public class SketchToStudioConverter {
       if (layer instanceof SketchShapeGroup) {
         shapes.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, new Point2D.Double(), false, DEFAULT_OPACITY));
       }
-      else if (layer instanceof SketchPage) {
+      else if (layer instanceof SketchLayerable) {
         shapes.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, new Point2D.Double(), DEFAULT_OPACITY, symbolsLibrary));
       }
     }
@@ -196,8 +205,14 @@ public class SketchToStudioConverter {
     SketchShapePath baseSketchShapePath = (SketchShapePath)layers[0];
 
     Path2D.Double baseShapePath = getPath2D(baseSketchShapePath);
+    StyleModel styleModel = createStyleModel(shapeGroup.getStyle());
+    if (styleModel != null) {
+      styleModel.makeGradientRelative(baseShapePath);
+      styleModel.applyOpacity(parentOpacity);
+    }
+
     PathModel finalShape = new PathModel(baseShapePath,
-                                         shapeGroup.getStyle(),
+                                         styleModel,
                                          baseSketchShapePath.isFlippedHorizontal(),
                                          baseSketchShapePath.isFlippedVertical(),
                                          baseSketchShapePath.isClosed(),
@@ -206,8 +221,7 @@ public class SketchToStudioConverter {
                                          baseSketchShapePath.getFramePosition(),
                                          shapeGroup.hasClippingMask(),
                                          shapeGroup.shouldBreakMaskChain(),
-                                         isLastShapeGroup,
-                                         parentOpacity);
+                                         isLastShapeGroup);
 
     // If the shapegroup has just one layer, there will be no shape operation.
     // Therefore, no conversion to area needed.
@@ -238,7 +252,7 @@ public class SketchToStudioConverter {
   private static PathModel createPathModel(@NotNull SketchShapePath shapePath) {
     return new PathModel(getPath2D(shapePath), null, shapePath.isFlippedHorizontal(), shapePath.isFlippedVertical(),
                          shapePath.isClosed(), shapePath.getRotation(),
-                         shapePath.getBooleanOperation(), shapePath.getFramePosition(), false, false, false, DEFAULT_OPACITY);
+                         shapePath.getBooleanOperation(), shapePath.getFramePosition(), false, false, false);
   }
 
   @NotNull
@@ -281,13 +295,63 @@ public class SketchToStudioConverter {
       if (layer instanceof SketchShapeGroup) {
         builder.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, newParentCoords, isLastGroupElement, parentOpacity));
       }
-      else if (layer instanceof SketchPage) {
-        builder.addAll(createShapeModelsFromLayerable((SketchPage)layer, newParentCoords, parentOpacity, symbolsLibrary));
+      else if (layer instanceof SketchLayerable) {
+        builder.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, newParentCoords, parentOpacity, symbolsLibrary));
       }
     }
 
     return builder.build();
   }
+
+  @Nullable
+  private static StyleModel createStyleModel(@Nullable SketchStyle sketchStyle) {
+    if (sketchStyle == null) {
+      return null;
+    }
+    else {
+      SketchGraphicsContextSettings styleGraphicsContextSettings = sketchStyle.getContextSettings();
+      double styleOpacity = styleGraphicsContextSettings != null ? styleGraphicsContextSettings.getOpacity() : DEFAULT_OPACITY;
+
+      SketchBorder[] sketchBorders = sketchStyle.getBorders();
+      SketchBorder sketchBorder = sketchBorders != null && sketchBorders.length != 0 ? sketchBorders[0] : null;
+      BorderModel borderModel = sketchBorder != null && sketchBorder.isEnabled()
+                                ? new BorderModel(sketchBorder.getThickness(), sketchBorder.getColor())
+                                : null;
+
+      SketchFill[] sketchFills = sketchStyle.getFills();
+      SketchFill sketchFill = sketchFills != null && sketchFills.length != 0 ? sketchFills[0] : null;
+      FillModel fillModel = null;
+      if (sketchFill != null && sketchFill.isEnabled()) {
+        SketchGradient sketchGradient = sketchFill.getGradient();
+        GradientModel gradientModel = createGradientModel(sketchGradient);
+
+        SketchGraphicsContextSettings fillGraphicsContextSettings = sketchFill.getContextSettings();
+        double fillOpacity = fillGraphicsContextSettings != null ? fillGraphicsContextSettings.getOpacity() : DEFAULT_OPACITY;
+
+        fillModel = new FillModel(sketchFill.getColor(), gradientModel, fillOpacity);
+      }
+
+      return new StyleModel(fillModel, borderModel, styleOpacity);
+    }
+  }
+
+  @Nullable
+  private static GradientModel createGradientModel(@Nullable SketchGradient sketchGradient) {
+    if (sketchGradient == null) {
+      return null;
+    }
+    else {
+      SketchGradientStop[] gradientStops = sketchGradient.getStops();
+      GradientStopModel[] gradientStopModels = new GradientStopModel[gradientStops.length];
+      for (int i = 0; i < gradientStops.length; i++) {
+        SketchGradientStop gradientStop = gradientStops[i];
+        gradientStopModels[i] = new GradientStopModel(gradientStop.getPosition(), gradientStop.getColor());
+      }
+
+      return new GradientModel(sketchGradient.getGradientType(), sketchGradient.getFrom(), sketchGradient.getTo(), gradientStopModels);
+    }
+  }
+
 
   @NotNull
   private static ShapeModel transformShapeGroup(@NotNull SketchShapeGroup shapeGroup,
