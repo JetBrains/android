@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
@@ -45,19 +47,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.exportSignedPackage.ChooseBundleOrApkStep;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import org.jetbrains.android.exportSignedPackage.ChooseBundleOrApkStep;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Various utility methods to navigate through various parts (dynamic features, base split, etc.)
@@ -130,6 +132,22 @@ public class DynamicAppUtils {
       return true;
     }
     return androidModule.getAndroidProject().getDynamicFeatures().isEmpty();
+  }
+
+  /**
+   * Returns {@code true} if the base module is instant enabled
+   */
+  @NotNull
+  public static boolean baseIsInstantEnabled(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidModuleModel model = AndroidModuleModel.get(module);
+      if (model != null && model.getAndroidProject().isBaseSplit()) {
+        if (model.getSelectedVariant().isInstantAppCompatible()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @NotNull
