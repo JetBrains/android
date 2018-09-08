@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.scene.Placeholder
+import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.grid.targets.GridDragTarget
@@ -31,8 +35,17 @@ import com.google.common.collect.ImmutableList
 
 open class GridLayoutHandler : ViewGroupHandler() {
 
+  protected open val namespace = SdkConstants.ANDROID_URI
+
   override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler =
       GridDragHandler(editor, this, layout, components, type)
+
+  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+    newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_ROW)
+    newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_COLUMN)
+    newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_ROW_SPAN)
+    newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_COLUMN_SPAN)
+  }
 
   override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
 
@@ -45,8 +58,27 @@ open class GridLayoutHandler : ViewGroupHandler() {
     return listBuilder.build()
   }
 
-  open internal fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = false))
+  protected open fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) {
+    listBuilder.add(GridDragTarget(isSupportLibrary = false))
+  }
 
-  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
-      ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }
+  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) {
+    ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }
+  }
+
+  override fun getPlaceholders(component: SceneComponent): List<Placeholder> {
+    val listBuilder = ImmutableList.builder<Placeholder>()
+    val barrier = getGridBarriers(component)
+    for (row in 0 until barrier.rows.lastIndex) {
+      for (column in 0 until barrier.columns.lastIndex) {
+        val left = barrier.columns[column]
+        val top = barrier.rows[row]
+        val right = barrier.columns[column + 1]
+        val bottom = barrier.rows[row + 1]
+        val r = Region(left, top, right, bottom, component.depth)
+        listBuilder.add(GridPlaceholder(r, row, column, namespace, component))
+      }
+    }
+    return listBuilder.build()
+  }
 }
