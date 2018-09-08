@@ -309,7 +309,7 @@ filegroup(
             "//tools/base/deploy/installer:android",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
-    }),
+    }) + ["//tools/base/deploy/deployer:java_version"],
     visibility = ["//visibility:public"],
 )
 
