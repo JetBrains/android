@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
@@ -29,7 +28,7 @@ public class PathModel extends ShapeModel {
   private final Path2D.Double path;
 
   public PathModel(@NotNull Path2D.Double shape,
-                   @Nullable SketchStyle style,
+                   @Nullable StyleModel style,
                    boolean flippedHorizontal,
                    boolean flippedVertical,
                    boolean closed,
@@ -38,9 +37,9 @@ public class PathModel extends ShapeModel {
                    @NotNull Point2D.Double framePosition,
                    boolean hasClippingMask,
                    boolean shouldBreakMaskChain,
-                   boolean isLastShapeGroup, double parentOpacity) {
+                   boolean isLastShapeGroup) {
     super(shape, style, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
-          shouldBreakMaskChain, isLastShapeGroup, parentOpacity);
+          shouldBreakMaskChain, isLastShapeGroup);
     path = shape;
   }
 
@@ -50,7 +49,7 @@ public class PathModel extends ShapeModel {
     }
     return new AreaModel(new Area(path), shapeStyle, isFlippedHorizontal, isFlippedVertical, isClosed, rotationDegrees,
                          shapeOperation,
-                         shapeFrameCoordinates, hasClippingMask, shouldBreakMaskChain, isLastShape, myParentOpacity);
+                         shapeFrameCoordinates, hasClippingMask, shouldBreakMaskChain, isLastShape);
   }
 
   private void closeShape() {

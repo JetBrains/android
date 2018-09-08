@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-import java.awt.Color;
-import java.awt.Shape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
  * Mimics the JSON element with attribute <code>"_class": "style"</code> contained within a sketch file.
  */
 public class SketchStyle {
-  public final static short DEFAULT_BLENDING_MODE = 0;
   public final SketchGraphicsContextSettings DEFAULT_CONTEXT_SETTINGS = new SketchGraphicsContextSettings((short)0, (short)1);
   private final SketchBorderOptions borderOptions;
   private final SketchBorder[] borders;
@@ -40,7 +37,7 @@ public class SketchStyle {
    * <li>opacity: 1</li>
    * </ul>
    */
-  private SketchGraphicsContextSettings contextSettings;
+  private final SketchGraphicsContextSettings contextSettings;
 
   public SketchStyle(@Nullable SketchBorderOptions borderOptions,
                      @Nullable SketchBorder[] borders,
@@ -102,57 +99,5 @@ public class SketchStyle {
     if (getFills() != null && getFills().length != 0) {
       getFills()[0] = fill;
     }
-  }
-
-  /**
-   * This method applies the overall opacity of the group on its fill and border, by modifying
-   * the existing {@link SketchGraphicContextSettings} object, or creating a new one, if it doesn't exist
-   *
-   * @param parentOpacity
-   */
-  public void applyParentOpacity(double parentOpacity) {
-    SketchFill[] shapeFills = getFills();
-    SketchBorder[] shapeBorders = getBorders();
-    if (contextSettings != null) {
-      contextSettings.addOpacity(parentOpacity);
-    }
-    else {
-      contextSettings = new SketchGraphicsContextSettings(DEFAULT_BLENDING_MODE, parentOpacity);
-    }
-
-    if (shapeFills != null) {
-      SketchFill fill = shapeFills[0];
-      if (fill != null) {
-        fill.applyGraphicContextSettings(contextSettings);
-      }
-    }
-    if (shapeBorders != null) {
-      SketchBorder border = shapeBorders[0];
-      if (border != null) {
-        border.applyGraphicContextSettings(contextSettings);
-      }
-    }
-  }
-
-  /**
-   * This method transforms the gradient's coordinates from percentages to coordinates
-   * relative to the shape itself. The coordinates, however, are not absolute because the
-   * shape might need extra translations.
-   *
-   * @param shape
-   */
-  public void makeGradientRelative(@NotNull Shape shape) {
-    SketchFill[] shapeFills = getFills();
-    SketchFill shapeFill = shapeFills != null && shapeFills.length != 0 ? shapeFills[0] : null;
-    SketchGradient shapeGradient = shapeFill != null ? shapeFill.getGradient() : null;
-    if (shapeGradient != null) {
-      shapeGradient.toRelativeGradient(shape.getBounds2D());
-    }
-  }
-
-  @NotNull
-  protected static Color addAlpha(Color color, double opacity) {
-    //noinspection UseJBColor
-    return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(color.getAlpha() * opacity));
   }
 }

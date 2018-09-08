@@ -13,29 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
+package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import java.awt.Color;
-import org.jetbrains.annotations.NotNull;
+public interface TransparentModel {
 
-/**
- * Mimics the JSON element with attribute <code>"_class": "gradientStop"</code> contained within a sketch file.
- */
-public class SketchGradientStop {
-  private final double position;
-  private final Color color;
+  double getOpacity();
 
-  public SketchGradientStop(@NotNull Color color, double position) {
-    this.color = color;
-    this.position = position;
-  }
-
-  @NotNull
-  public Color getColor() {
-    return color;
-  }
-
-  public double getPosition() {
-    return position;
-  }
+  void applyOpacity(double opacity);
 }

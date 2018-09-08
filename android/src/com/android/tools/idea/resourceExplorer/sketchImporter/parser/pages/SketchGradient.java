@@ -15,25 +15,12 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-import com.intellij.openapi.diagnostic.Logger;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Mimics the JSON element with attribute <code>"_class": "gradient"</code> contained within a sketch file.
  */
 public class SketchGradient {
-  public static final Logger LOG = Logger.getInstance(SketchGradient.class);
-  public static final String GRADIENT_LINEAR = "linear";
-  public static final String GRADIENT_RADIAL = "radial";
-  public static final String GRADIENT_SWEEP = "sweep";
-  /**
-   * The index in the array corresponds to each of the gradient types
-   */
-  private static final String[] TYPES = new String[]{GRADIENT_LINEAR, GRADIENT_RADIAL, GRADIENT_SWEEP};
   private final int elipseLength;
   /**
    * Linear: 0
@@ -42,8 +29,8 @@ public class SketchGradient {
    */
   private final int gradientType;
   private final SketchGradientStop[] stops;
-  private SketchPoint2D from;
-  private SketchPoint2D to;
+  private final SketchPoint2D from;
+  private final SketchPoint2D to;
 
   public SketchGradient(int elipseLength,
                         @NotNull SketchPoint2D from,
@@ -70,18 +57,6 @@ public class SketchGradient {
     return gradientType;
   }
 
-  @Nullable
-  public String getDrawableGradientType() {
-    if (gradientType >= 0 && gradientType < TYPES.length) {
-      return TYPES[getGradientType()];
-    }
-    else {
-      LOG.error("Unknown gradient type. Array index is " + Integer.toString(gradientType));
-    }
-
-    return null;
-  }
-
   @NotNull
   public SketchGradientStop[] getStops() {
     return stops;
@@ -90,51 +65,5 @@ public class SketchGradient {
   @NotNull
   public SketchPoint2D getTo() {
     return to;
-  }
-
-  @NotNull
-  public String getGradientEndX() {
-    return Double.toString(to.getX());
-  }
-
-  @NotNull
-  public String getGradientEndY() {
-    return Double.toString(to.getY());
-  }
-
-  @NotNull
-  public String getGradientStartX() {
-    return Double.toString(from.getX());
-  }
-
-  @NotNull
-  public String getGradientStartY() {
-    return Double.toString(from.getY());
-  }
-
-  @NotNull
-  public String getGradientRadius() {
-    double radiusX = Math.pow(to.x - from.x, 2);
-    double radiusY = Math.pow(to.y - from.y, 2);
-
-    return Double.toString(Math.sqrt(radiusX + radiusY));
-  }
-
-  @NotNull
-  public String getSweepCenterY() {
-    return String.valueOf((to.y + from.y) / 2);
-  }
-
-  public void toRelativeGradient(@NotNull Rectangle2D ownFrame) {
-    from = from.makeAbsolutePosition(ownFrame);
-    to = to.makeAbsolutePosition(ownFrame);
-  }
-
-  public void applyTransformation(@NotNull AffineTransform transformation) {
-    Point2D[] origin = {from, to};
-    Point2D[] newPoints = new Point2D[2];
-    transformation.transform(origin, 0, newPoints, 0, 2);
-    from.setLocation(newPoints[0]);
-    to.setLocation(newPoints[1]);
   }
 }

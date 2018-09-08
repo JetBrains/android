@@ -18,9 +18,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builder
 import com.android.SdkConstants;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.GradientModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.GradientStopModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradientStop;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -114,7 +114,7 @@ public class DrawableFileGenerator {
       parentTag.setAttribute(ATTRIBUTE_AAPT, SdkConstants.AAPT_URI);
       pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
     }
-    else if (shape.getFillColor() != INVALID_COLOR_VALUE && shape.hasFillEnabled()) {
+    else if (shape.getFill() != null) {
       pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, colorToHex(shape.getFillColor()));
     }
     parentTag.addSubTag(pathTag, false);
@@ -137,24 +137,24 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  private XmlTag generateGradientSubTag(@NotNull SketchGradient gradient) {
-    XmlTag aaptAttrTag = createXmlTag(TAG_AAPT_ATTR);
-    XmlTag gradientTag = createXmlTag(TAG_GRADIENT);
+  private XmlTag generateGradientSubTag(@NotNull GradientModel gradient) {
+    XmlTag aaptAttrTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_AAPT_ATTR);
+    XmlTag gradientTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_GRADIENT);
     String gradientType = gradient.getDrawableGradientType();
     if (gradientType != null) {
       switch (gradient.getDrawableGradientType()) {
-        case SketchGradient.GRADIENT_LINEAR:
+        case GradientModel.GRADIENT_LINEAR:
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDX, gradient.getGradientEndX());
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_ENDY, gradient.getGradientEndY());
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTX, gradient.getGradientStartX());
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_STARTY, gradient.getGradientStartY());
           break;
-        case SketchGradient.GRADIENT_RADIAL:
+        case GradientModel.GRADIENT_RADIAL:
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getGradientStartY());
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_RADIUS, gradient.getGradientRadius());
           break;
-        case SketchGradient.GRADIENT_SWEEP:
+        case GradientModel.GRADIENT_SWEEP:
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERX, gradient.getGradientStartX());
           gradientTag.setAttribute(ATTRIBUTE_GRADIENT_CENTERY, gradient.getSweepCenterY());
           break;
@@ -162,8 +162,8 @@ public class DrawableFileGenerator {
       gradientTag.setAttribute(ATTRIBUTE_GRADIENT_TYPE, gradient.getDrawableGradientType());
     }
 
-    for (SketchGradientStop item : gradient.getStops()) {
-      XmlTag itemTag = createXmlTag(TAG_ITEM);
+    for (GradientStopModel item : gradient.getGradientStopModels()) {
+      XmlTag itemTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_ITEM);
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_COLOR, colorToHex(item.getColor().getRGB()));
       itemTag.setAttribute(ATTRIBUTE_GRADIENT_STOP_OFFSET, Double.toString(item.getPosition()));
       gradientTag.addSubTag(itemTag, false);
@@ -187,7 +187,7 @@ public class DrawableFileGenerator {
   }
 
   /**
-   * Generate a Vector Drawable (.xml) file from the {@link VectorDrawable}.
+   * Generate a Vector Drawable (.xml) file from the {@link DrawableAssetModel}.
    */
   @NotNull
   public LightVirtualFile generateDrawableFile(@Nullable DrawableAssetModel drawableAsset) {
@@ -199,7 +199,6 @@ public class DrawableFileGenerator {
         XmlTag root = createXmlTag(TAG_VECTOR_HEAD);
         if (drawableAsset != null) {
           updateDimensionsFromVectorDrawable(drawableAsset, root);
-          //addArtboardPathForTesting(vectorDrawable, root);
           List<ShapeModel> shapeModels = drawableAsset.getShapeModels();
           XmlTag groupTag = null;
 
