@@ -21,11 +21,13 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -168,15 +170,7 @@ class AddDynamicFeatureTest {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
     val ideFrame = guiTest.importSimpleLocalApplication()
 
-    var editor = guiTest.ideFrame().getEditor()
-    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
-    editor.moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
-    editor.enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
-    editor.moveBetween("google.simpleapplication\" >", "")
-    editor.enterText("""<dist:module instant="false" />""")
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
-
+    writeDistModuleToBaseManifest(false)
     createInstantDynamicModuleWithFusing(ideFrame)
 
     ideFrame.editor
@@ -334,6 +328,95 @@ class AddDynamicFeatureTest {
       .currentFileContents.run {
       assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
     }
+  }
+
+  /**
+   * Verifies the warning about making the base module instant enabled is hidden if the base module
+   * is already instant enabled
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Modify the base AndroidManifest file to be instant enabled
+   * 3. Sync with Gradle
+   * 4. Navigate to the Add Instant Dynamic Feature Module page
+   * Verify:
+   * 1. Verify the warning labels are not visible
+   * </pre>
+   */
+  @Test
+  @Throws(Exception::class)
+  fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
+    val ideFrame = guiTest.importSimpleLocalApplication()
+    writeDistModuleToBaseManifest(true)
+    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
+    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    var fixture = NewModuleWizardFixture.find(ideFrame)
+      .clickNextToInstantDynamicFeature()
+
+    validateInstantizeBaseManifestWarningIsHidden(fixture)
+    fixture.wizard().clickCancel()
+  }
+
+  /**
+   * Verifies the warning about making the base module instant enabled is visible if the base module
+   * is not instant enabled
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Modify the base AndroidManifest file to be instant enabled
+   * 3. Sync with Gradle
+   * 4. Navigate to the Add Instant Dynamic Feature Module page
+   * Verify:
+   * 1. Verify the warning labels are visible
+   * </pre>
+   */
+  @Test
+  @Throws(Exception::class)
+  fun checkWarningLabelIsVisibleWhenBaseIsNotInstant() {
+    val ideFrame = guiTest.importSimpleLocalApplication()
+    writeDistModuleToBaseManifest(false)
+    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
+    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    var fixture = NewModuleWizardFixture.find(ideFrame)
+      .clickNextToInstantDynamicFeature()
+
+    validateInstantizeBaseManifestWarningIsVisible(fixture)
+    fixture.wizard().clickCancel()
+  }
+
+  private fun validateInstantizeBaseManifestWarningIsHidden(fixture: ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture>) {
+    assertThat(fixture.robot().finder().findAll(fixture.target(), JLabelMatcher.withName(
+      "InstantInfoIcon").andShowing())).isEmpty()
+    assertThat(fixture.robot().finder().findAll(fixture.target(), JLabelMatcher.withName(
+      "InstantModuleInfo").andShowing())).isEmpty()
+  }
+
+  private fun validateInstantizeBaseManifestWarningIsVisible(fixture: ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture>) {
+    assertThat(fixture.robot().finder().findAll(fixture.target(), JLabelMatcher.withName(
+      "InstantInfoIcon").andShowing())).isNotEmpty()
+    assertThat(fixture.robot().finder().findAll(fixture.target(), JLabelMatcher.withName(
+      "InstantModuleInfo").andShowing())).isNotEmpty()
+  }
+
+  private fun writeDistModuleToBaseManifest(isInstant: Boolean) {
+    var editor = guiTest.ideFrame().getEditor()
+    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
+    editor.moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
+    editor.enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
+    editor.moveBetween("google.simpleapplication\" >", "")
+    if (isInstant) {
+      editor.enterText("""<dist:module dist:instant="true" />""")
+    }
+    else {
+      editor.enterText("""<dist:module dist:instant="false" />""")
+    }
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
+
   }
 
   private fun createDefaultDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {

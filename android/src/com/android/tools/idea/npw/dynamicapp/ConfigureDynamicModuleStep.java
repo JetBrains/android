@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.dynamicapp;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -115,7 +116,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myBindings.bind(model.packageName(), packageNameText);
 
     myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
-    if(isInstant) {
+    if (isInstant) {
       SelectedProperty isFusingSelected = new SelectedProperty(myFusingCheckbox);
       myBindings.bind(model.featureFusing(), isFusingSelected);
       BoolProperty isOnDemand = new BoolValueProperty(false);
@@ -123,12 +124,18 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       BoolProperty isInstantModule = new BoolValueProperty(true);
       myBindings.bind(model.instantModule(), isInstantModule);
       myBindings.bindTwoWay(new TextProperty(myModuleTitle), getModel().featureTitle());
-    } else {
+    }
+    else {
       myFusingCheckbox.setVisible(false);
       myInstantInfoIcon.setVisible(false);
       myInstantModuleInfo.setVisible(false);
       myModuleTitleLabel.setVisible(false);
       myModuleTitle.setVisible(false);
+    }
+
+    if (baseIsInstantEnabled(model.getProject())) {
+      myInstantInfoIcon.setVisible(false);
+      myInstantModuleInfo.setVisible(false);
     }
 
     myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
@@ -166,9 +173,9 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
-      .stream()
-      .filter(module -> AndroidModuleModel.get(module) != null)
-      .forEach(module -> myBaseApplication.addItem(module));
+                      .stream()
+                      .filter(module -> AndroidModuleModel.get(module) != null)
+                      .forEach(module -> myBaseApplication.addItem(module));
 
     OptionalProperty<Module> baseApplication = getModel().baseApplication();
     myBindings.bind(baseApplication, new SelectedItemProperty<>(myBaseApplication));
@@ -226,7 +233,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
     Image image = ActivityGallery.getTemplateImage(templateHandle, false);
     if (image != null) {
-      myTemplateIconTitle.setIcon(new ImageIcon(image.getScaledInstance(256, 256,  Image.SCALE_SMOOTH)));
+      myTemplateIconTitle.setIcon(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
     }
     myTemplateIconTitle.setText("<html><center>" + ActivityGallery.getTemplateImageLabel(templateHandle, false) + "</center></html>");
     myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle, false) + "</center></html>");

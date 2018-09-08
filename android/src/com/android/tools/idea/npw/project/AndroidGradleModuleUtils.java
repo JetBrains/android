@@ -86,8 +86,7 @@ public class AndroidGradleModuleUtils {
    * Given a project, return whether or not the project contains a module that uses the feature plugin. This method is used to
    * determine if a project is an old version of an instant app project.
    */
-  public static boolean projectContainsFeatureModule(Project project) {
-
+  public static boolean projectContainsFeatureModule(@NotNull Project project) {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
     for(Module module : ModuleManager.getInstance(project).getModules()) {
       GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(module);
