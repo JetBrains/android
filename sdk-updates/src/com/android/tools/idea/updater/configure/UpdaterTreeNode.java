@@ -198,14 +198,14 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
       @Override
       public String getAccessibleName() {
         return AccessibleContextUtil.combineAccessibleStrings(
-          myTextRenderer.getAccessibleContext().getAccessibleName(), " ",
+          myTextRenderer.getAccessibleContext().getAccessibleName(),
           myCheckbox.getAccessibleContext().getAccessibleName());
       }
 
       @Override
       public String getAccessibleDescription() {
         return AccessibleContextUtil.combineAccessibleStrings(
-          myTextRenderer.getAccessibleContext().getAccessibleDescription(), " ",
+          myTextRenderer.getAccessibleContext().getAccessibleDescription(),
           myCheckbox.getAccessibleContext().getAccessibleDescription());
       }
 

@@ -477,22 +477,9 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
           super(myCheckBox.getAccessibleContext());
         }
 
-        /**
-         * The parent should be the Swing parent of this panel, not the {@link #myCheckBox} parent,
-         * because the parent of {@link #myCheckBox} is ourselves, i.e. this would result in
-         * an infinite accessible parent chain.
-         */
         @Override
-        public Accessible getAccessibleParent() {
-          if (accessibleParent != null) {
-            return accessibleParent;
-          } else {
-            Container parent = RendererPanel.this.getParent();
-            if (parent instanceof Accessible) {
-              return (Accessible) parent;
-            }
-          }
-          return null;
+        protected Container getDelegateParent() {
+          return RendererPanel.this.getParent();
         }
 
         @Override
