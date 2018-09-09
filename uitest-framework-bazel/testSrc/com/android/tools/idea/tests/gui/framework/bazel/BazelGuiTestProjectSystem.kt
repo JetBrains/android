@@ -126,7 +126,7 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
 
   override fun validateSetup() {
     PluginManagerCore.getPlugins().find { it.name == "Bazel" } ?: throw IllegalStateException(
-        """
+"""
 The bazel plugin is required to run tests with BAZEL as the build system. It doesn't seem to be present on the plugin path.
 This issue can be fixed by:
  1. Generate the bazel plugin by running:
@@ -168,7 +168,8 @@ the location of the project data directory that is assigned during importProject
     return if (TestUtils.runningFromBazel()) {
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File(PathManager.getHomePath(), "../../$prebuiltsRepo").absolutePath
-    } else {
+    }
+    else {
       TestUtils.getWorkspaceFile(prebuiltsRepo).absolutePath
     }
   }
