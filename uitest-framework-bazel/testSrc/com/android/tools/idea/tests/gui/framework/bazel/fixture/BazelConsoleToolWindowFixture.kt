@@ -29,7 +29,7 @@ import org.fest.swing.core.Robot
 import org.fest.swing.exception.ComponentLookupException
 import javax.swing.JMenuItem
 
-class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindowFixture("Blaze Console", project, robot) {
+class BazelConsoleToolWindowFixture(project: Project, robot: Robot) : ToolWindowFixture("Blaze Console", project, robot) {
   val content: Content = UIUtil.invokeAndWaitIfNeeded(Computable<Content> {
     Verify.verify(!contents.isEmpty())
     contents[0]
@@ -44,13 +44,15 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
   fun hasSyncStarted() = try {
     getConsoleText().contains("Syncing project: Sync (incremental)...") ||
     getConsoleText().contains("Syncing project: Sync (full)...")
-  } catch (e: ComponentLookupException) {
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 
   fun hasSyncFinished() = try {
     getConsoleText().contains("==== TIMING REPORT ====")
-  } catch (e: ComponentLookupException) {
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 
@@ -63,7 +65,8 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
 
   fun hasSyncErrors() = try {
     getConsoleText().contains("ERROR:")
-  } catch (e: ComponentLookupException) {
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 
