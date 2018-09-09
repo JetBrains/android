@@ -114,6 +114,10 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
 
     logger.info("Waiting for sync to finish.")
     Wait.seconds(300).expecting("Bazel sync to finish").until(consoleFixture::hasSyncFinished)
+    if (consoleFixture.hasSyncFailed()) {
+      logger.error("Blaze console output for failed sync:\n" + consoleFixture.getConsoleText())
+      throw RuntimeException("Blaze sync failed.")
+    }
 
     logger.info("Sync complete; waiting for background tasks to finish.")
     GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.project)
