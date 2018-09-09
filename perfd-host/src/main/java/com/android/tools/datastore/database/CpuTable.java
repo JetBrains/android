@@ -64,8 +64,12 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "Timestamp INTEGER NOT NULL",
                   "Data BLOB");
       createTable("Thread_Activities",
-                  "Session INTEGER NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER",
-                  "State TEXT, Name TEXT");
+                  "Session INTEGER NOT NULL",
+                  "ThreadId INTEGER NOT NULL",
+                  "Timestamp INTEGER NOT NULL",
+                  "State TEXT",
+                  "Name TEXT",
+                  "PRIMARY KEY (Session, ThreadId, Timestamp)");
       createTable("Cpu_Trace",
                   // TraceId is unique within an app, so just traceId is not enough
                   "Session INTEGER NOT NULL",
@@ -86,7 +90,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "Data BLOB");
       createUniqueIndex("Cpu_Data", "Session", "Timestamp");
       createUniqueIndex("Cpu_Trace", "Session", "TraceId");
-      createUniqueIndex("Thread_Activities", "Session", "ThreadId", "Timestamp");
+      // Uniqueness guaranteed by PRIMARY KEY field in this table.
+      createIndex("Thread_Activities", 0, "Session", "ThreadId", "Timestamp");
       createUniqueIndex("Profiling_State", "Session", "Timestamp");
     }
     catch (SQLException ex) {
@@ -117,7 +122,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       // First make sure to fetch the states of all threads that were alive at request's start timestamp
                       "SELECT t1.ThreadId, t1.Name, t1.State, ? as ReqStart FROM Thread_Activities AS t1 " +
                       "JOIN (SELECT ThreadId, MAX(Timestamp) AS Timestamp " +
-                      "FROM Thread_Activities WHERE Session = ? AND Timestamp <= ? GROUP BY ThreadId) AS t2 " +
+                      "      FROM Thread_Activities" +
+                      "      WHERE Session = ? AND Timestamp <= ? GROUP BY ThreadId) AS t2 " +
                       "ON t1.ThreadId = t2.ThreadId AND t1.Timestamp = t2.Timestamp AND t1.State <> 'DEAD' " +
                       "UNION ALL " +
                       // Then fetch all the activities that happened in the request interval
