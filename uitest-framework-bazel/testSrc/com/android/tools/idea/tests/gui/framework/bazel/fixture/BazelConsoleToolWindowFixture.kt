@@ -36,13 +36,14 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
   })
 
   @Throws(ComponentLookupException::class)
-  private fun getConsoleText() = myRobot
+  fun getConsoleText(): String = myRobot
     .finder()
     .findByType(content.component, EditorComponentImpl::class.java, true)
     .text
 
   fun hasSyncStarted() = try {
-    getConsoleText().contains("Syncing project: Sync (incremental)...")
+    getConsoleText().contains("Syncing project: Sync (incremental)...") ||
+    getConsoleText().contains("Syncing project: Sync (full)...")
   } catch (e: ComponentLookupException) {
     false
   }
@@ -50,6 +51,13 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
   fun hasSyncFinished() = try {
     getConsoleText().contains("==== TIMING REPORT ====")
   } catch (e: ComponentLookupException) {
+    false
+  }
+
+  fun hasSyncFailed() = try {
+    getConsoleText().contains("Sync failed")
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 
