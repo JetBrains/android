@@ -340,7 +340,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(traceInfo.getTraceFilePath()).isEqualTo(fileName1);
   }
 
-  @Ignore("b/113102299")
   @Test
   public void traceFilesGeneratedPerTrace() {
     int trace1Id = 30;
