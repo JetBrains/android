@@ -16,8 +16,8 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradientStop;
 import com.android.utils.Pair;
@@ -70,7 +70,8 @@ public class DrawableFileGenerator {
   private static final String TAG_RESOURCES = '<' + SdkConstants.TAG_RESOURCES + "/>";
   private static final String TAG_COLOR = '<' + SdkConstants.TAG_COLOR + "/>";
 
-  private static final int INVALID_COLOR_VALUE = 0;
+  public static final int INVALID_COLOR_VALUE = 0;
+  public static final int INVALID_BORDER_WIDTH_VALUE = -1;
 
   @NotNull private Project myProject;
 
@@ -83,38 +84,38 @@ public class DrawableFileGenerator {
     return XmlElementFactory.getInstance(myProject).createTagFromText(tag);
   }
 
-  private static void updateDimensionsFromVectorDrawable(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
+  private static void updateDimensionsFromVectorDrawable(@NotNull DrawableAssetModel vectorDrawable, @NotNull XmlTag root) {
     root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + SdkConstants.UNIT_DP);
     root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + SdkConstants.UNIT_DP);
     root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(vectorDrawable.getViewportHeight()));
     root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(vectorDrawable.getViewportWidth()));
   }
 
-  private void addArtboardPathForTesting(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
+  private void addArtboardPathForTesting(@NotNull DrawableAssetModel drawableAsset, @NotNull XmlTag root) {
     XmlTag pathTag = createXmlTag(TAG_PATH);
     PathStringBuilder pathStringBuilder = new PathStringBuilder();
     pathStringBuilder.startPath(0, 0);
-    pathStringBuilder.createLine(vectorDrawable.getArtboardWidth(), 0);
-    pathStringBuilder.createLine(vectorDrawable.getArtboardWidth(), vectorDrawable.getArtboardHeight());
-    pathStringBuilder.createLine(0, vectorDrawable.getArtboardHeight());
+    pathStringBuilder.createLine(drawableAsset.getArtboardWidth(), 0);
+    pathStringBuilder.createLine(drawableAsset.getArtboardWidth(), drawableAsset.getArtboardHeight());
+    pathStringBuilder.createLine(0, drawableAsset.getArtboardHeight());
     pathStringBuilder.endPath();
     pathTag.setAttribute(ATTRIBUTE_PATH_DATA, pathStringBuilder.build());
     pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, "#FFFFFFFF");
     root.addSubTag(pathTag, false);
   }
 
-  private void addPath(@NotNull DrawableModel shape, @NotNull XmlTag parentTag) {
+  private void addPath(@NotNull ShapeModel shape, @NotNull XmlTag parentTag) {
     XmlTag pathTag = createXmlTag(TAG_PATH);
-    pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathData());
-    if (shape.getStrokeColor() != INVALID_COLOR_VALUE) {
-      pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, colorToHex(shape.getStrokeColor()));
-      pathTag.setAttribute(ATTRIBUTE_STROKE_WIDTH, shape.getStrokeWidth());
+    pathTag.setAttribute(ATTRIBUTE_PATH_DATA, shape.getPathString());
+    if (shape.getBorderColor() != INVALID_COLOR_VALUE) {
+      pathTag.setAttribute(ATTRIBUTE_STROKE_COLOR, colorToHex(shape.getBorderColor()));
+      pathTag.setAttribute(ATTRIBUTE_STROKE_WIDTH, Integer.toString(shape.getBorderWidth()));
     }
     if (shape.getGradient() != null) {
       parentTag.setAttribute(ATTRIBUTE_AAPT, SdkConstants.AAPT_URI);
       pathTag.addSubTag(generateGradientSubTag(shape.getGradient()), false);
     }
-    else if (shape.getFillColor() != INVALID_COLOR_VALUE) {
+    else if (shape.getFillColor() != INVALID_COLOR_VALUE && shape.hasFillEnabled()) {
       pathTag.setAttribute(ATTRIBUTE_FILL_COLOR, colorToHex(shape.getFillColor()));
     }
     parentTag.addSubTag(pathTag, false);
@@ -174,9 +175,9 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  private XmlTag generateClippedGroup(@NotNull DrawableModel shape) {
+  private XmlTag generateClippedGroup(@NotNull ShapeModel shape) {
     XmlTag group = createXmlTag(TAG_GROUP);
-    addClipPath(shape.getPathData(), group);
+    addClipPath(shape.getPathString(), group);
     return group;
   }
 
@@ -190,61 +191,61 @@ public class DrawableFileGenerator {
    * Generate a Vector Drawable (.xml) file from the {@link VectorDrawable}.
    */
   @NotNull
-  public LightVirtualFile generateDrawableFile(@Nullable VectorDrawable vectorDrawable) {
-    String name = vectorDrawable == null ? "null.xml" : vectorDrawable.getName() + ".xml";
+  public LightVirtualFile generateDrawableFile(@Nullable DrawableAssetModel drawableAsset) {
+    String name = drawableAsset == null ? "null.xml" : drawableAsset.getName() + ".xml";
     LightVirtualFile virtualFile = new LightVirtualFile(name);
 
     try {
       WriteAction.runAndWait((ThrowableRunnable<Throwable>)() -> {
         XmlTag root = createXmlTag(TAG_VECTOR_HEAD);
-        if (vectorDrawable != null) {
-          updateDimensionsFromVectorDrawable(vectorDrawable, root);
+        if (drawableAsset != null) {
+          updateDimensionsFromVectorDrawable(drawableAsset, root);
           //addArtboardPathForTesting(vectorDrawable, root);
-          List<DrawableModel> drawableModels = vectorDrawable.getDrawableModels();
+          List<ShapeModel> shapeModels = drawableAsset.getShapeModels();
           XmlTag groupTag = null;
 
           // Adding the path tags to the file
-          for (DrawableModel drawableModel : drawableModels) {
+          for (ShapeModel shapeModel : shapeModels) {
             // First we need to check if the DrawableModel is used as a clip path or not
             // to determine it corresponding tag (<clip-path> or <path>)
-            if (drawableModel.isClipPath()) {
+            if (shapeModel.hasClippingMask()) {
               // If the model is the first layer of the file and is a clip path, then
               // we can add the <clip-path> tag directly to the root tag, because
               // this will be the mask for the entire vector drawable, meaning it
               // will be applied to all the shapes below. It does not need a separate group.
-              if (drawableModel == drawableModels.get(0)) {
-                addClipPath(drawableModel.getPathData(), root);
+              if (shapeModel == shapeModels.get(0)) {
+                addClipPath(shapeModel.getPathString(), root);
               }
               // Else, it means that the clip path belongs only to a component of the
               // vector drawable, thus we generate a group and we append the <clip-path>
               // tag to it, so that the mask does not affect the rest of the elements.
               else {
-                groupTag = generateClippedGroup(drawableModel);
+                groupTag = generateClippedGroup(shapeModel);
               }
             }
             // If the group tag is inexistent, it means there is no current clipping group
             // to add the current shape to, so we just add it to the root.
             if (groupTag == null) {
-              addPath(drawableModel, root);
+              addPath(shapeModel, root);
             }
             // Else, we might be editing a current clipped group
             else {
-              // If the drawableModel is the first to not have the mask applied after a
+              // If the shapeModel is the first to not have the mask applied after a
               // chain of masked shapes, the shape should not be part of the current
               // clipping group anymore. The group should be closed and the path should
               // be added to the root.
-              if (drawableModel.breaksMaskChain()) {
+              if (shapeModel.shouldBreakMaskChain()) {
                 groupTag = closeClippedGroup(groupTag, root);
-                addPath(drawableModel, root);
+                addPath(shapeModel, root);
               }
               // If the model does not break the mask chain, it should be added to the
               // group like the previous shapes.
               else {
-                addPath(drawableModel, groupTag);
+                addPath(shapeModel, groupTag);
               }
               // If the model is the last shape in the list of a SketchPage's layers
               // we should clearly close the group we have been adding paths to.
-              if (drawableModel.isLastShape() && groupTag != null) {
+              if (shapeModel.isLastShape() && groupTag != null) {
                 groupTag = closeClippedGroup(groupTag, root);
               }
             }
