@@ -35,6 +35,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.EventMonitor;
@@ -102,6 +103,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   static final String CPU_BUG_TEMPLATE_URL = "https://issuetracker.google.com/issues/new?component=192754";
   @VisibleForTesting
   static final String REPORT_A_BUG_TEXT = "report a bug";
+
+  @VisibleForTesting
+  static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
+
+  @VisibleForTesting
+  static final String ATRACE_BUFFER_OVERFLOW_MESSAGE = "Your capture exceeded the buffer limit, some data may be missing. " +
+                                                       "Consider recording a shorter trace.";
 
   /**
    * Default capture details to be set after stopping a capture.
@@ -859,7 +867,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
-    assert getStudioProfilers().getClient() != null;
     return getStudioProfilers().getClient().getCpuClient();
   }
 
@@ -952,11 +959,49 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @VisibleForTesting
   public void setCapture(@Nullable CpuCapture capture) {
-    myCaptureModel.setCapture(capture);
+    if (!myCaptureModel.setCapture(capture)) {
+      return;
+    }
+
     // If there's a capture, expand the profiler UI. Otherwise keep it the same.
     if (capture != null) {
       setProfilerMode(ProfilerMode.EXPANDED);
+      onCaptureSelection();
     }
+  }
+
+  private void onCaptureSelection() {
+    CpuCapture capture = getCapture();
+    if (capture == null) {
+      return;
+    }
+    if ((getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
+        || (getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
+      // Capture has finished parsing.
+      ensureCaptureInViewRange();
+      if (capture.getType() == CpuProfilerType.ATRACE) {
+        if (!isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
+          getStudioProfilers().getIdeServices().showWarningBalloon(ATRACE_BUFFER_OVERFLOW_TITLE,
+                                                                           ATRACE_BUFFER_OVERFLOW_MESSAGE,
+                                                                           null,
+                                                                           null);
+        }
+      }
+    }
+  }
+
+  /**
+   * Makes sure the selected capture fits entirely in user's view range.
+   */
+  private void ensureCaptureInViewRange() {
+    CpuCapture capture = getCapture();
+    assert capture != null;
+
+    // Give a padding to the capture. 5% of the view range on each side.
+    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    double padding = timeline.getViewRange().getLength() * 0.05;
+    // Now makes sure the capture range + padding is within view range and in the middle if possible.
+    timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
   private void setCapture(int traceId) {

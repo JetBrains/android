@@ -59,8 +59,6 @@ import javax.swing.SwingUtilities
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
-private const val ATRACE_MISSING_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
-
 private const val ART_TRACE_FILE = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
 
 class CpuProfilerStageViewTest {
@@ -153,7 +151,6 @@ class CpuProfilerStageViewTest {
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
   }
 
-
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
     // Enable import trace and sessions view, both of which are required for import-trace-mode.
@@ -187,23 +184,6 @@ class CpuProfilerStageViewTest {
     // component contains the CpuCaptureView and is set to null when it's not displayed.
     val captureViewComponent = treeWalker.descendants().filterIsInstance<JBSplitter>().first().secondComponent
     assertThat(captureViewComponent).isNotNull()
-  }
-
-  @Test
-  fun traceMissingDataShowsDialog() {
-    // Set a capture of type atrace.
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
-    // Select valid capture no dialog should be presented.
-    myStage.setAndSelectCapture(0)
-    assertThat(myIdeServices.balloonTitle).isNull()
-    assertThat(myIdeServices.balloonBody).isNull()
-    // Select invalid capture we should see dialog.
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)))
-    myStage.setAndSelectCapture(1)
-    assertThat(myIdeServices.balloonTitle).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_TITLE)
-    assertThat(myIdeServices.balloonBody).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_MESSAGE)
   }
 
   @Test

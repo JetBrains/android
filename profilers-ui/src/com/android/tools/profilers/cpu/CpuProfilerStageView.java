@@ -22,8 +22,6 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
@@ -33,7 +31,6 @@ import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
@@ -103,13 +100,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  @VisibleForTesting
-  static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
-
-  @VisibleForTesting
-  static final String ATRACE_BUFFER_OVERFLOW_MESSAGE = "Your capture exceeded the buffer limit, some data may be missing. " +
-                                                       "Consider recording a shorter trace.";
-
   /**
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
    * A ratio of 1 means only the first element is shown, while a ratio of 0 means only the bottom element is shown.
@@ -171,7 +161,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::onCaptureSelection)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myToolbar::update);
 
     stage.getStudioProfilers().addDependency(this)
@@ -282,20 +271,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return cpuStatePanel;
   }
 
-  /**
-   * Makes sure the selected capture fits entirely in user's view range.
-   */
-  private void ensureCaptureInViewRange() {
-    CpuCapture capture = myStage.getCapture();
-    assert capture != null;
-
-    // Give a padding to the capture. 5% of the view range on each side.
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-    double padding = timeline.getViewRange().getLength() * 0.05;
-    // Now makes sure the capture range + padding is within view range and in the middle if possible.
-    timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
-  }
-
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
@@ -318,25 +293,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return !myStage.isImportTraceMode();
   }
 
-  private void onCaptureSelection() {
-    CpuCapture capture = myStage.getCapture();
-    if (capture == null) {
-      return;
-    }
-    if ((myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
-        || (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
-      // Capture has finished parsing.
-      ensureCaptureInViewRange();
-      if (capture.getType() == CpuProfilerType.ATRACE) {
-        if (!myStage.isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
-          myStage.getStudioProfilers().getIdeServices().showWarningBalloon(ATRACE_BUFFER_OVERFLOW_TITLE,
-                                                                           ATRACE_BUFFER_OVERFLOW_MESSAGE,
-                                                                           null,
-                                                                           null);
-        }
-      }
-    }
-  }
 
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
