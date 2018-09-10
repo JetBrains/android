@@ -23,12 +23,16 @@ import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
+import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -46,8 +50,19 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   private final ProfilerTable myTable;
   @NotNull private final DataStoreService myService;
   @NotNull private final UnifiedEventsTable myUnifiedEventsTable;
-  // This is a temp map, as we move to channel id this will be removed.
-  private final HashMap<Long, DeviceId> mySessionIdToDevice;
+  /**
+   * A mapping of stream ids to active stubs. This mapping allows commands to be routed to the proper stubs.
+   */
+  private final HashMap<Long, ProfilerServiceGrpc.ProfilerServiceBlockingStub> myStreamIdToStub;
+  /**
+   * A mapping of active channels to pollers. This mapping allows us to keep track of active pollers for a channel, and clean up pollers
+   * when channels are closed.
+   */
+  private final Map<Channel, UnifiedEventsDataPoller> myUnifiedEventsDataPollers = Maps.newHashMap();
+  /**
+   * A map of active channels to unified event streams. This map helps us clean up streams when a channel is closed.
+   */
+  private final Map<Channel, Stream> myChannelToStream = Maps.newHashMap();
 
   public ProfilerService(@NotNull DataStoreService service,
                          Consumer<Runnable> fetchExecutor,
@@ -57,7 +72,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     myLogService = logService;
     myTable = new ProfilerTable();
     myUnifiedEventsTable = new UnifiedEventsTable();
-    mySessionIdToDevice = new HashMap<>();
+    myStreamIdToStub = new HashMap<>();
   }
 
   @NotNull
@@ -135,7 +150,6 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     else {
       BeginSessionResponse response = client.beginSession(request);
       getLogger().info("Session (ID " + response.getSession().getSessionId() + ") begins.");
-      mySessionIdToDevice.put(response.getSession().getSessionId(), DeviceId.of(request.getDeviceId()));
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
       myTable.insertOrUpdateSession(response.getSession(),
@@ -210,13 +224,54 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     myFetchExecutor.accept(myPollers.get(channel));
   }
 
+  /**
+   * This call to startPolling maps a stream to a channel. This information is used in the new event pipeline.
+   */
+  public void startPolling(Profiler.Stream stream, Channel channel) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(channel);
+    streamConnected(stream, stub);
+    UnifiedEventsDataPoller poller = new UnifiedEventsDataPoller(stream.getStreamId(), myUnifiedEventsTable, stub);
+    myUnifiedEventsDataPollers.put(channel, poller);
+    myStreamIdToStub.put(stream.getStreamId(), stub);
+    myChannelToStream.put(channel, stream);
+    myFetchExecutor.accept(poller);
+  }
+
   public void stopMonitoring(Channel channel) {
     if (myPollers.containsKey(channel)) {
       ProfilerDevicePoller poller = myPollers.remove(channel);
       poller.stop();
       DataStoreTable.removeDataStoreErrorCallback(poller);
     }
+    if (myUnifiedEventsDataPollers.containsKey(channel)) {
+      UnifiedEventsDataPoller poller = myUnifiedEventsDataPollers.remove(channel);
+      poller.stop();
+      streamDisconnected(myChannelToStream.get(channel));
+      myStreamIdToStub.remove(myChannelToStream.get(channel).getStreamId());
+      myChannelToStream.remove(channel);
+    }
   }
+
+  private void streamConnected(Profiler.Stream stream, ProfilerServiceGrpc.ProfilerServiceBlockingStub stub) {
+    myUnifiedEventsTable.insertUnifiedEvents(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Lists.newArrayList(Event.newBuilder()
+                      .setKind(Event.Kind.STREAM)
+                      .setEventId(stream.getStreamId())
+                      .setType(Event.Type.STREAM_CONNECTED)
+                      .setTimestamp(System.nanoTime())
+                      .setStream(stream)
+                      .build()));
+  }
+
+  private void streamDisconnected(Profiler.Stream stream) {
+    myUnifiedEventsTable.insertUnifiedEvents(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Lists.newArrayList(Event.newBuilder()
+                                                                               .setKind(Event.Kind.STREAM)
+                                                                               .setType(Event.Type.STREAM_DISCONNECTED)
+                                                                               .setEventId(stream.getStreamId())
+                                                                               .setStream(stream)
+                                                                               .setTimestamp(System.nanoTime())
+                                                                               .build()));
+  }
+
 
   @Override
   public void getBytes(BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
@@ -252,10 +307,18 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
-      myService.getProfilerClient(mySessionIdToDevice.get(request.getCommand().getStreamId()));
-    responseObserver.onNext(client.execute(request));
-    responseObserver.onCompleted();
+    long streamId = request.getCommand().getStreamId();
+    // TODO (b/114751407): Send stream id 0 to all streams.
+    // TODO (b/114751407): Handle stream not found.
+    if (myStreamIdToStub.containsKey(streamId)) {
+      ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myStreamIdToStub.get(streamId);
+      responseObserver.onNext(client.execute(request));
+      responseObserver.onCompleted();
+    }
+    else {
+      responseObserver.onNext(ExecuteResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
   }
 
   @Override

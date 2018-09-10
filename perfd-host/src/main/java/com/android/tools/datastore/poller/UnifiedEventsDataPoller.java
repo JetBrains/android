@@ -25,11 +25,11 @@ import org.jetbrains.annotations.NotNull;
 public class UnifiedEventsDataPoller extends PollRunner {
 
   private long myLastPollTimestamp;
-  @NotNull private final int myStreamId;
+  @NotNull private final long myStreamId;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myEventPollingService;
 
-  public UnifiedEventsDataPoller(int streamId,
+  public UnifiedEventsDataPoller(long streamId,
                          @NotNull UnifiedEventsTable unifiedEventsTable,
                          @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
@@ -44,11 +44,11 @@ public class UnifiedEventsDataPoller extends PollRunner {
                                                                  .setFromTimestamp(myLastPollTimestamp)
                                                                  .setToTimestamp(Long.MAX_VALUE).build();
     Profiler.GetEventsResponse response = myEventPollingService.getEvents(request);
-    myTable.insertUnifiedEvents(myStreamId, response.getEventsList());
-    // If we got back any events, update our last polled event time to be the timestamp of the last event.
-    // This assumes the timestamps we get back are in chronological order. If not that is okay as,
-    // any duplicated data retrieved will update existing results.
     if (response.getEventsCount() > 0) {
+      myTable.insertUnifiedEvents(myStreamId, response.getEventsList());
+      // If we got back any events, update our last polled event time to be the timestamp of the last event.
+      // This assumes the timestamps we get back are in chronological order. If not that is okay as,
+      // any duplicated data retrieved will update existing results.
       myLastPollTimestamp = response.getEventsList().get(response.getEventsCount() - 1).getTimestamp();
     }
   }

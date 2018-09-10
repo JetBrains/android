@@ -125,7 +125,6 @@ public class ProfilerServiceProxy extends PerfdProxyService
       .build();
   }
 
-  @TestOnly
   @NotNull
   public static Common.Device profilerDeviceFromIDevice(@NotNull IDevice device) {
     return profilerDeviceFromIDevice(device, Common.Device.newBuilder());
