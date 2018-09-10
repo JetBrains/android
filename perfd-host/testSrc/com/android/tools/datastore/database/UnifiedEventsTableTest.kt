@@ -62,6 +62,28 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   }
 
   @Test
+  fun insertDuplicatedData() {
+    // This validates that sql should not throw an exception
+    val events = mutableListOf(Profiler.Event.newBuilder().apply {
+      kind = Profiler.Event.Kind.SESSION
+      type = Profiler.Event.Type.SESSION_STARTED
+      sessionId = 1
+      eventId = 1
+      sessionStarted = Profiler.SessionStarted.newBuilder().setPid(1).build()
+    }.build())
+    table.insertUnifiedEvents(1, events)
+
+    val updatedEvents = mutableListOf(events[0].toBuilder().apply {
+      sessionStarted = Profiler.SessionStarted.newBuilder().setPid(2).build()
+    }.build())
+    table.insertUnifiedEvents(1, updatedEvents)
+    // Validate that no data got updated.
+    var eventResult = table.queryUnifiedEvents(Profiler.GetEventsRequest.newBuilder().setFromTimestamp(0)
+                                                 .setToTimestamp(3).build())
+    assertThat(eventResult).containsExactlyElementsIn(events)
+  }
+
+  @Test
   fun queryEvents() {
     val events = insertData(2, true, true)
     // Validate we have data inserted
