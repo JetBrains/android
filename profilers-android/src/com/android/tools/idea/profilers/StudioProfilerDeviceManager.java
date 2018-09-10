@@ -30,13 +30,19 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
+import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.base.Charsets;
@@ -65,6 +71,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -562,7 +569,17 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
         // We should otherwise do it for performance reasons, so we should investigate why.
         ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
-        myDataStore.connect(proxyChannel);
+        if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
+          myDataStore.connect(Profiler.Stream.newBuilder()
+                                             .setStreamId(myDataStore.getUniqueStreamId())
+                                             .setType(Profiler.Stream.Type.DEVICE)
+                                             .setDevice(ProfilerServiceProxy.profilerDeviceFromIDevice(myDevice))
+                                             .build(),
+                              proxyChannel);
+        }
+        else {
+          myDataStore.connect(proxyChannel);
+        }
       }
       catch (TimeoutException | AdbCommandRejectedException | IOException e) {
         // If some error happened after PerfdProxy was created, make sure to disconnect it

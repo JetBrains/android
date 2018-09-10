@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetDevicesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetDevices</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesResponse">
+        <Message>device {
+  device_id: 1234
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetDevicesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetDevices</functionCalled>
+        <message>device {
+  device_id: 1234
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesRequest">
+        <Message>device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
+        <message>device_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesResponse">
+        <Message>process {
+  name: "INITIAL"
+  pid: 1234
+  device_id: 1234
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
+        <message>process {
+  name: "INITIAL"
+  pid: 1234
+  device_id: 1234
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusRequest">
+        <Message>device_id: 1234
+pid: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
+        <message>device_id: 1234
+pid: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusResponse">
+        <Message>status: ATTACHED
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
+        <message>status: ATTACHED
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsRequest">
+        <Message>to_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message>to_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsResponse">
+        <Message>events {
+  session_id: 1
+  kind: PROCESS
+  timestamp: 100
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message>events {
+  session_id: 1
+  kind: PROCESS
+  timestamp: 100
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsRequest">
+        <Message>from_timestamp: 100
+to_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message>from_timestamp: 100
+to_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsResponse">
+        <Message>events {
+  session_id: 1
+  kind: PROCESS
+  timestamp: 100
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message>events {
+  session_id: 1
+  kind: PROCESS
+  timestamp: 100
+}
+</message>
+    </GrpcCall>
+</GrpcList>

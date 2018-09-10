@@ -88,6 +88,11 @@ public final class StudioFlags {
     "Shows fragment information in event profiler's activity bar and tooltip.",
     true);
 
+  public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
+    PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
+    "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
     PROFILER, "show.session", "Enable the sessions panel",
     "Shows the sessions panel used for managing and navigating profiling data.",
