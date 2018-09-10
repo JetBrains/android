@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
@@ -54,6 +55,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_DATA_FILE;
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_MISSING_DATA_FILE;
 import static com.google.common.truth.Truth.assertThat;
 
 public class CpuProfilerStageTest extends AspectObserver {
@@ -573,6 +576,24 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     // Thread selection is reset
     assertThat(myStage.getSelectedThread()).isEqualTo(CaptureModel.NO_THREAD);
+  }
+
+  @Test
+  public void traceMissingDataShowsDialog() throws IOException {
+    // Set a capture of type atrace.
+    myCpuService.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_DATA_FILE)));
+    // Select valid capture no dialog should be presented.
+    myStage.setAndSelectCapture(0);
+
+    assertThat(myServices.getBalloonTitle()).isNull();
+    assertThat(myServices.getBalloonBody()).isNull();
+    // Select invalid capture we should see dialog.
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)));
+    myStage.setAndSelectCapture(1);
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.ATRACE_BUFFER_OVERFLOW_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.ATRACE_BUFFER_OVERFLOW_MESSAGE);
   }
 
   @Test

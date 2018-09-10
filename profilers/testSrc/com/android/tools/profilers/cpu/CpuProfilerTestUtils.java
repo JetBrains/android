@@ -34,6 +34,8 @@ import java.util.concurrent.ExecutionException;
 public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
+  public static final String ATRACE_MISSING_DATA_FILE = CPU_TRACES_DIR + "atrace_processid_1.ctrace";
+  public static final String ATRACE_DATA_FILE = CPU_TRACES_DIR + "atrace.ctrace";
 
   private CpuProfilerTestUtils() {
   }
