@@ -49,8 +49,8 @@ public class CollapsiblePanel extends JPanel {
     myExpandButton.setFocusable(false);
     myExpandButton.addMouseListener(new CollapseListener());
 
-    myExpandedIcon = AllIcons.Nodes.TreeDownArrow;
-    myCollapsedIcon = AllIcons.Nodes.TreeRightArrow;
+    myExpandedIcon = AllIcons.General.ArrowDown;
+    myCollapsedIcon = AllIcons.General.ArrowRight;
 
     myTitleComponent = new SimpleColoredComponent();
     myTitleComponent.append(title, REGULAR_BOLD_ATTRIBUTES);
