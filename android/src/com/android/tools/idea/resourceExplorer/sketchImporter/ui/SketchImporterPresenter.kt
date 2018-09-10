@@ -24,8 +24,9 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.createAllDrawableShapes
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.testFramework.LightVirtualFile
@@ -80,7 +81,7 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
     val assets = pagePresenters.flatMap { presenter ->
       presenter.getExportableFiles().map { file ->
         // TODO change to only add selected files rather than all exportable files
-        file to (presenter.getOptions(file)?.name ?: file.nameWithoutExtension)
+        file to (presenter.getAsset(file)?.name ?: file.nameWithoutExtension)
       }
     }
       .map { (file, name) ->
@@ -109,7 +110,7 @@ class PagePresenter(private val sketchPage: SketchPage,
   lateinit var view: PageView
   private val pageOptions = PageOptions(sketchPage)
   private val rendererManager = DesignAssetRendererManager.getInstance()
-  private var filesToOptions = generateFiles()
+  private var filesToAssets = generateFiles()
   var importAll = DEFAULT_IMPORT_ALL
 
   fun fetchImage(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
@@ -126,32 +127,32 @@ class PagePresenter(private val sketchPage: SketchPage,
   }
 
   /**
-   * Change the type of the page according to the [selection] and refresh the filesToOptions associated with that page (including
+   * Change the type of the page according to the [selection] and refresh the filesToAssets associated with that page (including
    * the previews in the [view]).
    */
   fun pageTypeChange(selection: String) {
     pageOptions.pageType = PageOptions.getPageTypeFromLabel(selection)
-    filesToOptions = generateFiles()
+    filesToAssets = generateFiles()
     populateView()
   }
 
   /**
-   * @return a mapping from [LightVirtualFile] assets to [AssetOptions] based on the content in the [SketchPage] and the [PageOptions].
+   * @return a mapping from [LightVirtualFile] assets to [AssetModel] based on the content in the [SketchPage] and the [PageOptions].
    */
-  private fun generateFiles(): Map<LightVirtualFile, AssetOptions> = when (pageOptions.pageType) {
+  private fun generateFiles(): Map<LightVirtualFile, AssetModel> = when (pageOptions.pageType) {
     PageOptions.PageType.ICONS -> createIconFiles(sketchPage)
     else -> emptyMap()
   }
 
   /**
-   * @return a mapping from [LightVirtualFile] Vector Drawables to [AssetOptions], corresponding to each artboard in [page].
+   * @return a mapping from [LightVirtualFile] Vector Drawables to [AssetModel], corresponding to each artboard in [page].
    */
-  private fun createIconFiles(page: SketchPage): Map<LightVirtualFile, AssetOptions> {
+  private fun createIconFiles(page: SketchPage): Map<LightVirtualFile, AssetModel> {
     val drawableFileGenerator = DrawableFileGenerator(facet.module.project)
     return page.artboards
       .associate { artboard ->
-        drawableFileGenerator.generateDrawableFile(
-          VectorDrawable(artboard, createAllDrawableShapes(artboard, symbolsLibrary))) to AssetOptions(artboard)
+        val asset = SketchToStudioConverter.createDrawableAsset(artboard, symbolsLibrary)
+        drawableFileGenerator.generateDrawableFile(asset) to asset
       }
   }
 
@@ -159,12 +160,12 @@ class PagePresenter(private val sketchPage: SketchPage,
    * Filter only the files that are exportable (unless the importAll marker is set).
    */
   fun getExportableFiles(): List<LightVirtualFile> {
-    val files = filesToOptions.keys
-    return if (importAll) files.toList() else files.filter { filesToOptions[it]?.isExportable ?: false }
+    val files = filesToAssets.keys
+    return if (importAll) files.toList() else files.filter { filesToAssets[it]?.isExportable ?: false }
   }
 
   /**
    * Get options associated with a file.
    */
-  fun getOptions(file: LightVirtualFile): AssetOptions? = filesToOptions[file]
+  fun getAsset(file: LightVirtualFile): AssetModel? = filesToAssets[file]
 }

@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters;
+package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.ShapeToDrawableConverter.createDrawableShape;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.Path2DBuilder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AreaModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchCurvePoint;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchExportFormat;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicsContextSettings;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
@@ -38,35 +39,42 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
+import com.android.tools.layoutlib.annotations.NotNull;
 import com.google.common.collect.ImmutableList;
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
 
-public class SketchToShapeConverter {
-
+public class SketchToStudioConverter {
   public static final int DEFAULT_OPACITY = 1;
 
   @NotNull
-  public static ImmutableList<DrawableModel> createAllDrawableShapes(@NotNull SketchArtboard artboard,
-                                                                     @NotNull SymbolsLibrary symbolsLibrary) {
-    ImmutableList.Builder<DrawableModel> drawableShapes = new ImmutableList.Builder<>();
+  public static StudioResourcesModel getResources(@NotNull SketchPage sketchPage, @NotNull SymbolsLibrary symbolsLibrary) {
+    ImmutableList.Builder<DrawableAssetModel> listBuilder = new ImmutableList.Builder<>();
 
-    for (ShapeModel shapeModel : createAllShapeModels(artboard, symbolsLibrary)) {
-      drawableShapes.add(createDrawableShape(shapeModel));
+    for (SketchArtboard artboard : sketchPage.getArtboards()) {
+      listBuilder.add(createDrawableAsset(artboard, symbolsLibrary));
     }
 
-    return drawableShapes.build();
+    return new StudioResourcesModel(listBuilder.build());
   }
 
   @NotNull
-  private static ImmutableList<ShapeModel> createAllShapeModels(@NotNull SketchArtboard artboard, @NotNull SymbolsLibrary symbolsLibrary) {
+  public static StudioResourcesModel getResources(@NotNull SketchDocument sketchDocument) {
+    // TODO
+    return new StudioResourcesModel(ImmutableList.of());
+  }
+
+  // --------------------------------------------------------- ARTBOARD to DRAWABLE --------------------------------------------------------
+
+  @NotNull
+  public static DrawableAssetModel createDrawableAsset(@NotNull SketchArtboard artboard, @NotNull SymbolsLibrary symbolsLibrary) {
     ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = artboard.getLayers();
 
     for (SketchLayer layer : layers) {
-      if (!symbolsLibrary.isEmpty() && layer instanceof SketchSymbolInstance) {
+      if (layer instanceof SketchSymbolInstance && !symbolsLibrary.isEmpty()) {
         shapes.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, symbolsLibrary));
       }
 
@@ -78,15 +86,43 @@ public class SketchToShapeConverter {
       }
     }
 
-    return shapes.build();
+    ImmutableList<ShapeModel> shapeModels = shapes.build();
+    String name = getDefaultName(artboard);
+    // By default, an item is exportable if it has <b>at least one exportFormat</b> (regardless of
+    // the specifics of the format -> users can mark an item as exportable in Sketch with one click).
+    boolean exportable = artboard.getExportOptions().getExportFormats().length != 0;
+    Rectangle.Double dimension = artboard.getFrame();
+
+    return new DrawableAssetModel(shapeModels, exportable, name, dimension, dimension);
   }
 
   @NotNull
-  private static ImmutableList<ShapeModel> createShapeModelsFromSymbol(SketchSymbolInstance symbolInstance, SymbolsLibrary symbolsLibrary) {
+  private static String getDefaultName(@NotNull SketchArtboard artboard) {
+    String name = artboard.getName();
+
+    if (artboard.getExportOptions().getExportFormats().length != 0) {
+      SketchExportFormat format = artboard.getExportOptions().getExportFormats()[0];
+
+      if (format.getNamingScheme() == SketchExportFormat.NAMING_SCHEME_PREFIX) {
+        return format.getName() + name;
+      }
+      else if (format.getNamingScheme() == SketchExportFormat.NAMING_SCHEME_SUFFIX) {
+        return name + format.getName();
+      }
+    }
+
+    return name;
+  }
+
+  @NotNull
+  private static ImmutableList<ShapeModel> createShapeModelsFromSymbol(@NotNull SketchSymbolInstance symbolInstance,
+                                                                       @NotNull SymbolsLibrary symbolsLibrary) {
     SymbolModel symbolModel = symbolsLibrary.getSymbolModel(symbolInstance.getSymbolId());
+
     symbolModel.setSymbolInstance(symbolInstance);
     symbolModel.scaleShapes();
     symbolModel.translateShapes();
+
     return symbolModel.getShapeModels();
   }
 
@@ -379,4 +415,10 @@ public class SketchToShapeConverter {
 
     return corners;
   }
+
+  // ---------------------------------------------------- TODO SYMBOL MASTER to DRAWABLE ---------------------------------------------------
+
+  // -------------------------------------------------------- TODO SLICE to DRAWABLE -------------------------------------------------------
+
+  // ------------------------------------------------------- TODO SHAPE FILL to COLOR ------------------------------------------------------
 }

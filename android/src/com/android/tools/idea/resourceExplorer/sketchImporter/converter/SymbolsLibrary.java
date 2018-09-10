@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.DEFAULT_OPACITY;
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.createShapeModelsFromLayerable;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.DEFAULT_OPACITY;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.createShapeModelsFromLayerable;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
