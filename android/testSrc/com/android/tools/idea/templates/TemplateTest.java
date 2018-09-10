@@ -1503,7 +1503,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       @SuppressWarnings("resource")
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try {
-        buildLauncher.setStandardError(baos).run();
+        buildLauncher.setStandardOutput(baos).setStandardError(baos).run();
       }
       //// Use the following commented out code to debug the generated project in case of a failure.
       catch (Exception e) {
