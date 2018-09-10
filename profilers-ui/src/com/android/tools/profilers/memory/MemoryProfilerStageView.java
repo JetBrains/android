@@ -99,6 +99,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private ProfilerAction myAllocationAction;
   @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
+  @NotNull private final JLabel myCaptureInfoMessage;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
@@ -120,6 +121,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (!getStage().isMemoryCaptureOnly()) {
       myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     }
+
+    myCaptureInfoMessage = new JLabel(StudioIcons.Common.WARNING);
+    myCaptureInfoMessage.setBorder(TOOLBAR_ICON_BORDER);
+    myCaptureInfoMessage.setVisible(false);
     myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setOpaque(true);
     myInstanceDetailsSplitter.setFirstComponent(myClassSetView.getComponent());
@@ -198,7 +203,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
       .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::updateCaptureInfoMessage);
 
     captureObjectChanged();
     allocationTrackingChanged();
@@ -358,6 +364,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (getStage().isTrackingAllocations() && !getStage().useLiveAllocationTracking()) {
       long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
       myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
+    }
+  }
+
+  private void updateCaptureInfoMessage() {
+    CaptureObject capture = getStage().getSelectedCapture();
+    String infoMessage = capture == null ? null : capture.getInfoMessage();
+
+    if (infoMessage != null) {
+      myCaptureInfoMessage.setVisible(true);
+      myCaptureInfoMessage.setToolTipText(infoMessage);
+    }
+    else {
+      myCaptureInfoMessage.setVisible(false);
     }
   }
 
@@ -687,6 +706,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       filterComponent.setVisible(false);
       filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
+    }
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
+      buttonToolbar.add(myCaptureInfoMessage);
     }
     headingPanel.add(buttonToolbar, BorderLayout.EAST);
 

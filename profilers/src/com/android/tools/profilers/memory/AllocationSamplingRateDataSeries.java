@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSamplingRateDurationData> {
+public final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSamplingRateDurationData> {
   @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   @NotNull private final Common.Session mySession;
 
@@ -66,8 +66,12 @@ final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSam
       AllocationSamplingRateEvent nextRateEvent = i == events.size() - 1 ? null : events.get(i + 1);
       long durationUs = nextRateEvent == null ? TimeUnit.NANOSECONDS.toMicros(Long.MAX_VALUE) :
                         TimeUnit.NANOSECONDS.toMicros(nextRateEvent.getTimestamp() - currentEvent.getTimestamp());
-      seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(currentEvent.getTimestamp()),
-                                      new AllocationSamplingRateDurationData(durationUs, prevRateEvent, currentEvent)));
+
+      // Only add events that fall within the query range.
+      if (nextRateEvent == null || nextRateEvent.getTimestamp() > rangeMin) {
+        seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(currentEvent.getTimestamp()),
+                                        new AllocationSamplingRateDurationData(durationUs, prevRateEvent, currentEvent)));
+      }
       prevRateEvent = currentEvent;
     }
 

@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class AllocationSamplingRateDurationData implements DurationData {
+public final class AllocationSamplingRateDurationData implements DurationData {
   @Nullable private final AllocationSamplingRateEvent myPreviousRateEvent;
   @NotNull private final AllocationSamplingRateEvent myCurrentRateEvent;
   private final long myDurationUs;
