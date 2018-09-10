@@ -677,6 +677,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
+  public AllocationSamplingRateDataSeries getAllocationSamplingRateDataSeries() {
+    return myAllocationSamplingRateDataSeries;
+  }
+
+  @NotNull
   DurationDataModel<AllocationSamplingRateDurationData> getAllocationSamplingRateDurations() {
     return myAllocationSamplingRateDurations;
   }

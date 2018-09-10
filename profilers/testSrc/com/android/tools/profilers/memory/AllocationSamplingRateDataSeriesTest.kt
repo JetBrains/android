@@ -72,11 +72,17 @@ class AllocationSamplingRateDataSeriesTest {
   }
 
   @Test
-  fun testGetDataForXRangeReturnEventsBeforeRangeMin() {
+  fun testGetDataForXRangeNotReturnEventsBeforeRangeMin() {
     val memoryData = MemoryProfiler.MemoryData.newBuilder()
       .setEndTimestamp(1)
       .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(1000).setSamplingRate(
         MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(1).build()
+      ))
+      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(2000).setSamplingRate(
+        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(2).build()
+      ))
+      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(3000).setSamplingRate(
+        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(3).build()
       ))
       .build()
     myService.setMemoryData(memoryData)
@@ -86,8 +92,9 @@ class AllocationSamplingRateDataSeriesTest {
 
     assertThat(dataList.size).isEqualTo(1)
     var data = dataList[0]
+    assertThat(data.x).isEqualTo(TimeUnit.NANOSECONDS.toMicros(3000))
     assertThat(data.value.durationUs).isEqualTo(TimeUnit.NANOSECONDS.toMicros(java.lang.Long.MAX_VALUE))
-    assertThat(data.value.previousRateEvent).isNull()
-    assertThat(data.value.currentRateEvent.samplingRate.samplingNumInterval).isEqualTo(1)
+    assertThat(data.value.previousRateEvent!!.samplingRate.samplingNumInterval).isEqualTo(2)
+    assertThat(data.value.currentRateEvent.samplingRate.samplingNumInterval).isEqualTo(3)
   }
 }

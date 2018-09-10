@@ -18,11 +18,13 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.memory.AllocationSamplingRateDurationData;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -31,6 +33,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TLongObjectHashMap;
+import javax.print.DocFlavor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -50,6 +53,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private static Logger getLogger() {
     return Logger.getInstance(LiveAllocationCaptureObject.class);
   }
+
+  @VisibleForTesting static final String SAMPLING_INFO_MESSAGE =
+    "Data shown might not be accurate because the selected range contains region where full tracking was not enabled.";
 
   @Nullable private MemoryProfilerStage myStage;
 
@@ -76,6 +82,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private Range myQueryRange;
 
   private Future myCurrentTask;
+  @Nullable private String myInfoMessage;
 
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                      @NotNull Common.Session session,
@@ -163,6 +170,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @Override
   public List<InstanceAttribute> getInstanceAttributes() {
     return ImmutableList.of(InstanceAttribute.LABEL, ALLOCATION_TIME, DEALLOCATION_TIME);
+  }
+
+  @Nullable
+  @Override
+  public String getInfoMessage() {
+    return myInfoMessage;
   }
 
   @NotNull
@@ -376,6 +389,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           }
         }
 
+        boolean hasNonFullTrackingRegion = hasNonFullSamplingRegion(newStartTimeNs, newEndTimeNs);
+
         myPreviousQueryStartTimeNs = newStartTimeNs;
         myPreviousQueryEndTimeNs = newEndTimeNs;
 
@@ -397,6 +412,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             deltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).freeDeltaInstanceObject(instance));
             resetDeltaAllocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeAddedDeltaInstanceObject(instance));
             resetDeltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeFreedDeltaInstanceObject(instance));
+
+            myInfoMessage = hasNonFullTrackingRegion ? SAMPLING_INFO_MESSAGE : null;
             myStage.refreshSelectedHeap();
           }
         });
@@ -602,5 +619,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           assert false;
       }
     }
+  }
+
+  private boolean hasNonFullSamplingRegion(long startTimeNs, long endTimeNs) {
+    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes =
+      myStage.getAllocationSamplingRateDataSeries().getDataForXRange(new Range(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
+                                                                               TimeUnit.NANOSECONDS.toMicros(endTimeNs)));
+    return !(samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
+                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue());
+
   }
 }
