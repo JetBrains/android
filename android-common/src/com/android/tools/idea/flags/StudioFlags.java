@@ -258,6 +258,16 @@ public final class StudioFlags {
     "New architecture for dragging widgets in Layout Editor",
     false);
 
+  public static final Flag<Boolean> NELE_RENDER_HIGH_QUALITY_SHADOW = Flag.create(
+    NELE, "high.quality.shadow", "Enable the high quality shadows",
+    "Enable the high quality shadow rendering in Layout Editor",
+    false);
+
+  public static final Flag<Boolean> NELE_ENABLE_SHADOW = Flag.create(
+    NELE, "enable.shadow", "Enable shadows",
+    "Enable the shadow rendering in Layout Editor",
+    false);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
