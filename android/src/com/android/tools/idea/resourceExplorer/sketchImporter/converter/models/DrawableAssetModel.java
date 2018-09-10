@@ -28,17 +28,20 @@ public class DrawableAssetModel implements AssetModel {
   private String myName;
   private final Rectangle.Double myArtboardDimension;
   private final Rectangle.Double myViewportDimension;
+  private Origin myOrigin;
 
   public DrawableAssetModel(@NotNull ImmutableList<ShapeModel> shapeModels,
                             boolean exportable,
                             @NotNull String name,
                             @NotNull Rectangle.Double artboardDimension,
-                            @NotNull Rectangle.Double viewportDimension) {
+                            @NotNull Rectangle.Double viewportDimension,
+                            @NotNull Origin origin) {
     myShapeModels = shapeModels;
     myExportable = exportable;
     myName = name;
     myArtboardDimension = artboardDimension;
     myViewportDimension = viewportDimension;
+    myOrigin = origin;
   }
 
 
@@ -77,5 +80,11 @@ public class DrawableAssetModel implements AssetModel {
   @Override
   public void setName(@NotNull String name) {
     myName = name;
+  }
+
+  @Override
+  @NotNull
+  public Origin getOrigin() {
+    return myOrigin;
   }
 }
