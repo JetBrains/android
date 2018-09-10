@@ -224,9 +224,13 @@ class ProjectLightResourceClassService(
   }
 
   private fun getAarPackageName(aarLibrary: ExternalLibrary): String {
+    val packageName = aarLibrary.packageName
+    if (packageName != null) {
+      return packageName
+    }
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
       val fromManifest = try {
-        aarLibrary.representativeManifestFile?.let(AndroidManifestUtils::getPackageNameFromManifestFile) ?: ""
+        aarLibrary.manifestFile?.let(AndroidManifestUtils::getPackageNameFromManifestFile) ?: ""
       }
       catch (e: IOException) {
         null
