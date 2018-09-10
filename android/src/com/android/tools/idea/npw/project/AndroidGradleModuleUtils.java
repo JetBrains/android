@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -89,9 +90,12 @@ public class AndroidGradleModuleUtils {
 
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
     for(Module module : ModuleManager.getInstance(project).getModules()) {
-      List<String> plugins = PluginModel.extractNames(projectBuildModel.getModuleBuildModel(module).plugins());
-      if(plugins.contains("com.android.feature")) {
-        return true;
+      GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(module);
+      if (gradleBuildModel != null) {
+        List<String> plugins = PluginModel.extractNames(gradleBuildModel.plugins());
+        if (plugins.contains("com.android.feature")) {
+          return true;
+        }
       }
     }
     return false;
