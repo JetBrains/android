@@ -20,14 +20,21 @@ import org.jetbrains.annotations.NotNull;
 
 public class StudioResourcesModel {
   private ImmutableList<DrawableAssetModel> myDrawableAssets;
-  // TODO add ColorModel
+  private ImmutableList<ColorAssetModel> myColorAssets;
 
-  public StudioResourcesModel(@NotNull ImmutableList<DrawableAssetModel> drawableAssets) {
+  public StudioResourcesModel(@NotNull ImmutableList<DrawableAssetModel> drawableAssets,
+                              @NotNull ImmutableList<ColorAssetModel> colorAssets) {
     myDrawableAssets = drawableAssets;
+    myColorAssets = colorAssets;
   }
 
   @NotNull
   public ImmutableList<DrawableAssetModel> getDrawableAssets() {
     return myDrawableAssets;
+  }
+
+  @NotNull
+  public ImmutableList<ColorAssetModel> getColorAssets() {
+    return myColorAssets;
   }
 }

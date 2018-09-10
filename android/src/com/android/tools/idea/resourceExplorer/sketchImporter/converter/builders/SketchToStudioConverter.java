@@ -19,12 +19,16 @@ import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.dese
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AreaModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignSymbol;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchSharedStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
@@ -41,6 +45,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.android.tools.layoutlib.annotations.NotNull;
 import com.google.common.collect.ImmutableList;
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -48,6 +53,7 @@ import java.util.ArrayList;
 
 public class SketchToStudioConverter {
   public static final int DEFAULT_OPACITY = 1;
+  private static final String DEFAULT_DOCUMENT_COLOR_NAME = "document_color";
 
   @NotNull
   public static StudioResourcesModel getResources(@NotNull SketchPage sketchPage, @NotNull SymbolsLibrary symbolsLibrary) {
@@ -57,18 +63,30 @@ public class SketchToStudioConverter {
       listBuilder.add(createDrawableAsset(artboard, symbolsLibrary));
     }
 
-    return new StudioResourcesModel(listBuilder.build());
+    // TODO get colors from solid fill shapes & drawables from symbol masters
+    return new StudioResourcesModel(listBuilder.build(), ImmutableList.of());
   }
 
   @NotNull
-  public static StudioResourcesModel getResources(@NotNull SketchDocument sketchDocument) {
-    // TODO
-    return new StudioResourcesModel(ImmutableList.of());
+  public static StudioResourcesModel getResources(@NotNull SketchDocument sketchDocument, @NotNull SymbolsLibrary symbolsLibrary) {
+    ImmutableList.Builder<DrawableAssetModel> drawableListBuilder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<ColorAssetModel> colorListBuilder = new ImmutableList.Builder<>();
+
+    colorListBuilder.addAll(getDocumentColors(sketchDocument));
+    colorListBuilder.addAll(getExternalColors(sketchDocument));
+    colorListBuilder.addAll(getSharedColors(sketchDocument));
+
+    drawableListBuilder.addAll(getExternalDrawables(sketchDocument, symbolsLibrary));
+    drawableListBuilder.addAll(getSharedDrawables(sketchDocument, symbolsLibrary));
+
+    return new StudioResourcesModel(drawableListBuilder.build(), colorListBuilder.build());
   }
 
-  // --------------------------------------------------------- ARTBOARD to DRAWABLE --------------------------------------------------------
-
+  /**
+   * Artboard to Drawable conversion
+   */
   @NotNull
+  // TODO make private after updating the presenter
   public static DrawableAssetModel createDrawableAsset(@NotNull SketchArtboard artboard, @NotNull SymbolsLibrary symbolsLibrary) {
     ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = artboard.getLayers();
@@ -93,15 +111,36 @@ public class SketchToStudioConverter {
     boolean exportable = artboard.getExportOptions().getExportFormats().length != 0;
     Rectangle.Double dimension = artboard.getFrame();
 
-    return new DrawableAssetModel(shapeModels, exportable, name, dimension, dimension);
+    return new DrawableAssetModel(shapeModels, exportable, name, dimension, dimension, AssetModel.Origin.ARTBOARD);
   }
 
+  /**
+   * SymbolMaster to Drawable conversion
+   */
   @NotNull
-  private static String getDefaultName(@NotNull SketchArtboard artboard) {
-    String name = artboard.getName();
+  private static DrawableAssetModel createDrawableAsset(@NotNull SketchSymbolMaster symbolMaster,
+                                                        @NotNull SymbolsLibrary symbolsLibrary,
+                                                        @NotNull AssetModel.Origin origin) {
+    boolean exportable = symbolMaster.getExportOptions().getExportFormats().length != 0;
+    String name = getDefaultName(symbolMaster);
+    Rectangle.Double dimension = symbolMaster.getFrame();
 
-    if (artboard.getExportOptions().getExportFormats().length != 0) {
-      SketchExportFormat format = artboard.getExportOptions().getExportFormats()[0];
+    return new DrawableAssetModel(createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, symbolsLibrary),
+                                  exportable, name, dimension, dimension, origin);
+  }
+
+  // TODO Slice to Drawable conversion
+
+  // TODO ShapeFill to Color conversion
+
+  @NotNull
+  private static String getDefaultName(@NotNull SketchLayer layer) {
+    // TODO sanitize name
+
+    String name = layer.getName();
+
+    if (layer.getExportOptions().getExportFormats().length != 0) {
+      SketchExportFormat format = layer.getExportOptions().getExportFormats()[0];
 
       if (format.getNamingScheme() == SketchExportFormat.NAMING_SCHEME_PREFIX) {
         return format.getName() + name;
@@ -113,6 +152,8 @@ public class SketchToStudioConverter {
 
     return name;
   }
+
+  // region SketchPage items to Intermediate Models
 
   @NotNull
   private static ImmutableList<ShapeModel> createShapeModelsFromSymbol(@NotNull SketchSymbolInstance symbolInstance,
@@ -260,6 +301,10 @@ public class SketchToStudioConverter {
 
     return finalShape;
   }
+
+  // endregion
+
+  // region SketchShapePath to Path2D.Double
 
   @NotNull
   private static Path2D.Double getPath2D(@NotNull SketchShapePath shapePath) {
@@ -416,9 +461,71 @@ public class SketchToStudioConverter {
     return corners;
   }
 
-  // ---------------------------------------------------- TODO SYMBOL MASTER to DRAWABLE ---------------------------------------------------
+  // endregion
 
-  // -------------------------------------------------------- TODO SLICE to DRAWABLE -------------------------------------------------------
+  // region SketchDocument items to Intermediate Models
 
-  // ------------------------------------------------------- TODO SHAPE FILL to COLOR ------------------------------------------------------
+  @NotNull
+  private static ImmutableList<ColorAssetModel> getDocumentColors(@NotNull SketchDocument sketchDocument) {
+    Color[] documentColors = sketchDocument.getAssets().getColors();
+    int len = documentColors.length;
+    if (len == 1) {
+      return ImmutableList.of(new ColorAssetModel(true, DEFAULT_DOCUMENT_COLOR_NAME, documentColors[0], AssetModel.Origin.DOCUMENT));
+    }
+    else {
+      ImmutableList.Builder<ColorAssetModel> colorListBuilder = new ImmutableList.Builder<>();
+      for (int i = 0; i < len; i++) {
+        colorListBuilder
+          .add(new ColorAssetModel(true, DEFAULT_DOCUMENT_COLOR_NAME + '_' + (i + 1), documentColors[i], AssetModel.Origin.DOCUMENT));
+      }
+      return colorListBuilder.build();
+    }
+  }
+
+  @NotNull
+  private static ImmutableList<ColorAssetModel> getExternalColors(@NotNull SketchDocument sketchDocument) {
+    ImmutableList.Builder<ColorAssetModel> colorListBuilder = new ImmutableList.Builder<>();
+    // TODO
+    return colorListBuilder.build();
+  }
+
+  @NotNull
+  private static ImmutableList<ColorAssetModel> getSharedColors(@NotNull SketchDocument sketchDocument) {
+    ImmutableList.Builder<ColorAssetModel> colorListBuilder = new ImmutableList.Builder<>();
+    SketchSharedStyle[] sharedStyles = sketchDocument.getLayerStyles();
+    for (SketchSharedStyle style : sharedStyles) {
+      SketchFill[] fills = style.getValue().getFills();
+      Color color = fills != null && fills.length != 0 ? fills[0].getColor() : null;
+      if (color != null) {
+        colorListBuilder.add(new ColorAssetModel(true, style.getName(), color, AssetModel.Origin.SHARED)); // TODO sanitize name
+      }
+    }
+    return colorListBuilder.build();
+  }
+
+  @NotNull
+  private static ImmutableList<DrawableAssetModel> getExternalDrawables(@NotNull SketchDocument sketchDocument,
+                                                                        @NotNull SymbolsLibrary symbolsLibrary) {
+    if (sketchDocument.getForeignSymbols() == null) {
+      return ImmutableList.of();
+    }
+
+    ImmutableList.Builder<DrawableAssetModel> drawableListBuilder = new ImmutableList.Builder<>();
+    for (SketchForeignSymbol foreignSymbol : sketchDocument.getForeignSymbols()) {
+      DrawableAssetModel drawableAsset = createDrawableAsset(foreignSymbol.getSymbolMaster(), symbolsLibrary, AssetModel.Origin.EXTERNAL);
+      drawableListBuilder.add(drawableAsset);
+    }
+
+    return drawableListBuilder.build();
+  }
+
+  @NotNull
+  private static ImmutableList<DrawableAssetModel> getSharedDrawables(@NotNull SketchDocument sketchDocument,
+                                                                      @NotNull SymbolsLibrary symbolsLibrary) {
+    ImmutableList.Builder<DrawableAssetModel> drawableListBuilder = new ImmutableList.Builder<>();
+    // TODO
+    return drawableListBuilder.build();
+  }
+
+  // endregion
 }
