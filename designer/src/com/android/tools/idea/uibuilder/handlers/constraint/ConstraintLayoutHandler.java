@@ -17,7 +17,6 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.api.DragType;
@@ -62,7 +61,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
 import icons.StudioIcons;
-import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -88,10 +86,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
-   * Preference key (used with {@link PropertiesComponent}) for auto connect mode
-   */
-  public static final String AUTO_CONNECT_PREF_KEY = PREFERENCE_KEY_PREFIX + "AutoConnect";
-  /**
    * Preference key (used with {@link PropertiesComponent}) for show all constraints mode
    */
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
@@ -101,7 +95,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static final NlIcon BASELINE_ICON =
     new NlIcon(StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED, StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT);
 
-  private static boolean ourAutoConnect;
   private final static String ADD_VERTICAL_BARRIER = "Add Vertical Barrier";
   private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
   private final static String ADD_TO_BARRIER = "Add to Barrier";
@@ -112,10 +105,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
-
-  static {
-    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
-  }
 
   // This is used to efficiently test if they are horizontal or vertical.
   private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
@@ -467,39 +456,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   public boolean handlesPainting() {
     return true;
-  }
-
-  private static class ToggleAutoConnectAction extends ToggleViewAction  {
-    public ToggleAutoConnectAction() {
-      super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect",
-            "Turn Off Autoconnect");
-    }
-
-    @Override
-    public boolean isSelected(@NotNull ViewEditor editor,
-                              @NotNull ViewHandler handler,
-                              @NotNull NlComponent parent,
-                              @NotNull List<NlComponent> selectedChildren) {
-      return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
-    }
-
-    @Override
-    public void setSelected(@NotNull ViewEditor editor,
-                            @NotNull ViewHandler handler,
-                            @NotNull NlComponent parent,
-                            @NotNull List<NlComponent> selectedChildren,
-                            boolean selected) {
-      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
-                           .logAction(selected
-                                      ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
-                                      : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
-      PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
-    }
-
-    @Override
-    public boolean affectsUndo() {
-      return false;
-    }
   }
 
   private static class ClearConstraintsAction extends DirectViewAction {
@@ -1036,7 +992,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                            .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       // noinspection AssignmentToMethodParameter
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgetsAndCommit(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
+      Scout.arrangeWidgetsAndCommit(myActionType, selectedChildren, modifiers == 0 || ToggleAutoConnectAction.isAutoconnectOn());
       ensureLayersAreShown(editor, 1000);
     }
 
@@ -1050,7 +1006,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        if (ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0) {
+        if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0) {
           icon = myConstrainIcon;
         }
       }
@@ -1134,7 +1090,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
-        ((ControlIcon)myMarginIcon).setHighlight(ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0);
+        ((ControlIcon)myMarginIcon).setHighlight(ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0);
       }
       presentation.setIcon(myMarginIcon);
     }
@@ -1430,7 +1386,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
         Icon icon = myAlignIcon;
         if (myConstrainIcon != null) {
-          if (ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0) {
+          if (ToggleAutoConnectAction.isAutoconnectOn() || (InputEvent.CTRL_MASK & modifiers) == 0) {
             icon = myConstrainIcon;
           }
         }
