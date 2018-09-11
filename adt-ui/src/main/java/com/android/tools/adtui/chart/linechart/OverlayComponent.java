@@ -95,7 +95,7 @@ public final class OverlayComponent extends AnimatedComponent {
     boolean handled = false;
     for (DurationDataRenderer renderer : myDurationRenderers) {
       // TODO make this an interface
-      handled |= renderer.handleMouseEvent(e);
+      handled |= renderer.handleMouseEvent(this, myDispatchComponent, e);
       if (handled) {
         break;
       }

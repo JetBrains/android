@@ -15,7 +15,19 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.*;
+import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
+import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
+
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -26,22 +38,24 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerLayeredPane;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
+import icons.StudioIcons;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.util.ArrayList;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
-
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
-
-import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
-import static com.android.tools.profilers.ProfilerLayout.*;
-import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
 
 abstract class CpuUsageView extends JBPanel {
   @NotNull protected final CpuProfilerStage myStage;
@@ -148,8 +162,7 @@ abstract class CpuUsageView extends JBPanel {
       DurationDataRenderer<CpuTraceInfo> traceRenderer =
         new DurationDataRenderer.Builder<>(myStage.getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
           .setDurationBg(CPU_CAPTURE_BACKGROUND)
-          .setLabelProvider(this::formatCaptureLabel)
-          .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+          .setIcon(StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK)
           .setClickHander(traceInfo -> myStage.setAndSelectCapture(traceInfo.getTraceId()))
           .build();
 
@@ -261,8 +274,7 @@ abstract class CpuUsageView extends JBPanel {
       DurationDataRenderer<CpuTraceInfo> traceRenderer =
         new DurationDataRenderer.Builder<>(myStage.getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
           .setDurationBg(CPU_CAPTURE_BACKGROUND)
-          .setLabelProvider(this::formatCaptureLabel)
-          .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+          .setIcon(StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK)
           .setClickHander(traceInfo -> myStage.setAndSelectCapture(traceInfo.getTraceId()))
           .build();
       myOverlayComponent.addDurationDataRenderer(traceRenderer);
