@@ -754,24 +754,16 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
-    // Ensure that changing the sampling interval alone does nothing if live allocation is not used.
-    AllocationsInfo legacyAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(true).build();
     AllocationSamplingRateEvent sampleMode = AllocationSamplingRateEvent.newBuilder()
       .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(legacyAllocInfo).addAllocSamplingRateEvents(sampleMode).build());
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
-    assertThat(samplingAspectChange[0]).isEqualTo(0);
-
-    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(sampleMode).build());
+    myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(sampleMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
     assertThat(samplingAspectChange[0]).isEqualTo(1);
 
     AllocationSamplingRateEvent noneMode = AllocationSamplingRateEvent.newBuilder()
       .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(0)).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).addAllocSamplingRateEvents(noneMode).build());
+    myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(noneMode).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(2);

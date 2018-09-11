@@ -58,7 +58,7 @@ class DurationDataRendererTest {
     }
     val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
-    durationData.setAttachPredicate { data -> data.x == 6L}
+    durationData.setAttachPredicate { data -> data.x >= 6L}
 
     // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
     val mockIcon = mock(Icon::class.java)
@@ -72,7 +72,9 @@ class DurationDataRendererTest {
     validateRegion(durationDataRenderer.clickRegionCache[1], 0.2f, 1f, 5f, 5f)    // attached series has no data before this point, y == 1.
     validateRegion(durationDataRenderer.clickRegionCache[2], 0.4f, 1f, 5f, 5f)    // attached predicate fails.
     validateRegion(durationDataRenderer.clickRegionCache[3], 0.6f, 0.4f, 5f, 5f)
-    validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 1f, 5f, 5f)   // attached series has no data after this point. y == 1.
+    // attached series has no data after this point, use the last point as the attached y.
+    validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
+
   }
 
   @Test
