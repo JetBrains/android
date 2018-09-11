@@ -63,7 +63,7 @@ public class NetworkProfilerStageTest {
       .add(FakeNetworkService.newConnectionData(0, 4))
       .add(FakeNetworkService.newConnectionData(10, 6))
       .add(FakeNetworkService.newConnectionData(100, 8000))
-      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH))
+      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE))
       .build();
 
   private static final String TEST_PAYLOAD_ID = "test";

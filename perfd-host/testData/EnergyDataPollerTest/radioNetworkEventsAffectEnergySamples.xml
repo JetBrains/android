@@ -200,8 +200,7 @@ end_timestamp: 1000000000
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse">
         <Message>data {
   connectivity_data {
-    radio_state: HIGH
-    default_network_type: MOBILE
+    network_type: MOBILE
   }
 }
 data {
@@ -226,8 +225,7 @@ data {
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
         <message>data {
   connectivity_data {
-    radio_state: HIGH
-    default_network_type: MOBILE
+    network_type: MOBILE
   }
 }
 data {
