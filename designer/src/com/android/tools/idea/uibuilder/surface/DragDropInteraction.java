@@ -160,6 +160,7 @@ public class DragDropInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
+    canceled |= myDragHandler == null;
     mySceneView = myDesignSurface.getSceneView(x, y);
     if (mySceneView != null && myDragReceiver != null && !canceled) {
       mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
