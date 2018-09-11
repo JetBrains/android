@@ -70,41 +70,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
 
   @VisibleForTesting
-  static final String PARSING_FAILURE_BALLOON_TITLE = "Trace data was not recorded";
-  @VisibleForTesting
-  static final String PARSING_FAILURE_BALLOON_TEXT = "The profiler was unable to parse the method trace data. Try recording another " +
-                                                     "method trace, or ";
-
-  @VisibleForTesting
-  static final String PARSING_FILE_FAILURE_BALLOON_TITLE = "Trace file was not parsed";
-  @VisibleForTesting
-  static final String PARSING_FILE_FAILURE_BALLOON_TEXT = "The profiler was unable to parse the trace file. Please make sure the file " +
-                                                          "selected is a valid trace. Alternatively, try importing another file, or ";
-  @VisibleForTesting
-  static final String PARSING_ABORTED_BALLOON_TITLE = "Parsing trace file aborted";
-  @VisibleForTesting
-  static final String PARSING_IMPORTED_TRACE_ABORTED_BALLOON_TEXT = "The profiler changed to a different session before the imported " +
-                                                                    "trace file could be parsed. Please try importing your trace " +
-                                                                    "file again.";
-  @VisibleForTesting
-  static final String PARSING_RECORDED_TRACE_ABORTED_BALLOON_TEXT = "The CPU profiler was closed before the recorded trace file could be " +
-                                                                    "parsed. Please record another trace.";
-
-  @VisibleForTesting
-  static final String CAPTURE_START_FAILURE_BALLOON_TITLE = "Recording failed to start";
-  @VisibleForTesting
-  static final String CAPTURE_START_FAILURE_BALLOON_TEXT = "Try recording again, or ";
-
-  @VisibleForTesting
-  static final String CAPTURE_STOP_FAILURE_BALLOON_TITLE = "Recording failed to stop";
-  @VisibleForTesting
-  static final String CAPTURE_STOP_FAILURE_BALLOON_TEXT = "Try recording another method trace, or ";
-  @VisibleForTesting
-  static final String CPU_BUG_TEMPLATE_URL = "https://issuetracker.google.com/issues/new?component=192754";
-  @VisibleForTesting
-  static final String REPORT_A_BUG_TEXT = "report a bug";
-
-  @VisibleForTesting
   static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
 
   @VisibleForTesting
@@ -241,6 +206,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private Common.Session mySession;
 
+  /**
+   * Shows balloon notifications related to CPU Profiler.
+   */
+  @NotNull
+  private final CpuProfilerNotification myNotification;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, null);
   }
@@ -261,6 +232,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
+    myNotification = new CpuProfilerNotification(profilers.getIdeServices());
 
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
@@ -570,9 +542,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      getStudioProfilers().getIdeServices()
-                          .showErrorBalloon(CAPTURE_START_FAILURE_BALLOON_TITLE, CAPTURE_START_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
-                                            REPORT_A_BUG_TEXT);
+      myNotification.showCaptureStartFailure();
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
@@ -656,9 +626,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      getStudioProfilers().getIdeServices()
-                          .showErrorBalloon(CAPTURE_STOP_FAILURE_BALLOON_TITLE, CAPTURE_STOP_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
-                                            REPORT_A_BUG_TEXT);
+      myNotification.showCaptureStopFailure();
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
@@ -730,13 +698,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
       }
       else if (capture.isCancelled()) {
-        getStudioProfilers().getIdeServices()
-                            .showErrorBalloon(PARSING_ABORTED_BALLOON_TITLE, PARSING_IMPORTED_TRACE_ABORTED_BALLOON_TEXT, null, null);
+        myNotification.showImportTraceParsingAborted();
       }
       else {
-        getStudioProfilers().getIdeServices()
-                            .showErrorBalloon(PARSING_FILE_FAILURE_BALLOON_TITLE, PARSING_FILE_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
-                                              REPORT_A_BUG_TEXT);
+        myNotification.showImportTraceParsingFailure();
         // After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         // Track import trace failure
@@ -787,14 +752,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         captureMetadata.setRecordDurationMs(calculateRecordDurationMs(parsedCapture));
       }
       else if (capture.isCancelled()) {
-        getStudioProfilers().getIdeServices()
-                            .showErrorBalloon(PARSING_ABORTED_BALLOON_TITLE, PARSING_RECORDED_TRACE_ABORTED_BALLOON_TEXT, null, null);
+        myNotification.showParsingAborted();
       }
       else {
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-        getStudioProfilers().getIdeServices()
-                            .showErrorBalloon(PARSING_FAILURE_BALLOON_TITLE, PARSING_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL,
-                                              REPORT_A_BUG_TEXT);
+        myNotification.showParsingFailure();
         // After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         setCapture(null);
