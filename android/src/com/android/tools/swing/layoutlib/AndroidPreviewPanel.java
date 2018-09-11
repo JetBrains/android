@@ -17,6 +17,7 @@ package com.android.tools.swing.layoutlib;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.util.CancelableRunnable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.parsers.DomPullParser;
@@ -76,7 +77,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   private final GraphicsLayoutRendererFactory myGraphicsLayoutRendererFactory;
   private final Executor myExecutor;
   @VisibleForTesting
-  protected final Runnable myInvalidateRunnable = new Runnable() {
+  protected final CancelableRunnable myInvalidateRunnable = new CancelableRunnable(new Runnable() {
     @Override
     public void run() {
       if (ApplicationManager.getApplication().isDispatchThread()) {
@@ -86,8 +87,8 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
 
       try {
         synchronized (myGraphicsLayoutRendererLock) {
-          // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
-          // can not be shared.
+          // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static
+          // state that can not be shared.
           if (myGraphicsLayoutRenderer != null) {
             myGraphicsLayoutRenderer.dispose();
             myGraphicsLayoutRenderer = null;
@@ -96,7 +97,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
 
         ILayoutPullParser parser = DomPullParser.createFromDocument(myDocument);
         GraphicsLayoutRenderer graphicsLayoutRenderer =
-          myGraphicsLayoutRendererFactory.createGraphicsLayoutRenderer(myConfiguration, parser, getBackground());
+            myGraphicsLayoutRendererFactory.createGraphicsLayoutRenderer(myConfiguration, parser, getBackground());
         graphicsLayoutRenderer.setScale(myScale);
         // We reset the height so that it can be recomputed to the needed value.
         graphicsLayoutRenderer.setSize(getWidth(), 1);
@@ -109,8 +110,8 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
           }
         }
       }
-      catch (AlreadyDisposedException e) {
-        // This will be thrown if create happens to run on already disposed module. Since this runs on a separate thread
+      catch (AlreadyDisposedException | ProcessCanceledException e) {
+        // This will be thrown if create happens to run on already disposed module. Since this runs on a separate thread,
         // it can happen that create blocks until after the module has been disposed.
         // In this case we just ignore it, since this might be a stale request.
       }
@@ -127,7 +128,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
         }
       }
     }
-  };
+  });
 
   private class InvalidateTask extends SwingWorker<Void, Void> implements Disposable {
     private boolean myDone;
@@ -179,13 +180,14 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     @Override
     public void dispose() {
       if (!myDone) {
+        myInvalidateRunnable.cancel(true);
         cancel(true);
       }
     }
   }
 
   private static final Notification UNSUPPORTED_LAYOUTLIB_NOTIFICATION =
-    new Notification("Android", "Preview", "The Theme Editor preview requires at least Android M Platform SDK", NotificationType.ERROR);
+      new Notification("Android", "Preview", "The Theme Editor preview requires at least Android M Platform SDK", NotificationType.ERROR);
   private static final AtomicBoolean ourLayoutlibNotification = new AtomicBoolean(false);
   private static final AtomicBoolean ourJavaRuntimeNotification = new AtomicBoolean(false);
 
