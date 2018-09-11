@@ -22,6 +22,9 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlElement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName;
@@ -37,10 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.android.AndroidUtilKt;
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 // TODO: ask for extension point
 // this class is mostly copied from org.jetbrains.android.AndroidGotoDeclarationHandler
@@ -84,16 +83,16 @@ public class KotlinAndroidGotoDeclarationHandler implements GotoDeclarationHandl
         LocalResourceManager lrm = (LocalResourceManager) manager;
 
         if (nestedClassName.equals(ResourceType.ATTR.getName())) {
-          for (Attr attr : lrm.findAttrs(fieldName)) {
+          for (Attr attr : lrm.findAttrs(info.getNamespace(), fieldName)) {
             resourceList.add(attr.getName().getXmlAttributeValue());
           }
         }
         else if (nestedClassName.equals(ResourceType.STYLEABLE.getName())) {
-          for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
+          for (DeclareStyleable styleable : lrm.findStyleables(info.getNamespace(), fieldName)) {
             resourceList.add(styleable.getName().getXmlAttributeValue());
           }
 
-          for (Attr styleable : lrm.findStyleableAttributesByFieldName(fieldName)) {
+          for (Attr styleable : lrm.findStyleableAttributesByFieldName(info.getNamespace(), fieldName)) {
             resourceList.add(styleable.getName().getXmlAttributeValue());
           }
         }
