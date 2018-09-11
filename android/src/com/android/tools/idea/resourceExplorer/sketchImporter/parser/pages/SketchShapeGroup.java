@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import java.awt.Rectangle;
@@ -48,9 +49,10 @@ public class SketchShapeGroup extends SketchLayer implements SketchLayerable {
                           @NotNull SketchLayer[] layers,
                           short clippingMaskMode,
                           boolean hasClippingMask,
-                          short windingRule) {
+                          short windingRule,
+                          @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
     this.style = style;
     this.layers = layers;
     this.clippingMaskMode = clippingMaskMode;

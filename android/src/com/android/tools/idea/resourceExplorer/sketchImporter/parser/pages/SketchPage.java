@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import java.awt.Rectangle;
@@ -50,9 +51,10 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
                     int rotation,
                     boolean shouldBreakMaskChain,
                     @NotNull SketchStyle style,
-                    @NotNull SketchLayer[] layers) {
+                    @NotNull SketchLayer[] layers,
+                    @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
 
     this.style = style;
     this.layers = layers;

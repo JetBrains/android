@@ -18,6 +18,8 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,32 +27,30 @@ import org.jetbrains.annotations.NotNull;
  * and the {@link ShapeModel} objects it consists of.
  * <p>
  * Used for customizing the symbol instances through transformations or opacity,
- * by applying them on each {@link ShapeModel} in the list.
+ * by applying them on each {@code ShapeModel} in the list.
  */
 public class SymbolModel {
-  ImmutableList<ShapeModel> myShapeModels;
-  SketchSymbolMaster mySymbolMaster;
-  SketchSymbolInstance mySymbolInstance;
+  @NotNull ImmutableList<ShapeModel> myShapeModels;
+  @NotNull SketchSymbolMaster mySymbolMaster;
+  @NotNull SketchSymbolInstance mySymbolInstance;
 
   public SymbolModel(@NotNull ImmutableList<ShapeModel> shapeModels, @NotNull SketchSymbolMaster symbolMaster) {
     myShapeModels = shapeModels;
     mySymbolMaster = symbolMaster;
   }
 
-  public void scaleShapes() {
-    if (isInstanceScaled()) {
-      for (ShapeModel shapeModel : myShapeModels) {
-        shapeModel.scale(getScaleRatioX(), getScaleRatioY());
-      }
-    }
-  }
-
-  public void translateShapes() {
+  /**
+   * Applies the opacity and transformation properties from the {@link InheritedProperties} given
+   * as parameter to the {@code ShapeModel}s inside the {@code SymbolModel}
+   */
+  public void applyProperties(@NotNull InheritedProperties properties) {
     for (ShapeModel shapeModel : myShapeModels) {
-      shapeModel.translate(mySymbolInstance.getFrame().getX(), mySymbolInstance.getFrame().getY());
+      shapeModel.applyOpacity(properties.getInheritedOpacity());
+      shapeModel.applyTransformations(properties);
     }
   }
 
+  @NotNull
   public ImmutableList<ShapeModel> getShapeModels() {
     return myShapeModels;
   }
@@ -69,5 +69,35 @@ public class SymbolModel {
 
   public void setSymbolInstance(@NotNull SketchSymbolInstance symbolInstance) {
     mySymbolInstance = symbolInstance;
+  }
+
+  /**
+   * Scales the {@link ShapeModel}s inside to fit the {@link SketchSymbolInstance} dimensions
+   * instead of the {@link SketchSymbolMaster}.
+   */
+  public void scaleShapes() {
+    if (isInstanceScaled()) {
+      for (ShapeModel shapeModel : myShapeModels) {
+        ResizingConstraint constraint = shapeModel.getResizingConstraint();
+        if (constraint.isNoConstraint()) {
+          shapeModel.scale(getScaleRatioX(), getScaleRatioY());
+        }
+        else if (constraint.isOnlyConstraintWidth()) {
+          shapeModel.scale(1, getScaleRatioY());
+        }
+        else if (constraint.isOnlyConstraintHeight()) {
+          shapeModel.scale(getScaleRatioX(), 1);
+        }
+
+        // If any of the shapes has a constraint enabled, it will not be affected by the scaling,
+        // but its position will not be correct relative to the new size of the symbol, therefore
+        // it needs to be translated to a coordinate that has been scaled acordingly.
+        AffineTransform transform = new AffineTransform();
+        transform.scale(getScaleRatioX(), getScaleRatioY());
+        Point2D.Double newPoint = new Point2D.Double();
+        transform.transform(shapeModel.getShapeFrameLocation(), newPoint);
+        shapeModel.translateTo(newPoint.getX(), newPoint.getY());
+      }
+    }
   }
 }

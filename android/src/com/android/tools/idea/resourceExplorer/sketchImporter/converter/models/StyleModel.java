@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * Class that holds the intermediate model for the style of a ShapeModel. Needed for modifying its opacity
  * and gradient without affecting the SketchModel.
  */
-public class StyleModel implements TransparentModel{
+public class StyleModel implements TransparentModel {
   @Nullable private FillModel myFillModel;
   @Nullable private BorderModel myBorderModel;
   private double myOpacity;
@@ -54,8 +54,6 @@ public class StyleModel implements TransparentModel{
    * This method transforms the gradient's coordinates from percentages to coordinates
    * relative to the shape itself. The coordinates, however, are not absolute because the
    * shape might need extra translations.
-   *
-   * @param shape
    */
   public void makeGradientRelative(@NotNull Shape shape) {
     GradientModel shapeGradient = myFillModel != null ? myFillModel.getGradientModel() : null;
@@ -66,9 +64,7 @@ public class StyleModel implements TransparentModel{
 
   /**
    * This method applies the overall opacity of the group on its fill and border, by modifying
-   * the existing {@link StyleModel} object, or creating a new one, if it doesn't exist
-   *
-   * @param parentOpacity
+   * the existing {@link StyleModel} object
    */
   @Override
   public void applyOpacity(double parentOpacity) {
@@ -82,6 +78,10 @@ public class StyleModel implements TransparentModel{
     }
   }
 
+  /**
+   * Returns a new {@link Color} object whose alpha valued is modified by the
+   * fraction in the {@code opacity} parameter
+   */
   @NotNull
   protected static Color addAlphaToColor(@NotNull Color color, double opacity) {
     //noinspection UseJBColor

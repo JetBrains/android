@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
@@ -56,9 +57,10 @@ public class SketchSymbolMaster extends SketchSymbol implements SketchLayerable 
                             boolean includeBackgroundColorInExport,
                             boolean includeBackgroundColorInInstance,
                             @NotNull String symbolId,
-                            int changeIdentifier) {
+                            int changeIdentifier,
+                            @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
     this.style = style;
     this.layers = layers;
     backgroundColor = color;

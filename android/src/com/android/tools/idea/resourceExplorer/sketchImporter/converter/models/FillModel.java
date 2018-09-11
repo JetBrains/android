@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * Class that holds the intermediate model for the fill of a ShapeModel. Needed for modifying its opacity,
  * gradient position and transformation without affecting the SketchModel.
  */
-public class FillModel implements TransparentModel{
+public class FillModel implements TransparentModel {
   @NotNull private Color myColor;
   @Nullable private GradientModel myGradientModel;
   private double myOpacity;

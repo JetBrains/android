@@ -30,22 +30,35 @@ import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Abstract class that contains all the shape details that will be used to generate the
+ * vector drawable shapes: the {@link Shape} object, its {@link StyleModel}, clipping data,
+ * shape operations or resizing constraints.
+ */
 public abstract class ShapeModel {
 
   private static final int DEFAULT_BORDER_WIDTH_VALUE = 0;
   private static final int DEFAULT_COLOR_VALUE = 0;
 
-  @Nullable protected StyleModel shapeStyle;
   protected boolean isFlippedHorizontal;
   protected boolean isFlippedVertical;
   protected boolean isClosed;
-  protected int rotationDegrees;
-  protected int shapeOperation;
-  @NotNull protected Point2D.Double shapeFrameCoordinates;
   protected boolean hasClippingMask;
   protected boolean shouldBreakMaskChain;
-  protected boolean isLastShape;
-  @NotNull private Shape shape;
+  @Nullable protected StyleModel myShapeStyle;
+  protected boolean myIsClosed;
+  protected int myShapeOperation;
+  protected boolean myHasClippingMask;
+  protected boolean myShouldBreakMaskChain;
+  protected boolean myIsLastShape;
+  @NotNull private Shape myShape;
+  @NotNull protected ResizingConstraint myResizingConstraint;
+
+  @NotNull protected Point2D.Double myShapeFrameLocation;
+  protected boolean myIsFlippedVertical;
+  protected boolean myIsflippedhorizontal;
+  protected int myRotationDegrees;
+  @NotNull private Rectangle2D myShapeBounds;
 
   public ShapeModel(@NotNull Shape shape,
                     @Nullable StyleModel style,
@@ -57,32 +70,36 @@ public abstract class ShapeModel {
                     @NotNull Point2D.Double framePosition,
                     boolean hasClippingMask,
                     boolean shouldBreakMaskChain,
-                    boolean isLastShapeGroup) {
-    this.shape = shape;
-    isFlippedHorizontal = flippedHorizontal;
-    isFlippedVertical = flippedVertical;
-    isClosed = closed;
-    rotationDegrees = rotation;
-    shapeOperation = operation;
-    shapeFrameCoordinates = framePosition;
-    this.hasClippingMask = hasClippingMask;
-    this.shouldBreakMaskChain = shouldBreakMaskChain;
-    isLastShape = isLastShapeGroup;
-    shapeStyle = style;
+                    boolean isLastShapeGroup,
+                    @NotNull ResizingConstraint constraint) {
+    myShape = shape;
+    myIsClosed = closed;
+    myShapeOperation = operation;
+    myHasClippingMask = hasClippingMask;
+    myShouldBreakMaskChain = shouldBreakMaskChain;
+    myIsLastShape = isLastShapeGroup;
+    myShapeStyle = style;
+    myResizingConstraint = constraint;
+
+    myIsflippedhorizontal = flippedHorizontal;
+    myIsFlippedVertical = flippedVertical;
+    myShapeFrameLocation = framePosition;
+    myRotationDegrees = rotation;
+    myShapeBounds = shape.getBounds2D();
   }
 
   @NotNull
   public Shape getShape() {
-    return shape;
+    return myShape;
   }
 
   public int getBooleanOperation() {
-    return shapeOperation;
+    return myShapeOperation;
   }
 
   @Nullable
   public BorderModel getShapeBorder() {
-    return shapeStyle != null ? shapeStyle.getBorder() : null;
+    return myShapeStyle != null ? myShapeStyle.getBorder() : null;
   }
 
   public int getBorderColor() {
@@ -95,7 +112,7 @@ public abstract class ShapeModel {
 
   @Nullable
   public FillModel getFill() {
-    return shapeStyle != null ? shapeStyle.getFill() : null;
+    return myShapeStyle != null ? myShapeStyle.getFill() : null;
   }
 
   public int getFillColor() {
@@ -114,7 +131,7 @@ public abstract class ShapeModel {
    * @return true if the DrawableModel is a sketch clipping mask
    */
   public boolean hasClippingMask() {
-    return hasClippingMask;
+    return myHasClippingMask;
   }
 
   /**
@@ -125,7 +142,7 @@ public abstract class ShapeModel {
    * @return true if the DrawableModel breaks the chain of masked shapes in its group.
    */
   public boolean shouldBreakMaskChain() {
-    return shouldBreakMaskChain;
+    return myShouldBreakMaskChain;
   }
 
   /**
@@ -137,42 +154,49 @@ public abstract class ShapeModel {
    * @return true if the DrawableModel is the last shape in the SketchPage's list of layers
    */
   public boolean isLastShape() {
-    return isLastShape;
-  }
-
-  public void setRotation(int rotation) {
-    rotationDegrees = rotation;
-  }
-
-  public void setMirroring(boolean flippedHorizontal, boolean flippedVertical) {
-    isFlippedHorizontal = flippedHorizontal;
-    isFlippedVertical = flippedVertical;
-  }
-
-  public void setTranslation(@NotNull Point2D.Double coords) {
-    shapeFrameCoordinates = coords;
+    return myIsLastShape;
   }
 
   @NotNull
-  protected AffineTransform computeAffineTransform() {
+  public ResizingConstraint getResizingConstraint() {
+    return myResizingConstraint;
+  }
+
+  @NotNull
+  public Point2D.Double getShapeFrameLocation() {
+    return myShapeFrameLocation;
+  }
+
+  /**
+   * Takes the {@link InheritedProperties} object and computes the appropriate {@link AffineTransform}
+   * If the {@code InheritedProperties} is null, the method uses the shape's properties (case used when
+   * calling {@code createPathModel()})
+   * Otherwise, the {@code AffineTransform} is computed using the properties inherited from the parents.
+   */
+  @NotNull
+  protected AffineTransform computeAffineTransform(@Nullable InheritedProperties inheritedProperties) {
+    if (inheritedProperties != null) {
+      myShapeFrameLocation.setLocation(inheritedProperties.getInheritedTranslation());
+      myIsflippedhorizontal = inheritedProperties.isInheritedFlipX();
+      myIsFlippedVertical = inheritedProperties.isInheritedFlipY();
+      myRotationDegrees = inheritedProperties.getInheritedRotation();
+    }
+
     AffineTransform shapeTransform = new AffineTransform();
     shapeTransform.setToIdentity();
 
-    shapeTransform.translate(shapeFrameCoordinates.getX(), shapeFrameCoordinates.getY());
+    shapeTransform.translate(myShapeFrameLocation.getX(), myShapeFrameLocation.getY());
 
-    Rectangle2D bounds = shape.getBounds2D();
-    if (isFlippedHorizontal) {
+    if (myIsflippedhorizontal) {
       shapeTransform.scale(-1, 1);
-      shapeTransform.translate(-(bounds.getWidth() + 2 * bounds.getX()), 0);
+      shapeTransform.translate(-(myShapeBounds.getWidth() + 2 * myShapeBounds.getX()), 0);
     }
-    if (isFlippedVertical) {
+    if (myIsFlippedVertical) {
       shapeTransform.scale(1, -1);
-      shapeTransform.translate(0, -(bounds.getHeight() + 2 * bounds.getY()));
+      shapeTransform.translate(0, -(myShapeBounds.getHeight() + 2 * myShapeBounds.getY()));
     }
 
-    double anchorPointX = shape.getBounds2D().getCenterX();
-    double anchorPointY = shape.getBounds2D().getCenterY();
-    shapeTransform.rotate(Math.toRadians(-rotationDegrees), anchorPointX, anchorPointY);
+    shapeTransform.rotate(Math.toRadians(-myRotationDegrees), myShapeBounds.getCenterX(), myShapeBounds.getCenterY());
 
     return shapeTransform;
   }
@@ -180,7 +204,7 @@ public abstract class ShapeModel {
   @NotNull
   public String getPathString() {
     PathStringBuilder pathStringBuilder = new PathStringBuilder();
-    PathIterator pathIterator = shape.getPathIterator(null);
+    PathIterator pathIterator = myShape.getPathIterator(null);
 
     while (!pathIterator.isDone()) {
       double[] coordinates = new double[6];
@@ -212,26 +236,31 @@ public abstract class ShapeModel {
   /**
    * Applies all the transformations that have been done on a shape to its corresponding gradient
    * by modifying the style property of the ShapeModel.
-   *
-   * @param transform
    */
   protected void transformGradient(@NotNull AffineTransform transform) {
-    FillModel shapeFill = shapeStyle != null ? shapeStyle.getFill() : null;
+    FillModel shapeFill = myShapeStyle != null ? myShapeStyle.getFill() : null;
     GradientModel shapeGradient = shapeFill != null ? shapeFill.getGradientModel() : null;
     if (shapeGradient != null) {
       shapeGradient.applyTransformation(transform);
     }
   }
 
+  /**
+   * Takes the opacity accumulated from the upper layers and applies it on the shape's {@link StyleModel}
+   */
   public void applyOpacity(double parentOpacity) {
-    if (shapeStyle != null) {
-      shapeStyle.applyOpacity(parentOpacity);
+    if (myShapeStyle != null) {
+      myShapeStyle.applyOpacity(parentOpacity);
     }
   }
 
-  public abstract void applyTransformations();
+  public void setFramePosition(@NotNull Point2D.Double position) {
+    myShapeFrameLocation = position;
+  }
+
+  public abstract void applyTransformations(@Nullable InheritedProperties inheritedProperties);
 
   public abstract void scale(double scaleX, double scaleY);
 
-  public abstract void translate(double translateX, double translateY);
+  public abstract void translateTo(double scaleX, double scaleY);
 }

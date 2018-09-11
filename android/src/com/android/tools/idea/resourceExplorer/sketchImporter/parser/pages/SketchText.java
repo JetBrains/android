@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -37,9 +38,10 @@ public class SketchText extends SketchLayer {
                     @NotNull String name,
                     int rotation,
                     boolean shouldBreakMaskChain,
-                    @NotNull SketchStyle style) {
+                    @NotNull SketchStyle style,
+                    @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
     this.style = style;
   }
 

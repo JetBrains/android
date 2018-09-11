@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
@@ -48,9 +49,10 @@ public class SketchShapePath extends SketchLayer {
                          int rotation,
                          boolean shouldBreakMaskChain,
                          boolean isClosed,
-                         @NotNull SketchCurvePoint[] points) {
+                         @NotNull SketchCurvePoint[] points,
+                         @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
 
     this.isClosed = isClosed;
     this.points = points;
