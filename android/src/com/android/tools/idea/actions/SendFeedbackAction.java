@@ -33,10 +33,8 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -44,11 +42,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EnvironmentUtil;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -73,70 +69,20 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    launchBrowser(e.getProject());
+    doPerformAction(e.getProject());
   }
 
-  public static void launchBrowser(@Nullable Project project) {
-    final ApplicationInfoEx appInfo = ApplicationInfoEx.getInstanceEx();
-    boolean eap = appInfo.isEAP();
-    String urlTemplate = eap ? appInfo.getEAPFeedbackUrl() : appInfo.getReleaseFeedbackUrl();
-    urlTemplate = urlTemplate
-      .replace("$BUILD", eap ? appInfo.getBuild().asStringWithoutProductCode() : appInfo.getBuild().asString())
-      .replace("$TIMEZONE", System.getProperty("user.timezone"))
-      .replace("$VERSION", appInfo.getFullVersion())
-      .replace("$EVAL", "false") // always false for Android Studio
-      .replace("$DESCR", getDescription(project));
-    BrowserUtil.browse(urlTemplate, project);
+  public static void doPerformAction(@Nullable Project project) {
+    com.intellij.ide.actions.SendFeedbackAction.doPerformAction(project, getDescription(project));
   }
 
-  private static String getBasicDescription() {
-    StringBuilder sb = new StringBuilder("\n\n");
-    sb.append(ApplicationInfoEx.getInstanceEx().getBuild().asString()).append(", ");
-    String javaVersion = System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown"));
-    sb.append("JRE ");
-    sb.append(javaVersion);
-    String archDataModel = System.getProperty("sun.arch.data.model");
-    if (archDataModel != null) {
-      sb.append("x").append(archDataModel);
-    }
-    String javaVendor = System.getProperty("java.vm.vendor");
-    if (javaVendor != null) {
-      sb.append(" ").append(javaVendor);
-    }
-    sb.append(", OS ").append(System.getProperty("os.name"));
-    String osArch = System.getProperty("os.arch");
-    if (osArch != null) {
-      sb.append("(").append(osArch).append(")");
-    }
-
-    String osVersion = System.getProperty("os.version");
-    String osPatchLevel = System.getProperty("sun.os.patch.level");
-    if (osVersion != null) {
-      sb.append(" v").append(osVersion);
-      if (osPatchLevel != null) {
-        sb.append(" ").append(osPatchLevel);
-      }
-    }
-    if (!GraphicsEnvironment.isHeadless()) {
-      sb.append(", screens ");
-      GraphicsDevice[] devices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
-      for (int i = 0; i < devices.length; i++) {
-        if (i > 0) sb.append(", ");
-        GraphicsDevice device = devices[i];
-        Rectangle bounds = device.getDefaultConfiguration().getBounds();
-        sb.append(bounds.width).append("x").append(bounds.height);
-      }
-      if (UIUtil.isRetina()) sb.append(SystemInfo.isMac ? "; Retina" : "; HiDPI");
-    }
-    return sb.toString();
-  }
 
   public static String getDescription(@Nullable Project project) {
     // Use safe call wrapper extensively to make sure that as much as possible version context is collected and
     // that any exceptions along the way do not actually break the feedback sending flow (we're already reporting a bug,
     // so let's not make that process prone to exceptions)
     return safeCall(() -> {
-      StringBuilder sb = new StringBuilder(getBasicDescription());
+      StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription());
       ProgressIndicator progress = new StudioLoggerProgressIndicator(SendFeedbackAction.class);
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       // Add Android Studio custom information we want to see prepopulated in the bug reports
