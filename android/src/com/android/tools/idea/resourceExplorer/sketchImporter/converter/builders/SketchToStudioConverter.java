@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.InheritedProperties.DEFAULT_OPACITY;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary;
@@ -26,7 +27,9 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.D
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.FillModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.GradientModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.GradientStopModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.InheritedProperties;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StyleModel;
@@ -51,17 +54,19 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
-import com.android.tools.layoutlib.annotations.NotNull;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Class that holds static methods for the conversion between the {@code SketchModel} and the {@code ShapeModel}
+ */
 public class SketchToStudioConverter {
-  public static final int DEFAULT_OPACITY = 1;
   private static final String DEFAULT_DOCUMENT_COLOR_NAME = "document_color";
 
   @NotNull
@@ -92,7 +97,13 @@ public class SketchToStudioConverter {
   }
 
   /**
-   * Artboard to Drawable conversion
+   * Generates the {@link DrawableAssetModel} object corresponding to all the shapes inside the artboard, by calling
+   * the appropriate method according to the type of each layer in the artboard.
+   * <ul>
+   * <li>{@code createShapeModelsFromSymbol}</li>
+   * <li>{@code createShapeModelFromShapeGroup}</li>
+   * <li>{@code createShapeModelsFromLayerable}</li>
+   * </ul>
    */
   @NotNull
   public static DrawableAssetModel createDrawableAsset(@NotNull SketchArtboard artboard, @NotNull SketchLibrary library) {
@@ -101,14 +112,14 @@ public class SketchToStudioConverter {
 
     for (SketchLayer layer : layers) {
       if (layer instanceof SketchSymbolInstance && library.hasSymbols()) {
-        shapes.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, library));
+        shapes.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, new InheritedProperties(), library));
       }
-
-      if (layer instanceof SketchShapeGroup) {
-        shapes.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, new Point2D.Double(), false, DEFAULT_OPACITY));
+      else if (layer instanceof SketchShapeGroup) {
+        shapes.addAll(createShapeModelFromShapeGroup((SketchShapeGroup)layer, new InheritedProperties(), false));
       }
       else if (layer instanceof SketchLayerable) {
-        shapes.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, new Point2D.Double(), DEFAULT_OPACITY, library));
+        shapes.addAll(
+          createShapeModelsFromLayerable((SketchLayerable)layer, new InheritedProperties(), library));
       }
     }
 
@@ -133,7 +144,7 @@ public class SketchToStudioConverter {
     String name = getDefaultName(symbolMaster);
     Rectangle.Double dimension = symbolMaster.getFrame();
 
-    return new DrawableAssetModel(createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, library),
+    return new DrawableAssetModel(createShapeModelsFromLayerable(symbolMaster, new InheritedProperties(), library),
                                   exportable, name, dimension, dimension, origin);
   }
 
@@ -163,35 +174,55 @@ public class SketchToStudioConverter {
 
   // region SketchPage items to Intermediate Models
 
+  /**
+   * Generates the list of {@link ShapeModel} objects corresponding to all the shapes that make up the symbol.
+   * It gets the {@link SymbolModel} from the symbols library, updates the {@link InheritedProperties} with the
+   * {@link SketchSymbolInstance} properties, applies them on the list of {@code ShapeModels} and returns it.
+   */
   @NotNull
   private static ImmutableList<ShapeModel> createShapeModelsFromSymbol(@NotNull SketchSymbolInstance symbolInstance,
+                                                                       @NotNull InheritedProperties inheritedProperties,
                                                                        @NotNull SketchLibrary library) {
     SymbolModel symbolModel = getSymbolModel(symbolInstance.getSymbolId(), library);
+    if (symbolModel == null) {
+      return ImmutableList.of();
+    }
 
     symbolModel.setSymbolInstance(symbolInstance);
+    inheritedProperties = inheritFromSymbol(symbolInstance, inheritedProperties);
     symbolModel.scaleShapes();
-    symbolModel.translateShapes();
+    symbolModel.applyProperties(inheritedProperties);
 
     return symbolModel.getShapeModels();
   }
 
-  private static SymbolModel getSymbolModel(@org.jetbrains.annotations.NotNull String symbolId, @NotNull SketchLibrary library) {
+  /**
+   * Fetches the {@link SketchSymbolMaster} with the given {@code symbolId} and creates the list of
+   * {@link ShapeModel}s inside.
+   * Returns a new {@link SymbolModel} instance with the created list and the {@code SketchSymbolMaster}
+   */
+  @Nullable
+  private static SymbolModel getSymbolModel(@NotNull String symbolId, @NotNull SketchLibrary library) {
     SketchSymbolMaster symbolMaster = library.getSymbol(symbolId);
-    ImmutableList<ShapeModel> shapeModels = createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, library);
+    if(symbolMaster == null){
+      return null;
+    }
+    ImmutableList<ShapeModel> shapeModels = createShapeModelsFromLayerable(symbolMaster, new InheritedProperties(), library);
     return new SymbolModel(shapeModels, symbolMaster);
   }
 
   /**
-   * Method that generates the shape model of the shape in the SketchShapeGroup object.
+   * Generates the {@link ShapeModel} of the shape(s) in the {@link SketchShapeGroup} object.
    * <p>
-   * Shape operations can only be performed on Area objects, and to make sure that the conversion
-   * between {@link Path2D.Double} to {@link java.awt.geom.Area} is correct, the {@link Path2D.Double} object must be closed
+   * It takes the first shape in the {@code SketchShapeGroup}, updates the {@link InheritedProperties} and creates a
+   * {@code ShapeModel} from them. If it's the only shape, it is returned. Otherwise, the method iterates through
+   * the remaining {@link SketchShapePath}s and applies appropriate operations on the first {@code ShapeModel}.
+   * It applies the transformations on the final {@code ShapeModel} and then returns it.
    */
   @NotNull
-  private static ImmutableList<ShapeModel> createShapeModelsFromShapeGroup(@NotNull SketchShapeGroup shapeGroup,
-                                                                           @NotNull Point2D.Double parentCoords,
-                                                                           boolean isLastShapeGroup,
-                                                                           double parentOpacity) {
+  private static ImmutableList<ShapeModel> createShapeModelFromShapeGroup(@NotNull SketchShapeGroup shapeGroup,
+                                                                          @NotNull InheritedProperties inheritedProperties,
+                                                                          boolean isLastShapeGroup) {
     SketchFill[] fills = shapeGroup.getStyle().getFills();
     SketchBorder[] borders = shapeGroup.getStyle().getBorders();
     SketchFill shapeGroupFill = fills != null ? fills[0] : null;
@@ -204,9 +235,6 @@ public class SketchToStudioConverter {
       return ImmutableList.of();
     }
 
-    Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + shapeGroup.getFrame().getX(),
-                                                        parentCoords.getY() + shapeGroup.getFrame().getY());
-
     SketchLayer[] layers = shapeGroup.getLayers();
     SketchShapePath baseSketchShapePath = (SketchShapePath)layers[0];
 
@@ -214,8 +242,8 @@ public class SketchToStudioConverter {
     StyleModel styleModel = createStyleModel(shapeGroup.getStyle());
     if (styleModel != null) {
       styleModel.makeGradientRelative(baseShapePath);
-      styleModel.applyOpacity(parentOpacity);
     }
+    InheritedProperties newInheritedProperties = inheritFromShapeGroup(shapeGroup, inheritedProperties);
 
     PathModel finalShape = new PathModel(baseShapePath,
                                          styleModel,
@@ -227,67 +255,68 @@ public class SketchToStudioConverter {
                                          baseSketchShapePath.getFramePosition(),
                                          shapeGroup.hasClippingMask(),
                                          shapeGroup.shouldBreakMaskChain(),
-                                         isLastShapeGroup);
+                                         isLastShapeGroup,
+                                         inheritedProperties.getInheritedResizingConstraint());
 
     // If the shapegroup has just one layer, there will be no shape operation.
     // Therefore, no conversion to area needed.
     // Therefore, the path does not necessarily have to be closed.
     if (layers.length == 1) {
-      return ImmutableList.of(transformShapeGroup(shapeGroup, finalShape, newParentCoords));
+      finalShape.applyTransformations(newInheritedProperties);
+      return ImmutableList.of(finalShape);
     }
 
     // If the shapegroup has multiple layers, there definitely are some shape operations to be performed.
     // Therefore, the path needs to be closed and converted into an Area before applying anything.
     AreaModel finalArea = finalShape.convertToArea();
-    finalArea.applyTransformations();
-
+    finalArea.applyTransformations(null);
     for (int i = 1; i < layers.length; i++) {
       SketchShapePath path = (SketchShapePath)layers[i];
-
+      if (!path.isVisible()) {
+        continue;
+      }
       PathModel pathModel = createPathModel(path);
       AreaModel areaModel = pathModel.convertToArea();
-      areaModel.applyTransformations();
+      areaModel.applyTransformations(null);
       finalArea.applyOperation(areaModel);
     }
 
     // The shapeGroup itself and its components altogether can be rotated or flipped.
-    return ImmutableList.of(transformShapeGroup(shapeGroup, finalArea, newParentCoords));
+    finalArea.applyTransformations(newInheritedProperties);
+    return ImmutableList.of(finalArea);
   }
 
+  /**
+   * Generates a {@link PathModel} object from the given {@link SketchShapePath}
+   */
   @NotNull
   private static PathModel createPathModel(@NotNull SketchShapePath shapePath) {
     return new PathModel(getPath2D(shapePath), null, shapePath.isFlippedHorizontal(), shapePath.isFlippedVertical(),
                          shapePath.isClosed(), shapePath.getRotation(),
-                         shapePath.getBooleanOperation(), shapePath.getFramePosition(), false, false, false);
+                         shapePath.getBooleanOperation(), shapePath.getFramePosition(), false, false, false, new ResizingConstraint());
   }
 
+  /**
+   * Generates the list of {@link ShapeModel}s in the {@link SketchLayerable} object.
+   * <p>
+   * It updates the {@link InheritedProperties} and iterates through the layer inside the {@link SketchLayerable}
+   * object and calls the appropriate method according to the type of each layer in the layerable.
+   * <ul>
+   * <li>{@code createShapeModelsFromSymbol}</li>
+   * <li>{@code createShapeModelFromShapeGroup}</li>
+   * <li>{@code createShapeModelsFromLayerable}</li>
+   * </ul>
+   */
   @NotNull
   public static ImmutableList<ShapeModel> createShapeModelsFromLayerable(@NotNull SketchLayerable layerable,
-                                                                         @NotNull Point2D.Double parentCoords,
-                                                                         double parentOpacity,
+                                                                         @NotNull InheritedProperties inheritedProperties,
                                                                          @NotNull SketchLibrary library) {
-    Point2D.Double newParentCoords;
 
-    // The SketchSymbolMaster in a page has its own frame and position that have nothing
-    // to do with where the instance is placed. Therefore, if the layer is a symbol master,
-    // we ignore its position
-    if (layerable instanceof SketchSymbolMaster) {
-      newParentCoords = parentCoords;
-    }
-    // However, if the layer is not a SymbolMaster, it is a layerable object inside an artboard
-    // whose position is relevant and must be added to the new parent coordinates.
-    else {
-      newParentCoords = new Point2D.Double(parentCoords.getX() + layerable.getFrame().getX(),
-                                           parentCoords.getY() + layerable.getFrame().getY());
-    }
-
-    SketchGraphicsContextSettings graphicContextSettings = layerable.getStyle().getContextSettings();
-    if (graphicContextSettings != null) {
-      parentOpacity *= graphicContextSettings.getOpacity();
-    }
     ImmutableList.Builder<ShapeModel> builder = new ImmutableList.Builder<>();
 
+    inheritedProperties = inheritFromLayerable(layerable, inheritedProperties);
     boolean isLastGroupElement = false;
+
     SketchLayer[] groupLayers = layerable.getLayers();
     for (int i = 0; i < groupLayers.length; i++) {
       if (i == groupLayers.length - 1) {
@@ -295,20 +324,92 @@ public class SketchToStudioConverter {
       }
       SketchLayer layer = groupLayers[i];
       if (library.hasSymbols() && layer instanceof SketchSymbolInstance) {
-        builder.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, library));
+        builder.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, inheritedProperties, library));
       }
-
-      if (layer instanceof SketchShapeGroup) {
-        builder.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, newParentCoords, isLastGroupElement, parentOpacity));
+      else if (layer instanceof SketchShapeGroup) {
+        SketchShapeGroup shapeGroup = (SketchShapeGroup)layer;
+        builder.addAll(createShapeModelFromShapeGroup(shapeGroup, inheritedProperties, isLastGroupElement));
       }
       else if (layer instanceof SketchLayerable) {
-        builder.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, newParentCoords, parentOpacity, library));
+        builder.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, inheritedProperties, library));
       }
     }
 
     return builder.build();
   }
 
+  /**
+   * Takes the {@link InheritedProperties} and updates them with the {@link SketchSymbolInstance}s own properties
+   * and returns a new instance of {@code InheritedProperties}.
+   */
+  @NotNull
+  private static InheritedProperties inheritFromSymbol(@NotNull SketchSymbolInstance symbolInstance,
+                                                       @NotNull InheritedProperties inheritedProperties) {
+    Rectangle2D.Double frame = symbolInstance.getFrame();
+    Point2D.Double translation = new Point2D.Double(frame.getX(), frame.getY());
+
+    SketchGraphicsContextSettings contextSettings = symbolInstance.getStyle().getContextSettings();
+    double opacity = contextSettings != null ? contextSettings.getOpacity() : DEFAULT_OPACITY;
+
+    ResizingConstraint constraint = symbolInstance.getResizingConstraint();
+
+    return new InheritedProperties(inheritedProperties,
+                                   translation,
+                                   symbolInstance.isFlippedHorizontal(),
+                                   symbolInstance.isFlippedVertical(),
+                                   symbolInstance.getRotation(),
+                                   opacity,
+                                   constraint);
+  }
+
+  /**
+   * Takes the {@link InheritedProperties} and updates them with the {@link SketchShapeGroup}s own properties
+   * and returns a new instance of {@code InheritedProperties}.
+   */
+  @NotNull
+  private static InheritedProperties inheritFromShapeGroup(@NotNull SketchShapeGroup shapeGroup,
+                                                           @NotNull InheritedProperties inheritedProperties) {
+    Rectangle2D.Double frame = shapeGroup.getFrame();
+    Point2D.Double translation = new Point2D.Double(frame.getX(), frame.getY());
+
+    ResizingConstraint constraint = shapeGroup.getResizingConstraint();
+
+    return new InheritedProperties(inheritedProperties,
+                                   translation,
+                                   shapeGroup.isFlippedHorizontal(),
+                                   shapeGroup.isFlippedVertical(),
+                                   shapeGroup.getRotation(),
+                                   DEFAULT_OPACITY,
+                                   constraint);
+  }
+
+  /**
+   * Takes the {@link InheritedProperties} and updates them with the {@link SketchLayerable}s own properties
+   * and returns a new instance of {@code InheritedProperties}.
+   */
+  @NotNull
+  private static InheritedProperties inheritFromLayerable(@NotNull SketchLayerable layerable,
+                                                          @NotNull InheritedProperties inheritedProperties) {
+    Rectangle2D.Double frame = layerable.getFrame();
+    Point2D.Double translation = !(layerable instanceof SketchSymbolMaster)
+                                 ? new Point2D.Double(frame.getX(), frame.getY())
+                                 : new Point2D.Double();
+
+    SketchGraphicsContextSettings graphicContextSettings = layerable.getStyle().getContextSettings();
+    double opacity = graphicContextSettings != null ? graphicContextSettings.getOpacity() : DEFAULT_OPACITY;
+
+    return new InheritedProperties(inheritedProperties,
+                                   translation,
+                                   layerable.isFlippedHorizontal(),
+                                   layerable.isFlippedVertical(),
+                                   layerable.getRotation(),
+                                   opacity,
+                                   layerable.getResizingConstraint());
+  }
+
+  /**
+   * Generates a {@link StyleModel} from the given {@link SketchStyle} object
+   */
   @Nullable
   private static StyleModel createStyleModel(@Nullable SketchStyle sketchStyle) {
     if (sketchStyle == null) {
@@ -341,6 +442,9 @@ public class SketchToStudioConverter {
     }
   }
 
+  /**
+   * Generates a {@link GradientModel} from the given {@link SketchGradient} object
+   */
   @Nullable
   private static GradientModel createGradientModel(@Nullable SketchGradient sketchGradient) {
     if (sketchGradient == null) {
@@ -358,23 +462,14 @@ public class SketchToStudioConverter {
     }
   }
 
-
-  @NotNull
-  private static ShapeModel transformShapeGroup(@NotNull SketchShapeGroup shapeGroup,
-                                                @NotNull ShapeModel finalShape,
-                                                @NotNull Point2D.Double newParentCoords) {
-    finalShape.setRotation(shapeGroup.getRotation());
-    finalShape.setMirroring(shapeGroup.isFlippedHorizontal(), shapeGroup.isFlippedVertical());
-    finalShape.setTranslation(newParentCoords);
-    finalShape.applyTransformations();
-
-    return finalShape;
-  }
-
-  // endregion
-
-  // region SketchShapePath to Path2D.Double
-
+  /**
+   * Generates the {@link Path2D.Double} from the {@link SketchShapePath} object by calling the
+   * appropriate method according to the type of each layer in the layerable.
+   * <ul>
+   * <li>{@code getRoundRectanglePath}</li>
+   * <li>{@code getGenericPath}</li>
+   * </ul>
+   */
   @NotNull
   private static Path2D.Double getPath2D(@NotNull SketchShapePath shapePath) {
     if (RECTANGLE_CLASS_TYPE.equals(shapePath.getClassType())) {
@@ -382,7 +477,7 @@ public class SketchToStudioConverter {
         return getRoundRectanglePath(shapePath);
       }
       else {
-        return getRectanglePath(shapePath);
+        return getGenericPath(shapePath);
       }
     }
     else {
@@ -390,8 +485,11 @@ public class SketchToStudioConverter {
     }
   }
 
-  //TODO: Add method for oval paths.
-
+  /**
+   * Generates the {@link Path2D.Double} from a generic {@link SketchShapePath} object using the
+   * {@link Path2DBuilder} class and calling its appropriate methods while iterating through
+   * the {@code SkethShapePath}'s {@link SketchCurvePoint}s
+   */
   @NotNull
   private static Path2D.Double getGenericPath(@NotNull SketchShapePath shapePath) {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
@@ -438,20 +536,14 @@ public class SketchToStudioConverter {
     return path2DBuilder.build();
   }
 
-  @NotNull
-  private static Path2D.Double getRectanglePath(@NotNull SketchShapePath shapePath) {
-    Path2DBuilder path2DBuilder = new Path2DBuilder();
-    ArrayList<SketchPoint2D> frameCorners = getRectangleCorners(shapePath);
-
-    path2DBuilder.startPath(frameCorners.get(0));
-    path2DBuilder.createLine(frameCorners.get(1));
-    path2DBuilder.createLine(frameCorners.get(2));
-    path2DBuilder.createLine(frameCorners.get(3));
-    path2DBuilder.closePath();
-
-    return path2DBuilder.build();
-  }
-
+  /**
+   * Generates the {@link Path2D.Double} from a {@link SketchShapePath} object that represents
+   * a round rectangle in Sketch.
+   * It uses the {@link Path2DBuilder} class and calls its appropriate methods while iterating through
+   * the {@code SkethShapePath}'s {@link SketchCurvePoint}s. For every {@code SketchCurvePoint} that
+   * has a corner radius different than 0, the method uses the builder to create a quad curve
+   * instead of a regular rectangle corner.
+   */
   @NotNull
   private static Path2D.Double getRoundRectanglePath(@NotNull SketchShapePath shapePath) {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
@@ -501,6 +593,10 @@ public class SketchToStudioConverter {
     return path2DBuilder.build();
   }
 
+  /**
+   * Checks if the given {@link SketchShapePath} has {@link SketchCurvePoint}s with
+   * corner radius. Used for generating paths for round rectangles.
+   */
   private static boolean hasRoundCorners(@NotNull SketchShapePath shapePath) {
     SketchCurvePoint[] points = shapePath.getPoints();
 
@@ -512,24 +608,6 @@ public class SketchToStudioConverter {
 
     return false;
   }
-
-  @NotNull
-  private static ArrayList<SketchPoint2D> getRectangleCorners(@NotNull SketchShapePath shapePath) {
-    ArrayList<SketchPoint2D> corners = new ArrayList<>(4);
-
-    SketchPoint2D upLeftCorner = (new SketchPoint2D(0, 0)).makeAbsolutePosition(shapePath.getFrame());
-    SketchPoint2D upRightCorner = (new SketchPoint2D(1, 0)).makeAbsolutePosition(shapePath.getFrame());
-    SketchPoint2D downRightCorner = (new SketchPoint2D(1, 1)).makeAbsolutePosition(shapePath.getFrame());
-    SketchPoint2D downLeftCorner = (new SketchPoint2D(0, 1)).makeAbsolutePosition(shapePath.getFrame());
-
-    corners.add(upLeftCorner);
-    corners.add(upRightCorner);
-    corners.add(downRightCorner);
-    corners.add(downLeftCorner);
-
-    return corners;
-  }
-
   // endregion
 
   // region SketchDocument items to Intermediate Models

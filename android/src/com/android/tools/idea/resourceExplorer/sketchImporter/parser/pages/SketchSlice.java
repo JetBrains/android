@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -41,9 +42,10 @@ public class SketchSlice extends SketchLayer {
                      int rotation,
                      boolean shouldBreakMaskChain,
                      @NotNull Color backgroundColor,
-                     boolean hasBackgroundColor) {
+                     boolean hasBackgroundColor,
+                     @NotNull ResizingConstraint constraint) {
     super(classType, do_objectID, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
     this.backgroundColor = backgroundColor;
     this.hasBackgroundColor = hasBackgroundColor;
   }

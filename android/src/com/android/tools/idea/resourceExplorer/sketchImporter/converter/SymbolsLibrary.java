@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.createShapeModelsFromLayerable;
+
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.InheritedProperties;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.containers.hash.HashMap;
@@ -22,7 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Class that holds a mapping between a {@link SketchSymbolMaster} and its symbolId.
+ * Class that holds a mapping between a {@link SketchSymbolMaster} and its symbolId
+ * <p>
+ * Contains methods to add symbols to the map and compute the corresponding
+ * {@link SymbolModel}
  */
 public class SymbolsLibrary {
   private final HashMap<String, SketchSymbolMaster> mySymbolMasterHashMap = new HashMap<>();
