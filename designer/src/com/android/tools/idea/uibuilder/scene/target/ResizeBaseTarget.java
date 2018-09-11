@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -189,23 +188,26 @@ public abstract class ResizeBaseTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!isRenderable()) {
-      return;
+    if (isHittable()) {
+      DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
     }
-
-    DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
   }
 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
-    if (isRenderable()) {
+    if (isHittable()) {
       picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
                      transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
     }
   }
 
-  private boolean isRenderable() {
+  @Override
+  protected boolean isHittable() {
     SceneComponent component = getComponent();
+    if (component.getScene().getSelection().size() > 1) {
+      // Disable resize target when selecting multiple components.
+      return false;
+    }
     if (component.isSelected()) {
       if (component.canShowBaseline()) {
         return true;
