@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -263,24 +264,29 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   /**
-   * @return whether live allocation is active for the specified session.This is determined by whether there is a valid CaptureObject
-   * returned by the {@link AllocationInfosDataSeries} within the session's data range.
+   * @return whether live allocation is active for the specified session. This is determined by whether there are valid
+   * {@link AllocationSamplingRateDurationData}'s (which are sent via perfa when live tracking is enabled} within the session's time range.
    */
   static boolean isUsingLiveAllocation(@NotNull StudioProfilers profilers, @NotNull Common.Session session) {
-    AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), session, profilers.getIdeServices().getFeatureTracker(), null);
+    AllocationSamplingRateDataSeries samplingSeries =
+      new AllocationSamplingRateDataSeries(profilers.getClient().getMemoryClient(), session);
 
     Range dataRange = profilers.getTimeline().getDataRange();
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMax());
-    List<AllocationsInfo> series = allocationSeries.getInfoForTimeRangeNs(rangeMin, rangeMax);
-    if (!series.isEmpty() && !series.get(0).getLegacy()) {
-      // There should only be one live allocation capture object.
-      assert series.size() == 1;
-      return true;
-    }
+    List<SeriesData<AllocationSamplingRateDurationData>> series =  samplingSeries.getDataForXRange(new Range(rangeMin, rangeMax));
+    return !series.isEmpty();
+  }
 
-    return false;
+  /**
+   * @return True if live allocation tracking is in FULL mode throughout the entire input time range, false otherwise.
+   */
+  public static boolean hasOnlyFullAllocationTrackingWithinRegion(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                                                  @NotNull Common.Session session, long startTimeUs, long endTimeUs) {
+    AllocationSamplingRateDataSeries series = new AllocationSamplingRateDataSeries(client, session);
+    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForXRange(new Range(startTimeUs, endTimeUs));
+    return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
+                                        MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
   }
 
   public static void saveHeapDumpToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,

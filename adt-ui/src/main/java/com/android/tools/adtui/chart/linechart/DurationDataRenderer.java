@@ -127,7 +127,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
   @VisibleForTesting
   @NotNull
-  List<Rectangle2D.Float> getClickRegionCache() {
+  public List<Rectangle2D.Float> getClickRegionCache() {
     return myClickRegionCache;
   }
 
@@ -179,6 +179,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
               double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
               yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
               break;
+            }
+            else if (j == attachedSeriesList.size() - 1) {
+              // The duration data is after the last data point on the attached series. We assume the lastFoundData to continue to extend
+              // indefinitely, so place the DurationData at that data's y value.
+              yStart = 1 - (seriesData.value - yMin) / (yMax - yMin);
             }
             lastFoundData = seriesData;
           }

@@ -19,7 +19,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.*;
@@ -121,9 +122,10 @@ public class MemoryProfilerTest {
 
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)
-      .addAllocationsInfo(
-        AllocationsInfo.newBuilder()
-          .setStartTime(TimeUnit.MICROSECONDS.toNanos(0)).setEndTime(Long.MAX_VALUE))
+      .addAllocSamplingRateEvents(
+        AllocationSamplingRateEvent.newBuilder()
+          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(0))
+          .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(1)))
       .build();
     myMemoryService.setMemoryData(memoryData);
     myStudioProfiler.stop();
