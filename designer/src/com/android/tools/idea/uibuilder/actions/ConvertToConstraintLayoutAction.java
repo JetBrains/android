@@ -210,7 +210,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
   }
 
-  private static class ConstraintLayoutConverter extends WriteCommandAction {
+  private static class ConstraintLayoutConverter  {
     private static final boolean DIRECT_INFERENCE = true;
     private final ScreenView myScreenView;
     private final boolean myFlatten;
@@ -226,7 +226,6 @@ public class ConvertToConstraintLayoutAction extends AnAction {
                                      boolean flatten,
                                      boolean includeIds,
                                      boolean includeCustomViews) {
-      super(screenView.getSurface().getProject(), TITLE, screenView.getModel().getFile());
       myScreenView = screenView;
       myFlatten = flatten;
       myIncludeIds = includeIds;
@@ -236,8 +235,19 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       myEditor = new ViewEditorImpl(myScreenView);
     }
 
-    @Override
-    protected void run(@NotNull Result result) throws Throwable {
+    private Project getProject(){
+      return  myScreenView.getSurface().getProject();
+    }
+
+    public void execute() {
+      WriteCommandAction.Builder builder =
+        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getModel().getFile());
+      builder.run(() -> preLayoutRun());
+      layout();
+      builder.run(() -> postLayoutRun());
+    }
+
+    public void preLayoutRun() {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
       if (myLayout == null) {
         return;
@@ -260,18 +270,23 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       processComponent(myLayout);
 
       flatten();
+    }
+
+    public void layout() {
+      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      assert manager != null;
+      manager.layout(false);
+    }
+
+    public void postLayoutRun() {
       NlModel model = myLayout.getModel();
       XmlTag layoutTag = myLayout.getTag();
       XmlTag rootTag = myRoot.getTag();
-
       //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
       PsiElement tag = myLayout.getTag().setName(
         DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
 
       LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
-      assert manager != null;
-
-      manager.layout(false);
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
       myRoot = model.findViewByTag(rootTag);
@@ -313,6 +328,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         // t.start();
       }
     }
+
 
     /**
      * Add bounds to components and record components to be flattened into {@link #myToBeFlattened}
