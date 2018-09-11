@@ -16,7 +16,7 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.actions.SendFeedbackAction
+import com.intellij.ide.actions.SendFeedbackAction
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.ide.DataManager
@@ -103,7 +103,7 @@ class UserSentimentPanel(private var myProject: Project?,
       notification.expire()
       if (!positive) {
         logSentiment(UserSentiment.SentimentState.FILE_BUG)
-        SendFeedbackAction.launchBrowser(project, "Source: user_sentiment_feedback")
+        SendFeedbackAction.doPerformAction(project, "Source: user_sentiment_feedback")
       }
     }
 
