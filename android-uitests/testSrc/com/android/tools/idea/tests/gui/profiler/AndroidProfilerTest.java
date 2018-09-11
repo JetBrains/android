@@ -127,9 +127,10 @@ public class AndroidProfilerTest {
 
   private static void benchmarkMethod(@NotNull Benchmark benchmark, @NotNull Runnable method) {
     long benchmarkStart = System.currentTimeMillis();
-    long memoryUsedInitially = getMemoryUsed();
+    System.gc();
+    long initialMemoryUsed = getMemoryUsed();
+    benchmark.log("initial_mem", initialMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
     try {
-      System.gc();
       method.run();
     }
     catch (Exception e) {
@@ -138,12 +139,10 @@ public class AndroidProfilerTest {
     }
     finally {
       System.gc();
-      benchmark.log("total_time",
-                    System.currentTimeMillis() - benchmarkStart,
-                    new MedianWindowDeviationAnalyzer.Builder().build());
-      benchmark.log("total_mem",
-                    getMemoryUsed() - memoryUsedInitially,
-                    new MedianWindowDeviationAnalyzer.Builder().build());
+      long finalMemoryUsed = getMemoryUsed();
+      benchmark.log("final_mem", finalMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
+      benchmark.log("mem_used", finalMemoryUsed - initialMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
+      benchmark.log("total_time", System.currentTimeMillis() - benchmarkStart, new MedianWindowDeviationAnalyzer.Builder().build());
     }
   }
 
