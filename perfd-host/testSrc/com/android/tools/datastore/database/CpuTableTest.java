@@ -15,24 +15,28 @@
  */
 package com.android.tools.datastore.database;
 
+import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.State.RUNNING;
+import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.State.SLEEPING;
+import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.State.WAITING;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CpuTableTest extends DatabaseTest<CpuTable> {
 
   private static final int PROCESS_ID = 1;
-  private static final int TEST_DATA = 10;
+  private static final int TEST_DATA_COUNT = 10;
   private static final int SESSION_ONE_OFFSET = 100;
   private static final int SESSION_TWO_OFFSET = 1000;
+  private static final int SESSION_ONE_TID_100 = 100;
+  private static final int SESSION_ONE_TID_101 = 101;
   private static final Common.Session SESSION_HUNDREDS =
     Common.Session.newBuilder().setSessionId(1L).setDeviceId(100).setEndTimestamp(Long.MAX_VALUE /* alive */).setPid(PROCESS_ID).build();
   private static final Common.Session SESSION_THOUSANDS =
@@ -79,14 +83,14 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   }
 
   private void populateDatabase() {
-    for (int i = 0; i < TEST_DATA; i++) {
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
       CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData
         .newBuilder().setAppCpuTimeInMillisec(SESSION_ONE_OFFSET + i).setSystemCpuTimeInMillisec(SESSION_ONE_OFFSET + i)
         .setElapsedTimeInMillisec(SESSION_ONE_OFFSET + i).setEndTimestamp(SESSION_ONE_OFFSET + i).build();
       getTable().insert(SESSION_HUNDREDS, testData);
     }
 
-    for (int i = 0; i < TEST_DATA; i++) {
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
       CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData
         .newBuilder().setAppCpuTimeInMillisec(SESSION_TWO_OFFSET + i).setSystemCpuTimeInMillisec(SESSION_TWO_OFFSET + i)
         .setElapsedTimeInMillisec(SESSION_TWO_OFFSET + i).setEndTimestamp(SESSION_TWO_OFFSET + i).build();
@@ -94,21 +98,28 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     }
 
     List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = new ArrayList<>();
-    for (int i = 0; i < TEST_DATA; i++) {
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
       activities.add(
         CpuProfiler.GetThreadsResponse.ThreadActivity
-          .newBuilder().setTimestamp(SESSION_ONE_OFFSET + i).setNewState(CpuProfiler.GetThreadsResponse.State.SLEEPING).build());
+          .newBuilder().setTimestamp(SESSION_ONE_OFFSET + i).setNewState(SLEEPING).build());
     }
-    getTable().insertActivities(SESSION_HUNDREDS, SESSION_ONE_OFFSET, "Thread 100", activities);
+    getTable().insertActivities(SESSION_HUNDREDS, SESSION_ONE_TID_100, "Thread " + SESSION_ONE_TID_100, activities);
     activities.clear();
-    for (int i = 0; i < TEST_DATA; i++) {
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
       activities.add(
         CpuProfiler.GetThreadsResponse.ThreadActivity
-          .newBuilder().setTimestamp(SESSION_TWO_OFFSET + i).setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING).build());
+          .newBuilder().setTimestamp(SESSION_ONE_OFFSET + i).setNewState(WAITING).build());
     }
-    getTable().insertActivities(SESSION_THOUSANDS, SESSION_TWO_OFFSET, "Thread 1000", activities);
+    getTable().insertActivities(SESSION_HUNDREDS, SESSION_ONE_TID_101, "Thread " + SESSION_ONE_TID_101, activities);
+    activities.clear();
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
+      activities.add(
+        CpuProfiler.GetThreadsResponse.ThreadActivity
+          .newBuilder().setTimestamp(SESSION_TWO_OFFSET + i).setNewState(RUNNING).build());
+    }
+    getTable().insertActivities(SESSION_THOUSANDS, SESSION_TWO_OFFSET, "Thread " + SESSION_TWO_OFFSET, activities);
 
-    for (int i = 0; i < TEST_DATA; i++) {
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
       CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo
         .newBuilder().setTraceId(SESSION_ONE_OFFSET + i)
         .setProfilerType(CpuProfiler.CpuProfilerType.ART).setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
@@ -128,7 +139,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     List<CpuProfiler.CpuUsageData> response = getTable().getCpuDataByRequest(request);
 
     // Validate that we have data from start timestamp (exclusive) to end timestamp (inclusive)
-    assertThat(response.size()).isEqualTo(TEST_DATA - 1);
+    assertThat(response.size()).isEqualTo(TEST_DATA_COUNT - 1);
 
     // Validate we only got back data we expected to get back.
     for (int i = 1; i < response.size(); i++) {
@@ -145,7 +156,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest
       .newBuilder().setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(SESSION_ONE_OFFSET)
-      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1))
+      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA_COUNT - 1))
       .build();
     List<CpuProfiler.CpuUsageData> response = getTable().getCpuDataByRequest(request);
 
@@ -164,17 +175,36 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   @Test
   public void testGetThreadsDataByRequest() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest
-      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(SESSION_ONE_OFFSET).setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1))
+      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(SESSION_ONE_OFFSET + 1)
+      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA_COUNT - 1))
       .build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = getTable().getThreadsDataByRequest(request);
 
-    assertThat(response.size()).isEqualTo(1);
+    assertThat(response.size()).isEqualTo(2);
+
     int activityCount = response.get(0).getActivitiesCount();
-    assertThat(activityCount).isEqualTo(TEST_DATA);
+    // Even though start timestamp isn't inclusive, we should still it since the query should include
+    // the latest one just prior to the start timestamp.
+    assertThat(activityCount).isEqualTo(TEST_DATA_COUNT - 1);
+    int tid = response.get(0).getTid();
+    assertThat(tid).isAnyOf(SESSION_ONE_TID_100, SESSION_ONE_TID_101);
+    CpuProfiler.GetThreadsResponse.State expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
     for (int i = 0; i < activityCount; i++) {
       CpuProfiler.GetThreadsResponse.ThreadActivity activity = response.get(0).getActivities(i);
-      assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
-      assertThat(activity.getNewState()).isEqualTo(CpuProfiler.GetThreadsResponse.State.SLEEPING);
+      assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i + 1);
+      assertThat(activity.getNewState()).isEqualTo(expectedState);
+    }
+
+    activityCount = response.get(1).getActivitiesCount();
+    assertThat(activityCount).isEqualTo(TEST_DATA_COUNT - 1);
+    assertThat(response.get(1).getTid()).isNotEqualTo(tid); // assert that the two are different and not duplicate
+    tid = response.get(1).getTid();
+    assertThat(tid).isAnyOf(SESSION_ONE_TID_100, SESSION_ONE_TID_101);
+    expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
+    for (int i = 0; i < activityCount; i++) {
+      CpuProfiler.GetThreadsResponse.ThreadActivity activity = response.get(1).getActivities(i);
+      assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i + 1);
+      assertThat(activity.getNewState()).isEqualTo(expectedState);
     }
   }
 
@@ -182,7 +212,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   public void testGetThreadsDataByRequestInvalidSession() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest
       .newBuilder().setSession(Common.Session.getDefaultInstance()).setStartTimestamp(SESSION_ONE_OFFSET)
-      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1)).build();
+      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA_COUNT - 1)).build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = getTable().getThreadsDataByRequest(request);
 
     assertThat(response.size()).isEqualTo(0);
@@ -203,13 +233,28 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = getTable().getThreadsDataByRequest(request);
 
-    assertThat(response.size()).isEqualTo(1);
+    assertThat(response.size()).isEqualTo(2);
+
     int activityCount = response.get(0).getActivitiesCount();
-    assertThat(activityCount).isEqualTo(TEST_DATA);
+    assertThat(activityCount).isEqualTo(TEST_DATA_COUNT);
+    int tid = response.get(0).getTid();
+    assertThat(tid).isAnyOf(SESSION_ONE_TID_100, SESSION_ONE_TID_101);
+    CpuProfiler.GetThreadsResponse.State expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
     for (int i = 0; i < activityCount; i++) {
       CpuProfiler.GetThreadsResponse.ThreadActivity activity = response.get(0).getActivities(i);
       assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
-      assertThat(activity.getNewState()).isEqualTo(CpuProfiler.GetThreadsResponse.State.SLEEPING);
+      assertThat(activity.getNewState()).isEqualTo(expectedState);
+    }
+
+    activityCount = response.get(1).getActivitiesCount();
+    assertThat(activityCount).isEqualTo(TEST_DATA_COUNT);
+    tid = response.get(1).getTid();
+    assertThat(tid).isAnyOf(SESSION_ONE_TID_100, SESSION_ONE_TID_101);
+    expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
+    for (int i = 0; i < activityCount; i++) {
+      CpuProfiler.GetThreadsResponse.ThreadActivity activity = response.get(1).getActivities(i);
+      assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
+      assertThat(activity.getNewState()).isEqualTo(expectedState);
     }
   }
 
@@ -218,7 +263,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest
       .newBuilder().setSession(SESSION_HUNDREDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
     List<CpuProfiler.TraceInfo> traceInfo = getTable().getTraceInfo(request);
-    assertThat(traceInfo.size()).isEqualTo(TEST_DATA);
+    assertThat(traceInfo.size()).isEqualTo(TEST_DATA_COUNT);
     for (int i = 0; i < traceInfo.size(); i++) {
       assertThat(traceInfo.get(i).getFromTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
       assertThat(traceInfo.get(i).getToTimestamp()).isEqualTo(SESSION_ONE_OFFSET + 1 + i);
