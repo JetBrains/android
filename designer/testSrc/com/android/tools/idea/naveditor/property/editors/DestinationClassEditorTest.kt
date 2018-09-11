@@ -15,16 +15,25 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
+import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
+import com.intellij.psi.PsiClass
 import com.intellij.psi.util.ClassUtil
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+
+private val constructEditor =
+  { listener: NlEditingListener, comboBox: EnumEditor.CustomComboBox -> DestinationClassEditor(listener, comboBox) }
 
 class DestinationClassEditorTest : NavTestCase() {
   fun testFragment() {
@@ -37,7 +46,7 @@ class DestinationClassEditorTest : NavTestCase() {
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("f1")))
 
-    var choices = EnumEditorFixture.create(::DestinationClassEditor).use {
+    var choices = EnumEditorFixture.create(constructEditor).use {
       it.setProperty(property)
         .showPopup()
         .choices
@@ -50,7 +59,7 @@ class DestinationClassEditorTest : NavTestCase() {
 
     `when`(property.components).thenReturn(listOf(model.find("activity1")))
 
-    choices = EnumEditorFixture.create(::DestinationClassEditor).use {
+    choices = EnumEditorFixture.create(constructEditor).use {
       it.setProperty(property)
         .showPopup()
         .choices
@@ -102,7 +111,7 @@ class DestinationClassEditorTest : NavTestCase() {
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("f1")))
 
-    val choices = EnumEditorFixture.create(::DestinationClassEditor).use {
+    val choices = EnumEditorFixture.create(constructEditor).use {
       it.setProperty(property)
         .showPopup()
         .choices
@@ -114,6 +123,42 @@ class DestinationClassEditorTest : NavTestCase() {
     assertDoesntContain(choices, "mytest.navtest.NavHostFragmentChild" displayFor "mytest.navtest.NavHostFragmentChild")
   }
 
+  fun testProjectSorting() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        activity("activity1")
+      }
+    }
+    val property = mock(NlProperty::class.java)
+    `when`(property.components).thenReturn(listOf(model.find("f1")))
+
+    var isInProject: (PsiClass) -> Boolean = { psiClass -> psiClass.qualifiedName == "mytest.navtest.BlankFragment" }
+
+    var choices = EnumEditorFixture.create { listener, comboBox -> DestinationClassEditor(listener, comboBox, isInProject) }.use {
+      it.setProperty(property)
+        .showPopup()
+        .choices
+    }
+
+    assertOrderedEquals(choices,
+                        "none" displayFor null,
+                        "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment",
+                        "android.support.v4.app.Fragment" displayFor "android.support.v4.app.Fragment")
+
+    isInProject = { psiClass -> psiClass.qualifiedName == "android.support.v4.app.Fragment" }
+
+    choices = EnumEditorFixture.create { listener, comboBox -> DestinationClassEditor(listener, comboBox, isInProject) }.use {
+      it.setProperty(property)
+        .showPopup()
+        .choices
+    }
+
+    assertOrderedEquals(choices,
+                        "none" displayFor null,
+                        "android.support.v4.app.Fragment" displayFor "android.support.v4.app.Fragment",
+                        "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
+  }
 
   private infix fun String.displayFor(value: String?): ValueWithDisplayString {
     return when (value) {
