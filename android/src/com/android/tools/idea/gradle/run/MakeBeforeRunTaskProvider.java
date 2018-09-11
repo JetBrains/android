@@ -45,7 +45,6 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
@@ -53,7 +52,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunConfigurationBase;
+import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOption;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -63,6 +62,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ThreeState;
 import icons.AndroidIcons;
 import one.util.streamex.StreamEx;
@@ -269,7 +269,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
-    if (configuration instanceof RunConfigurationBase && ((RunConfigurationBase)configuration).excludeCompileBeforeLaunchOption()) {
+    if (configuration instanceof RunProfileWithCompileBeforeLaunchOption && ((RunProfileWithCompileBeforeLaunchOption)configuration).isExcludeCompileBeforeLaunchOption()) {
       return true;
     }
 
@@ -393,7 +393,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.getAbsolutePath()));
       }
       catch (IOException e) {
-        Throwables.propagate(e);
+        ExceptionUtil.rethrow(e);
       }
     }
     return arguments;
