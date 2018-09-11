@@ -11,6 +11,7 @@ buildscript {
 }
 apply {
     plugin("kotlin-android")
+    plugin("kotlin-android-extensions")
 }
 dependencies {
     compile(kotlinModule("stdlib-jdk7", kotlin_version))

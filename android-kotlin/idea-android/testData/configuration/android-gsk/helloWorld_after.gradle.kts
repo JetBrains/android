@@ -1,4 +1,3 @@
-
 val kotlin_version: String by extra
 buildscript {
     var kotlin_version: String by extra
@@ -15,6 +14,7 @@ buildscript {
 apply {
     plugin("com.android.application")
     plugin("kotlin-android")
+    plugin("kotlin-android-extensions")
 }
 
 android {
