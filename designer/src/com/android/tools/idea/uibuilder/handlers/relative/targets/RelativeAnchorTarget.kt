@@ -73,6 +73,9 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
   }
 
   override fun isEnabled(): Boolean {
+    if (myComponent.scene.selection.size > 1) {
+      return false
+    }
     if (myComponent.isSelected) {
       return !myComponent.isDragging
     }
