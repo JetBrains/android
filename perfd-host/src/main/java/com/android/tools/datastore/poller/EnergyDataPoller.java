@@ -20,13 +20,20 @@ import com.android.tools.datastore.database.EnergyTable;
 import com.android.tools.datastore.energy.BatteryModel;
 import com.android.tools.datastore.energy.CpuConfig;
 import com.android.tools.datastore.energy.PowerProfile;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.EnergyServiceGrpc;
+import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class hosts an EnergyService that will provide callers access to all cached energy data.
@@ -150,7 +157,7 @@ public final class EnergyDataPoller extends PollRunner {
         switch (networkData.getDataCase()) {
           case CONNECTIVITY_DATA:
             // Don't send an event for connection change. Leave it for the next speed data.
-            myLastKnownNetworkType = PowerProfile.NetworkType.from(networkData.getConnectivityData().getDefaultNetworkType());
+            myLastKnownNetworkType = PowerProfile.NetworkType.from(networkData.getConnectivityData().getNetworkType());
             break;
           case SPEED_DATA:
             NetworkProfiler.SpeedData speedData = networkData.getSpeedData();
