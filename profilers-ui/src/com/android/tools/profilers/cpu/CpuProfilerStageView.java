@@ -59,49 +59,49 @@ import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
-  private enum PanelSpacing {
+  private enum PanelSizing {
     /**
      * Sizing string for the CPU graph.
      */
-    MONITOR("140px"),
+    MONITOR("140px", 0),
 
     /**
      * Sizing string for the threads / kernel view.
      */
-    DETAILS("*"),
-
-    /**
-     * Sizing string for the kernel portion of the details view.
-     */
-    KERNEL("Fit"),
+    DETAILS("*", 1),
 
     /**
      * Sizing string for the frames portion of the details view.
      */
-    FRAME("Fit"),
+    FRAME("Fit", 0),
+
+    /**
+     * Sizing string for the kernel portion of the details view.
+     */
+    KERNEL("Fit", 1),
 
     /**
      * Sizing string for the threads portion of the details view.
      */
-    THREADS("*");
+    THREADS("*", 2);
 
-    private final String myLayoutString;
+    @NotNull private final String myRowRule;
+    private final int myRow;
 
-    PanelSpacing(@NotNull String layoutType) {
-      myLayoutString = layoutType;
+    PanelSizing(@NotNull String rowRule, int row) {
+      myRowRule = rowRule;
+      myRow = row;
     }
 
-    @Override
-    public String toString() {
-      return myLayoutString;
+    @NotNull
+    public String getRowRule() {
+      return myRowRule;
+    }
+
+    public int getRow() {
+      return myRow;
     }
   }
-
-  private static final int MONITOR_PANEL_ROW = 0;
-  private static final int DETAILS_PANEL_ROW = 1;
-  private static final int DETAILS_FRAMES_PANEL_ROW = 0;
-  private static final int DETAILS_KERNEL_PANEL_ROW = 1;
-  private static final int DETAILS_THREADS_PANEL_ROW = 2;
 
   @VisibleForTesting
   static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
@@ -205,13 +205,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
 
     TabularLayout mainLayout = new TabularLayout("*");
-    mainLayout.setRowSizing(MONITOR_PANEL_ROW, PanelSpacing.MONITOR.toString());
-    mainLayout.setRowSizing(DETAILS_PANEL_ROW, PanelSpacing.DETAILS.toString());
+    mainLayout.setRowSizing(PanelSizing.MONITOR.getRow(), PanelSizing.MONITOR.getRowRule());
+    mainLayout.setRowSizing(PanelSizing.DETAILS.getRow(), PanelSizing.DETAILS.getRowRule());
     final JPanel mainPanel = new JBPanel(mainLayout);
     mainPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
-    mainPanel.add(createCpuStatePanel(), new TabularLayout.Constraint(DETAILS_PANEL_ROW, 0));
+    mainPanel.add(myUsageView, new TabularLayout.Constraint(PanelSizing.MONITOR.getRow(), 0));
+    mainPanel.add(createCpuStatePanel(), new TabularLayout.Constraint(PanelSizing.DETAILS.getRow(), 0));
 
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
@@ -244,13 +244,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel cpuStatePanel = new JBPanel(cpuStateLayout);
 
     cpuStatePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    cpuStateLayout.setRowSizing(DETAILS_FRAMES_PANEL_ROW, PanelSpacing.FRAME.toString());
-    cpuStateLayout.setRowSizing(DETAILS_KERNEL_PANEL_ROW, PanelSpacing.KERNEL.toString());
-    cpuStateLayout.setRowSizing(DETAILS_THREADS_PANEL_ROW, PanelSpacing.THREADS.toString());
+    cpuStateLayout.setRowSizing(PanelSizing.FRAME.getRow(), PanelSizing.FRAME.getRowRule());
+    cpuStateLayout.setRowSizing(PanelSizing.KERNEL.getRow(), PanelSizing.KERNEL.getRowRule());
+    cpuStateLayout.setRowSizing(PanelSizing.THREADS.getRow(), PanelSizing.THREADS.getRowRule());
 
     //region CpuThreadsView
     myTooltipComponent.registerListenersOn(myThreads.getComponent());
-    cpuStatePanel.add(myThreads.getComponent(), new TabularLayout.Constraint(DETAILS_THREADS_PANEL_ROW, 0));
+    cpuStatePanel.add(myThreads.getComponent(), new TabularLayout.Constraint(PanelSizing.THREADS.getRow(), 0));
     //endregion
 
     //region CpuKernelsView
@@ -271,12 +271,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     });
     myTooltipComponent.registerListenersOn(myCpus.getComponent());
-    cpuStatePanel.add(myCpus.getComponent(), new TabularLayout.Constraint(DETAILS_KERNEL_PANEL_ROW, 0));
+    cpuStatePanel.add(myCpus.getComponent(), new TabularLayout.Constraint(PanelSizing.KERNEL.getRow(), 0));
     //endregion
 
     //region CpuFramesView
     myTooltipComponent.registerListenersOn(myFrames.getComponent());
-    cpuStatePanel.add(myFrames.getComponent(), new TabularLayout.Constraint(DETAILS_FRAMES_PANEL_ROW, 0));
+    cpuStatePanel.add(myFrames.getComponent(), new TabularLayout.Constraint(PanelSizing.FRAME.getRow(), 0));
     //endregion
 
     return cpuStatePanel;
