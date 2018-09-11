@@ -141,6 +141,7 @@ public class PatchInstallerTest extends TestCase {
   private static class FakeGenerator {}
 
   private static class FakeUI extends FakeUIBase {
-    FakeUI(Component c, ProgressIndicator progress) {}
+    @SuppressWarnings("PublicConstructorInNonPublicClass")
+    public FakeUI(Component c, ProgressIndicator progress) {}
   }
 }
