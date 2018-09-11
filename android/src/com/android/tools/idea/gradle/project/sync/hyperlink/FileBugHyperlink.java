@@ -27,6 +27,6 @@ public class FileBugHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    SendFeedbackAction.launchBrowser(project);
+    SendFeedbackAction.doPerformAction(project);
   }
 }
