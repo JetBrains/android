@@ -27,6 +27,8 @@ import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlElement;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName;
@@ -40,9 +42,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -103,19 +102,19 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       manager.collectLazyResourceElements(info.getNamespace(), nestedClassName, fieldName, false, refExp, resourceList);
 
       if (manager instanceof LocalResourceManager) {
-        LocalResourceManager lrm = (LocalResourceManager)manager;
+        LocalResourceManager localManager = (LocalResourceManager)manager;
 
         if (nestedClassName.equals(ResourceType.ATTR.getName())) {
-          for (Attr attr : lrm.findAttrs(fieldName)) {
+          for (Attr attr : localManager.findAttrs(info.getNamespace(), fieldName)) {
             resourceList.add(attr.getName().getXmlAttributeValue());
           }
         }
         else if (nestedClassName.equals(ResourceType.STYLEABLE.getName())) {
-          for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
+          for (DeclareStyleable styleable : localManager.findStyleables(info.getNamespace(), fieldName)) {
             resourceList.add(styleable.getName().getXmlAttributeValue());
           }
 
-          for (Attr styleable : lrm.findStyleableAttributesByFieldName(fieldName)) {
+          for (Attr styleable : localManager.findStyleableAttributesByFieldName(info.getNamespace(), fieldName)) {
             resourceList.add(styleable.getName().getXmlAttributeValue());
           }
         }
@@ -123,7 +122,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     }
 
     if (resourceList.size() > 1) {
-      // Sort to ensure the output is stable, and to prefer the base folders
+      // Sort to ensure the output is stable, and to prefer the base folders.
       resourceList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
     }
 
