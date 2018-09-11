@@ -59,6 +59,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.text.StringUtil;
 import org.HdrHistogram.Histogram;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -395,7 +396,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
     if (ignored) return;
 
-    Notification notification = new MyNotification(IdeBundle.message(key, params));
+    Notification notification = new MyNotification(AndroidBundle.message(key, params));
     if (action != null) {
       notification.addAction(action);
     }
