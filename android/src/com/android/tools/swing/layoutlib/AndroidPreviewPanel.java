@@ -81,7 +81,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     @Override
     public void run() {
       if (ApplicationManager.getApplication().isDispatchThread()) {
-        myExecutor.execute(this);
+        myExecutor.execute(myInvalidateRunnable);
         return;
       }
 
