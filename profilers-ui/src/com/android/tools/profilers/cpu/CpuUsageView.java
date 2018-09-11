@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.DefaultDurationData;
@@ -28,7 +29,6 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.*;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.MouseEventHandler;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -59,17 +59,12 @@ abstract class CpuUsageView extends JBPanel {
 
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
 
-    MouseEventHandler handler = new MouseEventHandler() {
-      @Override
-      protected void handle(MouseEvent event) {
-        // |CpuUsageView| does not receive any mouse events, because all mouse events are consumed by |OverlayComponent|
-        // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU context menus or other mouse events
-        // directly into |CpuUsageView| instead of |OverlayComponent|.
-        dispatchEvent(SwingUtilities.convertMouseEvent(myOverlayComponent, event, CpuUsageView.this));
-      }
-    };
-    myOverlayComponent.addMouseListener(handler);
-    myOverlayComponent.addMouseMotionListener(handler);
+    // |CpuUsageView| does not receive any mouse events, because all mouse events are consumed by |OverlayComponent|
+    // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU context menus or other mouse events
+    // directly into |CpuUsageView| instead of |OverlayComponent|.
+    DelegateMouseEventHandler.delegateTo(this)
+                             .installListenerOn(myOverlayComponent)
+                             .installMotionListenerOn(myOverlayComponent);
 
     setBorder(MONITOR_BORDER);
     setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
