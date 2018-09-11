@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
     iml_files = ["intellij.android.profilers.iml"],
+    tags = ["no_test_mac_psq"],
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = [
