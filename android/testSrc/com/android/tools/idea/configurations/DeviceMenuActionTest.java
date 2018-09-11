@@ -40,12 +40,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     String actual = sb.toString();
     String expected =
       "\n" + // The selected device is empty because we use the mock configuration for testing.
-      "    3.7, 480 \u00d7 800, hdpi (Nexus One)\n" +
-      "    4.0, 480 \u00d7 800, hdpi (Nexus S)\n" +
-      "    4.7, 720 \u00d7 1280, xhdpi (Galaxy Nexus)\n" +
-      "    4.7, 768 \u00d7 1280, xhdpi (Nexus 4)\n" +
-      "    5.0, 1080 \u00d7 1920, xxhdpi (Nexus 5)\n" +
-      "    ------------------------------------------------------\n" +
+      "    Phone\n" +
       "    5.0, 1080 \u00d7 1920, 420dpi (Pixel)\n" +
       "    5.0, 1080 \u00d7 1920, 420dpi (Pixel 2)\n" +
       "    5.2, 1080 \u00d7 1920, 420dpi (Nexus 5X)\n" +
@@ -54,16 +49,19 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    6.0, 1440 \u00d7 2560, 560dpi (Nexus 6)\n" +
       "    6.0, 1440 \u00d7 2880, 560dpi (Pixel 2 XL)\n" +
       "    ------------------------------------------------------\n" +
+      "    Tablet\n" +
       "    7.0, 800 \u00d7 1280, tvdpi (Nexus 7 2012)\n" +
       "    7.0, 1200 \u00d7 1920, xhdpi (Nexus 7)\n" +
       "    8.9, 2048 \u00d7 1536, xhdpi (Nexus 9)\n" +
       "    9.9, 2560 \u00d7 1800, xhdpi (Pixel C)\n" +
       "    10.1, 2560 \u00d7 1600, xhdpi (Nexus 10)\n" +
       "    ------------------------------------------------------\n" +
+      "    Wear\n" +
       "    280 \u00d7 280, hdpi (Square)\n" +
       "    320 \u00d7 320, hdpi (Round)\n" +
       "    320 \u00d7 290, tvdpi (Round Chin)\n" +
       "    ------------------------------------------------------\n" +
+      "    TV\n" +
       "    1080p, 1920 \u00d7 1080, xhdpi (TV)\n" +
       "    720p, 1280 \u00d7 720, tvdpi (TV)\n" +
       "    ------------------------------------------------------\n" +
