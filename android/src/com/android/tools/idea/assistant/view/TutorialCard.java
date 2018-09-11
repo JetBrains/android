@@ -286,7 +286,7 @@ public class TutorialCard extends CardViewPanel {
       setBorder(null);
       setOpaque(false);
       if (Direction.NEXT == direction) {
-        setIcon(AllIcons.Diff.CurrentLine);
+        setIcon(AllIcons.Actions.Forward);
         setHorizontalTextPosition(LEFT);
       }
       else {
