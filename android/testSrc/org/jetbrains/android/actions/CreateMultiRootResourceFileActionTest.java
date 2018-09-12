@@ -48,17 +48,15 @@ public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase
     myAction = null;
   }
 
-  public void testGetAllowedTagNamesModuleDoesntDependOnConstaintLayout() {
-    myAction.getAllowedTagNames(myFacet);
-    assertEquals(SdkConstants.LINEAR_LAYOUT, myAction.getDefaultRootTag());
+  public void testGetDefaultRootTag_ModuleDoesntDependOnConstraintLayout() {
+    assertEquals(SdkConstants.LINEAR_LAYOUT, myAction.getDefaultRootTag(myFacet.getModule()));
   }
 
-  public void testGetAllowedTagNamesModuleDependsOnConstraintLayout() {
+  public void testGetDefaultRootTag_ModuleDependsOnConstraintLayout() {
     myTestProjectSystem.addDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, myFacet.getModule(), new GradleVersion(1, 1));
     Mockito.when(myAction.getPossibleRoots(myFacet))
       .thenReturn(Arrays.asList(SdkConstants.LINEAR_LAYOUT, SdkConstants.CONSTRAINT_LAYOUT.defaultName()));
 
-    myAction.getAllowedTagNames(myFacet);
-    assertEquals(SdkConstants.CONSTRAINT_LAYOUT.defaultName(), myAction.getDefaultRootTag());
+    assertEquals(SdkConstants.CONSTRAINT_LAYOUT.defaultName(), myAction.getDefaultRootTag(myFacet.getModule()));
   }
 }
