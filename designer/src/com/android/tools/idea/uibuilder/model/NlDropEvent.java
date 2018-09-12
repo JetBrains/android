@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.ItemTransferable;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class encapsulates either a {@see DropTargetDragEvent} or a {@see DropTargetDropEvent}
@@ -89,7 +89,16 @@ public class NlDropEvent {
     }
   }
 
-  public void accept(int dropAction) {
+  public void accept(@NotNull InsertType insertType) {
+    // This determines how the DnD source acts to a completed drop.
+    // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
+    // When we move a component within the current designer the addComponents call will remove the source component in the transaction.
+    // Only when we move a component from a different designer (handled as a InsertType.COPY) would we mark this as a ACTION_MOVE.
+    accept(insertType == InsertType.COPY ? getDropAction() : DnDConstants.ACTION_COPY);
+  }
+
+
+  private void accept(int dropAction) {
     if (!myStatusSpecified) {
       if (myDragEvent != null) {
         myDragEvent.acceptDrag(dropAction);
