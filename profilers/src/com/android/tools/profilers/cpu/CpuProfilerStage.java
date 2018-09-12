@@ -523,6 +523,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
     // aspect that depends on the former.
     myInProgressTraceInitiationType = TraceInitiationType.INITIATED_BY_UI;
+
+    // Disable memory live allocation if config setting has the option set.
+    if (config.isDisableLiveAllocation()) {
+      getStudioProfilers().setMemoryLiveAllocationEnabled(false);
+    }
+
     setCaptureState(CaptureState.STARTING);
     CompletableFuture.supplyAsync(
       () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
@@ -642,6 +648,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       ByteString traceBytes = response.getTrace();
       captureMetadata.setTraceFileSizeBytes(traceBytes.size());
       handleCaptureParsing(response.getTraceId(), traceBytes, captureMetadata);
+    }
+
+    // Re-enable memory live allocation.
+    if (myProfilerConfigModel.getProfilingConfiguration().isDisableLiveAllocation()) {
+      getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     }
   }
 

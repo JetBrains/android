@@ -34,6 +34,7 @@ class ProfilingConfigurationTest {
       .setProfilerType(CpuProfiler.CpuProfilerType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
+      .setDisableLiveAllocation(true)
       .build()
     val config = ProfilingConfiguration.fromProto(proto)
 
@@ -42,6 +43,7 @@ class ProfilingConfigurationTest {
     assertThat(config.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+    assertThat(config.isDisableLiveAllocation).isTrue()
   }
 
   @Test
@@ -50,6 +52,7 @@ class ProfilingConfigurationTest {
                                                CpuProfiler.CpuProfilerMode.SAMPLED).apply {
       profilingBufferSizeInMb = 12
       profilingSamplingIntervalUs = 1234
+      isDisableLiveAllocation = true
     }
     val proto = configuration.toProto()
 
@@ -58,6 +61,7 @@ class ProfilingConfigurationTest {
     assertThat(proto.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
+    assertThat(proto.disableLiveAllocation).isTrue()
   }
 
   @Test

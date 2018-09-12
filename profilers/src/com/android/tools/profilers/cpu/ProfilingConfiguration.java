@@ -20,7 +20,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.utils.HashCodes;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -84,6 +86,11 @@ public class ProfilingConfiguration {
    */
   private int myProfilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US;
 
+  /**
+   * Whether to disable live allocation during CPU recording.
+   */
+  private boolean myDisableLiveAllocation = true;
+
   public ProfilingConfiguration() {
     // Default constructor to be used by CpuProfilingConfigService
   }
@@ -132,6 +139,14 @@ public class ProfilingConfiguration {
     return myProfilingSamplingIntervalUs;
   }
 
+  public boolean isDisableLiveAllocation() {
+    return myDisableLiveAllocation;
+  }
+
+  public void setDisableLiveAllocation(boolean disableLiveAllocation) {
+    myDisableLiveAllocation = disableLiveAllocation;
+  }
+
   public int getRequiredDeviceLevel() {
     switch (myProfilerType) {
       // Atrace is supported from Android 4.1 (J) minimum, however the trace events changed in Android 7.0 (M).
@@ -162,6 +177,7 @@ public class ProfilingConfiguration {
     ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getProfilerType(), proto.getProfilerMode());
     configuration.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
     configuration.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+    configuration.setDisableLiveAllocation(proto.getDisableLiveAllocation());
     return configuration;
   }
 
@@ -170,12 +186,15 @@ public class ProfilingConfiguration {
    */
   @NotNull
   public CpuProfiler.CpuProfilerConfiguration toProto() {
-    return CpuProfiler.CpuProfilerConfiguration.newBuilder()
+    return CpuProfiler.CpuProfilerConfiguration
+      .newBuilder()
       .setName(getName())
       .setProfilerType(getProfilerType())
       .setProfilerMode(getMode())
       .setSamplingIntervalUs(getProfilingSamplingIntervalUs())
-      .setBufferSizeInMb(getProfilingBufferSizeInMb()).build();
+      .setBufferSizeInMb(getProfilingBufferSizeInMb())
+      .setDisableLiveAllocation(isDisableLiveAllocation())
+      .build();
   }
 
   /**
@@ -217,23 +236,14 @@ public class ProfilingConfiguration {
            getProfilerType() == incoming.getProfilerType() &&
            getMode() == incoming.getMode() &&
            getProfilingSamplingIntervalUs() == incoming.getProfilingSamplingIntervalUs() &&
-           getProfilingBufferSizeInMb() == incoming.getProfilingBufferSizeInMb();
+           getProfilingBufferSizeInMb() == incoming.getProfilingBufferSizeInMb() &&
+           isDisableLiveAllocation() == incoming.isDisableLiveAllocation();
   }
 
   @Override
   public int hashCode() {
-    int hashCode = 0;
-    if (getName() != null) {
-      hashCode = getName().hashCode();
-    }
-    if (getProfilerType() != null) {
-      hashCode ^= getProfilerType().hashCode();
-    }
-    if (getMode() != null) {
-      hashCode ^= getMode().hashCode();
-    }
-    hashCode ^= getProfilingSamplingIntervalUs();
-    hashCode ^= getProfilingBufferSizeInMb();
-    return hashCode;
+    return HashCodes
+      .mix(Objects.hashCode(getName()), Objects.hashCode(getProfilerType()), Objects.hashCode(getMode()), getProfilingSamplingIntervalUs(),
+           getProfilingBufferSizeInMb(), Boolean.hashCode(isDisableLiveAllocation()));
   }
 }
