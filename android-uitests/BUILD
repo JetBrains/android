@@ -1335,7 +1335,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleOldInstantApp/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest"],
     tags = COMMON_TAGS + [
@@ -1352,7 +1352,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/InstantLocalApplication/**",
+        "testData/SimpleOldInstantApp/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddFeatureModuleTest"],
     tags = COMMON_TAGS + [

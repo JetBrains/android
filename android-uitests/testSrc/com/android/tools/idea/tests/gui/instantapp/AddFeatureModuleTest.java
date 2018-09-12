@@ -70,39 +70,4 @@ public class AddFeatureModuleTest {
     // In InstantLocalApplication project, feature exists. Additional default name will be feature2.
     androidPane.clickPath("feature2");
   }
-
-  /**
-   * Verifies that user is able to add a instant app module through the
-   * new module wizard.
-   *
-   * <p>TT ID: 6da70326-4b89-4f9b-9e08-573939bebfe5
-   *
-   * <pre>
-   *   Test steps:
-   *   1. Import simple application project
-   *   2. Go to File -> New module to open the new module dialog wizard.
-   *   3. Follow through the wizard to add a new instant module, accepting defaults.
-   *   4. Complete the wizard and wait for the build to complete.
-   *   Verify:
-   *   1. The new instant module's library is shown in the project explorer pane.
-   * </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA)
-  public void addInstantModule() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
-
-    ideFrame.invokeMenuPath("File", "New", "New Module...");
-
-    NewModuleWizardFixture.find(ideFrame)
-      .chooseModuleType("Instant App")
-      .clickNextToStep("Configure your module")
-      .clickFinish();
-
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    ideFrame.getProjectView()
-      .selectAndroidPane()
-      .clickPath("instantapp");
-  }
 }
