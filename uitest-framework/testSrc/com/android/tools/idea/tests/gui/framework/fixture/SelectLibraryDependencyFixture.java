@@ -17,23 +17,21 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBTextField;
+import java.awt.event.KeyEvent;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.JButton;
-import javax.swing.JDialog;
 
 public class SelectLibraryDependencyFixture implements ContainerFixture<JDialog> {
 
@@ -70,8 +68,8 @@ public class SelectLibraryDependencyFixture implements ContainerFixture<JDialog>
   public SelectLibraryDependencyFixture selectDependency(@NotNull String partialMavenCoordinates) {
     new JTextComponentFixture(myRobot, myRobot.finder().findByType(myDialog, JBTextField.class))
       .click()
-      .enterText(partialMavenCoordinates);
-    new JButtonFixture(myRobot, myRobot.finder().findByType(FixedSizeButton.class)).click();
+      .enterText(partialMavenCoordinates)
+      .pressAndReleaseKeys(KeyEvent.VK_SHIFT, KeyEvent.VK_ENTER);
 
     JListFixture dependenciesList = new JListFixture(myRobot, myRobot.finder().findByType(myDialog, JBList.class));
     // network request made for the artifact list. Need to wait for cases of slow network
