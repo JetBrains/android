@@ -40,7 +40,7 @@ public class AddInstantModuleTest {
    *
    * <pre>
    *   Test steps:
-   *   1. Import simple local application project
+   *   1. Import simple legacy instant application project
    *   2. Go to File -> New module to open the new module dialog wizard.
    *   3. Follow through the wizard to add a new instant module, accepting defaults.
    *   4. Complete the wizard and wait for the build to complete.
@@ -51,7 +51,7 @@ public class AddInstantModuleTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void addInstantModule() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
