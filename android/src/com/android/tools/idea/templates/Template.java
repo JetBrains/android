@@ -34,6 +34,7 @@ import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -392,6 +393,7 @@ public class Template {
     TemplateMetadata metadata = getMetadata();
     assert metadata != null;
 
+    context.getParamMap().put(TemplateMetadata.ATTR_USE_NAV_CONTROLLER, StudioFlags.NPW_USE_NAV_CONTROLLER.get());
     enforceParameterTypes(metadata, context.getParamMap());
 
     try {

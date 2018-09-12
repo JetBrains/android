@@ -16,7 +16,9 @@
 package com.android.tools.idea.templates.recipe;
 
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.TypedVariable;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
@@ -49,6 +51,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "open", type = OpenInstruction.class),
     @XmlElement(name = "recipe", type = Recipe.class),
+    @XmlElement(name = "global", type = GlobalInstruction.class),
     // Gradle specific recipes
     @XmlElement(name = "apply", type = ApplyInstruction.class),
     @XmlElement(name = "classpath", type = ClasspathInstruction.class),
@@ -285,6 +288,27 @@ public class Recipe implements RecipeInstruction {
     public void execute(@NotNull RecipeExecutor executor) {
       String configuration = MoreObjects.firstNonNull(this.gradleConfiguration, "compile");
       executor.addDependency(configuration, mavenUrl);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class GlobalInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String id;
+
+    @XmlAttribute
+    @NotNull
+    private String value;
+
+    @XmlAttribute
+    private String type;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      TypedVariable.Type typeVariable = TypedVariable.Type.get(type);
+      Object result = TypedVariable.parse(typeVariable, value);
+      executor.addGlobalVariable(id, (result != null) ? result : value);
     }
   }
 
