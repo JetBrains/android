@@ -1,0 +1,62 @@
+{
+  "commit": "120f488f43e85cae5c74eeae99d970dcf7fe443d",
+  "pagesAndArtboards": {
+    "595F16FF-B1FA-4A5F-946D-E65F8FECA1C5": {
+      "name": "Page 1",
+      "artboards": {
+        "8F90C220-616E-4662-87B7-E5FF4A295BE2": {
+          "name": "Dogfoody"
+        },
+        "5782F130-831D-4129-BB78-A05C987D9CAD": {
+          "name": "Assistant"
+        },
+        "7FE0CB33-EB2F-46C6-9325-7B4718B1A02C": {
+          "name": "Air"
+        },
+        "2668B991-7D9F-4664-A0DB-611846586F56": {
+          "name": "Fitness"
+        }
+      }
+    },
+    "E76E48CA-E7E2-4DD9-8B55-A9EE24A101BA": {
+      "name": "Page 2",
+      "artboards": {
+        "BB0D6B4D-EC21-40BC-BE90-504E9B11F8CD": {
+          "name": "Beam"
+        },
+        "BC847D26-CB2F-49E6-B184-E81FF174248E": {
+          "name": "Camera"
+        },
+        "ADDDA7CB-B266-435E-BEEB-66DE53C38C29": {
+          "name": "Communities"
+        },
+        "15832A9E-3ED7-4255-A087-1C41EB451606": {
+          "name": "AIY"
+        },
+        "43379AD2-A9D7-488F-8209-7B1F2151BF1E": {
+          "name": "Android Design"
+        }
+      }
+    }
+  },
+  "version": 105,
+  "fonts": [],
+  "compatibilityVersion": 99,
+  "app": "com.bohemiancoding.sketch3",
+  "autosaved": 0,
+  "variant": "NONAPPSTORE",
+  "created": {
+    "commit": "120f488f43e85cae5c74eeae99d970dcf7fe443d",
+    "appVersion": "51.2",
+    "build": 57519,
+    "app": "com.bohemiancoding.sketch3",
+    "compatibilityVersion": 99,
+    "version": 105,
+    "variant": "NONAPPSTORE"
+  },
+  "saveHistory": [
+    "NONAPPSTORE.57519"
+  ],
+  "appVersion": "51.2",
+  "build": 57519
+}

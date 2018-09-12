@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.Sk
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.meta.SketchMeta;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
@@ -45,9 +46,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SketchFile {
   private SketchDocument myDocument;
+  private SketchMeta myMeta;
   private List<SketchPage> myPages = new ArrayList<>();
   private SymbolsLibrary mySymbolsLibrary = new SymbolsLibrary();
-  // TODO the rest of the structure as classes are created
 
   public void addPage(@NotNull SketchPage page) {
     myPages.add(page);
@@ -91,6 +92,15 @@ public class SketchFile {
 
   public void setDocument(@NotNull SketchDocument document) {
     myDocument = document;
+  }
+
+  @NotNull
+  public SketchMeta getMeta() {
+    return myMeta;
+  }
+
+  public void setMeta(@NotNull SketchMeta meta) {
+    myMeta = meta;
   }
 
   /**
