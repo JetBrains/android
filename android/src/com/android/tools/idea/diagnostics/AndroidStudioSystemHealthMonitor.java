@@ -175,7 +175,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       Path threadDumpFilePath = histogramDirPath.resolve("threadDump.txt");
       FileUtil.writeToFile(threadDumpFilePath.toFile(), ThreadDumper.dumpThreadsToString());
 
-      myReportsDatabase.appendHistogram(threadDumpFilePath, histogramFilePath, description);
+      myReportsDatabase.appendReport(new HistogramReport(threadDumpFilePath, histogramFilePath, description));
     } catch (IOException e) {
       LOG.info("Exception while creating histogram", e);
     }
@@ -293,12 +293,23 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
         // We don't want to add additional overhead when the IDE is already slow, so we just note down the file to which the threads
         // were dumped.
         try {
-          myReportsDatabase.appendPerformanceThreadDump(toFile.toPath(), "UIFreeze");
+          myReportsDatabase.appendReport(new PerformanceThreadDumpReport(toFile.toPath(), "UIFreeze"));
         }
         catch (IOException ignored) { // don't worry about errors during analytics events
         }
       }
     });
+    ThreadSamplingReport.startCollectingThreadSamplingReports(this::tryAppendReportToDatabase);
+  }
+
+  private boolean tryAppendReportToDatabase(DiagnosticReport report) {
+    try {
+      myReportsDatabase.appendReport(report);
+      return true;
+    }
+    catch (IOException ignored) {
+      return false;
+    }
   }
 
   @Override
@@ -424,25 +435,28 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     showNotification("sys.health.too.many.exceptions", notificationAction);
   }
 
-  private static void trackStudioReports(@NotNull List<StudioReportDetails> reports) {
+  private static void trackStudioReports(@NotNull List<DiagnosticReport> reports) {
     if (reports.isEmpty()) {
       return;
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       reports.stream().filter(r -> r.getType().equals("PerformanceThreadDump")).limit(10).forEach(r -> {
-        if (r.getThreadDumpPath() == null) {
+        PerformanceThreadDumpReport report = (PerformanceThreadDumpReport) r;
+        Path threadDumpPath = report.getThreadDumpPath();
+        if (threadDumpPath == null) {
           return;
         }
         try {
-          List<String> lines = java.nio.file.Files.readAllLines(r.getThreadDumpPath());
-          reportAnr(r.getThreadDumpPath().getFileName().toString(), lines);
+          List<String> lines = java.nio.file.Files.readAllLines(threadDumpPath);
+          reportAnr(threadDumpPath.getFileName().toString(), lines);
         }
         catch (IOException e) {
           // Ignore
         }
       });
-      reports.stream().filter(r -> r.getType().equals("Histogram")).limit(10).forEach(r -> reportHistogram(r));
+      reports.stream().filter(r -> r.getType().equals("Histogram")).limit(10).forEach(r -> reportHistogram((HistogramReport) r));
+      reports.stream().filter(r -> r.getType().equals("Freeze")).limit(10).forEach(r -> reportFreeze((FreezeReport) r));
     });
   }
 
@@ -759,18 +773,29 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private static void reportHistogram(StudioReportDetails details) {
+  private static void reportFreeze(@NotNull FreezeReport report) {
     if (!AnalyticsSettings.getOptedIn()) {
       return;
     }
 
     try {
-      if (details.getHistogramPath() == null || details.getThreadDumpPath() == null) {
-        return;
-      }
+      // Performance reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(report.asCrashReport(), true);
+    }
+    catch (IOException e) {
+      // Ignore
+    }
+  }
+
+  private static void reportHistogram(@NotNull HistogramReport report) {
+    if (!AnalyticsSettings.getOptedIn()) {
+      return;
+    }
+
+    try {
       StudioHistogramReport histogramReport = new StudioHistogramReport.Builder()
-        .setThreadDump(new String(Files.asCharSource(details.getThreadDumpPath().toFile(), Charsets.UTF_8).read()))
-        .setHistogram(new String(Files.asCharSource(details.getHistogramPath().toFile(), Charsets.UTF_8).read()))
+        .setThreadDump(new String(Files.asCharSource(report.getThreadDumpPath().toFile(), Charsets.UTF_8).read()))
+        .setHistogram(new String(Files.asCharSource(report.getHistogramPath().toFile(), Charsets.UTF_8).read()))
         .build();
       // Performance reports are not limited by a rate limiter.
       StudioCrashReporter.getInstance().submit(histogramReport, true);

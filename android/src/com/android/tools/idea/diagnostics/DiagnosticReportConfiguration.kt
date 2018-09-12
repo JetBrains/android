@@ -15,10 +15,4 @@
  */
 package com.android.tools.idea.diagnostics
 
-import java.nio.file.Path
-
-data class StudioReportDetails(val type: String,
-                          val threadDumpPath: Path?,
-                          val histogramPath: Path?,
-                          val description: String?)
-
+class DiagnosticReportConfiguration(val intervalMs: Long, val maxSamplingTimeMs: Long, val frameTimeIgnoreThresholdMs: Long)

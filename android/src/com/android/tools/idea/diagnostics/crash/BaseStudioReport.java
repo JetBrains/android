@@ -26,7 +26,7 @@ import java.util.Map;
 
 /** Crash report that uses Android Studio product id. */
 public abstract class BaseStudioReport extends CrashReport {
-  BaseStudioReport(@Nullable String version,
+  public BaseStudioReport(@Nullable String version,
                           @Nullable Map<String, String> productData,
                           @NonNull String type) {
     super(StudioCrashReporter.PRODUCT_ANDROID_STUDIO, version, productData, type);

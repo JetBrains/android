@@ -23,6 +23,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -46,98 +47,22 @@ public class StudioReportDatabase {
     myDb = databaseFile.toPath();
   }
 
-  public void appendPerformanceThreadDump(@NotNull Path threadDumpPath, String description) throws IOException {
-    try (StringWriter sw = new StringWriter()) {
-      try (JsonWriter jsonWriter = new JsonWriter(sw)) {
-        jsonWriter.setIndent("  ");
-        jsonWriter.beginObject();
-        jsonWriter.name("formatVersion").value(1);
-        jsonWriter.name("type").value("PerformanceThreadDump");
-        jsonWriter.name("threadDumpPath").value(threadDumpPath.toString());
-        if (description != null) {
-          jsonWriter.name("description").value(description);
-        }
-        jsonWriter.endObject();
-      }
-      String content = sw.toString() + "\n";
-      synchronized (myDbLock) {
-        Files.write(myDb, content.getBytes(Charsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-      }
-    }
-  }
-
-  public void appendHistogram(@NotNull Path threadDumpPath, @NotNull Path histogramPath, @Nullable String description) throws IOException {
-    try (StringWriter sw = new StringWriter()) {
-      try (JsonWriter jsonWriter = new JsonWriter(sw)) {
-        jsonWriter.setIndent("  ");
-        jsonWriter.beginObject();
-        jsonWriter.name("formatVersion").value(1);
-        jsonWriter.name("type").value("Histogram");
-        jsonWriter.name("threadDumpPath").value(threadDumpPath.toString());
-        jsonWriter.name("histogramPath").value(histogramPath.toString());
-        if (description != null) {
-          jsonWriter.name("description").value(description);
-        }
-        jsonWriter.endObject();
-      }
-      String content = sw.toString() + "\n";
-      synchronized (myDbLock) {
-        Files.write(myDb, content.getBytes(Charsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-      }
-    }
-  }
-
   @NotNull
-  public List<StudioReportDetails> reapReportDetails() {
-    List<StudioReportDetails> result = new ArrayList<>();
+  public List<DiagnosticReport> reapReportDetails() {
+    List<DiagnosticReport> result;
 
     synchronized (myDbLock) {
-      try (JsonReader reader = new JsonReader(new FileReader(myDb.toFile()))) {
-        // setLenient = true, as json objects are adjacent to each other
-        reader.setLenient(true);
-        while (reader.hasNext() && reader.peek() != JsonToken.END_DOCUMENT) {
-          reader.beginObject();
-          String type = null;
-          Path threadDumpPath = null;
-          Path histogramPath = null;
-          String description = null;
-          long version = 0;
-          while (reader.hasNext()) {
-            String name = reader.nextName();
-            switch (name) {
-              case "type":
-                type = reader.nextString();
-                break;
-              case "threadDumpPath":
-                threadDumpPath = fixDirectoryPathAndCheckIfReadable(Paths.get(reader.nextString()));
-                break;
-              case "histogramPath":
-                histogramPath = fixDirectoryPathAndCheckIfReadable(Paths.get(reader.nextString()));
-                break;
-              case "description":
-                description = reader.nextString();
-                break;
-              case "formatVersion":
-                version = reader.nextLong();
-                break;
-              default:
-                // Ignore unknown fields.
-                reader.skipValue();
-            }
-          }
-          reader.endObject();
-          if (version != 0 && version <= MAX_SUPPORTED_FORMAT_VERSION && type != null &&
-              (histogramPath != null || threadDumpPath != null)) {
-            result.add(new StudioReportDetails(type, threadDumpPath, histogramPath, description));
-          }
-        }
+      try (Reader reader = new FileReader(myDb.toFile())) {
+        result = DiagnosticReport.Companion.readDiagnosticReports(reader);
       }
-      catch (IOException | IllegalStateException e) {
+      catch (Exception e) {
         result = ImmutableList.of();
       }
       try {
         Files.write(myDb, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
       } catch (IOException e) {
+        // If there was a problem with deleting the file, don't return any reports to avoid submitting same reports
+        // over and over again.
         result = ImmutableList.of();
       }
     }
@@ -145,34 +70,13 @@ public class StudioReportDatabase {
     return result;
   }
 
-  /**
-   * Performance reports are moved to a different directory once UI is responsive again (path contains duration
-   * of the freeze). If the file pointed by {@code path} doesn't exist, it checks if it exists under such directory.
-   * @returns Path where such report exists, {@code null} otherwise
-   */
-  @Nullable
-  private static Path fixDirectoryPathAndCheckIfReadable(@NotNull Path path) {
-    if (Files.isReadable(path)) {
-      return path;
-    }
-
-    Path directory = path.getParent();
-    try {
-      final String prefix = directory.getFileName() + "-";
-      try (DirectoryStream<Path> paths = Files.newDirectoryStream(
-        directory.getParent(),
-        entry -> entry.getFileName().toString().startsWith(prefix))) {
-        Iterator<Path> iterator = paths.iterator();
-        if (!iterator.hasNext()) {
-          return null;
-        }
-        Path newDirectory = iterator.next();
-        Path newFile = newDirectory.resolve(path.getFileName());
-        return Files.isReadable(newFile) ? newFile : null;
+  public void appendReport(DiagnosticReport report) throws IOException {
+    try (StringWriter sw = new StringWriter()) {
+      report.serializeReport(sw);
+      String content = sw.toString() + "\n";
+      synchronized (myDbLock) {
+        Files.write(myDb, content.getBytes(Charsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
       }
-    }
-    catch (IOException e) {
-      return null;
     }
   }
 }
