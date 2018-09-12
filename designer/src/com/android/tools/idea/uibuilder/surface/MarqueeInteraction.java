@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.scene.draw.DrawLassoUtil;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,24 +45,13 @@ public class MarqueeInteraction extends Interaction {
   /** The surface associated with this interaction. */
   private final SceneView mySceneView;
 
-  /** A copy of the initial selection, when we're toggling the marquee. */
-  private final Collection<NlComponent> myInitialSelection;
-
   /**
    * Creates a new marquee selection (selection swiping).
    *
    * @param surface The canvas where selection is performed.
-   * @param toggle If true, toggle the membership of contained elements
-   *            instead of adding it.
    */
-  public MarqueeInteraction(@NotNull SceneView surface, boolean toggle) {
+  public MarqueeInteraction(@NotNull SceneView surface) {
     mySceneView = surface;
-
-    if (toggle) {
-      myInitialSelection = mySceneView.getSelectionModel().getSelection();
-    } else {
-      myInitialSelection = Collections.emptySet();
-    }
   }
 
   @Override
@@ -75,13 +65,14 @@ public class MarqueeInteraction extends Interaction {
     int w = Math.abs(x - myStartX);
     int h = Math.abs(y - myStartY);
 
-    myOverlay.updateSize(xp, yp, w, h);
-
     // Convert to Android coordinates and compute selection overlaps
     int ax = Coordinates.getAndroidXDip(mySceneView, xp);
     int ay = Coordinates.getAndroidYDip(mySceneView, yp);
     int aw = Coordinates.getAndroidDimensionDip(mySceneView, w);
     int ah = Coordinates.getAndroidDimensionDip(mySceneView, h);
+
+    myOverlay.updateValues(xp, yp, w, h, x, y, aw, ah);
+
     Collection<SceneComponent> within = mySceneView.getScene().findWithin(ax, ay, aw, ah);
     List<NlComponent> result = within.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
     mySceneView.getSelectionModel().setSelection(result);
@@ -90,7 +81,8 @@ public class MarqueeInteraction extends Interaction {
 
   @Override
   public List<Layer> createOverlays() {
-    myOverlay = new MarqueeLayer();
+    ColorSet colorSet = mySceneView.getColorSet();
+    myOverlay = new MarqueeLayer(colorSet);
     return Collections.<Layer>singletonList(myOverlay);
   }
 
@@ -100,30 +92,51 @@ public class MarqueeInteraction extends Interaction {
    * start and the current position.
    */
   private static class MarqueeLayer extends Layer {
-    public int x;
-    public int y;
-    public int w;
-    public int h;
+    @NotNull ColorSet myColorSet;
+    @SwingCoordinate private int x;
+    @SwingCoordinate private int y;
+    @SwingCoordinate private int w;
+    @SwingCoordinate private int h;
+    @SwingCoordinate private int mouseX;
+    @SwingCoordinate private int mouseY;
+    @AndroidDpCoordinate private int androidWidth;
+    @AndroidDpCoordinate private int androidHeight;
 
     /**
      * Constructs a new {@link MarqueeLayer}.
      */
-    public MarqueeLayer() {
+    private MarqueeLayer(@NotNull ColorSet colorSet) {
+      myColorSet = colorSet;
     }
 
     /**
-     * Updates the size of the marquee rectangle.
+     * Updates the attribute of the marquee rectangle.
      *
-     * @param x The top left corner of the rectangle, x coordinate.
-     * @param y The top left corner of the rectangle, y coordinate.
-     * @param w Rectangle w.
-     * @param h Rectangle h.
+     * @param x             The top left corner of the rectangle, x coordinate. The unit is swing (pixel)
+     * @param y             The top left corner of the rectangle, y coordinate. The unit is swing (pixel)
+     * @param w             Rectangle w. The unit is swing (pixel)
+     * @param h             Rectangle h. The unit is swing (pixel)
+     * @param mouseX        The x position of mouse. The unit is swing (pixel).
+     * @param mouseY        The y position of mouse. The unit is swing (pixel).
+     * @param androidWidth  The width of rectangle. The unit is android dp.
+     * @param androidHeight The height of rectangle. The unit is android dp.
      */
-    public void updateSize(int x, int y, int w, int h) {
+    private void updateValues(@SwingCoordinate int x,
+                              @SwingCoordinate int y,
+                              @SwingCoordinate int w,
+                              @SwingCoordinate int h,
+                              @SwingCoordinate int mouseX,
+                              @SwingCoordinate int mouseY,
+                              @AndroidDpCoordinate int androidWidth,
+                              @AndroidDpCoordinate int androidHeight) {
       this.x = x;
       this.y = y;
       this.w = w;
       this.h = h;
+      this.mouseX = mouseX;
+      this.mouseY = mouseY;
+      this.androidWidth = androidWidth;
+      this.androidHeight = androidHeight;
     }
 
     @Override
@@ -136,7 +149,7 @@ public class MarqueeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D gc) {
-      NlGraphics.drawFilledRect(NlDrawingStyle.SELECTION, gc, x, y, w, h);
+      DrawLassoUtil.drawLasso(gc, myColorSet, x, y, w, h, mouseX, mouseY, androidWidth, androidHeight, true);
     }
   }
 }

@@ -537,7 +537,6 @@ public class InteractionManager {
         int modifiers = event.getModifiers();
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = modifiers;
-        boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
         SceneView sceneView = mySurface.getSceneView(x, y);
         if (sceneView == null) {
           return;
@@ -570,7 +569,7 @@ public class InteractionManager {
 
         if (component == null || component.getParent() == null) {
           // Dragging on the background/root view: start a marquee selection
-          interaction = new MarqueeInteraction(sceneView, toggle);
+          interaction = new MarqueeInteraction(sceneView);
         }
         else {
           interaction = getSurface().createInteractionOnDrag(component, primary);
