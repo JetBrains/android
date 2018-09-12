@@ -33,6 +33,7 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.Iterators;
@@ -60,15 +61,14 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class CpuProfilerStageTest extends AspectObserver {
   private final FakeProfilerService myProfilerService = new FakeProfilerService();
-
   private final FakeCpuService myCpuService = new FakeCpuService();
-
+  private final FakeMemoryService myMemoryService = new FakeMemoryService();
   private final FakeTimer myTimer = new FakeTimer();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
-                        new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
+                        myMemoryService, new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CpuProfilerStage myStage;
 
@@ -1841,6 +1841,53 @@ public class CpuProfilerStageTest extends AspectObserver {
     // stopCapturing should set startStopSession in FakeCpuService to the one used in the stopProfilingAppRequest. This session should be
     // the one set when creating the profiler stage and not the one that was selected by the time the request was made.
     assertThat(myCpuService.getStartStopCapturingSession()).isEqualTo(stageSession);
+  }
+
+  @Test
+  public void testMemoryLiveAllocationIsDisabledIfApplicable() {
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setValidTrace(true);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+
+    // Initialize all conditions to false.
+    myServices.getPersistentProfilerPreferences().setInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
+    myServices.enableLiveAllocationsSampling(false);
+    addAndSetDevice(AndroidVersion.VersionCodes.N_MR1, "FOO");
+    ProfilingConfiguration config = new ProfilingConfiguration("My Instrumented Config",
+                                                                     CpuProfiler.CpuProfilerType.ART,
+                                                                     CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+    config.setDisableLiveAllocation(false);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+
+    // Live allocation sampling rate should remain the same.
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Enable feature flag.
+    // Live allocation sampling rate should still remain the same.
+    myServices.enableLiveAllocationsSampling(true);
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Set an O+ device.
+    // Live allocation sampling rate should still remain the same.
+    addAndSetDevice(AndroidVersion.VersionCodes.O, "FOO");
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Set profiling config to true.
+    // Now all conditions are met, live allocation should be disabled during capture and re-enabled after capture is stopped.
+    config.setDisableLiveAllocation(true);
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

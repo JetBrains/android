@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
@@ -64,6 +65,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -131,6 +133,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
   private Common.Session mySession;
+  private int mySamplingRate = 1;
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
@@ -467,6 +470,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void setAllocationSamplingRate(MemoryProfiler.SetAllocationSamplingRateRequest request,
+                                        StreamObserver<MemoryProfiler.SetAllocationSamplingRateResponse> responseObserver) {
+    mySamplingRate = request.getSamplingRate().getSamplingNumInterval();
+    responseObserver.onNext(MemoryProfiler.SetAllocationSamplingRateResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
   @NotNull
   public FakeMemoryService setExplicitAllocationsStatus(@Nullable Status status) {
     myExplicitAllocationsStatus = status;
@@ -538,5 +549,9 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public void resetTrackAllocationCount() {
     myTrackAllocationCount = 0;
+  }
+
+  public int getSamplingRate() {
+    return mySamplingRate;
   }
 }

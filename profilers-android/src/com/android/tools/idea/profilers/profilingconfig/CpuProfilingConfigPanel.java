@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.profilingconfig;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
@@ -26,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.ui.JBUI;
+import java.awt.event.ItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +59,13 @@ public class CpuProfilingConfigPanel {
 
   @VisibleForTesting
   static final String FILE_SIZE_LIMIT = "File size limit:";
+
+  @VisibleForTesting
+  static final String DISABLE_LIVE_ALLOCATION = "Suspend Live Allocation";
+
+  @VisibleForTesting
+  static final String DISABLE_LIVE_ALLOCATION_DESCRIPTION =
+    "Suspend live allocation tracking in memory profiler to minimize performance overhead during recording.";
 
   /**
    * Max size of the buffer file that contains the output of the recording.
@@ -93,6 +102,10 @@ public class CpuProfilingConfigPanel {
 
   private final JLabel myFileSizeLimitText = new JLabel(FILE_SIZE_LIMIT);
 
+  private final JLabel myDisableLiveAllocationText = new JLabel(DISABLE_LIVE_ALLOCATION);
+
+  private final JCheckBox myDisableLiveAllocation = new JCheckBox();
+
   /**
    * Radio button representing Art Sampled configuration.
    */
@@ -109,9 +122,9 @@ public class CpuProfilingConfigPanel {
   private JRadioButton mySimpleperfButton;
 
   /**
-   * Current configuration that should receive the values set on the panel.
+   * Current configuration that should receive the values set on the panel. Null if no configuration is currently selected.
    */
-  private ProfilingConfiguration myConfiguration;
+  @Nullable private ProfilingConfiguration myConfiguration;
 
   /**
    * Whether device API is at least O.
@@ -168,6 +181,9 @@ public class CpuProfilingConfigPanel {
       setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
 
       mySamplingInterval.getModel().setValue(configuration.getProfilingSamplingIntervalUs());
+
+      myDisableLiveAllocation.setSelected(configuration.isDisableLiveAllocation());
+      setEnabledDisableLiveAllocation(true);
     }
     // Default configurations shouldn't be editable.
     if (isDefaultConfiguration) {
@@ -211,6 +227,7 @@ public class CpuProfilingConfigPanel {
     mySamplingInterval.getModel().setValue(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US);
     myFileSize.setValue(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB);
     myFileSizeLimit.setText("");
+    myDisableLiveAllocation.setSelected(false);
   }
 
   private void disableFields() {
@@ -220,6 +237,7 @@ public class CpuProfilingConfigPanel {
     mySimpleperfButton.setEnabled(false);
     setEnabledSamplingIntervalPanel(false);
     setEnabledFileSizeLimit(false);
+    setEnabledDisableLiveAllocation(false);
   }
 
   private void createUiComponents() {
@@ -230,6 +248,9 @@ public class CpuProfilingConfigPanel {
     createTraceTechnologyPanel();
     createSamplingIntervalPanel();
     createFileLimitPanel();
+    if (myIsDeviceAtLeastO && StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
+      createDisableLiveAllocationPanel();
+    }
 
     disableFields();
   }
@@ -278,6 +299,8 @@ public class CpuProfilingConfigPanel {
   }
 
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {
+    // This is only called when a radio button is selected, so myConfiguration should never be null.
+    assert myConfiguration != null;
     switch (technology) {
       case ART_SAMPLED:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
@@ -330,8 +353,10 @@ public class CpuProfilingConfigPanel {
                                                 SAMPLING_SPINNER_STEP_SIZE);
     mySamplingInterval = new JSpinner(model);
     mySamplingInterval.addChangeListener(e -> {
-      JSpinner source = (JSpinner)e.getSource();
-      myConfiguration.setProfilingSamplingIntervalUs((Integer)source.getValue());
+      if (myConfiguration != null) {
+        JSpinner source = (JSpinner)e.getSource();
+        myConfiguration.setProfilingSamplingIntervalUs((Integer)source.getValue());
+      }
     });
     samplingIntervalPanel.add(mySamplingInterval, new TabularLayout.Constraint(0, 1));
     mySamplingIntervalUnit.setBorder(new EmptyBorder(0, 5, 0, 0));
@@ -350,9 +375,11 @@ public class CpuProfilingConfigPanel {
     myFileSize.setMajorTickSpacing((myMaxFileSizeLimitMb - MIN_FILE_SIZE_LIMIT_MB) / 10);
     myFileSize.setPaintTicks(true);
     myFileSize.addChangeListener(e -> {
-      JSlider source = (JSlider)e.getSource();
-      myFileSizeLimit.setText(getFileSizeLimitText(source.getValue()));
-      myConfiguration.setProfilingBufferSizeInMb(source.getValue());
+      if (myConfiguration != null) {
+        JSlider source = (JSlider)e.getSource();
+        myFileSizeLimit.setText(getFileSizeLimitText(source.getValue()));
+        myConfiguration.setProfilingBufferSizeInMb(source.getValue());
+      }
     });
     myFileSizeLimit = new JLabel(getFileSizeLimitText(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB));
     JPanel fileSizeLimitPanel = new JPanel(new TabularLayout("120px,*,75px", "Fit"));
@@ -370,6 +397,24 @@ public class CpuProfilingConfigPanel {
     description.setForeground(ProfilerColors.CPU_RECORDING_CONFIGURATION_DESCRIPTION);
     description.setFont(description.getFont().deriveFont(12f));
     myConfigPanel.add(description);
+  }
+
+  private void createDisableLiveAllocationPanel() {
+    myDisableLiveAllocation.addItemListener(e -> {
+      if (myConfiguration != null) {
+        myConfiguration.setDisableLiveAllocation(e.getStateChange() == ItemEvent.SELECTED);
+      }
+    });
+    JPanel disableLiveAllocationPanel = new JPanel(new TabularLayout("*,*", "Fit"));
+    disableLiveAllocationPanel.add(myDisableLiveAllocationText, new TabularLayout.Constraint(0, 0));
+    disableLiveAllocationPanel.add(myDisableLiveAllocation, new TabularLayout.Constraint(0, 1));
+    myConfigPanel.add(disableLiveAllocationPanel);
+    myConfigPanel.add(new JLabel(DISABLE_LIVE_ALLOCATION_DESCRIPTION));
+  }
+
+  private void setEnabledDisableLiveAllocation(boolean isEnabled) {
+    myDisableLiveAllocationText.setEnabled(isEnabled);
+    myDisableLiveAllocation.setEnabled(isEnabled);
   }
 
   private enum TraceTechnology {
