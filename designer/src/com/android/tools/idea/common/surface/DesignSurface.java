@@ -232,7 +232,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = createActionManager();
-    myActionManager.registerActionsShortcuts(myLayeredPane);
+    myActionManager.registerActionsShortcuts(myLayeredPane, this);
   }
 
   /**

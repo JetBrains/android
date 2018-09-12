@@ -18,20 +18,22 @@ package com.android.tools.idea.common.editor;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ShortcutSet;
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.List;
 
 /**
  * Provides and handles actions for an {@link NlEditor}.
@@ -43,13 +45,49 @@ public abstract class ActionManager<S extends DesignSurface> {
     mySurface = surface;
   }
 
-  public abstract void registerActionsShortcuts(@NotNull JComponent component);
+  /**
+   * Register keyboard shortcuts onto the provided component.
+   *
+   * @param component        The component onto which shortcut should be registered.
+   * @param parentDisposable A disposable used to unregister the actions. If the parameter is null but
+   *                         component is a {@link Disposable}, component will be used as the parent disposable.
+   */
+  public abstract void registerActionsShortcuts(@NotNull JComponent component,
+                                                @Nullable Disposable parentDisposable);
 
-  protected static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
-    action.registerCustomShortcutSet(
-      com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-      component
+  protected void registerAction(@NotNull AnAction action,
+                                @NonNls String actionId,
+                                @NotNull JComponent component,
+                                @Nullable Disposable parentDisposable) {
+    registerAction(action,
+                   com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
+                   component,
+                   parentDisposable
     );
+  }
+
+  protected void registerAction(@NotNull AnAction action,
+                                @NotNull KeyStroke keyStroke,
+                                @NotNull JComponent component,
+                                @Nullable Disposable parentDisposable) {
+    registerAction(action, new CustomShortcutSet(keyStroke), component, parentDisposable);
+  }
+
+  protected void registerAction(@NotNull AnAction action,
+                                @NotNull ShortcutSet shortcutSet,
+                                @NotNull JComponent component,
+                                @Nullable Disposable parentDisposable) {
+    Disposable disposable;
+    if (parentDisposable != null) {
+      disposable = parentDisposable;
+    }
+    else if (component instanceof Disposable) {
+      disposable = (Disposable)component;
+    }
+    else {
+      disposable = mySurface;
+    }
+    action.registerCustomShortcutSet(shortcutSet, component, disposable);
   }
 
   @NotNull
