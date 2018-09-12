@@ -26,7 +26,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 public class StudioHistogramReport extends BaseStudioReport {
   private static final String EXCEPTION_TYPE = "com.android.OutOfMemory";
 
-  private static final String EMPTY_ANR_STACKTRACE =
+  private static final String EMPTY_OOM_STACKTRACE =
     EXCEPTION_TYPE + ": \n" +
     "\tat " + StudioHistogramReport.class.getName() + ".missingEdtStack(Unknown source)";
 
@@ -49,7 +49,7 @@ public class StudioHistogramReport extends BaseStudioReport {
     String edtStack = ThreadDumper.getEdtStackForCrash(threadDump, EXCEPTION_TYPE);
 
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,
-                        edtStack != null ? edtStack : EMPTY_ANR_STACKTRACE);
+                        edtStack != null ? edtStack : EMPTY_OOM_STACKTRACE);
     builder.addTextBody("histogram", histogram, ContentType.create("text/plain", Charsets.UTF_8));
     builder.addTextBody("threadDump", threadDump, ContentType.create("text/plain", Charsets.UTF_8));
   }

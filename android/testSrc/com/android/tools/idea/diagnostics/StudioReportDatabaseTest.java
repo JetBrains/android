@@ -24,14 +24,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
+import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -54,11 +60,11 @@ public class StudioReportDatabaseTest {
     Path t1 = createTempFileWithThreadDump("1");
     Path t2 = createTempFileWithThreadDump("1");
 
-    db.appendPerformanceThreadDump(t1, "test");
-    db.appendPerformanceThreadDump(t2, "test");
+    db.appendReport(new PerformanceThreadDumpReport(t1, "test"));
+    db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
 
-    List<StudioReportDetails> reports = db.reapReportDetails();
-    List<Path> paths = reports.stream().map(r -> r.getThreadDumpPath()).collect(Collectors.toList());
+    List<DiagnosticReport> reports = db.reapReportDetails();
+    List<Path> paths = reports.stream().map(r -> ((PerformanceThreadDumpReport) r).getThreadDumpPath()).collect(Collectors.toList());
     assertThat(paths, hasItems(t1, t2));
 
     reports = db.reapReportDetails();
@@ -75,12 +81,11 @@ public class StudioReportDatabaseTest {
     Path h3 = createTempFileWithThreadDump("H3");
     Path t3 = createTempFileWithThreadDump("T3");
 
-    db.appendHistogram(t1, h1, "test");
-    db.appendPerformanceThreadDump(t2, "test");
-    db.appendHistogram(t3, h3, "test");
+    db.appendReport(new HistogramReport(t1, h1, "test"));
+    db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
+    db.appendReport(new HistogramReport(t3, h3, "test"));
 
-
-    List<StudioReportDetails> reports = db.reapReportDetails();
+    List<DiagnosticReport> reports = db.reapReportDetails();
 
     assertEquals(3, reports.size());
     assertEquals(2, reports.stream().filter(r -> r.getType().equals("Histogram")).count());
@@ -92,47 +97,74 @@ public class StudioReportDatabaseTest {
     Path h1 = createTempFileWithThreadDump("H1");
     Path t1 = createTempFileWithThreadDump("T1");
 
-    db.appendHistogram(t1, h1, "Histogram description");
+    db.appendReport(new HistogramReport(t1, h1, "Histogram description"));
 
-    StudioReportDetails details = db.reapReportDetails().get(0);
+    DiagnosticReport details = db.reapReportDetails().get(0);
 
+    assertThat(details, CoreMatchers.is(instanceOf(HistogramReport.class)));
+    HistogramReport report = (HistogramReport) details;
     assertEquals("Histogram", details.getType());
-    assertEquals(t1, details.getThreadDumpPath());
-    assertEquals(h1, details.getHistogramPath());
-    assertEquals("Histogram description", details.getDescription());
+    assertEquals(t1, report.getThreadDumpPath());
+    assertEquals(h1, report.getHistogramPath());
+    assertEquals("Histogram description", report.getDescription());
+  }
+
+  @Test
+  public void testFreezeContent() throws IOException {
+    Path threadDump = createTempFileWithThreadDump("T1");
+    Path actions = createTempFileWithThreadDump("Actions");
+    Path memoryUse = createTempFileWithThreadDump("Memory use");
+    Path profile = createTempFileWithThreadDump("PBasrofile");
+    Map<String, Path> paths = new TreeMap<>();
+    paths.put("actionsDiagnostics", actions);
+    paths.put("memoryUseDiagnostics", memoryUse);
+    paths.put("profileDiagnostics", profile);
+    db.appendReport(new FreezeReport(threadDump, paths, false, 20L, "Freeze report"));
+    db.appendReport(new FreezeReport(threadDump, paths, true, null, "Freeze report"));
+
+    List<DiagnosticReport> diagnosticReports = db.reapReportDetails();
+    FreezeReport report = (FreezeReport) diagnosticReports.get(0);
+    assertEquals("Freeze", report.getType());
+    assertEquals(threadDump, report.getThreadDumpPath());
+    assertEquals(paths, report.getReportParts());
+    assertEquals(20, report.getTotalDuration().longValue());
+    assertFalse(report.getTimedOut());
+    assertEquals("Freeze report", report.getDescription());
+
+    assertTrue(((FreezeReport) diagnosticReports.get(1)).getTimedOut());
+    assertNull(((FreezeReport) diagnosticReports.get(1)).getTotalDuration());
   }
 
   @Test
   public void testPerformanceThreadDumpContent() throws IOException {
     Path t1 = createTempFileWithThreadDump("T1");
 
-    db.appendPerformanceThreadDump(t1, "Performance thread dump description");
+    db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
 
-    StudioReportDetails details = db.reapReportDetails().get(0);
+    DiagnosticReport details = db.reapReportDetails().get(0);
 
     assertEquals("PerformanceThreadDump", details.getType());
-    assertEquals(t1, details.getThreadDumpPath());
-    assertNull(details.getHistogramPath());
-    assertEquals("Performance thread dump description", details.getDescription());
+    assertEquals(t1, ((PerformanceThreadDumpReport) details).getThreadDumpPath());
+    assertEquals("Performance thread dump description", ((PerformanceThreadDumpReport) details).getDescription());
   }
 
   @Test
   public void testCorruptedDatabaseFile() throws IOException {
     Path t1 = createTempFileWithThreadDump("T1");
-    db.appendPerformanceThreadDump(t1, "Performance thread dump description");
+    db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
     Files.write(databaseFile.toPath(), "Corrupted json".getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
-    List<StudioReportDetails> details = db.reapReportDetails();
+    List<DiagnosticReport> details = db.reapReportDetails();
 
     // If the db file contains corrupted of malformed json, return no reports.
     assertEquals(0, details.size());
 
     // Test that database works even after its file gets corrupted.
     Path t2 = createTempFileWithThreadDump("T2");
-    db.appendPerformanceThreadDump(t2, "Performance thread dump description");
+    db.appendReport(new PerformanceThreadDumpReport(t2, "Performance thread dump description"));
     details = db.reapReportDetails();
 
     assertEquals(1, details.size());
-    assertEquals(t2, details.get(0).getThreadDumpPath());
+    assertEquals(t2, ((PerformanceThreadDumpReport) details.get(0)).getThreadDumpPath());
   }
 
   @NotNull
