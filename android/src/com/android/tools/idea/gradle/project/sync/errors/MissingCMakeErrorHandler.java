@@ -37,6 +37,27 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
 
+  // Extended version of the "Revision" class with orAbove semantics.
+  static class RevisionOrHigher {
+    // The numerical revision requested to be installed.
+    @NotNull public final Revision revision;
+    // If any version above the requested revision can satisfy the request.
+    public final boolean orHigher;
+
+    public RevisionOrHigher(@NotNull Revision revision, boolean orHigher) {
+      this.revision = revision;
+      this.orHigher = orHigher;
+    }
+  }
+
+  // The default CMake version (sdk-internal) and the equivalent version used when it is reported to the user.
+  static private final String FORK_CMAKE_SDK_VERSION = "3.6.4111459";
+  static private final String FORK_CMAKE_REPORTED_VERSION = "3.6.0";
+
+  // Parsed default cmake version (sdk-internal and user-facing).
+  static private final Revision ourForkCmakeSdkVersion = Revision.parseRevision(FORK_CMAKE_SDK_VERSION);
+  static private final Revision ourForkCmakeReportedVersion = Revision.parseRevision(FORK_CMAKE_REPORTED_VERSION);
+
   @Nullable
   @Override
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
@@ -60,18 +81,18 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     String firstLine = getFirstLineMessage(text);
     if (matchesCannotFindCmake(firstLine)) {
-      // The user requested a specific version of CMake.
-      Revision requestedCmakeVersion = extractCmakeVersionFromError(firstLine);
-      if (requestedCmakeVersion == null) {
-        // Cannot parse the CMake version from the error string.
+      // The user requested a specific version of CMake (or anything above it).
+      RevisionOrHigher requestedCmake = extractCmakeVersionFromError(firstLine);
+      if (requestedCmake == null) {
+        // Cannot find the CMake version in the error string.
         return Collections.emptyList();
       }
 
       RepoManager sdkManager = getSdkManager();
       Collection<RemotePackage> remoteCmakePackages = sdkManager.getPackages().getRemotePackagesForPrefix(FD_CMAKE);
-      Revision foundCmakeVersion = findBestMatch(remoteCmakePackages, requestedCmakeVersion);
+      Revision foundCmakeVersion = findBestMatch(remoteCmakePackages, requestedCmake);
       if (foundCmakeVersion == null) {
-        // The requested CMake version was not found in the SDK. Adding a hyperlink is useless as it
+        // No CMake versions in the SDK satisfied the request. Adding a hyperlink is useless as it
         // will only fail to install the package.
         return Collections.emptyList();
       }
@@ -111,10 +132,10 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
 
   /**
    * @param firstLine The line inside which the cmake version will be searched.
-   * @return The cmake version string included in the error message, null if it's not found or cannot be parsed as a valid revision.
+   * @return The cmake version included in the error message, null if it's not found or cannot be parsed as a valid revision.
    **/
   @Nullable
-  static Revision extractCmakeVersionFromError(@NotNull String firstLine) {
+  static RevisionOrHigher extractCmakeVersionFromError(@NotNull String firstLine) {
     int startPos = firstLine.indexOf('\'');
     if (startPos == -1) {
       return null;
@@ -127,9 +148,12 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
 
     String version = firstLine.substring(startPos + 1, endPos);
     try {
-      return Revision.parseRevision(version);
+      return new RevisionOrHigher(
+        Revision.parseRevision(version),
+        firstLine.contains("'" + version + "' or higher"));
     }
     catch (NumberFormatException e) {
+      // Cannot parse version string.
       return null;
     }
   }
@@ -137,31 +161,33 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   /**
    * Finds whether the requested cmake version can be installed from the SDK.
    *
-   * @param cmakePackages         Remote CMake packages available in the SDK.
-   * @param requestedCmakeVersion The CMake version requested by the user.
+   * @param cmakePackages  Remote CMake packages available in the SDK.
+   * @param requestedCmake The CMake version requested by the user.
    * @return The version that best matches the requested version, null if no match was found.
    */
   @Nullable
-  static Revision findBestMatch(@NotNull Collection<RemotePackage> cmakePackages, @NotNull Revision requestedCmakeVersion) {
-    int[] requestedParts = requestedCmakeVersion.toIntArray(true);
-
+  static Revision findBestMatch(@NotNull Collection<RemotePackage> cmakePackages, @NotNull RevisionOrHigher requestedCmake) {
     Revision foundVersion = null;
     for (RemotePackage remotePackage : cmakePackages) {
-      Revision remoteCmakeVersion = remotePackage.getVersion();
-      int[] candidateParts = remoteCmakeVersion.toIntArray(true);
+      Revision remoteCmake = remotePackage.getVersion();
 
-      if (!versionSatisfies(candidateParts, requestedParts)) {
+      // If the version in the remote package is the fork version, we use its user friendly equivalent.
+      if (remoteCmake.equals(ourForkCmakeSdkVersion)) {
+        remoteCmake = ourForkCmakeReportedVersion;
+      }
+
+      if (!versionSatisfies(remoteCmake, requestedCmake)) {
         continue;
       }
 
       if (foundVersion == null) {
-        foundVersion = remoteCmakeVersion;
+        foundVersion = remoteCmake;
         continue;
       }
 
-      if (foundVersion.compareTo(remoteCmakeVersion) < 0) {
-        // Among all matching Cmake versions, use the newest one.
-        foundVersion = remoteCmakeVersion;
+      if (remoteCmake.compareTo(foundVersion, Revision.PreviewComparison.IGNORE) > 0) {
+        // Among all matching Cmake versions, use the highest version one (ignore preview version).
+        foundVersion = remoteCmake;
         continue;
       }
     }
@@ -170,24 +196,14 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   }
 
   /**
-   * @param candidateParts the components of a cmake version that is available in the SDK.
-   * @param requestedParts the components of a cmake version that we are looking for.
-   * @return true if the version represented by candidateParts is a good match for the version represented by requestedParts.
+   * @param candidateCmake the cmake version that is available in the SDK.
+   * @param requestedCmake the cmake version (or the minimum cmake version) that we are looking for.
+   * @return true if the version represented by candidateCmake is a good match for the version represented by requestedCmake. The preview
+   * version (i.e., 4th component) is always ignored when performing the matching.
    */
-  static boolean versionSatisfies(@NotNull int[] candidateParts, @NotNull int[] requestedParts) {
-    if (candidateParts.length < requestedParts.length) {
-      // Request is more specific than the candidate: 3.10 cannot satisfy 3.10.2 request.
-      return false;
-    }
-
-    for (int i = 0; i < requestedParts.length; ++i) {
-      if (requestedParts[i] != candidateParts[i]) {
-        return false;
-      }
-    }
-
-    // Either full match, or a more specific version than the request was found (e.g., 3.10.2 satisfies 3.10).
-    return true;
+  static boolean versionSatisfies(@NotNull Revision candidateCmake, @NotNull RevisionOrHigher requestedCmake) {
+    int result = candidateCmake.compareTo(requestedCmake.revision, Revision.PreviewComparison.IGNORE);
+    return (result == 0) || (requestedCmake.orHigher && result >= 0);
   }
 
   /**
