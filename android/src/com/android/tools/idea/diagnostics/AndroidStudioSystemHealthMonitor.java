@@ -46,6 +46,7 @@ import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.notification.*;
 import com.intellij.notification.impl.NotificationFullContent;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -119,6 +120,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   /** Maximum freeze duration to record. Longer freeze durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_WRITE_LOCK_WAIT_TIME_MS = 30 * 60 * 1000;
 
+  private static final long TOO_MANY_EXCEPTIONS_THRESHOLD = 10000;
+
   private final ThreadDumpsDatabase myThreadDumpsDatabase = new ThreadDumpsDatabase(new File(PathManager.getTempPath(), "threads.dmp"));
 
   private static final Object ACTION_INVOCATIONS_LOCK = new Object();
@@ -128,6 +131,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
   private final PropertiesComponent myProperties;
   private AndroidStudioSystemHealthMonitorAdapter.EventsListener myListener;
+  private boolean myTooManyExceptionsPromptShown = false;
+  private static long ourCurrentSessionStudioExceptionCount = 0;
 
   public AndroidStudioSystemHealthMonitor(@NotNull PropertiesComponent properties) {
     myProperties = properties;
@@ -273,7 +278,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private static void reportExceptionsAndActionInvocations() {
+  private void reportExceptionsAndActionInvocations() {
     if (!REPORT_EXCEPTIONS_LOCK.tryLock()) {
       return;
     }
@@ -285,6 +290,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       persistExceptionCount(0, STUDIO_EXCEPTION_COUNT_FILE);
       persistExceptionCount(0, BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE);
       persistExceptionCount(0, NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE);
+      ourCurrentSessionStudioExceptionCount += exceptionCount;
+
       if (ApplicationManager.getApplication().isInternal()) {
         // should be 0, but accounting for possible crashes in other threads..
         assert getPersistedExceptionCount(STUDIO_EXCEPTION_COUNT_FILE) < 5;
@@ -295,10 +302,26 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
         ExceptionRegistry.INSTANCE.clear();
         trackExceptionsAndActivity(activityCount, exceptionCount, bundledPluginExceptionCount, nonBundledPluginExceptionCount, 0, traces);
       }
+      if (!myTooManyExceptionsPromptShown &&
+          ourCurrentSessionStudioExceptionCount >= TOO_MANY_EXCEPTIONS_THRESHOLD) {
+        promptUnusuallyHighExceptionCount();
+      }
       reportActionInvocations();
     } finally {
       REPORT_EXCEPTIONS_LOCK.unlock();
     }
+  }
+
+  private void promptUnusuallyHighExceptionCount() {
+    // Show the prompt only once per session
+    myTooManyExceptionsPromptShown = true;
+
+    AnAction sendFeedback = ActionManager.getInstance().getAction("SendFeedback");
+    NotificationAction notificationAction = NotificationAction.create(
+      AndroidBundle.message("sys.health.send.feedback"),
+      (event, notification) -> sendFeedback.actionPerformed(event)
+    );
+    showNotification("sys.health.too.many.exceptions", notificationAction);
   }
 
   private static void trackPerfWatcherReports(@NotNull List<Path> threadDumps) {
@@ -425,8 +448,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private static final int INITIAL_DELAY_MINUTES = 1; // send out pending activity soon after startup
   private static final int INTERVAL_IN_MINUTES = 30;
 
-  private static void startActivityMonitoring() {
-    JobScheduler.getScheduler().scheduleWithFixedDelay(AndroidStudioSystemHealthMonitor::reportExceptionsAndActionInvocations, INITIAL_DELAY_MINUTES, INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+  private void startActivityMonitoring() {
+    JobScheduler.getScheduler().scheduleWithFixedDelay(this::reportExceptionsAndActionInvocations, INITIAL_DELAY_MINUTES, INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
   }
 
   public static void incrementAndSaveExceptionCount() {
