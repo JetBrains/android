@@ -15,15 +15,26 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction
+import com.android.tools.idea.assistant.AssistSidePanel
+import com.android.tools.idea.assistant.AssistantBundleCreator
+import com.android.tools.idea.assistant.AssistantGetBundleTask
+import com.android.tools.idea.assistant.DefaultTutorialBundle
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.wm.ToolWindowManager
+import com.android.tools.idea.util.FutureUtils
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.project.Project
 import junit.framework.TestCase
+import org.apache.http.concurrent.FutureCallback
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import java.util.concurrent.TimeUnit
 
 class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
-
+  private val TIMEOUT_MILLISECONDS: Long = 30000
 
   override fun setUp() {
     super.setUp()
@@ -40,12 +51,84 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
    */
   @Test
   fun testPanelTitle() {
-    // Open Assistant
-    val openAssistantAction = OpenAssistSidePanelAction()
-    openAssistantAction.openWindowNow(WhatsNewAssistantBundleCreator.BUNDLE_ID, project)
+    val completeFuture = SettableFuture.create<String>()
+    val callback = object: FutureCallback<String> {
+      override fun completed(result: String?) {
+        completeFuture.set(result)
+      }
 
-    val toolWindowManager: ToolWindowManager = ToolWindowManager.getInstance(project)
-    val toolWindow = toolWindowManager.getToolWindow(WhatsNewAssistantSidePanelAction.TOOL_WINDOW_TITLE)
-    TestCase.assertEquals("What's New", toolWindow.contentManager.getContent(0)?.displayName)
+      override fun cancelled() {
+        completeFuture.set("")
+      }
+
+      override fun failed(ex: Exception?) {
+        completeFuture.set("")
+        ex?.printStackTrace()
+      }
+    }
+
+    // Tab title will be set after assistant content finishes loading
+    AssistSidePanel(WhatsNewAssistantBundleCreator.BUNDLE_ID, project, callback)
+    FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    TestCase.assertEquals("What's New", completeFuture.get())
+  }
+
+  /**
+   * Test that the asynchronous loading for Assistant bundle works
+   */
+  @Test
+  fun testAsyncLoadBundle() {
+    val mockBundle = mock(DefaultTutorialBundle::class.java)
+    val mockBundleCreator = mock(AssistantBundleCreator::class.java)
+    `when`(mockBundleCreator.getBundle(Mockito.any(Project::class.java))).thenReturn(mockBundle)
+
+    val completeFuture = SettableFuture.create<Boolean>()
+
+    val callback = object: FutureCallback<TutorialBundleData> {
+      override fun cancelled() {
+        completeFuture.set(false)
+      }
+
+      override fun completed(result: TutorialBundleData?) {
+        completeFuture.set(true) // Should complete
+      }
+
+      override fun failed(ex: Exception?) {
+        completeFuture.set(false)
+        ex?.printStackTrace()
+      }
+    }
+
+    AssistantGetBundleTask(project, mockBundleCreator, callback).queue()
+    FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    TestCase.assertTrue(completeFuture.get())
+  }
+
+  /**
+   * Test asynchronous loading for Assistant bundle throwing an exception
+   */
+  @Test
+  fun testAsyncLoadNullBundle() {
+    val mockBundleCreator = mock(AssistantBundleCreator::class.java)
+
+    val completeFuture = SettableFuture.create<Boolean>()
+
+    val callback = object: FutureCallback<TutorialBundleData> {
+      override fun cancelled() {
+        completeFuture.set(false)
+      }
+
+      override fun completed(result: TutorialBundleData?) {
+        completeFuture.set(false)
+      }
+
+      override fun failed(ex: Exception?) {
+        completeFuture.set(true) // Should fail
+      }
+    }
+
+    AssistantGetBundleTask(project, mockBundleCreator, callback).queue()
+    FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    TestCase.assertTrue(completeFuture.get())
   }
 }
