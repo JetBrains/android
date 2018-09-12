@@ -34,6 +34,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
@@ -167,7 +168,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", true),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
-        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false)
+        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
+        new ToggleLiveRenderingAction()
       )
     )));
     actions.add(new ToggleAutoConnectAction());

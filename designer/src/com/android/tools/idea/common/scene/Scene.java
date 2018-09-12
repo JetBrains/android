@@ -103,11 +103,13 @@ public class Scene implements SelectionListener, Disposable {
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
 
+  private boolean myIsLiveRenderingEnabled;
+
   public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -117,6 +119,8 @@ public class Scene implements SelectionListener, Disposable {
     myFindListener = new SceneHitListener(selectionModel);
     mySnapListener = new SceneHitListener(selectionModel);
     selectionModel.addListener(this);
+
+    myIsLiveRenderingEnabled = renderSettings.getUseLiveRendering();
 
     Disposer.register(sceneManager, this);
   }
@@ -656,7 +660,7 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
-      if (RenderSettings.getDefault().getUseLiveRendering()) {
+      if (myIsLiveRenderingEnabled) {
         manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {
@@ -885,6 +889,14 @@ public class Scene implements SelectionListener, Disposable {
     ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
     doGetPlaceholders(builder, myRoot, requester);
     return builder.build();
+  }
+
+  public boolean isLiveRenderingEnabled() {
+    return myIsLiveRenderingEnabled;
+  }
+
+  public void setLiveRenderingEnabled(boolean enabled) {
+    myIsLiveRenderingEnabled = enabled;
   }
 
   private static void doGetPlaceholders(@NotNull ImmutableList.Builder<Placeholder> builder,

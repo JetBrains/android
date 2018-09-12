@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -50,12 +51,12 @@ abstract public class SceneManager implements Disposable {
   @NotNull private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
 
-  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
+  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
-    myScene = new Scene(this, myDesignSurface);
+    myScene = new Scene(this, myDesignSurface, renderSettings);
     }
 
   /**
