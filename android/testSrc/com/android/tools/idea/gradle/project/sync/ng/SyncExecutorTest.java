@@ -68,9 +68,7 @@ public class SyncExecutorTest extends IdeaTestCase {
   }
 
   public void testCreateSyncActionWhenSingleVariantSyncIsEnabled() {
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
-
-    SyncAction action = mySyncExecutor.createSyncAction(false);
+    SyncAction action = mySyncExecutor.createSyncAction(false, true);
     assertSame(myExtraGradleSyncModelsManager.getJavaModelTypes(), action.getExtraJavaModelTypes());
 
     SyncActionOptions options = action.getOptions();
@@ -79,12 +77,7 @@ public class SyncExecutorTest extends IdeaTestCase {
   }
 
   public void testCreateSyncActionWhenSingleVariantSyncIsDisabled() {
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
-    GradlePerProjectExperimentalSettings settings = mock(GradlePerProjectExperimentalSettings.class);
-    settings.USE_SINGLE_VARIANT_SYNC = false;
-    new IdeComponents(myProject).replaceProjectService(GradlePerProjectExperimentalSettings.class, settings);
-
-    SyncAction action = mySyncExecutor.createSyncAction(false);
+    SyncAction action = mySyncExecutor.createSyncAction(false, false);
     assertSame(myExtraGradleSyncModelsManager.getJavaModelTypes(), action.getExtraJavaModelTypes());
 
     SyncActionOptions options = action.getOptions();
@@ -92,33 +85,12 @@ public class SyncExecutorTest extends IdeaTestCase {
     assertNull(options.getSelectedVariants());
   }
 
-  public void testCreateSyncActionWhenSingleVariantSyncIsEnabledForProject() {
-    // Simulate the case when single variant sync is enabled for current project.
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
-    GradlePerProjectExperimentalSettings settings = mock(GradlePerProjectExperimentalSettings.class);
-    settings.USE_SINGLE_VARIANT_SYNC = true;
-    new IdeComponents(myProject).replaceProjectService(GradlePerProjectExperimentalSettings.class, settings);
-
-    SyncAction action = mySyncExecutor.createSyncAction(false);
-    assertSame(myExtraGradleSyncModelsManager.getJavaModelTypes(), action.getExtraJavaModelTypes());
-
-    SyncActionOptions options = action.getOptions();
-    assertTrue(options.isSingleVariantSyncEnabled());
-    assertSame(mySelectedVariants, options.getSelectedVariants());
-  }
-
   public void testCompoundSyncShouldBeDisabledByDefault() {
     assertFalse(StudioFlags.COMPOUND_SYNC_ENABLED.get());
   }
 
   public void testCreateSyncActionWithCompoundSync() {
-    // Simulate the case when single variant sync is enabled for current project.
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
-    GradlePerProjectExperimentalSettings settings = mock(GradlePerProjectExperimentalSettings.class);
-    settings.USE_SINGLE_VARIANT_SYNC = true;
-    new IdeComponents(myProject).replaceProjectService(GradlePerProjectExperimentalSettings.class, settings);
-
-    SyncAction action = mySyncExecutor.createSyncAction(true);
+    SyncAction action = mySyncExecutor.createSyncAction(true, true);
     assertTrue(action.getOptions().shouldGenerateSources());
   }
 }
