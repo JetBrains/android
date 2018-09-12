@@ -46,7 +46,8 @@ public class AndroidRunConfigurations {
   public void createRunConfiguration(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    List<RunConfiguration> configurations = RunManager.getInstance(module.getProject()).getConfigurationsList(configurationFactory.getType());
+    List<RunConfiguration> configurations =
+      RunManager.getInstance(module.getProject()).getConfigurationsList(configurationFactory.getType());
     for (RunConfiguration configuration : configurations) {
       if (configuration instanceof AndroidRunConfiguration &&
           ((AndroidRunConfiguration)configuration).getConfigurationModule().getModule() == module) {
