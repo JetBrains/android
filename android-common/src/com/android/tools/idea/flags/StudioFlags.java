@@ -87,6 +87,13 @@ public final class StudioFlags {
     "Add a option what type of Navigation is added in the created Activity in the selected template",
     false);
 
+  public static final Flag<Boolean> NPW_USE_NAV_CONTROLLER = Flag.create(
+    NPW, "use.nav.controller", "Use Navigation Controller",
+    "Use Navigation Controller in a project that has multiple destinations, " +
+    "for example: Navigation Drawer Activity or Bottom Navigation Activity. This flag is used not to include the Navigation Component " +
+    "before it becomes stable.",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
