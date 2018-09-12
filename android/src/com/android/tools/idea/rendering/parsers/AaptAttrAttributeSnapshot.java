@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.android.SdkConstants.AAPT_ATTR_PREFIX;
+import static com.android.SdkConstants.AAPT_PREFIX;
 import static com.android.SdkConstants.ATTR_NAME;
 
 /**
@@ -42,7 +43,7 @@ class AaptAttrAttributeSnapshot extends AttributeSnapshot {
   private final TagSnapshot myBundledTag;
 
   AaptAttrAttributeSnapshot(@Nullable String namespace, @Nullable String prefix, @NotNull String name, @NotNull String id, @NotNull TagSnapshot bundledTag) {
-    super(namespace, prefix, name, AAPT_ATTR_PREFIX + id);
+    super(namespace, prefix, name, AAPT_ATTR_PREFIX + AAPT_PREFIX + id);
 
     myId = id;
     myBundledTag = bundledTag;

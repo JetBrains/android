@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.AAPT_ATTR_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
@@ -102,7 +101,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -460,8 +458,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return null;
     }
     ILayoutPullParser parser;
-    if (!myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
-      TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(value, AAPT_ATTR_PREFIX));
+    if (!myAaptDeclaredResources.isEmpty() && layoutResource.getResourceType() == ResourceType.AAPT) {
+      TagSnapshot aaptResource = myAaptDeclaredResources.get(layoutResource.getValue());
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
