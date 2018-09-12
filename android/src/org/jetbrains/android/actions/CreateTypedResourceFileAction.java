@@ -34,6 +34,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.InputValidatorEx;
@@ -121,7 +123,8 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   @NotNull
   @Override
   protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
-    return doCreateAndNavigate(newName, directory, myDefaultRootTag, myChooseTagName, true);
+    Module module = ModuleUtilCore.findModuleForPsiElement(directory);
+    return doCreateAndNavigate(newName, directory, getDefaultRootTag(module), myChooseTagName, true);
   }
 
   PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName, boolean navigate)
@@ -176,7 +179,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   @NotNull
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-    return Collections.singletonList(getDefaultRootTag());
+    return Collections.singletonList(getDefaultRootTag(facet.getModule()));
   }
 
   @NotNull
@@ -186,7 +189,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     return result;
   }
 
-  public String getDefaultRootTag() {
+  public String getDefaultRootTag(@Nullable Module module) {
     return myDefaultRootTag;
   }
 
