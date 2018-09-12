@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -80,6 +81,10 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   protected final CancelableRunnable myInvalidateRunnable = new CancelableRunnable(new Runnable() {
     @Override
     public void run() {
+      if (!getProject().isOpen()) {
+        return;
+      }
+
       if (ApplicationManager.getApplication().isDispatchThread()) {
         myExecutor.execute(myInvalidateRunnable);
         return;
@@ -93,6 +98,10 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
             myGraphicsLayoutRenderer.dispose();
             myGraphicsLayoutRenderer = null;
           }
+        }
+
+        if (!getProject().isOpen()) {
+          return;
         }
 
         ILayoutPullParser parser = DomPullParser.createFromDocument(myDocument);
@@ -209,7 +218,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
                       @NotNull GraphicsLayoutRendererFactory graphicsLayoutRendererFactory) {
     myConfiguration = configuration;
 
-    myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
+    myDumbService = DumbService.getInstance(getProject());
     myExecutor = executor;
     myGraphicsLayoutRendererFactory = graphicsLayoutRendererFactory;
   }
@@ -295,7 +304,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   }
 
   @Override
-  public void paintComponent(final Graphics graphics) {
+  public void paintComponent(@NotNull Graphics graphics) {
     synchronized (myGraphicsLayoutRendererLock) {
       if (myGraphicsLayoutRenderer != null) {
         myGraphicsLayoutRenderer.render((Graphics2D)graphics);
@@ -320,13 +329,14 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     }
   }
 
-  private static void notifyUnsupportedJavaRuntime(String message) {
+  private static void notifyUnsupportedJavaRuntime(@NotNull String message) {
     if (ourJavaRuntimeNotification.compareAndSet(false, true)) {
       Notifications.Bus.notify(new Notification("Android", "Preview", message, NotificationType.ERROR));
     }
   }
 
   @Override
+  @NotNull
   public Dimension getPreferredScrollableViewportSize() {
     return getPreferredSize();
   }
@@ -404,5 +414,10 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
         myGraphicsLayoutRenderer.dispose();
       }
     }
+  }
+
+  @NotNull
+  private Project getProject() {
+    return myConfiguration.getModule().getProject();
   }
 }
