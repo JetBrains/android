@@ -1372,9 +1372,11 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider" />
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider" />
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider" />
+    <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider"/>
+
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
