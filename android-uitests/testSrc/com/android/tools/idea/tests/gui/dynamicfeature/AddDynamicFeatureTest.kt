@@ -344,6 +344,7 @@ class AddDynamicFeatureTest {
    * 1. Verify the warning labels are not visible
    * </pre>
    */
+  @RunIn(TestGroup.UNRELIABLE)  // b/115431936
   @Test
   @Throws(Exception::class)
   fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
