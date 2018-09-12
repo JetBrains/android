@@ -96,6 +96,11 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     };
   }
 
+  @NotNull
+  MissingCMakeErrorHandler.RevisionOrHigher createRevision(String revision, boolean orHigher) {
+    return new MissingCMakeErrorHandler.RevisionOrHigher(Revision.parseRevision(revision), orHigher);
+  }
+
   public void testIntegration() throws Exception {
     // Verifies the integration of findErrorMessage and getQuickFixHyperlinks methods with gradle.
     String errMsg = "Failed to find CMake.";
@@ -127,7 +132,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
         new ExternalSystemException(errMsg), DummyProject.getInstance()));
   }
 
-  public void testFindErrorMessageNoCMakeVersion() {
+  public void testFindErrorMessageFailedToFindCmake() {
     MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
 
     String expectedMsg = "Failed to find CMake.";
@@ -135,6 +140,12 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       expectedMsg,
       handler.findErrorMessage(
         new ExternalSystemException("Failed to find CMake."), DummyProject.getInstance()));
+  }
+
+  public void testFindErrorMessageUnableToGetCmakeVersion() {
+    MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
+
+    String expectedMsg = "Failed to find CMake.";
     assertEquals(
       expectedMsg,
       handler.findErrorMessage(
@@ -199,7 +210,8 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     String errMsg = "CMake '3.10.2' was not found in PATH or by cmake.dir property.";
 
     MissingCMakeErrorHandler handler = createHandler(
-      Collections.singletonList("3.8"),
+
+      Collections.singletonList("3.8.2"),
       Collections.singletonList("3.10.2")
     );
 
@@ -209,64 +221,169 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(((InstallCMakeHyperlink)quickFixes.get(0)).getCmakeVersion()).isEqualTo(Revision.parseRevision("3.10.2"));
   }
 
-  public void testFindBestMatch() {
-    // Requested version not found.
+  public void testFindBestMatchVersionNotFound() {
     assertNull(
       MissingCMakeErrorHandler.findBestMatch(
-        Arrays.asList(createRemotePackage("3.6"), createRemotePackage("3.8")),
-        Revision.parseRevision("3.7")));
+        Arrays.asList(createRemotePackage("3.6.2"), createRemotePackage("3.8.2")),
+        createRevision("3.7.2", false)));
+  }
 
-    // Exact match.
-    assertEquals(
-      Revision.parseRevision("3.8"),
-      MissingCMakeErrorHandler.findBestMatch(
-        Collections.singletonList(createRemotePackage("3.8")),
-        Revision.parseRevision("3.8")));
-
-    // A more specific version found.
-    assertEquals(
-      Revision.parseRevision("3.8"),
-      MissingCMakeErrorHandler.findBestMatch(
-        Collections.singletonList(createRemotePackage("3.8")),
-        Revision.parseRevision("3")));
-
-    // More specific match downstream.
+  public void testFindBestMatchVersionMatch() {
     assertEquals(
       Revision.parseRevision("3.8.2"),
       MissingCMakeErrorHandler.findBestMatch(
-        Arrays.asList(createRemotePackage("3.8"), createRemotePackage("3.8.2")),
-        Revision.parseRevision("3.8")));
+        Collections.singletonList(createRemotePackage("3.8.2")),
+        createRevision("3.8.2", false)));
+  }
 
-    // Request is too specific. Cannot satisfy.
+  public void testFindBestMatchHigherVersionDownstream() {
+    assertEquals(
+      Revision.parseRevision("3.8.4"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.8.2"), createRemotePackage("3.8.4")),
+        createRevision("3.8.4", false)));
+  }
+
+  public void testFindBestMatchSelectsFirstMatch() {
+    // Matches both available versions (preview version is ignored). The first match is selected.
+    assertEquals(
+      Revision.parseRevision("3.8.2-rc1"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.10.2-rc2")),
+        createRevision("3.8.2", false)));
+
+    assertEquals(
+      Revision.parseRevision("3.8.2-rc1"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.10.2-rc2")),
+        createRevision("3.8.2-rc3", false)));
+  }
+
+  public void testFindBestMatchRejectsPrefixMatch() {
     assertNull(
       MissingCMakeErrorHandler.findBestMatch(
-        Arrays.asList(createRemotePackage("3.8"), createRemotePackage("3.10")),
-        Revision.parseRevision("3.8.2")));
+        Collections.singletonList(createRemotePackage("3.8.2")),
+        createRevision("3", false)));
+
+    assertNull(
+      MissingCMakeErrorHandler.findBestMatch(
+        Collections.singletonList(createRemotePackage("3.8.2")),
+        createRevision("3.8", false)));
   }
 
-  public void testVersionSatisfies() {
-    // Exact match.
-    assertTrue(MissingCMakeErrorHandler.versionSatisfies(new int[]{3, 8, 0}, new int[]{3, 8, 0}));
-
-    // Request longer.
-    assertFalse(MissingCMakeErrorHandler.versionSatisfies(new int[]{3, 8}, new int[]{3, 8, 2}));
-
-    // Request shorter.
-    assertTrue(MissingCMakeErrorHandler.versionSatisfies(new int[]{3, 8, 0}, new int[]{3, 8}));
-
-    // Version mismatch.
-    assertFalse(MissingCMakeErrorHandler.versionSatisfies(new int[]{3, 8, 0}, new int[]{3, 10, 0}));
+  public void testFindBestMatchWithPlusExactMatch() {
+    assertEquals(
+      Revision.parseRevision("3.8.2"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Collections.singletonList(createRemotePackage("3.8.2")),
+        createRevision("3.8.2", true)));
   }
 
-  public void testExtractCmakeVersionFromError() {
-    assertEquals(Revision.parseRevision("1.2.3-rc1"), MissingCMakeErrorHandler.extractCmakeVersionFromError("prefix '1.2.3-rc1' suffix"));
-    assertEquals(Revision.parseRevision("1.2.3-rc1"), MissingCMakeErrorHandler.extractCmakeVersionFromError("prefix'1.2.3-rc1'suffix"));
-    assertEquals(Revision.parseRevision("1.2.3-rc1"), MissingCMakeErrorHandler.extractCmakeVersionFromError("'1.2.3-rc1'"));
+  public void testFindBestMatchWithPlusMatchesHigherVersion() {
+    assertEquals(
+      Revision.parseRevision("3.8.2"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Collections.singletonList(createRemotePackage("3.8.2")),
+        createRevision("3.6.2", true)));
+  }
 
+  public void testFindBestMatchWithPlusSelectsFirstMatch() {
+    // Plus matches both available versions (preview version is ignored). The first match is selected.
+    assertEquals(
+      Revision.parseRevision("3.8.2-rc1"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")),
+        createRevision("3.8.2", true)));
+    assertEquals(
+      Revision.parseRevision("3.8.2-rc1"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")),
+        createRevision("3.8.2-rc3", true)));
+  }
+
+  public void testFindBestMatchRejectForkVersionInput() {
+    // We don't want the user to put "3.6.4111459" as input.
+    assertNull(
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.6.0")),
+        createRevision("3.6.4111459", false)));
+  }
+
+  public void testFindBestMatchTranslateForkVersionFromSdk() {
+    // If the SDK contains "3.6.4111459", then we translate it before matching.
+    assertEquals(
+      Revision.parseRevision("3.6.0"),
+      MissingCMakeErrorHandler.findBestMatch(
+        Arrays.asList(createRemotePackage("3.6.4111459")),
+        createRevision("3.6.0", false)));
+  }
+
+  public void testVersionSatisfiesExactMatch() {
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0"), createRevision("3.8.0", false)));
+  }
+
+  public void testVersionSatisfiesIgnoresPreview() {
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0", false)));
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0"), createRevision("3.8.0-rc2", false)));
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0-rc2", false)));
+  }
+
+  public void testVersionSatisfiesMismatch() {
+    assertFalse(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0"), createRevision("3.10.0", false)));
+  }
+
+  public void testVersionSatisfiesWithPlusExactMatch() {
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0"), createRevision("3.8.0", true)));
+  }
+
+  public void testVersionSatisfiesWithPlusMatchesHigherVersion() {
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.10.0"), createRevision("3.8.0", true)));
+  }
+
+  public void testVersionSatisfiesWithPlusIgnoresPreview() {
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0", true)));
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0"), createRevision("3.8.0-rc2", true)));
+    assertTrue(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0-rc2", true)));
+  }
+
+  public void testVersionSatisfiesWithPlusMismatch() {
+    assertFalse(MissingCMakeErrorHandler.versionSatisfies(
+      Revision.parseRevision("3.8.0"), createRevision("3.10.0", true)));
+  }
+
+  public void testExtractCmakeVersionFromErrorValidInput() {
+    MissingCMakeErrorHandler.RevisionOrHigher rev1 = MissingCMakeErrorHandler.extractCmakeVersionFromError("prefix '1.2.3' suffix");
+    assertEquals("1.2.3", rev1.revision.toString());
+    assertFalse(rev1.orHigher);
+
+    MissingCMakeErrorHandler.RevisionOrHigher rev2 = MissingCMakeErrorHandler.extractCmakeVersionFromError("prefix'1.2.3'suffix");
+    assertEquals("1.2.3", rev2.revision.toString());
+    assertFalse(rev2.orHigher);
+
+    MissingCMakeErrorHandler.RevisionOrHigher rev3 = MissingCMakeErrorHandler.extractCmakeVersionFromError("'1.2.3'");
+    assertEquals("1.2.3", rev3.revision.toString());
+    assertFalse(rev3.orHigher);
+
+    MissingCMakeErrorHandler.RevisionOrHigher rev4 = MissingCMakeErrorHandler.extractCmakeVersionFromError("'1.2.3' or higher");
+    assertEquals("1.2.3", rev4.revision.toString());
+    assertTrue(rev4.orHigher);
+  }
+
+  public void testExtractCmakeVersionFromErrorInvalidInput() {
     assertNull(MissingCMakeErrorHandler.extractCmakeVersionFromError(""));
     assertNull(MissingCMakeErrorHandler.extractCmakeVersionFromError("does not have quoted substring"));
     assertNull(MissingCMakeErrorHandler.extractCmakeVersionFromError("missing matching ' single quote"));
     assertNull(MissingCMakeErrorHandler.extractCmakeVersionFromError("'"));
-    assertNull(MissingCMakeErrorHandler.extractCmakeVersionFromError("''"));
+    assertNull(MissingCMakeErrorHandler.extractCmakeVersionFromError("'a.b.c'"));
   }
 }
