@@ -44,6 +44,7 @@ import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -95,8 +96,8 @@ public class NavSceneManager extends SceneManager {
 
   private NavigationSchema mySchema;
 
-  public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
-    super(model, surface);
+  public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface, @NotNull RenderSettings settings) {
+    super(model, surface, settings);
     createSceneView();
     myLayoutAlgorithms = ImmutableList.of(
       new NewDestinationLayoutAlgorithm(),
@@ -111,7 +112,11 @@ public class NavSceneManager extends SceneManager {
     getDesignSurface().getSelectionModel().addListener((unused, selection) -> getScene().needsRebuildList());
   }
 
-  @Override
+  public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
+    this(model, surface, RenderSettings.getProjectSettings(model.getProject()));
+  }
+
+    @Override
   @NotNull
   protected NavDesignSurface getDesignSurface() {
     return (NavDesignSurface)super.getDesignSurface();

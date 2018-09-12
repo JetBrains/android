@@ -185,9 +185,9 @@ public final class StudioFlags {
     "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
     false);
 
-  public static final Flag<Boolean> NELE_LIVE_RENDER = Flag.create(
-    NELE, "live.render", "Enable the Live Render",
-    "Enable the continuous rendering of the surface when moving/resizing components.",
+  public static final Flag<Boolean> NELE_DEFAULT_LIVE_RENDER = Flag.create(
+    NELE, "live.render", "Enable the Live Render by default",
+    "Enable the continuous rendering of the surface when moving/resizing components unless the user disables it.",
     true);
 
   public static final Flag<Boolean> NELE_SAMPLE_DATA_UI = Flag.create(

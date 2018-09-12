@@ -93,6 +93,7 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 public class LayoutlibSceneManager extends SceneManager {
 
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
+  private final RenderSettings myRenderSettings;
 
   @Nullable private SceneView mySecondarySceneView;
 
@@ -170,7 +171,8 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull DesignSurface designSurface,
                                   @NotNull RenderSettings settings,
                                   @NotNull Executor renderTaskDisposerExecutor) {
-    super(model, designSurface);
+    super(model, designSurface, settings);
+    myRenderSettings = settings;
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     createSceneView();
     updateTrackingConfiguration();
@@ -203,7 +205,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, RenderSettings.getDefault(), PooledThreadExecutor.INSTANCE);
+    this(model, designSurface, RenderSettings.getProjectSettings(model.getProject()), PooledThreadExecutor.INSTANCE);
   }
 
   @NotNull
@@ -854,7 +856,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @VisibleForTesting
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    RenderSettings settings = RenderSettings.getDefault();
+    RenderSettings settings = myRenderSettings;
     if (!settings.getUseLiveRendering()) {
       // When we are not using live rendering, we do not need the pool
       taskBuilder.disableImagePool();
