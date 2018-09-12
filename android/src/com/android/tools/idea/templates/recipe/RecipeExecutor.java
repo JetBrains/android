@@ -92,4 +92,9 @@ public interface RecipeExecutor {
    * Append contents of the first file to the second one.
    */
   void append(@NotNull File from, @NotNull File to);
+
+  /**
+   * Add a variable that can be referenced while the template is being rendered.
+   */
+  void addGlobalVariable(@NotNull String id, @NotNull Object value);
 }

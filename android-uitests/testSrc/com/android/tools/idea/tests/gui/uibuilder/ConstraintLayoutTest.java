@@ -126,24 +126,26 @@ public class ConstraintLayoutTest {
     @Language("XML")
     String expected =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-      "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-      "    android:layout_width=\"match_parent\"\n" +
-      "    android:layout_height=\"match_parent\"\n" +
-      "    tools:context=\".MainActivity\">\n" +
+      "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
       "\n" +
-      "    <TextView\n" +
-      "        android:layout_width=\"wrap_content\"\n" +
-      "        android:layout_height=\"wrap_content\"\n" +
-      "        android:layout_marginTop=\"8dp\"\n" +
-      "        android:text=\"Hello World!\"\n" +
-      "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-      "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-      "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
-      "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+      "    <android.support.constraint.ConstraintLayout\n" +
+      "        android:layout_width=\"match_parent\"\n" +
+      "        android:layout_height=\"match_parent\"\n" +
+      "        tools:context=\".MainActivity\">\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>";
+      "        <TextView\n" +
+      "            android:layout_width=\"wrap_content\"\n" +
+      "            android:layout_height=\"wrap_content\"\n" +
+      "            android:text=\"Hello World!\"\n" +
+      "            app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+      "            app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+      "            app:layout_constraintRight_toRightOf=\"parent\"\n" +
+      "            app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+      "\n" +
+      "    </android.support.constraint.ConstraintLayout>\n" +
+      "</layout>";
 
     Wait.seconds(10).expecting("the editor to update and reformat the XML file")
       .until(() -> expected.equals(editor.getCurrentFileContents()));
