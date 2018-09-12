@@ -21,9 +21,6 @@ import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPalette
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
@@ -32,6 +29,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.ui.picker.ColorListener
 import java.awt.Color
 import java.awt.Point
 import java.awt.event.KeyEvent
@@ -117,15 +115,6 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
   private fun selectFromColorDialog(location: Point, initialColor: Color?) {
     val dialog = LightCalloutPopup()
 
-    val okCallback = { color: Color ->
-      property.value = colorToString(color)
-      dialog.close()
-    }
-
-    val cancelCallback = { _: Color ->
-      dialog.close()
-    }
-
     val panel = ColorPickerBuilder()
       .setOriginalColor(initialColor)
       .addSaturationBrightnessComponent()
@@ -133,8 +122,7 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
       .addColorValuePanel().withFocus()
       .addSeparator()
       .addCustomComponent(MaterialColorPaletteProvider)
-      .addSeparator()
-      .addOperationPanel(okCallback, cancelCallback)
+      .addColorListener(ColorListener { color, _ -> property.value = colorToString(color) })
       .focusWhenDisplay(true)
       .setFocusCycleRoot(true)
       .build()

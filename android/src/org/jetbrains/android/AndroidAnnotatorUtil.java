@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -35,7 +36,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPalette;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
 import com.android.utils.HashCodes;
@@ -55,6 +55,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
@@ -303,10 +304,12 @@ public class AndroidAnnotatorUtil {
   public static class ColorRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
+    private final Function1<Color, Unit> mySetColorTask;
 
     public ColorRenderer(@NotNull PsiElement element, @Nullable Color color) {
       myElement = element;
       myColor = color;
+      mySetColorTask = createSetColorTask(myElement);
     }
 
     @NotNull
@@ -360,17 +363,6 @@ public class AndroidAnnotatorUtil {
     private void openNewColorPicker(@Nullable Color currentColor) {
       LightCalloutPopup dialog = new LightCalloutPopup();
 
-      Function1<Color, Unit> okCallback = c -> {
-        setColorToAttribute(c);
-        dialog.close();
-        return Unit.INSTANCE;
-      };
-
-      Function1<Color, Unit> cancelCallback = c -> {
-        dialog.close();
-        return Unit.INSTANCE;
-      };
-
       JPanel panel = new ColorPickerBuilder()
           .setOriginalColor(currentColor)
           .addSaturationBrightnessComponent()
@@ -378,8 +370,7 @@ public class AndroidAnnotatorUtil {
           .addColorValuePanel().withFocus()
           .addSeparator()
           .addCustomComponent(MaterialColorPaletteProvider.INSTANCE)
-          .addSeparator()
-          .addOperationPanel(okCallback, cancelCallback)
+          .addColorListener((color, source) -> setColorToAttribute(color))
           .focusWhenDisplay(true)
           .setFocusCycleRoot(true)
           .build();
@@ -388,19 +379,9 @@ public class AndroidAnnotatorUtil {
     }
 
     private void setColorToAttribute(@NotNull Color color) {
-      // Use TransactionGuard to avoid write in unsafe context, and use WriteCommandAction to make the change undoable.
-      TransactionGuard.submitTransaction(myElement.getProject(), () ->
-        WriteCommandAction.runWriteCommandAction(myElement.getProject(), SET_COLOR_COMMAND_NAME, null, () -> {
-          if (myElement instanceof XmlTag) {
-            ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
-          }
-          else if (myElement instanceof XmlAttributeValue) {
-            XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
-            if (attribute != null) {
-              attribute.setValue(ResourceHelper.colorToString(color));
-            }
-          }
-        })
+      Project project = myElement.getProject();
+      TransactionGuard.submitTransaction(project, () ->
+        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.invoke(color))
       );
     }
 
@@ -420,6 +401,34 @@ public class AndroidAnnotatorUtil {
     @Override
     public int hashCode() {
       return HashCodes.mix(myElement.hashCode(), Objects.hashCode(myColor));
+    }
+
+    @VisibleForTesting
+    public static Function1<Color, Unit> createSetColorTask(@NotNull PsiElement element) {
+      if (element instanceof XmlTag) {
+        XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
+        return new Function1<Color, Unit>() {
+          @Override
+          public Unit invoke(Color color) {
+            xmlTagValue.setText(ResourceHelper.colorToString(color));
+            return Unit.INSTANCE;
+          }
+        };
+      }
+      else if (element instanceof XmlAttributeValue) {
+        XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
+        if (xmlAttribute != null) {
+          return new Function1<Color, Unit>() {
+            @Override
+            public Unit invoke(Color color) {
+              xmlAttribute.setValue(ResourceHelper.colorToString(color));
+              return Unit.INSTANCE;
+            }
+          };
+        }
+      }
+      // Unknown case, do nothing.
+      return color -> Unit.INSTANCE;
     }
   }
 }
