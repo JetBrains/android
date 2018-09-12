@@ -15,35 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.TAG;
+
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEvent;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEventHandler;
 import com.android.tools.idea.uibuilder.structure.NlDropListener;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.tree.TreePath;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTargetDropEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Handler for ConstraintHelper objects
@@ -58,7 +62,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
    */
   @Override
   public void performDrop(@NotNull NlModel model,
-                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlDropEvent event,
                           @NotNull NlComponent receiver,
                           @NotNull List<NlComponent> dragged,
                           @Nullable NlComponent before,
@@ -81,13 +85,13 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         else {
           addComponentsIds(receiver, dragged);
         }
-        event.acceptDrop(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
-        event.dropComplete(true);
+        event.accept(insertType);
+        event.complete();
         model.notifyModified(NlModel.ChangeType.DROP);
       }
       catch (Exception exception) {
         Logger.getInstance(NlDropListener.class).warn(exception);
-        event.rejectDrop();
+        event.reject();
       }
     }
   }

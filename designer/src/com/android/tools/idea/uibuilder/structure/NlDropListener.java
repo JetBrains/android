@@ -15,32 +15,47 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentUtil;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Point;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Enable drop of components dragged onto the component tree.
@@ -106,7 +121,7 @@ public class NlDropListener extends DropTargetAdapter {
         InsertType insertType = captureDraggedComponents(event, false /* not as preview */);
         myDragReceiver = finderResult.receiver;
         myNextDragSibling = finderResult.nextComponent;
-        performDrop(dropEvent, insertType);
+        performDrop(event, insertType);
       }
     }
     myTree.clearInsertionPoint();
@@ -173,11 +188,11 @@ public class NlDropListener extends DropTargetAdapter {
       // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
       // When we move a component within the current designer the addComponents call will remove the source component in the transaction.
       // Only when we move a component from a different designer (handled as a InsertType.COPY) would we mark this as a ACTION_MOVE.
-      event.accept(determineInsertType(event, true) == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
+      event.accept(determineInsertType(event, true));
     }
   }
 
-  private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
+  private void performDrop(@NotNull final NlDropEvent event, final InsertType insertType) {
     myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;
@@ -203,24 +218,19 @@ public class NlDropListener extends DropTargetAdapter {
 
   /**
    * Perform the drop action normally without changing the type of component
-   *
-   * @param event      The DropTargetDropEvent from {@link #performDrop(DropTargetDropEvent, InsertType)}
-   * @param insertType The InsertType from {@link #performDrop(DropTargetDropEvent, InsertType)}
+   *  @param event      The DropTargetDropEvent from {@link #performDrop(NlDropEvent, InsertType)}
+   * @param insertType The InsertType from {@link #performDrop(NlDropEvent, InsertType)}
    * @param model      {@link NlComponentTree#getDesignerModel()}
    */
-  private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
+  private void performNormalDrop(@NotNull NlDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
       Scene scene = myTree.getScene();
       DesignSurface surface = scene != null ? scene.getDesignSurface() : null;
       model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, surface);
 
-      // This determines how the DnD source acts to a completed drop.
-      // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
-      // When we move a component within the current designer the addComponents call will remove the source component in the transaction.
-      // Only when we move a component from a different designer (handled as a InsertType.COPY) would we mark this as a ACTION_MOVE.
-      event.acceptDrop(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
+      event.accept(insertType);
 
-      event.dropComplete(true);
+      event.complete();
       model.notifyModified(NlModel.ChangeType.DROP);
 
       if (scene != null) {
@@ -230,7 +240,7 @@ public class NlDropListener extends DropTargetAdapter {
     }
     catch (Exception exception) {
       Logger.getInstance(NlDropListener.class).warn(exception);
-      event.rejectDrop();
+      event.reject();
     }
   }
 

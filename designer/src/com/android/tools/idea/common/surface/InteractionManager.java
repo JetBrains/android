@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -38,19 +44,38 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.Transferable;
-import java.awt.dnd.*;
-import java.awt.event.*;
-import java.util.Collections;
-import java.util.List;
-
-import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 /**
  * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible
@@ -720,7 +745,7 @@ public class InteractionManager {
         // This determines the icon presented to the user while dragging.
         // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
         // that reflects the users choice i.e. controlled by the modifier key.
-        event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+        event.accept(insertType);
       }
     }
 
@@ -743,7 +768,7 @@ public class InteractionManager {
           // This determines the icon presented to the user while dragging.
           // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
           // that reflects the users choice i.e. controlled by the modifier key.
-          event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+          event.accept(insertType);
         } else {
           event.reject();
         }
@@ -773,7 +798,7 @@ public class InteractionManager {
       InsertType insertType = performDrop(event.getDropAction(), event.getTransferable());
       if (insertType != null) {
         // This determines how the DnD source acts to a completed drop.
-        event.accept(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
+        event.accept(insertType);
         event.complete();
       }
       else {
