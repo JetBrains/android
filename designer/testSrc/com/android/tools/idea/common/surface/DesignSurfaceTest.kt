@@ -93,7 +93,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
   override fun getSceneScalingFactor() = 1f
 
   override fun createActionManager() = object: ActionManager<DesignSurface>(this) {
-    override fun registerActionsShortcuts(component: JComponent) = Unit
+    override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
 
     override fun createPopupMenu(actionManager: com.intellij.openapi.actionSystem.ActionManager,
                                  leafComponent: NlComponent?) = DefaultActionGroup()

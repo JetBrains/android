@@ -32,29 +32,47 @@ import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.actions.SelectParentAction;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.NestedViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewActionGroup;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
 import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Provides and handles actions in the layout editor
@@ -79,15 +97,16 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * </ul>
    */
   @Override
-  public void registerActionsShortcuts(@NotNull JComponent component) {
+  public void registerActionsShortcuts(@NotNull JComponent component,
+                                       @Nullable Disposable parentDisposable) {
     if (mySelectAllAction == null) {
       mySelectAllAction = new SelectAllAction(mySurface);
       myGotoComponentAction = new GotoComponentAction(mySurface);
       mySelectParent = new SelectParentAction(mySurface);
     }
-    registerAction(mySelectAllAction, "$SelectAll", component);
-    registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
-    mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, component);
+    registerAction(mySelectAllAction, "$SelectAll", component, parentDisposable);
+    registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable);
+    registerAction(mySelectParent, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), component, parentDisposable);
   }
 
   @NotNull
@@ -278,7 +297,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.removeAll();
     List<AnAction> target = Lists.newArrayList();
     for (ViewAction viewAction : viewActions) {
-      addActions(target, toolbar, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
+      addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
     boolean lastWasSeparator = false;
     for (AnAction action : target) {
@@ -322,13 +341,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   void addActions(@NotNull List<AnAction> target,
                   boolean toolbar,
                   @NotNull ViewAction viewAction,
-                  @NotNull Project project,
                   @NotNull ViewEditor editor,
                   @NotNull ViewHandler handler,
                   @NotNull NlComponent parent,
                   @NotNull List<NlComponent> newSelection) {
     if (viewAction instanceof DirectViewAction) {
-      target.add(new DirectViewActionWrapper(project, (DirectViewAction)viewAction, editor, handler, parent, newSelection));
+      target.add(new DirectViewActionWrapper((DirectViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ViewActionSeparator) {
       if (((ViewActionSeparator)viewAction).isVisible(editor, handler, parent, newSelection)) {
@@ -336,12 +354,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
     }
     else if (viewAction instanceof ToggleViewAction) {
-      target.add(new ToggleViewActionWrapper(project, (ToggleViewAction)viewAction, editor, handler, parent, newSelection));
+      target.add(new ToggleViewActionWrapper((ToggleViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ToggleViewActionGroup) {
       List<ToggleViewActionWrapper> actions = Lists.newArrayList();
       for (ToggleViewAction action : ((ToggleViewActionGroup)viewAction).getActions()) {
-        actions.add(new ToggleViewActionWrapper(project, action, editor, handler, parent, newSelection));
+        actions.add(new ToggleViewActionWrapper(action, editor, handler, parent, newSelection));
       }
       if (!actions.isEmpty()) {
         ToggleViewActionWrapper prev = null;
@@ -376,7 +394,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * Wrapper around a {@link DirectViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
   private class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
-    private final Project myProject;
     private final DirectViewAction myAction;
     private final ViewHandler myHandler;
     private final ViewEditor myEditor;
@@ -384,13 +401,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private final List<NlComponent> mySelectedChildren;
     private Presentation myCurrentPresentation;
 
-    public DirectViewActionWrapper(@NotNull Project project,
-                                   @NotNull DirectViewAction action,
+    public DirectViewActionWrapper(@NotNull DirectViewAction action,
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren) {
-      myProject = project;
       myAction = action;
       myEditor = editor;
       myHandler = handler;
@@ -472,7 +487,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
   private class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
-    private final Project myProject;
     private final ToggleViewAction myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -481,13 +495,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private Presentation myCurrentPresentation;
     private ToggleViewActionWrapper myGroupSibling;
 
-    public ToggleViewActionWrapper(@NotNull Project project,
-                                   @NotNull ToggleViewAction action,
+    public ToggleViewActionWrapper(@NotNull ToggleViewAction action,
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren) {
-      myProject = project;
       myAction = action;
       myEditor = editor;
       myHandler = handler;
@@ -632,7 +644,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
       List<AnAction> actions = Lists.newArrayList();
       for (ViewAction viewAction : myAction.getActions()) {
-        addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
+        addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
       }
       return actions.toArray(AnAction.EMPTY_ARRAY);
     }
@@ -680,7 +692,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       if (rows.size() == 1) {
         List<AnAction> actions = Lists.newArrayList();
         for (ViewAction viewAction : rows.get(0)) {
-          addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
+          addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }
         addAll(actions);
       }
@@ -705,7 +717,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         }
         List<AnAction> actions = Lists.newArrayList();
         for (ViewAction viewAction : row) {
-          addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
+          addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }
         ActionGroup group = new DefaultActionGroup(actions);
         ActionToolbar toolbar = actionManager.createActionToolbar("DynamicToolbar", group, true);
