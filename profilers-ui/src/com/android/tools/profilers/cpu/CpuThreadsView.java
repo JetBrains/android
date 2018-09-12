@@ -26,6 +26,7 @@ import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
@@ -204,8 +205,9 @@ final class CpuThreadsView {
       }
 
       private void repaintLastHoveredRow() {
-        if (myLastHoveredRow != -1) {
-          myPanel.repaint(SwingUtilities.convertRectangle(myThreads, myThreads.getCellBounds(myLastHoveredRow, myLastHoveredRow), myPanel));
+        Rectangle cellBounds = myThreads.getCellBounds(myLastHoveredRow, myLastHoveredRow);
+        if (cellBounds != null) {
+          myPanel.repaint(SwingUtilities.convertRectangle(myThreads, cellBounds, myPanel));
         }
       }
     };
