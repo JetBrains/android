@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.IdeaTestCase
+import org.junit.Assert
 import java.awt.Color
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -363,5 +364,39 @@ class ColorValuePanelTest : IdeaTestCase() {
       action.actionPerformed(actionEvent)
       assertEquals(0, panel.alphaField.colorValue)
     }
+  }
+
+  fun testKeyEventOnAlphaLabel() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+
+    val alphaButtonPanel = panel.alphaButtonPanel
+    val key = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true)
+    val action = alphaButtonPanel.getActionForKeyStroke(key)!!
+    val actionEvent = ActionEvent(alphaButtonPanel, 0, key.keyChar.toString(), key.modifiers)
+
+    panel.currentAlphaFormat = AlphaFormat.BYTE
+    action.actionPerformed(actionEvent)
+    Assert.assertEquals(AlphaFormat.PERCENTAGE, panel.currentAlphaFormat)
+
+    action.actionPerformed(actionEvent)
+    Assert.assertEquals(AlphaFormat.BYTE, panel.currentAlphaFormat)
+  }
+
+  fun testKeyEventOnColorFormatLabel() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+
+    val colorFormatButtonPanel = panel.colorFormatButtonPanel
+    val key = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true)
+    val action = colorFormatButtonPanel.getActionForKeyStroke(key)!!
+    val actionEvent = ActionEvent(colorFormatButtonPanel, 0, key.keyChar.toString(), key.modifiers)
+
+    panel.currentColorFormat = ColorFormat.RGB
+    action.actionPerformed(actionEvent)
+    Assert.assertEquals(ColorFormat.HSB, panel.currentColorFormat)
+
+    action.actionPerformed(actionEvent)
+    Assert.assertEquals(ColorFormat.RGB, panel.currentColorFormat)
   }
 }
