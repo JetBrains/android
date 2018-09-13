@@ -627,14 +627,7 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     private void update(@NotNull Presentation presentation) {
-      if (isLeft()) {
-        presentation.setIcon(AllIcons.General.HideLeftPart);
-        presentation.setHoveredIcon(AllIcons.General.HideLeftPartHover);
-      }
-      else {
-        presentation.setIcon(AllIcons.General.HideRightPart);
-        presentation.setHoveredIcon(AllIcons.General.HideRightPartHover);
-      }
+      presentation.setIcon(AllIcons.General.HideToolWindow);
     }
 
     @Override

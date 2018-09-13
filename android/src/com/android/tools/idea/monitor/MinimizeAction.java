@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 class MinimizeAction extends AnAction implements RightAlignedToolbarAction {
-  private static final Icon MIN_ICON = AllIcons.General.HideDown;
+  private static final Icon MIN_ICON = AllIcons.General.HideToolWindow;
   private static final Icon RESTORE_ICON = AllIcons.Debugger.RestoreLayout;
 
   @NotNull private MonitorPanel myMonitorPanel;
