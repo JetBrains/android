@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -79,6 +80,7 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
   public void testSingleVariantSyncAfterFailedIdeaSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
     loadProject(HELLO_JNI);
 
     // Write empty CMakeLists file to force empty variants models from AGP.
@@ -93,6 +95,7 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
     // Switch to single-variant sync, and verify sync is succeeded.
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     requestSyncAndWait();
     ndkModuleModel = NdkModuleModel.get(getModule("app"));
     // Verify Single-variant sync is able to retrieve variant names with empty CMakeList.

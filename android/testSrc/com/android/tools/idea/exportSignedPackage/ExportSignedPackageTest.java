@@ -41,7 +41,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // debug and release
-    assertEquals(2, androidProject.getVariants().size());
+    assertEquals(2, androidProject.getVariantNames().size());
 
     List<String> assembleTasks =
       ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.APK);
@@ -55,7 +55,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8
-    assertEquals(8, androidProject.getVariants().size());
+    assertEquals(8, androidProject.getVariantNames().size());
 
     Set<String> assembleTasks = Sets.newHashSet(
       ExportSignedPackageWizard.getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"), ExportSignedPackageWizard.APK));
@@ -76,7 +76,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // debug and release
-    assertEquals(2, androidProject.getVariants().size());
+    assertEquals(2, androidProject.getVariantNames().size());
 
     List<String> assembleTasks =
       ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.BUNDLE);
@@ -90,7 +90,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8
-    assertEquals(8, androidProject.getVariants().size());
+    assertEquals(8, androidProject.getVariantNames().size());
 
     Set<String> assembleTasks = Sets.newHashSet(ExportSignedPackageWizard
                                                   .getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"),
@@ -100,35 +100,39 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertTrue(assembleTasks.contains(":bundleFreeArmRelease"));
   }
 
-  public void testReplaceVariantFromTask() throws Exception {
-    assertEquals(":flavorBuildType", ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "oldVariantName", "flavorBuildType"));
+  public void testReplaceVariantFromTask() {
+    assertEquals(":flavorBuildType",
+                 ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "oldVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskPre() throws Exception {
-    assertEquals(":prefixFlavorBuildType", ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "oldVariantName", "flavorBuildType"));
+  public void testReplaceVariantFromTaskPre() {
+    assertEquals(":prefixFlavorBuildType",
+                 ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "oldVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskSuf() throws Exception {
-    assertEquals(":flavorBuildTypeSuffix", ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "oldVariantName", "flavorBuildType"));
+  public void testReplaceVariantFromTaskSuf() {
+    assertEquals(":flavorBuildTypeSuffix",
+                 ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "oldVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskPreSuf() throws Exception {
-    assertEquals(":prefixFlavorBuildTypeSuffix", ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "oldVariantName", "flavorBuildType"));
+  public void testReplaceVariantFromTaskPreSuf() {
+    assertEquals(":prefixFlavorBuildTypeSuffix",
+                 ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "oldVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskMissing() throws Exception {
+  public void testReplaceVariantFromTaskMissing() {
     assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "NonVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskMissingPre() throws Exception {
+  public void testReplaceVariantFromTaskMissingPre() {
     assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "NonVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskMissingSuf() throws Exception {
+  public void testReplaceVariantFromTaskMissingSuf() {
     assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "NonVariantName", "flavorBuildType"));
   }
 
-  public void testReplaceVariantFromTaskMissingPreSuf() throws Exception {
+  public void testReplaceVariantFromTaskMissingPreSuf() {
     assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "NonVariantName", "flavorBuildType"));
   }
 

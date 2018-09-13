@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCach
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -62,18 +64,20 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final ProjectBuildFileChecksums.Loader myBuildFileChecksumsLoader;
   @NotNull private final CachedProjectModels.Loader myProjectModelsCacheLoader;
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
+  public static final String NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC = "not.eligible.for.single.variant.sync";
 
   public static boolean isLevel4Model() {
     return StudioFlags.L4_DEPENDENCY_MODEL.get();
   }
 
   public static boolean isEnabled(@NotNull Project project) {
-    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || GradlePerProjectExperimentalSettings.getInstance(project).USE_SINGLE_VARIANT_SYNC;
+    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
   }
 
   public static boolean isSingleVariantSync(@NotNull Project project) {
     return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
-           GradlePerProjectExperimentalSettings.getInstance(project).USE_SINGLE_VARIANT_SYNC;
+           (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
+            !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC));
   }
 
   public static boolean isCompoundSync(@NotNull Project project) {
@@ -231,7 +235,7 @@ public class NewGradleSync implements GradleSync {
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
     return setupRequest;
-   }
+  }
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
@@ -276,13 +280,20 @@ public class NewGradleSync implements GradleSync {
           AndroidModuleModel androidModel = new AndroidModuleModel(name, moduleRootPath, androidProject, emptyVariantName,
                                                                    dependenciesFactory);
           newModels.addModel(AndroidModuleModel.class, androidModel);
+          continue;
         }
-        else {
-          JavaProject javaProject = moduleModels.findModel(JavaProject.class);
-          if (javaProject != null) {
-            JavaModuleModel javaModel = javaModelFactory.create(moduleRootPath, gradleProject, javaProject);
-            newModels.addModel(JavaModuleModel.class, javaModel);
-          }
+
+        JavaProject javaProject = moduleModels.findModel(JavaProject.class);
+        if (javaProject != null) {
+          JavaModuleModel javaModel = javaModelFactory.create(moduleRootPath, gradleProject, javaProject);
+          newModels.addModel(JavaModuleModel.class, javaModel);
+          continue;
+        }
+
+        ArtifactModel jarAarProject = moduleModels.findModel(ArtifactModel.class);
+        if (!gradleProject.getPath().equals(":") && jarAarProject != null) {
+          JavaModuleModel javaModel = javaModelFactory.create(moduleRootPath, gradleProject, jarAarProject);
+          newModels.addModel(JavaModuleModel.class, javaModel);
         }
       }
     }

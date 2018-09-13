@@ -16,7 +16,6 @@
 package com.android.tools.idea.flags;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
@@ -34,7 +33,6 @@ import java.util.Hashtable;
 
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
-  @NotNull private final GradlePerProjectExperimentalSettings myPerProjectSettings;
   @NotNull private final RenderSettings myRenderSettings;
 
   private JPanel myPanel;
@@ -47,17 +45,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(),
-         GradlePerProjectExperimentalSettings.getInstance(project),
-         RenderSettings.getProjectSettings(project));
+    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project));
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
-                                   @NotNull GradlePerProjectExperimentalSettings perProjectSettings,
                                    @NotNull RenderSettings renderSettings) {
     mySettings = settings;
-    myPerProjectSettings = perProjectSettings;
     myRenderSettings = renderSettings;
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
@@ -108,7 +102,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         StudioFlags.ENABLE_NAV_EDITOR.get() != enableNavEditor() ||
-        myPerProjectSettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
+        mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
         (int)(myRenderSettings.getQuality() * 100) != getQualitySetting()) {
       return true;
     }
@@ -124,7 +118,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public void apply() throws ConfigurationException {
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
-    myPerProjectSettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
+    mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
 
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
@@ -186,7 +180,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
-    myUseSingleVariantSyncCheckbox.setSelected(myPerProjectSettings.USE_SINGLE_VARIANT_SYNC);
+    myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     myEnableNavEditorCheckbox.setSelected(StudioFlags.ENABLE_NAV_EDITOR.get());
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
   }
