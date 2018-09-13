@@ -140,7 +140,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
                                                 @NotNull GlobalInspectionContext globalContext) {
 
     if (refEntity instanceof RefMethod) {
-      PsiModifierListOwner methodRefRAW = ((RefMethod)refEntity).getElement();
+      PsiElement methodRefRAW = ((RefMethod)refEntity).getPsiElement();
       if (methodRefRAW != null && (methodRefRAW instanceof PsiMethod)) {
         PsiMethod methodRef = (PsiMethod) methodRefRAW;
         return checkPsiMethod(methodRef, manager);
