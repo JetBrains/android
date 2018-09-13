@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.android.annotations.VisibleForTesting
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.Alarm
@@ -41,28 +42,28 @@ private val COLOR_RANGE = 0..255
 private val HUE_RANGE = 0..360
 private val PERCENT_RANGE = 0..100
 
+enum class AlphaFormat {
+  BYTE,
+  PERCENTAGE;
+
+  fun next() : AlphaFormat = when (this) {
+    BYTE -> PERCENTAGE
+    PERCENTAGE -> BYTE
+  }
+}
+
+enum class ColorFormat {
+  RGB,
+  HSB;
+
+  fun next() : ColorFormat = when (this) {
+    RGB -> HSB
+    HSB -> RGB
+  }
+}
+
 class ColorValuePanel(private val model: ColorPickerModel)
   : JPanel(GridBagLayout()), DocumentListener, ColorListener {
-
-  enum class AlphaFormat {
-    BYTE,
-    PERCENTAGE;
-
-    fun next() : AlphaFormat = when (this) {
-      BYTE -> PERCENTAGE
-      PERCENTAGE -> BYTE
-    }
-  }
-
-  enum class ColorFormat {
-    RGB,
-    HSB;
-
-    fun next() : ColorFormat = when (this) {
-      RGB -> HSB
-      HSB -> RGB
-    }
-  }
 
   /**
    * Used to update the color of picker when color text fields are edited.
@@ -96,14 +97,16 @@ class ColorValuePanel(private val model: ColorPickerModel)
   private val brightnessDocument = DigitColorDocument(colorField3, PERCENT_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
 
   @VisibleForTesting
-  var currentAlphaFormat by Delegates.observable(AlphaFormat.BYTE) { _, _, _ ->
+  var currentAlphaFormat by Delegates.observable(loadAlphaFormatProperty()) { _, _, newValue ->
     updateAlphaFormat()
+    saveAlphaFormatProperty(newValue)
     repaint()
   }
 
   @VisibleForTesting
-  var currentColorFormat by Delegates.observable(ColorFormat.RGB) { _, _, _ ->
+  var currentColorFormat by Delegates.observable(loadColorFormatProperty()) { _, _, newValue ->
     updateColorFormat()
+    saveColorFormatProperty(newValue)
     repaint()
   }
 
@@ -467,4 +470,40 @@ private fun convertHexToColor(hex: String): Color {
   val g = i shr 8 and 0xFF
   val b = i and 0xFF
   return Color(r.toInt(), g.toInt(), b.toInt(), a.toInt())
+}
+
+private const val PROPERTY_PREFIX = "colorValuePanel_"
+
+private const val PROPERTY_NAME_ALPHA_FORMAT = PROPERTY_PREFIX + "alphaFormat"
+private val DEFAULT_ALPHA_FORMAT = AlphaFormat.PERCENTAGE
+
+private const val PROPERTY_NAME_COLOR_FORMAT = PROPERTY_PREFIX + "colorFormat"
+private val DEFAULT_COLOR_FORMAT = ColorFormat.RGB
+
+private fun loadAlphaFormatProperty(): AlphaFormat {
+  val alphaFormatName = PropertiesComponent.getInstance().getValue(PROPERTY_NAME_ALPHA_FORMAT, DEFAULT_ALPHA_FORMAT.name)
+  return try {
+    AlphaFormat.valueOf(alphaFormatName)
+  }
+  catch (e: IllegalArgumentException) {
+    DEFAULT_ALPHA_FORMAT
+  }
+}
+
+private fun saveAlphaFormatProperty(alphaFormat: AlphaFormat) {
+  PropertiesComponent.getInstance().setValue(PROPERTY_NAME_ALPHA_FORMAT, alphaFormat.name)
+}
+
+private fun loadColorFormatProperty(): ColorFormat {
+  val colorFormatName = PropertiesComponent.getInstance().getValue(PROPERTY_NAME_COLOR_FORMAT, DEFAULT_COLOR_FORMAT.name)
+  return try {
+    ColorFormat.valueOf(colorFormatName)
+  }
+  catch (e: IllegalArgumentException) {
+    DEFAULT_COLOR_FORMAT
+  }
+}
+
+private fun saveColorFormatProperty(colorFormat: ColorFormat) {
+  PropertiesComponent.getInstance().setValue(PROPERTY_NAME_COLOR_FORMAT, colorFormat.name)
 }
