@@ -1213,10 +1213,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             }
           }
 
-          if (!idsBefore.equals(idsAfter)) {
-            setModificationCount(ourModificationCounter.incrementAndGet());
-          }
-          scanDataBinding(psiResourceFile, getModificationCount());
+          rescanJustDataBinding(psiFile);
           // Identities may have changed even if the ids are the same, so update maps
           invalidateParentCaches(myNamespace, ResourceType.ID);
         }
@@ -2339,6 +2336,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (resFile != null) {
       // Data-binding files are always scanned as PsiResourceFiles.
       PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+
+      // TODO: this is a targeted workaround for b/77658263, but we need to fix the invalid Psi eventually.
+      // At this point, it's possible resFile._psiFile is invalid and has a different FileViewProvider than psiFile, even though in theory
+      // they should be identical.
+      if (!resourceFile.getPsiFile().isValid()) {
+        resourceFile.setPsiFile(psiFile, resourceFile.getFolderConfiguration());
+      }
+
       setModificationCount(ourModificationCounter.incrementAndGet());
       scanDataBinding(resourceFile, getModificationCount());
     }
