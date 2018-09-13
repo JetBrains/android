@@ -73,17 +73,52 @@ class DependencyManagementTest : IdeaTestCase() {
       GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
     )
     val correctMessage = "This operation requires the libraries com.android.support:design:+, " +
-        "com.android.support:appcompat-v7:+. \n\nWould you like to add these now?"
+                         "com.android.support:appcompat-v7:+.\n\nWould you like to add these now?"
 
     Truth.assertThat(createAddDependencyMessage(artifacts)).isEqualTo(correctMessage)
   }
 
   fun testUserConfirmationSingleArtifactsMessage() {
     val artifacts = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"))
-    val correctMessage = "This operation requires the library com.android.support:design:+. \n\n" +
-        "Would you like to add this now?"
+    val correctMessage = "This operation requires the library com.android.support:design:+.\n\n" +
+                         "Would you like to add this now?"
 
     Truth.assertThat(createAddDependencyMessage(artifacts)).isEqualTo(correctMessage)
+  }
+
+  fun testUserConfirmationMultipleArtifactMessageWithWarning() {
+    val artifacts = listOf(
+      GoogleMavenArtifactId.DESIGN.getCoordinate("25.2.1"),
+      GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("26.0.1")
+    )
+    val warning = "Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1"
+
+    val correctMessage = """
+      This operation requires the libraries com.android.support:design:25.2.1, com.android.support:appcompat-v7:26.0.1.
+
+      Problem: Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1
+
+      The project may not compile after adding these libraries.
+      Would you like to add them anyway?""".trimIndent()
+
+    Truth.assertThat(createAddDependencyMessage(artifacts, warning)).isEqualTo(correctMessage)
+  }
+
+  fun testUserConfirmationSingleArtifactMessageWithWarning() {
+    val artifacts = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("25.2.1"))
+    val warning =  "Inconsistencies in the existing project dependencies found.\n" +
+                   "Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1"
+
+    val correctMessage = """
+      This operation requires the library com.android.support:design:25.2.1.
+
+      Problem: Inconsistencies in the existing project dependencies found.
+      Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1
+
+      The project may not compile after adding this library.
+      Would you like to add it anyway?""".trimIndent()
+
+    Truth.assertThat(createAddDependencyMessage(artifacts, warning)).isEqualTo(correctMessage)
   }
 
   fun testDependsOnWhenDependencyExists() {
