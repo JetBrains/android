@@ -462,6 +462,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/27.1.1:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/27.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-core/3.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-idling-resource/3.0.2:aar",
