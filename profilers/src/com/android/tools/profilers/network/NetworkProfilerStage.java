@@ -15,7 +15,16 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.*;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
+
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.EaseOutModel;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionListener;
+import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
@@ -23,19 +32,20 @@ import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
-
-import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
-import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
 
 public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_NETWORK_SELECTION = "network.used.selection";
@@ -50,8 +60,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
-
-  StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
 
   private final NetworkConnectionsModel myConnectionsModel =
     new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
@@ -73,10 +81,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     super(profilers);
 
     ProfilerTimeline timeline = profilers.getTimeline();
-    NetworkRadioDataSeries radioDataSeries =
-      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), getStudioProfilers().getSession());
-    myRadioState = new StateChartModel<>();
-    myRadioState.addSeries(new RangedSeries<>(timeline.getViewRange(), radioDataSeries));
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
@@ -164,10 +168,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   @NotNull
   public AspectModel<NetworkProfilerAspect> getAspect() {
     return myAspect;
-  }
-
-  public StateChartModel<NetworkRadioDataSeries.RadioState> getRadioState() {
-    return myRadioState;
   }
 
   @Override

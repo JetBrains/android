@@ -29,33 +29,44 @@ import org.fest.swing.core.Robot
 import org.fest.swing.exception.ComponentLookupException
 import javax.swing.JMenuItem
 
-class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindowFixture("Blaze Console", project, robot) {
+class BazelConsoleToolWindowFixture(project: Project, robot: Robot) : ToolWindowFixture("Blaze Console", project, robot) {
   val content: Content = UIUtil.invokeAndWaitIfNeeded(Computable<Content> {
     Verify.verify(!contents.isEmpty())
     contents[0]
   })
 
   @Throws(ComponentLookupException::class)
-  private fun getConsoleText() = myRobot
+  fun getConsoleText(): String = myRobot
     .finder()
     .findByType(content.component, EditorComponentImpl::class.java, true)
     .text
 
   fun hasSyncStarted() = try {
-    getConsoleText().contains("Syncing project: Sync (incremental)...")
-  } catch (e: ComponentLookupException) {
+    getConsoleText().contains("Syncing project: Sync (incremental)...") ||
+    getConsoleText().contains("Syncing project: Sync (full)...")
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 
   fun hasSyncFinished() = try {
     getConsoleText().contains("==== TIMING REPORT ====")
-  } catch (e: ComponentLookupException) {
+  }
+  catch (e: ComponentLookupException) {
+    false
+  }
+
+  fun hasSyncFailed() = try {
+    getConsoleText().contains("Sync failed")
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 
   fun hasSyncErrors() = try {
     getConsoleText().contains("ERROR:")
-  } catch (e: ComponentLookupException) {
+  }
+  catch (e: ComponentLookupException) {
     false
   }
 

@@ -18,6 +18,7 @@ package com.android.tools.adtui.chart.linechart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   /**
    * Note that {@link #myDataCache} is 1:1 with {@link #myClickRegionCache}.
    */
-  @NotNull private final List<E> myDataCache = new ArrayList<>();
+  @NotNull private final List<SeriesData<E>> myDataCache = new ArrayList<>();
 
   @NotNull private final Color myColor;
   @Nullable private final Color myDurationBgColor;
@@ -158,7 +159,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       myPathCache.add(rect);
 
       Rectangle2D.Float clickRegion = new Rectangle2D.Float();
-      myDataCache.add(data.value);
+      myDataCache.add(data);
       myClickRegionCache.add(clickRegion);
       // If the DurationData needs to attach to a line series, finds the Y value on the line series matching the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
@@ -222,7 +223,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
                           @NotNull Graphics2D g2d,
                           @NotNull List<Path2D> transformedPaths,
                           @NotNull List<RangedContinuousSeries> series) {
-    if (myDurationBgColor != null || !myCustomLineConfigs.isEmpty()) {
+    BiPredicate<SeriesData<E>, RangedContinuousSeries> renderSeriesPredicate = myModel.getRenderSeriesPredicate();
+    if (myDurationBgColor != null || !myCustomLineConfigs.isEmpty() || renderSeriesPredicate != null) {
       Shape originalClip = g2d.getClip();
       Dimension dim = lineChart.getSize();
 
@@ -243,7 +245,9 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         configs.add(config);
       }
 
-      for (Rectangle2D.Float rect : myPathCache) {
+      for (int i = 0; i < myPathCache.size(); i++) {
+        Rectangle2D.Float rect = myPathCache.get(i);
+        SeriesData<E> data = myDataCache.get(i);
         double scaledXStart = rect.x * dim.getWidth();
         double scaledXDuration = rect.width * dim.getWidth();
         double newX = Math.max(scaledXStart, originalClip.getBounds().getX());
@@ -255,10 +259,17 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
         // Paint the background
         g2d.setColor(myDurationBgColor == null ? lineChart.getBackground() : myDurationBgColor);
-        g2d.fill(clipRect);
         g2d.setClip(clipRect);
+        g2d.fill(clipRect);
         // Redraw lines in clipRect.
-        LineChart.drawLines(g2d, transformedPaths, series, configs);
+        for (int j = 0; j < transformedPaths.size(); ++j) {
+          RangedContinuousSeries rangedSeries = series.get(j);
+          // Skip rendering the line if the DurationDataModel decides to not show the series within the current data's duration.
+          if (renderSeriesPredicate != null && !renderSeriesPredicate.test(data, rangedSeries)) {
+            continue;
+          }
+          LineChart.drawLine(g2d, transformedPaths.get(j), configs.get(j));
+        }
         g2d.setClip(originalClip);
       }
     }
@@ -374,7 +385,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
                                             (scaledRect.getWidth() + scaledRect.getHeight()) * 0.5);
         if (manhattanDistance < closestManhattanDistance) {
           closestManhattanDistance = manhattanDistance;
-          closestData = myDataCache.get(i);
+          closestData = myDataCache.get(i).value;
         }
       }
     }

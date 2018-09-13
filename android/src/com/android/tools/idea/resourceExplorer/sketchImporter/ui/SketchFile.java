@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.meta.SketchMeta;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -36,14 +40,44 @@ import org.jetbrains.annotations.Nullable;
  * <li><b>"meta.json"</b> - Contains metadata about the document itself: a list of pages and artboards, fonts used etc.</li>
  * <li><b>"user.json"</b> - Contains user metadata for the file, like the canvas viewport & zoom level for each page, UI metadata for the app etc.</li>
  * </ul>
+ * <p>
+ * With respect to the MVP pattern developed for the Sketch Importer UI, this class is part of the model that forms the backbone of the
+ * information presented in the interface.
  */
 public class SketchFile {
   private SketchDocument myDocument;
+  private SketchMeta myMeta;
   private List<SketchPage> myPages = new ArrayList<>();
-  // TODO the rest of the structure as classes are created
+  private SymbolsLibrary mySymbolsLibrary = new SymbolsLibrary();
 
   public void addPage(@NotNull SketchPage page) {
     myPages.add(page);
+    mySymbolsLibrary.addSymbols(getAllSymbolMasters(page));
+  }
+
+  @NotNull
+  private static ImmutableList<SketchSymbolMaster> getAllSymbolMasters(@NotNull SketchPage page) {
+    ImmutableList.Builder<SketchSymbolMaster> masters = new ImmutableList.Builder<>();
+    for (SketchLayer layer : page.getLayers()) {
+      masters.addAll(getSymbolMasters(layer));
+    }
+
+    return masters.build();
+  }
+
+  @NotNull
+  private static ImmutableList<SketchSymbolMaster> getSymbolMasters(@NotNull SketchLayer layer) {
+    ImmutableList.Builder<SketchSymbolMaster> masters = new ImmutableList.Builder<>();
+    if (layer instanceof SketchLayerable) {
+      if (layer instanceof SketchSymbolMaster) {
+        masters.add((SketchSymbolMaster)layer);
+      }
+      for (SketchLayer subLayer : ((SketchLayerable)layer).getLayers()) {
+        masters.addAll(getSymbolMasters(subLayer));
+      }
+    }
+
+    return masters.build();
   }
 
   @NotNull
@@ -51,13 +85,61 @@ public class SketchFile {
     return myPages;
   }
 
+  @NotNull
+  public SketchDocument getDocument() {
+    return myDocument;
+  }
+
   public void setDocument(@NotNull SketchDocument document) {
     myDocument = document;
   }
 
   @NotNull
-  public SketchDocument getDocument() {
-    return myDocument;
+  public SketchMeta getMeta() {
+    return myMeta;
+  }
+
+  public void setMeta(@NotNull SketchMeta meta) {
+    myMeta = meta;
+  }
+
+  /**
+   * Recursively search through all pages in the file for the layer with the corresponding {@code objectId}.
+   *
+   * @return the found layer or {@code null} if no layer was found
+   */
+  @Nullable
+  public SketchLayer findLayer(@NotNull String objectId) {
+    for (SketchPage page : myPages) {
+      SketchLayer foundLayer = findLayer(objectId, page);
+      if (foundLayer != null) {
+        return foundLayer;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Recursively search through all pages in the file for the symbol with the corresponding {@code symbolId}.
+   *
+   * @return the found symbol or {@code null} if no layer was found
+   */
+  @Nullable
+  public SketchSymbol findSymbol(@NotNull String symbolId) {
+    for (SketchPage page : myPages) {
+      SketchSymbol foundSymbol = findSymbol(symbolId, page);
+      if (foundSymbol != null) {
+        return foundSymbol;
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  public SymbolsLibrary getSymbolsLibrary() {
+    return mySymbolsLibrary;
   }
 
   /**
@@ -84,23 +166,6 @@ public class SketchFile {
   }
 
   /**
-   * Recursively search through all pages in the file for the layer with the corresponding {@code objectId}.
-   *
-   * @return the found layer or {@code null} if no layer was found
-   */
-  @Nullable
-  public SketchLayer findLayer(@NotNull String objectId) {
-    for (SketchPage page : myPages) {
-      SketchLayer foundLayer = findLayer(objectId, page);
-      if (foundLayer != null) {
-        return foundLayer;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Recursively search for the symbol with the corresponding {@code symbolId} starting at {@code currentLayer}.
    *
    * @return the found symbol or {@code null} if no layer was found
@@ -119,23 +184,6 @@ public class SketchFile {
         if (foundSymbol != null) {
           return foundSymbol;
         }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Recursively search through all pages in the file for the symbol with the corresponding {@code symbolId}.
-   *
-   * @return the found symbol or {@code null} if no layer was found
-   */
-  @Nullable
-  public SketchSymbol findSymbol(@NotNull String symbolId) {
-    for (SketchPage page : myPages) {
-      SketchSymbol foundSymbol = findSymbol(symbolId, page);
-      if (foundSymbol != null) {
-        return foundSymbol;
       }
     }
 

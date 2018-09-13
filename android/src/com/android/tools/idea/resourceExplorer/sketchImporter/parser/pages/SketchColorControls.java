@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "colorControls"</code> contained within a sketch file.
+ */
 public class SketchColorControls {
   private final boolean isEnabled;
   private final int brightness;

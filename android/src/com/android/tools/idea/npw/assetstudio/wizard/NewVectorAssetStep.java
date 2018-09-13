@@ -28,11 +28,24 @@ import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.ui.*;
+import com.android.tools.idea.observable.ui.ColorProperty;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
+import com.android.tools.idea.observable.ui.SliderValueProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -49,20 +62,27 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingWorker;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * A wizard step for generating Android vector drawable icons.
@@ -155,7 +175,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myFacet = facet;
 
     int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
-    myIconGenerator = new VectorIconGenerator(minSdkVersion);
+    myIconGenerator = new VectorIconGenerator(myFacet.getModule().getProject(), minSdkVersion);
     Disposer.register(this, myIconGenerator);
 
     myImagePreviewPanel.setBorder(JBUI.Borders.customLine(JBColor.border()));
@@ -228,7 +248,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
-        myActiveAssetBindings.bind(myActiveAsset.get().color(), myColor);
+        myActiveAssetBindings.bind(ObjectProperty.wrap(myActiveAsset.get().color()), myColor);
       }
       myActiveAssetBindings.bind(myActiveAsset.get().opacityPercent(), myOpacityPercent);
       myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), myAutoMirrored);

@@ -29,11 +29,23 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.Predicate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
@@ -43,8 +55,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public abstract class ResourceManager {
   private interface FileResourceProcessor {
@@ -126,30 +136,18 @@ public abstract class ResourceManager {
 
   @NotNull
   public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceFolderType,
-                                         @Nullable String resName1,
+                                         @Nullable String nameToLookFor,
                                          boolean distinguishDelimitersInName,
                                          boolean withDependencies) {
     List<PsiFile> result = new ArrayList<>();
     processFileResources(getResourceDirsByLibraryName(withDependencies), resourceFolderType, (resFile, resName, libraryName) -> {
-      if (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimitersInName)) {
+      if (nameToLookFor == null || AndroidUtils.equal(nameToLookFor, resName, distinguishDelimitersInName)) {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
         if (file != null) {
           result.add(file);
         }
       }
     });
-    return result;
-  }
-
-  @NotNull
-  protected final Multimap<String, XmlFile> findValueResourcesByLibraryName() {
-    Multimap<String, XmlFile> result = HashMultimap.create();
-    processFileResources(getAllResourceDirs(), ResourceFolderType.VALUES, (resFile, resName, libraryName) -> {
-        PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
-        if (file instanceof XmlFile) {
-          result.put(libraryName, (XmlFile)file);
-        }
-      });
     return result;
   }
 
@@ -226,7 +224,7 @@ public abstract class ResourceManager {
       if (AndroidResourceUtil.isConstraintReferencedIds(attributeValue)) {
         String ids = attributeValue.getValue();
         if (ids != null) {
-          return Arrays.stream(ids.split(",")).anyMatch(s -> s.equals(id));
+          return Arrays.asList(ids.split(",")).contains(id);
         }
       }
       return false;
@@ -261,7 +259,7 @@ public abstract class ResourceManager {
           psiFile.accept(new XmlRecursiveElementVisitor() {
             @Override
             public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
-              if (condition.apply(attributeValue)) {
+              if (condition.test(attributeValue)) {
                 usages.add(attributeValue);
               }
             }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.PathStringBuilder;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class VectorPathBuilderTest {
 

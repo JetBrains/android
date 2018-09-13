@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.annotations.VisibleForTesting.Visibility;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.editor.ActionManager;
@@ -22,7 +24,18 @@ import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -56,24 +69,38 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
-import org.intellij.lang.annotations.JdkConstants;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.plaf.ScrollBarUI;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.Adjustable;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import static com.android.annotations.VisibleForTesting.Visibility;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Timer;
+import javax.swing.plaf.ScrollBarUI;
+import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -415,11 +442,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   public abstract Dimension getScrolledAreaSize();
 
-  @Nullable
-  public Dimension updateScrolledAreaSize() {
+  public void updateScrolledAreaSize() {
     final Dimension dimension = getScrolledAreaSize();
     if (dimension == null) {
-      return null;
+      return;
     }
     myLayeredPane.setSize(dimension.width, dimension.height);
     myLayeredPane.setPreferredSize(dimension);
@@ -429,7 +455,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (view != null) {
       myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), view.getSize().width, view.getSize().height);
     }
-    return dimension;
   }
 
   /**
@@ -721,14 +746,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return;
     }
     myCurrentZoomType = null;
-    if (scale < 0) {
-      // We wait for component resized to be fired
-      // that will take care of calling zoomToFit
-      scale = -1;
-    }
-    else if (Math.abs(scale - 1) < 0.0001) {
-      scale = 1;
-    }
 
     Point oldViewPosition = getScrollPosition();
 

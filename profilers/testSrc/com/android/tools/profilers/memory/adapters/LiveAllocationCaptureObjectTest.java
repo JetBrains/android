@@ -15,18 +15,39 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
+import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject.DEFAULT_HEAP_NAME;
+import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject.JNI_HEAP_ID;
+import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject.JNI_HEAP_NAME;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
-import com.android.tools.profilers.*;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,17 +55,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.*;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
-import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
-import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject.*;
-import static com.google.common.truth.Truth.assertThat;
 
 
 public class LiveAllocationCaptureObjectTest {
@@ -487,6 +497,64 @@ public class LiveAllocationCaptureObjectTest {
       loadRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
       assertThat(loadSuccess[0]).isTrue();
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+    }
+
+    @Test
+    public void testInfoMessageBasedOnSelection() {
+      MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME))
+          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 1))
+          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build()))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 2))
+          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build()))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 3))
+          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
+        .build();
+      myService.setMemoryData(memoryData);
+
+      // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
+      boolean[] loadSuccess = new boolean[1];
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                            ProfilersTestData.SESSION_DATA,
+                                                                            CAPTURE_START_TIME,
+                                                                            LOAD_SERVICE,
+                                                                            myStage);
+      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+
+      Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME);
+      loadSuccess[0] = false;
+      capture.load(loadRange, LOAD_JOINER);
+      assertThat(loadSuccess[0]).isTrue();
+      assertThat(capture.getInfoMessage()).isNull();
+
+      loadSuccess[0] = false;
+      loadRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + 3);
+      assertThat(loadSuccess[0]).isTrue();
+      assertThat(capture.getInfoMessage()).isEqualTo(LiveAllocationCaptureObject.SAMPLING_INFO_MESSAGE);
+
+      loadSuccess[0] = false;
+      loadRange.set(CAPTURE_START_TIME + 1, CAPTURE_START_TIME + 2);
+      assertThat(loadSuccess[0]).isTrue();
+      assertThat(capture.getInfoMessage()).isEqualTo(LiveAllocationCaptureObject.SAMPLING_INFO_MESSAGE);
+
+      loadSuccess[0] = false;
+      loadRange.set(CAPTURE_START_TIME + 2, CAPTURE_START_TIME + 3);
+      assertThat(loadSuccess[0]).isTrue();
+      assertThat(capture.getInfoMessage()).isEqualTo(LiveAllocationCaptureObject.SAMPLING_INFO_MESSAGE);
+
+      loadSuccess[0] = false;
+      loadRange.set(CAPTURE_START_TIME + 3, CAPTURE_START_TIME + 4);
+      assertThat(loadSuccess[0]).isTrue();
+      assertThat(capture.getInfoMessage()).isNull();
     }
   }
 

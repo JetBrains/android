@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
@@ -239,3 +240,7 @@ private fun loadLastUsedColorCategory(): MaterialColors.Category {
 private fun saveLastUsedColorCategory(category: MaterialColors.Category)
   = PropertiesComponent.getInstance().setValue(
   COLOR_PICKER_CATEGORY_PROPERTY, category.name)
+
+object MaterialColorPaletteProvider : ColorPickerComponentProvider {
+  override fun createComponent(colorPickerModel: ColorPickerModel) = MaterialColorPalette(colorPickerModel)
+}

@@ -60,8 +60,22 @@ public class PathModel extends ShapeModel {
   @Override
   public void applyTransformations() {
     AffineTransform transform = computeAffineTransform();
-
     path.transform(transform);
     transformGradient(transform);
+  }
+
+  @Override
+  public void scale(double scaleX, double scaleY) {
+    AffineTransform scaleTransform = new AffineTransform();
+    scaleTransform.scale(scaleX, scaleY);
+    path.transform(scaleTransform);
+  }
+
+
+  @Override
+  public void translate(double translateX, double translateY) {
+    AffineTransform translateTransform = new AffineTransform();
+    translateTransform.translate(translateX, translateY);
+    path.transform(translateTransform);
   }
 }

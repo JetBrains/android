@@ -79,7 +79,7 @@ public class NewImageAssetTest {
 
     step.selectIconType("Notification Icons");
     assertThat(step.getPreviewPanelCount()).isEqualTo(1);
-    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("xxxhdpi", "xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
+    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("anydpi", "xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
     step.wizard()
       .clickNext()
       .clickFinish();
@@ -91,57 +91,7 @@ public class NewImageAssetTest {
                                          "app/src/main/res/drawable-hdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxxhdpi/ic_stat_name.png");
-  }
-
-  @RunIn(TestGroup.UNRELIABLE)  // b/76439151
-  @Test
-  public void testNotificationImageCountForOldApi() throws Exception {
-    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath("app")
-      .getEditor()
-      .open("app/build.gradle")
-      .select("minSdkVersion (21)")
-      .enterText("4")
-      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .moveBetween("minSdkVersion ", "4")
-      .getIdeFrame()
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
-
-    Path projectDir = guiTest.getProjectPath().toPath();
-    FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
-
-    wizard.getImageAssetStep()
-      .selectIconType("Notification Icons");
-    wizard.clickNext()
-      .clickFinish();
-
-    FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
-
-    List<String> newFiles = getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed));
-    assertThat(newFiles).containsExactly("app/src/main/res/drawable-mdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-hdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxxhdpi/ic_stat_name.png",
-
-                                         "app/src/main/res/drawable-mdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-hdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xhdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxxhdpi-v9/ic_stat_name.png",
-
-                                         "app/src/main/res/drawable-mdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-hdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xhdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxxhdpi-v11/ic_stat_name.png"
-      );
+                                         "app/src/main/res/drawable-anydpi-v24/ic_stat_name.xml");
   }
 
   @NotNull

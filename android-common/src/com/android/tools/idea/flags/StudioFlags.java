@@ -76,6 +76,11 @@ public final class StudioFlags {
     "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
     false);
 
+  public static final Flag<Boolean> NPW_NAVIGATION_SUPPORT = Flag.create(
+    NPW, "navigation.support", "Add a navigation support for each template",
+    "Add a option what type of Navigation is added in the created Activity in the selected template",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
@@ -180,9 +185,9 @@ public final class StudioFlags {
     "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
     false);
 
-  public static final Flag<Boolean> NELE_LIVE_RENDER = Flag.create(
-    NELE, "live.render", "Enable the Live Render",
-    "Enable the continuous rendering of the surface when moving/resizing components.",
+  public static final Flag<Boolean> NELE_DEFAULT_LIVE_RENDER = Flag.create(
+    NELE, "live.render", "Enable the Live Render by default",
+    "Enable the continuous rendering of the surface when moving/resizing components unless the user disables it.",
     true);
 
   public static final Flag<Boolean> NELE_SAMPLE_DATA_UI = Flag.create(
@@ -380,7 +385,7 @@ public final class StudioFlags {
     EDITOR,
     "in.memory.r.classes",
     "Generate R classes fully in memory",
-    "If enabled, R classes are generated in memory", false);
+    "If enabled, R classes are generated in memory", true);
 
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
     EDITOR,

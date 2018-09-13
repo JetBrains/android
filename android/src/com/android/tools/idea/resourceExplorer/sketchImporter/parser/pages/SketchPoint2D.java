@@ -19,6 +19,11 @@ import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * {@link Point2D.Double} that represents a sketch point, which is actually a string in the sketch file.
+ *
+ * @see com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.PointDeserializer
+ */
 public class SketchPoint2D extends Point2D.Double {
   public SketchPoint2D(double x, double y) {
     super(x, y);

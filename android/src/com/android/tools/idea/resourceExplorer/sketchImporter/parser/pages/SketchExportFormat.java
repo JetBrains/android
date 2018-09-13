@@ -17,6 +17,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "exportFormat"</code> contained within a sketch file.
+ */
 public class SketchExportFormat {
   public static final int NAMING_SCHEME_SUFFIX = 0;
   public static final int NAMING_SCHEME_PREFIX = 1;

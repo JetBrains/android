@@ -350,7 +350,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Nullable
   private static String getPackageName(@NotNull ExternalLibrary library) {
-    PathString manifestFile = library.getRepresentativeManifestFile();
+    if (library.getPackageName() != null) {
+      return library.getPackageName();
+    }
+    PathString manifestFile = library.getManifestFile();
     if (manifestFile != null) {
       try {
         return AndroidManifestUtils.getPackageNameFromManifestFile(manifestFile);

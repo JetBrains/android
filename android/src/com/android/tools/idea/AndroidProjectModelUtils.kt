@@ -29,6 +29,7 @@ import com.android.SdkConstants.DOT_AAR
 import com.android.SdkConstants.FD_JARS
 import com.android.SdkConstants.LIBS_FOLDER
 import com.android.builder.model.AaptOptions
+import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.projectsystem.getModuleSystem

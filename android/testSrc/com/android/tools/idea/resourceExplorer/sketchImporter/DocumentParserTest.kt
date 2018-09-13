@@ -49,7 +49,7 @@ class DocumentParserTest {
     val document: SketchDocument = SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val styles = document.foreignLayerStyles
-    assertEquals(0, styles.size)
+    assertEquals(0, styles?.size)
 
     // TODO when we get a better test file
   }
@@ -59,16 +59,16 @@ class DocumentParserTest {
     val document: SketchDocument = SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val symbols = document.foreignSymbols
-    assertEquals(74, symbols.size)
+    assertEquals(74, symbols?.size)
 
-    val symbol = symbols[0]
-    assertEquals("A9567D7E-AEAA-40A8-8DFD-4B03978DD172", symbol.libraryId)
-    assertEquals("google-material-icons", symbol.sourceLibraryName)
+    val symbol = symbols?.get(0)
+    assertEquals("A9567D7E-AEAA-40A8-8DFD-4B03978DD172", symbol?.libraryId)
+    assertEquals("google-material-icons", symbol?.sourceLibraryName)
 
-    val originalMaster = symbol.originalMaster
-    assertEquals("Styles/1. Color/1. Grey/700  ✔", originalMaster.name)
+    val originalMaster = symbol?.originalMaster
+    assertEquals("Styles/1. Color/1. Grey/700  ✔", originalMaster?.name)
 
-    val originalShapeGroup = originalMaster.layers[0]
+    val originalShapeGroup = originalMaster?.layers?.get(0)
     assertTrue(originalShapeGroup is SketchShapeGroup)
 
     val originalRectangle = (originalShapeGroup as SketchShapeGroup).layers[0]
@@ -91,7 +91,7 @@ class DocumentParserTest {
     val document: SketchDocument = SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val styles = document.foreignTextStyles
-    assertEquals(0, styles.size)
+    assertEquals(0, styles?.size)
 
     // TODO when we get a better test file
   }

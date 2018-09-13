@@ -19,7 +19,10 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableCellRendererProvider
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
+import java.awt.event.MouseEvent
 import javax.swing.JTable
 
 /**
@@ -29,7 +32,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
                   rendererProvider: PTableCellRendererProvider,
                   editorProvider: PTableCellEditorProvider) {
 
-  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider)
+  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider) { getToolTipText(it) }
   val component = table.component as JTable
 
   init {
@@ -48,5 +51,14 @@ class TableEditor(val lineModel: TableLineModelImpl,
     if (lineModel.updateEditing) {
       table.startEditing(lineModel.rowToEdit)
     }
+  }
+
+  private fun getToolTipText(event: MouseEvent): String? {
+    val tableRow = component.rowAtPoint(event.point)
+    val tableColumn = component.columnAtPoint(event.point)
+    val index = component.convertRowIndexToModel(tableRow)
+    val column = PTableColumn.fromColumn(tableColumn)
+    val property = lineModel.tableModel.items[index] as PropertyItem
+    return PropertyTooltip.setToolTip(component, event, property, column == PTableColumn.VALUE, null)
   }
 }

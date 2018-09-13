@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
 import com.android.tools.idea.common.editor.SetZoomActionGroups;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
-import com.android.tools.idea.uibuilder.statelist.StateListActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.psi.xml.XmlFile;
@@ -104,7 +103,7 @@ public enum NlLayoutType {
     }
   },
 
-  STATE_LIST(true) {
+  STATE_LIST(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return FileDescriptionUtils.isResourceOfTypeContainingTag(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
@@ -113,7 +112,8 @@ public enum NlLayoutType {
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      return new StateListActionGroups(surface);
+      // This returns an empty toolbar instead of using the default one
+      return new ToolbarActionGroups(surface);
     }
   },
 

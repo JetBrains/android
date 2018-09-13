@@ -26,9 +26,14 @@ import com.android.tools.datastore.DeviceId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark
+import com.android.tools.perflogger.MedianWindowDeviationAnalyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -46,7 +51,6 @@ import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
-import com.android.tools.profilers.network.NetworkRadioDataSeries
 import com.android.tools.profilers.network.NetworkTrafficDataSeries
 import com.google.common.util.concurrent.MoreExecutors
 import io.grpc.inprocess.InProcessChannelBuilder
@@ -55,6 +59,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
@@ -119,7 +124,6 @@ class DataSeriesPerformanceTest {
                                  Pair("Cpu-Thread-Count", CpuThreadCountDataSeries(client.cpuClient, session)),
                                  Pair("Cpu-Thread-State", ThreadStateDataSeries(client.cpuClient, session, 1)),
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
-                                 Pair("Network-Radio", NetworkRadioDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
                                  Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
@@ -139,7 +143,10 @@ class DataSeriesPerformanceTest {
         collectAndReportAverageTimes(i, nameToMetrics[name]!!, dataSeriesToTest[name]!!, i != START_TIME)
       }
     }
-    nameToMetrics.values.forEach { it.commit() }
+    nameToMetrics.values.forEach {
+      it.setAnalyzers(benchmark, setOf(MedianWindowDeviationAnalyzer.Builder().build()))
+      it.commit()
+    }
   }
 
   private fun <T> collectAndReportAverageTimes(offset: Long, metric: Metric, series: DataSeries<T>, recordMetric: Boolean) {

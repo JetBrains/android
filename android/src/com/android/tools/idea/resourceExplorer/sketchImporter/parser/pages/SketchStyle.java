@@ -20,12 +20,19 @@ import java.awt.Shape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "style"</code> contained within a sketch file.
+ */
 public class SketchStyle {
-  public final SketchGraphicContextSettings DEFAULT_CONTEXT_SETTINGS = new SketchGraphicContextSettings((short)0, (short)1);
   public final static short DEFAULT_BLENDING_MODE = 0;
-
+  public final SketchGraphicsContextSettings DEFAULT_CONTEXT_SETTINGS = new SketchGraphicsContextSettings((short)0, (short)1);
   private final SketchBorderOptions borderOptions;
   private final SketchBorder[] borders;
+  private final SketchColorControls colorControls;
+  private final SketchFill[] fills;
+  private final short miterLimit;
+  private final SketchShadow[] shadows;
+  private final short windingRule;
   /**
    * If this field does not exist, the default values are considered:
    * <ul>
@@ -33,16 +40,11 @@ public class SketchStyle {
    * <li>opacity: 1</li>
    * </ul>
    */
-  private SketchGraphicContextSettings contextSettings;
-  private final SketchColorControls colorControls;
-  private final SketchFill[] fills;
-  private final short miterLimit;
-  private final SketchShadow[] shadows;
-  private final short windingRule;
+  private SketchGraphicsContextSettings contextSettings;
 
   public SketchStyle(@Nullable SketchBorderOptions borderOptions,
                      @Nullable SketchBorder[] borders,
-                     @Nullable SketchGraphicContextSettings contextSettings,
+                     @Nullable SketchGraphicsContextSettings contextSettings,
                      @Nullable SketchColorControls colorControls,
                      @Nullable SketchFill[] fills,
                      short miterLimit,
@@ -69,7 +71,7 @@ public class SketchStyle {
   }
 
   @Nullable
-  public SketchGraphicContextSettings getContextSettings() {
+  public SketchGraphicsContextSettings getContextSettings() {
     return contextSettings;
   }
 
@@ -115,7 +117,7 @@ public class SketchStyle {
       contextSettings.addOpacity(parentOpacity);
     }
     else {
-      contextSettings = new SketchGraphicContextSettings(DEFAULT_BLENDING_MODE, parentOpacity);
+      contextSettings = new SketchGraphicsContextSettings(DEFAULT_BLENDING_MODE, parentOpacity);
     }
 
     if (shapeFills != null) {

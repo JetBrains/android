@@ -19,6 +19,9 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link SketchLayer} that mimics the JSON element with attribute <code>"_class": "text"</code> contained within a sketch file.
+ */
 public class SketchText extends SketchLayer {
   private final SketchStyle style;
   // TODO after parsing document.json

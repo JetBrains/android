@@ -18,21 +18,26 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_c
 import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.ShapeToDrawableConverter.createDrawableShape;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.Path2DBuilder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AreaModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.PathModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchCurvePoint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicContextSettings;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGraphicsContextSettings;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapeGroup;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -41,13 +46,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class SketchToShapeConverter {
 
-  private static final int DEFAULT_OPACITY = 1;
+  public static final int DEFAULT_OPACITY = 1;
 
   @NotNull
-  public static ImmutableList<DrawableModel> createAllDrawableShapes(@NotNull SketchArtboard artboard) {
+  public static ImmutableList<DrawableModel> createAllDrawableShapes(@NotNull SketchArtboard artboard,
+                                                                     @NotNull SymbolsLibrary symbolsLibrary) {
     ImmutableList.Builder<DrawableModel> drawableShapes = new ImmutableList.Builder<>();
 
-    for (ShapeModel shapeModel : createAllShapeModels(artboard)) {
+    for (ShapeModel shapeModel : createAllShapeModels(artboard, symbolsLibrary)) {
       drawableShapes.add(createDrawableShape(shapeModel));
     }
 
@@ -55,22 +61,34 @@ public class SketchToShapeConverter {
   }
 
   @NotNull
-  private static ImmutableList<ShapeModel> createAllShapeModels(@NotNull SketchArtboard artboard) {
+  private static ImmutableList<ShapeModel> createAllShapeModels(@NotNull SketchArtboard artboard, @NotNull SymbolsLibrary symbolsLibrary) {
     ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = artboard.getLayers();
 
     for (SketchLayer layer : layers) {
+      if (!symbolsLibrary.isEmpty() && layer instanceof SketchSymbolInstance) {
+        shapes.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, symbolsLibrary));
+      }
+
       if (layer instanceof SketchShapeGroup) {
         shapes.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, new Point2D.Double(), false, DEFAULT_OPACITY));
       }
       else if (layer instanceof SketchPage) {
-        shapes.addAll(createShapeModelsFromPage((SketchPage)layer, new Point2D.Double(), DEFAULT_OPACITY));
+        shapes.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, new Point2D.Double(), DEFAULT_OPACITY, symbolsLibrary));
       }
     }
 
     return shapes.build();
   }
 
+  @NotNull
+  private static ImmutableList<ShapeModel> createShapeModelsFromSymbol(SketchSymbolInstance symbolInstance, SymbolsLibrary symbolsLibrary) {
+    SymbolModel symbolModel = symbolsLibrary.getSymbolModel(symbolInstance.getSymbolId());
+    symbolModel.setSymbolInstance(symbolInstance);
+    symbolModel.scaleShapes();
+    symbolModel.translateShapes();
+    return symbolModel.getShapeModels();
+  }
 
   /**
    * Method that generates the shape model of the shape in the SketchShapeGroup object.
@@ -148,29 +166,47 @@ public class SketchToShapeConverter {
   }
 
   @NotNull
-  private static ImmutableList<ShapeModel> createShapeModelsFromPage(@NotNull SketchPage page,
-                                                                     @NotNull Point2D.Double parentCoords,
-                                                                     double parentOpacity) {
-    Point2D.Double newParentCoords = new Point2D.Double(parentCoords.getX() + page.getFrame().getX(),
-                                                        parentCoords.getY() + page.getFrame().getY());
-    SketchGraphicContextSettings graphicContextSettings = page.getStyle().getContextSettings();
+  public static ImmutableList<ShapeModel> createShapeModelsFromLayerable(@NotNull SketchLayerable layerable,
+                                                                         @NotNull Point2D.Double parentCoords,
+                                                                         double parentOpacity,
+                                                                         @NotNull SymbolsLibrary symbolsLibrary) {
+    Point2D.Double newParentCoords;
+
+    // The SketchSymbolMaster in a page has its own frame and position that have nothing
+    // to do with where the instance is placed. Therefore, if the layer is a symbol master,
+    // we ignore its position
+    if (layerable instanceof SketchSymbolMaster) {
+      newParentCoords = parentCoords;
+    }
+    // However, if the layer is not a SymbolMaster, it is a layerable object inside an artboard
+    // whose position is relevant and must be added to the new parent coordinates.
+    else {
+      newParentCoords = new Point2D.Double(parentCoords.getX() + layerable.getFrame().getX(),
+                                           parentCoords.getY() + layerable.getFrame().getY());
+    }
+
+    SketchGraphicsContextSettings graphicContextSettings = layerable.getStyle().getContextSettings();
     if (graphicContextSettings != null) {
       parentOpacity *= graphicContextSettings.getOpacity();
     }
     ImmutableList.Builder<ShapeModel> builder = new ImmutableList.Builder<>();
 
     boolean isLastGroupElement = false;
-    SketchLayer[] groupLayers = page.getLayers();
+    SketchLayer[] groupLayers = layerable.getLayers();
     for (int i = 0; i < groupLayers.length; i++) {
       if (i == groupLayers.length - 1) {
         isLastGroupElement = true;
       }
       SketchLayer layer = groupLayers[i];
+      if (!symbolsLibrary.isEmpty() && layer instanceof SketchSymbolInstance) {
+        builder.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, symbolsLibrary));
+      }
+
       if (layer instanceof SketchShapeGroup) {
         builder.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, newParentCoords, isLastGroupElement, parentOpacity));
       }
       else if (layer instanceof SketchPage) {
-        builder.addAll(createShapeModelsFromPage((SketchPage)layer, newParentCoords, parentOpacity));
+        builder.addAll(createShapeModelsFromLayerable((SketchPage)layer, newParentCoords, parentOpacity, symbolsLibrary));
       }
     }
 
@@ -210,7 +246,7 @@ public class SketchToShapeConverter {
   private static Path2D.Double getGenericPath(@NotNull SketchShapePath shapePath) {
     Path2DBuilder path2DBuilder = new Path2DBuilder();
     SketchCurvePoint[] points = shapePath.getPoints();
-    if(points.length == 0){
+    if (points.length == 0) {
       return new Path2D.Double();
     }
     SketchPoint2D startCoords = points[0].getPoint().makeAbsolutePosition(shapePath.getFrame());

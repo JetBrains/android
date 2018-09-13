@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
+import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
+import static java.lang.String.format;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.ImageUtils;
@@ -32,7 +38,12 @@ import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
@@ -49,11 +60,8 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.ImageUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -61,12 +69,16 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
-import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
-import static java.lang.String.format;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -74,6 +86,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  */
 public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModuleModel> {
   private final NewProjectModel myProjectModel;
+  private final NewProjectModuleModel myProjectModuleModel;
 
   private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
@@ -102,6 +115,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
+    myProjectModuleModel = newProjectModuleModel;
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -129,7 +143,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
     Expression<String> computedPackageName = myProjectModel.applicationName()
-      .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
+                                                           .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(myProjectModel.packageName(), packageNameText);
@@ -146,9 +160,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    if(StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
+    if (StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
       myBindings.bindTwoWay(getModel().dynamicInstantApp(), new SelectedProperty(myInstantAppCheck));
-    } else {
+    }
+    else {
       myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
     }
     myBindings.bindTwoWay(getModel().includeNavController(), new SelectedProperty(myNavigationControllerCheck));
@@ -190,6 +205,13 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
       myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
     });
+
+    if (StudioFlags.NPW_NAVIGATION_SUPPORT.get()) {
+      myListeners.listenAndFire(myProjectModuleModel.includeNavController(), value -> {
+        // Enable/disable the Next/Finish buttons based on the Include Navigation Controller checkbox
+        wizard.updateNavigationProperties();
+      });
+    }
   }
 
   @Override

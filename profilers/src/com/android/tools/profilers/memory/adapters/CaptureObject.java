@@ -112,6 +112,11 @@ public interface CaptureObject extends MemoryObject {
   }
 
   @Nullable
+  default String getInfoMessage() {
+    return null;
+  }
+
+  @Nullable
   default Common.Session getSession() {
     return null;
   }

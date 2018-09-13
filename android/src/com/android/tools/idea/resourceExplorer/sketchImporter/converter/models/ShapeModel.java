@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ShapeModel {
 
   protected final double myParentOpacity;
-  @NotNull private Shape shape;
   @Nullable protected SketchStyle shapeStyle;
   protected boolean isFlippedHorizontal;
   protected boolean isFlippedVertical;
@@ -40,6 +39,7 @@ public abstract class ShapeModel {
   protected boolean hasClippingMask;
   protected boolean shouldBreakMaskChain;
   protected boolean isLastShape;
+  @NotNull private Shape shape;
 
   public ShapeModel(@NotNull Shape shape,
                     @Nullable SketchStyle style,
@@ -157,5 +157,15 @@ public abstract class ShapeModel {
     }
   }
 
+  public void applyOpacity(double parentOpacity) {
+    if (shapeStyle != null) {
+      shapeStyle.applyParentOpacity(parentOpacity);
+    }
+  }
+
   public abstract void applyTransformations();
+
+  public abstract void scale(double scaleX, double scaleY);
+
+  public abstract void translate(double translateX, double translateY);
 }

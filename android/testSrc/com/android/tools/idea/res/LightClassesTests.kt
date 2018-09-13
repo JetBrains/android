@@ -22,10 +22,15 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.light.LightElement
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.facet.AndroidFacet
@@ -42,6 +47,8 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     super.setUp()
     StudioFlags.IN_MEMORY_R_CLASSES.override(true)
     // No need to copy R.java into gen!
+
+    myModule.createImlFile()
   }
 
   override fun tearDown() {
@@ -51,6 +58,16 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     finally {
       super.tearDown()
     }
+  }
+
+  /**
+   * Creates the iml file for a module on disk. This is necessary for correct Kotlin resolution of light classes.
+   *
+   * @see AndroidResolveScopeEnlarger
+   */
+  protected fun Module.createImlFile() {
+    VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, moduleFilePath)
+    assertNotNull(moduleFile)
   }
 
   protected fun resolveReferenceUnderCaret(): PsiElement? {
@@ -74,7 +91,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
     }
 
-    fun testHighlighting() {
+    fun testHighlighting_java() {
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -98,7 +115,30 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.checkHighlighting()
     }
 
-    fun testTopLevelClassCompletion() {
+    fun testHighlighting_kotlin() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle) {
+                super.onCreate(savedInstanceState)
+                resources.getString(R.string.appString)
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+    }
+
+    fun testTopLevelClassCompletion_java() {
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -124,7 +164,32 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "MainActivity")
     }
 
-    fun testInnerClassesCompletion() {
+    fun testTopLevelClassCompletion_kotlin() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle) {
+                super.onCreate(savedInstanceState)
+                resources.getString(p1.p2.${caret})
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
+
+      assertThat(myFixture.lookupElementStrings).containsExactly("R", "MainActivity")
+    }
+
+    fun testInnerClassesCompletion_java() {
       myFixture.configureByText(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -149,7 +214,32 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(myFixture.lookupElementStrings).containsExactly("class", "string")
     }
 
-    fun testResourceNamesCompletion() {
+    fun testInnerClassesCompletion_kotlin() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle) {
+                super.onCreate(savedInstanceState)
+                resources.getString(R.${caret})
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
+
+      assertThat(myFixture.lookupElementStrings).containsExactly("string")
+    }
+
+    fun testResourceNamesCompletion_java() {
       myFixture.configureByText(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -174,7 +264,32 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(myFixture.lookupElementStrings).containsExactly("appString", "class")
     }
 
-    fun testManifestClass() {
+    fun testResourceNamesCompletion_kotlin() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle) {
+                super.onCreate(savedInstanceState)
+                resources.getString(R.string.${caret})
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
+
+      assertThat(myFixture.lookupElementStrings).containsExactly("appString")
+    }
+
+    fun testManifestClass_java() {
       myFixture.configureByText(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -193,6 +308,37 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         }
         """.trimIndent()
       )
+
+      assertThat(resolveReferenceUnderCaret()).isNull()
+
+      runWriteCommandAction(project) {
+        myFacet.manifest!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
+      }
+
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+      myFixture.checkHighlighting()
+    }
+
+    fun testManifestClass_kotlin() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+        import android.util.Log
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle) {
+                super.onCreate(savedInstanceState)
+                Log.d("tag", Manifest.permission.${caret}SEND_MESSAGE)
+            }
+        }
+        """.trimIndent()
+      )
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
       assertThat(resolveReferenceUnderCaret()).isNull()
 
@@ -227,8 +373,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     override fun setUp() {
       super.setUp()
 
+      val libModule = getAdditionalModuleByName("unrelatedLib")!!
+      libModule.createImlFile()
+
       runWriteCommandAction(project) {
-        getAdditionalModuleByName("unrelatedLib")!!
+        libModule
           .let(AndroidFacet::getInstance)!!
           .manifest!!
           .`package`!!
@@ -370,6 +519,13 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           """.trimIndent()
         )
       }
+      addAarDependency(myModule, "anotherLib", "com.example.anotherLib") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+          """
+          int string another_lib_string 0x7f010001
+          """.trimIndent()
+        )
+      }
     }
 
     fun testTopLevelClass() {
@@ -421,6 +577,48 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "another_aar_string", "class")
+    }
+
+    fun testRClassCompletion_java() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+        import com.example.anotherLib.Foo; // See assertion below.
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R${caret});
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
+
+      // MainActivity has an import for a class from com.example.anotherLib, which would put com.example.anotherLib.R at the top if not for
+      // AndroidLightClassWeigher.
+      val firstSuggestion = myFixture.lookupElements?.first()?.psiElement
+      assertThat(firstSuggestion).isInstanceOf(ModulePackageRClass::class.java)
+      assertThat((firstSuggestion as PsiClass).qualifiedName).isEqualTo("p1.p2.R")
+
+      assertThat(
+        this.myFixture.lookupElements!!
+          .mapNotNull { it.psiElement as? PsiClass }
+          .filter { it.name == "R" }
+          .map { it.qualifiedName }
+      ).containsExactly(
+        "p1.p2.R",
+        "com.example.mylibrary.R",
+        "com.example.anotherLib.R"
+      )
     }
   }
 }

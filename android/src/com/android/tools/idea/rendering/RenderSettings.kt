@@ -17,23 +17,25 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(name = "RenderSettings", storages = [(Storage("render.experimental.xml"))])
-data class RenderSettings(var quality: Float = 1f): PersistentStateComponent<RenderSettings> {
+data class RenderSettings(var quality: Float = 0.9f,
+                          var useLiveRendering: Boolean = StudioFlags.NELE_DEFAULT_LIVE_RENDER.get()) : PersistentStateComponent<RenderSettings> {
   override fun getState(): RenderSettings = this
 
   override fun loadState(state: RenderSettings) {
     XmlSerializerUtil.copyBean(state, this)
   }
 
-  val useLiveRendering: Boolean
-    get() = StudioFlags.NELE_LIVE_RENDER.get() && quality >= .75f
-
   companion object {
     @JvmStatic
-    val default = RenderSettings()
+    fun getProjectSettings(project: Project): RenderSettings {
+      return ServiceManager.getService(project, RenderSettings::class.java) ?: RenderSettings()
+    }
   }
 }

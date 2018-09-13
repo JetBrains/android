@@ -58,15 +58,6 @@ public class StudioPsiInvalidationTraceReport extends BaseStudioReport {
     if (!vFile.isValid()) {
       sb.append("Virtual file is invalid. ");
     }
-
-    FileViewProvider p = psiFile.getManager().findViewProvider(vFile);
-    if (provider != p) {
-      sb.append("Virtual file has a different provider. ");
-    }
-
-    if (!provider.isPhysical()) {
-      sb.append("Provider is non-physical. ");
-    }
     sb.append("\n");
     return sb.toString();
   }

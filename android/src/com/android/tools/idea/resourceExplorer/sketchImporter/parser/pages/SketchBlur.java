@@ -17,6 +17,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "blur"</code> contained within a sketch file.
+ */
 public class SketchBlur {
   private final boolean isEnabled;
   private final SketchPoint2D center;

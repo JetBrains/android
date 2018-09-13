@@ -29,16 +29,12 @@ import org.jetbrains.annotations.NotNull;
  * <li><b>“Text” page</b> -> TODO</li>
  * <li><b>“Mixed”</b> -> tries to render all the different types of assets</li>
  * </ul>
+ * <p>
+ * With respect to the MVP pattern developed for the Sketch Importer UI, this class is part of the model that forms the backbone of the
+ * information presented in the interface.
  */
 public class PageOptions {
-  public enum PageType {
-    ICONS,
-    SYMBOLS,
-    COLORS,
-    TEXT,
-    MIXED  // EXPERIMENTAL - can be set as the default if we find a stable, reliable implementation
-  }
-
+  public final static PageType DEFAULT_PAGE_TYPE = PageType.ICONS;
   private final static String LABEL_ICONS = "Icons";
   private final static String LABEL_SYMBOLS = "Symbols";
   private final static String LABEL_COLORS = "Colors";
@@ -46,13 +42,10 @@ public class PageOptions {
   private final static String LABEL_MIXED = "Mixed";
 
   public final static String[] PAGE_TYPE_LABELS = {LABEL_ICONS, LABEL_SYMBOLS, LABEL_COLORS, LABEL_TEXT, LABEL_MIXED};
-  public final static PageType DEFAULT_PAGE_TYPE = PageType.ICONS;
-
   private final static String KEYWORD_ICONS = "icon";
   private final static String KEYWORD_SYMBOLS = "symbol";
   private final static String KEYWORD_COLORS = "color";
   private final static String KEYWORD_TEXT = "text";
-
   private String myName;
   private PageType myPageType;
 
@@ -64,6 +57,20 @@ public class PageOptions {
   public PageOptions(@NotNull SketchPage page) {
     myName = page.getName();
     myPageType = getDefaultPageType(page);
+  }
+
+  @NotNull
+  public PageType getPageType() {
+    return myPageType;
+  }
+
+  public void setPageType(@NotNull PageType pageType) {
+    myPageType = pageType;
+  }
+
+  @NotNull
+  public String getName() {
+    return myName;
   }
 
   @NotNull
@@ -86,20 +93,6 @@ public class PageOptions {
   }
 
   @NotNull
-  public PageType getPageType() {
-    return myPageType;
-  }
-
-  public void setPageType(@NotNull PageType pageType) {
-    myPageType = pageType;
-  }
-
-  @NotNull
-  public String getName() {
-    return myName;
-  }
-
-  @NotNull
   public static PageType getPageTypeFromLabel(@NotNull String label) {
     switch (label) {
       case LABEL_ICONS:
@@ -115,5 +108,13 @@ public class PageOptions {
       default:
         return DEFAULT_PAGE_TYPE;
     }
+  }
+
+  public enum PageType {
+    ICONS,
+    SYMBOLS,
+    COLORS,
+    TEXT,
+    MIXED  // EXPERIMENTAL - can be set as the default if we find a stable, reliable implementation
   }
 }

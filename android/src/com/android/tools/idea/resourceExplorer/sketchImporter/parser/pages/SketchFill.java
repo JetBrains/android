@@ -19,10 +19,12 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "fill"</code> contained within a sketch file.
+ */
 public class SketchFill {
   private final boolean isEnabled;
-  private Color color;
-  private final SketchGraphicContextSettings contextSettings;
+  private final SketchGraphicsContextSettings contextSettings;
   /**
    * <ul>
    * <li>Flat Color: 0</li>
@@ -61,10 +63,11 @@ public class SketchFill {
    * Represented as a percentage when patternFillType = 0
    */
   private final int patternTileScale;
+  private Color color;
 
   public SketchFill(boolean isEnabled,
                     @NotNull Color color,
-                    @Nullable SketchGraphicContextSettings contextSettings,
+                    @Nullable SketchGraphicsContextSettings contextSettings,
                     short fillType,
                     @Nullable SketchGradient gradient,
                     @Nullable SketchFileReference image,
@@ -93,8 +96,12 @@ public class SketchFill {
     return color;
   }
 
+  public void setColor(@NotNull Color color) {
+    this.color = color;
+  }
+
   @Nullable
-  public SketchGraphicContextSettings getContextSettings() {
+  public SketchGraphicsContextSettings getContextSettings() {
     return contextSettings;
   }
 
@@ -128,11 +135,7 @@ public class SketchFill {
     return patternTileScale;
   }
 
-  public void setColor(@NotNull Color color) {
-    this.color = color;
-  }
-
-  public void applyGraphicContextSettings(@Nullable SketchGraphicContextSettings settings) {
+  public void applyGraphicContextSettings(@Nullable SketchGraphicsContextSettings settings) {
     if (settings != null) {
       double opacity = settings.getOpacity();
       if (contextSettings != null) {

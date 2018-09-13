@@ -198,6 +198,7 @@
             <properties>
               <background color="-12828863"/>
               <horizontalAlignment value="4"/>
+              <name value="InstantInfoIcon"/>
             </properties>
           </component>
           <component id="cf84d" class="com.intellij.ui.components.JBLabel" binding="myInstantModuleInfo">
@@ -207,6 +208,7 @@
             <properties>
               <background color="-12828863"/>
               <horizontalTextPosition value="10"/>
+              <name value="InstantModuleInfo"/>
               <text value="&lt;html&gt;This will also enable your base&lt;br&gt;module to support instant apps&lt;/html&gt;"/>
             </properties>
           </component>

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+
 import com.android.ide.common.util.AssetUtil;
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -24,15 +27,19 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.project.Project;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
 
 /**
  * Generator of legacy Android launcher icons.
@@ -57,8 +64,14 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   private final BoolProperty myCropped = new BoolValueProperty();
   private final BoolProperty myDogEared = new BoolValueProperty();
 
-  public LauncherLegacyIconGenerator(int minSdkVersion) {
-    super(minSdkVersion);
+  /**
+   * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
+   *
+   * @param project the Android project
+   * @param minSdkVersion the minimal supported Android SDK version
+   */
+  public LauncherLegacyIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
+    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
   }
 
   /**
@@ -114,12 +127,14 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   @Override
   @NotNull
   public LauncherLegacyOptions createOptions(boolean forPreview) {
-    LauncherLegacyOptions options = new LauncherLegacyOptions();
+    LauncherLegacyOptions options = new LauncherLegacyOptions(forPreview);
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
-      options.sourceImageFuture = asset.toImage();
-      options.isTrimmed = asset.trimmed().get();
-      options.paddingPercent = asset.paddingPercent().get();
+      Color color = myUseForegroundColor.get() ? myForegroundColor.get() : null;
+      double paddingFactor = asset.paddingPercent().get() / 100.;
+      double scaleFactor = 1. / (1 + paddingFactor * 2);
+      options.image =
+          new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor, color, 1, getGraphicGeneratorContext());
     }
 
     options.shape = myShape.get();
@@ -217,16 +232,14 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
 
-    BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
-    if (sourceImage == null) {
-      sourceImage = AssetStudioUtils.createDummyImage();
-    }
     LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions)options;
+    Rectangle imageRect =
+        launcherOptions.generateWebIcon ? IMAGE_SIZE_WEB : scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
 
     if (launcherOptions.isDogEar) {
       launcherOptions.shape = applyDog(launcherOptions.shape);
@@ -242,15 +255,10 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
       shapeImageMask = loadMaskImage(context, launcherOptions.shape, loadImageDensity);
     }
 
-    Rectangle imageRect = IMAGE_SIZE_WEB;
-    if (!launcherOptions.generateWebIcon) {
-      imageRect = scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
-    }
-
     Rectangle targetRect = getTargetRect(launcherOptions.shape, launcherOptions.density);
 
     // outImage will be our final image. Many intermediate textures will be rendered, in
-    // layers, onto this image
+    // layers, onto this image.
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D gOut = (Graphics2D) outImage.getGraphics();
     if (shapeImageBack != null) {
@@ -266,6 +274,8 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
       gTemp.setPaint(new Color(launcherOptions.backgroundColor));
       gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
     }
+
+    BufferedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
 
     // Render the foreground icon onto an intermediate buffer and then render over the
     // background shape. This lets us override the color of the icon.
@@ -305,21 +315,44 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   }
 
   @Override
-  public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
-                       @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions)options;
     boolean generateWebImage = launcherOptions.generateWebIcon;
     launcherOptions.generateWebIcon = false;
-    super.generate(category, categoryMap, context, options, name);
+    super.generateRasterImage(category, categoryMap, context, options, name);
 
     if (generateWebImage) {
       launcherOptions.generateWebIcon = true;
       launcherOptions.density = Density.NODPI;
-      BufferedImage image = generate(context, options);
+      BufferedImage image = generateRasterImage(context, options);
       Map<String, BufferedImage> imageMap = new HashMap<>();
       categoryMap.put("Web", imageMap);
       imageMap.put(getIconPath(options, name), image);
     }
+  }
+
+  @Override
+  @NotNull
+  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+    Map<String, Map<String, BufferedImage>> categoryMap = new HashMap<>();
+    generateRasterImage(null, categoryMap, context, options, name);
+
+    // Category map is a map from category name to a map from relative path to image.
+    List<GeneratedIcon> icons = new ArrayList<>();
+    categoryMap.forEach(
+      (category, images) ->
+        images.forEach(
+          (path, image) -> {
+            Density density = pathToDensity(path);
+            // Could be a "Web" image
+            if (density == null) {
+              density = Density.NODPI;
+            }
+            GeneratedImageIcon icon = new GeneratedImageIcon(path, new PathString(path), IconCategory.REGULAR, density, image);
+            icons.add(icon);
+          }));
+    return icons;
   }
 
   @Override
@@ -394,10 +427,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   /** Options specific to generating launcher icons */
   public static class LauncherLegacyOptions extends Options {
-    public LauncherLegacyOptions() {
-      iconFolderKind = IconFolderKind.MIPMAP;
-    }
-
     /**
      * Whether to use the foreground color. If we are using images as the source asset for our icons,
      * you shouldn't apply the foreground color, which would paint over it and obscure the image.
@@ -430,11 +459,16 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
     /**
      * Whether a web graphic should be generated (will ignore normal density setting).
-     * The {@link #generate(GraphicGeneratorContext, Options)} method will use this to
+     * The {@link #generateRasterImage(GraphicGeneratorContext, Options)} method will use this to
      * decide whether to generate a normal density icon or a high res web image.
-     * The {@link #generate(String, Map, GraphicGeneratorContext, Options, String)} method
+     * The {@link #generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)} method
      * will use this flag to determine whether it should include a web graphic in its iteration.
      */
     public boolean generateWebIcon;
+
+    public LauncherLegacyOptions(boolean forPreview) {
+      super(forPreview);
+      iconFolderKind = IconFolderKind.MIPMAP;
+    }
   }
 }

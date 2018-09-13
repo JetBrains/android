@@ -16,13 +16,20 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
+import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Denotes a class that has a style and a list of layers.
  */
 public interface SketchLayerable {
 
+  @NotNull
   SketchStyle getStyle();
 
+  @NotNull
   SketchLayer[] getLayers();
+
+  @NotNull
+  Rectangle2D.Double getFrame();
 }

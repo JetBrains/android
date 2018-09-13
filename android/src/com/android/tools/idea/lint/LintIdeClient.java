@@ -323,15 +323,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     return new DomPsiParser(this);
   }
 
-  /**
-   * Whether we should skip attempting to use reflection in
-   * {@link JavaEvaluator#computeArgumentMapping(UCallExpression, PsiMethod)}.
-   *
-   * We need a separate flag rather than just checking for {@link #mappingMethod} != null since
-   * the method may not be available (for example if the Kotlin plugin is disabled.
-   */
-  private static boolean skipMappingReflection = false;
-
   @NotNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
@@ -358,18 +349,15 @@ public class LintIdeClient extends LintClient implements Disposable {
           @NotNull
           @Override
           public Map<UExpression, PsiParameter> computeArgumentMapping(@NotNull UCallExpression call, @NotNull PsiMethod method) {
+            if (method.getParameterList().getParametersCount() == 0) {
+              return Collections.emptyMap();
+            }
+
             // Call into lint-kotlin to look up the argument mapping if this call is a Kotlin method.
-            if (!skipMappingReflection) {
-              try {
-                Map<UExpression, PsiParameter> map = LintKotlinReflectionUtilsKt.computeKotlinArgumentMapping(call, method);
-                if (map != null) {
-                  return map;
-                }
-              }
-              catch (Throwable ignore) {
-                //noinspection AssignmentToStaticFieldFromInstanceMethod
-                skipMappingReflection = true;
-              }
+            Map<UExpression, PsiParameter> kotlinMap =
+              LintKotlinReflectionUtilsKt.computeKotlinArgumentMapping(call, method);
+            if (kotlinMap != null) {
+              return kotlinMap;
             }
 
             return super.computeArgumentMapping(call, method);

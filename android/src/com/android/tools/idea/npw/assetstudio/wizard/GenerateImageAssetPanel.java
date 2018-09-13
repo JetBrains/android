@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.*;
+import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
+import com.android.tools.idea.npw.assetstudio.IconCategory;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
@@ -57,22 +64,33 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A panel which presents a UI for selecting some source asset and converting it to a target set of
@@ -193,17 +211,19 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     // Create a card and a view for each icon type.
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
+    DrawableRenderer renderer = new DrawableRenderer(facet);
+    Disposer.register(this, renderer);
     for (AndroidIconType iconType : supportedTypes) {
       ConfigureIconView view;
       switch (iconType) {
         case LAUNCHER:
           view = new ConfigureLauncherIconPanel(this, facet, myShowGridProperty, myShowSafeZoneProperty,
-                                                myPreviewDensityProperty, myValidatorPanel);
+                                                myPreviewDensityProperty, myValidatorPanel, renderer);
           break;
         case LAUNCHER_LEGACY:
         case ACTIONBAR:
         case NOTIFICATION:
-          view = new ConfigureIconPanel(this, iconType, minSdkVersion);
+          view = new ConfigureIconPanel(this, facet, iconType, minSdkVersion, renderer);
           break;
         default:
           throw new IllegalArgumentException("Invalid icon type");
@@ -258,12 +278,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     Runnable updatePreview = () -> {
       ConfigureIconView iconView = getActiveIconView();
       myBindings.bind(myOutputName, iconView.outputName());
-      if (myOutputIconType.get() == AndroidIconType.NOTIFICATION) {
-        myOutputPreviewLabel.setText("Preview (API 11+)");
-      }
-      else {
-        myOutputPreviewLabel.setText("Preview");
-      }
+      myOutputPreviewLabel.setText("Preview");
       renderIconPreviews();
     };
     myListeners.receiveAndFire(myOutputIconType, iconType -> {
@@ -275,8 +290,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myListeners.receiveAndFire(myPreviewDensityProperty, value -> updatePreview.run());
 
     // Show interactive preview components only if creating adaptive icons.
-    BooleanExpression isAdaptiveIconOutput = BooleanExpression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER,
-                                                                      myOutputIconType);
+    BooleanExpression isAdaptiveIconOutput =
+        BooleanExpression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
     myBindings.bind(new VisibleProperty(myShowGrid), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myShowSafeZone), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myPreviewResolutionComboBox), isAdaptiveIconOutput);
@@ -399,7 +414,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     AndroidIconType iconType = myOutputIconType.get();
     IconGenerator iconGenerator = getActiveIconView().getIconGenerator();
 
-    myIconGenerationProcessor.enqueue(iconType, iconGenerator, iconGeneratorResult -> {
+    myIconGenerationProcessor.enqueue(iconGenerator, iconGeneratorResult -> {
       // There is no map if there was no source asset.
       if (iconGeneratorResult == null) {
         return;
@@ -409,8 +424,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       // Update the icon type specific output preview panel with the new preview images
       myOutputPreviewPanels.get(iconType).showPreviewImages(iconGeneratorResult);
 
-      // Update the current preview panel only if the icon type has not changed since the
-      // request was enqueued.
+      // Update the current preview panel only if the icon type has not changed since
+      // the request was enqueued.
       if (Objects.equals(iconType, myOutputIconType.get())) {
         updateOutputPreviewPanel();
       }
@@ -472,7 +487,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
         .filter(icon -> filterPreviewIcon(icon, ((LauncherIconGenerator.LauncherIconOptions)result.getOptions()).previewDensity))
-        .map(pair -> Pair.of(getPreviewShapeFromId(pair.getName()), pair.getImage()))
+        .map(icon -> Pair.of(getPreviewShapeFromId(icon.getName()), icon.getImage()))
         .sorted((pair1, pair2) -> comparePreviewShapes(pair1.getFirst(), pair2.getFirst()))
         .map(pair -> Pair.of(pair.getFirst().displayName, pair.getSecond()))
         .collect(Collectors.toList());
@@ -536,13 +551,14 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult iconGeneratorResult) {
       Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
-      List<Pair<Density, BufferedImage>> list = generatedIcons.stream()
+      List<Pair<String, BufferedImage>> list = generatedIcons.stream()
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
         .filter(icon -> icon.getDensity() != Density.NODPI) // Skip Web image
-        .map(icon -> Pair.of(icon.getDensity(), icon.getImage()))
+        .sorted(Comparator.comparingInt(icon -> -icon.getDensity().getDpiValue()))
+        .map(icon -> Pair.of(icon.getDensity().getResourceValue(), icon.getImage()))
         .collect(Collectors.toList());
-      showPreviewImagesWithDensity(list.stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
+      showPreviewImagesImpl(list);
     }
   }
 
@@ -554,25 +570,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
   private static class NotificationIconsPreviewPanel extends PreviewIconsPanel {
     public NotificationIconsPreviewPanel() {
-      super("", Theme.DARK, new CategoryIconMap.NotificationFilter(
-        NotificationIconGenerator.Version.V11));
-    }
-
-    /**
-     * Override the default implementation to show only notification icons for API 11 and
-     * later (older icons are no longer relevant).
-     */
-    @Override
-    public void showPreviewImages(@NotNull IconGeneratorResult iconGeneratorResult) {
-      // Default
-      Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
-      List<Pair<Density, BufferedImage>> list = generatedIcons.stream()
-          .filter(x -> x instanceof GeneratedImageIcon)
-          .map(x -> (GeneratedImageIcon)x)
-          .filter(x -> x.getCategory() == IconCategory.NOTIFICATION_V11 || x.getCategory() == IconCategory.NONE)
-          .map(x -> Pair.of(x.getDensity(), x.getImage()))
-          .collect(Collectors.toList());
-      showPreviewImagesWithDensity(list.stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
+      super("", Theme.DARK, CategoryIconMap.ACCEPT_ALL);
     }
   }
 }

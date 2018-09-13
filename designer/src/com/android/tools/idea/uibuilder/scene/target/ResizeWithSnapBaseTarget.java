@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalLine;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalLine;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -56,14 +55,12 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!myComponent.isSelected()) {
-      return;
-    }
+    if (isHittable()) {
+      DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
 
-    DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
-
-    if (myWrapSize != null) {
-      renderWrapSizeSnapLines(list, sceneContext, myWrapSize.width, myWrapSize.height);
+      if (myWrapSize != null) {
+        renderWrapSizeSnapLines(list, sceneContext, myWrapSize.width, myWrapSize.height);
+      }
     }
   }
 

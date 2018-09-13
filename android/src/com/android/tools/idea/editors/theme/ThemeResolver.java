@@ -49,6 +49,8 @@ import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
  * Resolves themes for a given configuration.
  */
 public class ThemeResolver {
+  private static final StyleResourceValue[] NO_BASE_THEMES = {};
+
   private final Map<ResourceReference, ConfiguredThemeEditorStyle> myThemesByStyle = new HashMap<>();
   private final ImmutableList<ConfiguredThemeEditorStyle> myFrameworkThemes;
   private final ImmutableList<ConfiguredThemeEditorStyle> myLocalThemes;
@@ -298,13 +300,51 @@ public class ThemeResolver {
   }
 
   @NotNull
-  private static List<ResourceReference> computeRecommendedThemes(@NotNull Module module) {
-    ResourceNamespace appcompatNamespace;
+  public StyleResourceValue[] requiredBaseThemes() {
+    // The components in the design library requires the application theme to be derived from
+    // either: Platform.AppCompat or Platform.AppCompat.Light
+    Module module = myConfiguration.getModule();
+    if (!(DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.DESIGN) ||
+          DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_DESIGN))) {
+      return NO_BASE_THEMES;
+    }
+
+    ResourceNamespace namespace = getAppCompatNamespace(module);
+    if (namespace == null) {
+      return NO_BASE_THEMES;
+    }
+    StyleResourceValue theme1 = findTheme(namespace, "Platform.AppCompat");
+    StyleResourceValue theme2 = findTheme(namespace, "Platform.AppCompat.Light");
+    if (theme1 == null || theme2 == null) {
+      return NO_BASE_THEMES;
+    }
+    return new StyleResourceValue[]{theme1, theme2};
+  }
+
+  public boolean themeIsChildOfAny(@NotNull StyleResourceValue childTheme, StyleResourceValue... parentThemes) {
+    return myResolver.themeIsChildOfAny(childTheme, parentThemes);
+  }
+
+  private StyleResourceValue findTheme(@NotNull ResourceNamespace namespace, @NotNull String themeName) {
+    ResourceReference reference =  ResourceReference.style(namespace, themeName);
+    return myResolver.getStyle(reference);
+  }
+
+  @Nullable
+  private static ResourceNamespace getAppCompatNamespace(@NotNull Module module) {
     if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
-      appcompatNamespace = isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT : ResourceNamespace.RES_AUTO;
+      return isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT : ResourceNamespace.RES_AUTO;
     } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7)) {
-      appcompatNamespace = isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT_LEGACY : ResourceNamespace.RES_AUTO;
-    } else {
+      return isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT_LEGACY : ResourceNamespace.RES_AUTO;
+    }
+    return null;
+  }
+
+  @NotNull
+  private static List<ResourceReference> computeRecommendedThemes(@NotNull Module module) {
+    ResourceNamespace appcompatNamespace = getAppCompatNamespace(module);
+
+    if (appcompatNamespace == null) {
       return ImmutableList.of(
           ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.Light.NoActionBar"),
           ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.NoActionBar"));

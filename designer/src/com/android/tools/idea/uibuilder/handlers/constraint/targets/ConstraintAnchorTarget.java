@@ -162,6 +162,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
 
   @Override
   protected boolean isEnabled() {
+    if (myComponent.getScene().getSelection().size() > 1) {
+      return false;
+    }
     if (myComponent.isSelected()) {
       boolean hasBaselineConnection = isBaselineConnected();
       if (getType() == AnchorTarget.Type.BASELINE) {

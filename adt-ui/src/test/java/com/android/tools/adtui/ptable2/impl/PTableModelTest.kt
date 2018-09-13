@@ -16,7 +16,11 @@
 package com.android.tools.adtui.ptable2.impl
 
 import com.android.tools.adtui.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.adtui.ptable2.item.*
+import com.android.tools.adtui.ptable2.item.DummyPTableCellEditorProvider
+import com.android.tools.adtui.ptable2.item.Group
+import com.android.tools.adtui.ptable2.item.Item
+import com.android.tools.adtui.ptable2.item.addModelListener
+import com.android.tools.adtui.ptable2.item.createModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.ArgumentMatchers

@@ -174,9 +174,9 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @Override
   public void onSuccess() {
     if (myError == null) {
-      myStats.fail();
-    } else {
       myStats.success();
+    } else {
+      myStats.fail();
       LaunchUtils.showNotification(myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR);
     }
   }

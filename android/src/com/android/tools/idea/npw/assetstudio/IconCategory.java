@@ -15,60 +15,35 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import static com.android.tools.idea.npw.assetstudio.NotificationIconGenerator.Version.OLDER;
-import static com.android.tools.idea.npw.assetstudio.NotificationIconGenerator.Version.V11;
-import static com.android.tools.idea.npw.assetstudio.NotificationIconGenerator.Version.V9;
-
-import java.util.Objects;
-
 /**
  * Icon category when rendering multiple icon images. Given the compatibility requirements between
  * the old style api and the new style API, this enumeration contains a superset of everything
  * needed to sort things out in the upper layers.
  */
 public enum IconCategory {
-    NONE,
+  REGULAR,
 
-    // Various image
-    LEGACY,
-    ROUND_API_25,
-    WEB,
+  // Various image.
+  LEGACY,
+  ROUND_API_25,
+  WEB,
 
-    // Adaptive icons previews
-    ADAPTIVE_FULL_BLEED,
-    ADAPTIVE_CIRCLE,
-    ADAPTIVE_SQUIRCLE,
-    ADAPTIVE_ROUNDED_SQUARE,
-    ADAPTIVE_SQUARE,
+  // Adaptive icons previews.
+  ADAPTIVE_FULL_BLEED,
+  ADAPTIVE_CIRCLE,
+  ADAPTIVE_SQUIRCLE,
+  ADAPTIVE_ROUNDED_SQUARE,
+  ADAPTIVE_SQUARE,
 
-    // Adaptive icons layers
-    ADAPTIVE_FOREGROUND_LAYER,
-    ADAPTIVE_BACKGROUND_LAYER,
+  // Adaptive icons layers.
+  ADAPTIVE_FOREGROUND_LAYER,
+  ADAPTIVE_BACKGROUND_LAYER,
 
-    XML_RESOURCE,
+  XML_RESOURCE,
 
-    PREVIEW,
+  PREVIEW;
 
-    // Notification icons
-    NOTIFICATION_OLDER,
-    NOTIFICATION_V9,
-    NOTIFICATION_V11;
-
-    public static IconCategory fromName(String categoryName) {
-        if (Objects.equals(categoryName, OLDER.getDisplayName())) {
-            return NOTIFICATION_OLDER;
-        }
-        if (Objects.equals(categoryName, V9.getDisplayName())) {
-            return NOTIFICATION_V9;
-        }
-        if (Objects.equals(categoryName, V11.getDisplayName())) {
-            return NOTIFICATION_V11;
-        }
-
-        return NONE;
-    }
-
-    public String getDisplayName() {
-        return toString();
-    }
+  public String getDisplayName() {
+      return toString();
+  }
 }

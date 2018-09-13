@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.createAllDrawableShapes;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -47,10 +48,9 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void addShapeTest() {
-
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_addShape.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableFileGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableFileGenerator.generateFile(vectorDrawable);
@@ -64,7 +64,7 @@ public class DrawableFileGeneratorTest {
   public void shapeFillAndBorderTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeFillAndBorder.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableFileGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableFileGenerator.generateFile(vectorDrawable);
@@ -78,7 +78,7 @@ public class DrawableFileGeneratorTest {
   public void shapeRotationTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeRotation.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableFileGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableFileGenerator.generateFile(vectorDrawable);
@@ -92,7 +92,7 @@ public class DrawableFileGeneratorTest {
   public void fillGradientTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_fillGradient.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableFileGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableFileGenerator.generateFile(vectorDrawable);
@@ -106,7 +106,7 @@ public class DrawableFileGeneratorTest {
   public void shapeMirroringTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeMirroring.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableFileGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableFileGenerator.generateFile(vectorDrawable);
@@ -120,7 +120,7 @@ public class DrawableFileGeneratorTest {
   public void clippingTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_clipping.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableGenerator.generateFile(vectorDrawable);
@@ -134,7 +134,7 @@ public class DrawableFileGeneratorTest {
   public void additiveTransparencyTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_additiveTransparency.json"));
     SketchArtboard artboard = sketchPage.getArtboards().get(0);
-    VectorDrawable vectorDrawable = new VectorDrawable(artboard);
+    VectorDrawable vectorDrawable = new VectorDrawable(artboard, createAllDrawableShapes(artboard, new SymbolsLibrary()));
 
     DrawableFileGenerator drawableGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableGenerator.generateFile(vectorDrawable);
