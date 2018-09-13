@@ -1,5 +1,6 @@
 package org.jetbrains.android.augment;
 
+import com.google.common.base.MoreObjects;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
@@ -330,5 +331,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
                                      final PsiElement lastParent,
                                      @NotNull final PsiElement place) {
     return PsiClassImplUtil.processDeclarationsInClass(this, processor, state, null, lastParent, place, PsiUtil.getLanguageLevel(place), false);
+  }
+
+  @Override
+  @NotNull
+  public String toString() {
+    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
   }
 }

@@ -15,24 +15,29 @@
  */
 package com.android.tools.idea.res;
 
-import com.google.common.base.MoreObjects;
 import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.psi.*;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
+import java.util.Collection;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 /**
  * Base class for light classes that only contain inner classes, like {@code R} or {@code Manifest}.
  */
 public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightClassBase {
+  private static final Logger LOG = Logger.getInstance(AndroidClassWithOnlyInnerClassesBase.class);
+
   @NotNull protected final CachedValue<PsiClass[]> myClassCache;
   @NotNull protected final String myShortName;
   @NotNull protected final PsiJavaFile myFile;
@@ -45,11 +50,13 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
     myShortName = shortName;
 
     myClassCache =
-      CachedValuesManager.getManager(getProject()).createCachedValue(
-        () ->
-          CachedValueProvider.Result.create(
-            doGetInnerClasses(),
-            PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT));
+      CachedValuesManager.getManager(getProject()).createCachedValue(() -> {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Recomputing inner classes of " + this.getClass());
+        }
+        PsiClass[] innerClasses = doGetInnerClasses();
+        return CachedValueProvider.Result.create(innerClasses, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
+      });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(myManager.getProject());
     myFile = (PsiJavaFile)factory.createFileFromText(shortName + ".java", JavaFileType.INSTANCE,
@@ -95,11 +102,5 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @Override
   public final PsiFile getContainingFile() {
     return myFile;
-  }
-
-  @Override
-  @NotNull
-  public String toString() {
-    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
   }
 }
