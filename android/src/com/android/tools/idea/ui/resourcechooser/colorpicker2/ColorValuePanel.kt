@@ -83,6 +83,16 @@ class ColorValuePanel(private val model: ColorPickerModel)
   private val colorLabel2 = ColorLabel()
   private val colorLabel3 = ColorLabel()
 
+  @VisibleForTesting
+  val alphaButtonPanel = createAlphaLabel(alphaLabel) {
+    currentAlphaFormat = currentAlphaFormat.next()
+  }
+
+  @VisibleForTesting
+  val colorFormatButtonPanel = createFormatLabels(colorLabel1, colorLabel2, colorLabel3) {
+    currentColorFormat = currentColorFormat.next()
+  }
+
   @get:TestOnly
   val colorField1 = ColorValueField()
   private val redDocument = DigitColorDocument(colorField1, COLOR_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
@@ -122,7 +132,7 @@ class ColorValuePanel(private val model: ColorPickerModel)
     c.weightx = 0.12
     c.gridx = 0
     c.gridy = 0
-    add(createAlphaLabel(), c)
+    add(alphaButtonPanel, c)
     c.gridy = 1
     add(alphaField, c)
 
@@ -130,7 +140,7 @@ class ColorValuePanel(private val model: ColorPickerModel)
     c.gridwidth = 3
     c.gridx = 1
     c.gridy = 0
-    add(createFormatLabels(), c)
+    add(colorFormatButtonPanel, c)
 
     c.gridwidth = 1
     c.weightx = 0.12
@@ -162,32 +172,6 @@ class ColorValuePanel(private val model: ColorPickerModel)
   }
 
   override fun requestFocusInWindow() = alphaField.requestFocusInWindow()
-
-  private fun createAlphaLabel() = object : ButtonPanel() {
-
-    init {
-      layout = GridLayout(1, 1)
-      add(alphaLabel)
-    }
-
-    override fun clicked(e: MouseEvent?) {
-      currentAlphaFormat = currentAlphaFormat.next()
-    }
-  }
-
-  private fun createFormatLabels() = object : ButtonPanel() {
-
-    init {
-      layout = GridLayout(1, 3)
-      add(colorLabel1)
-      add(colorLabel2)
-      add(colorLabel3)
-    }
-
-    override fun clicked(e: MouseEvent?) {
-      currentColorFormat = currentColorFormat.next()
-    }
-  }
 
   private fun updateAlphaFormat() {
     when (currentAlphaFormat) {
@@ -306,6 +290,37 @@ class ColorValuePanel(private val model: ColorPickerModel)
     }
     model.setColor(color, this)
   }
+
+  companion object {
+    private fun createAlphaLabel(alphaLabel: ColorLabel, onClick: () -> Unit) = object : ButtonPanel() {
+
+      init {
+        layout = GridLayout(1, 1)
+        add(alphaLabel)
+      }
+
+      override fun clicked() {
+        onClick.invoke()
+      }
+    }
+
+    private fun createFormatLabels(label1: ColorLabel,
+                                   label2: ColorLabel,
+                                   label3: ColorLabel,
+                                   onClick: () -> Unit) = object : ButtonPanel() {
+
+      init {
+        layout = GridLayout(1, 3)
+        add(label1)
+        add(label2)
+        add(label3)
+      }
+
+      override fun clicked() {
+        onClick.invoke()
+      }
+    }
+  }
 }
 
 private const val HOVER_BORDER_LEFT = 0
@@ -322,31 +337,57 @@ private val PRESSED_BORDER_COLOR = Color.GRAY
 
 private const val BORDER_CORNER_ARC = 7
 
-private abstract class ButtonPanel : JPanel() {
+private const val ACTION_PRESS_BUTTON_PANEL = "pressButtonPanel"
+private const val ACTION_RELEASE_BUTTON_PANEL = "releaseButtonPanel"
 
-  private enum class MouseStatus { NORMAL, HOVER, PRESSED }
+@VisibleForTesting
+abstract class ButtonPanel : JPanel() {
 
-  private var mouseStatus by Delegates.observable(MouseStatus.NORMAL) { _, _, _ ->
+  companion object {
+    private enum class Status { NORMAL, HOVER, PRESSED }
+  }
+
+  private var mouseStatus by Delegates.observable(Status.NORMAL) { _, _, _ ->
     repaint()
   }
 
   private val mouseAdapter = object : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent?) = clicked(e)
+
+    override fun mouseClicked(e: MouseEvent?) = clicked()
 
     override fun mouseEntered(e: MouseEvent?) {
-      mouseStatus = MouseStatus.HOVER
+      if (!isFocusOwner) {
+        mouseStatus = Status.HOVER
+      }
     }
 
     override fun mouseExited(e: MouseEvent?) {
-      mouseStatus = MouseStatus.NORMAL
+      if (!isFocusOwner) {
+        mouseStatus = Status.NORMAL
+      }
     }
 
     override fun mousePressed(e: MouseEvent?) {
-      mouseStatus = MouseStatus.PRESSED
+      if (!isFocusOwner) {
+        mouseStatus = Status.PRESSED
+      }
     }
 
     override fun mouseReleased(e: MouseEvent?) {
-      mouseStatus = if (mouseStatus == MouseStatus.PRESSED) MouseStatus.HOVER else MouseStatus.NORMAL
+      if (!isFocusOwner) {
+        mouseStatus = if (mouseStatus == Status.PRESSED) Status.HOVER else Status.NORMAL
+      }
+    }
+  }
+
+  private val focusAdapter = object : FocusAdapter() {
+
+    override fun focusGained(e: FocusEvent?) {
+      mouseStatus = Status.HOVER
+    }
+
+    override fun focusLost(e: FocusEvent?) {
+      mouseStatus = Status.NORMAL
     }
   }
 
@@ -354,25 +395,52 @@ private abstract class ButtonPanel : JPanel() {
     border = BorderFactory.createEmptyBorder()
     background = PICKER_BACKGROUND_COLOR
     addMouseListener(mouseAdapter)
+    addFocusListener(focusAdapter)
+
+    with (getInputMap(JComponent.WHEN_FOCUSED)) {
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), ACTION_PRESS_BUTTON_PANEL)
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), ACTION_RELEASE_BUTTON_PANEL)
+    }
+
+    with (actionMap) {
+      put(ACTION_PRESS_BUTTON_PANEL, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          mouseStatus = Status.PRESSED
+        }
+      })
+
+      put(ACTION_RELEASE_BUTTON_PANEL, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          mouseStatus = Status.HOVER
+          clicked()
+        }
+      })
+    }
   }
 
+  // Needs to be final to be used in init block
   final override fun addMouseListener(l: MouseListener?) = super.addMouseListener(l)
 
-  abstract fun clicked(e: MouseEvent?)
+  // Needs to be final to be used in init block
+  final override fun addFocusListener(l: FocusListener?) = super.addFocusListener(l)
+
+  override fun isFocusable() = true
+
+  abstract fun clicked()
 
   override fun paintBorder(g: Graphics) {
     g as? Graphics2D ?: return
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     val originalStroke = g.stroke
     when (mouseStatus) {
-      MouseStatus.HOVER -> {
+      Status.HOVER -> {
         g.stroke = HOVER_BORDER_STROKE
         g.color = HOVER_BORDER_COLOR
         g.drawRoundRect(HOVER_BORDER_LEFT,HOVER_BORDER_TOP,
                         width - HOVER_BORDER_WIDTH, height - HOVER_BORDER_WIDTH,
                         BORDER_CORNER_ARC, BORDER_CORNER_ARC)
       }
-      MouseStatus.PRESSED -> {
+      Status.PRESSED -> {
         g.stroke = PRESSED_BORDER_STROKE
         g.color = PRESSED_BORDER_COLOR
         g.drawRoundRect(PRESSED_BORDER_LEFT, PRESSED_BORDER_TOP,
