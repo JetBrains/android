@@ -26,9 +26,15 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME
 import com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerMode
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStageView.KERNEL_VIEW_SPLITTER_RATIO
 import com.android.tools.profilers.cpu.CpuProfilerStageView.SPLITTER_DEFAULT_RATIO
 import com.android.tools.profilers.cpu.atrace.AtraceParser
@@ -300,38 +306,53 @@ class CpuProfilerStageViewTest {
   @Test
   fun showsTooltipSeekComponentWhenMouseIsOverUsageView() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
+
+    val instructions = TreeWalker(stageView.component).descendants().filterIsInstance<InstructionsPanel>().first()
+    instructions.isVisible = false // Hide instructions as they otherwise block the components we want to test
+
     stageView.component.setBounds(0, 0, 500, 500)
-
-    val usageView = getUsageView(stageView)
-    val usageViewOrigin = SwingUtilities.convertPoint(usageView, Point(0, 0), stageView.component)
-
     val ui = FakeUi(stageView.component)
 
-    assertThat(stageView.showTooltipSeekComponent()).isFalse()
-    // Move into |CpuUsageView|
-    ui.mouse.moveTo(usageViewOrigin.x + usageView.width / 2, usageViewOrigin.y + usageView.height / 2)
-    assertThat(stageView.showTooltipSeekComponent()).isTrue()
+    val usageView = getUsageView(stageView)
+    val usageViewPos = ui.getPosition(usageView)
+    assertThat(usageViewPos.y).isGreaterThan(0)
 
-    // Grab the selection component and move the mouse to set the mode to ADJUST_MIN.
+    assertThat(stageView.shouldShowTooltipSeekComponent()).isFalse()
+    // Move into |CpuUsageView|
+    ui.mouse.moveTo(usageViewPos.x + usageView.width / 2, usageViewPos.y + usageView.height / 2)
+    assertThat(stageView.shouldShowTooltipSeekComponent()).isTrue()
+
+    // Moving the cursor over one of the selection handles should hide the tooltip seek bar
     val treeWalker = TreeWalker(stageView.component)
-    val selectionComponent = treeWalker.descendants().filterIsInstance<SelectionComponent>()[0]
-    FakeUi(selectionComponent).mouse.moveTo(0,0)
-    ui.mouse.moveTo(0, 0)
-    assertThat(stageView.showTooltipSeekComponent()).isFalse()
+    val selection = treeWalker.descendants().filterIsInstance<SelectionComponent>().first()
+    val selectionPos = ui.getPosition(selection)
+
+    val w = selection.width.toDouble()
+    stageView.timeline.apply {
+      viewRange.set(0.0, w)
+      selectionRange.set(w / 2, w)
+    }
+
+    // One pixel to the left of the selection range targets the min handle
+    ui.mouse.moveTo(selectionPos.x + selection.width / 2 - 1, selectionPos.y)
+    assertThat(selection.mode).isEqualTo(SelectionComponent.Mode.ADJUST_MIN)
+    assertThat(stageView.shouldShowTooltipSeekComponent()).isFalse()
   }
 
   @Test
   fun tooltipIsUsageTooltipWhenMouseIsOverUsageView() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
+
     stageView.component.setBounds(0, 0, 500, 500)
+    val ui = FakeUi(stageView.component)
 
     val usageView = getUsageView(stageView)
     val usageViewOrigin = SwingUtilities.convertPoint(usageView, Point(0, 0), stageView.component)
-    val ui = FakeUi(stageView.component)
+    assertThat(usageViewOrigin.y).isGreaterThan(0)
 
     assertThat(myStage.tooltip).isNull()
     // Move into |CpuUsageView|
-    ui.mouse.moveTo(usageViewOrigin.x + usageView.width / 2, usageViewOrigin.y + usageView.height / 2)
+    ui.mouse.moveTo(usageViewOrigin.x, usageViewOrigin.y)
     assertThat(myStage.tooltip).isInstanceOf(CpuUsageTooltip::class.java)
   }
 

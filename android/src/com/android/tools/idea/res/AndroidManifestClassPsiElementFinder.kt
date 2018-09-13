@@ -78,7 +78,7 @@ class AndroidManifestClassPsiElementFinder(
     }.toTypedArray()
   }
 
-  private fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
+  fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
     return if (facet.hasManifestClass()) {
       facet.getUserData(MODULE_MANIFEST_CLASS) ?: facet.putUserDataIfAbsent(MODULE_MANIFEST_CLASS, ManifestClass(facet, psiManager))
     } else {

@@ -16,18 +16,30 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+import com.android.tools.profiler.proto.CpuProfiler.TraceInfo;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
   private static final int DATA_COLUMN = 1;
@@ -42,8 +54,16 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
    */
   private static final int PROFILER_MODE_COLUMN_TRACE_DATA = 3;
 
+  /**
+   * A cache of unique thread IDs per session index.
+   * <p>
+   * We keep a cache of all seen thread IDs because querying the DB for distinct thread IDs is slow.
+   */
+  private final Map<Long, Set<Integer>> mySessionThreadIdsCache = Collections.synchronizedMap(new HashMap<>());
+
   public enum CpuStatements {
     INSERT_THREAD_ACTIVITY,
+    QUERY_ALL_DISTINCT_THREADS,
     QUERY_THREAD_ACTIVITIES,
     INSERT_CPU_DATA,
     QUERY_CPU_DATA,
@@ -64,8 +84,12 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "Timestamp INTEGER NOT NULL",
                   "Data BLOB");
       createTable("Thread_Activities",
-                  "Session INTEGER NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER",
-                  "State TEXT, Name TEXT");
+                  "Session INTEGER NOT NULL",
+                  "ThreadId INTEGER NOT NULL",
+                  "Timestamp INTEGER NOT NULL",
+                  "State TEXT",
+                  "Name TEXT",
+                  "PRIMARY KEY (Session, ThreadId, Timestamp)");
       createTable("Cpu_Trace",
                   // TraceId is unique within an app, so just traceId is not enough
                   "Session INTEGER NOT NULL",
@@ -86,7 +110,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "Data BLOB");
       createUniqueIndex("Cpu_Data", "Session", "Timestamp");
       createUniqueIndex("Cpu_Trace", "Session", "TraceId");
-      createUniqueIndex("Thread_Activities", "Session", "ThreadId", "Timestamp");
+      // Uniqueness guaranteed by PRIMARY KEY field in this table.
+      createIndex("Thread_Activities", 0, "Session", "ThreadId", "Timestamp");
       createUniqueIndex("Profiling_State", "Session", "Timestamp");
     }
     catch (SQLException ex) {
@@ -113,16 +138,22 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
                       "INSERT OR REPLACE INTO Thread_Activities " +
                       "(Session, ThreadId, Timestamp, State, Name) VALUES (?, ?, ?, ?, ?)");
+      createStatement(CpuTable.CpuStatements.QUERY_ALL_DISTINCT_THREADS,
+                      "SELECT DISTINCT ThreadId FROM Thread_Activities WHERE Session = ?");
       createStatement(CpuTable.CpuStatements.QUERY_THREAD_ACTIVITIES,
                       // First make sure to fetch the states of all threads that were alive at request's start timestamp
-                      "SELECT t1.ThreadId, t1.Name, t1.State, ? as ReqStart FROM Thread_Activities AS t1 " +
-                      "JOIN (SELECT ThreadId, MAX(Timestamp) AS Timestamp " +
-                      "FROM Thread_Activities WHERE Session = ? AND Timestamp <= ? GROUP BY ThreadId) AS t2 " +
-                      "ON t1.ThreadId = t2.ThreadId AND t1.Timestamp = t2.Timestamp AND t1.State <> 'DEAD' " +
+                      "SELECT t2.Name, t2.State, ? as ReqStart " +
+                      "FROM (SELECT MAX(Timestamp) AS Timestamp " +
+                      "      FROM Thread_Activities " +
+                      "      WHERE Session = ? AND ThreadId = ? AND Timestamp <= ? " +
+                      ") t1 " +
+                      "JOIN Thread_Activities t2 " +
+                      "ON (t2.Session = ? AND t2.ThreadId = ? AND t2.timestamp = t1.timestamp AND t2.State <> 'DEAD')" +
                       "UNION ALL " +
                       // Then fetch all the activities that happened in the request interval
-                      "SELECT ThreadId, Name, State, Timestamp FROM Thread_Activities " +
-                      "WHERE Session = ? AND Timestamp > ? AND Timestamp <= ?;");
+                      "SELECT Name, State, Timestamp " +
+                      "FROM Thread_Activities " +
+                      "WHERE Session = ? AND ThreadId = ? AND Timestamp > ? AND Timestamp <= ?");
       createStatement(CpuTable.CpuStatements.INSERT_PROFILING_STATE,
                       "INSERT OR REPLACE INTO Profiling_State (Session, Timestamp, Data) values (?, ?, ?)");
       createStatement(CpuTable.CpuStatements.QUERY_PROFILING_STATE,
@@ -159,6 +190,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                                int tid,
                                String name,
                                List<GetThreadsResponse.ThreadActivity> activities) {
+    getThreadIdCacheForSession(session.getSessionId()).add(tid);
     for (GetThreadsResponse.ThreadActivity activity : activities) {
       // TODO: optimize it by adding the states in batches
       execute(CpuStatements.INSERT_THREAD_ACTIVITY, session.getSessionId(), tid, activity.getTimestamp(), activity.getNewState().toString(),
@@ -169,8 +201,10 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
   public void insertSnapshot(Common.Session session,
                              long timestamp,
                              List<GetThreadsResponse.ThreadSnapshot.Snapshot> snapshots) {
+    Set<Integer> idSet = getThreadIdCacheForSession(session.getSessionId());
     // For now, insert it as activity. TODO: differentiate the concepts of snapshot and activity
     for (GetThreadsResponse.ThreadSnapshot.Snapshot snapshot : snapshots) {
+      idSet.add(snapshot.getTid());
       execute(CpuStatements.INSERT_THREAD_ACTIVITY,
               session.getSessionId(), snapshot.getTid(), timestamp, snapshot.getState().toString(), snapshot.getName());
     }
@@ -180,31 +214,53 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     // Use a TreeMap to preserve the threads sorting order (by tid)
     Map<Integer, GetThreadsResponse.Thread.Builder> threads = new TreeMap<>();
     try {
-      ResultSet activities = executeQuery(CpuStatements.QUERY_THREAD_ACTIVITIES,
-                                          // Used as the timestamp of the states that happened before the request
-                                          request.getStartTimestamp(),
-                                          request.getSession().getSessionId(),
-                                          // Used to get the the states that happened before the request
-                                          request.getStartTimestamp(),
-                                          request.getSession().getSessionId(),
-                                          // The start and end timestamps below are used to get the activities that
-                                          // happened in the interval (start, end]
-                                          request.getStartTimestamp(),
-                                          request.getEndTimestamp());
-      while (activities.next()) {
-        // Thread id should be the first column
-        int tid = activities.getInt(1);
-        if (!threads.containsKey(tid)) {
-          // Thread name should be the second column
-          GetThreadsResponse.Thread.Builder thread = createThreadBuilder(tid, activities.getString(2));
-          threads.put(tid, thread);
+      long sessionId = request.getSession().getSessionId();
+
+      List<Integer> threadIds = new ArrayList<>();
+      if (!mySessionThreadIdsCache.containsKey(sessionId)) {
+        Set<Integer> tidSet = getThreadIdCacheForSession(sessionId);
+
+        ResultSet threadResults = executeQuery(CpuStatements.QUERY_ALL_DISTINCT_THREADS, sessionId);
+        while (threadResults.next()) {
+          // Don't add directly to tidSet, since it's synchronized and would be slow to add each element individually.
+          threadIds.add(threadResults.getInt(1));
         }
-        // State should be the third column
-        GetThreadsResponse.State state = GetThreadsResponse.State.valueOf(activities.getString(3));
-        // Timestamp should be the fourth column
-        GetThreadsResponse.ThreadActivity.Builder activity =
-          GetThreadsResponse.ThreadActivity.newBuilder().setNewState(state).setTimestamp(activities.getLong(4));
-        threads.get(tid).addActivities(activity.build());
+        tidSet.addAll(threadIds);
+      }
+      else {
+        // Add all ids to a list so we release the implicit lock in threadIds ASAP.
+        //noinspection UseBulkOperation
+        mySessionThreadIdsCache.get(sessionId).forEach(tid -> threadIds.add(tid));
+      }
+
+      long startTimestamp = request.getStartTimestamp();
+      long endTimestamp = request.getEndTimestamp();
+      for (int tid : threadIds) {
+        ResultSet activities = executeQuery(
+          CpuStatements.QUERY_THREAD_ACTIVITIES,
+          // Used as the timestamp of the states that happened before the request
+          startTimestamp,
+          // Used to get the last activity just prior to the request range
+          sessionId, tid, startTimestamp,
+          // Used for the JOIN
+          sessionId, tid,
+          // The start and end timestamps below are used to get the activities that
+          // happened in the interval (start, end]
+          sessionId, tid, startTimestamp, endTimestamp);
+
+        CpuProfiler.GetThreadsResponse.Thread.Builder builder = null;
+        while (activities.next()) {
+          if (builder == null) {
+            // Please refer QUERY_THREAD_ACTIVITIES statement for the ResultSet's column to type/value mapping.
+            builder = createThreadBuilder(tid, activities.getString(1));
+            threads.put(tid, builder);
+          }
+
+          GetThreadsResponse.State state = GetThreadsResponse.State.valueOf(activities.getString(2));
+          GetThreadsResponse.ThreadActivity.Builder activity =
+            GetThreadsResponse.ThreadActivity.newBuilder().setNewState(state).setTimestamp(activities.getLong(3));
+          builder.addActivities(activity.build());
+        }
       }
     }
     catch (SQLException ex) {
@@ -293,6 +349,11 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     thread.setTid(tid);
     thread.setName(name);
     return thread;
+  }
+
+  @NotNull
+  private Set<Integer> getThreadIdCacheForSession(long sessionId) {
+    return mySessionThreadIdsCache.computeIfAbsent(sessionId, id -> Collections.synchronizedSet(new HashSet<>()));
   }
 
   /**

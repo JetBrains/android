@@ -23,6 +23,7 @@ import com.android.tools.idea.assistant.datamodel.StepElementType;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.android.tools.idea.templates.recipe.Recipe;
+import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,9 +31,8 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
+import java.io.File;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.Icon;
@@ -154,12 +154,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
   @NotNull
   public static String getIconResourcePath(@NotNull String resourceRoot, @NotNull String iconPath) {
-    try {
-      return new URI(resourceRoot).resolve(iconPath).toString();
-    }
-    catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
+    return FileUtils.toSystemIndependentPath(new File(resourceRoot, iconPath).toString());
   }
 
   @NotNull

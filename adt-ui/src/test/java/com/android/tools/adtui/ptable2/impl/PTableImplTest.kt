@@ -15,7 +15,13 @@
  */
 package com.android.tools.adtui.ptable2.impl
 
-import com.android.tools.adtui.ptable2.*
+import com.android.tools.adtui.ptable2.DefaultPTableCellRendererProvider
+import com.android.tools.adtui.ptable2.PTable
+import com.android.tools.adtui.ptable2.PTableCellEditor
+import com.android.tools.adtui.ptable2.PTableCellEditorProvider
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.item.Group
 import com.android.tools.adtui.ptable2.item.Item
 import com.android.tools.adtui.ptable2.item.createModel

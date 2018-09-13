@@ -40,10 +40,10 @@ public final class TooltipComponent extends AnimatedComponent {
   private static final int[] DROPSHADOW_ALPHAS = new int[]{40, 30, 20, 10};
 
   @NotNull
-  private final Component myTooltipContent;
+  private final JComponent myTooltipContent;
 
   @NotNull
-  private final Component myOwner;
+  private final JComponent myOwner;
 
   @NotNull
   private final JLayeredPane myParent;
@@ -215,8 +215,6 @@ public final class TooltipComponent extends AnimatedComponent {
       rect.setRoundRect(paintLocation.x - i, paintLocation.y - i, preferredSize.width + i * 2, preferredSize.height + i * 2, i * 2, i * 2);
       g.draw(rect);
     }
-
-    myTooltipContent.repaint();
   }
 
   @NotNull

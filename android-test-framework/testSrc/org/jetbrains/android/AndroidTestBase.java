@@ -246,4 +246,10 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     }
   }
+
+  protected void copyManifestJavaToGeneratedSources() {
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java");
+    }
+  }
 }

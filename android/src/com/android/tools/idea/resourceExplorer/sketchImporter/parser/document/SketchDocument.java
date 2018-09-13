@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.document;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SketchDocument {
   private final SketchAssetCollection assets;
@@ -31,9 +32,9 @@ public class SketchDocument {
   public SketchDocument(@NotNull SketchAssetCollection assets,
                         short colorSpace,
                         int currentPageIndex,
-                        @NotNull SketchForeignStyle[] foreignLayerStyles,
-                        @NotNull SketchForeignSymbol[] foreignSymbols,
-                        @NotNull SketchForeignTextStyle[] foreignTextStyles,
+                        @Nullable SketchForeignStyle[] foreignLayerStyles,
+                        @Nullable SketchForeignSymbol[] foreignSymbols,
+                        @Nullable SketchForeignTextStyle[] foreignTextStyles,
                         @NotNull SketchSharedStyle[] layerStyles,
                         @NotNull SketchSharedSymbol[] layerSymbols,
                         @NotNull SketchSharedStyle[] layerTextStyles) {
@@ -61,17 +62,17 @@ public class SketchDocument {
     return currentPageIndex;
   }
 
-  @NotNull
+  @Nullable
   public SketchForeignStyle[] getForeignLayerStyles() {
     return foreignLayerStyles;
   }
 
-  @NotNull
+  @Nullable
   public SketchForeignSymbol[] getForeignSymbols() {
     return foreignSymbols;
   }
 
-  @NotNull
+  @Nullable
   public SketchForeignTextStyle[] getForeignTextStyles() {
     return foreignTextStyles;
   }

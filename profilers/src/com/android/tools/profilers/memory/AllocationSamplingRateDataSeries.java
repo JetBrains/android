@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSamplingRateDurationData> {
+public final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSamplingRateDurationData> {
   @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   @NotNull private final Common.Session mySession;
 
@@ -53,30 +53,28 @@ final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSam
     // MemoryService returns all sampling rate events despite the start/end parameters. We need to filter out those out of range and
     // construct duration data from point data.
     List<SeriesData<AllocationSamplingRateDurationData>> seriesData = new ArrayList<>();
-    AllocationSamplingRateEvent oldRateEvent = null;
-    AllocationSamplingRateEvent newRateEvent = null;
-    for (AllocationSamplingRateEvent event : events) {
-      if (event.getTimestamp() > rangeMax) {
+    AllocationSamplingRateEvent prevRateEvent = null;
+    for (int i = 0; i < events.size(); i++) {
+      AllocationSamplingRateEvent currentEvent = events.get(i);
+      // Event is after our request window so skip the rest.
+      if (currentEvent.getTimestamp() > rangeMax) {
         break;
       }
-      if (oldRateEvent == null) {
-        oldRateEvent = event;
-        continue;
+
+      // If this is the last event. Set the duration to be Long.MAX_VALUE, otherwise it will be the timestamp difference between the
+      // next and current events.
+      AllocationSamplingRateEvent nextRateEvent = i == events.size() - 1 ? null : events.get(i + 1);
+      long durationUs = nextRateEvent == null ? TimeUnit.NANOSECONDS.toMicros(Long.MAX_VALUE) :
+                        TimeUnit.NANOSECONDS.toMicros(nextRateEvent.getTimestamp() - currentEvent.getTimestamp());
+
+      // Only add events that fall within the query range.
+      if (nextRateEvent == null || nextRateEvent.getTimestamp() > rangeMin) {
+        seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(currentEvent.getTimestamp()),
+                                        new AllocationSamplingRateDurationData(durationUs, prevRateEvent, currentEvent)));
       }
-      if (event.getTimestamp() > rangeMin) {
-        newRateEvent = event;
-        seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(oldRateEvent.getTimestamp()),
-                                        new AllocationSamplingRateDurationData(oldRateEvent, newRateEvent)));
-        newRateEvent = null;
-      }
-      oldRateEvent = event;
+      prevRateEvent = currentEvent;
     }
-    if (oldRateEvent != null && newRateEvent == null) {
-      // Current sampling rate is still ongoing, add a new duration of {oldRateEvent, INF}.
-      newRateEvent = oldRateEvent.toBuilder().setTimestamp(Long.MAX_VALUE).build();
-      seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(oldRateEvent.getTimestamp()),
-                                      new AllocationSamplingRateDurationData(oldRateEvent, newRateEvent)));
-    }
+
     return seriesData;
   }
 }

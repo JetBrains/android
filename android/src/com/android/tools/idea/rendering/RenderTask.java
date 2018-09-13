@@ -108,6 +108,7 @@ public class RenderTask {
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
+  private final float myDefaultQuality;
   @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   @Nullable private Integer myOverrideBgColor;
@@ -118,7 +119,7 @@ public class RenderTask {
   @NotNull private final Object myCredential;
   private boolean myProvideCookiesForIncludedViews = false;
   @Nullable private RenderSession myRenderSession;
-  @NotNull private final IImageFactory myCachingImageFactory;
+  @NotNull private IImageFactory myCachingImageFactory;
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
@@ -177,25 +178,34 @@ public class RenderTask {
                                       configuration,
                                       moduleInfo,
                                       renderService.getPlatform(facet));
-    if (quality < 1f) {
-      float actualSamplingFactor = MIN_DOWNSCALING_FACTOR + Math.max(Math.min(quality, 1f), 0f) * (1f - MIN_DOWNSCALING_FACTOR);
-      long maxSize = (long)((float)DOWNSCALED_IMAGE_MAX_BYTES * actualSamplingFactor);
-      myCachingImageFactory = new CachingImageFactory(((width, height) -> {
-        int downscaleWidth = width;
-        int downscaleHeight = height;
-        int size = width * height;
-        if (size > maxSize) {
-          double scale = maxSize / (double)size;
-          downscaleWidth *= scale;
-          downscaleHeight *= scale;
-        }
+    myDefaultQuality = quality;
+    restoreDefaultQuality();
+  }
 
-        return SIMPLE_IMAGE_FACTORY.getImage(downscaleWidth, downscaleHeight);
-      }));
+  public void setQuality(float quality) {
+    if (quality >= 1.f) {
+      myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
+      return;
     }
-    else {
-      myCachingImageFactory = new CachingImageFactory(SIMPLE_IMAGE_FACTORY);
-    }
+
+    float actualSamplingFactor = MIN_DOWNSCALING_FACTOR + Math.max(Math.min(quality, 1f), 0f) * (1f - MIN_DOWNSCALING_FACTOR);
+    long maxSize = (long)((float)DOWNSCALED_IMAGE_MAX_BYTES * actualSamplingFactor);
+    myCachingImageFactory = new CachingImageFactory(((width, height) -> {
+      int downscaleWidth = width;
+      int downscaleHeight = height;
+      int size = width * height;
+      if (size > maxSize) {
+        double scale = maxSize / (double)size;
+        downscaleWidth *= scale;
+        downscaleHeight *= scale;
+      }
+
+      return SIMPLE_IMAGE_FACTORY.getImage(downscaleWidth, downscaleHeight);
+    }));
+  }
+
+  public void restoreDefaultQuality() {
+    setQuality(myDefaultQuality);
   }
 
   public void setXmlFile(@NotNull XmlFile file) {

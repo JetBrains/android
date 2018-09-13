@@ -132,6 +132,9 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
       @Override
       public void focusLost(FocusEvent event) {
         myDisplayRealValue = false;
+        if (myProperty == EmptyProperty.INSTANCE) {
+          return;
+        }
         ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
         UndoManager undoManager = UndoManager.getInstance(myProperty.getModel().getProject());
         // b/110880308: Avoid updating the property during undo/redo

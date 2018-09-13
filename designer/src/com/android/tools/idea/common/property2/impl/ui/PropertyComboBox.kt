@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
-import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
@@ -29,7 +29,11 @@ import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
-import javax.swing.*
+import javax.swing.ComboBoxEditor
+import javax.swing.JList
+import javax.swing.KeyStroke
+import javax.swing.ListCellRenderer
+import javax.swing.SwingUtilities
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.basic.ComboPopup
@@ -136,7 +140,9 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     editor?.editorComponent?.background = color
   }
 
-  override fun getToolTipText(): String? = model.tooltip
+  override fun getToolTipText(event: MouseEvent): String? {
+    return PropertyTooltip.setToolTip(textField, event, model.property, forValue = true, text = model.text)
+  }
 
   // Hack: This method is called to update the text editor with the content of the
   // selected item in the dropdown. We do not want that, since the editor text can

@@ -73,21 +73,6 @@ public class DrawableFileGenerator {
     myProject = project;
   }
 
-  @NotNull
-  private static XmlTag createVectorDrawable(@NotNull Project project) {
-    return getApplication()
-      .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(project).createTagFromText(TAG_VECTOR_HEAD));
-  }
-
-  private static void updateDimensionsFromVectorDrawable(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
-    getApplication().runReadAction(() -> {
-      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + SdkConstants.UNIT_DP);
-      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + SdkConstants.UNIT_DP);
-      root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(vectorDrawable.getViewportHeight()));
-      root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(vectorDrawable.getViewportWidth()));
-    });
-  }
-
   private void addArtboardPathForTesting(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
     getApplication().runReadAction(() -> {
       XmlTag pathTag = XmlElementFactory.getInstance(myProject).createTagFromText(TAG_PATH);
@@ -176,14 +161,6 @@ public class DrawableFileGenerator {
     });
   }
 
-  @Nullable
-  private static XmlTag closeClippedGroup(@NotNull XmlTag groupTag, @NotNull XmlTag root) {
-    getApplication().runReadAction(() -> {
-      root.addSubTag(groupTag, false);
-    });
-    return null;
-  }
-
   /**
    * Generate a Vector Drawable (.xml) file from the {@link VectorDrawable}.
    */
@@ -248,6 +225,29 @@ public class DrawableFileGenerator {
     String content = getApplication().runReadAction((Computable<String>)() -> root.getText());
     virtualFile.setContent(null, content, false);
     return virtualFile;
+  }
+
+  @NotNull
+  private static XmlTag createVectorDrawable(@NotNull Project project) {
+    return getApplication()
+      .runReadAction((Computable<XmlTag>)() -> XmlElementFactory.getInstance(project).createTagFromText(TAG_VECTOR_HEAD));
+  }
+
+  private static void updateDimensionsFromVectorDrawable(@NotNull VectorDrawable vectorDrawable, @NotNull XmlTag root) {
+    getApplication().runReadAction(() -> {
+      root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + SdkConstants.UNIT_DP);
+      root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + SdkConstants.UNIT_DP);
+      root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(vectorDrawable.getViewportHeight()));
+      root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(vectorDrawable.getViewportWidth()));
+    });
+  }
+
+  @Nullable
+  private static XmlTag closeClippedGroup(@NotNull XmlTag groupTag, @NotNull XmlTag root) {
+    getApplication().runReadAction(() -> {
+      root.addSubTag(groupTag, false);
+    });
+    return null;
   }
 
   @NotNull

@@ -175,6 +175,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
       override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
       override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
+      override fun getAllLightRClasses() = emptyList<PsiClass>()
     }
   }
 }

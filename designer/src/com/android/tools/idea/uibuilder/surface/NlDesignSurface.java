@@ -15,14 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.annotations.VisibleForTesting.Visibility;
+import static com.android.resources.Density.DEFAULT_DENSITY;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -49,18 +68,14 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.android.annotations.VisibleForTesting.Visibility;
-import static com.android.resources.Density.DEFAULT_DENSITY;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
@@ -135,8 +150,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       if (!contentResizeSkipped()) {
         zoomToFit();
       }
+      layoutContent();
       updateScrolledAreaSize();
-      repaint();
     }
   }
 

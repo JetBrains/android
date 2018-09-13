@@ -17,18 +17,23 @@ package com.android.tools.idea.resourceExplorer.sketchImporter
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.meta.SketchMeta
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
 import java.io.File
 import java.io.FileInputStream
 
 class SketchTestUtils {
   companion object {
-    fun parsePage(path: String) : SketchPage {
-      return SketchParser.parsePage(FileInputStream(File(path)))!!
+    fun parsePage(path: String): SketchPage {
+      return SketchParser.parseJson(FileInputStream(File(path)), SketchPage::class.java)!!
     }
 
-    fun parseDocument(path: String) : SketchDocument {
-      return SketchParser.parseDocument(FileInputStream(File(path)))!!
+    fun parseDocument(path: String): SketchDocument {
+      return SketchParser.parseJson(FileInputStream(File(path)), SketchDocument::class.java)!!
+    }
+
+    fun parseMeta(path: String): SketchMeta {
+      return SketchParser.parseJson(FileInputStream(File(path)), SketchMeta::class.java)!!
     }
   }
 }

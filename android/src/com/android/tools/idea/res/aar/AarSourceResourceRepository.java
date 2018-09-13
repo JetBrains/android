@@ -15,9 +15,19 @@
  */
 package com.android.tools.idea.res.aar;
 
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_RESOURCE_TEXT;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.DuplicateDataException;
+import com.android.ide.common.resources.MergingException;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceMerger;
+import com.android.ide.common.resources.ResourceRepositories;
+import com.android.ide.common.resources.ResourceSet;
+import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
 import com.android.resources.ResourceType;
@@ -25,24 +35,19 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.NullableLazyValue;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 
 /**
  * A resource repository representing unpacked contents of a non-namespaced AAR.
@@ -222,14 +227,10 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     return myAarDeclaredIds;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
-    VirtualFile virtualFile = VfsUtil.findFileByIoFile(myResourceDirectory, !ApplicationManager.getApplication().isReadAccessAllowed());
-    if (virtualFile == null) {
-      return ImmutableSet.of();
-    }
-    return ImmutableSet.of(virtualFile);
+    return Collections.emptySet();
   }
 
   // For debugging only.

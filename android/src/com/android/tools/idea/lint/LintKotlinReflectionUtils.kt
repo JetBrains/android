@@ -15,54 +15,42 @@
  */
 package com.android.tools.idea.lint
 
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UExpression
-import java.util.*
+import org.jetbrains.uast.kotlin.KotlinUastResolveProviderService
 
-// Reflective version of LintKotlinUtils in lint-kotlin.
-// Soon this will instead be compiled into the Kotlin plugin and accessed from
-// the Android plugin via an extension point.
-@Throws(Throwable::class)
+/**
+ * Computes argument mapping from arguments to parameters (or returns
+ * null if the mapping is 1-1, e.g. in Java), or if the mapping is trivial
+ * (Kotlin 0 or 1 args), or if there's some kind of error.
+ */
 fun computeKotlinArgumentMapping(call: UCallExpression, method: PsiMethod):
-    Map<UExpression, PsiParameter>? {
-  // Kotlin?
-  val receiver = call.psi ?: return null
-  if (receiver.language == JavaLanguage.INSTANCE) {
-    return null
-  }
-  if (receiver.language.id != "kotlin") {
-    return null
-  }
+  Map<UExpression, PsiParameter>? {
+  // Kotlin? If not, mapping is trivial
+  val receiver = call.psi as? KtElement ?: return null
 
   if (method.parameterList.parametersCount < 2) {
     // When there is at most one parameter the mapping is easy to figure out!
     return null
   }
 
-  val loader = receiver.javaClass.classLoader
-
-  val service = ServiceManager.getService(receiver.project,
-      Class.forName("org.jetbrains.uast.kotlin.KotlinUastResolveProviderService", true, loader)) ?: return null
-
-  val ktElementClass = Class.forName("org.jetbrains.kotlin.psi.KtElement", true, loader)
-  val bindingContextClass = Class.forName("org.jetbrains.kotlin.resolve.BindingContext", true, loader)
-  val callUtilClass = Class.forName("org.jetbrains.kotlin.resolve.calls.callUtil.CallUtilKt", true, loader)
-
-  val bindingContext = service.javaClass.getMethod("getBindingContext", ktElementClass).invoke(service, receiver)
+  val service = ServiceManager.getService(
+    receiver.project,
+    KotlinUastResolveProviderService::class.java
+  ) ?: return null
+  val bindingContext = service.getBindingContext(receiver)
   val parameters = method.parameterList.parameters
-  val resolvedCallMethod = callUtilClass.getDeclaredMethod("getResolvedCall", ktElementClass, bindingContextClass) ?: return null
-  val resolvedCall = resolvedCallMethod.invoke(null, receiver, bindingContext) ?: return null
-  val valueArgumentsMethod = resolvedCall.javaClass.getDeclaredMethod("getValueArguments")
-  val valueArguments = valueArgumentsMethod.invoke(resolvedCall) as Map<*, *>
-
+  val resolvedCall = receiver.getResolvedCall(bindingContext) ?: return null
+  val valueArguments = resolvedCall.valueArguments
   val elementMap = mutableMapOf<PsiElement, UExpression>()
   for (parameter in call.valueArguments) {
-    elementMap.put(parameter.psi ?: continue, parameter)
+    elementMap[parameter.psi ?: continue] = parameter
   }
   if (valueArguments.isNotEmpty()) {
     var firstParameterIndex = 0
@@ -71,28 +59,19 @@ fun computeKotlinArgumentMapping(call: UCallExpression, method: PsiMethod):
       firstParameterIndex++
     }
 
-    val valueParameterDescriptorClass = Class.forName("org.jetbrains.kotlin.descriptors.ValueParameterDescriptor", true, loader)
-    val getIndexMethod = valueParameterDescriptorClass.getDeclaredMethod("getIndex")
-    val valueArgumentClass = Class.forName("org.jetbrains.kotlin.psi.ValueArgument", true, loader)
-    val getArgumentExpressionMethod = valueArgumentClass.getDeclaredMethod("getArgumentExpression")
-    val resolvedValueArgumentClass = Class.forName("org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument", true, loader)
-    val getArgumentsMethod = resolvedValueArgumentClass.getDeclaredMethod("getArguments")
-
-    val mapping = HashMap<UExpression, PsiParameter>()
+    val mapping = mutableMapOf<UExpression, PsiParameter>()
     for ((parameterDescriptor, valueArgument) in valueArguments) {
-      val arguments = getArgumentsMethod.invoke(valueArgument) as List<*>
-      for (argument in arguments) {
-        val expression = getArgumentExpressionMethod.invoke(argument) ?: continue
-        val arg = elementMap[expression] ?: continue
-
-        val index = firstParameterIndex + ((getIndexMethod.invoke(parameterDescriptor) as Int))
+      for (argument in valueArgument.arguments) {
+        val expression = argument.getArgumentExpression() ?: continue
+        val arg = elementMap[expression as PsiElement] ?: continue  // cast only needed to avoid Kotlin compiler frontend bug KT-24309.
+        val index = firstParameterIndex + parameterDescriptor.index
         if (index < parameters.size) {
-          mapping.put(arg, parameters[index])
+          mapping[arg] = parameters[index]
         }
       }
     }
 
-    if (!mapping.isEmpty()) {
+    if (mapping.isNotEmpty()) {
       return mapping
     }
   }

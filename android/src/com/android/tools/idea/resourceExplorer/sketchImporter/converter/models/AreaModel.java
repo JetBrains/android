@@ -88,8 +88,21 @@ public class AreaModel extends ShapeModel {
   @Override
   public void applyTransformations() {
     AffineTransform transform = computeAffineTransform();
-
     area.transform(transform);
     transformGradient(transform);
+  }
+
+  @Override
+  public void scale(double scaleX, double scaleY) {
+    AffineTransform scaleTransform = new AffineTransform();
+    scaleTransform.scale(scaleX, scaleY);
+    area.transform(scaleTransform);
+  }
+
+  @Override
+  public void translate(double translateX, double translateY) {
+    AffineTransform translateTransform = new AffineTransform();
+    translateTransform.translate(translateX, translateY);
+    area.transform(translateTransform);
   }
 }

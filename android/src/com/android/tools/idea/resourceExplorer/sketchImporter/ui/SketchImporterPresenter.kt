@@ -22,7 +22,9 @@ import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.model_converters.SketchToShapeConverter.createAllDrawableShapes
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.VectorDrawable
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
 import com.google.common.util.concurrent.ListenableFuture
@@ -38,6 +40,10 @@ private fun List<LightVirtualFile>.toAssets() = this.map {
 
 private const val DEFAULT_IMPORT_ALL = true
 
+/**
+ * The presenter in the MVP pattern developed for the Sketch Importer UI, connects the view to the model and deals with the logic behind the
+ * user interface.
+ */
 class SketchImporterPresenter(private val sketchImporterView: SketchImporterView,
                               sketchFile: SketchFile,
                               private val designAssetImporter: DesignAssetImporter,
@@ -46,7 +52,7 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
   private var importAll = DEFAULT_IMPORT_ALL
   private val pagePresenters = sketchFile.pages
     .mapNotNull { page ->
-      val pagePresenter = PagePresenter(page, facet)
+      val pagePresenter = PagePresenter(page, facet, sketchFile.symbolsLibrary)
       sketchImporterView.createPageView(pagePresenter)
       pagePresenter
     }
@@ -97,7 +103,8 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
 }
 
 class PagePresenter(private val sketchPage: SketchPage,
-                    val facet: AndroidFacet) {
+                    val facet: AndroidFacet,
+                    private val symbolsLibrary: SymbolsLibrary) {
 
   lateinit var view: PageView
   private val pageOptions = PageOptions(sketchPage)
@@ -139,11 +146,14 @@ class PagePresenter(private val sketchPage: SketchPage,
   /**
    * @return a mapping from [LightVirtualFile] Vector Drawables to [AssetOptions], corresponding to each artboard in [page].
    */
-  private fun createIconFiles(page: SketchPage) = page.artboards
-    .associate { artboard ->
-      DrawableFileGenerator(facet.module.project).generateFile(
-        VectorDrawable(artboard)) to AssetOptions(artboard)
-    }
+  private fun createIconFiles(page: SketchPage): Map<LightVirtualFile, AssetOptions> {
+    val drawableFileGenerator = DrawableFileGenerator(facet.module.project)
+    return page.artboards
+      .associate { artboard ->
+        drawableFileGenerator.generateFile(
+          VectorDrawable(artboard, createAllDrawableShapes(artboard, symbolsLibrary))) to AssetOptions(artboard)
+      }
+  }
 
   /**
    * Filter only the files that are exportable (unless the importAll marker is set).

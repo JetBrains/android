@@ -15,11 +15,25 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.*;
+import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -28,24 +42,15 @@ import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
-
-import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class NetworkProfilerStageTest {
   private static final float EPSILON = 0.00001f;
@@ -120,17 +125,6 @@ public class NetworkProfilerStageTest {
   }
 
   @Test
-  public void getRadioState() {
-    List<RangedSeries<NetworkRadioDataSeries.RadioState>> series = myStage.getRadioState().getSeries();
-    assertThat(series).hasSize(1);
-
-    List<SeriesData<NetworkRadioDataSeries.RadioState>> dataList = series.get(0).getSeries();
-    assertThat(dataList).hasSize(1);
-    assertThat(dataList.get(0).x).isEqualTo(TimeUnit.SECONDS.toMicros(5));
-    assertThat(dataList.get(0).value).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
-  }
-
-  @Test
   public void getName() {
     assertThat(myStage.getName()).isEqualTo("NETWORK");
   }
@@ -181,40 +175,6 @@ public class NetworkProfilerStageTest {
     assertThat(networkLegends.getConnectionLegend().getValue()).isEqualTo("6");
 
     assertThat(networkLegends.getLegends()).hasSize(3);
-  }
-
-  @Test
-  public void testRadioTooltip() {
-    myStage.enter();
-    myStage.setTooltip(new NetworkRadioTooltip(myStage));
-    assertThat(myStage.getTooltip()).isInstanceOf(NetworkRadioTooltip.class);
-    NetworkRadioTooltip tooltip = (NetworkRadioTooltip)myStage.getTooltip();
-
-    double tooltipTime = TimeUnit.SECONDS.toMicros(5);
-    double radioStart = TimeUnit.SECONDS.toMicros(5);
-    double radioEnd = TimeUnit.SECONDS.toMicros(10);
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-    timeline.getDataRange().setMax(radioEnd);
-
-    // Tooltip position change should update radio state.
-    timeline.getTooltipRange().set(tooltipTime, tooltipTime);
-    assertThat(tooltip.getRadioStateData().getRadioState()).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
-
-    // As data range expands, radio state range should update accordingly.
-    radioEnd = TimeUnit.SECONDS.toMicros(15);
-    timeline.getDataRange().setMax(radioEnd);
-    assertThat(tooltip.getRadioStateData().getRadioState()).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
-
-    // View range shifts shouldn't affect radio state range.
-    timeline.getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(6));
-    tooltipTime = TimeUnit.SECONDS.toMicros(6);
-    timeline.getTooltipRange().set(tooltipTime, tooltipTime);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
   }
 
   @Test
@@ -294,10 +254,6 @@ public class NetworkProfilerStageTest {
     myStage.exit();
     AspectObserver observer = new AspectObserver();
 
-    final boolean[] radioStateUpdated = {false};
-    myStage.getRadioState().addDependency(observer).onChange(
-      StateChartModel.Aspect.MODEL_CHANGED, () -> radioStateUpdated[0] = true);
-
     final boolean[] networkUsageUpdated = {false};
     myStage.getDetailedNetworkUsage().addDependency(observer).onChange(
       LineChartModel.Aspect.LINE_CHART, () -> networkUsageUpdated[0] = true);
@@ -319,7 +275,6 @@ public class NetworkProfilerStageTest {
       LegendComponentModel.Aspect.LEGEND, () -> tooltipLegendsUpdated[0] = true);
 
     myTimer.tick(1);
-    assertThat(radioStateUpdated[0]).isFalse();
     assertThat(networkUsageUpdated[0]).isFalse();
     assertThat(trafficAxisUpdated[0]).isFalse();
     assertThat(connectionAxisUpdated[0]).isFalse();

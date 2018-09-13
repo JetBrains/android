@@ -17,7 +17,27 @@
 
 package com.android.tools.idea.res
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_APP_PKG
+import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
+import com.android.SdkConstants.ANDROID_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_PREFIX
+import com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ANDROID_VIEW_PKG
+import com.android.SdkConstants.ANDROID_WEBKIT_PKG
+import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
+import com.android.SdkConstants.ATTR_COLOR
+import com.android.SdkConstants.ATTR_DRAWABLE
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.CLASS_PREFERENCE
+import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.FD_RES_LAYOUT
+import com.android.SdkConstants.FD_RES_VALUES
+import com.android.SdkConstants.PREFIX_RESOURCE_REF
+import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
+import com.android.SdkConstants.TAG_ITEM
+import com.android.SdkConstants.TAG_SELECTOR
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -26,14 +46,20 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.ResourceVisibilityLookup
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
-import com.android.ide.common.resources.ResourceItem.*
+import com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE
+import com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG
+import com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX
 import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
-import com.android.resources.*
+import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
@@ -62,10 +88,19 @@ import com.intellij.openapi.roots.impl.DirectoryIndex
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.xml.*
+import com.intellij.psi.xml.XmlElement
+import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
+import com.intellij.psi.xml.XmlText
+import com.intellij.psi.xml.XmlTokenType
 import com.intellij.ui.ColorUtil
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
@@ -78,9 +113,10 @@ import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
-import java.util.*
+import java.util.ArrayList
+import java.util.Comparator
+import java.util.HashMap
 import javax.swing.Icon
-import kotlin.collections.HashSet
 
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
@@ -655,9 +691,9 @@ fun colorToString(color: Color): String {
   var longColor = (color.red shl 16 or (color.green shl 8) or color.blue).toLong()
   if (color.alpha != 0xFF) {
     longColor = longColor or (color.alpha.toLong() shl 24)
-    return String.format("#%08x", longColor)
+    return String.format("#%08X", longColor)
   }
-  return String.format("#%06x", longColor)
+  return String.format("#%06X", longColor)
 }
 
 private fun extend(nibble: Long): Long {

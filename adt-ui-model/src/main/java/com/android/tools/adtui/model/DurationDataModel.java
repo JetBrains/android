@@ -16,6 +16,7 @@
 package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.model.updater.Updatable;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
   @NotNull private final RangedSeries<E> mySeries;
   @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
   @Nullable private Predicate<SeriesData<E>> myAttachPredicate = null;
+  @Nullable private BiPredicate<SeriesData<E>, RangedContinuousSeries> myRenderSeriesPredicate = null;
   @Nullable private Interpolatable<Long, Double> myInterpolatable = null;
 
   public DurationDataModel(@NotNull RangedSeries<E> series) {
@@ -52,6 +54,11 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
   }
 
   @Nullable
+  public BiPredicate<SeriesData<E>, RangedContinuousSeries> getRenderSeriesPredicate() {
+    return myRenderSeriesPredicate;
+  }
+
+  @Nullable
   public Interpolatable<Long, Double> getInterpolatable() {
     return myInterpolatable;
   }
@@ -72,6 +79,14 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
    */
   public void setAttachPredicate(@NotNull Predicate<SeriesData<E>> attachPredicate) {
     myAttachPredicate = attachPredicate;
+  }
+
+  /**
+   * @param attachPredicate   for each DurationData, an expression that evaluates whether a RangedContinousSeries should be rendered within
+   *                          the duration.
+   */
+  public void setRenderSeriesPredicate(@NotNull BiPredicate<SeriesData<E>, RangedContinuousSeries> renderSeriesPredicate) {
+    myRenderSeriesPredicate = renderSeriesPredicate;
   }
 
   @Override

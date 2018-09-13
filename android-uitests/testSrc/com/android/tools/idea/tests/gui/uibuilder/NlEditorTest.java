@@ -30,14 +30,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
-import org.fest.swing.timing.Wait;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import javax.swing.FocusManager;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -45,7 +43,6 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(Parameterized.class)
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
@@ -219,7 +216,6 @@ public class NlEditorTest {
       .waitForGradleProjectSyncToFinish();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/113077022
   @Test
   public void morphComponent() throws IOException {
     boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
@@ -231,29 +227,13 @@ public class NlEditorTest {
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
       NlEditorFixture layout = editor.getLayoutEditor(true)
-        .dragComponentToSurface("Buttons", "Button")
         .waitForRenderToFinish();
-
-      // Test enter text manually
-      NlComponentFixture button = layout.findView("Button", 0);
-      button.rightClick();
-      layout.invokeContextMenuAction("Convert view...");
-      MorphDialogFixture fixture = layout.findMorphDialog();
-      fixture.getTextField().click();
-      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
-
-      ideFrame.robot().enterText("TextView");
-      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
-      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
-      fixture.getOkButton().click();
-      assertNotNull(layout.findView("TextView", 1));
-      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
 
       // Test click on a suggestion
       NlComponentFixture textView = layout.findView("TextView", 0);
       textView.rightClick();
       textView.invokeContextMenuAction("Convert view...");
-      fixture = layout.findMorphDialog();
+      MorphDialogFixture fixture = layout.findMorphDialog();
       fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
@@ -262,6 +242,21 @@ public class NlEditorTest {
       fixture.getOkButton().click();
       layout.waitForRenderToFinish();
       assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+
+      // Test enter text manually
+      NlComponentFixture button = layout.findView("Button", 0);
+      button.rightClick();
+      layout.invokeContextMenuAction("Convert view...");
+      fixture = layout.findMorphDialog();
+      fixture.getTextField().click();
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+      ideFrame.robot().enterText("TextView");
+      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
+      fixture.getOkButton().click();
+      layout.waitForRenderToFinish();
+      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
     }
     finally {
       StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);

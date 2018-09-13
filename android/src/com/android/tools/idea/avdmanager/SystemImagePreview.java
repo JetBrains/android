@@ -69,7 +69,7 @@ public class SystemImagePreview {
 
   private static final String PS_RECOMMENDATION = "<html>We recommend these Google Play "
     + "images because this device is compatible with Google Play.<br><br></html>";
-  private static final String WEAR_RECOMMENDATION = "<html>We recommend these Android Wear "
+  private static final String WEAR_RECOMMENDATION = "<html>We recommend these Wear OS "
     + "images because they run the fastest.<br><br></html>";
   private static final String NON_PS_RECOMMENDATION = "<html>We recommend these images "
     + "because they run the fastest and support Google APIs.<br><br></html>";

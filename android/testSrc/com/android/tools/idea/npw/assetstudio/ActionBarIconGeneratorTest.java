@@ -15,37 +15,46 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.ActionBarOptions;
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.Theme;
-import com.intellij.openapi.util.Disposer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
+import com.android.tools.idea.npw.assetstudio.IconGeneratorTestUtil.SourceType;
+import com.google.common.collect.ImmutableList;
+import java.awt.Color;
 import java.io.IOException;
+import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
-@RunWith(JUnit4.class)
-public class ActionBarIconGeneratorTest {
+public class ActionBarIconGeneratorTest extends AndroidTestCase {
 
-  private static void checkGraphic(String baseName, Theme theme) throws IOException {
-    ActionBarOptions options = new ActionBarOptions();
-    options.theme = theme;
-
-    ActionBarIconGenerator generator = new ActionBarIconGenerator(15);
-    try {
-      BitmapGeneratorTests.checkGraphic(5, "actions", baseName, generator, options);
-    } finally {
-      Disposer.dispose(generator);
+  private void checkGraphic(@NotNull String baseName,
+                            @NotNull SourceType sourceType,
+                            @NotNull Theme theme) throws IOException {
+    ActionBarIconGenerator generator = new ActionBarIconGenerator(getProject(), 15, null);
+    disposeOnTearDown(generator);
+    generator.theme().set(theme);
+    if (theme == Theme.CUSTOM) {
+      generator.customColor().set(Color.BLACK);
     }
+    List<String> expectedFolders =
+        sourceType == SourceType.PNG ?
+            ImmutableList.of("drawable-xxxhdpi", "drawable-xxhdpi", "drawable-xhdpi", "drawable-hdpi", "drawable-mdpi") :
+            ImmutableList.of("drawable-anydpi", "drawable-xxhdpi", "drawable-xhdpi", "drawable-hdpi", "drawable-mdpi");
+    IconGeneratorTestUtil.checkGraphic(generator, sourceType, baseName, 0, expectedFolders, "actions");
   }
 
-  @Test
-  public void testDark() throws Exception {
-    checkGraphic("ic_action_dark", Theme.HOLO_DARK);
+  public void testPngDark() throws Exception {
+    checkGraphic("ic_action_dark", SourceType.PNG, Theme.HOLO_DARK);
   }
 
-  @Test
-  public void testLight() throws Exception {
-    checkGraphic("ic_action_light", Theme.HOLO_LIGHT);
+  public void testPngLight() throws Exception {
+    checkGraphic("ic_action_light", SourceType.PNG, Theme.HOLO_LIGHT);
+  }
+
+  public void testSvgLight() throws Exception {
+    checkGraphic("ic_action_light", SourceType.SVG, Theme.HOLO_LIGHT);
+  }
+
+  public void testSvgCustom() throws Exception {
+    checkGraphic("ic_action_custom", SourceType.SVG, Theme.CUSTOM);
   }
 }

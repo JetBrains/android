@@ -109,11 +109,6 @@ public class LineConfig {
   @NotNull
   private Color mColor;
 
-  /**
-   * Whether the series should be hidden.
-   */
-  private boolean myIsMasked;
-
   public LineConfig(@NotNull Color color) {
     mColor = color;
     myStroke = DEFAULT_LINE_STROKE;
@@ -131,21 +126,7 @@ public class LineConfig {
     config.setLegendIconType(otherConfig.getLegendIconType());
     config.setStroke(otherConfig.getStroke());
     config.setAdjustedDashPhase(otherConfig.getAdjustedDashPhase());
-    config.setMasked(otherConfig.isMasked());
     return config;
-  }
-
-  /**
-   * Specify the series that will be masked out (hidden) when it is drawn on the LineChart using this config instance.
-   */
-  @NotNull
-  public LineConfig setMasked(boolean isMasked) {
-    myIsMasked = isMasked;
-    return this;
-  }
-
-  public boolean isMasked() {
-    return myIsMasked;
   }
 
   @NotNull

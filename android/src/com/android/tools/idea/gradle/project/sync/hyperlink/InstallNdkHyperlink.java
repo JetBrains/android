@@ -50,7 +50,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
   private static final String ERROR_TITLE = "Gradle Sync Error";
 
   public InstallNdkHyperlink() {
-    super("install.ndk", "Install NDK and sync project");
+    super("install.ndk", "Install NDK");
   }
 
   @Override
@@ -79,7 +79,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
         Map<String, RemotePackage> remotePackages = packages.getRemotePackages();
         RemotePackage ndkPackage = remotePackages.get(FD_NDK);
         if (ndkPackage != null) {
-          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPackage.getPath()));
+          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPackage.getPath()), true);
           if (dialog != null && dialog.showAndGet()) {
             GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
           }

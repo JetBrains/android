@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.configurations
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.idea.editors.theme.ThemeResolver
+import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -78,5 +82,16 @@ class ThemeUtilsTest : AndroidTestCase() {
     for (i in 0..4) {
       assertEquals("@style/NewTheme${4 - i}", recentUsedThemes6[i])
     }
+  }
+
+  fun testGetFrameworkThemesWithFilter() {
+    val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
+    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val themeResolver = ThemeResolver(configuration)
+    val reference = ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Black")
+    val style = configuration.resourceResolver!!.getStyle(reference)!!
+    val filter: ThemeStyleFilter = createFilter(themeResolver, emptySet(), *Array(1) {style})
+    val themes = getFrameworkThemeNames(themeResolver, filter)
+    assertThat(themes).containsExactly("android:Theme.Black.NoTitleBar", "android:Theme.Black.NoTitleBar.Fullscreen")
   }
 }

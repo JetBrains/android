@@ -36,51 +36,59 @@ public class IntellijProfilerPreferences implements ProfilerPreferences {
   @NotNull
   @Override
   public String getValue(@NotNull String name, @NotNull String defaultValue) {
-    return myPropertiesComponent.getValue(PROFILER_PREFIX + name, defaultValue);
+    return myPropertiesComponent.getValue(getProfilerPropertyName(name), defaultValue);
   }
 
   @Override
   public float getFloat(@NotNull String name, float defaultValue) {
-    return myPropertiesComponent.getFloat(PROFILER_PREFIX + name, defaultValue);
+    return myPropertiesComponent.getFloat(getProfilerPropertyName(name), defaultValue);
   }
 
   @Override
   public int getInt(@NotNull String name, int defaultValue) {
-    return myPropertiesComponent.getInt(PROFILER_PREFIX + name, defaultValue);
+    return myPropertiesComponent.getInt(getProfilerPropertyName(name), defaultValue);
   }
 
   @Override
   public boolean getBoolean(@NotNull String name, boolean defaultValue) {
-    return myPropertiesComponent.getBoolean(PROFILER_PREFIX + name, defaultValue);
+    return myPropertiesComponent.getBoolean(getProfilerPropertyName(name), defaultValue);
   }
 
   @Override
   public void setValue(@NotNull String name, @NotNull String value) {
-    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value);
+    myPropertiesComponent.setValue(getProfilerPropertyName(name), value);
   }
 
   @Override
   public void setFloat(@NotNull String name, float value) {
-    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0f);
+    myPropertiesComponent.setValue(getProfilerPropertyName(name), value, 0f);
   }
 
   @Override
   public void setFloat(@NotNull String name, float value, float defaultValue) {
-    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, defaultValue);
+    myPropertiesComponent.setValue(getProfilerPropertyName(name), value, defaultValue);
   }
 
   @Override
   public void setInt(@NotNull String name, int value) {
-    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0);
+    myPropertiesComponent.setValue(getProfilerPropertyName(name), value, 0);
   }
 
   @Override
   public void setInt(@NotNull String name, int value, int defaultValue) {
-    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, defaultValue);
+    myPropertiesComponent.setValue(getProfilerPropertyName(name), value, defaultValue);
   }
 
   @Override
   public void setBoolean(@NotNull String name, boolean value) {
-    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value);
+    myPropertiesComponent.setValue(getProfilerPropertyName(name), value);
+  }
+
+  /**
+   * @return a property name prefixed with a profiler-specific domain name to avoid possible collision with the rest of IJ's properties.
+   */
+  @NotNull
+  static String getProfilerPropertyName(@NotNull String name) {
+    return PROFILER_PREFIX + name;
   }
 }

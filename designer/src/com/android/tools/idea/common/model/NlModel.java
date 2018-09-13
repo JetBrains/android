@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -43,7 +47,12 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelper;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -56,19 +65,25 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ThreeState;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model for an XML file
@@ -178,7 +193,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (resolver == null || material2Theme == null || appTheme == null) {
       return ThreeState.NO;
     }
-    return ThreeState.fromBoolean(resolver.themeIsParentOf(material2Theme, appTheme));
+    return ThreeState.fromBoolean(resolver.themeIsChildOfAny(appTheme, material2Theme));
   }
 
   @Nullable
@@ -810,6 +825,24 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       element = element.getParent();
     }
 
+    return null;
+  }
+
+  @Nullable
+  public ResourceReference findAttributeByPsi(@NotNull PsiElement element) {
+    assert ApplicationManager.getApplication().isReadAccessAllowed();
+
+    while (element != null) {
+      if (element instanceof XmlAttribute) {
+        XmlAttribute attribute = (XmlAttribute)element;
+        ResourceNamespace namespace = ResourceHelper.resolveResourceNamespace(attribute, attribute.getNamespacePrefix());
+        if (namespace == null) {
+          return null;
+        }
+        return ResourceReference.attr(namespace, attribute.getLocalName());
+      }
+      element = element.getParent();
+    }
     return null;
   }
 

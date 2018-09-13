@@ -465,8 +465,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
       throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
       int liveAllocationSamplingRate = StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get() ?
-        PropertiesComponent.getInstance().getInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF,
-                                                 MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()) :
+        PropertiesComponent.getInstance().getInt(
+          IntellijProfilerPreferences.getProfilerPropertyName(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
+          MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue()) :
                                        MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
       Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
       Agent.AgentConfig agentConfig =

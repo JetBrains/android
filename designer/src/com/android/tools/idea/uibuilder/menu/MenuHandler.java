@@ -20,6 +20,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,5 +58,11 @@ public class MenuHandler extends ViewGroupHandler {
     newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
 
     return true;
+  }
+
+  @Override
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    // The default behaviour of a ViewHandler is to add the "Expand horizontally" and "Expand vertically" actions.
+    // This does not make sense for state lists, so instead no action is added to the toolbar
   }
 }

@@ -208,9 +208,6 @@ public class PalettePanelTest extends LayoutTestCase {
 
     myPanel.setToolContext(createDesignSurface(NlLayoutType.PREFERENCE_SCREEN));
     assertThat(isCategoryListVisible()).isTrue();
-
-    myPanel.setToolContext(createDesignSurface(NlLayoutType.STATE_LIST));
-    assertThat(isCategoryListVisible()).isFalse();
   }
 
   public void testTypingInCategoryListStartsFiltering() {

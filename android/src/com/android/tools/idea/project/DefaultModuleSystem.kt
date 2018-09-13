@@ -107,7 +107,7 @@ class DefaultModuleSystem(val module: Module) :
         //    </CLASSES>
         val roots = library.getFiles(OrderRootType.CLASSES)
 
-        // all libraries are assumed to have a classes.jar & a non-empty name
+        // all libraries are assumed to have a non-empty name
         val classesJar = roots.firstOrNull { it.name == SdkConstants.FN_CLASSES_JAR }?.toPathString()
         val libraryName = library.name ?: return@forEachLibrary true
 
@@ -124,7 +124,7 @@ class DefaultModuleSystem(val module: Module) :
         libraries.add(ExternalLibrary(
           address = libraryName,
           manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
-          classesJar = classesJar,
+          classJars = if (classesJar == null) emptyList() else listOf(classesJar),
           resFolder = resFolder,
           symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
           resApkFile = resApk

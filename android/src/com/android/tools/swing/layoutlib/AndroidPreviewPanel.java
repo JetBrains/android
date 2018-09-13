@@ -17,6 +17,7 @@ package com.android.tools.swing.layoutlib;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.util.CancelableRunnable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.parsers.DomPullParser;
@@ -27,12 +28,10 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
-
-import javax.annotation.concurrent.GuardedBy;
-import javax.swing.*;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -46,6 +45,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.concurrent.GuardedBy;
+import javax.swing.JComponent;
+import javax.swing.Scrollable;
+import javax.swing.SwingWorker;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
 
 /**
  * Generic UI component for rendering.
@@ -73,27 +78,35 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   private final GraphicsLayoutRendererFactory myGraphicsLayoutRendererFactory;
   private final Executor myExecutor;
   @VisibleForTesting
-  protected final Runnable myInvalidateRunnable = new Runnable() {
+  protected final CancelableRunnable myInvalidateRunnable = new CancelableRunnable(new Runnable() {
     @Override
     public void run() {
+      if (!getProject().isOpen()) {
+        return;
+      }
+
       if (ApplicationManager.getApplication().isDispatchThread()) {
-        myExecutor.execute(this);
+        myExecutor.execute(myInvalidateRunnable);
         return;
       }
 
       try {
         synchronized (myGraphicsLayoutRendererLock) {
-          // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
-          // can not be shared.
+          // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static
+          // state that can not be shared.
           if (myGraphicsLayoutRenderer != null) {
             myGraphicsLayoutRenderer.dispose();
             myGraphicsLayoutRenderer = null;
           }
         }
 
+        if (!getProject().isOpen()) {
+          return;
+        }
+
         ILayoutPullParser parser = DomPullParser.createFromDocument(myDocument);
         GraphicsLayoutRenderer graphicsLayoutRenderer =
-          myGraphicsLayoutRendererFactory.createGraphicsLayoutRenderer(myConfiguration, parser, getBackground());
+            myGraphicsLayoutRendererFactory.createGraphicsLayoutRenderer(myConfiguration, parser, getBackground());
         graphicsLayoutRenderer.setScale(myScale);
         // We reset the height so that it can be recomputed to the needed value.
         graphicsLayoutRenderer.setSize(getWidth(), 1);
@@ -106,8 +119,8 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
           }
         }
       }
-      catch (AlreadyDisposedException e) {
-        // This will be thrown if create happens to run on already disposed module. Since this runs on a separate thread
+      catch (AlreadyDisposedException | ProcessCanceledException e) {
+        // This will be thrown if create happens to run on already disposed module. Since this runs on a separate thread,
         // it can happen that create blocks until after the module has been disposed.
         // In this case we just ignore it, since this might be a stale request.
       }
@@ -124,9 +137,11 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
         }
       }
     }
-  };
+  });
 
-  private class InvalidateTask extends SwingWorker<Void, Void> {
+  private class InvalidateTask extends SwingWorker<Void, Void> implements Disposable {
+    private boolean myDone;
+
     @Override
     protected Void doInBackground() throws Exception {
       do {
@@ -151,25 +166,37 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     protected void done() {
       try {
         get();
-      } catch (ExecutionException ex) {
-        Throwable t = ex.getCause();
-        if (t instanceof RuntimeException) {
+        repaint();
+      } catch (ExecutionException e) {
+        Throwable t = e.getCause();
+        if (t instanceof ProcessCanceledException) {
+          // The task has been canceled.
+        } else if (t instanceof RuntimeException) {
           throw (RuntimeException) t;
         } else if (t instanceof Error) {
           throw (Error) t;
         } else {
           throw new RuntimeException(t);
         }
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
+      } catch (InterruptedException e) {
+        // The task has been canceled.
+      } finally {
+        myDone = true;
+        Disposer.dispose(this); // Unregister from Disposer.
       }
+    }
 
-      repaint();
+    @Override
+    public void dispose() {
+      if (!myDone) {
+        myInvalidateRunnable.cancel(true);
+        cancel(true);
+      }
     }
   }
 
   private static final Notification UNSUPPORTED_LAYOUTLIB_NOTIFICATION =
-    new Notification("Android", "Preview", "The Theme Editor preview requires at least Android M Platform SDK", NotificationType.ERROR);
+      new Notification("Android", "Preview", "The Theme Editor preview requires at least Android M Platform SDK", NotificationType.ERROR);
   private static final AtomicBoolean ourLayoutlibNotification = new AtomicBoolean(false);
   private static final AtomicBoolean ourJavaRuntimeNotification = new AtomicBoolean(false);
 
@@ -191,7 +218,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
                       @NotNull GraphicsLayoutRendererFactory graphicsLayoutRendererFactory) {
     myConfiguration = configuration;
 
-    myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
+    myDumbService = DumbService.getInstance(getProject());
     myExecutor = executor;
     myGraphicsLayoutRendererFactory = graphicsLayoutRendererFactory;
   }
@@ -252,7 +279,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     if (myDocument != null) {
       myPendingInvalidates.set(true);
       if (!myRunningInvalidates.get()) {
-        new InvalidateTask().execute();
+        InvalidateTask invalidateTask = new InvalidateTask();
+        Disposer.register(this, invalidateTask); // The task will be canceled if it still running when this panel is disposed.
+        invalidateTask.execute();
       }
     }
   }
@@ -275,7 +304,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   }
 
   @Override
-  public void paintComponent(final Graphics graphics) {
+  public void paintComponent(@NotNull Graphics graphics) {
     synchronized (myGraphicsLayoutRendererLock) {
       if (myGraphicsLayoutRenderer != null) {
         myGraphicsLayoutRenderer.render((Graphics2D)graphics);
@@ -300,13 +329,14 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
     }
   }
 
-  private static void notifyUnsupportedJavaRuntime(String message) {
+  private static void notifyUnsupportedJavaRuntime(@NotNull String message) {
     if (ourJavaRuntimeNotification.compareAndSet(false, true)) {
       Notifications.Bus.notify(new Notification("Android", "Preview", message, NotificationType.ERROR));
     }
   }
 
   @Override
+  @NotNull
   public Dimension getPreferredScrollableViewportSize() {
     return getPreferredSize();
   }
@@ -384,5 +414,10 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
         myGraphicsLayoutRenderer.dispose();
       }
     }
+  }
+
+  @NotNull
+  private Project getProject() {
+    return myConfiguration.getModule().getProject();
   }
 }

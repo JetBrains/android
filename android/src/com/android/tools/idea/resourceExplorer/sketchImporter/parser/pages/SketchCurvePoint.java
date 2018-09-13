@@ -18,6 +18,9 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Mimics the JSON element with attribute <code>"_class": "curvePoint"</code> contained within a sketch file.
+ */
 public class SketchCurvePoint {
   @SerializedName("do_objectID")
   private final int objectId;

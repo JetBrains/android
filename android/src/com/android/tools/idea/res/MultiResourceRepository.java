@@ -198,7 +198,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   @NotNull
-  public synchronized Set<ResourceNamespace> getNamespaces() {
+  public Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
       return ImmutableSet.copyOf(myRepositoriesByNamespace.keySet());
     }

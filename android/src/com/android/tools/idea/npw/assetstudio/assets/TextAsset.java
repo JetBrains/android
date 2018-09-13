@@ -21,12 +21,13 @@ import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An asset that represents a text value and related settings.
@@ -96,7 +97,7 @@ public final class TextAsset extends BaseAsset {
   public ListenableFuture<BufferedImage> toImage() {
     TextRenderUtil.Options options = new TextRenderUtil.Options();
     options.font = Font.decode(myFontFamily + " " + FONT_SIZE);
-    options.foregroundColor = color().get().getRGB();
+    options.foregroundColor = color().getValueOr(Color.BLACK).getRGB();
     return Futures.immediateFuture(TextRenderUtil.renderTextImage(myText.get(), 1, options));
   }
 }

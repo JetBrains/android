@@ -96,13 +96,14 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
   private fun generateStackInfo(timestamp: Long, properties: GeneratorProperties) {
     val stacks = mutableListOf<MemoryProfiler.EncodedAllocationStack>()
     val stackCount = random.nextInt(128)
+    val methodCount = random.nextInt(methodIds.size)
     for(i in 0..stackCount) {
       stackIds.add(random.nextInt())
       stacks.add(MemoryProfiler.EncodedAllocationStack.newBuilder()
                    .setStackId(stackIds[i])
                    .setTimestamp(timestamp)
-                   .addAllMethodIds(methodIds.subList(0, random.nextInt(methodIds.size)))
-                   .addAllLineNumbers(random.ints(30).toArray().asIterable())
+                   .addAllMethodIds(methodIds.subList(0, methodCount))
+                   .addAllLineNumbers(random.ints(methodCount.toLong()).toArray().asIterable())
                    .build())
     }
     myTable.insertStackInfo(properties.session, stacks)

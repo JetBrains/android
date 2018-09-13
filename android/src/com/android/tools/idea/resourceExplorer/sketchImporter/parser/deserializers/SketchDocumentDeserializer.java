@@ -42,6 +42,9 @@ public class SketchDocumentDeserializer implements JsonDeserializer<SketchDocume
   private static final String LAYER_TEXT_STYLES = "layerTextStyles";
   private static final String OBJECTS = "objects";
 
+  private static final short DEFAULT_COLOR_SPACE = 0;
+  private static final int DEFAULT_CURRENT_PAGE_INDEX = 0;
+
   @Override
   @Nullable
   public SketchDocument deserialize(@NotNull JsonElement json,
@@ -51,8 +54,10 @@ public class SketchDocumentDeserializer implements JsonDeserializer<SketchDocume
     final JsonObject jsonObject = json.getAsJsonObject();
 
     final SketchAssetCollection assets = context.deserialize(jsonObject.get(ASSETS), SketchAssetCollection.class);
-    final short colorSpace = jsonObject.get(COLOR_SPACE).getAsShort();
-    final int currentPageIndex = jsonObject.get(CURRENT_PAGE_INDEX).getAsShort();
+    JsonElement colorSpaceElement = jsonObject.get(COLOR_SPACE);
+    final short colorSpace = colorSpaceElement != null? colorSpaceElement.getAsShort() : DEFAULT_COLOR_SPACE;
+    JsonElement currentPageIndexElement = jsonObject.get(CURRENT_PAGE_INDEX);
+    final int currentPageIndex = currentPageIndexElement != null ? currentPageIndexElement.getAsInt() : DEFAULT_CURRENT_PAGE_INDEX;
 
     final SketchForeignStyle[] foreignLayerStyles = context.deserialize(jsonObject.get(EXT_LAYER_STYLES), SketchForeignStyle[].class);
     final SketchForeignSymbol[] foreignSymbols = context.deserialize(jsonObject.get(EXT_SYMBOLS), SketchForeignSymbol[].class);

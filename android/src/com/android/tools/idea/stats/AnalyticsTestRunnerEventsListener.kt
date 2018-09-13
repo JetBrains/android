@@ -17,9 +17,11 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
@@ -30,6 +32,7 @@ import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 
@@ -56,17 +59,45 @@ class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsA
     val testRunProtoBuilder = TestRun.newBuilder().apply {
       testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
       testKind = TestRun.TestKind.UNIT_TEST
-
-      runReadAction { runConfiguration.configurationModule.module }
-        ?.androidFacet
-        ?.let(AndroidModuleModel::get)
-        ?.selectedVariant
-        ?.unitTestArtifact
-        ?.let(::findTestLibrariesVersions)
-        ?.let { testLibraries = it }
     }
 
+    val testLibraries = TestLibraries.newBuilder()
+    runReadAction {
+      val configurationModule = runConfiguration.configurationModule.module
+      if (configurationModule != null) {
+        // That's the common case when a single class or package is run with right click etc.
+        findTestLibraries(configurationModule, testLibraries)
+      } else {
+        // This can happen when creating a run configuration for e.g. "all tests in package". In this case the classpath is taken from
+        // every module in the project. See com.intellij.execution.JavaTestFrameworkRunnableState#configureClasspath.
+        for (module in runConfiguration.allModules) {
+          findTestLibraries(module, testLibraries)
+        }
+      }
+    }
+    testRunProtoBuilder.testLibraries = testLibraries.build()
+
     handler.putUserData(TEST_RUN_KEY, testRunProtoBuilder)
+  }
+
+  private fun findTestLibraries(module: Module, testLibraries: TestLibraries.Builder) {
+    val androidFacet = module.androidFacet
+    if (androidFacet != null) {
+      recordTestLibraries(
+        testLibraries,
+        AndroidModuleModel.get(androidFacet)?.selectedVariant?.unitTestArtifact ?: return
+      )
+    } else {
+      val dependencies = JavaModuleModel.get(module)?.jarLibraryDependencies?.mapNotNull { it.moduleVersion }
+      if (dependencies != null) {
+        for (dependency in dependencies) {
+          val group = dependency.group ?: continue
+          val artifact = dependency.name ?: continue
+          val version = dependency.version ?: continue
+          recordTestLibrary(testLibraries, group, artifact, version)
+        }
+      }
+    }
   }
 
   override fun processTerminated(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler, exitCode: Int) {

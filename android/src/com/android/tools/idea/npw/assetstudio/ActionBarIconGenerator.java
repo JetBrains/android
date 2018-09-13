@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.ide.common.util.AssetUtil;
-import com.android.ide.common.util.AssetUtil.Effect;
-import com.android.ide.common.util.AssetUtil.FillEffect;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import com.intellij.openapi.project.Project;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generates icons for the action bar.
@@ -36,18 +31,22 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRecta
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class ActionBarIconGenerator extends IconGenerator {
   public static final Theme DEFAULT_THEME = Theme.HOLO_LIGHT;
-  public static final Color DEFAULT_COLOR = new Color(51, 181, 229);
+  public static final Color DEFAULT_CUSTOM_COLOR = new Color(0x33B5E5);
+  private static final Color HOLO_LIGHT_COLOR = new Color(0x333333);
+  private static final Color HOLO_DARK_COLOR = new Color(0xFFFFFF);
+  private static final Dimension ICON_SIZE = new Dimension(24, 24);
 
   private final ObjectProperty<Theme> myTheme = new ObjectValueProperty<>(DEFAULT_THEME);
-  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(DEFAULT_COLOR);
+  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(DEFAULT_CUSTOM_COLOR);
 
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
    *
+   * @param project the Android project
    * @param minSdkVersion the minimal supported Android SDK version
    */
-  public ActionBarIconGenerator(int minSdkVersion) {
-    super(minSdkVersion);
+  public ActionBarIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
+    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
   }
 
   /**
@@ -68,75 +67,43 @@ public class ActionBarIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public ActionBarOptions createOptions(boolean forPreview) {
-    ActionBarOptions options = new ActionBarOptions();
+  public Options createOptions(boolean forPreview) {
+    Options options = new Options(forPreview);
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
-      options.sourceImageFuture = asset.toImage();
-      options.isTrimmed = asset.trimmed().get();
-      options.paddingPercent = asset.paddingPercent().get();
-    }
+      double paddingFactor = asset.paddingPercent().get() / 100.;
+      double scaleFactor = 1. / (1 + paddingFactor * 2);
 
-    options.theme = myTheme.get();
-    if (options.theme == Theme.CUSTOM) {
-      options.customThemeColor = myCustomColor.get().getRGB();
+      Color color;
+      double opacity;
+      switch (myTheme.get()) {
+        case HOLO_DARK:
+          color = HOLO_DARK_COLOR;
+          opacity = 0.8;
+          break;
+        case HOLO_LIGHT:
+          color = HOLO_LIGHT_COLOR;
+          opacity = 0.6;
+          break;
+        case CUSTOM:
+          color = myCustomColor.get();
+          opacity = 0.8;
+          break;
+        default:
+          color = null;
+          opacity = 1;
+          break;
+      }
+      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, opacity, getGraphicGeneratorContext());
     }
-
-    options.sourceIsClipart = asset instanceof VectorAsset;
 
     return options;
   }
 
   @Override
   @NotNull
-  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
-    if (options.usePlaceholders) {
-      return PLACEHOLDER_IMAGE;
-    }
-
-    BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
-    if (sourceImage == null) {
-      sourceImage = AssetStudioUtils.createDummyImage();
-    }
-    ActionBarOptions actionBarOptions = (ActionBarOptions)options;
-    // See https://developer.android.com/guide/practices/ui_guidelines/icon_design_action_bar
-    Rectangle iconSizeMdpi = new Rectangle(0, 0, 24, 24);
-    Rectangle targetRectMdpi = new Rectangle(0, 0, 24, 24);
-    double scaleFactor = getMdpiScaleFactor(options.density);
-    Rectangle imageRect = scaleRectangle(iconSizeMdpi, scaleFactor);
-    Rectangle targetRect = scaleRectangle(targetRectMdpi, scaleFactor);
-    BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-    Graphics2D g = (Graphics2D) outImage.getGraphics();
-
-    BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-    Graphics2D g2 = (Graphics2D)tempImage.getGraphics();
-    AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
-
-    if (actionBarOptions.theme == Theme.CUSTOM) {
-      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(actionBarOptions.customThemeColor), 0.8)});
-    } else if (actionBarOptions.theme == DEFAULT_THEME) {
-      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0x333333), 0.6)});
-    } else {
-      assert actionBarOptions.theme == Theme.HOLO_DARK;
-      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0xFFFFFF), 0.8)});
-    }
-
-    g.dispose();
-    g2.dispose();
-
-    return outImage;
-  }
-
-  /** Options specific to generating action bar icons. */
-  public static class ActionBarOptions extends Options {
-    /** The theme to generate icons for. */
-    public Theme theme = DEFAULT_THEME;
-
-    /** Whether or not the source image is a clipart source. */
-    public boolean sourceIsClipart = false;
-
-    /** Custom color for use with the custom theme. */
-    public int customThemeColor = 0;
+  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+    return generateRasterImage(ICON_SIZE, options);
   }
 
   /** The themes to generate action bar icons for. */

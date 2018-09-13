@@ -15,47 +15,46 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.ide.common.internal.WaitableExecutor;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
+
 import com.android.ide.common.util.AssetUtil;
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.concurrent.FutureUtils;
-import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.lint.checks.ApiLookup;
-import com.android.utils.CharSequences;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.AtomicNullableLazyValue;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.kxml2.io.KXmlParser;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generator of Android launcher icons.
@@ -73,7 +72,6 @@ public class LauncherIconGenerator extends IconGenerator {
   private static final Rectangle IMAGE_SIZE_LEGACY_DP = new Rectangle(0, 0, 48, 48);
   private static final Rectangle IMAGE_SIZE_VIEW_PORT_WEB_PX = new Rectangle(0, 0, 512, 512);
   private static final Rectangle IMAGE_SIZE_FULL_BLEED_WEB_PX = new Rectangle(0, 0, 768, 768);
-  private static final Density[] DENSITIES = { Density.MEDIUM, Density.HIGH, Density.XHIGH, Density.XXHIGH, Density.XXXHIGH };
 
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
   private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(DEFAULT_FOREGROUND_COLOR);
@@ -90,26 +88,14 @@ public class LauncherIconGenerator extends IconGenerator {
   private final StringProperty myForegroundLayerName = new StringValueProperty();
   private final StringProperty myBackgroundLayerName = new StringValueProperty();
 
-  private final AtomicNullableLazyValue<ApiLookup> myApiLookup;
-  private final String myLineSeparator;
-
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
    *
-   * @param facet the Android facet
+   * @param project the Android project
    * @param minSdkVersion the minimal supported Android SDK version
    */
-  public LauncherIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
-    super(minSdkVersion, new GraphicGeneratorContext(40, new DrawableRenderer(facet)));
-    Project project = facet.getModule().getProject();
-    myLineSeparator = CodeStyleSettingsManager.getSettings(project).getLineSeparator();
-    myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {
-      @Override
-      @Nullable
-      protected ApiLookup compute() {
-        return LintIdeClient.getApiLookup(project);
-      }
-    };
+  public LauncherIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
+    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
   }
 
   /**
@@ -210,10 +196,7 @@ public class LauncherIconGenerator extends IconGenerator {
   @Override
   @NotNull
   public LauncherIconOptions createOptions(boolean forPreview) {
-    LauncherIconOptions options = new LauncherIconOptions();
-    options.generateOutputIcons = !forPreview;
-    options.generatePreviewIcons = forPreview;
-
+    LauncherIconOptions options = new LauncherIconOptions(forPreview);
     options.useForegroundColor = myUseForegroundColor.get();
     options.foregroundColor = myForegroundColor.get().getRGB();
     // Set foreground image.
@@ -232,13 +215,15 @@ public class LauncherIconGenerator extends IconGenerator {
         // For simplicity we treat the safe zone as a square.
         scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
       }
-      options.foregroundImage = new ImageAssetSnapshot(foregroundAsset, scaleFactor, getGraphicGeneratorContext());
+      options.foregroundImage =
+          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, 1, getGraphicGeneratorContext());
     }
     // Set background image.
     ImageAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();
     if (backgroundAsset != null) {
       double scaleFactor = backgroundAsset.scalingPercent().get() / 100.;
-      options.backgroundImage = new ImageAssetSnapshot(backgroundAsset, scaleFactor, getGraphicGeneratorContext());
+      options.backgroundImage =
+          new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, 1, getGraphicGeneratorContext());
     }
 
     options.backgroundColor = myBackgroundColor.get().getRGB();
@@ -257,7 +242,9 @@ public class LauncherIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
+                                                                    @NotNull Options options,
+                                                                    @NotNull String name) {
     LauncherIconOptions launcherIconOptions = (LauncherIconOptions)options;
 
     List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
@@ -265,25 +252,12 @@ public class LauncherIconGenerator extends IconGenerator {
     // Generate tasks for icons (background, foreground, legacy) in all densities.
     createOutputIconsTasks(context, name, launcherIconOptions, tasks);
 
-    // Generate tasks for drawable xml resource
+    // Generate tasks for drawable xml resource.
     createXmlDrawableResourcesTasks(name, launcherIconOptions, tasks);
 
-    // Generate tasks for preview images
+    // Generate tasks for preview images.
     createPreviewImagesTasks(context, launcherIconOptions, tasks);
-
-    // Execute tasks in parallel and wait for results
-    WaitableExecutor executor = WaitableExecutor.useGlobalSharedThreadPool();
-    Disposable taskCanceler = () -> executor.cancelAllTasks();
-    Disposer.register(this, taskCanceler);
-    tasks.forEach(executor::execute);
-
-    try {
-      return executor.waitForTasksWithQuickFail(true);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } finally {
-      Disposer.dispose(taskCanceler);
-    }
+    return tasks;
   }
 
   private void createOutputIconsTasks(@NotNull GraphicGeneratorContext context, @NotNull String name, @NotNull LauncherIconOptions options,
@@ -312,7 +286,7 @@ public class LauncherIconGenerator extends IconGenerator {
         localOptions.legacyIconShape = localOptions.webIconShape;
         BufferedImage image = generateLegacyImage(context, localOptions);
         return new GeneratedImageIcon(name,
-                                      Paths.get(getIconPath(localOptions, name)),
+                                      new PathString(getIconPath(localOptions, name)),
                                       IconCategory.WEB,
                                       Density.NODPI,
                                       image);
@@ -332,7 +306,7 @@ public class LauncherIconGenerator extends IconGenerator {
         foregroundOptions.generateOutputIcons = true;
         BufferedImage foregroundImage = generateIconForegroundLayer(context, foregroundOptions);
         return new GeneratedImageIcon(foregroundOptions.foregroundLayerName,
-                                      Paths.get(getIconPath(foregroundOptions, options.foregroundLayerName)),
+                                      new PathString(getIconPath(foregroundOptions, options.foregroundLayerName)),
                                       IconCategory.ADAPTIVE_FOREGROUND_LAYER,
                                       density,
                                       foregroundImage);
@@ -348,7 +322,7 @@ public class LauncherIconGenerator extends IconGenerator {
         backgroundOptions.generateOutputIcons = true;
         BufferedImage backgroundImage = generateIconBackgroundLayer(context, backgroundOptions);
         return new GeneratedImageIcon(backgroundOptions.backgroundLayerName,
-                                      Paths.get(getIconPath(backgroundOptions, options.backgroundLayerName)),
+                                      new PathString(getIconPath(backgroundOptions, options.backgroundLayerName)),
                                       IconCategory.ADAPTIVE_BACKGROUND_LAYER,
                                       density,
                                       backgroundImage);
@@ -364,7 +338,7 @@ public class LauncherIconGenerator extends IconGenerator {
         legacyOptions.generateOutputIcons = true;
         BufferedImage legacy = generateLegacyImage(context, legacyOptions);
         return new GeneratedImageIcon(name,
-                                      Paths.get(getIconPath(legacyOptions, name)),
+                                      new PathString(getIconPath(legacyOptions, name)),
                                       IconCategory.LEGACY,
                                       density,
                                       legacy);
@@ -381,7 +355,7 @@ public class LauncherIconGenerator extends IconGenerator {
         legacyOptions.legacyIconShape = Shape.CIRCLE;
         BufferedImage legacyRound = generateLegacyImage(context, legacyOptions);
         return new GeneratedImageIcon(name + "_round",
-                                      Paths.get(getIconPath(legacyOptions, name + "_round")),
+                                      new PathString(getIconPath(legacyOptions, name + "_round")),
                                       IconCategory.ROUND_API_25,
                                       density,
                                       legacyRound);
@@ -404,7 +378,7 @@ public class LauncherIconGenerator extends IconGenerator {
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
         return new GeneratedXmlResource(name,
-                                        Paths.get(getIconPath(iconOptions, name)),
+                                        new PathString(getIconPath(iconOptions, name)),
                                         IconCategory.XML_RESOURCE,
                                         xmlAdaptiveIcon);
       });
@@ -412,7 +386,7 @@ public class LauncherIconGenerator extends IconGenerator {
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
         return new GeneratedXmlResource(name + "_round",
-                                        Paths.get(getIconPath(iconOptions, name + "_round")),
+                                        new PathString(getIconPath(iconOptions, name + "_round")),
                                         IconCategory.XML_RESOURCE,
                                         xmlAdaptiveIcon);
       });
@@ -426,11 +400,11 @@ public class LauncherIconGenerator extends IconGenerator {
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
-        String xmlDrawableText = options.foregroundImage.getScaledDrawable();
+        String xmlDrawableText = options.foregroundImage.getTransformedDrawable();
         assert xmlDrawableText != null;
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
-                                        Paths.get(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
+                                        new PathString(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
                                         IconCategory.ADAPTIVE_FOREGROUND_LAYER,
                                         xmlDrawableText);
       });
@@ -444,11 +418,11 @@ public class LauncherIconGenerator extends IconGenerator {
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
-        String xmlDrawableText = options.backgroundImage.getScaledDrawable();
+        String xmlDrawableText = options.backgroundImage.getTransformedDrawable();
         assert xmlDrawableText != null;
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
-                                        Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
+                                        new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
                                         IconCategory.ADAPTIVE_BACKGROUND_LAYER,
                                         xmlDrawableText);
       });
@@ -467,7 +441,7 @@ public class LauncherIconGenerator extends IconGenerator {
             + "</resources>";
         String xmlColor = String.format(format, myLineSeparator, iconOptions.backgroundLayerName, iconOptions.backgroundColor & 0xFFFFFF);
         return new GeneratedXmlResource(name,
-                                        Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
+                                        new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
                                         IconCategory.XML_RESOURCE,
                                         xmlColor);
       });
@@ -485,51 +459,6 @@ public class LauncherIconGenerator extends IconGenerator {
         + "    <foreground android:drawable=\"@%4$s/%5$s\"/>%1$s"
         + "</adaptive-icon>";
     return String.format(format, myLineSeparator, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
-  }
-
-  /**
-   * Determines the minimal API level required to display the given XML drawable.
-   * See <a href="https://issuetracker.google.com/68259550">bug 68259550</a>.
-   *
-   * @param xmlDrawableText the text of the XML drawable
-   * @param minSdk the minimal API level supported by the app
-   * @return the required minimal API level if greater than {@code minSdk}, otherwise zero
-   */
-  private int calculateMinRequiredApiLevel(@NotNull String xmlDrawableText, int minSdk) {
-    ApiLookup apiLookup = myApiLookup.getValue();
-    if (apiLookup == null) {
-      return 0;
-    }
-    KXmlParser parser = new KXmlParser();
-    int requiredApiLevel = 0;
-    try {
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-      parser.setInput(CharSequences.getReader(xmlDrawableText, true));
-      int type;
-      // Iterate over the XML document and check all attributes to determine the required minimal API level.
-      while ((type = parser.next()) != XmlPullParser.END_DOCUMENT) {
-        if (type == XmlPullParser.START_TAG) {
-          // See similar logic in com.android.tools.lint.checks.ApiDetector.visitAttribute().
-          for (int i = 0; i < parser.getAttributeCount(); i++) {
-            if (SdkConstants.ANDROID_URI.equals(parser.getAttributeNamespace(i))) {
-              String attributeName = parser.getAttributeName(i);
-              if (!attributeName.equals("fillType")) { // Exclude android:fillType since it is supported by AppCompat.
-                int attributeApiLevel = apiLookup.getFieldVersion("android/R$attr", attributeName);
-                if (requiredApiLevel < attributeApiLevel) {
-                  requiredApiLevel = attributeApiLevel;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    catch (XmlPullParserException | IOException e) {
-      // Ignore.
-    }
-
-    // Do not report anything below API 21 or minSdk, whichever is higher.
-    return requiredApiLevel > minSdk && requiredApiLevel > 21 ? requiredApiLevel : 0;
   }
 
   private static void createPreviewImagesTasks(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
@@ -574,8 +503,8 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   @Override
-  public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
-                       @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     LauncherIconOptions launcherIconOptions = (LauncherIconOptions) options;
     LauncherIconOptions localOptions = launcherIconOptions.clone();
     localOptions.generateWebIcon = false;
@@ -602,7 +531,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -737,11 +666,11 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   /**
-   * Returns the scaling factor to apply to the <code>source</code> rectangle so that its width or
-   * height is equal to the width or height of <code>destination</code> rectangle, while remaining
-   * contained within <code>destination</code>.
+   * Returns the scaling factor to apply to the {@code source} rectangle so that its width or
+   * height is equal to the width or height of {@code destination} rectangle, while remaining
+   * contained within {@code destination}.
    */
-  public static float getRectangleInsideScale(@NonNull Rectangle source, @NonNull Rectangle destination) {
+  public static float getRectangleInsideScale(@NotNull Rectangle source, @NotNull Rectangle destination) {
     float scaleWidth = (float) destination.width / (float) source.width;
     float scaleHeight = (float) destination.height / (float) source.height;
     return Math.min(scaleWidth, scaleHeight);
@@ -752,17 +681,11 @@ public class LauncherIconGenerator extends IconGenerator {
   private static BufferedImage scaledImage(@NotNull BufferedImage image, float scale) {
     int width = Math.round(image.getWidth() * scale);
     int height = Math.round(image.getHeight() * scale);
-    return scaledImage(image, width, height);
-  }
-
-  /** Scale an image given the desired scaled image size. */
-  @NotNull
-  private static BufferedImage scaledImage(@NotNull BufferedImage image, int width, int height) {
     return AssetUtil.scaledImage(image, width, height);
   }
 
   /**
-   * For performance reason, we use a lower qualitty (but faster) image scaling algorithm when
+   * For performance reason, we use a lower quality (but faster) image scaling algorithm when
    * generating preview images.
    */
   @NotNull
@@ -980,9 +903,9 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   @NotNull
-  private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull ImageAssetSnapshot sourceImage,
+  private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull TransformedImageAsset sourceImage,
                                                  @NotNull Rectangle imageRect, boolean useFillColor, int fillColor, boolean forPreview) {
-    String scaledDrawable = sourceImage.getScaledDrawable();
+    String scaledDrawable = sourceImage.getTransformedDrawable();
     if (scaledDrawable != null) {
       return generateIconLayer(context, scaledDrawable, imageRect);
     }
@@ -1261,7 +1184,7 @@ public class LauncherIconGenerator extends IconGenerator {
     public int foregroundColor = 0;
 
     /** If foreground is a drawable, the contents of the drawable file and scaling parameters. */
-    @Nullable public ImageAssetSnapshot foregroundImage;
+    @Nullable public TransformedImageAsset foregroundImage;
 
     /**
      * Background color, as an RRGGBB packed integer. The background color is used only if
@@ -1270,59 +1193,50 @@ public class LauncherIconGenerator extends IconGenerator {
     public int backgroundColor = 0;
 
     /** If background is a drawable, the contents of the drawable file and scaling parameters. */
-    @Nullable public ImageAssetSnapshot backgroundImage;
+    @Nullable public TransformedImageAsset backgroundImage;
 
-    /** Whether to actual icons to be written to disk */
-    public boolean generateOutputIcons = true;
-
-    /** Whether to actual preview icons */
-    public boolean generatePreviewIcons = true;
-
-    /** Whether to generate the "Legacy" icon (API <= 24) */
+    /** Whether to generate the "Legacy" icon (API <= 24). */
     public boolean generateLegacyIcon = true;
 
-    /** Whether to generate the "Round" icon (API 25) */
+    /** Whether to generate the "Round" icon (API 25). */
     public boolean generateRoundIcon = true;
 
     /**
      * Whether a web graphic should be generated (will ignore normal density setting). The
-     * {@link #generate(GraphicGeneratorContext, Options)} method will use this to decide
+     * {@link #generateRasterImage(GraphicGeneratorContext, Options)} method will use this to decide
      * whether to generate a normal density icon or a high res web image. The {@link
-     * IconGenerator#generate(String, Map, GraphicGeneratorContext, Options, String)} method
+     * IconGenerator#generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)} method
      * will use this flag to determine whether it should include a web graphic in its iteration.
      */
     public boolean generateWebIcon;
 
-    /** If set, generate a preview image */
+    /** If set, generate a preview image. */
     public PreviewShape previewShape = PreviewShape.NONE;
 
-    /** The density of the preview images */
+    /** The density of the preview images. */
     public Density previewDensity;
 
-    /** The shape to use for the "Legacy" icon */
+    /** The shape to use for the "Legacy" icon. */
     public Shape legacyIconShape = Shape.SQUARE;
 
-    /** The shape to use for the "Web" icon */
+    /** The shape to use for the "Web" icon. */
     public Shape webIconShape = Shape.SQUARE;
 
-    /** Whether to draw the keyline shapes */
+    /** Whether to draw the keyline shapes. */
     public boolean showGrid;
 
-    /** Whether to draw the safe zone circle */
+    /** Whether to draw the safe zone circle. */
     public boolean showSafeZone;
 
-    public LauncherIconOptions() {
+    public LauncherIconOptions(boolean forPreview) {
+      super(forPreview);
       iconFolderKind = IconFolderKind.MIPMAP;
     }
 
+    @NotNull
     @Override
     public LauncherIconOptions clone() {
-      try {
-        return (LauncherIconOptions)super.clone();
-      }
-      catch (CloneNotSupportedException e) {
-        throw new Error(e); // Not possible.
-      }
+      return (LauncherIconOptions)super.clone();
     }
   }
 
@@ -1355,131 +1269,6 @@ public class LauncherIconGenerator extends IconGenerator {
     public Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
       this.background = background;
       this.foreground = foreground;
-    }
-  }
-
-  /**
-   * A raster image or an XML drawable with scaling parameters. Thread safe.
-   */
-  public static final class ImageAssetSnapshot {
-    @Nullable private final ListenableFuture<BufferedImage> myImageFuture;
-    @Nullable private final ListenableFuture<String> myDrawableFuture;
-    private final double myScaleFactor;
-    private final boolean myIsTrimmed;
-    @NotNull private final GraphicGeneratorContext myContext;
-    @Nullable private Rectangle2D myTrimRectangle;
-    @GuardedBy("myLock")
-    @Nullable private String myScaledDrawable;
-    @GuardedBy("myLock")
-    @Nullable private BufferedImage myTrimmedImage;
-    private final Object myLock = new Object();
-
-    /**
-     * Initializes a new image asset snapshot.
-     *
-     * @param asset the source image asset
-     * @param scaleFactor the scale factor to be applied to the image
-     * @param context the trim rectangle calculator
-     */
-    public ImageAssetSnapshot(@NotNull BaseAsset asset, double scaleFactor, @NotNull GraphicGeneratorContext context) {
-      myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() : null;
-      myImageFuture = myDrawableFuture == null ? asset.toImage() : null;
-      myIsTrimmed = asset.trimmed().get();
-      myScaleFactor = scaleFactor;
-      myContext = context;
-    }
-
-    public boolean isDrawable() {
-      return myDrawableFuture != null;
-    }
-
-    public boolean isRasterImage() {
-      return myImageFuture != null;
-    }
-
-    /**
-     * Returns the text of an XML drawable suitable for use in an adaptive icon, or null if this object doesn't represent a drawable.
-     */
-    @Nullable
-    public String getScaledDrawable() {
-      if (myDrawableFuture == null) {
-        return null;
-      }
-      try {
-        synchronized (myLock) {
-          String xmlDrawable = myDrawableFuture.get();
-          if (xmlDrawable == null) {
-            return null;
-          }
-          if (myScaledDrawable == null) {
-            Rectangle2D clipRectangle = myIsTrimmed ? getTrimRectangle(xmlDrawable) : null;
-            myScaledDrawable = VectorDrawableTransformer.resizeAndCenter(xmlDrawable, SIZE_FULL_BLEED_DP, myScaleFactor, clipRectangle);
-          }
-          return myScaledDrawable;
-        }
-      }
-      catch (InterruptedException | ExecutionException e) {
-        return null;
-      }
-    }
-
-    /**
-     * Returns the scale factor..
-     */
-    public double getScaleFactor() {
-      return myScaleFactor;
-    }
-
-    /**
-     * Returns the scaled image, or null if this object doesn't represent a raster image.
-     */
-    @Nullable
-    public BufferedImage getTrimmedImage() {
-      if (myImageFuture == null) {
-        return null;
-      }
-      synchronized (myLock) {
-        if (myTrimmedImage == null) {
-          try {
-            BufferedImage image = myImageFuture.get();
-            myTrimmedImage = myIsTrimmed ? AssetStudioUtils.trim(image) : image;
-          }
-          catch (InterruptedException | ExecutionException e) {
-            return null;
-          }
-        }
-        return myTrimmedImage;
-      }
-    }
-
-    @NotNull
-    private Rectangle2D getTrimRectangle(@NotNull String xmlDrawable) {
-      if (myTrimRectangle == null) {
-        myTrimRectangle = calculateTrimRectangle(xmlDrawable);
-      }
-      return myTrimRectangle;
-    }
-
-    @NotNull
-    private Rectangle2D calculateTrimRectangle(@NotNull String xmlDrawable) {
-      ListenableFuture<BufferedImage> futureImage = myContext.renderDrawable(xmlDrawable, SIZE_FULL_BLEED_DP);
-      ListenableFuture<Rectangle2D> rectangleFuture = Futures.transform(futureImage, (BufferedImage image) -> {
-        Rectangle bounds = ImageUtils.getCropBounds(image, ImageUtils.TRANSPARENCY_FILTER, null);
-        if (bounds == null) {
-          return IMAGE_SIZE_FULL_BLEED_DP;  // Do not trim a completely transparent image.
-        }
-        double width = SIZE_FULL_BLEED_DP.getWidth();
-        double height = SIZE_FULL_BLEED_DP.getHeight();
-        return new Rectangle2D.Double(bounds.getX() / width, bounds.getY() / height,
-                                      bounds.getWidth() / width, bounds.getHeight() / height);
-      });
-
-      try {
-        return rectangleFuture.get();
-      }
-      catch (InterruptedException | ExecutionException e) {
-        return IMAGE_SIZE_FULL_BLEED_DP;
-      }
     }
   }
 }

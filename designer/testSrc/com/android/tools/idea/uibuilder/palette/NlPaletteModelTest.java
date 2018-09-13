@@ -140,7 +140,6 @@ public class NlPaletteModelTest extends AndroidTestCase {
     checkIdsAreUniqueInPalette(NlLayoutType.LAYOUT);
     checkIdsAreUniqueInPalette(NlLayoutType.MENU);
     checkIdsAreUniqueInPalette(NlLayoutType.PREFERENCE_SCREEN);
-    checkIdsAreUniqueInPalette(NlLayoutType.STATE_LIST);
   }
 
   private void checkIdsAreUniqueInPalette(@NotNull NlLayoutType layoutType) {

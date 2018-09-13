@@ -20,6 +20,11 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link SketchLayer} that mimics the JSON element with attribute <code>"_class": "slice"</code> contained within a sketch file.
+ *
+ * @see com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer
+ */
 public class SketchSlice extends SketchLayer {
   private final Color backgroundColor;
   private final boolean hasBackgroundColor;

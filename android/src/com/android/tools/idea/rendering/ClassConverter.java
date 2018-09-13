@@ -17,24 +17,24 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.*;
-import org.jetbrains.org.objectweb.asm.commons.ClassRemapper;
-import org.jetbrains.org.objectweb.asm.commons.Remapper;
-import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.Label;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.Type;
 
 /**
  * Rewrites classes applying the following transformations:
  * <ul>
  *   <li>Updates the class file version with a version runnable in the current JDK
  *   <li>Replaces onDraw, onMeasure and onLayout for custom views
- *   <li>Replaces any uses of java.text.SimpleDateFormat with android.icu.text.SimpleDateFormat to match the platform behaviour
  * </ul>
  * Note that it does not attempt to handle cases where class file constructs cannot
  * be represented in the target version. This is intended for uses such as for example
@@ -49,11 +49,6 @@ import java.util.Collection;
 public class ClassConverter {
   private static final String ORIGINAL_SUFFIX = "_Original";
   private static final String ERROR_METHOD_DESCRIPTION;
-  private static final Remapper TYPE_REMAPPER =
-    new SimpleRemapper(ImmutableMap.<String, String>builder()
-                         .put("java/text/DateFormat", "android/icu/text/DateFormat")
-                         .put("java/text/SimpleDateFormat", "android/icu/text/SimpleDateFormat")
-                         .build());
 
   static {
     String desc;
@@ -177,10 +172,8 @@ public class ClassConverter {
     };
 
     ClassReader reader = new ClassReader(classData);
-    // From layoutlib API 16, we rewrite all methods using SimpleDateFormat and DateFormat to use the android.icu versions
-    classVisitor = new ClassRemapper(classVisitor, TYPE_REMAPPER);
 
-    reader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
+    reader.accept(classVisitor, 0);
 
     return classWriter.toByteArray();
   }

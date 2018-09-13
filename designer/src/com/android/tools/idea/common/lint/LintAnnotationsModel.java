@@ -21,27 +21,28 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import icons.StudioIcons;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.Icon;
+import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LintAnnotationsModel {
   /**
    * A map from a component to a list of issues for that component.
    */
-  @Nullable private ListMultimap<NlComponent, IssueData> myIssues;
-  private List<IssueData> myIssueList;
+  private ListMultimap<NlComponent, IssueData> myIssues = ImmutableListMultimap.of();
+  private ListMultimap<AttributeKey, IssueData> myAttributeIssues = ImmutableListMultimap.of();
+  private List<IssueData> myIssueList = Collections.emptyList();
 
   @NotNull
   public Collection<NlComponent> getComponentsWithIssues() {
@@ -120,11 +121,34 @@ public class LintAnnotationsModel {
     return max.message;
   }
 
+  /**
+   * Get the issue level for a given attribute of a component.
+   *
+   * @param component the component that may have an issue
+   * @param namespace the namespace of the attribute
+   * @param attributeName the attribute name
+   *
+   * @return the highest level among the issues fround for this attribute
+   */
+  @Nullable
+  public IssueData findIssue(@NotNull NlComponent component, @NotNull String namespace, @NotNull String attributeName) {
+    if (myAttributeIssues == null) {
+      return null;
+    }
+    AttributeKey attributeKey = new AttributeKey(component, namespace, attributeName);
+    List<IssueData> issueData = myAttributeIssues.get(attributeKey);
+    if (issueData == null || issueData.isEmpty()) {
+      return null;
+    }
+    return findHighestSeverityIssue(issueData);
+  }
+
   private static IssueData findHighestSeverityIssue(List<IssueData> issueData) {
     return Collections.max(issueData);
   }
 
   public void addIssue(@NotNull NlComponent component,
+                       @Nullable AttributeKey attribute,
                        @NotNull Issue issue,
                        @NotNull String message,
                        @NotNull AndroidLintInspectionBase inspection,
@@ -136,14 +160,18 @@ public class LintAnnotationsModel {
     if (issue == RtlDetector.COMPAT) {
       return;
     }
-    if (myIssues == null) {
+    if (myIssues.isEmpty()) {
       myIssues = ArrayListMultimap.create();
-      myIssueList = Lists.newArrayList();
+      myAttributeIssues = ArrayListMultimap.create();
+      myIssueList = new ArrayList<>();
     }
 
-    IssueData data = new IssueData(component, inspection, issue, message, level, startElement, endElement, quickfixData);
+    IssueData data = new IssueData(component, attribute, inspection, issue, message, level, startElement, endElement, quickfixData);
     myIssues.put(component, data);
     myIssueList.add(data); // TODO: Derive from myIssues map when needed?
+    if (attribute != null) {
+      myAttributeIssues.put(attribute, data);
+    }
   }
 
   public int getIssueCount() {
@@ -163,9 +191,11 @@ public class LintAnnotationsModel {
     @NotNull public final PsiElement endElement;
     @NotNull public final PsiElement startElement;
     @NotNull public final NlComponent component;
+    @Nullable public final AttributeKey attribute;
     @Nullable public final LintFix quickfixData;
 
     private IssueData(@NotNull NlComponent component,
+                      @Nullable AttributeKey attribute,
                       @NotNull AndroidLintInspectionBase inspection,
                       @NotNull Issue issue,
                       @NotNull String message,
@@ -174,6 +204,7 @@ public class LintAnnotationsModel {
                       @NotNull PsiElement endElement,
                       @Nullable LintFix quickfixData) {
       this.component = component;
+      this.attribute = attribute;
       this.inspection = inspection;
       this.issue = issue;
       this.message = message;

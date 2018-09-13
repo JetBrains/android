@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.concurrent.FutureUtils;
@@ -41,16 +45,15 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.SingleRootFileViewProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.LightVirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Renders XML drawables to raster images.
@@ -103,7 +106,7 @@ public class DrawableRenderer implements Disposable {
    */
   @NotNull
   public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
-    String xmlText = VectorDrawableTransformer.resizeAndCenter(xmlDrawableText, size, 1, null);
+    String xmlText = VectorDrawableTransformer.transform(xmlDrawableText, size, 1, null, null, 1);
     String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
     ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
                                                 "file://" + resourceName);

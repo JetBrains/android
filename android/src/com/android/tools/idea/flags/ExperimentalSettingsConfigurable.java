@@ -47,7 +47,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(), GradlePerProjectExperimentalSettings.getInstance(project), RenderSettings.getDefault());
+    this(GradleExperimentalSettings.getInstance(),
+         GradlePerProjectExperimentalSettings.getInstance(project),
+         RenderSettings.getProjectSettings(project));
   }
 
   @VisibleForTesting
