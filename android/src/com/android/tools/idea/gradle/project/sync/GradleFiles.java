@@ -84,7 +84,7 @@ public class GradleFiles {
     myFileEditorListener = new FileEditorManagerListener() {
       @Override
       public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-        if (event.getNewFile() == null) {
+        if (event.getNewFile() == null || !event.getNewFile().isValid()) {
           return;
         }
 
