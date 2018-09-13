@@ -43,6 +43,7 @@ public class TargetArtifactsTreeStructure extends AbstractBaseTreeStructure {
     myModule = module;
   }
 
+  @NotNull
   @Override
   public Object getRootElement() {
     return myRootNode;

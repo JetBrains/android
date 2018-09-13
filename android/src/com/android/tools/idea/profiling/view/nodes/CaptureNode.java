@@ -37,6 +37,7 @@ public class CaptureNode extends SimpleNode {
     setIcon(myCapture.getType().getIcon());
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return new SimpleNode[0];

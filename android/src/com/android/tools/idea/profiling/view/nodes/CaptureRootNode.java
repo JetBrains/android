@@ -37,6 +37,7 @@ public class CaptureRootNode extends SimpleNode {
   }
 
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return myTypes.toArray(new CaptureTypeNode[myTypes.size()]);

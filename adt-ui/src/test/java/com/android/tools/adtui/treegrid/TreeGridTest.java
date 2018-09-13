@@ -422,13 +422,15 @@ public class TreeGridTest extends PlatformTestCase {
 
   private static AbstractTreeStructure createTree() {
     return new AbstractTreeStructure() {
+      @NotNull
       @Override
       public Object getRootElement() {
         return "root";
       }
 
+      @NotNull
       @Override
-      public Object[] getChildElements(Object element) {
+      public Object[] getChildElements(@NotNull Object element) {
         switch ((String)element) {
           case "root":
             return new Object[]{"g1", "g2", "g3"};
@@ -445,7 +447,7 @@ public class TreeGridTest extends PlatformTestCase {
 
       @Nullable
       @Override
-      public Object getParentElement(Object element) {
+      public Object getParentElement(@NotNull Object element) {
         switch ((String)element) {
           case "c":
             return "a";
@@ -459,7 +461,7 @@ public class TreeGridTest extends PlatformTestCase {
 
       @NotNull
       @Override
-      public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
+      public NodeDescriptor createDescriptor(@NotNull Object element, NodeDescriptor parentDescriptor) {
         return new NodeDescriptor(null, parentDescriptor) {
 
           @Override

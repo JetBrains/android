@@ -20,6 +20,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.containers.SortedList;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
@@ -41,6 +42,7 @@ public class CaptureTypeNode extends SimpleNode {
     setIcon(AllIcons.Modules.SourceFolder);
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return myCaptureNodes.toArray(new SimpleNode[myCaptureNodes.size()]);
