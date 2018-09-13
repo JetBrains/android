@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.GlobalLibraryMap;
+import com.android.java.model.GradlePluginModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.BuildController;
@@ -74,6 +75,10 @@ public class SyncProjectModels implements Serializable {
     gradleBuilds.addAll(rootBuild.getIncludedBuilds());
 
     for (GradleBuild gradleBuild : gradleBuilds) {
+      failIfKotlinPluginApplied(gradleBuild, controller);
+    }
+
+    for (GradleBuild gradleBuild : gradleBuilds) {
       GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
       populateModelsForModule(gradleProject, controller, gradleBuild.getBuildIdentifier());
     }
@@ -87,6 +92,16 @@ public class SyncProjectModels implements Serializable {
     deduplicateModuleNames();
     // Request for GlobalLibraryMap model at last, when all of other models have been built.
     populateGlobalLibraryMap(controller);
+  }
+
+  private static void failIfKotlinPluginApplied(@NotNull GradleBuild gradleBuild, @NotNull BuildController controller) {
+    GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
+    GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
+    if (pluginModel != null && pluginModel.getGraldePluginList()
+                                          .stream()
+                                          .anyMatch(p -> p.startsWith("org.jetbrains.kotlin"))) {
+      throw new NewGradleSyncNotSupportedException("containing Kotlin modules");
+    }
   }
 
   private void populateModelsForModule(@Nullable GradleProject project,
@@ -104,13 +119,22 @@ public class SyncProjectModels implements Serializable {
     }
   }
 
-  // If there are duplicated module names, update module name to include project name.
+  // If there are duplicated module names, update module name to include gradle path and project name.
   private void deduplicateModuleNames() {
     Map<String, Long> nameCount = myModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
+    // Deduplicate module names in the same project.
     for (SyncModuleModels moduleModel : myModuleModels) {
       String moduleName = moduleModel.getModuleName();
       if (nameCount.get(moduleName) > 1) {
-        moduleModel.deduplicateModuleName();
+        moduleModel.includeGradlePathInModuleName();
+      }
+    }
+    // Deduplicate module names across multiple projects.
+    nameCount = myModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
+    for (SyncModuleModels moduleModel : myModuleModels) {
+      String moduleName = moduleModel.getModuleName();
+      if (nameCount.get(moduleName) > 1) {
+        moduleModel.includeProjectNameInModuleName();
       }
     }
   }

@@ -18,13 +18,12 @@ import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathStrings
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
-import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidSubmodule
-import com.android.projectmodel.matchAllArtifacts
 import com.android.projectmodel.matchArtifactsWith
 import com.android.projectmodel.submodulePathOf
 import com.android.projectmodel.toConfigPath
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
@@ -40,9 +39,20 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
+    // Disable single-variant sync because the tests verify all variants.
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false
     loadProject(TestProjectPaths.PROJECT_MODEL_MULTIFLAVOR)
     project = model.androidProject
     converted = project.toSubmodule()
+  }
+
+  override fun tearDown() {
+    try {
+      super.tearDown()
+    }
+    finally {
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true
+    }
   }
 
   fun testConversion() {

@@ -147,18 +147,28 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
       //noinspection deprecation
       module.setOption(ROOT_PROJECT_PATH_KEY, projectRootFolderPath);
 
-      // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
-      GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
       CachedModuleModels cachedModels = cache.addModule(module);
-      cachedModels.addModel(gradleModel);
 
-      moduleFinder.addModule(module, gradleModel.getGradlePath());
+      if (!isRootModule(moduleModels)) {
+        // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
+        GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
+        cachedModels.addModel(gradleModel);
+      }
+      GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+      assert gradleProject != null;
+      moduleFinder.addModule(module, gradleProject.getPath());
       moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
     }
 
     for (ModuleSetupInfo moduleSetupInfo : moduleSetupInfos) {
       setUpModule(moduleSetupInfo, moduleFinder);
     }
+  }
+
+  // Returns true if the moduleModel is the one represents root project.
+  private static boolean isRootModule(GradleModuleModels moduleModels) {
+    ArtifactModel artifactModel = moduleModels.findModel(ArtifactModel.class);
+    return artifactModel != null && artifactModel.getArtifactsByConfiguration().isEmpty();
   }
 
   /**
