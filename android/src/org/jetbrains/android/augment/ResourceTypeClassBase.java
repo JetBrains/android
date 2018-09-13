@@ -6,6 +6,7 @@ import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.CachedValue;
@@ -28,6 +29,7 @@ import java.util.Map;
  * <p>Implementations need to implement {@link #doGetFields()}, most likely by calling one of the {@code buildResourceFields} methods.
  */
 public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
+  private static final Logger LOG = Logger.getInstance(ResourceTypeClassBase.class);
 
   @NotNull
   protected final ResourceType myResourceType;
@@ -112,7 +114,12 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
   public PsiField[] getFields() {
     if (myFieldsCache == null) {
       myFieldsCache = CachedValuesManager.getManager(getProject()).createCachedValue(
-        () -> CachedValueProvider.Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT));
+        () -> {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Recomputing fields for " + this);
+          }
+          return CachedValueProvider.Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
+        });
     }
     return myFieldsCache.getValue();
   }

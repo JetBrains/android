@@ -39,11 +39,6 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     }
   }
 
-  @Override
-  public String toString() {
-    return "AndroidInternalRClass";
-  }
-
   @Nullable
   @Override
   public String getQualifiedName() {
