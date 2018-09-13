@@ -114,9 +114,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     JTabbedPane connectionsTab = new CommonTabbedPane();
     JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
-    connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
+    connectionScrollPane.setBorder(JBUI.Borders.empty());
     JScrollPane threadsViewScrollPane = new JBScrollPane(threadsView.getComponent());
-    threadsViewScrollPane.setBorder(DEFAULT_TOP_BORDER);
+    threadsViewScrollPane.setBorder(JBUI.Borders.empty());
     connectionsTab.addTab("Connection View", connectionScrollPane);
     connectionsTab.addTab("Thread View", threadsViewScrollPane);
     // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.

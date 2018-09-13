@@ -17,6 +17,7 @@ package com.android.tools.profilers.network.details;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.httpdata.HttpData;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +53,7 @@ abstract class TabContent {
   public final JComponent getComponent() {
     if (myComponent == null) {
       myComponent = createComponent();
-      myComponent.setBorder(DEFAULT_TOP_BORDER);
+      myComponent.setBorder(JBUI.Borders.empty());
     }
     return myComponent;
   }
