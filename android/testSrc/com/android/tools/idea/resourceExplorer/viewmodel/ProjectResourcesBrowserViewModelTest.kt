@@ -22,7 +22,6 @@ import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.resourceExplorer.getPNGFile
 import com.android.tools.idea.resourceExplorer.getPNGResourceItem
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
-import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -118,6 +117,6 @@ class ProjectResourcesBrowserViewModelTest {
     val facet = AndroidFacet.getInstance(module)!!
     val synchronizationManager = SynchronizationManager(facet)
     Disposer.register(disposable, synchronizationManager)
-    return ProjectResourcesBrowserViewModel(facet, synchronizationManager, ImportersProvider())
+    return ProjectResourcesBrowserViewModel(facet, synchronizationManager)
   }
 }

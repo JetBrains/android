@@ -21,19 +21,20 @@ import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
 import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
 import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
+import com.android.tools.idea.resourceExplorer.view.ResourceExplorerToolbar
 import com.android.tools.idea.resourceExplorer.view.ResourceExplorerView
 import com.android.tools.idea.resourceExplorer.view.ResourceImportDragTarget
 import com.android.tools.idea.resourceExplorer.viewmodel.DesignAssetDetailViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ExternalBrowserViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceFileHelper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
-import javax.swing.Box
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
@@ -53,9 +54,10 @@ class ResourceExplorer private constructor(
 
   private val synchronizationManager = SynchronizationManager(facet)
   private val importersProvider = ImportersProvider()
-  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager, importersProvider)
+  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager)
+  private val toolbarViewModel = ResourceExplorerToolbarViewModel(facet, importersProvider) { newFacet -> this.facet = newFacet }
   private val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
-
+  private val toolbar = ResourceExplorerToolbar(toolbarViewModel)
   private val resourceExplorerView = ResourceExplorerView(projectResourcesBrowserViewModel, resourceImportDragTarget)
 
   companion object {
@@ -86,7 +88,7 @@ class ResourceExplorer private constructor(
 
   init {
     val configurationManager = ServiceManager.getService(facet.module.project, ImportConfigurationManager::class.java)
-    val centerContainer = Box.createVerticalBox()
+    val centerContainer = JPanel(BorderLayout())
 
     @Suppress("ConstantConditionIf")
     if (withExternalBrowser) {
@@ -97,6 +99,8 @@ class ResourceExplorer private constructor(
       val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
       add(externalResourceBrowser, BorderLayout.EAST)
     }
+
+    centerContainer.add(toolbar, BorderLayout.NORTH)
     centerContainer.add(resourceExplorerView)
 
     @Suppress("ConstantConditionIf")
@@ -113,6 +117,7 @@ class ResourceExplorer private constructor(
   private fun updateFacet(facet: AndroidFacet) {
     projectResourcesBrowserViewModel.facet = facet
     resourceImportDragTarget.facet = facet
+    toolbarViewModel.facet = facet
   }
 
   override fun dispose() {
