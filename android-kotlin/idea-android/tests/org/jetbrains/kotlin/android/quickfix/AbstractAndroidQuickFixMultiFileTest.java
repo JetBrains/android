@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.quickfix;
 
+import com.android.testutils.TestUtils;
 import com.intellij.codeInsight.ImportFilter;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -24,10 +25,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.Extensions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.quickfix.AbstractQuickFixMultiFileTest;
 import org.jetbrains.kotlin.idea.test.KotlinTestImportFilter;
 
 public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuickFixMultiFileTest {
+
+    @NotNull
+    @Override
+    protected String getTestDataPath() {
+        return TestUtils.getWorkspaceFile("tools/adt/idea/android-kotlin").getPath() + "/";
+    }
 
     @Override
     protected void setUp() {
@@ -45,11 +51,6 @@ public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuick
         } finally {
             super.tearDown();
         }
-    }
-
-    @Override
-    protected void doTestWithExtraFile(@NotNull String beforeFileName) {
-        super.doTestWithExtraFile(beforeFileName);
     }
 
     private void addAndroidFacet() {
