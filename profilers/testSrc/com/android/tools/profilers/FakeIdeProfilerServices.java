@@ -235,6 +235,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isCpuNewRecordingWorkflowEnabled() {
+        return false;
+      }
+
+      @Override
       public boolean isEnergyProfilerEnabled() {
         return myEnergyProfilerEnabled;
       }
