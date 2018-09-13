@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
+import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
@@ -42,8 +46,22 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.IdeDeprecatedSdkRegistry;
 import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.checks.ApiLookup;
-import com.android.tools.lint.client.api.*;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.client.api.Configuration;
+import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.GradleVisitor;
+import com.android.tools.lint.client.api.IssueRegistry;
+import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.client.api.LintDriver;
+import com.android.tools.lint.client.api.UastParser;
+import com.android.tools.lint.client.api.XmlParser;
+import com.android.tools.lint.detector.api.Context;
+import com.android.tools.lint.detector.api.DefaultPosition;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.Location;
+import com.android.tools.lint.detector.api.Position;
+import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.utils.Pair;
@@ -69,13 +87,29 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -85,22 +119,9 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.uast.UCallExpression;
-import org.jetbrains.uast.UExpression;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
-import java.util.function.Predicate;
-
-import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
-import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * Implementation of the {@linkplain LintClient} API for executing lint within the IDE:
@@ -344,23 +365,6 @@ public class LintIdeClient extends LintClient implements Disposable {
               }
             }
             return null;
-          }
-
-          @NotNull
-          @Override
-          public Map<UExpression, PsiParameter> computeArgumentMapping(@NotNull UCallExpression call, @NotNull PsiMethod method) {
-            if (method.getParameterList().getParametersCount() == 0) {
-              return Collections.emptyMap();
-            }
-
-            // Call into lint-kotlin to look up the argument mapping if this call is a Kotlin method.
-            Map<UExpression, PsiParameter> kotlinMap =
-              LintKotlinReflectionUtilsKt.computeKotlinArgumentMapping(call, method);
-            if (kotlinMap != null) {
-              return kotlinMap;
-            }
-
-            return super.computeArgumentMapping(call, method);
           }
         };
       }
