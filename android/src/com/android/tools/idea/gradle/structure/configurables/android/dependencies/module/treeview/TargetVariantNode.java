@@ -31,6 +31,7 @@ class TargetVariantNode extends AbstractPsModelNode<PsVariant> {
     setAutoExpandNode(true);
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);

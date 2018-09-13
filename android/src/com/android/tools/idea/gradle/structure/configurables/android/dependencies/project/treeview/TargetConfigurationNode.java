@@ -36,6 +36,7 @@ class TargetConfigurationNode extends AbstractPsNode implements CellAppearanceEx
     myTypes = configuration.getTypes();
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return NO_CHILDREN;

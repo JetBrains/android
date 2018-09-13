@@ -26,6 +26,7 @@ class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
     myRootNode = new ResolvedDependenciesTreeRootNode(module);
   }
 
+  @NotNull
   @Override
   public Object getRootElement() {
     return myRootNode;

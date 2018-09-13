@@ -43,6 +43,7 @@ class TargetArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> {
     }
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return NO_CHILDREN;

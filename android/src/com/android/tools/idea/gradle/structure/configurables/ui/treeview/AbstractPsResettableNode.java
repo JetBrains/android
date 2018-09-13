@@ -29,6 +29,7 @@ public abstract class AbstractPsResettableNode<T extends PsModel> extends Abstra
     setAutoExpandNode(true);
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     if (myChildren == null) {

@@ -86,6 +86,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
     return text.toString();
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);

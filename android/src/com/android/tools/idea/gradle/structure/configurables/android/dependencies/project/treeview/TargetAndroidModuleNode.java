@@ -42,6 +42,7 @@ public class TargetAndroidModuleNode extends AbstractPsModelNode<PsAndroidModule
     setAutoExpandNode(true);
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);

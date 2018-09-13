@@ -33,13 +33,15 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
     myItems = new Object[groups.length][];
   }
 
+  @NotNull
   @Override
   public Object getRootElement() {
     return myTreeRoot;
   }
 
+  @NotNull
   @Override
-  public Object[] getChildElements(Object element) {
+  public Object[] getChildElements(@NotNull Object element) {
     if (element == myTreeRoot) {
       return myGroups;
     }
@@ -61,7 +63,7 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
   }
 
   @Override
-  public Object getParentElement(Object element) {
+  public Object getParentElement(@NotNull Object element) {
     // Not required for the tree operations used in this tree.
     // And by not storing parent pointers, we can reuse tree items
     // (in particular the attribute items) in all the panels
@@ -70,7 +72,7 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
 
   @NotNull
   @Override
-  public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
+  public NodeDescriptor createDescriptor(@NotNull Object element, NodeDescriptor parentDescriptor) {
     throw new UnsupportedOperationException();
   }
 
