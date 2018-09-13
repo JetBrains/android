@@ -971,7 +971,7 @@
                       facetIdList="android,android-gradle"
                       anchor="left"
                       secondary="true"
-                      icon="AndroidIcons.AndroidToolWindow"
+                      icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <facet.toolWindow id="Device File Explorer"
                       facetIdList="android"
