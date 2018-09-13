@@ -16,16 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradlePerProjectExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 

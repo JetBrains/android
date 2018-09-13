@@ -79,7 +79,7 @@ import java.util.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
@@ -101,7 +101,6 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final RunManagerEx myRunManager;
-  @NotNull private final EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -122,7 +121,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerEx.getInstanceEx(project), new EnableDisableSingleVariantSyncStep());
+         RunManagerEx.getInstanceEx(project));
   }
 
   @VisibleForTesting
@@ -139,8 +138,7 @@ public class PostSyncProjectSetup {
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerEx runManager,
-                       @NotNull EnableDisableSingleVariantSyncStep enableSingleVariantSyncStep) {
+                       @NotNull RunManagerEx runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -155,7 +153,6 @@ public class PostSyncProjectSetup {
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
-    myEnableDisableSingleVariantSyncStep = enableSingleVariantSyncStep;
   }
 
   /**
@@ -165,13 +162,6 @@ public class PostSyncProjectSetup {
     try {
       if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
         removeSyncContextDataFrom(myProject);
-      }
-
-      // If single-variant sync is enabled but not supported for current project, disable the option and sync again.
-      if (!isInTestingMode() && myEnableDisableSingleVariantSyncStep.checkAndDisableOption(myProject, mySyncState)) {
-        // Single-variant sync disabled and a sync was triggered.
-        finishSuccessfulSync(taskId);
-        return;
       }
 
       myGradleProjectInfo.setNewProject(false);
@@ -238,10 +228,8 @@ public class PostSyncProjectSetup {
       myModuleSetup.setUpModules(null);
 
       finishSuccessfulSync(taskId);
-      // If sync is successful and the project is eligible, ask user to opt-in single-variant sync.
-      if (!isInTestingMode()) {
-        myEnableDisableSingleVariantSyncStep.checkAndEnableOption(myProject);
-      }
+      // Update single-variant state, the eligibility can be changed from last sync if kotlin is added/removed, or AGP version is changed.
+      setSingleVariantSyncState(myProject);
     }
     catch (Throwable t) {
       mySyncState.syncFailed("setup project failed: " + t.getMessage());
