@@ -875,8 +875,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
     }
     else {
-      // Update capture state only if it was capturing to avoid disrupting state that's invisible to device such as PARSING.
-      if (myCaptureState == CaptureState.CAPTURING) {
+      // Update capture state only if it was capturing an API initiated tracing
+      // to avoid disrupting state that's invisible to device such as PARSING.
+      if (isApiInitiatedTracingInProgress()) {
         setCaptureState(CaptureState.IDLE);
         myInProgressTraceSeries.clear();
         // When API-initiated tracing ends, we want to update the config combo box back to the entry before API tracing.
