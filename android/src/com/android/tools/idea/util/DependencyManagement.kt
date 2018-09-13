@@ -98,23 +98,10 @@ fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBefore
 
   val moduleSystem = getModuleSystem()
   val distinctCoordinates = coordinates.distinctBy { Pair(it.groupId, it.artifactId) }
-  val unavailableDependencies: MutableList<GradleCoordinate> = mutableListOf()
-  val versionedDependencies: MutableList<GradleCoordinate> = mutableListOf()
-
-  // Separate the list of deps into a list of versioned coordinates and a list of unavailable coordinates.
-  distinctCoordinates.forEach {
-    val versionedCoordinate = moduleSystem.getLatestCompatibleDependency(it.groupId ?: "", it.artifactId ?: "")
-
-    if (versionedCoordinate == null) {
-      unavailableDependencies.add(it)
-    }
-    else {
-      versionedDependencies.add(versionedCoordinate)
-    }
-  }
+  val (versionedDependencies, unavailableDependencies, warning) = moduleSystem.analyzeDependencyCompatibility(distinctCoordinates)
 
   if (versionedDependencies.isNotEmpty()) {
-    if (promptUserBeforeAdding && !userWantsToAdd(project, distinctCoordinates)) {
+    if (promptUserBeforeAdding && !userWantsToAdd(project, distinctCoordinates, warning)) {
       return distinctCoordinates
     }
 
@@ -128,16 +115,28 @@ fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBefore
   return unavailableDependencies
 }
 
-fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
+fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>, warning: String = ""): Boolean {
   if (ApplicationManager.getApplication().isUnitTestMode) {
     return DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES
   }
-  return Messages.OK == Messages.showOkCancelDialog(project, createAddDependencyMessage(coordinates), "Add Project Dependency", Messages.getErrorIcon())
+  return Messages.OK == Messages.showOkCancelDialog(
+    project, createAddDependencyMessage(coordinates, warning), "Add Project Dependency", Messages.getErrorIcon())
 }
 
 @VisibleForTesting
-fun createAddDependencyMessage(coordinates: List<GradleCoordinate>): String {
+fun createAddDependencyMessage(coordinates: List<GradleCoordinate>, warning: String = ""): String {
   val libraryNames = coordinates.joinToString(", ") { it.toString() }
-  return "This operation requires the ${StringUtil.pluralize("library", coordinates.size)} $libraryNames. \n\n" +
-      "Would you like to add ${StringUtil.pluralize("this", coordinates.size)} now?"
+  val these = StringUtil.pluralize("this", coordinates.size)
+  val libraries = StringUtil.pluralize("library", coordinates.size)
+  val requires = "This operation requires the $libraries $libraryNames."
+  if (warning.isEmpty()) {
+    return "$requires\n\nWould you like to add $these now?"
+  }
+  val them = if (coordinates.size > 1) "them" else "it"
+  return """$requires
+
+Problem: $warning
+
+The project may not compile after adding $these $libraries.
+Would you like to add $them anyway?"""
 }

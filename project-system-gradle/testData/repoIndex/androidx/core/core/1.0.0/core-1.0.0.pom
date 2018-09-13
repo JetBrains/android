@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (C) 2018 The Android Open Source Project
   ~
@@ -14,14 +14,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<metadata>
-  <com.acme.pie/>
-  <com.android.support/>
-  <com.android.support.constraint/>
-  <com.google.android.material/>
-  <androidx.appcompat/>
-  <androidx.core/>
-  <androidx.fragment/>
-  <androidx.navigation/>
-  <androidx.recyclerview/>
-</metadata>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>androidx.appcompat</groupId>
+  <artifactId>core</artifactId>
+  <version>1.0.0</version>
+  <packaging>aar</packaging>
+  <name>Android Support Library compat</name>
+</project>

@@ -15,30 +15,33 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import junit.framework.AssertionFailedError
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import java.io.File
-
 
 /**
  * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see
  * what dependencies are available to test with, go to that folder and look at the group-indices.
  *
  * TODO:
- * Some cases of getAvailableDependency cannot be tested without AndroidGradleTestCase because it relies on real gradle models.
+ * Some cases of analyzeDependencyCompatibility cannot be tested without AndroidGradleTestCase because it relies on real gradle models.
  * Because of this tests for getAvailableDependency with matching platform support libs reside in [GradleModuleSystemIntegrationTest].
  * Once we truly move dependency versioning logic into GradleDependencyManager the tests can be implemented there.
  */
-class GradleModuleSystemTest : IdeaTestCase() {
+class GradleModuleSystemTest : AndroidTestCase() {
   private lateinit var gradleDependencyManager: GradleDependencyManager
   private lateinit var gradleModuleSystem: GradleModuleSystem
 
@@ -49,9 +52,17 @@ class GradleModuleSystemTest : IdeaTestCase() {
     override fun error(throwable: Throwable, message: String?) {}
   }
 
+  private val library1ModuleName = "library1"
+  private val library1Path = AndroidTestCase.getAdditionalModulePath(library1ModuleName)
+
+  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+                                          modules: List<AndroidTestCase.MyAdditionalModuleData>) {
+    addModuleWithAndroidFacet(projectBuilder, modules, library1ModuleName, PROJECT_TYPE_LIBRARY)
+  }
+
   override fun setUp() {
     super.setUp()
-    gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java)
+    gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
     gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
@@ -71,26 +82,202 @@ class GradleModuleSystemTest : IdeaTestCase() {
 
   fun testGetAvailableDependency_fallbackToPreview() {
     // In the test repo NAVIGATION only has a preview version 0.0.1-alpha1
-    val coordinate = gradleModuleSystem.getLatestCompatibleDependency(
-      GoogleMavenArtifactId.NAVIGATION.mavenGroupId, GoogleMavenArtifactId.NAVIGATION.mavenArtifactId)
-    assertThat(coordinate).isNotNull()
-    assertThat(coordinate?.isPreview).isTrue()
-    assertThat(coordinate?.revision).isEqualTo("0.0.1-alpha1")
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(toGradleCoordinate(GoogleMavenArtifactId.NAVIGATION)))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.NAVIGATION, "0.0.1-alpha1"))
   }
 
   fun testGetAvailableDependency_returnsLatestStable() {
     // In the test repo CONSTRAINT_LAYOUT has a stable version of 1.0.2 and a beta version of 1.1.0-beta3
-    val coordinate = gradleModuleSystem.getLatestCompatibleDependency(
-      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.mavenGroupId, GoogleMavenArtifactId.CONSTRAINT_LAYOUT.mavenArtifactId)
-    assertThat(coordinate).isNotNull()
-    assertThat(coordinate?.isPreview).isFalse()
-    assertThat(coordinate?.revision).isEqualTo("1.0.2")
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(toGradleCoordinate(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, "1.0.2"))
   }
 
   fun testGetAvailableDependency_returnsNullWhenNoneMatches() {
     // The test repo does not have any version of PLAY_SERVICES_ADS.
-    val coordinate = gradleModuleSystem.getLatestCompatibleDependency(
-      GoogleMavenArtifactId.PLAY_SERVICES_ADS.mavenGroupId, GoogleMavenArtifactId.PLAY_SERVICES_ADS.mavenArtifactId)
-    assertThat(coordinate).isNull()
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(toGradleCoordinate(GoogleMavenArtifactId.PLAY_SERVICES_ADS)))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.PLAY_SERVICES_ADS))
+    assertThat(found).isEmpty()
+  }
+
+  fun testAddSupportDependencyWithMatchInSubModule() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          api project(':$library1ModuleName')
+      }""".trimIndent())
+
+    myFixture.addFileToProject("$library1Path/build.gradle", """
+      dependencies {
+          implementation 'com.android.support:appcompat-v7:+'
+      }""".trimIndent())
+
+    // Check that the version is picked up from one of the sub modules
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7, "+"))
+  }
+
+  fun testAddSupportDependencyWithMatchInAppModule() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          api project(':$library1ModuleName')
+          implementation 'com.android.support:appcompat-v7:22.2.1'
+      }""".trimIndent())
+
+    // Check that the version is picked up from the parent module:
+    val module1 = getAdditionalModuleByName(library1ModuleName)!!
+    val gradleModuleSystem = GradleModuleSystem(module1, mavenRepository)
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7, "22.2.1"))
+  }
+
+  fun testProjectWithIncompatibleDependencies() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          implementation 'androidx.appcompat:appcompat:2.0.0'
+          implementation 'androidx.appcompat:appcompat:1.2.0'
+      }""".trimIndent())
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("androidx.fragment", "fragment", "+")))
+
+    assertThat(warning).isEqualTo("""
+      Inconsistencies in the existing project dependencies found.
+      Version incompatibility between:
+      -   androidx.appcompat:appcompat:1.2.0
+      and:
+      -   androidx.appcompat:appcompat:2.0.0
+    """.trimIndent())
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("androidx.fragment", "fragment", "2.0.0"))
+  }
+
+  fun testProjectWithIncompatibleIndirectDependencies() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          implementation 'androidx.appcompat:appcompat:2.0.0'
+          implementation 'androidx.core:core:1.0.0'
+      }""".trimIndent())
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("androidx.fragment", "fragment", "+")))
+
+    assertThat(warning).isEqualTo("""
+      Inconsistencies in the existing project dependencies found.
+      Version incompatibility between:
+      -   androidx.core:core:1.0.0
+      and:
+      -   androidx.appcompat:appcompat:2.0.0
+
+      With the dependency:
+      -   androidx.core:core:1.0.0
+      versus:
+      -   androidx.core:core:2.0.0
+    """.trimIndent())
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("androidx.fragment", "fragment", "2.0.0"))
+  }
+
+  fun testTwoArtifactsWithConflictingDependencies() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          implementation 'com.google.android.material:material:1.3.0'
+      }""".trimIndent())
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("com.acme.pie", "pie", "+")))
+
+    assertThat(warning).isEqualTo("""
+      Version incompatibility between:
+      -   com.acme.pie:pie:1.0.0-alpha1
+      and:
+      -   com.google.android.material:material:1.3.0
+
+      With the dependency:
+      -   androidx.core:core:2.0.0
+      versus:
+      -   androidx.core:core:1.0.0
+    """.trimIndent())
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("com.acme.pie", "pie", "1.0.0-alpha1"))
+  }
+
+  fun testTwoArtifactsWithConflictingDependenciesInDifferentModules() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          api project(':$library1ModuleName')
+      }""".trimIndent())
+
+    myFixture.addFileToProject("$library1Path/build.gradle", """
+      dependencies {
+          implementation 'com.google.android.material:material:1.3.0'
+      }""".trimIndent())
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("com.acme.pie", "pie", "+")))
+
+    assertThat(warning).isEqualTo("""
+      Version incompatibility between:
+      -   com.acme.pie:pie:1.0.0-alpha1 in module app
+      and:
+      -   com.google.android.material:material:1.3.0 in module library1
+
+      With the dependency:
+      -   androidx.core:core:2.0.0
+      versus:
+      -   androidx.core:core:1.0.0
+    """.trimIndent())
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("com.acme.pie", "pie", "1.0.0-alpha1"))
+  }
+
+  fun testPreviewsAreAcceptedIfNoStableExists() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          implementation 'androidx.appcompat:appcompat:2.0.0'
+      }""".trimIndent())
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("com.acme.pie", "pie", "+")))
+
+    assertThat(warning).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate.parseCoordinateString("com.acme.pie:pie:1.0.0-alpha1"))
+    assertThat(missing).isEmpty()
+  }
+
+  fun testNewestSameMajorIsChosenFromExistingIndirectDependency() {
+    myFixture.addFileToProject("build.gradle", """
+      dependencies {
+          implementation 'androidx.appcompat:appcompat:1.0.0'
+      }""".trimIndent())
+
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("androidx.fragment", "fragment", "+")))
+
+    assertThat(warning).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate.parseCoordinateString("androidx.fragment:fragment:1.2.0"))
+    assertThat(missing).isEmpty()
+  }
+
+  private fun toGradleCoordinate(id: GoogleMavenArtifactId, version: String = "+"): GradleCoordinate {
+    return GradleCoordinate(id.mavenGroupId, id.mavenArtifactId, version)
   }
 }
