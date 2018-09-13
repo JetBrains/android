@@ -899,6 +899,48 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void transitsToIdleWhenApiInitiatedTracingEnds() {
+    myServices.enableCpuApiTracing(true);
+
+    // API-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration artConfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
+
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    myCpuService.setAppBeingProfiled(true);
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    myCpuService.setAppBeingProfiled(false);
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+  }
+
+  @Test
+  public void updateProfilingStatePreservesCapturingWhenNonApiInitiatedTracingEnds() {
+    myServices.enableCpuApiTracing(true);
+
+    // API-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration artConfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    myCpuService.setAppBeingProfiled(true);
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    myCpuService.setAppBeingProfiled(false);
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Test
   public void apiInitiatedCaptureRespectCpuApiTracingFlag() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
