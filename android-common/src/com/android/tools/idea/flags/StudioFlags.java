@@ -244,8 +244,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
     NELE, "new.color.picker", "New Color Picker",
-    "Enable new Color Picker in layout Editor",
-    false);
+    "Enable new Color Picker in Layout Editor",
+    true);
 
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
