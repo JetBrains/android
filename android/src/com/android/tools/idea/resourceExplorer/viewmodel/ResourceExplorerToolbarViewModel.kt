@@ -1,0 +1,121 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.resourceExplorer.viewmodel
+
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.plugin.ConfigurationDoneCallback
+import com.android.tools.idea.util.androidFacet
+import com.intellij.ide.IdeView
+import com.intellij.ide.util.DirectoryChooserUtil
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.psi.PsiManager
+import org.jetbrains.android.actions.CreateResourceFileAction
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
+
+/**
+ * View model for the [com.android.tools.idea.resourceExplorer.view.ResourceExplorerToolbar].
+ * @param facetUpdaterCallback callback to call when a new facet is selected.
+ */
+class ResourceExplorerToolbarViewModel(
+  facet: AndroidFacet,
+  private val importersProvider: ImportersProvider,
+  private val facetUpdaterCallback: (AndroidFacet) -> Unit)
+  : DataProvider, IdeView {
+
+  var facet: AndroidFacet = facet
+    set(newFacet) {
+      if (field != newFacet) {
+        field = newFacet
+      }
+    }
+
+  /**
+   * Name of the module currently selected
+   */
+  var currentModuleName: String = facet.name
+    get() = facet.module.name
+    private set
+
+  val createResourceAction = CreateResourceFileAction.getInstance()
+
+  /**
+   * Returns the [AnAction] to open the available [com.android.tools.idea.resourceExplorer.plugin.ResourceImporter]s.
+   */
+  fun getImportersActions(): List<AnAction> {
+    return importersProvider.importers.mapIndexed { index, importer ->
+      object : AnAction(importer.getPresentableName()) {
+        override fun actionPerformed(e: AnActionEvent) {
+          invokeImporter(index)
+        }
+      }
+    }
+  }
+
+  /**
+   * Open the [com.android.tools.idea.resourceExplorer.plugin.ResourceImporter] at the provided index in
+   * the [ImportersProvider.importers] list.
+   */
+  private fun invokeImporter(index: Int) {
+    importersProvider.importers.elementAtOrNull(index)
+      ?.getConfigurationPanel(facet, object : ConfigurationDoneCallback {
+        override fun configurationDone() {}
+      })
+  }
+
+  /**
+   * Implementation of [IdeView.getDirectories] that returns the resource directories of
+   * the selected facet.
+   * This is needed to run [CreateResourceFileAction]
+   */
+  override fun getDirectories() = ResourceFolderManager.getInstance(facet).folders
+    .mapNotNull { runReadAction { PsiManager.getInstance(facet.module.project).findDirectory(it) } }
+    .toTypedArray()
+
+  override fun getOrChooseDirectory() = DirectoryChooserUtil.getOrChooseDirectory(this)
+
+  /**
+   * Implementation of [DataProvider] needed for [CreateResourceFileAction]
+   */
+  override fun getData(dataId: String): Any? = when (dataId) {
+    LangDataKeys.MODULE.name -> facet.module
+    LangDataKeys.IDE_VIEW.name -> this
+    else -> null
+  }
+
+  /**
+   * Return the [AnAction]s to switch to another module.
+   * This method only returns Android modules.
+   */
+  fun getSelectModuleActions(): List<AnAction> {
+    return ModuleManager.getInstance(facet.module.project)
+      .modules
+      .mapNotNull { it.androidFacet }
+      .filterNot { it == facet }
+      .map { androidFacet ->
+        object : AnAction(androidFacet.module.name) {
+          override fun actionPerformed(e: AnActionEvent) {
+            facetUpdaterCallback(androidFacet)
+          }
+        }
+      }
+  }
+}

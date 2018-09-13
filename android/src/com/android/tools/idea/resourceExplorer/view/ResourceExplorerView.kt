@@ -33,14 +33,12 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBMenu
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -50,12 +48,10 @@ import java.awt.Component
 import java.awt.Point
 import java.awt.event.InputEvent
 import javax.swing.BorderFactory
-import javax.swing.Box
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
-import javax.swing.JMenuBar
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
@@ -77,8 +73,6 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
   JBUI.Borders.emptyBottom(8),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
-
-private val ADD_BUTTON_SIZE = JBUI.size(30)
 
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
@@ -116,27 +110,8 @@ class ResourceExplorerView(
   private val dragHandler = resourceDragHandler()
   private val imageCache = ImageCache()
 
-  private val headerPanel = Box.createVerticalBox().apply {
-    add(JPanel(BorderLayout()).apply {
-      val menuBar = JMenuBar()
-      val addButton = JBMenu().apply {
-        font = font.deriveFont(JBUI.scaleFontSize(24f))
-        preferredSize = ADD_BUTTON_SIZE
-        icon = StudioIcons.Common.ADD
-      }
-
-      addButton.add(JBMenuItem("Import .sketch file...").apply {
-        addActionListener { _ -> resourcesBrowserViewModel.importSketchFile() }
-      })
-
-      // TODO add mnemonic, accelerator
-
-      menuBar.add(addButton, BorderLayout.WEST)
-      add(menuBar)
-    })
-
-    add(JTabbedPane(JTabbedPane.NORTH).apply {
-      tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
+  private val headerPanel = JTabbedPane(JTabbedPane.NORTH).apply {
+    tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
       resourcesBrowserViewModel.resourceTypes.forEach {
         addTab(it.displayName, null)
       }
@@ -144,12 +119,12 @@ class ResourceExplorerView(
         val index = (event.source as JTabbedPane).model.selectedIndex
         resourcesBrowserViewModel.resourceTypeIndex = index
       }
-    })
   }
 
   private val listPanel: JBScrollPane = sectionList.mainComponent.apply {
     border = JBUI.Borders.empty(8)
     horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
     addMouseWheelListener { event ->
       val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
       val modifierPressed = (event.modifiers and modifierKey) == modifierKey
