@@ -22,6 +22,7 @@ package com.android.tools.profilers;
 public interface FeatureConfig {
   boolean isAtraceEnabled();
   boolean isCpuApiTracingEnabled();
+  boolean isCpuNewRecordingWorkflowEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isExportCpuTraceEnabled();
   boolean isFragmentsEnabled();
