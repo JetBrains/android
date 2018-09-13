@@ -391,9 +391,6 @@ private class ColorLabel(text: String = ""): JLabel(text, SwingConstants.CENTER)
   }
 }
 
-private const val ACTION_UP = "up"
-private const val ACTION_DOWN = "down"
-
 @VisibleForTesting
 class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 else 3) {
 
@@ -413,30 +410,6 @@ class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 e
         selectionEnd = size
       }
     })
-    if (!hex) {
-      // Don't increase value for hex field.
-      with(getInputMap(JComponent.WHEN_FOCUSED)) {
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_UP)
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_DOWN)
-      }
-      with(actionMap) {
-        put(ACTION_UP, object : AbstractAction() {
-          override fun actionPerformed(e: ActionEvent) = increaseValue(1)
-        })
-        put(ACTION_DOWN, object : AbstractAction() {
-          override fun actionPerformed(e: ActionEvent) = increaseValue(-1)
-        })
-      }
-    }
-  }
-
-  private fun increaseValue(diff: Int) {
-    assert(!hex)
-
-    val doc = document as DigitColorDocument
-    val newValue = doc.getText(0, doc.length).toInt() + diff
-    val valueInRange = Math.max(doc.valueRange.start, Math.min(newValue, doc.valueRange.endInclusive))
-    text = valueInRange.toString()
   }
 
   override fun isFocusable() = true
@@ -475,7 +448,7 @@ private abstract class ColorDocument(internal val src: JTextField) : PlainDocume
   abstract fun isLegalValue(str: String): Boolean
 }
 
-private class DigitColorDocument(src: JTextField, val valueRange: IntRange) : ColorDocument(src) {
+private class DigitColorDocument(src: JTextField, private val valueRange: IntRange) : ColorDocument(src) {
 
   override fun isLegalCharacter(c: Char) = c.isDigit()
 
