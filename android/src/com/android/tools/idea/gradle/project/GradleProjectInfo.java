@@ -60,6 +60,7 @@ public class GradleProjectInfo {
   @Nullable private NewProjectExtraInfo myExtraInfo;
   private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
+  private volatile boolean mySkipStartupActivity;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -79,6 +80,14 @@ public class GradleProjectInfo {
 
   public void setNewProject(boolean newProject) {
     myNewProject = newProject;
+  }
+
+  public boolean isSkipStartupActivity() {
+    return mySkipStartupActivity;
+  }
+
+  public void setSkipStartupActivity(boolean skipStartupActivity) {
+    mySkipStartupActivity = skipStartupActivity;
   }
 
   @Nullable
