@@ -86,7 +86,6 @@ public class SketchToStudioConverter {
    * Artboard to Drawable conversion
    */
   @NotNull
-  // TODO make private after updating the presenter
   public static DrawableAssetModel createDrawableAsset(@NotNull SketchArtboard artboard, @NotNull SymbolsLibrary symbolsLibrary) {
     ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = artboard.getLayers();

@@ -20,11 +20,12 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.utils.Pair;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.testFramework.ProjectRule;
 import java.awt.Color;
@@ -51,10 +52,10 @@ public class DrawableFileGeneratorTest {
 
   @Test
   public void createColorsFileTest() {
-    ArrayList<Pair<String, Color>> colors = new ArrayList<>();
-    colors.add(Pair.of("colorPrimary", new Color(255, 0, 0, 255)));
-    colors.add(Pair.of("colorPrimaryDark", new Color(0, 255, 0, 255)));
-    colors.add(Pair.of("colorAccent", new Color(0, 0, 255, 255)));
+    ArrayList<ColorAssetModel> colors = new ArrayList<>();
+    colors.add(new ColorAssetModel(true, "colorPrimary", new Color(255, 0, 0, 255), AssetModel.Origin.DOCUMENT));
+    colors.add(new ColorAssetModel(true, "colorPrimaryDark", new Color(0, 255, 0, 255), AssetModel.Origin.DOCUMENT));
+    colors.add(new ColorAssetModel(true, "colorAccent", new Color(0, 0, 255, 255), AssetModel.Origin.DOCUMENT));
 
     DrawableFileGenerator drawableFileGenerator = new DrawableFileGenerator(projectRule.getProject());
     LightVirtualFile file = drawableFileGenerator.generateColorsFile(colors);
