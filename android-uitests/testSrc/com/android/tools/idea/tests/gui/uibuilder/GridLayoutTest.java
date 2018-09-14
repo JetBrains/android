@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
-import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class GridLayoutTest {
@@ -39,39 +35,34 @@ public final class GridLayoutTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   @Test
-  public void dragViewIntoEmptyGridLayout() throws IOException {
-    WizardUtils.createNewProject(myGuiTest, "Empty Activity");
-    Path activityMainXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
-
-    @Language("XML")
-    String xml = "<GridLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"match_parent\">\n" +
-                 "</GridLayout>\n";
-
-    GuiTestFileUtils.writeAndReloadDocument(myGuiTest.getProjectPath().toPath().resolve(activityMainXml), xml);
+  public void dragViewIntoEmptyGridLayout() throws Exception {
+    IdeFrameFixture frame = myGuiTest.importSimpleLocalApplication();
+    frame.getProjectView().selectAndroidPane().clickPath("app");
+    frame.openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
+                                   .setFilename("gridlayout")
+                                   .setType("layout")
+                                   .setRootElement("GridLayout")
+                                   .clickOk();
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    editor.open(activityMainXml);
-
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
     layoutEditor.showOnlyDesignView();
     layoutEditor.dragComponentToSurface("Text", "TextView");
 
     @Language("XML")
-    String expected = "<GridLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    android:layout_width=\"match_parent\"\n" +
-                      "    android:layout_height=\"match_parent\">\n" +
+    String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<GridLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:layout_width=\"match_parent\" android:layout_height=\"match_parent\">\n" +
                       "\n" +
                       "    <TextView\n" +
                       "        android:id=\"@+id/textView\"\n" +
                       "        android:layout_width=\"wrap_content\"\n" +
                       "        android:layout_height=\"wrap_content\"\n" +
                       "        android:text=\"TextView\" />\n" +
-                      "</GridLayout>\n";
+                      "</GridLayout>";
 
-    editor.open(activityMainXml, Tab.EDITOR);
+    editor.open("app/src/main/res/layout/gridlayout.xml", Tab.EDITOR);
     assertEquals(expected, editor.getCurrentFileContents());
   }
 }
