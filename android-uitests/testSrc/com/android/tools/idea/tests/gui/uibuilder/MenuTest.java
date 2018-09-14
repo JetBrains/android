@@ -116,6 +116,7 @@ public final class MenuTest {
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
+  @RunIn(TestGroup.UNRELIABLE) // b/115698976
   @Test
   public void dragMenuItemIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
