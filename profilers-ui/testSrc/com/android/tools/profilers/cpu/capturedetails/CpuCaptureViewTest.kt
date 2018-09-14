@@ -18,8 +18,10 @@ package com.android.tools.profilers.cpu.capturedetails
 import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.SIMPLEPERF
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.*
 import com.android.tools.profilers.event.FakeEventService
@@ -30,6 +32,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
+import javax.swing.JLabel
 
 class CpuCaptureViewTest {
   @JvmField
@@ -107,6 +110,19 @@ class CpuCaptureViewTest {
     cpuProfiler.stopCapturing()
 
     assertThat(stopButton.isEnabled).isFalse()
+  }
+
+  @Test
+  fun technologyIsPresentInRecordingPane() {
+    cpuProfiler.apply {
+      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
+      startCapturing()
+    }
+    val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
+    val technologyLabel = TreeWalker(recordingPane).descendants().filterIsInstance<JLabel>().first {
+      it.text == ProfilingConfiguration.ART_SAMPLED_NAME
+    }
+    assertThat(technologyLabel).isNotNull()
   }
 
   @Test
@@ -193,6 +209,18 @@ class CpuCaptureViewTest {
 
     assertThat(stageView.stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.IDLE)
     assertThat(abortButton.isEnabled).isFalse()
+  }
+
+  @Test
+  fun technologyIsPresentInParsingPane() {
+    stageView.stage.profilerConfigModel.profilingConfiguration =
+      ProfilingConfiguration("simpleperf", SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED)
+    stageView.stage.captureParser.updateParsingStateWhenStarting()
+    val parsingPane = getCapturePane()
+    val technologyLabel = TreeWalker(parsingPane).descendants().filterIsInstance<JLabel>().first {
+      it.text == ProfilingConfiguration.SIMPLEPERF_NAME
+    }
+    assertThat(technologyLabel).isNotNull()
   }
 
   @Test
