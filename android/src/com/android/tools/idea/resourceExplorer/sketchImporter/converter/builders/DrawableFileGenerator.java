@@ -16,11 +16,11 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradientStop;
-import com.android.utils.Pair;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -30,7 +30,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagChild;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.ThrowableRunnable;
-import java.awt.Color;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +79,7 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  private XmlTag createXmlTag(String tag) {
+  private XmlTag createXmlTag(@NotNull String tag) {
     return XmlElementFactory.getInstance(myProject).createTagFromText(tag);
   }
 
@@ -127,12 +126,12 @@ public class DrawableFileGenerator {
     parentTag.addSubTag(pathTag, false);
   }
 
-  private void addColor(@NotNull Pair<String, Color> colorPair, @NotNull XmlTag parentTag) {
+  private void addColor(@NotNull ColorAssetModel colorModel, @NotNull XmlTag parentTag) {
     XmlTag colorTag = createXmlTag(TAG_COLOR);
-    colorTag.setAttribute(SdkConstants.ATTR_NAME, colorPair.getFirst());
+    colorTag.setAttribute(SdkConstants.ATTR_NAME, colorModel.getName());
 
     XmlTagValueImpl colorTagValue = new XmlTagValueImpl(XmlTagChild.EMPTY_ARRAY, colorTag);
-    colorTagValue.setText(Integer.toHexString(colorPair.getSecond().getRGB()));
+    colorTagValue.setText(Integer.toHexString(colorModel.getColor().getRGB()));
 
     parentTag.addSubTag(colorTag, false);
   }
@@ -262,15 +261,15 @@ public class DrawableFileGenerator {
   }
 
   @NotNull
-  public LightVirtualFile generateColorsFile(@NotNull List<Pair<String, Color>> colorList) {
-    LightVirtualFile virtualFile = new LightVirtualFile();
+  public LightVirtualFile generateColorsFile(@NotNull List<ColorAssetModel> colorList) {
+    LightVirtualFile virtualFile = new LightVirtualFile("sketch_colors.xml");
 
     try {
       WriteAction.runAndWait((ThrowableRunnable<Throwable>)() -> {
         XmlTag resourcesTag = createXmlTag(TAG_RESOURCES);
         if (!colorList.isEmpty()) {
-          for (Pair<String, Color> color : colorList) {
-            addColor(color, resourcesTag);
+          for (ColorAssetModel colorAssetModel : colorList) {
+            addColor(colorAssetModel, resourcesTag);
           }
         }
 

@@ -16,24 +16,24 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StudioResourcesModel {
   private ImmutableList<DrawableAssetModel> myDrawableAssets;
   private ImmutableList<ColorAssetModel> myColorAssets;
 
-  public StudioResourcesModel(@NotNull ImmutableList<DrawableAssetModel> drawableAssets,
-                              @NotNull ImmutableList<ColorAssetModel> colorAssets) {
+  public StudioResourcesModel(@Nullable ImmutableList<DrawableAssetModel> drawableAssets,
+                              @Nullable ImmutableList<ColorAssetModel> colorAssets) {
     myDrawableAssets = drawableAssets;
     myColorAssets = colorAssets;
   }
 
-  @NotNull
+  @Nullable
   public ImmutableList<DrawableAssetModel> getDrawableAssets() {
     return myDrawableAssets;
   }
 
-  @NotNull
+  @Nullable
   public ImmutableList<ColorAssetModel> getColorAssets() {
     return myColorAssets;
   }

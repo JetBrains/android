@@ -24,9 +24,11 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.getResources
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.testFramework.LightVirtualFile
@@ -57,21 +59,24 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
       sketchImporterView.createPageView(pagePresenter)
       pagePresenter
     }
+  private val documentPresenter = DocumentPresenter(sketchFile.document, facet, sketchFile.symbolsLibrary)
 
   init {
+    sketchImporterView.createDocumentView(documentPresenter)
     sketchImporterView.addFilterExportableButton(!importAll)
-    populatePages()
+    populateViews()
   }
 
   /**
    * Add previews in each [PageView] associated to the [PagePresenter]s and refresh the [SketchImporterView].
    */
-  private fun populatePages() {
+  private fun populateViews() {
     pagePresenters.forEach {
       it.importAll = importAll
       it.populateView()
     }
-    sketchImporterView.paintPages()
+    documentPresenter.importAll = importAll
+    documentPresenter.populateView()
   }
 
   /**
@@ -99,19 +104,16 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
       ItemEvent.SELECTED -> false
       else -> DEFAULT_IMPORT_ALL
     }
-    populatePages()
+    populateViews()
   }
 }
 
-class PagePresenter(private val sketchPage: SketchPage,
-                    val facet: AndroidFacet,
-                    private val symbolsLibrary: SymbolsLibrary) {
-
-  lateinit var view: PageView
-  private val pageOptions = PageOptions(sketchPage)
-  private val rendererManager = DesignAssetRendererManager.getInstance()
-  private var filesToAssets = generateFiles()
+abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
   var importAll = DEFAULT_IMPORT_ALL
+  private val drawableFileGenerator = DrawableFileGenerator(facet.module.project)
+  protected abstract val resources: StudioResourcesModel
+  protected abstract val filesToAssets: Map<LightVirtualFile, DrawableAssetModel>
+  private val rendererManager = DesignAssetRendererManager.getInstance()
 
   fun fetchImage(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
     val file = designAssetSet.designAssets.first().file
@@ -121,39 +123,15 @@ class PagePresenter(private val sketchPage: SketchPage,
   /**
    * Refresh preview panel in the associated view.
    */
-  fun populateView() {
-    view.refreshPreviewPanel(sketchPage.name, PageOptions.PAGE_TYPE_LABELS, pageOptions.pageType.ordinal,
-                             getExportableFiles().toAssets())
-  }
+  abstract fun populateView()
 
   /**
-   * Change the type of the page according to the [selection] and refresh the filesToAssets associated with that page (including
-   * the previews in the [view]).
+   * @return a mapping from [LightVirtualFile] assets to [DrawableAssetModel] based on the content in the [StudioResourcesModel].
    */
-  fun pageTypeChange(selection: String) {
-    pageOptions.pageType = PageOptions.getPageTypeFromLabel(selection)
-    filesToAssets = generateFiles()
-    populateView()
-  }
-
-  /**
-   * @return a mapping from [LightVirtualFile] assets to [AssetModel] based on the content in the [SketchPage] and the [PageOptions].
-   */
-  private fun generateFiles(): Map<LightVirtualFile, AssetModel> = when (pageOptions.pageType) {
-    PageOptions.PageType.ICONS -> createIconFiles(sketchPage)
-    else -> emptyMap()
-  }
-
-  /**
-   * @return a mapping from [LightVirtualFile] Vector Drawables to [AssetModel], corresponding to each artboard in [page].
-   */
-  private fun createIconFiles(page: SketchPage): Map<LightVirtualFile, AssetModel> {
-    val drawableFileGenerator = DrawableFileGenerator(facet.module.project)
-    return page.artboards
-      .associate { artboard ->
-        val asset = SketchToStudioConverter.createDrawableAsset(artboard, symbolsLibrary)
-        drawableFileGenerator.generateDrawableFile(asset) to asset
-      }
+  protected fun generateDrawableFiles(): Map<LightVirtualFile, DrawableAssetModel> {
+    return resources.drawableAssets?.associate {
+      drawableFileGenerator.generateDrawableFile(it) to it
+    } ?: emptyMap()
   }
 
   /**
@@ -164,8 +142,40 @@ class PagePresenter(private val sketchPage: SketchPage,
     return if (importAll) files.toList() else files.filter { filesToAssets[it]?.isExportable ?: false }
   }
 
+  protected fun generateColorsList() = resources.colorAssets?.map {
+    it.color to it.name
+  } ?: emptyList()
+
   /**
    * Get options associated with a file.
    */
   fun getAsset(file: LightVirtualFile): AssetModel? = filesToAssets[file]
+}
+
+class PagePresenter(private val sketchPage: SketchPage,
+                    facet: AndroidFacet,
+                    symbolsLibrary: SymbolsLibrary
+) : ResourcesPresenter(facet) {
+
+  lateinit var view: PageView
+  override val resources: StudioResourcesModel = getResources(sketchPage, symbolsLibrary)
+  override var filesToAssets = generateDrawableFiles()
+
+  override fun populateView() {
+    view.refresh(sketchPage.name, getExportableFiles().toAssets(), generateColorsList())
+  }
+}
+
+class DocumentPresenter(sketchDocument: SketchDocument,
+                        facet: AndroidFacet,
+                        symbolsLibrary: SymbolsLibrary
+) : ResourcesPresenter(facet) {
+
+  lateinit var view: DocumentView
+  override val resources: StudioResourcesModel = getResources(sketchDocument, symbolsLibrary)
+  override var filesToAssets = generateDrawableFiles()
+
+  override fun populateView() {
+    view.refresh(getExportableFiles().toAssets(), generateColorsList())
+  }
 }
