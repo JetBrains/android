@@ -150,7 +150,9 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
       myLaunchOptionsCardPanel.select(myConfigurables.get(option.getId()), true);
     }
     else if (source == myInstantAppDeployCheckBox) {
-      myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), myInstantAppDeployCheckBox.isSelected());
+      if (myModuleSelector.getModule() != null) {
+        myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), myInstantAppDeployCheckBox.isSelected());
+      }
     }
   }
 
@@ -372,7 +374,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     }
     else {
       // Enable instant app deploy checkbox if module is instant enabled
-      myInstantAppDeployCheckBox.setEnabled(model.getSelectedVariant().isInstantAppCompatible());
+      myInstantAppDeployCheckBox.setEnabled(model != null && model.getSelectedVariant().isInstantAppCompatible());
 
       myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
     }
@@ -382,8 +384,8 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
 
     myLaunchOptionCombo.setEnabled(!isInstantApp);
     myDynamicFeaturesParameters.setActiveModule(currentModule,
-                                                (model.getSelectedVariant().isInstantAppCompatible()
-                                                && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
+                                                (model != null && model.getSelectedVariant().isInstantAppCompatible()
+                                                 && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
                                                 ? DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED
                                                 : DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
   }
