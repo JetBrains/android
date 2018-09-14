@@ -18,13 +18,19 @@ package com.android.tools.idea.res;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * A project-wide registry for class lookup of resource classes (R classes).
@@ -40,7 +46,8 @@ public class ResourceClassRegistry implements ProjectComponent {
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
-   * in question. In namespaced projects the repository is a {@link AarSourceResourceRepository} of just the AAR contents.
+   * in question. In namespaced projects the repository is a {@link AarResourceRepository} of just
+   * the AAR contents.
    */
   public void addLibrary(@NotNull ResourceRepository repo,
                          @NotNull ResourceIdManager idManager,
@@ -67,7 +74,7 @@ public class ResourceClassRegistry implements ProjectComponent {
       String pkg = className.substring(0, index);
       if (myPackages != null && myPackages.contains(pkg)) {
         ResourceNamespace namespace = ResourceNamespace.fromPackageName(pkg);
-        List<LocalResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
+        List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
         ResourceClassGenerator generator = findClassGenerator(repositories, className);
         if (generator != null) {
           return generator.generate(className);
@@ -78,7 +85,7 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   @Nullable
-  private ResourceClassGenerator findClassGenerator(@NotNull List<LocalResourceRepository> repositories, @NotNull String className) {
+  private ResourceClassGenerator findClassGenerator(@NotNull List<ResourceRepository> repositories, @NotNull String className) {
     ResourceClassGenerator foundGenerator = null;
     for (int i = 0; i < repositories.size(); i++) {
       ResourceClassGenerator generator = myGeneratorMap.get(repositories.get(i));

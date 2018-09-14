@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -28,13 +29,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.LightVirtualFile;
+import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
-
 public class SampleDataItemTest {
-
   @Rule
   public AndroidProjectRule rule = AndroidProjectRule.inMemory();
 
@@ -48,7 +47,7 @@ public class SampleDataItemTest {
         @Override
         public SampleDataResourceItem compute() {
           try {
-            return SampleDataResourceItem.getFromPsiFileSystemItem(file).get(0);
+            return SampleDataResourceItem.getFromPsiFileSystemItem(file, ResourceNamespace.RES_AUTO).get(0);
           }
           catch (IOException e) {
             e.printStackTrace();
@@ -62,7 +61,7 @@ public class SampleDataItemTest {
       .getAppResources(rule.module)
       .getResources(SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA, "lorem")
       .get(0);
-    ResourceChooserItem.SampleDataItem predifinedItem = new ResourceChooserItem.SampleDataItem((SampleDataResourceItem)predefinedItem);
-    Truth.assertThat(predifinedItem.getResourceUrl()).isEqualTo("@tools:sample/lorem");
+    ResourceChooserItem.SampleDataItem dataItem = new ResourceChooserItem.SampleDataItem((SampleDataResourceItem)predefinedItem);
+    Truth.assertThat(dataItem.getResourceUrl()).isEqualTo("@tools:sample/lorem");
   }
 }

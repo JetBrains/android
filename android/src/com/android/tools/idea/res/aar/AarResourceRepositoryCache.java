@@ -46,8 +46,9 @@ public final class AarResourceRepositoryCache {
   /**
    * Returns a cached or a newly created source resource repository.
    *
-   * @param library aar library
-   * @throws IllegalArgumentException if {@code library} doesn't contain resources or its resource folder doesn't point to local file system directory
+   * @param library AAR library
+   * @throws IllegalArgumentException if {@code library} doesn't contain resources or its resource folder doesn't point
+   *     to a local file system directory
    * @return the resource repository
    */
   @NotNull
@@ -62,11 +63,7 @@ public final class AarResourceRepositoryCache {
     if (resourceDirectory == null) {
       throw new IllegalArgumentException("Cannot find resource directory " + resFolder.getRoot() + " for " + libraryName);
     }
-    return getRepository(resFolder,
-                         libraryName,
-                         mySourceRepositories,
-                         () -> AarSourceResourceRepository
-                           .create(resFolder, libraryName));
+    return getRepository(resFolder, libraryName, mySourceRepositories, () -> AarSourceResourceRepository.create(resFolder, libraryName));
   }
 
   /**
@@ -89,17 +86,14 @@ public final class AarResourceRepositoryCache {
       throw new IllegalArgumentException("Cannot find " + resApkPath + " for " + libraryName);
     }
 
-    return getRepository(resApkFile,
-                         libraryName,
-                         myProtoRepositories,
-                         () -> AarProtoResourceRepository.createProtoRepository(resApkFile, libraryName));
+    return getRepository(resApkFile, libraryName, myProtoRepositories, () -> AarProtoResourceRepository.create(resApkFile, libraryName));
   }
 
   @NotNull
-  private static <K, T extends AarSourceResourceRepository> T getRepository(@NotNull K key,
-                                                                            @Nullable String libraryName,
-                                                                            @NotNull Cache<K, T> cache,
-                                                                            @NotNull Supplier<T> factory) {
+  private static <K, T extends AarResourceRepository> T getRepository(@NotNull K key,
+                                                                      @Nullable String libraryName,
+                                                                      @NotNull Cache<K, T> cache,
+                                                                      @NotNull Supplier<T> factory) {
     T aarRepository = CacheUtils.getAndUnwrap(cache, key, factory::get);
 
     if (!Objects.equals(libraryName, aarRepository.getLibraryName())) {

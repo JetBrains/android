@@ -22,30 +22,52 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.google.common.collect.*;
+import com.android.tools.idea.res.aar.AarResourceRepository;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
-
 /**
- * The  is a super class for several of the other repositories; it’s not really used on its own. Its only purpose is to be able to combine
- * multiple resource repositories and expose it as a single one, applying the “override” semantics of resources: later children defining the
- * same resource type+name combination will replace/hide any previous definitions of the same resource.
+ * A super class for several of the other repositories. Its only purpose is to be able to combine
+ * multiple resource repositories and expose it as a single one, applying the “override” semantics
+ * of resources: earlier children defining the same resource namespace/type/name combination will
+ * replace/hide any subsequent definitions of the same resource.
  *
- * <p>In the resource repository hierarchy, the MultiResourceRepository is an internal node, never a leaf.
+ * <p>In the resource repository hierarchy, MultiResourceRepository is an internal node, never a leaf.
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
 public abstract class MultiResourceRepository extends LocalResourceRepository {
   @GuardedBy("ITEM_MAP_LOCK")
-  private List<? extends LocalResourceRepository> myChildren;
+  private ImmutableList<LocalResourceRepository> myLocalResources;
   @GuardedBy("ITEM_MAP_LOCK")
-  private final Multimap<ResourceNamespace, LocalResourceRepository> myRepositoriesByNamespace = HashMultimap.create();
+  private ImmutableList<AarResourceRepository> myLibraryResources;
+  /** A concatenation of {@link #myLocalResources} and {@link #myLibraryResources}. */
+  @GuardedBy("ITEM_MAP_LOCK")
+  private ImmutableList<ResourceRepository> myChildren;
+  /** Leaf resource repositories keyed by namespace. */
+  @GuardedBy("ITEM_MAP_LOCK")
+  private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace;
+  /** Contained single-namespace resource repositories keyed by namespace. */
+  @GuardedBy("ITEM_MAP_LOCK")
+  private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace;
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
@@ -66,56 +88,92 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     super(displayName);
   }
 
-  protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
+  protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
+                             @NotNull Collection<? extends AarResourceRepository> libraryResources) {
     synchronized (ITEM_MAP_LOCK) {
-      if (myChildren != null) {
-        for (int i = myChildren.size(); --i >= 0;) {
-          LocalResourceRepository resources = myChildren.get(i);
-          resources.removeParent(this);
+      if (myLocalResources != null) {
+        for (LocalResourceRepository child : myLocalResources) {
+          child.removeParent(this);
         }
       }
       setModificationCount(ourModificationCounter.incrementAndGet());
-      myChildren = children;
-      myModificationCounts = new long[children.size()];
-      if (children.size() == 1) {
+      myLocalResources = ImmutableList.copyOf(localResources);
+      myLibraryResources = ImmutableList.copyOf(libraryResources);
+      myChildren = ImmutableList.<ResourceRepository>builder().addAll(myLocalResources).addAll(myLibraryResources).build();
+
+      ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> mapBuilder = ImmutableListMultimap.builder();
+      computeLeafs(this, mapBuilder);
+      myLeafsByNamespace = mapBuilder.build();
+
+      mapBuilder = ImmutableListMultimap.builder();
+      computeNamespaceMap(this, mapBuilder);
+      myRepositoriesByNamespace = mapBuilder.build();
+
+      myModificationCounts = new long[localResources.size()];
+      if (localResources.size() == 1) {
         // Make sure that the modification count of the child and the parent are same. This is
         // done so that we can return child's modification count, instead of ours.
-        LocalResourceRepository child = children.get(0);
+        LocalResourceRepository child = localResources.get(0);
         child.setModificationCount(getModificationCount());
       }
-      for (int i = myChildren.size(); --i >= 0;) {
-        LocalResourceRepository resources = myChildren.get(i);
-        resources.addParent(this);
-        myModificationCounts[i] = resources.getModificationCount();
+      int i = 0;
+      for (LocalResourceRepository child : myLocalResources) {
+        child.addParent(this);
+        myModificationCounts[i++] = child.getModificationCount();
       }
       myFullTable = null;
       myCachedMaps.clear();
 
-      myRepositoriesByNamespace.clear();
-      populateNamespaceMap(this, myRepositoriesByNamespace);
+      invalidateParentCaches();
     }
-
-    invalidateParentCaches();
   }
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private static void populateNamespaceMap(@NotNull LocalResourceRepository repository,
-                                           @NotNull Multimap<ResourceNamespace, LocalResourceRepository> result) {
-    if (repository instanceof SingleNamespaceResourceRepository) {
-      ResourceNamespace namespace = ((SingleNamespaceResourceRepository)repository).getNamespace();
-      result.put(namespace, repository);
-    }
-    else if (repository instanceof MultiResourceRepository) {
-      for (LocalResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
-        populateNamespaceMap(child, result);
+  private static void computeLeafs(@NotNull ResourceRepository repository,
+                                   @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
+    if (repository instanceof MultiResourceRepository) {
+      for (ResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
+        computeLeafs(child, result);
+      }
+    } else {
+      for (SingleNamespaceResourceRepository resourceRepository : repository.getLeafResourceRepositories()) {
+        result.put(resourceRepository.getNamespace(), resourceRepository);
       }
     }
   }
 
-  @NotNull
-  public final List<LocalResourceRepository> getChildren() {
+  @GuardedBy("ITEM_MAP_LOCK")
+  private static void computeNamespaceMap(
+      @NotNull ResourceRepository repository,
+      @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
+    if (repository instanceof SingleNamespaceResourceRepository) {
+      SingleNamespaceResourceRepository singleNamespaceRepository = (SingleNamespaceResourceRepository)repository;
+      ResourceNamespace namespace = singleNamespaceRepository.getNamespace();
+      result.put(namespace, singleNamespaceRepository);
+    }
+    else if (repository instanceof MultiResourceRepository) {
+      for (ResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
+        computeNamespaceMap(child, result);
+      }
+    }
+  }
+
+  public ImmutableList<LocalResourceRepository> getLocalResources() {
     synchronized (ITEM_MAP_LOCK) {
-      return myChildren == null ? Collections.emptyList() : ImmutableList.copyOf(myChildren);
+      return myLocalResources;
+    }
+  }
+
+  public ImmutableList<AarResourceRepository> getLibraryResources() {
+    synchronized (ITEM_MAP_LOCK) {
+      return myLibraryResources;
+    }
+  }
+
+  @NotNull
+  public final List<ResourceRepository> getChildren() {
+    synchronized (ITEM_MAP_LOCK) {
+      return myChildren;
     }
   }
 
@@ -129,7 +187,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
    * @return a list of namespaces for the given namespace
    */
   @NotNull
-  public final List<LocalResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
+  public final List<ResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
     synchronized (ITEM_MAP_LOCK) {
       return ImmutableList.copyOf(myRepositoriesByNamespace.get(namespace));
     }
@@ -138,15 +196,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   public long getModificationCount() {
     synchronized (ITEM_MAP_LOCK) {
-      if (myChildren.size() == 1) {
-        return myChildren.get(0).getModificationCount();
+      if (myLocalResources.size() == 1) {
+        return myLocalResources.get(0).getModificationCount();
       }
 
       // See if any of the delegates have changed.
       boolean changed = false;
-      for (int i = myChildren.size(); --i >= 0;) {
-        LocalResourceRepository resources = myChildren.get(i);
-        long rev = resources.getModificationCount();
+      for (int i = 0; i < myLocalResources.size(); i++) {
+        LocalResourceRepository child = myLocalResources.get(i);
+        long rev = child.getModificationCount();
         if (rev != myModificationCounts[i]) {
           myModificationCounts[i] = rev;
           changed = true;
@@ -161,11 +219,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @Nullable
   @Override
+  @Nullable
   public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
     synchronized (ITEM_MAP_LOCK) {
-      for (LocalResourceRepository child : myChildren) {
+      for (LocalResourceRepository child : myLocalResources) {
         DataBindingInfo info = child.getDataBindingInfoForLayout(layoutName);
         if (info != null) {
           return info;
@@ -184,7 +242,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return myDataBindingResourceFiles;
       }
       Map<String, DataBindingInfo> selected = new HashMap<>();
-      for (LocalResourceRepository child : myChildren) {
+      for (LocalResourceRepository child : myLocalResources) {
         Map<String, DataBindingInfo> childFiles = child.getDataBindingResourceFiles();
         if (childFiles != null) {
           selected.putAll(childFiles);
@@ -209,8 +267,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   protected ResourceTable getFullTable() {
     synchronized (ITEM_MAP_LOCK) {
       if (myFullTable == null) {
-        if (myChildren.size() == 1) {
-          myFullTable = myChildren.get(0).getFullTablePackageAccessible();
+        if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
+          myFullTable = myLocalResources.get(0).getFullTablePackageAccessible();
         }
         else {
           myFullTable = new ResourceTable();
@@ -241,8 +299,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return map;
       }
 
-      if (myChildren.size() == 1) {
-        LocalResourceRepository child = myChildren.get(0);
+      if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
+        LocalResourceRepository child = myLocalResources.get(0);
         if (child instanceof MultiResourceRepository) {
           return ((MultiResourceRepository)child).getMap(namespace, type);
         }
@@ -250,27 +308,26 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
 
       map = ArrayListMultimap.create();
-      Set<LocalResourceRepository> visited = new HashSet<>();
       SetMultimap<String, String> seenQualifiers = HashMultimap.create();
       // Merge all items of the given type.
-      merge(visited, namespace, type, seenQualifiers, map);
+      for (ResourceRepository child : myLeafsByNamespace.get(namespace)) {
+        ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
+        for (ResourceItem item : items.values()) {
+          String name = item.getName();
+          String qualifiers = item.getConfiguration().getQualifierString();
+          if (!map.containsKey(name) || type == ResourceType.STYLEABLE || type == ResourceType.ID ||
+              !seenQualifiers.containsEntry(name, qualifiers)) {
+            // We only add a duplicate item if there isn't an item with the same qualifiers and it is
+            // not an id. Ids are allowed to be defined in multiple places even with the same qualifiers.
+            map.put(name, item);
+            seenQualifiers.put(name, qualifiers);
+          }
+        }
+      }
 
       myCachedMaps.put(namespace, type, map);
 
       return map;
-    }
-  }
-
-  @Override
-  protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
-                         @NotNull ResourceNamespace namespace,
-                         @NotNull ResourceType type,
-                         @NotNull SetMultimap<String, String> seenQualifiers,
-                         @NotNull ListMultimap<String, ResourceItem> result) {
-    synchronized (ITEM_MAP_LOCK) {
-      for (int i = myChildren.size(); --i >= 0;) {
-        myChildren.get(i).merge(visited, namespace, type, seenQualifiers, result);
-      }
     }
   }
 
@@ -283,7 +340,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
       if (this instanceof SingleNamespaceResourceRepository) {
         if (namespace.equals(((SingleNamespaceResourceRepository)this).getNamespace())) {
-          for (LocalResourceRepository child : myChildren) {
+          for (ResourceRepository child : myChildren) {
             if (child.hasResources(namespace, type)) {
               return true;
             }
@@ -292,8 +349,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return false;
       }
 
-      Collection<LocalResourceRepository> repositories = myRepositoriesByNamespace.get(namespace);
-      for (LocalResourceRepository repository : repositories) {
+      Collection<SingleNamespaceResourceRepository> repositories = myRepositoriesByNamespace.get(namespace);
+      for (ResourceRepository repository : repositories) {
         if (repository.hasResources(namespace, type)) {
           return true;
         }
@@ -305,10 +362,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   public void dispose() {
     synchronized (ITEM_MAP_LOCK) {
-      for (int i = myChildren.size(); --i >= 0;) {
-        LocalResourceRepository resources = myChildren.get(i);
-        resources.removeParent(this);
-        Disposer.dispose(resources);
+      for (LocalResourceRepository child : myLocalResources) {
+        child.removeParent(this);
+        Disposer.dispose(child);
       }
     }
   }
@@ -353,9 +409,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   public boolean isScanPending(@NotNull PsiFile psiFile) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
-      for (int i = myChildren.size(); --i >= 0;) {
-        LocalResourceRepository resources = myChildren.get(i);
-        if (resources.isScanPending(psiFile)) {
+      for (LocalResourceRepository child : myLocalResources) {
+        if (child.isScanPending(psiFile)) {
           return true;
         }
       }
@@ -368,7 +423,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   public void sync() {
     super.sync();
 
-    for (LocalResourceRepository childRepository : getChildren()) {
+    for (LocalResourceRepository childRepository : getLocalResources()) {
       childRepository.sync();
     }
   }
@@ -378,7 +433,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   protected Set<VirtualFile> computeResourceDirs() {
     synchronized (ITEM_MAP_LOCK) {
       Set<VirtualFile> result = new HashSet<>();
-      for (LocalResourceRepository resourceRepository : myChildren) {
+      for (LocalResourceRepository resourceRepository : myLocalResources) {
         result.addAll(resourceRepository.computeResourceDirs());
       }
       return result;
@@ -386,11 +441,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  public void getLeafResourceRepositories(@NotNull Collection<SingleNamespaceResourceRepository> result) {
+  @NotNull
+  public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
     synchronized (ITEM_MAP_LOCK) {
-      for (ResourceRepository child : myChildren) {
-        child.getLeafResourceRepositories(result);
-      }
+      return myLeafsByNamespace.values();
     }
   }
 }

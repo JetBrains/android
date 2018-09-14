@@ -20,7 +20,20 @@ import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.resources.ResourceType.*
+import com.android.resources.ResourceType.ANIM
+import com.android.resources.ResourceType.ARRAY
+import com.android.resources.ResourceType.ATTR
+import com.android.resources.ResourceType.BOOL
+import com.android.resources.ResourceType.COLOR
+import com.android.resources.ResourceType.DIMEN
+import com.android.resources.ResourceType.DRAWABLE
+import com.android.resources.ResourceType.ID
+import com.android.resources.ResourceType.INTEGER
+import com.android.resources.ResourceType.LAYOUT
+import com.android.resources.ResourceType.PLURALS
+import com.android.resources.ResourceType.STRING
+import com.android.resources.ResourceType.STYLE
+import com.android.resources.ResourceType.STYLEABLE
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
 import com.android.tools.idea.res.aar.AarSourceResourceRepository
 import com.intellij.openapi.module.Module
@@ -29,7 +42,9 @@ import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
 import java.lang.reflect.Field
-import java.util.*
+import java.util.Arrays
+import java.util.Comparator
+import java.util.EnumMap
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 
@@ -124,13 +139,14 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    *
    * TODO(namespaces): parse layouts in AARs and remove this.
    */
-  fun isIdDefined(resource: ResourceReference): Boolean {
+  fun isIdDefinedInRTxt(resource: ResourceReference): Boolean {
     assert(resource.resourceType == ResourceType.ID)
 
     return ResourceRepositoryManager.getOrCreateInstance(facet)
       .libraryResources
       .asSequence()
-      .mapNotNull { (it as AarSourceResourceRepository).allDeclaredIds?.get(resource.name) }
+      .filterIsInstance(AarSourceResourceRepository::class.java)
+      .mapNotNull { it.idsFromRTxt[resource.name] }
       .any()
   }
 

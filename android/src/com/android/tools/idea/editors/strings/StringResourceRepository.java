@@ -28,14 +28,17 @@ import com.android.tools.idea.res.ResourceFolderRepository;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public class StringResourceRepository {
   private final Map<VirtualFile, LocalResourceRepository> myResourceDirectoryRepositoryMap;
@@ -44,11 +47,11 @@ public class StringResourceRepository {
   private final LocalResourceRepository myDynamicResourceRepository;
 
   private StringResourceRepository(@NotNull MultiResourceRepository parent) {
-    Collection<LocalResourceRepository> children = parent.getChildren();
-    Map<VirtualFile, LocalResourceRepository> resourceDirectoryRepositoryMap = Maps.newLinkedHashMapWithExpectedSize(children.size());
+    Collection<LocalResourceRepository> localResources = parent.getLocalResources();
+    Map<VirtualFile, LocalResourceRepository> resourceDirectoryRepositoryMap = Maps.newLinkedHashMapWithExpectedSize(localResources.size());
     LocalResourceRepository dynamicResourceRepository = null;
 
-    for (LocalResourceRepository child : children) {
+    for (LocalResourceRepository child : localResources) {
       child.sync();
 
       if (child instanceof ResourceFolderRepository) {

@@ -15,13 +15,55 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTRS_DATA_BINDING;
+import static com.android.SdkConstants.ATTR_ALIAS;
+import static com.android.SdkConstants.ATTR_CLASS;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_TYPE;
+import static com.android.SdkConstants.EXT_PNG;
+import static com.android.SdkConstants.FD_RES_VALUES;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.TAGS_DATA_BINDING;
+import static com.android.SdkConstants.TAG_DATA;
+import static com.android.SdkConstants.TAG_IMPORT;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.SdkConstants.TAG_VARIABLE;
+import static com.android.resources.ResourceFolderType.COLOR;
+import static com.android.resources.ResourceFolderType.DRAWABLE;
+import static com.android.resources.ResourceFolderType.LAYOUT;
+import static com.android.resources.ResourceFolderType.MIPMAP;
+import static com.android.resources.ResourceFolderType.RAW;
+import static com.android.resources.ResourceFolderType.VALUES;
+import static com.android.resources.ResourceFolderType.getFolderType;
+import static com.android.resources.ResourceFolderType.getTypeByName;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.TextResourceValue;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.ide.common.resources.MergeConsumer;
+import com.android.ide.common.resources.MergedResourceWriter;
+import com.android.ide.common.resources.MergingException;
+import com.android.ide.common.resources.NoOpResourcePreprocessor;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceMerger;
+import com.android.ide.common.resources.ResourceMergerItem;
+import com.android.ide.common.resources.ResourcePreprocessor;
+import com.android.ide.common.resources.ResourceSet;
+import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -48,13 +90,41 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeChangeAdapter;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.PsiTreeChangeEventImpl;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlComment;
+import com.intellij.psi.xml.XmlDocument;
+import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlProcessingInstruction;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlText;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -62,16 +132,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.resources.ResourceFolderType.*;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * The {@link ResourceFolderRepository} is leaf in the repository tree, and is used for user editable resources (e.g. the resources in the
@@ -166,16 +226,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getPackageName() {
-    return AndroidManifestUtils.getPackageName(myFacet);
+    return ResourceRepositoryImplUtil.getPackageName(myNamespace, myFacet);
   }
 
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
-  // TODO: namespaces
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir,
+  static ResourceFolderRepository create(@NotNull AndroidFacet facet, @NotNull VirtualFile dir,
                                          @NotNull ResourceNamespace namespace) {
     return new ResourceFolderRepository(facet, dir, namespace);
   }
@@ -515,6 +574,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
   }
 
+  @NotNull
   private static String getQualifiers(String dirName) {
     int index = dirName.indexOf('-');
     return index != -1 ? dirName.substring(index + 1) : "";
@@ -522,7 +582,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   private void scanFileResourceFolder(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> result,
                                       @NotNull VirtualFile directory,
-                                      ResourceFolderType folderType,
+                                      @NotNull ResourceFolderType folderType,
                                       String qualifiers,
                                       FolderConfiguration folderConfiguration) {
     List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
@@ -585,8 +645,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         if (resourceFile == null) {
           // The file-based parser failed for some reason. Fall back to Psi in case it is more lax.
           // Don't count Psi items in myInitialScanState.numXml, because they are never cached.
-          myInitialScanState.queuePsiFileResourceScan(
-            new PsiFileResourceQueueEntry(file, qualifiers, folderType, folderConfiguration));
+          myInitialScanState.queuePsiFileResourceScan(new PsiFileResourceQueueEntry(file, qualifiers, folderType, folderConfiguration));
           return;
         }
         boolean isDensityBasedResource = folderType == DRAWABLE || folderType == MIPMAP;
@@ -623,8 +682,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     sources.put(file, new ResourceFileAdapter(resourceFile));
   }
 
-  @Nullable
   @Override
+  @Nullable
   public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
     List<ResourceItem> resourceItems = getResources(myNamespace, ResourceType.LAYOUT, layoutName);
     for (ResourceItem item : resourceItems) {
@@ -638,8 +697,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return null;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
     long modificationCount = getModificationCount();
     if (myDataBindingResourceFilesModificationCount == modificationCount) {

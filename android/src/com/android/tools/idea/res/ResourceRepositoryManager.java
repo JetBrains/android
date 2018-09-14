@@ -29,8 +29,8 @@ import com.android.projectmodel.ResourceFolder;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
-import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
@@ -91,7 +91,7 @@ public class ResourceRepositoryManager implements Disposable {
 
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
-  private Map<ExternalLibrary, AarSourceResourceRepository> myLibraryResourceMap;
+  private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
 
   private final Object myLibraryLock = new Object();
 
@@ -366,14 +366,15 @@ public class ResourceRepositoryManager implements Disposable {
   /**
    * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing the single resource repository
    * returned by {@link #getAppResources(boolean)}. Otherwise the method returns a list of module, library, or sample data resource
-   * repositories for the given namespace. In a well formed Android project the returned list will contain at most one resource repository.
-   * Multiple repositories may be returned only when there is a package name collision between modules or libraries.
+   * repositories for the given namespace. Usually the returned list will contain at most two resource repositories, one for a module and
+   * another for its user-defined sample data. More repositories may be returned only when there is a package name collision between modules
+   * or libraries.
    *
    * @param namespace the namespace to return resource repositories for
    * @return the repositories for the given namespace
    */
   @NotNull
-  public List<LocalResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+  public List<ResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
     AppResourceRepository appRepository = (AppResourceRepository)getAppResources(true);
     if (getNamespacing() == AaptOptions.Namespacing.DISABLED) {
       return ImmutableList.of(appRepository);
@@ -442,7 +443,7 @@ public class ResourceRepositoryManager implements Disposable {
       if (appResources != null) {
         appResources.invalidateCache(projectResources);
 
-        Map<ExternalLibrary, AarSourceResourceRepository> oldLibraryResourceMap;
+        Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
         synchronized (myLibraryLock) {
           // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
           oldLibraryResourceMap = myLibraryResourceMap;
@@ -537,7 +538,7 @@ public class ResourceRepositoryManager implements Disposable {
    * @return the corresponding resource repository, or null if not found
    */
   @Nullable
-  public LocalResourceRepository findLibraryResources(@NotNull ExternalLibrary library) {
+  public AarResourceRepository findLibraryResources(@NotNull ExternalLibrary library) {
     return getLibraryResourceMap().get(library);
   }
 
@@ -545,12 +546,12 @@ public class ResourceRepositoryManager implements Disposable {
    * Returns resource repositories for all libraries the app depends upon directly or indirectly.
    */
   @NotNull
-  public List<AarSourceResourceRepository> getLibraryResources() {
+  public List<AarResourceRepository> getLibraryResources() {
     return ImmutableList.copyOf(getLibraryResourceMap().values());
   }
 
   @NotNull
-  private Map<ExternalLibrary, AarSourceResourceRepository> getLibraryResourceMap() {
+  private Map<ExternalLibrary, AarResourceRepository> getLibraryResourceMap() {
     synchronized (myLibraryLock) {
       if (myLibraryResourceMap == null) {
         myLibraryResourceMap = computeLibraryResourceMap();
@@ -560,11 +561,11 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<ExternalLibrary, AarSourceResourceRepository> computeLibraryResourceMap() {
+  private Map<ExternalLibrary, AarResourceRepository> computeLibraryResourceMap() {
     Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
-    Map<ExternalLibrary, AarSourceResourceRepository> result = new LinkedHashMap<>(libraries.size());
+    Map<ExternalLibrary, AarResourceRepository> result = new LinkedHashMap<>(libraries.size());
     for (ExternalLibrary library: libraries) {
-      AarSourceResourceRepository aarRepository;
+      AarResourceRepository aarRepository;
       if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
         aarRepository = AarResourceRepositoryCache.getInstance().getSourceRepository(library);
       } else {

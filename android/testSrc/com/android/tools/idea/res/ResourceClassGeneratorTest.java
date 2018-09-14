@@ -15,31 +15,35 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static java.io.File.separatorChar;
+
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepositoryFixture;
+import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static java.io.File.separatorChar;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ResourceClassGeneratorTest extends AndroidTestCase {
   private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
@@ -221,9 +225,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                      "my_aar_lib" + separatorChar +
                      "res";
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(new File(aarPath), LIBRARY_NAME);
-    AppResourceRepository appResources = new AppResourceRepository(myFacet,
-                                                                   ImmutableList.of(resourcesA, libraryRepository),
-                                                                   Collections.singletonList(libraryRepository));
+    AppResourceRepository appResources =
+        new AppResourceRepository(myFacet, ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
 
     // 3 declared in the library, 3 declared in the "project", 2 of them are duplicated so:
     //
@@ -255,8 +258,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_colorForeground\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_icon\n" +
       "public static final int[] my.test.pkg.R$styleable.Styleable_with_dots\n" +
-      "public static final int my.test.pkg.R$styleable.Styleable_with_dots_some_attr\n" + // Duplicated attr
       "public static final int my.test.pkg.R$styleable.Styleable_with_dots_app_declared_attr\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_dots_some_attr\n" + // Duplicated attr
       "public static final int my.test.pkg.R$styleable.Styleable_with_dots_android_layout_height\n" +
       "public static final int[] my.test.pkg.R$styleable.AppStyleable\n" +
       "public static final int[] my.test.pkg.R$styleable.Styleable1\n" +
@@ -309,7 +312,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertEquals(1000, iArray.length);
   }
 
-  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
+  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository implements SingleNamespaceResourceRepository {
     private final TestResourceRepository myDelegate;
 
     protected LocalResourceRepositoryDelegate(@NotNull String displayName, TestResourceRepository delegate) {
@@ -329,6 +332,18 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       return getFullTable().get(namespace, type);
     }
 
+    @NonNull
+    @Override
+    public ResourceNamespace getNamespace() {
+      return myDelegate.getNamespace();
+    }
+
+    @Override
+    @Nullable
+    public String getPackageName() {
+      return myDelegate.getPackageName();
+    }
+
     @Override
     @NotNull
     public Set<ResourceNamespace> getNamespaces() {
@@ -336,23 +351,21 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     }
 
     @Override
-    public void getLeafResourceRepositories(@NotNull Collection<SingleNamespaceResourceRepository> result) {
-      myDelegate.getLeafResourceRepositories(result);
+    @NotNull
+    public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
+      return myDelegate.getLeafResourceRepositories();
     }
 
     @Override
     @NotNull
     protected Set<VirtualFile> computeResourceDirs() {
-      return ImmutableSet.of();
+      return Collections.emptySet();
     }
   }
 
-  private static void styleTest(ResourceClassGenerator generator)
-    throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    String name;
-    Class<?> clz;
-    name = "my.test.pkg.R$style";
-    clz = generateClass(generator, name);
+  private static void styleTest(ResourceClassGenerator generator) throws Exception {
+    String name = "my.test.pkg.R$style";
+    Class<?> clz = generateClass(generator, name);
     assertNotNull(clz);
     clz.newInstance();
     assertEquals(name, clz.getName());
@@ -361,8 +374,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertFalse(Modifier.isInterface(clz.getModifiers()));
   }
 
-  private static void styleableTest(ResourceClassGenerator generator, Object gravityValue, Object layoutColumnSpanValue)
-    throws Exception {
+  private static void styleableTest(ResourceClassGenerator generator, Object gravityValue, Object layoutColumnSpanValue) throws Exception {
     String name = "my.test.pkg.R$styleable";
     Class<?> clz = generateClass(generator, name);
     assertNotNull(clz);

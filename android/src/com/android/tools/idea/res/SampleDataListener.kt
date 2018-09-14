@@ -56,7 +56,7 @@ internal class SampleDataListener(val project: Project) : PsiTreeChangeAdapter()
     @JvmStatic
     private fun SampleDataResourceRepository.invalidateBecauseOf(modifiedPath: PathString) {
       LOG.info("Invalidating SampleDataResourceRepository because $modifiedPath was modified.")
-      invalidate()
+      reload()
     }
   }
 

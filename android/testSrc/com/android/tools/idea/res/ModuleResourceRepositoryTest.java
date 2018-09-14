@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.Lint;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,14 +34,15 @@ import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-
+/** Tests for {@link ModuleResourceRepository}. */
 @SuppressWarnings("SpellCheckingInspection")
 public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -66,38 +69,39 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT_IDS_1, "res2/layout/layout_ids1.xml");
     myFixture.copyFileToProject(LAYOUT_IDS_2, "res2/layout/layout_ids2.xml");
-    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    VirtualFile res1 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res1/values/nameDoesNotMatter.xml").getParent().getParent();
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
-    VirtualFile res3 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res3/values/nameDoesNotMatter.xml").getParent().getParent();
-    myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res3/values-no/values.xml");
+    VirtualFile res3 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res1/values-no/values.xml");
 
-    assertNotSame(res1, res2);
-    assertNotSame(res1, res3);
-    assertNotSame(res2, res3);
+    assertNotSame(res2, res1);
+    assertNotSame(res3, res2);
+    assertNotSame(res3, res1);
 
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
+    ModuleResourceRepository resources =
+      ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
 
     // Check that values are handled correctly. First a plain value (not overridden anywhere).
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
 
     // Check that an overridden key (overridden in just one flavor) is picked up
     assertStringIs(resources, "title_crossfade", "Complex Crossfade"); // Overridden in res2
-    assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res3
+    assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res1
 
     // Make sure that new/unique strings from flavors are available
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
-    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res3
+    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res1
 
-    // Check that an overridden key (overridden in multiple flavors) picks the last one
-    assertStringIs(resources, "app_name", "Very Different App Name", false); // res3 (not unique because we have a values-no item too)
+    // Check that an overridden key (overridden in multiple flavors) picks the last one.
+    assertStringIs(resources, "app_name", "Very Different App Name", false); // res1 (not unique because we have a values-no item too)
 
-    // Layouts: Should only be offered id's from the overriding layout (plus those defined in values.xml)
+    // Layouts: Should only be offered id's from the overriding layout (plus those defined in values.xml).
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next")); // from values.xml
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea")); // from res2 layout1.xml
 
     // Layout masking does not currently work. I'm not 100% certain what the intended behavior is
-    // here (e.g. res1's layout1 contains @+id/button1, res2's layout1 does not; should @+id/button1 be visible?)
-    //assertFalse(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh")); // masked in res1 by res2's layout replacement
+    // here (e.g. res3's layout1 contains @+id/button1, res2's layout1 does not; should @+id/button1 be visible?)
+    //assertFalse(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh")); // masked in res3 by res2's layout replacement
 
     // Check that localized lookup (qualifier matching works)
     List<ResourceItem> stringList = resources.getResources(RES_AUTO, ResourceType.STRING, "another_unique_string");
@@ -110,38 +114,38 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(stringValue);
     assertEquals("En Annen", stringValue.getValue());
 
-    // Change flavor order and make sure things are updated and work correctly
-    resources.updateRoots(Arrays.asList(res1, res3, res2));
+    // Change flavor order and make sure things are updated and work correctly.
+    resources.updateRoots(ImmutableList.of(res2, res1, res3));
 
-    // Should now be picking app_name from res2 rather than res3 since it's now last
+    // Should now be picking app_name from res2 rather than res1 since it's now first.
     assertStringIs(resources, "app_name", "Different App Name", false); // res2
 
     // Sanity check other merging
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
     assertStringIs(resources, "title_crossfade", "Complex Crossfade"); // Overridden in res2
-    assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res3
+    assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res1
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
-    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res3
+    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res1
 
     // Hide a resource root (res2)
-    resources.updateRoots(Arrays.asList(res1, res3));
+    resources.updateRoots(ImmutableList.of(res1, res3));
 
     // No longer aliasing the main layout
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh")); // res1 layout1.xml
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea")); // from res1 layout1.xml
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh")); // res3 layout1.xml
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea")); // from res3 layout1.xml
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next")); // from values.xml
 
     assertStringIs(resources, "title_crossfade", "Simple Crossfade"); // No longer overridden in res2
 
-    // Finally ensure that we can switch roots repeatedly (had some earlier bugs related to root unregistration)
-    resources.updateRoots(Arrays.asList(res1, res3, res2));
-    resources.updateRoots(Collections.singletonList(res1));
-    resources.updateRoots(Arrays.asList(res1, res3, res2));
-    resources.updateRoots(Collections.singletonList(res1));
-    resources.updateRoots(Arrays.asList(res1, res3, res2));
-    resources.updateRoots(Collections.singletonList(res2));
-    resources.updateRoots(Collections.singletonList(res1));
-    resources.updateRoots(Arrays.asList(res1, res2, res3));
+    // Finally ensure that we can switch roots repeatedly (had some earlier bugs related to root unregistration).
+    resources.updateRoots(ImmutableList.of(res2, res1, res3));
+    resources.updateRoots(ImmutableList.of(res3));
+    resources.updateRoots(ImmutableList.of(res2, res1, res3));
+    resources.updateRoots(ImmutableList.of(res3));
+    resources.updateRoots(ImmutableList.of(res2, res1, res3));
+    resources.updateRoots(ImmutableList.of(res2));
+    resources.updateRoots(ImmutableList.of(res3));
+    resources.updateRoots(ImmutableList.of(res1, res2, res3));
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
 
     // Make sure I get all the resource ids (there can be multiple; these are not replaced via overlays)
@@ -156,13 +160,14 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testOverlayUpdates1() {
-    final VirtualFile layout = myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
-    final VirtualFile layoutOverlay = myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");
-    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    VirtualFile layout = myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
+    VirtualFile layoutOverlay = myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");
+    VirtualFile res1 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res1/values/nameDoesNotMatter.xml").getParent().getParent();
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
-    VirtualFile res3 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res3/values/nameDoesNotMatter.xml").getParent().getParent();
-    myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res3/values-no/values.xml");
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
+    VirtualFile res3 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res1/values-no/values.xml");
+    ModuleResourceRepository resources =
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
     assertStringIs(resources, "title_layout_changes", "Layout Changes"); // sanity check
 
     // Layout resource check:
@@ -192,9 +197,9 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
-    // Layout should now be coming through from res1 since res2 is no longer overriding it
+    // Layout should now be coming through from res3 since res2 is no longer overriding it
     layout1 = getSingleItem(resources, ResourceType.LAYOUT, "layout1");
-    assertItemIsInDir(res1, layout1);
+    assertItemIsInDir(res3, layout1);
 
     ResourceItem layout2 = getSingleItem(resources, ResourceType.LAYOUT, "layout2");
     assertItemIsInDir(res2, layout2);
@@ -227,30 +232,31 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");
-    VirtualFile values1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml");
+    VirtualFile values1 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res1/values/nameDoesNotMatter.xml");
+    VirtualFile values1No = myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res1/values-no/values.xml");
     VirtualFile values2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml");
-    VirtualFile values3 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res3/values/nameDoesNotMatter.xml");
-    final VirtualFile values3No = myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res3/values-no/values.xml");
+    VirtualFile values3 = myFixture.copyFileToProject(VALUES, "res/values/values.xml");
     VirtualFile res1 = values1.getParent().getParent();
     VirtualFile res2 = values2.getParent().getParent();
     VirtualFile res3 = values3.getParent().getParent();
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
+    ModuleResourceRepository resources =
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
     PsiFile psiValues1 = PsiManager.getInstance(getProject()).findFile(values1);
     assertNotNull(psiValues1);
+    PsiFile psiValues1No = PsiManager.getInstance(getProject()).findFile(values1No);
+    assertNotNull(psiValues1No);
     PsiFile psiValues2 = PsiManager.getInstance(getProject()).findFile(values2);
     assertNotNull(psiValues2);
     PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
     assertNotNull(psiValues3);
-    PsiFile psiValues3No = PsiManager.getInstance(getProject()).findFile(values3No);
-    assertNotNull(psiValues3No);
 
     // Initial state; sanity check from #testOverlays()
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
     assertStringIs(resources, "title_crossfade", "Complex Crossfade"); // Overridden in res2
-    assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res3
+    assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res1
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
-    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res3
-    assertStringIs(resources, "app_name", "Very Different App Name", false); // res3 (not unique because we have a values-no item too)
+    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res1
+    assertStringIs(resources, "app_name", "Very Different App Name", false); // res1 (not unique because we have a values-no item too)
 
     // Value resource check:
     // Verify that an edit in a value file, both in a non-overridden and an overridden
@@ -259,31 +265,31 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_layout_changes"));
     ResourceItem appName = getFirstItem(resources, ResourceType.STRING, "app_name");
-    assertItemIsInDir(res3, appName);
-    assertStringIs(resources, "app_name", "Very Different App Name", false); // res3 (not unique because we have a values-no item too)
+    assertItemIsInDir(res1, appName);
+    assertStringIs(resources, "app_name", "Very Different App Name", false); // res1 (not unique because we have a values-no item too)
 
     long generation = resources.getModificationCount();
-    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    final Document document = documentManager.getDocument(psiValues3);
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    Document document = documentManager.getDocument(psiValues1);
     assertNotNull(document);
     WriteCommandAction.runWriteCommandAction(null, () -> {
       int offset = document.getText().indexOf("Very Different App Name");
       document.insertString(offset, "Not ");
       documentManager.commitDocument(document);
     });
-    // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
-    assertTrue(resources.isScanPending(psiValues3));
+    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    assertTrue(resources.isScanPending(psiValues1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
 
-    // Should still be defined in res3 but have new value.
+    // Should still be defined in res1 but have new value.
     // The order of items may have swapped if a full rescan is done.
     List<ResourceItem> list = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertNotNull(list);
     assertSize(2, list);
     appName = ContainerUtil.find(list, resourceItem -> resourceItem.getConfiguration().getQualifierString().isEmpty());
     assertNotNull(appName);
-    assertItemIsInDir(res3, appName);
+    assertItemIsInDir(res1, appName);
     ResourceValue appNameResourceValue = appName.getResourceValue();
     assertNotNull(appNameResourceValue);
     assertEquals("Not Very Different App Name", appNameResourceValue.getValue());
@@ -299,7 +305,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "rapp_name"));
 
     appName = getFirstItem(resources, ResourceType.STRING, "app_name");
-    // The item is still under res3, but now it's in the Norwegian translation
+    // The item is still under res1, but now it's in the Norwegian translation
     assertEquals("no", appName.getConfiguration().getQualifierString());
     assertStringIs(resources, "app_name", "Forskjellig Navn", false);
 
@@ -309,7 +315,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       @Override
       public void run() {
         try {
-          values3No.delete(this);
+          values1No.delete(this);
         }
         catch (IOException e) {
           fail(e.toString());
@@ -318,21 +324,21 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.getModificationCount() > generation);
 
-    // Now the item is no longer available in res3; should fallback to res 2
+    // Now the item is no longer available in res1; should fallback to res 2
     appName = getFirstItem(resources, ResourceType.STRING, "app_name");
     assertItemIsInDir(res2, appName);
     assertStringIs(resources, "app_name", "Different App Name", false);
 
     // Check that editing an overridden attribute does not count as a change
-    final Document document2 = documentManager.getDocument(psiValues1);
+    Document document2 = documentManager.getDocument(psiValues3);
     assertNotNull(document2);
     WriteCommandAction.runWriteCommandAction(null, () -> {
       int offset = document2.getText().indexOf("Animations Demo");
       document2.insertString(offset, "Cool ");
       documentManager.commitDocument(document2);
     });
-    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
-    assertTrue(resources.isScanPending(psiValues1));
+    // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    assertTrue(resources.isScanPending(psiValues3));
     UIUtil.dispatchAllInvocationEvents();
     // Unaffected by above change
     assertStringIs(resources, "app_name", "Different App Name", false);
@@ -356,7 +362,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
 
     assertNotSame(res1, res2);
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
     EnumSet<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
                                                         ResourceType.STRING, ResourceType.STYLE);
 
@@ -366,14 +372,14 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res3 = values3.getParent().getParent();
     assertNotSame(res1, res3);
     assertNotSame(res2, res3);
-    resources.updateRoots(Arrays.asList(res1, res2, res3));
+    resources.updateRoots(ImmutableList.of(res1, res2, res3));
 
     EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
-    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));
+    allTypes.addAll(ImmutableList.of(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));
     assertHasExactResourceTypes(resources, allTypes);
 
     // Now delete the values file and check again.
-    final PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
+    PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
     assertNotNull(psiValues3);
     WriteCommandAction.runWriteCommandAction(null, psiValues3::delete);
     assertHasExactResourceTypes(resources, typesWithoutRes3);
@@ -387,12 +393,11 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
    * been initialized as PSI.
    */
   public void testPsiListenerWithVirtualFiles() throws Exception {
-    final VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/layout.xml")
-      .getParent().getParent();
+    VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/layout.xml").getParent().getParent();
     // Stash the resource directory somewhere deep. Sometimes the test framework + VFS listener does automatically create
     // a PsiDirectory for the top level. We only want a VirtualFile representation, and not the PsiDirectory representation.
-    final VirtualFile layout2 = myFixture.copyFileToProject(LAYOUT_OVERLAY, "foo/baz/bar/res/layout/foo_activity.xml");
-    final VirtualFile res2 = layout2.getParent().getParent();
+    VirtualFile layout2 = myFixture.copyFileToProject(LAYOUT_OVERLAY, "foo/baz/bar/res/layout/foo_activity.xml");
+    VirtualFile res2 = layout2.getParent().getParent();
     assertNotSame(res1, res2);
     // Check that we indeed don't have the PsiDirectory already cached, by poking at the implementation classes.
     PsiManagerEx psiManager = (PsiManagerEx)PsiManager.getInstance(getProject());
@@ -400,7 +405,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNull(fileManager.getCachedDirectory(res2));
     assertNull(fileManager.getCachedPsiFile(layout2));
 
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
 
     assertNotNull(fileManager.getCachedDirectory(res2));
 
@@ -461,9 +466,9 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> list = repository.getResources(RES_AUTO, ResourceType.STRING, key);
     assertNotNull(list);
 
-    // generally we expect just one item (e.g. overlays should not visible, which is why we assert a single item, but for items
+    // Generally we expect just one item (e.g. overlays should not visible, which is why we assert a single item, but for items
     // that for example have translations there could be multiple items, and we test this, so allow assertion to specify whether it's
-    // expected)
+    // expected).
     if (mustBeUnique) {
       assertSize(1, list);
     }
@@ -477,17 +482,17 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   static void assertHasExactResourceTypes(LocalResourceRepository resources, EnumSet<ResourceType> types) {
     for (ResourceType type : ResourceType.values()) {
       if (types.contains(type)) {
-        assertTrue(type.getName(), resources.hasResources(ResourceNamespace.RES_AUTO, type));
+        assertTrue(type.getName(), resources.hasResources(RES_AUTO, type));
       }
       else {
-        assertFalse(type.getName(), resources.hasResources(ResourceNamespace.RES_AUTO, type));
+        assertFalse(type.getName(), resources.hasResources(RES_AUTO, type));
       }
     }
   }
 
   public void testAllowEmpty() {
-    assertTrue(Lint.assertionsEnabled()); // this test should be run with assertions enabled!
-    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList());
+    assertTrue(Lint.assertionsEnabled()); // This test should be run with assertions enabled!
+    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO, null);
     assertNotNull(repository);
     repository.getModificationCount();
     assertEmpty(repository.getResources(RES_AUTO, ResourceType.ID).keySet());

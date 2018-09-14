@@ -586,7 +586,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       loadTimeFromSources += System.currentTimeMillis() - start;
       start = System.currentTimeMillis();
       AarProtoResourceRepository fromResApk =
-        AarProtoResourceRepository.createProtoRepository(new File(myAarFolder, SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
+        AarProtoResourceRepository.create(new File(myAarFolder, SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
       loadTimeFromResApk += System.currentTimeMillis() - start;
       assertEquals(LIBRARY_NAME, fromResApk.getLibraryName());
       assertEquals(namespace, fromResApk.getNamespace());

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
@@ -27,8 +32,8 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,15 +44,15 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Repository for Android application resources, e.g. those that show up in {@code R}, not {@code android.R}
@@ -63,12 +68,12 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
  * </p>
  * <p>
  * The module repository is implemented using several layers. Consider a Gradle project where the main module has
- * two flavors, and depends on a library module. In this case, the {@linkplain LocalResourceRepository} for the
- * module with dependencies will contain these components:
+ * two flavors, and depends on a library module. In this case, the {@linkplain LocalResourceRepository} for
+ * the module with dependencies will contain these components:
  * <ul>
  *   <li> A {@link AppResourceRepository} which contains a
- *          {@link AarSourceResourceRepository} wrapping each AAR library dependency, and merges this with
- *          the project resource repository </li>
+ *          {@link AarResourceRepository} wrapping each AAR library dependency,
+ *          and merges this with the project resource repository </li>
  *   <li> A {@link ProjectResourceRepository} representing the collection of module repositories</li>
  *   <li> For each module (e.g. the main module and library module}, a {@link ModuleResourceRepository}</li>
  *   <li> For each resource directory in each module, a {@link ResourceFolderRepository}</li>
@@ -212,41 +217,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
         for (MultiResourceRepository parent : myParents) {
           parent.invalidateCache(this, namespace, types);
         }
-      }
-    }
-  }
-
-  /** If this repository has not already been visited, merge its items of the given type into result. */
-  protected final void merge(@NotNull Set<LocalResourceRepository> visited,
-                             @NotNull ResourceNamespace namespace,
-                             @NotNull ResourceType type,
-                             @NotNull SetMultimap<String, String> seenQualifiers,
-                             @NotNull ListMultimap<String, ResourceItem> result) {
-    if (visited.contains(this)) {
-      return;
-    }
-    visited.add(this);
-    doMerge(visited, namespace, type, seenQualifiers, result);
-  }
-
-  protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
-                         @NotNull ResourceNamespace namespace,
-                         @NotNull ResourceType type,
-                         @NotNull SetMultimap<String, String> seenQualifiers,
-                         @NotNull ListMultimap<String, ResourceItem> result) {
-    ListMultimap<String, ResourceItem> items = getMap(namespace, type, false);
-    if (items == null) {
-      return;
-    }
-    for (ResourceItem item : items.values()) {
-      String name = item.getName();
-      String qualifiers = item.getConfiguration().getQualifierString();
-      if (!result.containsKey(name) || type == ResourceType.STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
-        // We only add a duplicate item if there isn't an item with the same qualifiers (and it's
-        // not an id; id's are allowed to be defined in multiple places even with the same
-        // qualifiers)
-        result.put(name, item);
-        seenQualifiers.put(name, qualifiers);
       }
     }
   }
@@ -449,23 +419,21 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       myNamespace = namespace;
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected Set<VirtualFile> computeResourceDirs() {
       return Collections.emptySet();
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected ResourceTable getFullTable() {
       return new ResourceTable();
     }
 
-    @Nullable
     @Override
-    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
-                                                        @NotNull ResourceType type,
-                                                        boolean create) {
+    @Nullable
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
       if (create) {
         throw new UnsupportedOperationException();
       } else {
@@ -473,20 +441,14 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       }
     }
 
-    @NotNull
     @Override
-    public Set<ResourceNamespace> getNamespaces() {
-      return Collections.emptySet();
-    }
-
     @NotNull
-    @Override
     public ResourceNamespace getNamespace() {
       return myNamespace;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String getPackageName() {
       return myNamespace.getPackageName();
     }

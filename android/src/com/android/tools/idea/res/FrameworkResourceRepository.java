@@ -15,17 +15,32 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_EAT_COMMENT;
+import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.DataFile;
+import com.android.ide.common.resources.DuplicateDataException;
+import com.android.ide.common.resources.MergingException;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceMergerItem;
+import com.android.ide.common.resources.ResourceSet;
+import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
@@ -37,25 +52,47 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ObjectIntHashMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.kxml2.io.KXmlParser;
-import org.w3c.dom.*;
-import org.xmlpull.v1.XmlPullParser;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import static com.android.SdkConstants.TAG_ATTR;
-import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
-import static com.android.SdkConstants.TAG_EAT_COMMENT;
-import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Comment;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.w3c.dom.TypeInfo;
+import org.w3c.dom.UserDataHandler;
+import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Repository of resources of the Android framework.
@@ -99,7 +136,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private boolean myLoadedFromCache;
 
   private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
-    super(resFolder, ANDROID_NAMESPACE, null);
+    super(resFolder, ANDROID_NAMESPACE, "");
     myWithLocaleResources = withLocaleResources;
   }
 
@@ -164,6 +201,18 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   private void createPersistentCacheAsynchronously() {
     myCacheCreatedFuture = ApplicationManager.getApplication().executeOnPooledThread(this::createPersistentCache);
+  }
+
+  @Override
+  @Nullable
+  public String getPackageName() {
+    return ANDROID_NAMESPACE.getPackageName();
+  }
+
+  @Override
+  @NotNull
+  public String getDisplayName() {
+    return "Android framework";
   }
 
   @Override
@@ -326,7 +375,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * Populates {@link #myPublicResources} by parsing res/values/public.xml.
    */
   private void loadPublicResources() {
-    File valuesFolder = new File(getResourceDirectory(), SdkConstants.FD_RES_VALUES);
+    File valuesFolder = new File(myResourceDirectory, SdkConstants.FD_RES_VALUES);
     File publicXmlFile = new File(valuesFolder, "public.xml");
 
     try (InputStream stream = new BufferedInputStream(new FileInputStream(publicXmlFile))) {
@@ -416,18 +465,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
   }
 
-  @Override
-  @NotNull
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
-    if (!ANDROID_NAMESPACE.equals(namespace)) {
-      if (create) {
-        throw new IllegalArgumentException("Invalid namespace: " + namespace);
-      }
-      return ImmutableListMultimap.of();
-    }
-    return getMap(type, create);
-  }
-
   @NotNull
   private ListMultimap<String, ResourceItem> getMap(@NotNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> map = super.getMap(ANDROID_NAMESPACE, type, create);
@@ -461,7 +498,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     try (CacheInputStream in = new CacheInputStream(cacheFile)) {
-      if (!in.readUTF().equals(getResourceDirectory().getAbsolutePath())) {
+      if (!in.readUTF().equals(myResourceDirectory.getAbsolutePath())) {
         return false; // The cache is for a different resource directory.
       }
       if (!in.readUTF().equals(getAndroidPluginVersion())) {
@@ -670,7 +707,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     try (CacheOutputStream out = new CacheOutputStream(tempFile)) {
-      out.writeUTF(getResourceDirectory().getAbsolutePath());
+      out.writeUTF(myResourceDirectory.getAbsolutePath());
 
       // Write version of the Android plugin.
       out.writeUTF(getAndroidPluginVersion());
@@ -830,7 +867,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @NotNull
   private File getCacheFile() {
-    return getCacheFile(getResourceDirectory(), myWithLocaleResources);
+    return getCacheFile(myResourceDirectory, myWithLocaleResources);
   }
 
   @NotNull
