@@ -371,7 +371,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag
     .create(NDK, "clangtidyinspections", "Enable clang-tidy inspections",
-            "If enabled, show inspections derived from clang-tidy.", false);
+            "If enabled, show inspections derived from clang-tidy.", true);
 
   private static final FlagGroup NAVIGATION = new FlagGroup(FLAGS, "navigation", "Navigation Editor");
   public static final Flag<Boolean> ENABLE_NAV_EDITOR = Flag.create(
