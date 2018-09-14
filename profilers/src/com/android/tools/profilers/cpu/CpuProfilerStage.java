@@ -69,13 +69,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
 
-  @VisibleForTesting
-  static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
-
-  @VisibleForTesting
-  static final String ATRACE_BUFFER_OVERFLOW_MESSAGE = "Your capture exceeded the buffer limit, some data may be missing. " +
-                                                       "Consider recording a shorter trace.";
-
   /**
    * Default capture details to be set after stopping a capture.
    * {@link CaptureDetails.Type#CALL_CHART} is used by default because it's useful and fast to compute.
@@ -968,10 +961,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       ensureCaptureInViewRange();
       if (capture.getType() == CpuProfilerType.ATRACE) {
         if (!isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
-          getStudioProfilers().getIdeServices().showWarningBalloon(ATRACE_BUFFER_OVERFLOW_TITLE,
-                                                                           ATRACE_BUFFER_OVERFLOW_MESSAGE,
-                                                                           null,
-                                                                           null);
+          myNotification.showATraceBufferOverflow();
         }
       }
     }

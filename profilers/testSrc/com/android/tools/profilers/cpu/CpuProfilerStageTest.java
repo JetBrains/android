@@ -591,8 +591,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Select invalid capture we should see dialog.
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)));
     myStage.setAndSelectCapture(1);
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.ATRACE_BUFFER_OVERFLOW_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.ATRACE_BUFFER_OVERFLOW_MESSAGE);
+    checkNotificationReceived(CpuProfilerNotification.Notification.ATRACE_BUFFER_OVERFLOW);
   }
 
   @Test
