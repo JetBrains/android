@@ -64,7 +64,7 @@ public class JavaToKotlinConversionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/77635374, fast
   @Test
   public void testJavaToKotlinConversion() throws Exception {
     IdeFrameFixture ideFrameFixture =
