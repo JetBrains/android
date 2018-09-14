@@ -46,7 +46,11 @@ class CpuProfilerNotification {
     IMPORT_TRACE_PARSING_ABORTED("Parsing trace file aborted",
                                  "The profiler changed to a different session before the imported " +
                                  "trace file could be parsed. Please try importing your trace " +
-                                 "file again.");
+                                 "file again."),
+
+    ATRACE_BUFFER_OVERFLOW("System Trace Buffer Overflow Detected",
+                           "Your capture exceeded the buffer limit, some data may be missing. " +
+                           "Consider recording a shorter trace.");
 
     @NotNull private final String myTitle;
     @NotNull private final String myText;
@@ -111,6 +115,14 @@ class CpuProfilerNotification {
 
   void showImportTraceParsingFailure() {
     showErrorNotification(Notification.IMPORT_TRACE_PARSING_FAILURE);
+  }
+
+  void showATraceBufferOverflow() {
+    showWarningNotification(Notification.ATRACE_BUFFER_OVERFLOW);
+  }
+
+  private void showWarningNotification(@NotNull Notification notification) {
+    myIdeServices.showWarningBalloon(notification.getTitle(), notification.getText(), notification.getUrl(), notification.getUrlText());
   }
 
   private void showErrorNotification(@NotNull Notification notification) {
