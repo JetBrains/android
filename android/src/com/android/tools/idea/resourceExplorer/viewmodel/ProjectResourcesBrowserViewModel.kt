@@ -25,7 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.aar.AarSourceResourceRepository
+import com.android.tools.idea.res.aar.AarResourceRepository
 import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
@@ -51,7 +51,7 @@ private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.CO
 class ProjectResourcesBrowserViewModel(
   facet: AndroidFacet,
   synchronizationManager: SynchronizationManager, // TODO listen for update
-  val importerProvider: ImportersProvider
+  private val importerProvider: ImportersProvider
 ) {
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
@@ -160,6 +160,4 @@ data class ResourceSection(val type: ResourceType,
                            val libraryName: String = "",
                            val assets: List<DesignAssetSet>)
 
-private fun userReadableLibraryName(lib: AarSourceResourceRepository) = lib.libraryName?.let {
-  GradleCoordinate.parseCoordinateString(it)?.artifactId
-} ?: ""
+private fun userReadableLibraryName(lib: AarResourceRepository) = GradleCoordinate.parseCoordinateString(lib.libraryName)?.artifactId ?: ""

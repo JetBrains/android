@@ -16,9 +16,27 @@
 
 package com.android.tools.idea.javadoc;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_WEBP;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.utils.SdkUtils.hasImageExtension;
+import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
+
 import com.android.SdkConstants;
-import com.android.builder.model.*;
-import com.android.ide.common.rendering.api.*;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.Variant;
+import com.android.ide.common.rendering.api.ArrayResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceRepository;
@@ -38,7 +56,14 @@ import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererE
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceFolderRegistry;
+import com.android.tools.idea.res.ResourceFolderRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
+import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
@@ -53,30 +78,31 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static com.android.utils.SdkUtils.hasImageExtension;
-import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 
 public class AndroidJavaDocRenderer {
 
@@ -373,7 +399,7 @@ public class AndroidJavaDocRenderer {
       if (resources != null) {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
-          for (LocalResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraryResources()) {
+          for (AarResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraryResources()) {
             addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }

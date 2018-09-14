@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -37,16 +39,13 @@ import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /** Cache for resolved resources. */
 // TODO(namespaces): Cache AAR contents if namespaces are used.
@@ -153,7 +152,7 @@ public class ResourceResolverCache {
       }
 
       resolver = ResourceResolver.create(allResources, theme);
-      resolver.setProjectIdChecker(ResourceIdManager.get(myManager.getModule())::isIdDefined);
+      resolver.setProjectIdChecker(ResourceIdManager.get(myManager.getModule())::isIdDefinedInRTxt);
 
       if (target instanceof CompatibilityRenderTarget) {
         int apiLevel = target.getVersion().getFeatureLevel();

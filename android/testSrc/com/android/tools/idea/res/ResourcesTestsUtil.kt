@@ -45,7 +45,7 @@ fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepositor
   val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
   val appResources = AppResourceRepository.createForTest(facet, listOf<LocalResourceRepository>(projectResources), emptyList())
   val aar = getTestAarRepository()
-  appResources.updateRoots(listOf(projectResources, aar), mutableListOf(aar))
+  appResources.updateRoots(listOf(projectResources), listOf(aar))
   return appResources
 }
 

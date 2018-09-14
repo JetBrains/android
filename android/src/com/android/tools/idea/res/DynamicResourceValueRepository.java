@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
@@ -35,16 +37,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Resource repository which contains dynamically registered resource items from the model.
@@ -91,10 +88,10 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     }
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getPackageName() {
-    return AndroidManifestUtils.getPackageName(myFacet);
+    return ResourceRepositoryImplUtil.getPackageName(myNamespace, myFacet);
   }
 
   @NotNull
@@ -102,8 +99,8 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return new DynamicResourceValueRepository(facet, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());
   }
 
-  @NotNull
   @VisibleForTesting
+  @NotNull
   public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,
                                                              @NotNull ResourceNamespace namespace,
                                                              @NotNull Map<String, DynamicResourceValue> values) {
@@ -139,10 +136,6 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
       String name = entry.getKey();
 
       ResourceType type = field.getType();
-      if (type == null) {
-        LOG.warn("Ignoring field " + name + "(" + field + "): unknown type " + field.getType());
-        continue;
-      }
       ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
       if (map == null) {
         map = ArrayListMultimap.create();
@@ -176,8 +169,8 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return multimap;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public ResourceNamespace getNamespace() {
     return myNamespace;
   }

@@ -18,7 +18,12 @@ package com.android.tools.idea.res.aar;
 import com.android.SdkConstants;
 import com.android.aapt.ConfigurationOuterClass.Configuration;
 import com.android.aapt.Resources;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.AttrResourceValueImpl;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -34,21 +39,32 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.BitUtil;
 import com.intellij.util.io.URLUtil;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * Repository of resources defined in an AAR file where resources are stored in protocol buffer format.
  * See https://developer.android.com/studio/projects/android-library.html.
  * See https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt2/Resources.proto
  */
-public class AarProtoResourceRepository extends AarSourceResourceRepository {
+public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   private static final Logger LOG = Logger.getInstance(AarProtoResourceRepository.class);
   /** The name of the res.apk ZIP entry containing value resources. */
   private static final String RESOURCE_TABLE_ENTRY = "resources.pb";
@@ -83,9 +99,15 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
   private String myResourceUrlPrefix;
   private ResourceUrlParser myUrlParser;
 
-  private AarProtoResourceRepository(@NotNull File apkFileOrFolder, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
-    super(apkFileOrFolder.getParentFile(), namespace, libraryName);
+  private AarProtoResourceRepository(@NotNull File apkFileOrFolder, @NotNull ResourceNamespace namespace, @NotNull String libraryName) {
+    super(namespace, libraryName);
     myResApkFileOrFolder = apkFileOrFolder;
+  }
+
+  @Override
+  @Nullable
+  public String getPackageName() {
+    return getNamespace().getPackageName();
   }
 
   /**
@@ -96,7 +118,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
    * @return the created resource repository, or null if {@code aarFolder} does not contain either "res.apk" or "resources.pb"
    */
   @NotNull
-  public static AarProtoResourceRepository createProtoRepository(@NotNull File apkFileOrFolder, @Nullable String libraryName) {
+  public static AarProtoResourceRepository create(@NotNull File apkFileOrFolder, @NotNull String libraryName) {
     DataLoader loader = new DataLoader(apkFileOrFolder);
     try {
       loader.load();

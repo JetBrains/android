@@ -25,17 +25,17 @@ import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
-public class TestLocalResourceRepository extends LocalResourceRepository {
-  private final ResourceTable myResourceTable = new ResourceTable();
+public class TestLocalResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+  @NotNull private final ResourceNamespace myNamespace;
+  @NotNull private final ResourceTable myResourceTable = new ResourceTable();
 
-  public TestLocalResourceRepository() {
+  public TestLocalResourceRepository(@NotNull ResourceNamespace namespace) {
     super("unit test");
+    myNamespace = namespace;
   }
 
   @Override
@@ -58,13 +58,14 @@ public class TestLocalResourceRepository extends LocalResourceRepository {
 
   @Override
   @NotNull
-  public Set<ResourceNamespace> getNamespaces() {
-    return myResourceTable.rowKeySet();
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
   }
 
   @Override
-  public void getLeafResourceRepositories(@NonNull Collection<SingleNamespaceResourceRepository> result) {
-    throw new UnsupportedOperationException();
+  @Nullable
+  public String getPackageName() {
+    return myNamespace.getPackageName();
   }
 
   @Override

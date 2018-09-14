@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.res.aar;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.util.containers.ContainerUtil;
-import junit.framework.TestCase;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link AarSourceResourceRepository}.
@@ -35,7 +35,7 @@ public class AarSourceResourceRepositoryTest extends TestCase {
 
   public void testGetAllDeclaredIds_hasRDotTxt() {
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
-    assertThat(repository.getAllDeclaredIds()).containsExactly(
+    assertThat(repository.getIdsFromRTxt()).containsExactly(
       "id1", 0x7f0b0000,
       "id2", 0x7f0b0001,
       "id3", 0x7f0b0002);

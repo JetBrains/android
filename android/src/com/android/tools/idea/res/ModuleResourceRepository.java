@@ -18,17 +18,23 @@ package com.android.tools.idea.res;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * @see ResourceRepositoryManager#getModuleResources(boolean)
@@ -111,7 +117,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     super(facet.getModule().getName());
     myFacet = facet;
     myNamespace = namespace;
-    setChildren(delegates);
+    setChildren(delegates, ImmutableList.of());
 
     // Subscribe to update the roots when the resource folders change
     myResourceFolderManager = ResourceFolderManager.getInstance(myFacet);
@@ -126,12 +132,13 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
   @VisibleForTesting
   void updateRoots(List<VirtualFile> resourceDirectories) {
-    // Non-folder repositories: Always kept last in the list
+    // Non-folder repositories to put in front of the list.
     List<LocalResourceRepository> other = null;
 
-    // Compute current roots
+    // Compute current roots.
     Map<VirtualFile, ResourceFolderRepository> map = new HashMap<>();
-    for (LocalResourceRepository repository : getChildren()) {
+    ImmutableList<LocalResourceRepository> children = getLocalResources();
+    for (LocalResourceRepository repository : children) {
       if (repository instanceof ResourceFolderRepository) {
         ResourceFolderRepository folderRepository = (ResourceFolderRepository)repository;
         VirtualFile resourceDir = folderRepository.getResourceDir();
@@ -150,6 +157,10 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     // for resource dirs to have been added and/or removed).
     Set<VirtualFile> newDirs = new HashSet<>(resourceDirectories);
     List<LocalResourceRepository> resources = new ArrayList<>(newDirs.size() + (other != null ? other.size() : 0));
+    if (other != null) {
+      resources.addAll(other);
+    }
+
     for (VirtualFile dir : resourceDirectories) {
       ResourceFolderRepository repository = map.get(dir);
       if (repository == null) {
@@ -161,11 +172,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       resources.add(repository);
     }
 
-    if (other != null) {
-      resources.addAll(other);
-    }
-
-    if (resources.equals(getChildren())) {
+    if (resources.equals(children)) {
       // Nothing changed (including order); nothing to do
       assert map.isEmpty(); // shouldn't have created any new ones
       return;
@@ -175,7 +182,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       removed.removeParent(this);
     }
 
-    setChildren(resources);
+    setChildren(resources, Collections.emptyList());
   }
 
   @Override
@@ -194,22 +201,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   @Override
   @Nullable
   public String getPackageName() {
-    if (myNamespace.getPackageName() != null) {
-      return myNamespace.getPackageName();
-    }
-    else {
-      return AndroidManifestUtils.getPackageName(myFacet);
-    }
-  }
-
-  /**
-   * For testing: creates a project with a given set of resource roots; this allows tests to check
-   * this repository without creating a gradle project setup etc.
-   */
-  @VisibleForTesting
-  @NotNull
-  public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
-    return createForTest(facet, resourceDirectories, ResourceNamespace.TODO(), null);
+    return ResourceRepositoryImplUtil.getPackageName(myNamespace, myFacet);
   }
 
   @VisibleForTesting
@@ -219,16 +211,16 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
                                                        @NotNull ResourceNamespace namespace,
                                                        @Nullable DynamicResourceValueRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
-    List<LocalResourceRepository> delegates = new ArrayList<>(resourceDirectories.size() + 1);
-
-    ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
-    for (VirtualFile resourceDirectory : resourceDirectories) {
-      delegates.add(resourceFolderRegistry.get(facet, resourceDirectory, namespace));
-    }
+    List<LocalResourceRepository> delegates =
+        new ArrayList<>(resourceDirectories.size() + (dynamicResourceValueRepository == null ? 0 : 1));
 
     if (dynamicResourceValueRepository != null) {
       delegates.add(dynamicResourceValueRepository);
     }
+
+    ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
+    resourceDirectories.stream().forEach(dir -> delegates.add(resourceFolderRegistry.get(facet, dir, namespace)));
+
     return new ModuleResourceRepository(facet, namespace, delegates);
   }
 }

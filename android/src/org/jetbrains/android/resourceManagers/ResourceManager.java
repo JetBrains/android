@@ -184,9 +184,7 @@ public abstract class ResourceManager {
 
   @NotNull
   private Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
-    List<SingleNamespaceResourceRepository> result = new ArrayList<>();
-    getResourceRepository().getLeafResourceRepositories(result);
-    return result;
+    return getResourceRepository().getLeafResourceRepositories();
   }
 
   /**
@@ -202,7 +200,9 @@ public abstract class ResourceManager {
 
     return findIdUsagesFromFiles(files, attributeValue -> {
       if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
-        String idInAttr = AndroidResourceUtil.getResourceNameByReferenceText(attributeValue.getValue());
+        String value = attributeValue.getValue();
+        assert value != null;
+        String idInAttr = AndroidResourceUtil.getResourceNameByReferenceText(value);
         return id.equals(idInAttr);
       }
       return false;

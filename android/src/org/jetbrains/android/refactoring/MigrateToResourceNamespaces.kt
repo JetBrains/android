@@ -217,8 +217,7 @@ class MigrateToResourceNamespacesProcessor(
     progressIndicator.text = "Inferring namespaces..."
     progressIndicator.text2 = null
 
-    val leafRepos = mutableListOf<SingleNamespaceResourceRepository>()
-    ResourceRepositoryManager.getAppResources(invokingFacet).getLeafResourceRepositories(leafRepos)
+    val leafRepos = ResourceRepositoryManager.getAppResources(invokingFacet).leafResourceRepositories
 
     val inferredNamespaces: Table<ResourceType, String, String> =
       Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf<String, String>() }

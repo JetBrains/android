@@ -48,6 +48,9 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
+/**
+ * Test for {@link SampleDataResourceRepository}.
+ */
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   AndroidModuleSystem myModuleSystem;
 

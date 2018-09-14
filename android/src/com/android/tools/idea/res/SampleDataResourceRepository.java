@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE;
+import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.TEXT;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.sampledata.datasource.*;
-import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.idea.sampledata.datasource.CombinerDataSource;
+import com.android.tools.idea.sampledata.datasource.DateTimeGenerator;
+import com.android.tools.idea.sampledata.datasource.LoremIpsumGenerator;
+import com.android.tools.idea.sampledata.datasource.NumberGenerator;
+import com.android.tools.idea.sampledata.datasource.ResourceContent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -33,27 +37,30 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.*;
-import com.intellij.psi.*;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.psi.PsiManager;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.io.IOException;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE;
-import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.TEXT;
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link LocalResourceRepository} that provides sample data to be used within "tools" attributes. This provider
  * defines a set of predefined sources that are always available but also allows to define new data sources in the project.
- * To define new project data sources a new file of folder needs to be created under the sampledata folder in the project
+ * To define new project data sources a new file of folder needs to be created under the {@code sampleData} folder in the project
  * root.
  * The repository provides access to the full contents of the data sources. Selection of items is done by the
  * {@link com.android.ide.common.resources.sampledata.SampleDataManager}
@@ -66,27 +73,26 @@ import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
  *   <li><b>Directories</b>: Folders that contain a list of images
  * </ul>
  */
-public class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+public class SampleDataResourceRepository extends MultiResourceRepository {
   public static final ResourceNamespace PREDEFINED_SAMPLES_NS = ResourceNamespace.TOOLS;
 
   /**
    * List of predefined data sources that are always available within studio
    */
   private static final ImmutableList<SampleDataResourceItem> PREDEFINED_SOURCES = ImmutableList.of(
-    SampleDataResourceItem.getFromStaticDataSource("full_names", new CombinerDataSource(
-                                                     SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
-                                                     SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/surnames.txt")),
+    SampleDataResourceItem.getFromStaticDataSource("full_names",
+                                                   new CombinerDataSource(
+                                                       getResourceAsStream("sampleData/names.txt"),
+                                                       getResourceAsStream("sampleData/surnames.txt")),
                                                    TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("first_names", ResourceContent.fromInputStream(
-      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt")),
+    SampleDataResourceItem.getFromStaticDataSource("first_names",
+                                                   ResourceContent.fromInputStream(getResourceAsStream("sampleData/names.txt")),
                                                    TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("last_names", ResourceContent.fromInputStream(
-      SampleDataResourceRepository.class.getClassLoader()
-        .getResourceAsStream("sampleData/surnames.txt")),
+    SampleDataResourceItem.getFromStaticDataSource("last_names",
+                                                   ResourceContent.fromInputStream(getResourceAsStream("sampleData/surnames.txt")),
                                                    TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("cities", ResourceContent.fromInputStream(
-      SampleDataResourceRepository.class.getClassLoader()
-        .getResourceAsStream("sampleData/cities.txt")),
+    SampleDataResourceItem.getFromStaticDataSource("cities",
+                                                   ResourceContent.fromInputStream(getResourceAsStream("sampleData/cities.txt")),
                                                    TEXT),
     SampleDataResourceItem.getFromStaticDataSource("us_zipcodes",
                                                    new NumberGenerator("%05d", 20000, 99999),
@@ -105,7 +111,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
                                                    ResourceContent.fromDirectory("backgrounds/scenic"),
                                                    IMAGE),
 
-    // TODO: Delegate path parsing to the data source to avoid all these declarations
+    // TODO: Delegate path parsing to the data source to avoid all these declarations.
     SampleDataResourceItem.getFromStaticDataSource("date/day_of_week",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS),
                                                    TEXT
@@ -127,76 +133,39 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
                                                    TEXT
     ));
 
-
-  private final ResourceTable myFullTable;
-  private AndroidFacet myAndroidFacet;
+  private static InputStream getResourceAsStream(@NotNull String name) {
+    return SampleDataResourceRepository.class.getClassLoader().getResourceAsStream(name);
+  }
 
   @NotNull
   public static SampleDataResourceRepository getInstance(@NotNull AndroidFacet facet) {
     return SampleDataRepositoryManager.getInstance(facet).getRepository();
   }
 
+  private final LeafRepository myUserItemsRepository;
+
   private SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
     super("SampleData");
 
     Disposer.register(androidFacet, this);
 
-    myFullTable = new ResourceTable();
-    myAndroidFacet = androidFacet;
+    LeafRepository predefinedItemsRepository =
+        new LeafRepository("Predefined SampleData", androidFacet, ResourceNamespace.TOOLS);
+    predefinedItemsRepository.addPredefinedItems();
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(androidFacet);
+    myUserItemsRepository = new LeafRepository("User-defined SampleData", androidFacet, repositoryManager.getNamespace());
+    Disposer.register(this, myUserItemsRepository);
+    myUserItemsRepository.loadItems();
+
+    setChildren(ImmutableList.of(predefinedItemsRepository, myUserItemsRepository), ImmutableList.of());
 
     SampleDataListener.ensureSubscribed(androidFacet.getModule().getProject());
-
-    invalidate();
-  }
-
-  private void addItems(@NotNull PsiFileSystemItem sampleDataFile) {
-    try {
-      List<SampleDataResourceItem> fromFile = SampleDataResourceItem.getFromPsiFileSystemItem(sampleDataFile);
-      if (!fromFile.isEmpty()) {
-        // All items from a single file have the same namespace, look up the table cell they all go into.
-        ListMultimap<String, ResourceItem> cell = myFullTable.getOrPutEmpty(fromFile.get(0).getNamespace(), ResourceType.SAMPLE_DATA);
-        fromFile.forEach(item -> cell.put(item.getName(), item));
-      }
-    }
-    catch (IOException e) {
-      LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);
-    }
-  }
-
-  private void addPredefinedItems() {
-    ListMultimap<String, ResourceItem> cell = myFullTable.getOrPutEmpty(PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA);
-    PREDEFINED_SOURCES.forEach(source -> cell.put(source.getName(), source));
-  }
-
-  /**
-   * Invalidates the current sample data of this repository. Call this method after the sample data has been updated to reload the contents.
-   */
-  void invalidate() {
-    AndroidFacet facet = myAndroidFacet;
-    if (facet == null || facet.isDisposed()) {
-      return;
-    }
-
-    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(facet.getModule()).getSampleDataDirectory());
-    myFullTable.clear();
-
-    if (sampleDataDir != null) {
-      PsiManager psiManager = PsiManager.getInstance(facet.getModule().getProject());
-      Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
-      ApplicationManager.getApplication().runReadAction(() -> childrenStream
-        .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
-        .filter(Objects::nonNull)
-        .forEach(f -> addItems(f)));
-    }
-
-    addPredefinedItems();
-    setModificationCount(ourModificationCounter.incrementAndGet());
-    invalidateParentCaches(PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA);
   }
 
   @Override
-  public void addParent(@NonNull MultiResourceRepository parent) {
-    AndroidFacet facet = myAndroidFacet;
+  public void addParent(@NotNull MultiResourceRepository parent) {
+    AndroidFacet facet = myUserItemsRepository.myAndroidFacet;
     if (facet == null || facet.isDisposed()) {
       return;
     }
@@ -204,45 +173,116 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     super.addParent(parent);
   }
 
-  @NonNull
-  @Override
-  protected ResourceTable getFullTable() {
-    return myFullTable;
+  /**
+   * Reloads user-defined sample data from files on disk. Call this method after the sample data has been updated to reload the contents.
+   */
+  void reload() {
+    myUserItemsRepository.loadItems();
   }
 
-  @Nullable
-  @Override
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
-    if (multimap == null && create) {
-      multimap = ArrayListMultimap.create();
-      myFullTable.put(namespace, type, multimap);
+  private static class LeafRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+    private final ResourceTable myFullTable = new ResourceTable();
+    private AndroidFacet myAndroidFacet;
+    private final ResourceNamespace myNamespace;
+
+    LeafRepository(@NotNull String displayName, @NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
+      super(displayName);
+      myAndroidFacet = facet;
+      myNamespace = namespace;
     }
-    return multimap;
-  }
 
-  @Override
-  @NotNull
-  public ResourceNamespace getNamespace() {
-    return PREDEFINED_SAMPLES_NS;
-  }
+    @Override
+    @NotNull
+    protected ResourceTable getFullTable() {
+      return myFullTable;
+    }
 
-  @Override
-  @Nullable
-  public String getPackageName() {
-    return PREDEFINED_SAMPLES_NS.getPackageName();
-  }
+    @Override
+    @Nullable
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
+      ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
+      if (multimap == null && create) {
+        multimap = ArrayListMultimap.create();
+        myFullTable.put(namespace, type, multimap);
+      }
+      return multimap;
+    }
 
-  @NotNull
-  @Override
-  protected Set<VirtualFile> computeResourceDirs() {
-    return ImmutableSet.of();
-  }
+    @Override
+    @NotNull
+    public ResourceNamespace getNamespace() {
+      return myNamespace;
+    }
 
-  @Override
-  public void dispose() {
-    myAndroidFacet = null;
-    super.dispose();
+    @Override
+    @Nullable
+    public String getPackageName() {
+      return ResourceRepositoryImplUtil.getPackageName(myNamespace, myAndroidFacet);
+    }
+
+    @Override
+    public void dispose() {
+      myAndroidFacet = null;
+      super.dispose();
+    }
+
+    @Override
+    @NotNull
+    protected Set<VirtualFile> computeResourceDirs() {
+      return ImmutableSet.of();
+    }
+
+    /**
+     * Invalidates the current sample data of this repository. Call this method after the sample data has been updated
+     * to reload the contents.
+     */
+    void loadItems() {
+      AndroidFacet facet = myAndroidFacet;
+      if (facet == null || facet.isDisposed()) {
+        return;
+      }
+
+      VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(facet.getModule()).getSampleDataDirectory());
+      myFullTable.clear();
+
+      if (sampleDataDir != null) {
+        List<SampleDataResourceItem> items = new ArrayList<>();
+        PsiManager psiManager = PsiManager.getInstance(facet.getModule().getProject());
+        Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
+        ApplicationManager.getApplication().runReadAction(() -> childrenStream
+          .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
+          .filter(Objects::nonNull)
+          .forEach(f -> items.addAll(loadItemsFromFile(f))));
+
+        if (!items.isEmpty()) {
+          synchronized (ITEM_MAP_LOCK) {
+            ListMultimap<String, ResourceItem> map = myFullTable.getOrPutEmpty(myNamespace, ResourceType.SAMPLE_DATA);
+            for (ResourceItem item : items) {
+              assert item.getNamespace().equals(myNamespace);
+              map.put(item.getName(), item);
+            }
+          }
+        }
+      }
+
+      setModificationCount(ourModificationCounter.incrementAndGet());
+      invalidateParentCaches(getNamespace(), ResourceType.SAMPLE_DATA);
+    }
+
+    private List<SampleDataResourceItem> loadItemsFromFile(@NotNull PsiFileSystemItem sampleDataFile) {
+      try {
+        return SampleDataResourceItem.getFromPsiFileSystemItem(sampleDataFile, myNamespace);
+      }
+      catch (IOException e) {
+        LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);
+        return Collections.emptyList();
+      }
+    }
+
+    private void addPredefinedItems() {
+      ListMultimap<String, ResourceItem> cell = myFullTable.getOrPutEmpty(PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA);
+      PREDEFINED_SOURCES.forEach(source -> cell.put(source.getName(), source));
+    }
   }
 
   /**
@@ -273,7 +313,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     @NotNull
     public SampleDataResourceRepository getRepository() {
       if (isDisposed()) {
-        throw new IllegalStateException(getClass().getName() + " is disposed");
+        throw new IllegalStateException(getClass().getSimpleName() + " is disposed");
       }
       synchronized (repositoryLock) {
         if (repository == null) {
