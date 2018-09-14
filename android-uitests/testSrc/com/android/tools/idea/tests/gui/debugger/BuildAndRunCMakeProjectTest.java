@@ -55,7 +55,7 @@ public class BuildAndRunCMakeProjectTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testBuildAndRunCMakeProject() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
 

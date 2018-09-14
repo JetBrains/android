@@ -138,6 +138,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Test
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
@@ -268,7 +269,7 @@ public class InstantRunTest {
    *   If you answer yes, application should deploy and run with Instant Run enabled.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
@@ -332,7 +333,7 @@ public class InstantRunTest {
    *   Application should run smoothly without any errors and showing "Hot swapped changes, activity restarted."
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void changeOrderOfResources() {
     if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
