@@ -93,7 +93,6 @@ public class IssuePanelTest {
     assertEquals("No issues", panelFixture.getTitle());
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/77870351
   @Test
   public void testFixMissingFragmentNameWithoutCustomFragmentsAvailable() throws Exception {
     myGuiTest.importSimpleLocalApplication();
@@ -120,7 +119,6 @@ public class IssuePanelTest {
     classesDialog.clickOk();
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/77870351
   @Test
   public void testFixMissingFragmentNameWithCustomFragmentsAvailable() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
