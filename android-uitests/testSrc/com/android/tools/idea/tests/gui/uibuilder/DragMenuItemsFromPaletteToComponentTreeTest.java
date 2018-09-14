@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -34,6 +36,7 @@ public final class DragMenuItemsFromPaletteToComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE) // b/115700446
   @Test
   public void dragAndDrop() throws IOException {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
