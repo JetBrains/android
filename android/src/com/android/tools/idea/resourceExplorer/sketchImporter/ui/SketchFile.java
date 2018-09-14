@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignStyle;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignSymbol;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchSharedStyle;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchSharedSymbol;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.meta.SketchMeta;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
@@ -48,11 +54,47 @@ public class SketchFile {
   private SketchDocument myDocument;
   private SketchMeta myMeta;
   private List<SketchPage> myPages = new ArrayList<>();
-  private SymbolsLibrary mySymbolsLibrary = new SymbolsLibrary();
+  private SketchLibrary myLibrary = new SketchLibrary();
 
   public void addPage(@NotNull SketchPage page) {
     myPages.add(page);
-    mySymbolsLibrary.addSymbols(getAllSymbolMasters(page));
+    myLibrary.addSymbols(getAllSymbolMasters(page));
+  }
+
+  @NotNull
+  private static ImmutableList<SketchStyle> getAllStyles(@NotNull SketchDocument document) {
+    ImmutableList.Builder<SketchStyle> styles = new ImmutableList.Builder<>();
+    SketchForeignStyle[] foreignStyles = document.getForeignLayerStyles();
+    if (foreignStyles != null) {
+      for (SketchForeignStyle foreignStyle : foreignStyles) {
+        // TODO after implementing foreign styles
+      }
+    }
+    SketchSharedStyle[] sharedStyles = document.getLayerStyles();
+    if (sharedStyles != null) {
+      for (SketchSharedStyle sharedStyle : sharedStyles) {
+        styles.add(sharedStyle.getValue());
+      }
+    }
+    return styles.build();
+  }
+
+  @NotNull
+  private static ImmutableList<SketchSymbolMaster> getAllSymbolMasters(@NotNull SketchDocument document) {
+    ImmutableList.Builder<SketchSymbolMaster> masters = new ImmutableList.Builder<>();
+    SketchForeignSymbol[] foreignSymbols = document.getForeignSymbols();
+    if (foreignSymbols != null) {
+      for (SketchForeignSymbol foreignSymbol : foreignSymbols) {
+        masters.add(foreignSymbol.getSymbolMaster());
+      }
+    }
+    SketchSharedSymbol[] sharedSymbols = document.getLayerSymbols();
+    if (sharedSymbols != null) {
+      for (SketchSharedSymbol sharedSymbol : sharedSymbols) {
+        // TODO after implementing shared symbols
+      }
+    }
+    return masters.build();
   }
 
   @NotNull
@@ -92,6 +134,8 @@ public class SketchFile {
 
   public void setDocument(@NotNull SketchDocument document) {
     myDocument = document;
+    myLibrary.addSymbols(getAllSymbolMasters(document));
+    myLibrary.addStyles(getAllStyles(document));
   }
 
   @NotNull
@@ -138,8 +182,8 @@ public class SketchFile {
   }
 
   @NotNull
-  public SymbolsLibrary getSymbolsLibrary() {
-    return mySymbolsLibrary;
+  public SketchLibrary getLibrary() {
+    return myLibrary;
   }
 
   /**
