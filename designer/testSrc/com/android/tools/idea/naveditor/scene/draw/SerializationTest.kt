@@ -16,16 +16,29 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.LerpFloat
-import com.android.tools.idea.common.scene.draw.*
+import com.android.tools.idea.common.scene.draw.ArrowDirection
+import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.DrawCircle
+import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawFilledCircle
+import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
+import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawLine
+import com.android.tools.idea.common.scene.draw.DrawRectangle
+import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.ActionType
+import com.android.tools.idea.naveditor.scene.RefinableImage
 import junit.framework.TestCase
-import java.awt.*
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Font
+import java.awt.Point
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
-import java.util.concurrent.CompletableFuture
 
 class SerializationTest : TestCase() {
   fun testDrawIcon() {
@@ -171,10 +184,10 @@ class SerializationTest : TestCase() {
 
     testSerialization("DrawNavScreen,10.0x20.0x30.0x40.0",
                       DrawNavScreen(Rectangle2D.Float(10f, 20f, 30f, 40f),
-                                    CompletableFuture.completedFuture(null)), factory)
+                                    RefinableImage()), factory)
     testSerialization("DrawNavScreen,10.0x20.0x30.0x40.0",
                       DrawNavScreen(Rectangle2D.Float(10f, 20f, 30f, 40f),
-                                    CompletableFuture.completedFuture(BufferedImage(1, 1, TYPE_INT_RGB))), factory)
+                                    RefinableImage(BufferedImage(1, 1, TYPE_INT_RGB))), factory)
   }
 
   fun testDrawSelfAction() {

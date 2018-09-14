@@ -20,31 +20,26 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.NavTestCase;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.image.BufferedImage;
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link ThumbnailManager}
@@ -56,25 +51,25 @@ public class ThumbnailManagerTest extends NavTestCase {
     TestableThumbnailManager.register(myFacet, myRootDisposable);
   }
 
-  public void testCaching() throws Exception {
+  public void testCaching() {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
-    CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    BufferedImage image = imageFuture.get();
+    RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
+    BufferedImage image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertSame(image, imageFuture.get());
+    assertSame(image, imageFuture.getTerminalImage());
 
     // We should survive psi reparse
     psiFile.clearCaches();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertSame(image, imageFuture.get());
+    assertSame(image, imageFuture.getTerminalImage());
 
-    image = imageFuture.get();
+    image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertSame(image, imageFuture.get());
+    assertSame(image, imageFuture.getTerminalImage());
 
     VirtualFile resDir = myFixture.findFileInTempDir("res");
     AndroidResourceUtil.createValueResource(getProject(), resDir, "foo", ResourceType.STRING, "strings.xml",
@@ -82,11 +77,11 @@ public class ThumbnailManagerTest extends NavTestCase {
     ResourceRepositoryManager.getAppResources(myFacet).sync();
 
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertNotSame(image, imageFuture.get());
+    assertNotSame(image, imageFuture.getTerminalImage());
 
-    image = imageFuture.get();
+    image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertSame(image, imageFuture.get());
+    assertSame(image, imageFuture.getTerminalImage());
   }
   
   public void testOldVersion() throws Exception {
@@ -96,8 +91,9 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     Configuration configuration = model.getConfiguration();
-    BufferedImage orig = manager.getThumbnail(psiFile, configuration).get();
-    assertNull(manager.getOldThumbnail(file, configuration));
+    RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration);
+    BufferedImage orig = thumbnail.getTerminalImage();
+    assertNull(thumbnail.getImage());
 
     Semaphore inProgressCheckDone = new Semaphore(1);
     inProgressCheckDone.acquire();
@@ -121,12 +117,12 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
 
-    CompletableFuture<BufferedImage> newFuture = manager.getThumbnail(psiFile, configuration);
+    RefinableImage image = manager.getThumbnail(psiFile, configuration);
     taskStarted.acquire();
-    assertFalse(newFuture.isDone());
-    assertEquals(manager.getOldThumbnail(file, configuration), orig);
+    assertFalse(image.getRefined().isDone());
+    assertEquals(image.getImage(), orig);
     inProgressCheckDone.release();
-    BufferedImage newVersion = newFuture.get();
+    BufferedImage newVersion = image.getTerminalImage();
     assertNotSame(orig, newVersion);
     assertNotNull(newVersion);
   }
@@ -142,7 +138,7 @@ public class ThumbnailManagerTest extends NavTestCase {
       protected RenderTask createTask(@NotNull AndroidFacet facet,
                                       @NotNull XmlFile file,
                                       @NotNull Configuration configuration,
-                                      RenderService renderService) {
+                                      @NotNull RenderService renderService) {
         started.release();
         lock.tryLock();
         renderCount.incrementAndGet();
@@ -154,14 +150,14 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
-    CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    CompletableFuture<BufferedImage> imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration());
+    RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
+    RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration());
 
     started.acquire();
-    assertFalse(imageFuture.isDone());
-    assertFalse(imageFuture2.isDone());
+    assertFalse(imageFuture.getRefined().isDone());
+    assertFalse(imageFuture2.getRefined().isDone());
     lock.unlock();
-    assertSame(imageFuture.get(), imageFuture2.get());
+    assertSame(imageFuture.getTerminalImage(), imageFuture2.getTerminalImage());
     assertEquals(1, renderCount.get());
   }
 }

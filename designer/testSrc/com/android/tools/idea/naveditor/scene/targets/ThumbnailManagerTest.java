@@ -23,11 +23,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.concurrent.CompletableFuture;
+import javax.imageio.ImageIO;
 
 /**
  * Tests for {@link ThumbnailManager}
@@ -45,8 +43,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     NlModel model = NlModel.create(null, myFacet, psiFile.getVirtualFile());
-    CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    BufferedImage image = imageFuture.get();    ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
+    BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration()).getTerminalImage();
+    ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
     Disposer.dispose(model);
   }
 }

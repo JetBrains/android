@@ -77,9 +77,9 @@ sealed class Destination : Comparable<Destination> {
     override val thumbnail: Image by lazy {
       val model = parent.model
       if (layoutFile != null) {
-        val future = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
+        val refinableImage = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
         // TODO: wait for rendering nicely
-        val image = future.get()
+        val image = refinableImage.terminalImage
         if (image != null) {
           val scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
           val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)
