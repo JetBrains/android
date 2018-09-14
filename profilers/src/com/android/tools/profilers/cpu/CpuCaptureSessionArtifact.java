@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
@@ -33,37 +32,6 @@ import java.util.concurrent.TimeUnit;
  * An artifact representation of a CPU capture.
  */
 public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
-
-  /**
-   * Artifact name used by ART Sampled configurations.
-   */
-  @VisibleForTesting
-  static final String ART_SAMPLED_NAME = "Java Method Sample Recording";
-
-  /**
-   * Artifact name used by ART Instrumented configurations.
-   */
-  @VisibleForTesting
-  static final String ART_INSTRUMENTED_NAME = "Java Method Trace Recording";
-
-  /**
-   * Artifact name used by imported ART trace configurations. We need a special name for imported ART traces because we can't tell if the
-   * trace was generated using sampling or instrumentation.
-   */
-  @VisibleForTesting
-  static final String ART_IMPORTED_NAME = "Java Method Recording";
-
-  /**
-   * Artifact name used by simpleperf configurations.
-   */
-  @VisibleForTesting
-  public static final String SIMPLEPERF_NAME = "C/C++ Function Recording";
-
-  /**
-   * Artifact name used by atrace configurations.
-   */
-  @VisibleForTesting
-  public static final String ATRACE_NAME = "System Trace Recording";
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
@@ -110,32 +78,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
   @Override
   @NotNull
   public String getName() {
-    return artifactNameFromTypeAndMode(myInfo.getProfilerType(), myInfo.getProfilerMode());
-  }
-
-  /**
-   * Returns the artifact name corresponding to the given {@link CpuProfilerType} and {@link CpuProfilerMode}.
-   */
-  public static String artifactNameFromTypeAndMode(CpuProfilerType profilerType, CpuProfilerMode profilerMode) {
-    switch (profilerType) {
-      case ART:
-        if (profilerMode == CpuProfilerMode.SAMPLED) {
-          return ART_SAMPLED_NAME;
-        }
-        else if (profilerMode == CpuProfilerMode.INSTRUMENTED) {
-          return ART_INSTRUMENTED_NAME;
-        }
-        else {
-          // We don't set the profiler mode to SAMPLED nor INSTRUMENTED when importing an ART trace.
-          return ART_IMPORTED_NAME;
-        }
-      case SIMPLEPERF:
-        return SIMPLEPERF_NAME;
-      case ATRACE:
-        return ATRACE_NAME;
-      default:
-        throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
-    }
+    return ProfilingConfiguration.getTechnologyName(myInfo.getProfilerType(), myInfo.getProfilerMode());
   }
 
   public String getSubtitle() {
