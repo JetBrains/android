@@ -22,7 +22,7 @@ import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.DrawableFileGenerator
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.getResources
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel
@@ -55,11 +55,11 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
   private var importAll = DEFAULT_IMPORT_ALL
   private val pagePresenters = sketchFile.pages
     .mapNotNull { page ->
-      val pagePresenter = PagePresenter(page, facet, sketchFile.symbolsLibrary)
+      val pagePresenter = PagePresenter(page, facet, sketchFile.library)
       sketchImporterView.createPageView(pagePresenter)
       pagePresenter
     }
-  private val documentPresenter = DocumentPresenter(sketchFile.document, facet, sketchFile.symbolsLibrary)
+  private val documentPresenter = DocumentPresenter(sketchFile.document, facet, sketchFile.library)
 
   init {
     sketchImporterView.createDocumentView(documentPresenter)
@@ -154,11 +154,11 @@ abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
 
 class PagePresenter(private val sketchPage: SketchPage,
                     facet: AndroidFacet,
-                    symbolsLibrary: SymbolsLibrary
+                    library: SketchLibrary
 ) : ResourcesPresenter(facet) {
 
   lateinit var view: PageView
-  override val resources: StudioResourcesModel = getResources(sketchPage, symbolsLibrary)
+  override val resources: StudioResourcesModel = getResources(sketchPage, library)
   override var filesToAssets = generateDrawableFiles()
 
   override fun populateView() {
@@ -168,11 +168,11 @@ class PagePresenter(private val sketchPage: SketchPage,
 
 class DocumentPresenter(sketchDocument: SketchDocument,
                         facet: AndroidFacet,
-                        symbolsLibrary: SymbolsLibrary
+                        library: SketchLibrary
 ) : ResourcesPresenter(facet) {
 
   lateinit var view: DocumentView
-  override val resources: StudioResourcesModel = getResources(sketchDocument, symbolsLibrary)
+  override val resources: StudioResourcesModel = getResources(sketchDocument, library)
   override var filesToAssets = generateDrawableFiles()
 
   override fun populateView() {

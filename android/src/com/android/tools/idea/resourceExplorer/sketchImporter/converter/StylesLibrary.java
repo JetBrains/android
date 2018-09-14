@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Class that holds a mapping between a {@link SketchSymbolMaster} and its symbolId.
+ * Class that holds a mapping between a {@link SketchStyle} and its sharedObjectId.
  */
-public class SymbolsLibrary {
-  private final HashMap<String, SketchSymbolMaster> mySymbolMasterHashMap = new HashMap<>();
+public class StylesLibrary {
+  private HashMap<String, SketchStyle> myStyleHashMap = new HashMap<>();
 
-  public void addSymbols(@NotNull ImmutableList<SketchSymbolMaster> symbolMasters) {
-    for (SketchSymbolMaster symbolMaster : symbolMasters) {
-      mySymbolMasterHashMap.put(symbolMaster.getSymbolId(), symbolMaster);
+  public void addStyles(@NotNull ImmutableList<SketchStyle> styles) {
+    for (SketchStyle style : styles) {
+      myStyleHashMap.put(style.getSharedObjectID(), style);
     }
   }
 
   @Nullable
-  public SketchSymbolMaster getSymbol(@NotNull String objectId) {
-    return mySymbolMasterHashMap.get(objectId);
+  public SketchStyle getStyle(@NotNull String objectId) {
+    return myStyleHashMap.get(objectId);
   }
 
   public boolean isEmpty() {
-    return mySymbolMasterHashMap.isEmpty();
+    return myStyleHashMap.isEmpty();
   }
 }

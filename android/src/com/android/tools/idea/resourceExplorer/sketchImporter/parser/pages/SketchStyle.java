@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchSharedStyle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,7 @@ public class SketchStyle {
    * </ul>
    */
   private final SketchGraphicsContextSettings contextSettings;
+  private final String sharedObjectID;
 
   public SketchStyle(@Nullable SketchBorderOptions borderOptions,
                      @Nullable SketchBorder[] borders,
@@ -46,7 +48,8 @@ public class SketchStyle {
                      @Nullable SketchFill[] fills,
                      short miterLimit,
                      @Nullable SketchShadow[] shadows,
-                     short windingRule) {
+                     short windingRule,
+                     @NotNull String sharedObjectID) {
     this.borderOptions = borderOptions;
     this.borders = borders;
     this.colorControls = colorControls;
@@ -55,6 +58,7 @@ public class SketchStyle {
     this.miterLimit = miterLimit;
     this.shadows = shadows;
     this.windingRule = windingRule;
+    this.sharedObjectID = sharedObjectID;
   }
 
   @Nullable
@@ -99,5 +103,14 @@ public class SketchStyle {
     if (getFills() != null && getFills().length != 0) {
       getFills()[0] = fill;
     }
+  }
+
+  /**
+   * Get the ID of the style, which corresponds to {@link SketchSharedStyle#getObjectId()} where this {@link SketchStyle} corresponds to
+   * {@link SketchSharedStyle#getValue()}.
+   */
+  @NotNull
+  public String getSharedObjectID() {
+    return sharedObjectID;
   }
 }

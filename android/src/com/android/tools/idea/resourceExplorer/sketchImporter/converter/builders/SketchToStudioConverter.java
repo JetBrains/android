@@ -17,7 +17,7 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builder
 
 import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AreaModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.BorderModel;
@@ -65,11 +65,11 @@ public class SketchToStudioConverter {
   private static final String DEFAULT_DOCUMENT_COLOR_NAME = "document_color";
 
   @NotNull
-  public static StudioResourcesModel getResources(@NotNull SketchPage sketchPage, @NotNull SymbolsLibrary symbolsLibrary) {
+  public static StudioResourcesModel getResources(@NotNull SketchPage sketchPage, @NotNull SketchLibrary library) {
     ImmutableList.Builder<DrawableAssetModel> listBuilder = new ImmutableList.Builder<>();
 
     for (SketchArtboard artboard : sketchPage.getArtboards()) {
-      listBuilder.add(createDrawableAsset(artboard, symbolsLibrary));
+      listBuilder.add(createDrawableAsset(artboard, library));
     }
 
     // TODO get colors from solid fill shapes & drawables from symbol masters
@@ -77,7 +77,7 @@ public class SketchToStudioConverter {
   }
 
   @NotNull
-  public static StudioResourcesModel getResources(@NotNull SketchDocument sketchDocument, @NotNull SymbolsLibrary symbolsLibrary) {
+  public static StudioResourcesModel getResources(@NotNull SketchDocument sketchDocument, @NotNull SketchLibrary library) {
     ImmutableList.Builder<DrawableAssetModel> drawableListBuilder = new ImmutableList.Builder<>();
     ImmutableList.Builder<ColorAssetModel> colorListBuilder = new ImmutableList.Builder<>();
 
@@ -85,8 +85,8 @@ public class SketchToStudioConverter {
     colorListBuilder.addAll(getExternalColors(sketchDocument));
     colorListBuilder.addAll(getSharedColors(sketchDocument));
 
-    drawableListBuilder.addAll(getExternalDrawables(sketchDocument, symbolsLibrary));
-    drawableListBuilder.addAll(getSharedDrawables(sketchDocument, symbolsLibrary));
+    drawableListBuilder.addAll(getExternalDrawables(sketchDocument, library));
+    drawableListBuilder.addAll(getSharedDrawables(sketchDocument, library));
 
     return new StudioResourcesModel(drawableListBuilder.build(), colorListBuilder.build());
   }
@@ -95,20 +95,20 @@ public class SketchToStudioConverter {
    * Artboard to Drawable conversion
    */
   @NotNull
-  public static DrawableAssetModel createDrawableAsset(@NotNull SketchArtboard artboard, @NotNull SymbolsLibrary symbolsLibrary) {
+  public static DrawableAssetModel createDrawableAsset(@NotNull SketchArtboard artboard, @NotNull SketchLibrary library) {
     ImmutableList.Builder<ShapeModel> shapes = new ImmutableList.Builder<>();
     SketchLayer[] layers = artboard.getLayers();
 
     for (SketchLayer layer : layers) {
-      if (layer instanceof SketchSymbolInstance && !symbolsLibrary.isEmpty()) {
-        shapes.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, symbolsLibrary));
+      if (layer instanceof SketchSymbolInstance && library.hasSymbols()) {
+        shapes.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, library));
       }
 
       if (layer instanceof SketchShapeGroup) {
         shapes.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, new Point2D.Double(), false, DEFAULT_OPACITY));
       }
       else if (layer instanceof SketchLayerable) {
-        shapes.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, new Point2D.Double(), DEFAULT_OPACITY, symbolsLibrary));
+        shapes.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, new Point2D.Double(), DEFAULT_OPACITY, library));
       }
     }
 
@@ -127,13 +127,13 @@ public class SketchToStudioConverter {
    */
   @NotNull
   private static DrawableAssetModel createDrawableAsset(@NotNull SketchSymbolMaster symbolMaster,
-                                                        @NotNull SymbolsLibrary symbolsLibrary,
+                                                        @NotNull SketchLibrary library,
                                                         @NotNull AssetModel.Origin origin) {
     boolean exportable = symbolMaster.getExportOptions().getExportFormats().length != 0;
     String name = getDefaultName(symbolMaster);
     Rectangle.Double dimension = symbolMaster.getFrame();
 
-    return new DrawableAssetModel(createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, symbolsLibrary),
+    return new DrawableAssetModel(createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, library),
                                   exportable, name, dimension, dimension, origin);
   }
 
@@ -165,14 +165,20 @@ public class SketchToStudioConverter {
 
   @NotNull
   private static ImmutableList<ShapeModel> createShapeModelsFromSymbol(@NotNull SketchSymbolInstance symbolInstance,
-                                                                       @NotNull SymbolsLibrary symbolsLibrary) {
-    SymbolModel symbolModel = symbolsLibrary.getSymbolModel(symbolInstance.getSymbolId());
+                                                                       @NotNull SketchLibrary library) {
+    SymbolModel symbolModel = getSymbolModel(symbolInstance.getSymbolId(), library);
 
     symbolModel.setSymbolInstance(symbolInstance);
     symbolModel.scaleShapes();
     symbolModel.translateShapes();
 
     return symbolModel.getShapeModels();
+  }
+
+  private static SymbolModel getSymbolModel(@org.jetbrains.annotations.NotNull String symbolId, @NotNull SketchLibrary library) {
+    SketchSymbolMaster symbolMaster = library.getSymbol(symbolId);
+    ImmutableList<ShapeModel> shapeModels = createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, library);
+    return new SymbolModel(shapeModels, symbolMaster);
   }
 
   /**
@@ -259,7 +265,7 @@ public class SketchToStudioConverter {
   public static ImmutableList<ShapeModel> createShapeModelsFromLayerable(@NotNull SketchLayerable layerable,
                                                                          @NotNull Point2D.Double parentCoords,
                                                                          double parentOpacity,
-                                                                         @NotNull SymbolsLibrary symbolsLibrary) {
+                                                                         @NotNull SketchLibrary library) {
     Point2D.Double newParentCoords;
 
     // The SketchSymbolMaster in a page has its own frame and position that have nothing
@@ -288,15 +294,15 @@ public class SketchToStudioConverter {
         isLastGroupElement = true;
       }
       SketchLayer layer = groupLayers[i];
-      if (!symbolsLibrary.isEmpty() && layer instanceof SketchSymbolInstance) {
-        builder.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, symbolsLibrary));
+      if (library.hasSymbols() && layer instanceof SketchSymbolInstance) {
+        builder.addAll(createShapeModelsFromSymbol((SketchSymbolInstance)layer, library));
       }
 
       if (layer instanceof SketchShapeGroup) {
         builder.addAll(createShapeModelsFromShapeGroup((SketchShapeGroup)layer, newParentCoords, isLastGroupElement, parentOpacity));
       }
       else if (layer instanceof SketchLayerable) {
-        builder.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, newParentCoords, parentOpacity, symbolsLibrary));
+        builder.addAll(createShapeModelsFromLayerable((SketchLayerable)layer, newParentCoords, parentOpacity, library));
       }
     }
 
@@ -568,14 +574,14 @@ public class SketchToStudioConverter {
 
   @NotNull
   private static ImmutableList<DrawableAssetModel> getExternalDrawables(@NotNull SketchDocument sketchDocument,
-                                                                        @NotNull SymbolsLibrary symbolsLibrary) {
+                                                                        @NotNull SketchLibrary library) {
     if (sketchDocument.getForeignSymbols() == null) {
       return ImmutableList.of();
     }
 
     ImmutableList.Builder<DrawableAssetModel> drawableListBuilder = new ImmutableList.Builder<>();
     for (SketchForeignSymbol foreignSymbol : sketchDocument.getForeignSymbols()) {
-      DrawableAssetModel drawableAsset = createDrawableAsset(foreignSymbol.getSymbolMaster(), symbolsLibrary, AssetModel.Origin.EXTERNAL);
+      DrawableAssetModel drawableAsset = createDrawableAsset(foreignSymbol.getSymbolMaster(), library, AssetModel.Origin.EXTERNAL);
       drawableListBuilder.add(drawableAsset);
     }
 
@@ -584,7 +590,7 @@ public class SketchToStudioConverter {
 
   @NotNull
   private static ImmutableList<DrawableAssetModel> getSharedDrawables(@NotNull SketchDocument sketchDocument,
-                                                                      @NotNull SymbolsLibrary symbolsLibrary) {
+                                                                      @NotNull SketchLibrary library) {
     ImmutableList.Builder<DrawableAssetModel> drawableListBuilder = new ImmutableList.Builder<>();
     // TODO
     return drawableListBuilder.build();
