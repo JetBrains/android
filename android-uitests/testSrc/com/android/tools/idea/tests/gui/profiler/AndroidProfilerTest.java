@@ -35,6 +35,9 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryManagerMXBean;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -126,10 +129,12 @@ public class AndroidProfilerTest {
   }
 
   private static void benchmarkMethod(@NotNull Benchmark benchmark, @NotNull Runnable method) {
-    long benchmarkStart = System.currentTimeMillis();
-    System.gc();
+    gc();
     long initialMemoryUsed = getMemoryUsed();
     benchmark.log("initial_mem", initialMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
+
+    long gcStartTime = getGCTotalTime();
+    long methodStartTime = System.currentTimeMillis();
     try {
       method.run();
     }
@@ -138,12 +143,30 @@ public class AndroidProfilerTest {
       throw e;
     }
     finally {
-      System.gc();
+      long methodEndTime = System.currentTimeMillis();
+      long gcTime = getGCTotalTime() - gcStartTime;
+      benchmark.log("total_time", methodEndTime - methodStartTime, new MedianWindowDeviationAnalyzer.Builder().build());
+      benchmark.log("test_time", methodEndTime - methodStartTime - gcTime, new MedianWindowDeviationAnalyzer.Builder().build());
+      benchmark.log("gc_time", gcTime, new MedianWindowDeviationAnalyzer.Builder().build());
+
+      gc();
       long finalMemoryUsed = getMemoryUsed();
       benchmark.log("final_mem", finalMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
       benchmark.log("mem_used", finalMemoryUsed - initialMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
-      benchmark.log("total_time", System.currentTimeMillis() - benchmarkStart, new MedianWindowDeviationAnalyzer.Builder().build());
     }
+  }
+
+  private static void gc() {
+    System.gc();
+    System.gc();
+  }
+
+  private static long getGCTotalTime() {
+    long gcTime = 0;
+    for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
+      gcTime += Math.max(gc.getCollectionTime(), 0);
+    }
+    return gcTime;
   }
 
   private static long getMemoryUsed() {
