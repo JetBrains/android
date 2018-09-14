@@ -64,6 +64,7 @@ final class MemoryClassifierView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
   private static final int HEAP_UPDATING_DELAY_MS = 250;
+  private static final int MIN_COLUMN_WIDTH = 16;
 
   private static final String HELP_TIP_HEADER_LIVE_ALLOCATION = "Selected range has no allocations or deallocations";
   private static final String HELP_TIP_DESCRIPTION_LIVE_ALLOCATION =
@@ -324,6 +325,7 @@ final class MemoryClassifierView extends AspectObserver {
     for (ClassifierAttribute attribute : attributes) {
       AttributeColumn<ClassifierSet> column = myAttributeColumns.get(attribute);
       ColumnTreeBuilder.ColumnBuilder columnBuilder = column.getBuilder();
+      columnBuilder.setMinWidth(MIN_COLUMN_WIDTH);
       if (sortAttribute == attribute) {
         columnBuilder.setInitialOrder(attribute.getSortOrder());
         myInitialComparator =
