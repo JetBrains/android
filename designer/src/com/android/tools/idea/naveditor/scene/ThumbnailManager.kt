@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.annotations.VisibleForTesting
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
@@ -29,8 +30,10 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.reference.SoftReference
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.HashMap
 import java.util.concurrent.CompletableFuture
@@ -52,14 +55,14 @@ data class RefinableImage(val image: BufferedImage? = null, val refined: Complet
  */
 open class ThumbnailManager protected constructor(facet: AndroidFacet) : AndroidFacetScopedService(facet) {
 
-  private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>>()
-  private val myOldImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>>()
+  private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>?>()
+  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, MutableMap<Dimension, SoftReference<BufferedImage>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
 
   @GuardedBy("DISPOSAL_LOCK")
-  private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<BufferedImage?>>()
+  private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage>>()
 
   @GuardedBy("DISPOSAL_LOCK")
   private var myDisposed: Boolean = false
@@ -67,7 +70,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val DISPOSAL_LOCK = Any()
 
   override fun onDispose() {
-    lateinit var futures: Array<CompletableFuture<BufferedImage?>>
+    lateinit var futures: Array<CompletableFuture<RefinableImage>>
     synchronized(DISPOSAL_LOCK) {
       myDisposed = true
       futures = myPendingFutures.values.toTypedArray()
@@ -83,66 +86,135 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     super.onDispose()
   }
 
-  private fun getOldThumbnail(file: VirtualFile, configuration: Configuration) = myOldImages.get(file, configuration)?.get()
-
-  fun getThumbnail(xmlFile: XmlFile, configuration: Configuration): RefinableImage {
+  fun getThumbnail(
+    xmlFile: XmlFile,
+    configuration: Configuration,
+    dimensions: Dimension
+  ): RefinableImage {
     val file = xmlFile.virtualFile
-    val cachedReference = myImages.get(file, configuration)
-    val cached = cachedReference?.get()
-    if (cached != null) {
-      if (myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
-          myRenderModStamps.get(file, configuration) == file.timeStamp) {
-        return RefinableImage(cached)
-      }
-      else {
-        myOldImages.put(file, configuration, cachedReference)
-      }
+    val cachedByDimension = myScaledImages[file, configuration] ?: mutableMapOf<Dimension, SoftReference<BufferedImage>?>().also {
+      myScaledImages.put(file, configuration, it)
     }
+    val cached = cachedByDimension[dimensions]?.get()
+    return if (cached != null &&
+               myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
+               myRenderModStamps.get(file, configuration) == file.timeStamp) {
+      RefinableImage(cached)
+    }
+    else {
+      RefinableImage(cached, getScaledImage(xmlFile, configuration, dimensions))
+    }
+  }
 
-    val result = CompletableFuture<BufferedImage?>()
+  private fun getScaledImage(
+    xmlFile: XmlFile,
+    configuration: Configuration,
+    dimensions: Dimension
+  ): CompletableFuture<RefinableImage> {
+    val file = xmlFile.virtualFile
+    val result = CompletableFuture<RefinableImage>()
+
     synchronized(DISPOSAL_LOCK) {
       if (myDisposed) {
-        return RefinableImage()
+        return CompletableFuture.completedFuture(null)
       }
       val inProgress = myPendingFutures[file]
       if (inProgress != null) {
-        return RefinableImage(getOldThumbnail(xmlFile.virtualFile, configuration), inProgress.thenApply { RefinableImage(it) })
+        return inProgress
       }
       myPendingFutures.put(file, result)
     }
 
-    // TODO we run in a separate thread because task.render() currently isn't asynchronous
-    // if inflate() (which is itself synchronous) hasn't already been called.
-    ApplicationManager.getApplication().executeOnPooledThread {
+    val fullFuture = getFullImage(configuration, xmlFile)
+
+    fullFuture.thenAccept { full ->
       try {
-        synchronized(DISPOSAL_LOCK) {
-          // We might have been disposed while waiting to run
-          if (myDisposed) {
-            result.complete(null)
-            return@executeOnPooledThread
-          }
+        if (full == null) {
+          RefinableImage()
         }
-        try {
-          result.complete(getImage(xmlFile, file, configuration))
-          myOldImages.remove(file, configuration)
-        }
-        catch (e: Exception) {
-          result.completeExceptionally(e)
-        }
-        finally {
+        else {
           synchronized(DISPOSAL_LOCK) {
-            myPendingFutures.remove(file)
+            // We might have been disposed while waiting to run
+            if (myDisposed) {
+              result.complete(null)
+              return@thenAccept
+            }
           }
+          val scaledFuture = scaleImage(full, dimensions).thenApply { scaled ->
+            val dimensionMap: MutableMap<Dimension, SoftReference<BufferedImage>?> =
+              myScaledImages[xmlFile.virtualFile, configuration]
+              ?: mutableMapOf<Dimension, SoftReference<BufferedImage>?>().also {
+                myScaledImages.put(xmlFile.virtualFile, configuration, it)
+              }
+            dimensionMap[dimensions] = SoftReference(scaled)
+            scaled
+          }
+          result.complete(RefinableImage(previewScaleImage(full, dimensions), scaledFuture.thenApply { RefinableImage(it) }))
         }
       }
       catch (t: Throwable) {
         result.completeExceptionally(t)
+      }
+      finally {
         synchronized(DISPOSAL_LOCK) {
           myPendingFutures.remove(file)
         }
       }
     }
-    return RefinableImage(getOldThumbnail(xmlFile.virtualFile, configuration), result.thenApply { RefinableImage(it) })
+    return result
+  }
+
+  private fun getFullImage(
+    configuration: Configuration,
+    xmlFile: XmlFile
+  ) : CompletableFuture<BufferedImage?> {
+    val file = xmlFile.virtualFile
+    val fullSize = myImages[file, configuration]?.get()
+    return if (fullSize != null &&
+               myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
+               myRenderModStamps.get(file, configuration) == file.timeStamp) {
+      CompletableFuture.completedFuture(fullSize)
+    }
+    else {
+      val result = CompletableFuture<BufferedImage?>()
+      // TODO we run in a separate thread because task.render() currently isn't asynchronous
+      // if inflate() (which is itself synchronous) hasn't already been called.
+      ApplicationManager.getApplication().executeOnPooledThread {
+        try {
+          val image = getImage(xmlFile, file, configuration)
+          result.complete(image)
+        }
+        catch (t: Throwable) {
+          result.completeExceptionally(t)
+        }
+      }
+      result
+    }
+  }
+
+  private fun previewScaleImage(image: BufferedImage, dimensions: Dimension): BufferedImage {
+    val scaled = UIUtil.createImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB)
+    scaled.graphics.drawImage(image, 0, 0, dimensions.width, dimensions.height, null)
+    return scaled
+  }
+
+  private fun scaleImage(image: BufferedImage, dimensions: Dimension): CompletableFuture<BufferedImage> {
+    val result = CompletableFuture<BufferedImage>()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      var scaledImage: BufferedImage? = null
+      val xScale = dimensions.width.toDouble() / image.width
+      val yScale = dimensions.height.toDouble() / image.height
+      if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+        ImageUtils.scale(image, xScale * 2, yScale * 2)
+        scaledImage = ImageUtils.convertToRetina(image)
+      }
+      if (scaledImage == null) {
+        scaledImage = ImageUtils.scale(image, xScale, yScale)
+      }
+
+      result.complete(scaledImage)
+    }
+    return result
   }
 
   private fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): BufferedImage? {

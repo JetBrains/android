@@ -92,8 +92,6 @@ class TestDrawNavScreen {
   private fun createTransform() : AffineTransform {
     val transform = AffineTransform()
     transform.translate(DRAW_COMMAND_RECTANGLE.x.toDouble(), DRAW_COMMAND_RECTANGLE.y.toDouble())
-    transform.scale(DRAW_COMMAND_RECTANGLE.width.toDouble() / IMAGE_DIMENSION.width,
-                    DRAW_COMMAND_RECTANGLE.height.toDouble() / IMAGE_DIMENSION.height)
     return transform
   }
 }
