@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import java.awt.BasicStroke
+import java.awt.Dimension
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.io.File
@@ -96,11 +97,13 @@ abstract class NavScreenDecorator : SceneDecorator() {
   }
 
   private fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle2D.Float) {
-    val image = buildImage(sceneContext, component)
+    val image = buildImage(sceneContext, component, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
     list.add(DrawNavScreen(rectangle, image))
   }
 
-  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): RefinableImage {
+  private fun buildImage(sceneContext: SceneContext,
+                         component: SceneComponent,
+                         dimensions: Dimension): RefinableImage {
     val empty = RefinableImage()
     val surface = sceneContext.surface ?: return empty
     val configuration = surface.configuration ?: return empty
@@ -124,6 +127,6 @@ abstract class NavScreenDecorator : SceneDecorator() {
 
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
-    return manager.getThumbnail(psiFile, configuration)
+    return manager.getThumbnail(psiFile, configuration, dimensions)
   }
 }

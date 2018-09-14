@@ -69,7 +69,6 @@ class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     if (image != null) {
       val transform = AffineTransform()
       transform.translate(rectangle.x.toDouble(), rectangle.y.toDouble())
-      transform.scale(rectangle.width.toDouble() / image.width, rectangle.height.toDouble() / image.height)
       g.drawImage(image, transform, null)
     }
     else if (lastCompleted.refined == null) {
