@@ -39,6 +39,14 @@ import javax.annotation.concurrent.GuardedBy
 
 private val KEY = Key.create<ThumbnailManager>(ThumbnailManager::class.java.name)
 
+data class RefinableImage(val image: BufferedImage? = null, val refined: CompletableFuture<RefinableImage>? = null) {
+  val lastCompleted
+    get() = generateSequence(this) { if (it.refined?.isDone == true) it.refined.get() else null }.last()
+
+  val terminalImage
+    get() = generateSequence(this) { it.refined?.get() }.last().image
+}
+
 /**
  * Creates and caches preview images of screens in the nav editor.
  */
@@ -75,15 +83,16 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     super.onDispose()
   }
 
-  fun getOldThumbnail(file: VirtualFile, configuration: Configuration) = myOldImages.get(file, configuration)?.get()
+  private fun getOldThumbnail(file: VirtualFile, configuration: Configuration) = myOldImages.get(file, configuration)?.get()
 
-  fun getThumbnail(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
+  fun getThumbnail(xmlFile: XmlFile, configuration: Configuration): RefinableImage {
     val file = xmlFile.virtualFile
     val cachedReference = myImages.get(file, configuration)
-    cachedReference?.get()?.let { cached ->
+    val cached = cachedReference?.get()
+    if (cached != null) {
       if (myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
           myRenderModStamps.get(file, configuration) == file.timeStamp) {
-        return CompletableFuture.completedFuture(cached)
+        return RefinableImage(cached)
       }
       else {
         myOldImages.put(file, configuration, cachedReference)
@@ -93,12 +102,11 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     val result = CompletableFuture<BufferedImage?>()
     synchronized(DISPOSAL_LOCK) {
       if (myDisposed) {
-        result.complete(null)
-        return result
+        return RefinableImage()
       }
       val inProgress = myPendingFutures[file]
       if (inProgress != null) {
-        return inProgress
+        return RefinableImage(getOldThumbnail(xmlFile.virtualFile, configuration), inProgress.thenApply { RefinableImage(it) })
       }
       myPendingFutures.put(file, result)
     }
@@ -134,7 +142,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
         }
       }
     }
-    return result
+    return RefinableImage(getOldThumbnail(xmlFile.virtualFile, configuration), result.thenApply { RefinableImage(it) })
   }
 
   private fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): BufferedImage? {
@@ -166,9 +174,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     return task
   }
 
-  override fun onServiceDisposal(facet: AndroidFacet) {
-
-  }
+  override fun onServiceDisposal(facet: AndroidFacet) {}
 
   companion object {
     @JvmStatic

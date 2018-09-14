@@ -17,18 +17,22 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.*
+import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommandBase
+import com.android.tools.idea.common.scene.draw.buildString
+import com.android.tools.idea.common.scene.draw.parse
+import com.android.tools.idea.common.scene.draw.rect2DToString
+import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.setRenderingHints
 import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.geom.AffineTransform
 import java.awt.geom.Rectangle2D
-import java.awt.image.BufferedImage
-import java.util.concurrent.CompletableFuture
 
 private const val UNAVAILABLE_TEXT_1 = "Preview"
 private const val UNAVAILABLE_TEXT_2 = "Unavailable"
@@ -43,10 +47,9 @@ private const val FONT_NAME = "Default"
  * [DrawCommand] that draws a screen in the navigation editor.
  */
 class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
-                    private val imageFuture: CompletableFuture<BufferedImage?>,
-                    private val oldImage: BufferedImage? = null) : DrawCommandBase() {
+                    private val image: RefinableImage) : DrawCommandBase() {
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), CompletableFuture.completedFuture(null))
+  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), RefinableImage())
 
   constructor(s: String) : this(parse(s, 1))
 
@@ -61,22 +64,22 @@ class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     setRenderingHints(g)
     g.clip(rectangle)
-    val done = imageFuture.isDone
-    val image = if (done) imageFuture.get() else oldImage
+    val lastCompleted = image.lastCompleted
+    val image = lastCompleted.image
     if (image != null) {
       val transform = AffineTransform()
       transform.translate(rectangle.x.toDouble(), rectangle.y.toDouble())
       transform.scale(rectangle.width.toDouble() / image.width, rectangle.height.toDouble() / image.height)
       g.drawImage(image, transform, null)
     }
-    else if (done) {
+    else if (lastCompleted.refined == null) {
       drawText(UNAVAILABLE_TEXT_1, UNAVAILABLE_TEXT_2, g, sceneContext)
     }
     else {
       drawText(LOADING_TEXT_1, null, g, sceneContext)
     }
-    if (!done) {
-      imageFuture.thenRun {
+    if (lastCompleted.refined != null) {
+      lastCompleted.refined.thenRun {
         sceneContext.repaint()
       }
     }
