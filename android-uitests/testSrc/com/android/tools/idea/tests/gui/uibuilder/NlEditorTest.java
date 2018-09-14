@@ -356,7 +356,6 @@ public class NlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/72239224
   @Test
   public void testNavigateEditorsWithoutTabs() throws Exception {
     // Regression test for b/37138939
