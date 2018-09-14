@@ -51,7 +51,7 @@ public class ConnectionAssistantTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void launchConnectionAssistantViaDeployTargetDialog() throws Exception {
     assertThat(ToolWindowManager.getInstance(guiTest.ideFrame().getProject()).getToolWindow("Assistant")).isNull();
     guiTest.ideFrame().runApp("app").clickHelp();
@@ -73,7 +73,7 @@ public class ConnectionAssistantTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void launchConnectionAssistantViaMenu() throws Exception {
     assertThat(ToolWindowManager.getInstance(guiTest.ideFrame().getProject()).getToolWindow("Assistant")).isNull();
     guiTest.ideFrame().invokeMenuPath("Tools", "Connection Assistant");

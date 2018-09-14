@@ -52,7 +52,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testAutoDebugger() throws Exception {
     processToTest(DebuggerTestUtil.AUTO);
   }
@@ -77,7 +77,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testDualDebugger() throws Exception {
     processToTest(DebuggerTestUtil.DUAL);
   }
@@ -102,7 +102,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testNativeDebugger() throws Exception {
     processToTest(DebuggerTestUtil.NATIVE);
   }
