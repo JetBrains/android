@@ -30,7 +30,7 @@ public class AndroidTemplateProjectSettingsGroup extends DefaultActionGroup {
     Presentation presentation = getTemplatePresentation();
 
     presentation.setText("Project Defaults");
-    presentation.setIcon(AllIcons.General.TemplateProjectSettings);
+    presentation.setIcon(AllIcons.General.Settings);
 
     add(new AndroidTemplateSettingsAction());
     add(new AndroidTemplateProjectStructureAction());
@@ -41,7 +41,7 @@ public class AndroidTemplateProjectSettingsGroup extends DefaultActionGroup {
     AndroidTemplateSettingsAction() {
       Presentation p = getTemplatePresentation();
       p.setText("Settings");
-      p.setIcon(AllIcons.General.TemplateProjectSettings);
+      p.setIcon(AllIcons.General.Settings);
     }
   }
 

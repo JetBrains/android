@@ -34,7 +34,7 @@ public class AndroidTemplateProjectStructureAction extends DumbAwareAction {
   }
 
   public AndroidTemplateProjectStructureAction(@NotNull String text) {
-    super(text, null, AllIcons.General.TemplateProjectStructure);
+    super(text, null, AllIcons.General.ProjectStructure);
   }
 
   @Override
