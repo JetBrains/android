@@ -154,8 +154,6 @@ public class SketchToStudioConverter {
 
   @NotNull
   private static String getDefaultName(@NotNull SketchLayer layer) {
-    // TODO sanitize name
-
     String name = layer.getName();
 
     if (layer.getExportOptions().getExportFormats().length != 0) {

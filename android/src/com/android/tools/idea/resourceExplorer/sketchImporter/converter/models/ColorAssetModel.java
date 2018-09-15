@@ -32,7 +32,7 @@ public class ColorAssetModel implements AssetModel {
                          @NotNull Color color,
                          @NotNull Origin origin) {
     myExportable = exportable;
-    myName = name;
+    myName = name.replaceAll("[ :\\\\/*\"?|<>%.']", "_");  // TODO use a different sanitizer
     myColor = color;
     myOrigin = origin;
   }
