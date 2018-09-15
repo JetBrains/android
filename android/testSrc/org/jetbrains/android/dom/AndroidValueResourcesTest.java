@@ -621,7 +621,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Exception {
-    doTestNamespaceCompletion(true);
+    doTestNamespaceCompletion(SdkConstants.XLIFF_URI);
   }
 
   public void testAttrValidation() throws Throwable {
