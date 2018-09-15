@@ -34,6 +34,9 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -96,6 +99,12 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private boolean isAdbInitialized;
 
   /**
+   * Determines whether memory live allocation should be enabled at startup. Unless startup profiling is enabled and the profiling config
+   * has disableLiveAllocation set to true, live allocation is enabled.
+   */
+  private boolean myIsMemoryLiveAllocationEnabledAtStartup = true;
+
+  /**
    * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
    * All accesses to the {@link DeviceContext} must be through its synchronization methods.
    */
@@ -135,6 +144,17 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
     else {
       getLogger().warn("No adb available");
+    }
+
+    // If startup profiling is enabled and the profiling config disables memory live allocation, disable live allocation at startup.
+    AndroidRunConfigurationBase runConfig = AndroidProfilerLaunchTaskContributor.getSelectedRunConfiguration(project);
+    if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
+      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
+      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
+      myIsMemoryLiveAllocationEnabledAtStartup = startupConfig == null || !startupConfig.isDisableLiveAllocation();
+    }
+    else {
+      myIsMemoryLiveAllocationEnabledAtStartup = true;
     }
   }
 
@@ -464,11 +484,23 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
       throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
-      int liveAllocationSamplingRate = StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get() ?
-        PropertiesComponent.getInstance().getInt(
-          IntellijProfilerPreferences.getProfilerPropertyName(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
-          MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue()) :
-                                       MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
+      int liveAllocationSamplingRate;
+      if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
+        // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
+        if (myIsMemoryLiveAllocationEnabledAtStartup) {
+          liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
+            IntellijProfilerPreferences.getProfilerPropertyName(
+              MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
+            MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+        }
+        else {
+          liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+        }
+      }
+      else {
+        // Sampling feature is disabled, use full mode.
+        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
+      }
       Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
       Agent.AgentConfig agentConfig =
         Agent.AgentConfig.newBuilder()
