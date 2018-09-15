@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
-
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,18 +66,5 @@ public class SketchPage extends SketchLayer implements SketchLayerable {
   @NotNull
   public SketchLayer[] getLayers() {
     return layers;
-  }
-
-  @NotNull
-  public List<SketchArtboard> getArtboards() {
-    ArrayList<SketchArtboard> artboards = new ArrayList<>();
-
-    for (SketchLayer layer : getLayers()) {
-      if (ARTBOARD_CLASS_TYPE.equals(layer.getClassType())) {
-        artboards.add((SketchArtboard)layer);
-      }
-    }
-
-    return artboards;
   }
 }

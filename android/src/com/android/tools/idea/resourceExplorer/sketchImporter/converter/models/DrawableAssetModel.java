@@ -24,11 +24,11 @@ import org.jetbrains.annotations.NotNull;
  * {@link AssetModel} corresponding to a Vector Drawable imported from Sketch into Android Studio.
  */
 public class DrawableAssetModel implements AssetModel {
+  private final Rectangle.Double myArtboardDimension;
+  private final Rectangle.Double myViewportDimension;
   private ImmutableList<ShapeModel> myShapeModels;
   private boolean myExportable;
   private String myName;
-  private final Rectangle.Double myArtboardDimension;
-  private final Rectangle.Double myViewportDimension;
   private Origin myOrigin;
 
   public DrawableAssetModel(@NotNull ImmutableList<ShapeModel> shapeModels,

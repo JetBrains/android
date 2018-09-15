@@ -16,6 +16,10 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -46,4 +50,82 @@ class ModelTest {
     assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.name, "text_dark")
     assertEquals(sketchFile.findSymbol("E052FD96-0724-47EA-B608-D4491709F803")?.classType, "symbolMaster")
   }
+}
+
+/**
+ * Recursively search through all pages in the file for the layer with the corresponding `objectId`.
+ *
+ * @return the found layer or `null` if no layer was found
+ */
+private fun SketchFile.findLayer(objectId: String): SketchLayer? {
+  for (page in pages) {
+    val foundLayer = findLayer(objectId, page)
+    if (foundLayer != null) {
+      return foundLayer
+    }
+  }
+
+  return null
+}
+
+/**
+ * Recursively search through all pages in the file for the symbol with the corresponding `symbolId`.
+ *
+ * @return the found symbol or `null` if no layer was found
+ */
+private fun SketchFile.findSymbol(symbolId: String): SketchSymbol? {
+  for (page in pages) {
+    val foundSymbol = findSymbol(symbolId, page)
+    if (foundSymbol != null) {
+      return foundSymbol
+    }
+  }
+
+  return null
+}
+
+/**
+ * Recursively search for the layer with the corresponding `objectId` starting at `currentLayer`.
+ *
+ * @return the found layer or `null` if no layer was found
+ */
+private fun findLayer(objectId: String, currentLayer: SketchLayer): SketchLayer? {
+  if (currentLayer.objectId == objectId) {
+    return currentLayer
+  }
+
+  if (currentLayer is SketchLayerable) {
+    for (layer in (currentLayer as SketchLayerable).layers) {
+      val foundLayer = findLayer(objectId, layer)
+      if (foundLayer != null) {
+        return foundLayer
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Recursively search for the symbol with the corresponding `symbolId` starting at `currentLayer`.
+ *
+ * @return the found symbol or `null` if no layer was found
+ */
+private fun findSymbol(symbolId: String, currentLayer: SketchLayer): SketchSymbol? {
+  if (currentLayer is SketchSymbol) {
+    if (currentLayer.symbolId == symbolId) {
+      return currentLayer
+    }
+  }
+
+  if (currentLayer is SketchLayerable) {
+    for (layer in (currentLayer as SketchLayerable).layers) {
+      val foundSymbol = findSymbol(symbolId, layer)
+      if (foundSymbol != null) {
+        return foundSymbol
+      }
+    }
+  }
+
+  return null
 }

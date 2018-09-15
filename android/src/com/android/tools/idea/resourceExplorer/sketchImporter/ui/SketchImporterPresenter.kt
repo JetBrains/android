@@ -26,7 +26,6 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLi
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.ResourceFileGenerator
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.getResources
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument
@@ -37,6 +36,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.event.ItemEvent
@@ -101,16 +101,16 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
     designAssetImporter.importDesignAssets(drawables, facet)
 
     val colors = presenters.flatMap { presenter ->
-      presenter.resources.colorAssets ?: listOf<ColorAssetModel>()
-    }.toMutableList()
+      presenter.resources.colorAssets?.map { it.color to it.name } ?: listOf()
+    }
     generateSketchColorsFile(colors)
   }
 
-  private fun generateSketchColorsFile(colors: MutableList<ColorAssetModel>) {
+  private fun generateSketchColorsFile(colors: List<Pair<Color, String>>) {
     if (colors.isEmpty())
       return
 
-    val virtualFile = drawableFileGenerator.generateColorsFile(colors)
+    val virtualFile = drawableFileGenerator.generateColorsFile(colors.toMutableList())
     val resFolder = facet.mainSourceProvider.resDirectories.let { resDirs ->
       resDirs.firstOrNull { it.exists() }
       ?: resDirs.first().also { it.createNewFile() }

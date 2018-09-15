@@ -51,13 +51,12 @@ public abstract class ShapeModel {
   protected boolean myHasClippingMask;
   protected boolean myShouldBreakMaskChain;
   protected boolean myIsLastShape;
-  @NotNull private Shape myShape;
   @NotNull protected ResizingConstraint myResizingConstraint;
-
   @NotNull protected Point2D.Double myShapeFrameLocation;
   protected boolean myIsFlippedVertical;
   protected boolean myIsflippedhorizontal;
   protected int myRotationDegrees;
+  @NotNull private Shape myShape;
   @NotNull private Rectangle2D myShapeBounds;
 
   public ShapeModel(@NotNull Shape shape,

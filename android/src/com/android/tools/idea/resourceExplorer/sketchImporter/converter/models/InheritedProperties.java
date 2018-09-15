@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Class that holds properties that have to be inherited from the upper layers, such as {@link SketchShapeGroup} and
  * {@link SketchSymbolMaster}: translations, rotations, flipping, opacity and constraints.
- *
+ * <p>
  * As the engine goes down the JSON tree, translations, rotations and opacities are accumulated in this class in the
  * corresponding fields. Flipping is also recorded in this class, but instead of accumulating all the flipping,
  * they are being kept track of by performing the XOR operation between the previous and current flipping value. For example,

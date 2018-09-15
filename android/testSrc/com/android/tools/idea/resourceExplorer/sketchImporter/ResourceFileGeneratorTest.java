@@ -20,8 +20,6 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.ResourceFileGenerator;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
@@ -32,6 +30,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.testFramework.ProjectRule;
 import java.awt.Color;
 import java.util.ArrayList;
+import kotlin.Pair;
 import org.jetbrains.android.AndroidTestBase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,10 +53,10 @@ public class ResourceFileGeneratorTest {
 
   @Test
   public void createColorsFileTest() {
-    ArrayList<ColorAssetModel> colors = new ArrayList<>();
-    colors.add(new ColorAssetModel(true, "colorPrimary", new Color(255, 0, 0, 255), AssetModel.Origin.DOCUMENT));
-    colors.add(new ColorAssetModel(true, "colorPrimaryDark", new Color(0, 255, 0, 255), AssetModel.Origin.DOCUMENT));
-    colors.add(new ColorAssetModel(true, "colorAccent", new Color(0, 0, 255, 255), AssetModel.Origin.DOCUMENT));
+    ArrayList<Pair<Color, String>> colors = new ArrayList<>();
+    colors.add(new Pair<>(new Color(255, 0, 0, 255), "colorPrimary"));
+    colors.add(new Pair<>(new Color(0, 255, 0, 255), "colorPrimaryDark"));
+    colors.add(new Pair<>(new Color(0, 0, 255, 255), "colorAccent"));
 
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
     LightVirtualFile file = resourceFileGenerator.generateColorsFile(colors);
@@ -70,7 +69,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void addShapeTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_addShape.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
@@ -84,7 +83,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void shapeFillAndBorderTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeFillAndBorder.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
@@ -98,7 +97,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void shapeRotationTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeRotation.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
@@ -112,7 +111,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void fillGradientTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_fillGradient.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
@@ -126,7 +125,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void shapeMirroringTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_shapeMirroring.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
@@ -140,7 +139,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void clippingTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_clipping.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator drawableGenerator = new ResourceFileGenerator(projectRule.getProject());
@@ -154,7 +153,7 @@ public class ResourceFileGeneratorTest {
   @Test
   public void additiveTransparencyTest() {
     SketchPage sketchPage = SketchTestUtils.Companion.parsePage(getTestFilePath("/sketch/vectordrawable_additiveTransparency.json"));
-    SketchArtboard artboard = sketchPage.getArtboards().get(0);
+    SketchArtboard artboard = SketchFile.getArtboards(sketchPage).get(0);
     DrawableAssetModel drawableAsset = SketchToStudioConverter.createDrawableAsset(artboard, new SketchLibrary());
 
     ResourceFileGenerator drawableGenerator = new ResourceFileGenerator(projectRule.getProject());

@@ -21,16 +21,6 @@ import com.android.tools.layoutlib.annotations.NotNull;
  * Interface that offers ways to access/change options or characteristics which are common between different types of assets.
  **/
 public interface AssetModel {
-  enum Origin {
-    ARTBOARD,  // drawable obtained from an artboard
-    SYMBOL,    // drawable obtained from a symbol
-    SLICE,     // drawable obtained from a slice
-    SHAPE,     // color obtained from a shape with solid fill
-    DOCUMENT,  // color defined in the document
-    SHARED,    // drawable from a shared symbol / color from a shared style
-    EXTERNAL   // drawable from an external symbol / color from an external style
-  }
-
   boolean isExportable();
 
   @NotNull
@@ -40,4 +30,14 @@ public interface AssetModel {
 
   @NotNull
   Origin getOrigin();
+
+  enum Origin {
+    ARTBOARD,  // drawable obtained from an artboard
+    SYMBOL,    // drawable obtained from a symbol
+    SLICE,     // drawable obtained from a slice
+    SHAPE,     // color obtained from a shape with solid fill
+    DOCUMENT,  // color defined in the document
+    SHARED,    // drawable from a shared symbol / color from a shared style
+    EXTERNAL   // drawable from an external symbol / color from an external style
+  }
 }
