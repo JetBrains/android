@@ -152,10 +152,7 @@ public class InstantApps {
 
   @NotNull
   public static File getInstantAppSdk() throws FileNotFoundException {
-    File sdk = InstantAppSdks.getInstance().getInstantAppSdk(true);
-    if (sdk == null) {
-      throw new FileNotFoundException("Instant App SDK couldn't be found.");
-    }
+    File sdk = InstantAppSdks.getInstance().getOrInstallInstantAppSdk();
 
     return sdk;
   }

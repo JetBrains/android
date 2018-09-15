@@ -263,10 +263,6 @@ public final class StudioFlags {
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     true);
-  public static final Flag<Boolean> RUNDEBUG_USE_AIA_SDK_LIBRARY = Flag.create(
-    RUNDEBUG, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
-    "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
-    true);
 
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
