@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
 import com.google.common.collect.ImmutableList;
 import java.awt.Rectangle;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,7 +39,7 @@ public class DrawableAssetModel implements AssetModel {
                             @NotNull Origin origin) {
     myShapeModels = shapeModels;
     myExportable = exportable;
-    myName = name;
+    myName = name.replaceAll("[ :\\\\/*\"?|<>%.']", "_").toLowerCase(Locale.ENGLISH);  // TODO use a different sanitizer
     myArtboardDimension = artboardDimension;
     myViewportDimension = viewportDimension;
     myOrigin = origin;

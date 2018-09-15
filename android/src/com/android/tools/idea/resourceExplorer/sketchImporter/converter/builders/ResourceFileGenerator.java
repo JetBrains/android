@@ -34,8 +34,8 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DrawableFileGenerator {
-  public static final Logger LOG = Logger.getInstance(DrawableFileGenerator.class);
+public class ResourceFileGenerator {
+  public static final Logger LOG = Logger.getInstance(ResourceFileGenerator.class);
 
   private static final String ATTRIBUTE_AAPT = SdkConstants.XMLNS_PREFIX + SdkConstants.AAPT_PREFIX;
   private static final String ATTRIBUTE_HEIGHT = SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_HEIGHT;
@@ -74,7 +74,7 @@ public class DrawableFileGenerator {
 
   @NotNull private Project myProject;
 
-  public DrawableFileGenerator(@NotNull Project project) {
+  public ResourceFileGenerator(@NotNull Project project) {
     myProject = project;
   }
 
@@ -131,7 +131,7 @@ public class DrawableFileGenerator {
     colorTag.setAttribute(SdkConstants.ATTR_NAME, colorModel.getName());
 
     XmlTagValueImpl colorTagValue = new XmlTagValueImpl(XmlTagChild.EMPTY_ARRAY, colorTag);
-    colorTagValue.setText(Integer.toHexString(colorModel.getColor().getRGB()));
+    colorTagValue.setText(colorToHex(colorModel.getColor().getRGB()));
 
     parentTag.addSubTag(colorTag, false);
   }
@@ -284,6 +284,6 @@ public class DrawableFileGenerator {
 
   @NotNull
   private static String colorToHex(int rgb) {
-    return "#" + String.format("%08x", rgb);
+    return "#" + String.format("%08X", rgb);
   }
 }
