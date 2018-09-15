@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.model.java;
 
 import com.android.java.model.JavaLibrary;
+import com.android.java.model.LibraryVersion;
+import java.io.Serializable;
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +36,40 @@ public class NewJarLibraryDependencyFactory {
     }
     boolean resolved = JarLibraryDependency.isResolved(binaryPath.getName());
     String name = JarLibraryDependency.getDependencyName(binaryPath, resolved);
-    return new JarLibraryDependency(name, binaryPath, original.getSource(), original.getJavadoc(), scope,
-                                    null, resolved);
+    GradleModuleVersionImpl version = null;
+    if (resolved && original.getLibraryVersion() != null) {
+      version = new GradleModuleVersionImpl(original.getLibraryVersion());
+    }
+    return new JarLibraryDependency(name, binaryPath, original.getSource(), original.getJavadoc(), scope, version, resolved);
+  }
+
+  private static class GradleModuleVersionImpl implements GradleModuleVersion, Serializable {
+    @NotNull private final String myGroup;
+    @NotNull private final String myName;
+    @NotNull private final String myVersion;
+
+    GradleModuleVersionImpl(@NotNull LibraryVersion version) {
+      myGroup = version.getGroup();
+      myName = version.getName();
+      myVersion = version.getVersion();
+    }
+
+    @Override
+    @NotNull
+    public String getGroup() {
+      return myGroup;
+    }
+
+    @Override
+    @NotNull
+    public String getName() {
+      return myName;
+    }
+
+    @Override
+    @NotNull
+    public String getVersion() {
+      return myVersion;
+    }
   }
 }
