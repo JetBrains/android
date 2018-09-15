@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui;
 
+import static com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer.ARTBOARD_CLASS_TYPE;
+
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary;
-import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SymbolsLibrary;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchForeignSymbol;
@@ -24,8 +25,8 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.Sk
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchSharedSymbol;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchSymbol;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.meta.SketchMeta;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
@@ -33,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Class to hold the contents of a .sketch file, which is actually a zip archive with the following structure as per the
@@ -97,8 +97,22 @@ public class SketchFile {
     return masters.build();
   }
 
+
   @NotNull
-  private static ImmutableList<SketchSymbolMaster> getAllSymbolMasters(@NotNull SketchPage page) {
+  public static ImmutableList<SketchArtboard> getArtboards(@NotNull SketchPage page) {
+    ImmutableList.Builder<SketchArtboard> artboards = new ImmutableList.Builder<>();
+
+    for (SketchLayer layer : page.getLayers()) {
+      if (layer.getClassType().equals(ARTBOARD_CLASS_TYPE)) {
+        artboards.add((SketchArtboard)layer);
+      }
+    }
+
+    return artboards.build();
+  }
+
+  @NotNull
+  public static ImmutableList<SketchSymbolMaster> getAllSymbolMasters(@NotNull SketchPage page) {
     ImmutableList.Builder<SketchSymbolMaster> masters = new ImmutableList.Builder<>();
     for (SketchLayer layer : page.getLayers()) {
       masters.addAll(getSymbolMasters(layer));
@@ -147,90 +161,8 @@ public class SketchFile {
     myMeta = meta;
   }
 
-  /**
-   * Recursively search through all pages in the file for the layer with the corresponding {@code objectId}.
-   *
-   * @return the found layer or {@code null} if no layer was found
-   */
-  @Nullable
-  public SketchLayer findLayer(@NotNull String objectId) {
-    for (SketchPage page : myPages) {
-      SketchLayer foundLayer = findLayer(objectId, page);
-      if (foundLayer != null) {
-        return foundLayer;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Recursively search through all pages in the file for the symbol with the corresponding {@code symbolId}.
-   *
-   * @return the found symbol or {@code null} if no layer was found
-   */
-  @Nullable
-  public SketchSymbol findSymbol(@NotNull String symbolId) {
-    for (SketchPage page : myPages) {
-      SketchSymbol foundSymbol = findSymbol(symbolId, page);
-      if (foundSymbol != null) {
-        return foundSymbol;
-      }
-    }
-
-    return null;
-  }
-
   @NotNull
   public SketchLibrary getLibrary() {
     return myLibrary;
-  }
-
-  /**
-   * Recursively search for the layer with the corresponding {@code objectId} starting at {@code currentLayer}.
-   *
-   * @return the found layer or {@code null} if no layer was found
-   */
-  @Nullable
-  private static SketchLayer findLayer(@NotNull String objectId, @NotNull SketchLayer currentLayer) {
-    if (currentLayer.getObjectId().equals(objectId)) {
-      return currentLayer;
-    }
-
-    if (currentLayer instanceof SketchLayerable) {
-      for (SketchLayer layer : ((SketchLayerable)currentLayer).getLayers()) {
-        SketchLayer foundLayer = findLayer(objectId, layer);
-        if (foundLayer != null) {
-          return foundLayer;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Recursively search for the symbol with the corresponding {@code symbolId} starting at {@code currentLayer}.
-   *
-   * @return the found symbol or {@code null} if no layer was found
-   */
-  @Nullable
-  private static SketchSymbol findSymbol(@NotNull String symbolId, @NotNull SketchLayer currentLayer) {
-    if (currentLayer instanceof SketchSymbol) {
-      if (((SketchSymbol)currentLayer).getSymbolId().equals(symbolId)) {
-        return (SketchSymbol)currentLayer;
-      }
-    }
-
-    if (currentLayer instanceof SketchLayerable) {
-      for (SketchLayer layer : ((SketchLayerable)currentLayer).getLayers()) {
-        SketchSymbol foundSymbol = findSymbol(symbolId, layer);
-        if (foundSymbol != null) {
-          return foundSymbol;
-        }
-      }
-    }
-
-    return null;
   }
 }

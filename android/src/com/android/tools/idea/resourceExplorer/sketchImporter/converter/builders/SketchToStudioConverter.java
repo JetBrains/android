@@ -54,13 +54,14 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile;
+import com.android.tools.layoutlib.annotations.NotNull;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -73,11 +74,15 @@ public class SketchToStudioConverter {
   public static StudioResourcesModel getResources(@NotNull SketchPage sketchPage, @NotNull SketchLibrary library) {
     ImmutableList.Builder<DrawableAssetModel> listBuilder = new ImmutableList.Builder<>();
 
-    for (SketchArtboard artboard : sketchPage.getArtboards()) {
+    for (SketchArtboard artboard : SketchFile.getArtboards(sketchPage)) {
       listBuilder.add(createDrawableAsset(artboard, library));
     }
 
-    // TODO get colors from solid fill shapes & drawables from symbol masters
+    for (SketchSymbolMaster symbolMaster : SketchFile.getAllSymbolMasters(sketchPage)) {
+      listBuilder.add(createDrawableAsset(symbolMaster, library, AssetModel.Origin.SYMBOL));
+    }
+
+    // TODO get colors from solid fill shapes & drawables from slices
     return new StudioResourcesModel(listBuilder.build(), ImmutableList.of());
   }
 
@@ -202,7 +207,7 @@ public class SketchToStudioConverter {
   @Nullable
   private static SymbolModel getSymbolModel(@NotNull String symbolId, @NotNull SketchLibrary library) {
     SketchSymbolMaster symbolMaster = library.getSymbol(symbolId);
-    if(symbolMaster == null){
+    if (symbolMaster == null) {
       return null;
     }
     ImmutableList<ShapeModel> shapeModels = createShapeModelsFromLayerable(symbolMaster, new InheritedProperties(), library);

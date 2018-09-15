@@ -30,7 +30,9 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagChild;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.ThrowableRunnable;
+import java.awt.Color;
 import java.util.List;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,12 +128,12 @@ public class ResourceFileGenerator {
     parentTag.addSubTag(pathTag, false);
   }
 
-  private void addColor(@NotNull ColorAssetModel colorModel, @NotNull XmlTag parentTag) {
+  private void addColor(@NotNull Pair<Color, String> colorToName, @NotNull XmlTag parentTag) {
     XmlTag colorTag = createXmlTag(TAG_COLOR);
-    colorTag.setAttribute(SdkConstants.ATTR_NAME, colorModel.getName());
+    colorTag.setAttribute(SdkConstants.ATTR_NAME, colorToName.getSecond());
 
     XmlTagValueImpl colorTagValue = new XmlTagValueImpl(XmlTagChild.EMPTY_ARRAY, colorTag);
-    colorTagValue.setText(colorToHex(colorModel.getColor().getRGB()));
+    colorTagValue.setText(colorToHex(colorToName.getFirst().getRGB()));
 
     parentTag.addSubTag(colorTag, false);
   }
@@ -260,15 +262,15 @@ public class ResourceFileGenerator {
   }
 
   @NotNull
-  public LightVirtualFile generateColorsFile(@NotNull List<ColorAssetModel> colorList) {
+  public LightVirtualFile generateColorsFile(@NotNull List<Pair<Color, String>> colorToNameList) {
     LightVirtualFile virtualFile = new LightVirtualFile("sketch_colors.xml");
 
     try {
       WriteAction.runAndWait((ThrowableRunnable<Throwable>)() -> {
         XmlTag resourcesTag = createXmlTag(TAG_RESOURCES);
-        if (!colorList.isEmpty()) {
-          for (ColorAssetModel colorAssetModel : colorList) {
-            addColor(colorAssetModel, resourcesTag);
+        if (!colorToNameList.isEmpty()) {
+          for (Pair<Color, String> colorToName : colorToNameList) {
+            addColor(colorToName, resourcesTag);
           }
         }
 

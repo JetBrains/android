@@ -22,6 +22,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLi
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage;
+import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -155,7 +156,7 @@ public class PathsTest {
     SketchPage sketchPage = SketchTestUtils.Companion
       .parsePage(AndroidTestBase.getTestDataPath() + "/sketch/" + "paths_combinationsMultipleArtboards.json");
 
-    List<SketchArtboard> artboards = sketchPage.getArtboards();
+    List<SketchArtboard> artboards = SketchFile.getArtboards(sketchPage);
     List<ShapeModel> firstArtboardShapes = createDrawableAsset(artboards.get(0), new SketchLibrary()).getShapeModels();
 
     assertEquals(
@@ -188,7 +189,7 @@ public class PathsTest {
   }
 
   public List<String> getFirstArtboardPaths(SketchPage sketchPage) {
-    List<SketchArtboard> artboards = sketchPage.getArtboards();
+    List<SketchArtboard> artboards = SketchFile.getArtboards(sketchPage);
     if (!artboards.isEmpty()) {
       return createDrawableAsset(artboards.get(0), new SketchLibrary()).getShapeModels()
                                                                         .stream()
