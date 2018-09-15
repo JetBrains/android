@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.instantapp;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.instantapp.sdk.Metadata;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.android.utils.NullLogger;
 import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager;
 import com.google.common.collect.ImmutableList;
@@ -33,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
+import java.net.MalformedURLException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +50,7 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
  */
 public class InstantAppSdks {
   @NotNull private static final String INSTANT_APP_SDK_PATH = FD_EXTRAS + ";google;instantapps";
-  private static final String SDK_LIB_JAR_PATH = "tools/ia.jar";
+  private static final String SDK_LIB_JAR_PATH = "tools/lib.jar";
 
   private Sdk cachedSdkLib = null;
 
@@ -59,14 +59,18 @@ public class InstantAppSdks {
     return ServiceManager.getService(InstantAppSdks.class);
   }
 
-  @Nullable
-  public File getInstantAppSdk(boolean tryToInstall) {
+  /**
+   * Attempts to load the Google Play Instant SDK.
+   *
+   * If the SDK is missing, it will trigger an install. Failing that, it will throw an exception.
+   */
+  @NotNull
+  public File getOrInstallInstantAppSdk() {
     LocalPackage localPackage = getInstantAppLocalPackage();
-    if (localPackage == null && tryToInstall) {
-      installSdkIfNeeded();
-      localPackage = getInstantAppLocalPackage();
+    if (localPackage == null) {
+      return ensureSdkInstalled().getLocation();
     }
-    return localPackage == null ? null : localPackage.getLocation();
+    return localPackage.getLocation();
   }
 
   @Nullable
@@ -75,10 +79,30 @@ public class InstantAppSdks {
     return androidSdkHandler.getLocalPackage(INSTANT_APP_SDK_PATH, new StudioLoggerProgressIndicator(InstantAppSdks.class));
   }
 
-  private static void installSdkIfNeeded() {
+  private static @NotNull LocalPackage ensureSdkInstalled() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       int result = Messages.showYesNoDialog(
-        "Required Instant App SDK components not installed. Do you want to install it now?", "Instant Apps", null);
+        "Required Google Play Instant SDK not installed. Do you want to install it now?", "Google Play Instant", null);
+      if (result == Messages.OK) {
+        ModelWizardDialog dialog = createDialogForPaths(null, ImmutableList.of(INSTANT_APP_SDK_PATH));
+        if (dialog != null) {
+          dialog.show();
+        }
+      }
+    });
+
+    LocalPackage localPackage = getInstantAppLocalPackage();
+    if (localPackage == null) {
+      throw new LoadInstantAppSdkException("Could not load the Google Play Instant SDK");
+    } else {
+      return localPackage;
+    }
+  }
+
+  private static void updateSdk() {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      int result = Messages.showYesNoDialog(
+        "Required Google Play Instant SDK must be updated to run this task. Do you want to update it now?", "Google Play Instant", null);
       if (result == Messages.OK) {
         ModelWizardDialog dialog = createDialogForPaths(null, ImmutableList.of(INSTANT_APP_SDK_PATH));
         if (dialog != null) {
@@ -98,9 +122,9 @@ public class InstantAppSdks {
 
   public long getCompatApiMinVersion() {
     try {
-      File iappSdk = getInstantAppSdk(false);
-      if (iappSdk != null) {
-        return Metadata.getInstance(iappSdk).getAiaCompatApiMinVersion();
+      LocalPackage localPackage = getInstantAppLocalPackage();
+      if (localPackage != null) {
+        return Metadata.getInstance(localPackage.getLocation()).getAiaCompatApiMinVersion();
       }
     }
     catch (InstantAppSdkException ex) {
@@ -111,25 +135,35 @@ public class InstantAppSdks {
 
 
   public boolean shouldUseSdkLibraryToRun() {
-    return StudioFlags.RUNDEBUG_USE_AIA_SDK_LIBRARY.get() && loadLibrary() != null;
+    return true;
   }
 
   /**
    * Attempts to dynamically load the Instant Apps SDK library used to provision devices and run
    * apps. Returns null if it could not be loaded.
    */
-  @Nullable
+  @NotNull
   public Sdk loadLibrary() {
+    return loadLibrary(true);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  Sdk loadLibrary(boolean attemptUpgrades) {
     if (cachedSdkLib == null) {
       try {
-        File sdkRoot = getInstantAppSdk(/* tryToInstall= */ false); // TODO(tdeck): Consider setting to true and updating UI tests
-        if (sdkRoot == null) {
-          return null;
-        }
+        File sdkRoot = getOrInstallInstantAppSdk();
 
         File jar = sdkRoot.toPath().resolve(SDK_LIB_JAR_PATH).toFile();
+
         if (!jar.exists()) {
-          return null;
+          // This SDK is too old and is lacking the library JAR
+          if (attemptUpgrades) {
+            updateSdk();
+            return loadLibrary(false);
+          } else {
+            throw new LoadInstantAppSdkException("Could not load required version of the Google Play Instant SDK");
+          }
         }
 
         // Note that this needs to use a ClassLoader that will provide a source location for
@@ -143,8 +177,8 @@ public class InstantAppSdks {
         cachedSdkLib.getTelemetryManager()
           .setAppProperties(TelemetryManager.HostApplication.ANDROID_STUDIO, ApplicationInfo.getInstance().getFullVersion());
       }
-      catch (Exception e) {
-        getLogger().error(new LoadInstantAppSdkException(e));
+      catch (MalformedURLException e) {
+        throw new LoadInstantAppSdkException(e);
       }
     }
 
@@ -160,9 +194,14 @@ public class InstantAppSdks {
     return Logger.getInstance(InstantApps.class);
   }
 
-  private static class LoadInstantAppSdkException extends Exception {
-    private LoadInstantAppSdkException(@NotNull Throwable t) {
-      super(t);
+  public static class LoadInstantAppSdkException extends RuntimeException {
+    @VisibleForTesting
+    public LoadInstantAppSdkException(@NotNull String message) {
+      super(message);
     }
+
+    private LoadInstantAppSdkException(@NotNull Throwable cause) {
+      super(cause);
+      }
   }
 }

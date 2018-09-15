@@ -252,38 +252,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     assertTrue(myProjectStructure.analyzed);
   }
 
-  public void testProvisionBeforeRunTaskIsAdded() {
-    // Set module as instant app project
-    AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
-    AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
-    androidFacet.getConfiguration().setModel(moduleModel);
-    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
-    when(androidProject.getProjectType()).thenReturn(PROJECT_TYPE_INSTANTAPP);
-    when(moduleModel.getAndroidProject()).thenReturn(androidProject);
-
-    // Create android run configurations
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    AndroidRunConfiguration androidRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
-    androidRunConfiguration.setName("androidRunConfiguration");
-    AndroidRunConfiguration androidRunConfiguration2 = new AndroidRunConfiguration(getProject(), configurationFactory);
-    androidRunConfiguration2.setName("androidRunConfiguration2");
-    myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration, configurationFactory), true);
-    myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration2, configurationFactory), true);
-
-    // Provision before run task is created automatically when run configurations are created
-    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration, ProvisionBeforeRunTaskProvider.ID));
-    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
-
-    // Reset only in one of the configurations (e.g. open old projects with run configs already created)
-    myRunManager.setBeforeRunTasks(androidRunConfiguration, Lists.newArrayList());
-
-    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
-
-    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration, ProvisionBeforeRunTaskProvider.ID));
-    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
-  }
-
   private static class ProjectStructureStub extends ProjectStructure {
     AndroidPluginVersionsInProject agpVersionsFromPreviousSync = new AndroidPluginVersionsInProject();
     AndroidPluginVersionsInProject currentAgpVersions = new AndroidPluginVersionsInProject();
