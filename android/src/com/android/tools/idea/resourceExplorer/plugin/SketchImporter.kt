@@ -26,17 +26,19 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogBuilder
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.io.FileUtil
 import org.apache.commons.io.FilenameUtils
 import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 
-
-private val supportedFileTypes = setOf("sketch")
-private const val oldestSupportedSketchVersion = 50.0
-private const val invalidSketchFileId = "Invalid Sketch file"
+private val SUPPORTED_FILE_TYPES = setOf("sketch")
+private const val OLDEST_SUPPORTED_SKETCH_VERSION = 50.0
+private const val INVALID_SKETCH_FILE_ID = "Invalid Sketch file"
+private const val IMPORT_ALL_OPTION = "Import all"
+private const val IMPORT_SELECTED_OPTION = "Import selected"
+private const val CANCEL_OPTION = "Cancel"
+val DIALOG_OPTIONS = arrayOf(IMPORT_ALL_OPTION, IMPORT_SELECTED_OPTION, CANCEL_OPTION)
 
 /**
  * [ResourceImporter] for Sketch files
@@ -48,13 +50,13 @@ class SketchImporter : ResourceImporter {
     val sketchFilePath = getFilePath(facet.module.project)
     if (sketchFilePath != null) {
       val sketchFile = SketchParser.read(sketchFilePath)
-      if (sketchFile == null || sketchFile.meta.appVersion < oldestSupportedSketchVersion) {
+      if (sketchFile == null || sketchFile.meta.appVersion < OLDEST_SUPPORTED_SKETCH_VERSION) {
         showInvalidSketchFileNotification(sketchFilePath, sketchFile?.meta?.appVersion, facet.module.project)
       }
       else {
         val view = SketchImporterView()
         view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet)
-        showImportDialog(facet.module.project, view)
+        showImportDialog(view)
       }
     }
 
@@ -65,22 +67,19 @@ class SketchImporter : ResourceImporter {
   /**
    * Create a dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
    */
-  private fun showImportDialog(project: Project,
-                               view: SketchImporterView) {
-    DialogBuilder(project).apply {
-      setCenterPanel(view)
-      addDisposable(view)
-      setOkOperation {
-        view.presenter.importFilesIntoProject()
-        dialogWrapper.close(DialogWrapper.OK_EXIT_CODE)
-      }
-      setTitle(IMPORT_DIALOG_TITLE)
-    }.showModal(true)
+  private fun showImportDialog(view: SketchImporterView) {
+    val option = JOptionPane.showOptionDialog(null, view, IMPORT_DIALOG_TITLE, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                                              null, DIALOG_OPTIONS, DIALOG_OPTIONS[0])
+
+    when (option) {
+      0 -> view.presenter.importAllFilesIntoProject()
+      1 -> view.presenter.importFilesIntoProject()
+    }
   }
 
   override fun userCanEditQualifiers() = true
 
-  override fun getSupportedFileTypes() = supportedFileTypes
+  override fun getSupportedFileTypes() = SUPPORTED_FILE_TYPES
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
@@ -93,7 +92,7 @@ class SketchImporter : ResourceImporter {
    * @return filePath or null if user cancels the operation
    */
   private fun getFilePath(project: Project): String? {
-    val fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(supportedFileTypes.first())
+    val fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(SUPPORTED_FILE_TYPES.first())
     val files = FileChooser.chooseFiles(fileDescriptor, project, null)
     if (files.isEmpty()) return null
     return FileUtil.toSystemDependentName(files[0].path)
@@ -116,7 +115,7 @@ class SketchImporter : ResourceImporter {
     val notificationContent = "$generalInfo<br/>$versionInfo"
     val notificationTitle = "Invalid sketch file"
 
-    Notification(invalidSketchFileId, null, notificationTitle, fileName, notificationContent, NotificationType.ERROR, null)
+    Notification(INVALID_SKETCH_FILE_ID, null, notificationTitle, fileName, notificationContent, NotificationType.ERROR, null)
       .notify(project)
   }
 }
