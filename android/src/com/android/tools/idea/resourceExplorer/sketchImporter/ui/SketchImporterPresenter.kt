@@ -26,6 +26,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLi
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.ResourceFileGenerator
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.getResources
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.AssetModel
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ColorAssetModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.DrawableAssetModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument
@@ -41,9 +42,8 @@ import java.awt.Dimension
 import java.awt.Image
 import java.awt.event.ItemEvent
 
-private fun List<LightVirtualFile>.toAssets() = this.map {
-  DesignAssetSet(it.name, listOf(DesignAsset(it, emptyList(), ResourceType.DRAWABLE)))
-}
+private fun LightVirtualFile.toAsset(name: String) = DesignAssetSet(name, listOf(
+  DesignAsset(this, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE)))
 
 private const val DEFAULT_IMPORT_ALL = true
 private const val valuesFolder = "values"
@@ -87,21 +87,31 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
   }
 
   /**
-   * Add exportable files to the project.
+   * Add selected resources to the project.
    */
   fun importFilesIntoProject() {
     val drawables = presenters.flatMap { presenter ->
-      presenter.getExportableFiles().map { file ->
-        // TODO change to only add selected files rather than all exportable files
-        file to (presenter.getAsset(file)?.name ?: file.nameWithoutExtension)
-      }
-    }.map { (file, name) ->
-      DesignAssetSet(name, listOf(DesignAsset(file, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE, name)))
+      presenter.getSelectedDrawables()
     }
     designAssetImporter.importDesignAssets(drawables, facet)
 
     val colors = presenters.flatMap { presenter ->
-      presenter.resources.colorAssets?.map { it.color to it.name } ?: listOf()
+      presenter.getSelectedColors()
+    }
+    generateSketchColorsFile(colors)
+  }
+
+  /**
+   * Add all displayed resources to the project.
+   */
+  fun importAllFilesIntoProject() {
+    val drawables = presenters.flatMap { presenter ->
+      presenter.getDisplayableDrawables()
+    }
+    designAssetImporter.importDesignAssets(drawables, facet)
+
+    val colors = presenters.flatMap { presenter ->
+      presenter.getDisplayableColors()
     }
     generateSketchColorsFile(colors)
   }
@@ -146,11 +156,13 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
 }
 
 abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
+  lateinit var view: ChildView
   var importAll = DEFAULT_IMPORT_ALL
   private val drawableFileGenerator = ResourceFileGenerator(
     facet.module.project)
   abstract val resources: StudioResourcesModel
-  protected abstract val filesToAssets: Map<LightVirtualFile, DrawableAssetModel>
+  protected abstract val filesToDrawableAssets: Map<DesignAssetSet, DrawableAssetModel>
+  protected abstract val colorsToColorAssets: Map<Pair<Color, String>, ColorAssetModel>
   private val rendererManager = DesignAssetRendererManager.getInstance()
 
   fun fetchImage(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
@@ -164,43 +176,59 @@ abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
   abstract fun populateView()
 
   /**
-   * @return a mapping from [LightVirtualFile] assets to [DrawableAssetModel] based on the content in the [StudioResourcesModel].
+   * @return a mapping from [DesignAssetSet] assets to [DrawableAssetModel] based on the content in the [StudioResourcesModel].
    */
-  protected fun generateDrawableFiles(): Map<LightVirtualFile, DrawableAssetModel> {
-    return resources.drawableAssets?.associate {
-      drawableFileGenerator.generateDrawableFile(it) to it
-    } ?: emptyMap()
-  }
+  protected fun generateDrawableFiles() = resources.drawableAssets?.associate {
+    drawableFileGenerator.generateDrawableFile(it).toAsset(it.name) to it
+  } ?: emptyMap()
 
   /**
    * Filter only the files that are exportable (unless the importAll marker is set).
    */
-  fun getExportableFiles(): List<LightVirtualFile> {
-    val files = filesToAssets.keys
-    return if (importAll) files.toList() else files.filter { filesToAssets[it]?.isExportable ?: false }
+  fun getDisplayableDrawables(): List<DesignAssetSet> {
+    val files = filesToDrawableAssets.keys
+    return if (importAll) files.toList() else files.filter { filesToDrawableAssets[it]?.isExportable ?: false }
   }
 
-  protected fun generateColorsList() = resources.colorAssets?.map {
-    it.color to it.name
-  } ?: emptyList()
+  fun getSelectedDrawables(): List<DesignAssetSet> {
+    return view.getSelectedDrawables()
+  }
 
   /**
-   * Get options associated with a file.
+   * @return a mapping from [Pair]<[Color], [String]> assets to [ColorAssetModel] based on the content in the [StudioResourcesModel].
    */
-  fun getAsset(file: LightVirtualFile): AssetModel? = filesToAssets[file]
+  protected fun generateColorPairs() = resources.colorAssets?.associate {
+    (it.color to it.name) to it
+  } ?: emptyMap()
+
+  /**
+   * Filter only the colors that are exportable (unless the importAll marker is set).
+   */
+  fun getDisplayableColors(): List<Pair<Color, String>> {
+    val colors = colorsToColorAssets.keys
+    return if (importAll) colors.toList() else colors.filter { colorsToColorAssets[it]?.isExportable ?: false }
+  }
+
+  fun getSelectedColors(): List<Pair<Color, String>> {
+    return view.getSelectedColors()
+  }
+
+  /**
+   * Get options associated with an asset.
+   */
+  fun getAsset(file: DesignAssetSet): AssetModel? = filesToDrawableAssets[file]
 }
 
 class PagePresenter(private val sketchPage: SketchPage,
                     facet: AndroidFacet,
                     library: SketchLibrary
 ) : ResourcesPresenter(facet) {
-
-  lateinit var view: PageView
   override val resources: StudioResourcesModel = getResources(sketchPage, library)
-  override var filesToAssets = generateDrawableFiles()
+  override var filesToDrawableAssets = generateDrawableFiles()
+  override val colorsToColorAssets = generateColorPairs()
 
   override fun populateView() {
-    view.refresh(sketchPage.name, getExportableFiles().toAssets(), generateColorsList())
+    (view as PageView).refresh(sketchPage.name, getDisplayableDrawables(), getDisplayableColors())
   }
 }
 
@@ -208,12 +236,11 @@ class DocumentPresenter(sketchDocument: SketchDocument,
                         facet: AndroidFacet,
                         library: SketchLibrary
 ) : ResourcesPresenter(facet) {
-
-  lateinit var view: DocumentView
   override val resources: StudioResourcesModel = getResources(sketchDocument, library)
-  override var filesToAssets = generateDrawableFiles()
+  override var filesToDrawableAssets = generateDrawableFiles()
+  override val colorsToColorAssets = generateColorPairs()
 
   override fun populateView() {
-    view.refresh(getExportableFiles().toAssets(), generateColorsList())
+    (view as DocumentView).refresh(getDisplayableDrawables(), getDisplayableColors())
   }
 }

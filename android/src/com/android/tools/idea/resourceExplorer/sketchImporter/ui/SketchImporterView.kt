@@ -115,8 +115,22 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
   }
 }
 
-class PageView(private val drawableResourceCellRenderer: DrawableResourceCellRenderer,
-               private val colorAssetCellRenderer: ColorAssetCellRenderer) : JPanel(BorderLayout()) {
+open class ChildView(protected val drawableResourceCellRenderer: DrawableResourceCellRenderer,
+                     protected val colorAssetCellRenderer: ColorAssetCellRenderer) : JPanel(BorderLayout()) {
+  protected var resourcesView = ResourcesView(emptyList(), emptyList(), drawableResourceCellRenderer, colorAssetCellRenderer)
+
+  fun getSelectedDrawables(): List<DesignAssetSet> {
+    return resourcesView.drawables?.selectedValuesList?.map { it as DesignAssetSet } ?: listOf()
+  }
+
+  fun getSelectedColors(): List<Pair<Color, String>> {
+    return resourcesView.colors?.selectedValuesList?.map { it as Pair<Color, String> } ?: listOf()
+  }
+}
+
+class PageView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
+               colorAssetCellRenderer: ColorAssetCellRenderer
+) : ChildView(drawableResourceCellRenderer, colorAssetCellRenderer) {
   /**
    * Create/refresh the preview panel associated with the page.
    */
@@ -125,7 +139,8 @@ class PageView(private val drawableResourceCellRenderer: DrawableResourceCellRen
               colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(pageName), BorderLayout.NORTH)
-    add(ResourcesView(drawableAssets, colorAssets, drawableResourceCellRenderer, colorAssetCellRenderer).tabbedPane)
+    resourcesView = ResourcesView(drawableAssets, colorAssets, drawableResourceCellRenderer, colorAssetCellRenderer)
+    add(resourcesView)
     revalidate()
     repaint()
   }
@@ -134,8 +149,9 @@ class PageView(private val drawableResourceCellRenderer: DrawableResourceCellRen
 /**
  * The document view is currently just like a page called "Document", but it is created separately so it can be changed easily in the future.
  */
-class DocumentView(private val drawableResourceCellRenderer: DrawableResourceCellRenderer,
-                   private val colorAssetCellRenderer: ColorAssetCellRenderer) : JPanel(BorderLayout()) {
+class DocumentView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
+                   colorAssetCellRenderer: ColorAssetCellRenderer
+) : ChildView(drawableResourceCellRenderer, colorAssetCellRenderer) {
   /**
    * Create/refresh the preview panel associated with the document.
    */
@@ -143,7 +159,8 @@ class DocumentView(private val drawableResourceCellRenderer: DrawableResourceCel
               colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(DOCUMENT_HEADER), BorderLayout.NORTH)
-    add(ResourcesView(drawableAssets, colorAssets, drawableResourceCellRenderer, colorAssetCellRenderer).tabbedPane)
+    resourcesView = ResourcesView(drawableAssets, colorAssets, drawableResourceCellRenderer, colorAssetCellRenderer)
+    add(resourcesView)
     revalidate()
     repaint()
   }
@@ -161,15 +178,15 @@ private fun createHeader(pageName: String): JComponent {
   }
 }
 
-private class ResourcesView(drawableAssets: List<DesignAssetSet>,
-                            colorAssets: List<Pair<Color, String>>,
-                            drawableResourceCellRenderer: DrawableResourceCellRenderer,
-                            colorResourceCellRenderer: ColorAssetCellRenderer
-) {
+class ResourcesView(drawableAssets: List<DesignAssetSet>,
+                    colorAssets: List<Pair<Color, String>>,
+                    drawableResourceCellRenderer: DrawableResourceCellRenderer,
+                    colorResourceCellRenderer: ColorAssetCellRenderer
+) : JTabbedPane(JTabbedPane.NORTH) {
   val drawables = createDrawablesPreviewsList(drawableAssets, drawableResourceCellRenderer)
   val colors = createColorsPreviewsList(colorAssets, colorResourceCellRenderer)
 
-  val tabbedPane = JTabbedPane(JTabbedPane.NORTH).apply {
+  init {
     tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
     addTab(ResourceType.DRAWABLE.displayName, createAssetList(drawables))
     addTab(ResourceType.COLOR.displayName, createAssetList(colors))
