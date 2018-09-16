@@ -1352,6 +1352,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GenericErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMIPS64elLinuxAndroidMissingHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
