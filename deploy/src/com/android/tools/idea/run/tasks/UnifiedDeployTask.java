@@ -17,6 +17,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.deploy.swapper.SQLiteDexArchiveDatabase;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deploy.swapper.DexArchiveDatabase;
 import com.android.tools.deploy.swapper.InMemoryDexArchiveDatabase;
@@ -27,6 +28,7 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.PathManager;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -44,7 +46,8 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
   private final Collection<ApkInfo> myApks;
 
   // TODO: Move this to an an application component.
-  private static DexArchiveDatabase myDb = new InMemoryDexArchiveDatabase();
+  private static DexArchiveDatabase myDb = new SQLiteDexArchiveDatabase(
+    new File(Paths.get(PathManager.getSystemPath(), ".deploy.db").toString()));
 
   public static final Logger LOG = Logger.getInstance(UnifiedDeployTask.class);
 
