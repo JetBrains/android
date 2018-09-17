@@ -93,7 +93,7 @@ class CpuProfilingConfigurationViewTest {
     val apiTracingconfig = CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build()
     val startTimestamp: Long = 100
     cpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API)
-    stage.updateProfilingState()
+    stage.updateProfilingState(true)
 
     // Verify the configuration is set to the special config properly.
     assertThat(configurationView.profilingConfiguration.name).isEqualTo("Debug API (Java)")
@@ -103,7 +103,7 @@ class CpuProfilingConfigurationViewTest {
 
     // API-initiated tracing ends.
     cpuService.setAppBeingProfiled(false)
-    stage.updateProfilingState()
+    stage.updateProfilingState(true)
 
     // Verify the configuration is set back to the config before API-initiated tracing.
     assertThat(configurationView.profilingConfiguration).isEqualTo(config)

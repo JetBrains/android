@@ -199,7 +199,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setOngoingCaptureConfiguration(config, 100L, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(timeline.isStreaming()).isFalse();
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(false);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
     assertThat(timeline.isStreaming()).isTrue();
   }
@@ -887,14 +887,14 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
 
     // Verify the STOPPING state isn't changed due to API tracing.
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
 
     // Simulate the parsing of prior capture (the one being parsed when entering the test) is done.
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
 
     // Verify API-initiated tracing is shown as capturing.
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
   }
 
@@ -911,11 +911,11 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setAppBeingProfiled(true);
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
 
     myCpuService.setAppBeingProfiled(false);
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
@@ -923,7 +923,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void updateProfilingStatePreservesCapturingWhenNonApiInitiatedTracingEnds() {
     myServices.enableCpuApiTracing(true);
 
-    // API-initiated tracing starts.
+    // UI-initiated tracing starts.
     CpuProfiler.CpuProfilerConfiguration artConfig =
       CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
 
@@ -932,12 +932,38 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setAppBeingProfiled(true);
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(false);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
 
     myCpuService.setAppBeingProfiled(false);
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(false);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Test
+  public void updateProfilingStateDontGoBackToRecordingForUiInitiatedTraces() {
+    myServices.enableCpuApiTracing(true);
+    myTimer.setHandler(myStage.getStudioProfilers().getUpdater());
+    myStage.enter();
+
+    // UI-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration artConfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    myCpuService.setOngoingCaptureConfiguration(artConfig, 100, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    // Make the server return that the app is being profiled to simulate the race condition we might have between data poller and UI threads
+    myCpuService.setAppBeingProfiled(true);
+    // Simulate UPDATE_COUNT_TO_CALL_CALLBACK ticks in the updater. That should trigger a call to updateProfilingState from the
+    // CpuCaptureStateUpdatable. We do this instead of calling updataeProfilingState(true) directly because if the updatable callback is
+    // changed later for some reason this test will fail.
+    for (int i = 0; i <= CpuProfilerStage.CpuCaptureStateUpdatable.UPDATE_COUNT_TO_CALL_CALLBACK; i++) {
+      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    }
+
+    // We shouldn't go to CAPTURING despite the fact our service returns that the app is being profiled, beacause the trace was not
+    // initiated by API.
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
   @Test

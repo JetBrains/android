@@ -476,7 +476,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableCpuApiTracing(boolean enabled) {
-    myStartupCpuProfilingEnabled = enabled;
+    myIsCpuApiTracingEnabled = enabled;
   }
 
   public void enableExportTrace(boolean enabled) {

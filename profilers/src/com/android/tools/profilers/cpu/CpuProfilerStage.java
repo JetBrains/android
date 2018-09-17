@@ -266,7 +266,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCaptureState = CaptureState.IDLE;
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
-    myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState());
+    myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState(true));
 
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
@@ -450,7 +450,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // This actions are here instead of in the constructor, because only after this method the UI (i.e {@link CpuProfilerStageView}
     // will be visible to the user. As well as, the feature tracking will link the correct stage to the events that happened
     // during this actions.
-    updateProfilingState();
+    updateProfilingState(false);
     myProfilerConfigModel.updateProfilingConfigurations();
     if (myIsImportTraceMode) {
       assert myImportedTrace != null;
@@ -853,12 +853,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * Update the capture state and the capture start time (if there is a capture in progress) accordingly.
    * This method puts the stage in the correct mode when being called from the constructor; it's also called by
    * {@link CpuCaptureStateUpdatable} to respond to API tracing status.
+   *
+   * @param calledFromUpdatable Whether the method was called from {@link #myCaptureStateUpdatable}. When this is true, we should only
+   *                            handle state changes if the trace was initiated from API.
    */
   @VisibleForTesting
-  void updateProfilingState() {
+  void updateProfilingState(boolean calledFromUpdatable) {
     ProfilingStateResponse response = checkProfilingState();
 
     if (response.getBeingProfiled()) {
+      if (response.getInitiationType() != TraceInitiationType.INITIATED_BY_API && calledFromUpdatable) {
+        // If this method was called from the CaptureStateUpdatable, we shouldn't continue if the current trace was not triggered from API.
+        return;
+      }
+
       ProfilingConfiguration configuration = ProfilingConfiguration.fromProto(response.getConfiguration());
       // Update capture state only if it was idle to avoid disrupting state that's invisible to device such as STOPPING.
       if (myCaptureState == CaptureState.IDLE) {
@@ -1186,7 +1194,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  private static class CpuCaptureStateUpdatable implements Updatable {
+  @VisibleForTesting
+  static class CpuCaptureStateUpdatable implements Updatable {
     @NotNull private final Runnable myCallback;
 
     /**
@@ -1195,8 +1204,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
      * Updater is running 60 times per second, which is too frequent for checking capture state which
      * requires a RPC call. Therefore, we check the state less often.
      */
-    private static final int UPDATE_COUNT_TO_CALL_CALLBACK = 6;
-    private int myUpdateCount = UPDATE_COUNT_TO_CALL_CALLBACK - 1;
+    @VisibleForTesting
+    static final int UPDATE_COUNT_TO_CALL_CALLBACK = 6;
+    private int myUpdateCount = 0;
 
     public CpuCaptureStateUpdatable(@NotNull Runnable callback) {
       myCallback = callback;
@@ -1206,7 +1216,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     public void update(long elapsedNs) {
       if (myUpdateCount++ >= UPDATE_COUNT_TO_CALL_CALLBACK) {
         myCallback.run();         // call callback
-        myUpdateCount = 0;         // reset update count
+        myUpdateCount = 0;        // reset update count
       }
     }
   }
