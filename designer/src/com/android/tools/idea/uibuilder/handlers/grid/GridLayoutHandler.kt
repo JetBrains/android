@@ -45,7 +45,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
     return listBuilder.build()
   }
 
-  open internal fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = false))
+  internal open fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = false))
 
   private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
       ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }

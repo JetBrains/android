@@ -85,15 +85,15 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     inspectors.clear()
   }
 
-  open protected fun plusClicked(event: MouseEvent,
+  protected open fun plusClicked(event: MouseEvent,
                                  parents: List<NlComponent>,
                                  resourceResolver: ResourceResolver?,
                                  surface: NavDesignSurface) =
       addItem(null, parents, resourceResolver)
 
-  abstract protected fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?)
+  protected abstract fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?)
 
-  abstract protected fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?): String
+  protected abstract fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?): String
 
   @VisibleForTesting
   class NavListInspectorComponent<PropertyType : ListProperty>(val provider: NavListInspectorProvider<PropertyType>) :

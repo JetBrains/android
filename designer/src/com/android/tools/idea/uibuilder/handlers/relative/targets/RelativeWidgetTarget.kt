@@ -26,8 +26,8 @@ import com.android.tools.idea.uibuilder.scene.target.Notch
 import com.intellij.ui.JBColor
 import java.util.*
 
-const private val DEBUG = false
-const private val NOTCH_GAP_SIZE = 6
+private const val DEBUG = false
+private const val NOTCH_GAP_SIZE = 6
 
 /**
  * The target provided for creating relationship.

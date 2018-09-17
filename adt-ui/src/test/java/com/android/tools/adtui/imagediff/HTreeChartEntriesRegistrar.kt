@@ -111,7 +111,7 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
 
     protected lateinit var chart: HTreeChart<DefaultHNode<HTreeModel>>
 
-    override final fun setUp() {
+    final override fun setUp() {
       val fillColors = listOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY)
       var colorIndex = 0
       val nextFillColor = { fillColors[(colorIndex++) % fillColors.size] }
@@ -131,8 +131,8 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
       myContentPane.add(chart)
     }
 
-    override final fun generateTestData() = Unit
-    override final fun generateComponent() {
+    final override fun generateTestData() = Unit
+    final override fun generateComponent() {
       // Our hchart images are nowhere near as tall as the default size settings
       val reducedHeight = Dimension(myContentPane.size.width, myContentPane.size.height / 4)
       myContentPane.size = reducedHeight
