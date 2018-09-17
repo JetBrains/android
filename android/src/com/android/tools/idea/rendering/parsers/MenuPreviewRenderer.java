@@ -21,8 +21,8 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTaskContext;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -126,7 +126,7 @@ class MenuPreviewRenderer {
     // Build up a menu layout based on what we find in the menu file
     // This is *simulating* what happens in an Android app. We should get first class
     // menu rendering support in layoutlib to properly handle this.
-    Element root = addRootElement(myDocument, LINEAR_LAYOUT);
+    Element root = addRootElement(myDocument, LINEAR_LAYOUT, ResourceHelper.getResourceNamespace(myRootTag));
     setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(root, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
     setAndroidAttr(root, ATTR_ORIENTATION, VALUE_VERTICAL);

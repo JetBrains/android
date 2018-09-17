@@ -55,6 +55,7 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
@@ -221,7 +222,7 @@ public class LayoutPullParsers {
     // menu rendering support in layoutlib to properly handle this.
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element imageView = addRootElement(document, IMAGE_VIEW);
+    Element imageView = addRootElement(document, IMAGE_VIEW, ResourceHelper.getResourceNamespace(file));
     setAndroidAttr(imageView, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(imageView, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
 
@@ -289,7 +290,7 @@ public class LayoutPullParsers {
 
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element root = addRootElement(document, layout != null ? VIEW_INCLUDE : IMAGE_VIEW);
+    Element root = addRootElement(document, layout != null ? VIEW_INCLUDE : IMAGE_VIEW, ResourceHelper.getResourceNamespace(rootTag));
     if (layout != null) {
       root.setAttribute(ATTR_LAYOUT, layout);
       setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
@@ -320,7 +321,7 @@ public class LayoutPullParsers {
 
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element rootLayout = addRootElement(document, LINEAR_LAYOUT);
+    Element rootLayout = addRootElement(document, LINEAR_LAYOUT, ResourceHelper.getResourceNamespace(file));
     setAndroidAttr(rootLayout, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(rootLayout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
@@ -409,8 +410,8 @@ public class LayoutPullParsers {
     application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)));
   }
 
-  public static Element addRootElement(@NotNull Document document, @NotNull String tag) {
-    Element root = document.createElement(tag);
+  public static Element addRootElement(@NotNull Document document, @NotNull String tag, @Nullable ResourceNamespace namespace) {
+    Element root = document.createElementNS(namespace != null ? namespace.getXmlNamespaceUri() : null, tag);
 
     //root.setAttribute(XMLNS_ANDROID, ANDROID_URI);
 
@@ -436,7 +437,7 @@ public class LayoutPullParsers {
   public static ILayoutPullParser createEmptyParser() {
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element root = addRootElement(document, FRAME_LAYOUT);
+    Element root = addRootElement(document, FRAME_LAYOUT, null);
     setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(root, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
     return DomPullParser.createFromDocument(document);

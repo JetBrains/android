@@ -126,8 +126,15 @@ public class DomPullParser extends LayoutPullParser {
   @NonNull
   @Override
   public ResourceNamespace getLayoutNamespace() {
-    // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-    return ResourceNamespace.TODO();
+    if (myRoot == null) {
+      return ResourceNamespace.RES_AUTO;
+    }
+    String uri = myRoot.getNamespaceURI();
+    if (uri == null) {
+      return ResourceNamespace.RES_AUTO;
+    }
+    ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(uri);
+    return namespace != null ? namespace : ResourceNamespace.RES_AUTO;
   }
 
   // ------------- XmlPullParser --------
