@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.stdui.StandardDimensions;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -61,7 +62,8 @@ public class NlBooleanEditor extends BaseComponentEditor implements NlComponentE
     myCheckbox.addActionListener(this::checkboxChanged);
     myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
-    myPanel.setBorder(JBUI.Borders.empty(verticalSpacing, 0, HORIZONTAL_SPACING, 0));
+    myPanel.setBorder(
+      JBUI.Borders.empty(verticalSpacing, HORIZONTAL_SPACING + StandardDimensions.OUTER_BORDER_UNSCALED, verticalSpacing, 0));
 
     myBrowsePanel = browsePanel;
     if (browsePanel != null) {
