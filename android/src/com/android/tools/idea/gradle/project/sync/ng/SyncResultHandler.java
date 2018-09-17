@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.builder.model.AndroidProject;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -255,7 +257,13 @@ class SyncResultHandler {
                             @NotNull PostSyncProjectSetup.Request setupRequest,
                             @NotNull ProgressIndicator indicator,
                             @Nullable GradleSyncListener syncListener,
-                            boolean variantOnlySync) {
+                            boolean variantOnlySync,
+                            boolean wasGenerateSource) {
+    SyncProjectModels models = callback.getSyncModels();
+    if (models != null && wasGenerateSource && !isCompoundSyncSupported(models)) {
+      setupRequest.generateSourcesAfterSync = true;
+    }
+
     Runnable runnable = variantOnlySync ? () -> onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener)
                                         : () -> onSyncFinished(callback, setupRequest, indicator, syncListener);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -290,6 +298,19 @@ class SyncResultHandler {
       syncListener.sourceGenerationFinished(myProject);
     }
     mySyncState.sourceGenerationFinished();
+  }
+
+  private static boolean isCompoundSyncSupported(@NotNull SyncProjectModels projectModels) {
+    for (SyncModuleModels moduleModels : projectModels.getModuleModels()) {
+      AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
+      if (androidProject != null) {
+        GradleVersion pluginVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
+        if (pluginVersion == null || !pluginVersion.isAtLeastIncludingPreviews(3, 3, 0)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**

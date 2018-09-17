@@ -164,6 +164,7 @@ public class NewGradleSync implements GradleSync {
 
     boolean isVariantOnlySync = request.variantOnlySyncOptions != null;
     boolean isCompoundSync = isCompoundSync(myProject) && request.generateSourcesOnSuccess;
+    boolean wasGenerateSources = setupRequest.generateSourcesAfterSync;
     if (isCompoundSync) {
       setupRequest.generateSourcesAfterSync = false;
     }
@@ -172,7 +173,7 @@ public class NewGradleSync implements GradleSync {
     callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
 
     if (isCompoundSync) {
-      callback.doWhenDone(() -> myResultHandler.onCompoundSyncModels(callback, setupRequest, indicator, syncListener, isVariantOnlySync));
+      callback.doWhenDone(() -> myResultHandler.onCompoundSyncModels(callback, setupRequest, indicator, syncListener, isVariantOnlySync, wasGenerateSources));
     }
     else if (isVariantOnlySync) {
       callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
