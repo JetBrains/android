@@ -37,7 +37,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryManagerMXBean;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -157,6 +156,7 @@ public class AndroidProfilerTest {
   }
 
   private static void gc() {
+    // It's very rare to have two consecutive GC calls to not result in a GC. This is just a cheap way to get GC to run.
     System.gc();
     System.gc();
   }
