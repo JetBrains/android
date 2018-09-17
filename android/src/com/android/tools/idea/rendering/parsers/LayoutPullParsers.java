@@ -180,6 +180,7 @@ public class LayoutPullParsers {
         renderTask.setDecorations(false);
         return createDrawableParser(file);
       case MENU:
+        renderTask.setDecorations(true);
         return createMenuParser(file, renderTask);
       case XML: {
         // Switch on root type
