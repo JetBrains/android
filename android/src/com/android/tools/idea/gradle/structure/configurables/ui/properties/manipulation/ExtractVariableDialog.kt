@@ -66,7 +66,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
   }
 
   override fun doValidate(): ValidationInfo? =
-    worker.validate(name)?.let { ValidationInfo(it, true) }
+    worker.validate(name)?.let { ValidationInfo(it).withOKEnabled() }
 
   override fun doCancelAction() {
     super.doCancelAction()
