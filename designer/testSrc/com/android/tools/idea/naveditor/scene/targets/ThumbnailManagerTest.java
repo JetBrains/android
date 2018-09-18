@@ -19,7 +19,6 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -31,7 +30,7 @@ import javax.imageio.ImageIO;
  * Tests for {@link ThumbnailManager}
  */
 public class ThumbnailManagerTest extends NavTestCase {
-  private static final float MAX_PERCENT_DIFFERENT = 6.5f;
+  private static final float MAX_PERCENT_DIFFERENT = 1f;
 
   public void testGeneratedImage() throws Exception {
     File goldenFile = new File(Companion.getTestDataPath() + "/naveditor/thumbnails/basic_activity_1.png");
@@ -42,9 +41,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("../unitTest/res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(null, myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
     BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration()).getTerminalImage();
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
-    Disposer.dispose(model);
   }
 }
