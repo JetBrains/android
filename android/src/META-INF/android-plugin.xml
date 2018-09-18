@@ -1373,7 +1373,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
-    <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/>
+    <!-- TODO Make sure http://b/116011467 doesn't recur when readding this -->
+    <!-- <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/> -->
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider"/>
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider"/>
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider"/>

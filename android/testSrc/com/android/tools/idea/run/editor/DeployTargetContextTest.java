@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -28,6 +29,7 @@ public final class DeployTargetContextTest {
   @Rule
   public final TestRule myRule = AndroidProjectRule.inMemory();
 
+  @Ignore("http://b/116011467")
   @Test
   public void getCurrentDeployTargetProviderSelectDeviceSnapshotComboBoxIsVisible() {
     DeployTargetContext context = new DeployTargetContext(() -> true);
