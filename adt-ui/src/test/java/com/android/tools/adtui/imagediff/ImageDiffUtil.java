@@ -247,6 +247,8 @@ public final class ImageDiffUtil {
           continue;
         }
 
+        int deltaA = ((rgb & 0xFF000000) >>> 24) - ((goldenRgb & 0xFF000000) >>> 24);
+        int newA = 128 + deltaA & 0xFF;
         int deltaR = ((rgb & 0xFF0000) >>> 16) - ((goldenRgb & 0xFF0000) >>> 16);
         int newR = 128 + deltaR & 0xFF;
         int deltaG = ((rgb & 0x00FF00) >>> 8) - ((goldenRgb & 0x00FF00) >>> 8);
@@ -254,21 +256,15 @@ public final class ImageDiffUtil {
         int deltaB = (rgb & 0x0000FF) - (goldenRgb & 0x0000FF);
         int newB = 128 + deltaB & 0xFF;
 
-        int avgAlpha = ((((goldenRgb & 0xFF000000) >>> 24)
-                         + ((rgb & 0xFF000000) >>> 24)) / 2) << 24;
-
-        int newRGB = avgAlpha | newR << 16 | newG << 8 | newB;
+        int newRGB = newA << 24 | newR << 16 | newG << 8 | newB;
         deltaImage.setRGB(imageWidth + x, y, newRGB);
 
-        double opacity = 1 - ((rgb & 0xFF000000) >>> 24) / 255.;
-        double goldenOpacity = 1 - ((goldenRgb & 0xFF000000) >>> 24) / 255.;
-        double averageOpacity = (opacity + goldenOpacity) / 2;
-        double deltaOpacity = opacity - goldenOpacity;
-        double dR = deltaR / 255. * averageOpacity;
-        double dG = deltaG / 255. * averageOpacity;
-        double dB = deltaB / 255. * averageOpacity;
+        double dA = deltaA / 255.;
+        double dR = deltaR / 255.;
+        double dG = deltaG / 255.;
+        double dB = deltaB / 255.;
         // Notice that maximum difference per pixel is 1, which is realized for completely opaque black and white colors.
-        delta += Math.sqrt((deltaOpacity * deltaOpacity + dR * dR + dG * dG + dB * dB) / 3.);
+        delta += Math.sqrt((dA * dA + dR * dR + dG * dG + dB * dB) / 4.);
       }
     }
 
@@ -305,7 +301,7 @@ public final class ImageDiffUtil {
         boolean deleted = output.delete();
         assertTrue(deleted);
       }
-      ImageIO.write(deltaImage, "PNG", new File("/tmp/output.png"));
+      ImageIO.write(deltaImage, "PNG", output);
       error += " - see details in archived file " + output.getPath();
       System.out.println(error);
       fail(error);
