@@ -16,11 +16,13 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
-import com.intellij.openapi.command.WriteCommandAction
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
+import com.android.tools.idea.uibuilder.model.viewHandler
 import com.intellij.ui.JBColor
 import java.awt.Cursor
 import java.awt.Graphics2D
@@ -110,8 +112,19 @@ class CommonDragTarget : BaseTarget() {
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
     myComponent.isDragging = true
-    snap(x, y)
-    myComponent.scene.repaint()
+    val ph = snap(x, y)
+    if (myComponent.scene.isLiveRenderingEnabled
+        && ph?.host?.authoritativeNlComponent?.viewHandler is ConstraintLayoutHandler
+        && myComponent.parent == ph.host) {
+      // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged in the same ConstraintLayout
+      // TODO: Makes Live Rendering works when dragging widget between different ViewGroups
+      applyPlaceholder(ph, commit = false)
+      myComponent.authoritativeNlComponent.fireLiveChangeEvent()
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
+    else {
+      myComponent.scene.repaint()
+    }
   }
 
   /**
@@ -163,7 +176,7 @@ class CommonDragTarget : BaseTarget() {
     myComponent.isDragging = false
     val ph = snap(x, y)
     if (ph != null) {
-      apply(ph)
+      applyPlaceholder(ph)
       myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     }
     else {
@@ -172,9 +185,10 @@ class CommonDragTarget : BaseTarget() {
   }
 
   /**
-   * Apply the given [Placeholder]. Returns true if succeed, false otherwise.
+   * Apply the given [Placeholder]. Returns true if succeed, false otherwise. If [commit] is true, the applied attributes will be
+   * write to file directly.
    */
-  private fun apply(placeholder: Placeholder): Boolean {
+  private fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true): Boolean {
     val parent = placeholder.host.authoritativeNlComponent
     val nlComponent = myComponent.authoritativeNlComponent
     val model = nlComponent.model
@@ -184,8 +198,13 @@ class CommonDragTarget : BaseTarget() {
     if (model.canAddComponents(componentsToAdd, parent, anchor)) {
       val attributes = nlComponent.startAttributeTransaction()
       placeholder.updateAttribute(myComponent, attributes)
-      WriteCommandAction.runWriteCommandAction(nlComponent.model.project) { attributes.commit() }
-      model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
+      if (commit) {
+        NlWriteCommandAction.run(componentsToAdd, "Drag ${nlComponent.tagName}") { attributes.commit() }
+        model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
+      }
+      else {
+        attributes.apply()
+      }
       return true
     }
     return false
