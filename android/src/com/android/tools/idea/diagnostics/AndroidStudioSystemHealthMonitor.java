@@ -282,7 +282,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
     });
 
-    application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener.Adapter() {
+    application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
       @Override
       public void uiFreezeFinished(int lengthInSeconds) {
         // track how long the IDE was frozen
