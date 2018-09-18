@@ -578,8 +578,8 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    protected void presentationPropertyChanded(@NotNull PropertyChangeEvent event) {
-      super.presentationPropertyChanded(event);
+    protected void presentationPropertyChanged(@NotNull PropertyChangeEvent event) {
+      super.presentationPropertyChanged(event);
       update();
     }
   }
