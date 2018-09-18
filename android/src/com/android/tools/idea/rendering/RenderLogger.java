@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.utils.HtmlBuilder;
+import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultiset;
@@ -218,7 +219,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
       myMessages.add(message);
     }
 
-    logMessageToIdeaLog(message.getHtml());
+    logMessageToIdeaLog(XmlUtils.fromXmlAttributeValue(message.getHtml()));
   }
 
   @NotNull
