@@ -257,11 +257,10 @@ class SyncResultHandler {
                             @NotNull PostSyncProjectSetup.Request setupRequest,
                             @NotNull ProgressIndicator indicator,
                             @Nullable GradleSyncListener syncListener,
-                            boolean variantOnlySync,
-                            boolean wasGenerateSource) {
+                            boolean variantOnlySync) {
     SyncProjectModels models = callback.getSyncModels();
-    if (models != null && wasGenerateSource && !isCompoundSyncSupported(models)) {
-      setupRequest.generateSourcesAfterSync = true;
+    if (models != null && isCompoundSyncSupported(models)) {
+      setupRequest.generateSourcesAfterSync = false;
     }
 
     Runnable runnable = variantOnlySync ? () -> onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener)
