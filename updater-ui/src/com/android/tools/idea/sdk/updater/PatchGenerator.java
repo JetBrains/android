@@ -191,6 +191,11 @@ public class PatchGenerator {
     }
 
     @Override
+    public void setDescription(String text) {
+      // unused
+    }
+
+    @Override
     public void askUser(String message) throws OperationCancelledException {
       // unused
     }

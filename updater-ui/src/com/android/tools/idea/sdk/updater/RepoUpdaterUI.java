@@ -75,6 +75,12 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
     myProgress.setText("Patching " + oldBuildDesc + " to " + newBuildDesc);
   }
 
+  @Override
+  public void setDescription(String text) {
+    myProgress.setText(text);
+  }
+
+  @Override
   protected Component getParentComponent() {
     return myParentComponent;
   }
