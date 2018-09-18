@@ -37,8 +37,10 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -240,7 +242,7 @@ public class LayoutlibSceneManager extends SceneManager {
     assert scene.getRoot() != null;
 
     TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
-    tempComponent.addTarget(new ConstraintDragDndTarget());
+    tempComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
     updateFromComponent(tempComponent);
