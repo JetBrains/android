@@ -95,7 +95,7 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
    * Otherwise we just show the normal validation dialog.
    */
   @Override
-  public Map<String, ValidationResult.Option> askUser(List<ValidationResult> validationResults) throws OperationCancelledException {
+  public Map<String, ValidationResult.Option> askUser(List<? extends ValidationResult> validationResults) throws OperationCancelledException {
     try {
       int pid = Kernel32.INSTANCE.GetCurrentProcessId();
       for (ValidationResult result : validationResults) {

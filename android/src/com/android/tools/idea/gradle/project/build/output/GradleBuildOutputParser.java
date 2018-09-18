@@ -82,7 +82,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
    * Process an error message stored in myBufferedLines
    * @param messageConsumer
    */
-  private void processMessage(@NotNull Consumer<MessageEvent> messageConsumer) {
+  private void processMessage(@NotNull Consumer<? super MessageEvent> messageConsumer) {
     assert myBuildId != null;
     String line = myBufferedLines.get(0);
     String jsonString = line.substring(STDOUT_ERROR_TAG.length()).trim();
