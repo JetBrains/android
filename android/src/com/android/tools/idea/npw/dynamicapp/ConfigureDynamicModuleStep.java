@@ -20,6 +20,7 @@ import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -48,7 +49,6 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -60,7 +60,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import java.awt.Image;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,7 +80,6 @@ import org.jetbrains.annotations.Nullable;
  * "Minimum API Level"
  */
 public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatureModel> {
-  private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
@@ -140,9 +138,8 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
     myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
   @NotNull
@@ -215,7 +212,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @Nullable

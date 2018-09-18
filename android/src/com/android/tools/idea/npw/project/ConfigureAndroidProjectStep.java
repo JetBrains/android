@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.project;
 
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -52,13 +53,11 @@ import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.ImageUtil;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -88,7 +87,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private final NewProjectModel myProjectModel;
   private final NewProjectModuleModel myProjectModuleModel;
 
-  private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
@@ -116,9 +114,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectModel = projectModel;
     myProjectModuleModel = newProjectModuleModel;
-    myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
   @NotNull
@@ -251,7 +248,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @Nullable

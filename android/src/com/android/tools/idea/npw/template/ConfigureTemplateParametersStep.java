@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.npw.template;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS;
+import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
+
 import com.android.builder.model.SourceProvider;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipLabel;
@@ -24,20 +33,38 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
-import com.android.tools.idea.npw.template.components.*;
+import com.android.tools.idea.npw.template.components.ActivityComboProvider;
+import com.android.tools.idea.npw.template.components.CheckboxProvider;
+import com.android.tools.idea.npw.template.components.ComponentProvider;
+import com.android.tools.idea.npw.template.components.EnumComboProvider;
+import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider;
+import com.android.tools.idea.npw.template.components.LanguageComboProvider;
+import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
+import com.android.tools.idea.npw.template.components.PackageComboProvider;
+import com.android.tools.idea.npw.template.components.ParameterComponentProvider;
+import com.android.tools.idea.npw.template.components.SeparatorProvider;
+import com.android.tools.idea.npw.template.components.TextFieldProvider;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.IconProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.templates.*;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.templates.CircularParameterDependencyException;
+import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.ParameterValueResolver;
+import com.android.tools.idea.templates.StringEvaluator;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Joiner;
@@ -47,7 +74,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -56,19 +87,24 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.util.*;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * A step which takes a {@link Template} (generated by a template.xml file) and wraps a UI around
@@ -91,11 +127,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private final StringProperty myThumbPath = new StringValueProperty();
 
-  private final JBScrollPane myRoot;
-
   /**
    * All parameters are calculated for validity every time any of them changes, and the first error
-   * found is set here. This is then registered as its own validator with {@link #myRoot}.
+   * found is set here. This is then registered as its own validator with {@link #myValidatorPanel}.
    * This vastly simplifies validation, as we no longer have to worry about implicit relationships
    * between parameters (where changing one, like the package name, makes another valid/invalid).
    */
@@ -117,8 +151,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     super(model, title);
 
     myTemplates = templates;
-    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
-    myRoot = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
+    myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myRootPanel));
 
     myParameterDescriptionLabel.setScope(myParametersPanel);
 
@@ -487,7 +520,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRoot;
+    return myValidatorPanel;
   }
 
   @Nullable

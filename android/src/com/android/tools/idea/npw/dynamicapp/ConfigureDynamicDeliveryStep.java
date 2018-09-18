@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.dynamicapp;
 
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.util.FormScalingUtil;
@@ -27,11 +28,9 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -40,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeatureModel> {
-  private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
@@ -54,9 +52,8 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
   protected ConfigureDynamicDeliveryStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.new.dynamic.on.demand.options"));
 
-    myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
   @Override
@@ -75,7 +72,7 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @Nullable
