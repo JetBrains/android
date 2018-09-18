@@ -95,7 +95,7 @@ class ProjectLightResourceClassService(
     // to ExternalLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync removes a library from
     // the project.
     project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
-      override fun rootsChanged(event: ModuleRootEvent?) {
+      override fun rootsChanged(event: ModuleRootEvent) {
         val aars = getAllAars().values()
         aarPackageNamesCache.retainAll(aars)
         aarClassesCache.retainAll(aars)

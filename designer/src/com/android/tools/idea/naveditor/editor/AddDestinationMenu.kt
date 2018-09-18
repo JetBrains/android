@@ -204,7 +204,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   private fun createSelectionPanel(): JPanel {
     val result = object : AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
-      override fun getData(dataId: String?): Any? {
+      override fun getData(dataId: String): Any? {
         return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
           createdFiles
         }

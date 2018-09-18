@@ -64,11 +64,11 @@ class LightCalloutPopup(
 
     balloon = createPopup(content).apply {
       addListener(object : JBPopupListener {
-        override fun beforeShown(event: LightweightWindowEvent?) {
+        override fun beforeShown(event: LightweightWindowEvent) {
           beforeShownCallback?.invoke()
         }
 
-        override fun onClosed(event: LightweightWindowEvent?) {
+        override fun onClosed(event: LightweightWindowEvent) {
           if (event?.isOk == true) {
             closedCallback?.invoke()
           }
