@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureActi
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.run.ApplyChangesAction;
+import com.android.tools.idea.run.CodeSwapAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -70,6 +71,7 @@ import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
+import static com.intellij.openapi.actionSystem.Anchor.BEFORE;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
@@ -164,13 +166,17 @@ public class GradleSpecificInitializer implements Runnable {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
     if (runnerActions instanceof DefaultActionGroup) {
-      AnAction action;
+      DefaultActionGroup ag =  ((DefaultActionGroup)runnerActions);
       if (StudioFlags.JVMTI_REFRESH.get()) {
-        action = new ApplyChangesAction();
+        AnAction codeswap = new CodeSwapAction();
+        actionManager.registerAction(CodeSwapAction.ID, codeswap);
+        ag.add(codeswap, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+        AnAction applyChanges = new ApplyChangesAction();
+        String id = actionManager.getId(codeswap);
+        ag.add(applyChanges, new Constraints(BEFORE, CodeSwapAction.ID));
       } else {
-        action = new HotswapAction();
+        ag.add(new HotswapAction(), new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
       }
-      ((DefaultActionGroup)runnerActions).add(action, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
     }
   }
 
