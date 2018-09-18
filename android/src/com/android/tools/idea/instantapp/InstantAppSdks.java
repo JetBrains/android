@@ -133,11 +133,6 @@ public class InstantAppSdks {
     return 1; // If there is any exception return the default value
   }
 
-
-  public boolean shouldUseSdkLibraryToRun() {
-    return true;
-  }
-
   /**
    * Attempts to dynamically load the Instant Apps SDK library used to provision devices and run
    * apps. Returns null if it could not be loaded.

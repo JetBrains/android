@@ -102,7 +102,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (!shouldDeployAsInstant() || !InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+      if (!shouldDeployAsInstant()) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
@@ -159,15 +159,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
     if (shouldDeployAsInstant()) {
-      if (InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
-        AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
-        DeepLinkLaunch.State state =
-          (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
-        assert state != null;
-        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
-      } else {
-        tasks.add(new DeployInstantAppTask(myProject, myApkProvider.getApks(device)));
-      }
+      AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
+      DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+      assert state != null;
+      tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
     } else {
       InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
 
