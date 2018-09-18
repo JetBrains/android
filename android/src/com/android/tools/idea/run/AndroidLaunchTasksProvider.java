@@ -20,9 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -45,6 +43,7 @@ import java.util.function.Function;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.android.tools.idea.run.ApplyChangesAction.APPLY_CHANGES;
+import static com.android.tools.idea.run.CodeSwapAction.CODE_SWAP;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -139,8 +138,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @VisibleForTesting
   List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
     if (StudioFlags.JVMTI_REFRESH.get()) {
-      boolean swap = Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES));
-      return ImmutableList.of(new UnifiedDeployTask(myApkProvider.getApks(device), swap));
+      UnifiedDeployTask.DeployType type = UnifiedDeployTask.DeployType.INSTALL;
+      if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES))) {
+        type = UnifiedDeployTask.DeployType.FULL_SWAP;
+      } else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
+        type = UnifiedDeployTask.DeployType.CODE_SWAP;
+      }
+      return ImmutableList.of(new UnifiedDeployTask(myApkProvider.getApks(device), type));
     }
 
     if (myInstantRunBuildAnalyzer != null) {

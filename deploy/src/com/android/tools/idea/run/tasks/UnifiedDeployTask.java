@@ -41,6 +41,17 @@ import java.util.stream.Collectors;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
 
+  public static enum DeployType {
+    // When there is no previous APK Install.
+    INSTALL,
+
+    // Only update Java classes. No resource change, now activity restarts.
+    CODE_SWAP,
+
+    // Everything, including resource changes.
+    FULL_SWAP
+  }
+
   private static final String ID = "UNIFIED_DEPLOY";
 
   private final Collection<ApkInfo> myApks;
@@ -51,17 +62,18 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   public static final Logger LOG = Logger.getInstance(UnifiedDeployTask.class);
 
-  private final boolean mySwap;
+  private final DeployType type;
 
   /**
    * Creates a task to deploy a list of apks.
    *
    * @param apks the apks to deploy.
    * @param swap whether to perform swap on a running app or to just install and restart.
+   * @param activityRestart whether to restart activity upon swap.
    */
-  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks, boolean swap) {
+  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks, DeployType type) {
     myApks = apks;
-    mySwap = swap;
+    this.type = type;
   }
 
   @NotNull
@@ -98,18 +110,23 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
       Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, adb, myDb, installer);
       Deployer.RunResponse response = null;
       try {
-        if (mySwap) {
-          // TODO: Separate code-swap and full-swap
-          response = deployer.fullSwap();
-        } else {
-          response = deployer.install();
+        switch (type) {
+          case INSTALL:
+            response = deployer.install();
+            break;
+          case CODE_SWAP:
+            response = deployer.codeSwap();
+            break;
+          case FULL_SWAP:
+            response = deployer.fullSwap();
+            break;
+          default:
+            throw new UnsupportedOperationException("Not supported deployment type");
         }
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         LOG.error("Error deploying APK", e);
         return false;
       }
-
 
       // TODO: shows the error somewhere other than System.err
       if (response.status == Deployer.RunResponse.Status.ERROR) {
