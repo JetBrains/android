@@ -47,7 +47,7 @@ class TargetAndroidArtifactNode internal constructor(
     myChildren = children
   }
 
-  override fun update(presentation: PresentationData?) {
+  override fun update(presentation: PresentationData) {
     super.update(presentation)
     presentation?.presentableText = text
   }
