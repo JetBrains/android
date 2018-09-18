@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 /**
