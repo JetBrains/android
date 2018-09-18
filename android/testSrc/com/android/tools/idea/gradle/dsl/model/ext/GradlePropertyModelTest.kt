@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYP
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BIG_DECIMAL
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
@@ -41,6 +42,7 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Ignore
 import org.junit.Test
@@ -3792,5 +3794,30 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     newProperty.setValue(ReferenceTo("var"))
 
     verifyPropertyModel(newProperty, STRING_TYPE, "var", REFERENCE, REGULAR, 0)
+  }
+
+  /**
+   * Tests to ensure that references return the ReferenceTo type when getRawValue is called with either
+   * OBJECT_TYPE or REFERENCE_TO_TYPE.
+   */
+  @Test
+  fun testReferenceToReturnObject() {
+    val text = """
+      ext {
+        hello = 20
+        goodbye = hello
+      }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val property = buildModel.ext().findProperty("goodbye")
+    val value = property.getRawValue(OBJECT_TYPE)
+    val refValue = property.getRawValue(REFERENCE_TO_TYPE)
+    assertThat(value, instanceOf(ReferenceTo::class.java))
+    assertThat(refValue, instanceOf(ReferenceTo::class.java))
+    val referenceTo = value as ReferenceTo
+    val refReferenceTo = refValue as ReferenceTo
+    assertThat(referenceTo.text, equalTo("hello"))
+    assertThat(refReferenceTo.text, equalTo("hello"))
   }
 }
