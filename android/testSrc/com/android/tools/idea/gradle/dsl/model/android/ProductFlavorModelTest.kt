@@ -1710,7 +1710,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertMissingProperty(android.defaultConfig().consumerProguardFiles())
-    assertSize(0, android.defaultConfig().proguardFiles().getValue(LIST_TYPE))
+    assertSize(0, android.defaultConfig().proguardFiles().getValue(LIST_TYPE)!!)
   }
 
   @Test
