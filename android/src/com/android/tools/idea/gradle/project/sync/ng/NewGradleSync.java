@@ -164,16 +164,12 @@ public class NewGradleSync implements GradleSync {
 
     boolean isVariantOnlySync = request.variantOnlySyncOptions != null;
     boolean isCompoundSync = isCompoundSync(myProject) && request.generateSourcesOnSuccess;
-    boolean wasGenerateSources = setupRequest.generateSourcesAfterSync;
-    if (isCompoundSync) {
-      setupRequest.generateSourcesAfterSync = false;
-    }
 
     SyncExecutionCallback callback = myCallbackFactory.create();
     callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
 
     if (isCompoundSync) {
-      callback.doWhenDone(() -> myResultHandler.onCompoundSyncModels(callback, setupRequest, indicator, syncListener, isVariantOnlySync, wasGenerateSources));
+      callback.doWhenDone(() -> myResultHandler.onCompoundSyncModels(callback, setupRequest, indicator, syncListener, isVariantOnlySync));
     }
     else if (isVariantOnlySync) {
       callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
