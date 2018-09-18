@@ -220,7 +220,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     result.add(searchField)
 
     val action: AnAction = object : AnAction("Create new destination") {
-      override fun actionPerformed(e: AnActionEvent?) {
+      override fun actionPerformed(e: AnActionEvent) {
         createNewDestination(e)
       }
     }
@@ -323,7 +323,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return result
   }
 
-  private fun createNewDestination(e: AnActionEvent?) {
+  private fun createNewDestination(e: AnActionEvent) {
     balloon?.hide()
     val action = NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7)
     action.setShouldOpenFiles(false)
@@ -331,7 +331,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   }
 
   @VisibleForTesting
-  fun createNewDestination(e: AnActionEvent?, action: AnAction) {
+  fun createNewDestination(e: AnActionEvent, action: AnAction) {
     createdFiles.clear()
     action.actionPerformed(e)
     val project = e?.project ?: return
@@ -396,7 +396,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     show(button)
   }
 
-  override fun update(e: AnActionEvent?) {
+  override fun update(e: AnActionEvent) {
     e?.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
   }
 

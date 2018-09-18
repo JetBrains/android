@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class SelectPreviousAction(private val surface: NavDesignSurface) : AnAction() {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     val destinations = surface.currentNavigation.children.filter { it.isDestination }
     if (destinations.isEmpty()) {
       return

@@ -49,7 +49,7 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
     shortcutSet = CustomShortcutSet(SHORTCUT)
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     model.showResolvedValues = !model.showResolvedValues
   }
 

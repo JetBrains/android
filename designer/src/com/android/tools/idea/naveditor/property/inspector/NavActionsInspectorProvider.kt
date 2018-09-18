@@ -141,7 +141,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
       actions.add(Separator.getInstance())
       actions.add(
           object : AnAction("Add Global...") {
-            override fun actionPerformed(e: AnActionEvent?) {
+            override fun actionPerformed(e: AnActionEvent) {
               showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, parent), surface)
             }
           }

@@ -38,11 +38,11 @@ class BuildTypesPanel(
   ConfigurablesMasterDetailsPanel<PsBuildType>(BUILD_TYPES_DISPLAY_NAME, "android.psd.build_type", treeModel, uiSettings) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Build Type", "Removes a Build Type", IconUtil.getRemoveIcon()) {
-      override fun update(e: AnActionEvent?) {
+      override fun update(e: AnActionEvent) {
         e?.presentation?.isEnabled = selectedConfigurable != null
       }
 
-      override fun actionPerformed(e: AnActionEvent?) {
+      override fun actionPerformed(e: AnActionEvent) {
         if (Messages.showYesNoDialog(
             e?.project,
             "Remove build type '${selectedConfigurable?.displayName}' from the module?",
@@ -60,7 +60,7 @@ class BuildTypesPanel(
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
         object : DumbAwareAction("Add Build Type", "", IconUtil.getAddIcon()) {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
                     e?.project,

@@ -37,7 +37,7 @@ abstract class ToolbarAction(protected val surface: NavDesignSurface, descriptio
 
   protected abstract fun isEnabled(): Boolean
 
-  override fun update(e: AnActionEvent?) {
+  override fun update(e: AnActionEvent) {
     super.update(e)
     buttonPresentation?.isEnabled = isEnabled()
   }

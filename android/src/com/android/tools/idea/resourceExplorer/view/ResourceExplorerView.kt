@@ -269,7 +269,7 @@ class ResourceExplorerView(
 }
 
 private class ActionButton(icon: Icon, private val action: () -> Unit) : AnAction(icon), DumbAware {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     action()
   }
 }

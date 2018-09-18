@@ -28,7 +28,7 @@ open class AddActionDialogAction(
   private val action: NlComponent?
 ) :
   AnAction(text) {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, action, parent)
     if (addActionDialog.showAndGet()) {
       val action = addActionDialog.writeUpdatedAction()

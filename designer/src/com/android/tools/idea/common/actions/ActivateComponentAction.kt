@@ -28,7 +28,7 @@ class ActivateComponentAction(text: String?, private val mySurface: DesignSurfac
     setEnabled()
   }
 
-  override fun update(e: AnActionEvent?) {
+  override fun update(e: AnActionEvent) {
     super.update(e)
     setEnabled()
   }
@@ -39,7 +39,7 @@ class ActivateComponentAction(text: String?, private val mySurface: DesignSurfac
     }
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     mySurface.notifyComponentActivate(component)
   }
 }
