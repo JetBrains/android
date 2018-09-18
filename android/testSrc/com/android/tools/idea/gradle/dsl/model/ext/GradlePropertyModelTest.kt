@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.UsefulTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -3819,5 +3820,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val refReferenceTo = refValue as ReferenceTo
     assertThat(referenceTo.text, equalTo("hello"))
     assertThat(refReferenceTo.text, equalTo("hello"))
+  }
+
+  fun assertSize(expectedSize: Int, list: MutableList<*>?) {
+    UsefulTestCase.assertSize(expectedSize, list!!)  // second param is @NotNull as of commit 8bd1b49
   }
 }
