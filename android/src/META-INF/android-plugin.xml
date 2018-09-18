@@ -382,7 +382,6 @@
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <stepsBeforeRunProvider implementation="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <applicationConfigurable groupId="build" id="instant.run"

@@ -55,7 +55,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
       boolean isInstantApp = facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP;
 
       if ((DEEP_LINK == null || DEEP_LINK.isEmpty())) {
-        if (isInstantApp && InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+        if (isInstantApp) {
           // The new AIA SDK library supports launching instant apps without a URL
           return ImmutableList.of();
         }
