@@ -45,7 +45,7 @@ class SigningConfigsPanel(
     ) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
-      override fun update(e: AnActionEvent?) {
+      override fun update(e: AnActionEvent) {
         e?.presentation?.isEnabled = selectedConfigurable != null
       }
 

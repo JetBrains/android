@@ -45,7 +45,7 @@ class ProductFlavorsPanel(
 ) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
-      override fun update(e: AnActionEvent?) {
+      override fun update(e: AnActionEvent) {
         e?.presentation?.apply {
           isEnabled = selectedConfigurable != null
           text = removeTextFor(selectedConfigurable)
@@ -53,7 +53,7 @@ class ProductFlavorsPanel(
         }
       }
 
-      override fun actionPerformed(e: AnActionEvent?) {
+      override fun actionPerformed(e: AnActionEvent) {
         when (selectedConfigurable) {
           is FlavorDimensionConfigurable -> {
             if (Messages.showYesNoDialog(
@@ -87,7 +87,7 @@ class ProductFlavorsPanel(
   override fun getCreateActions(): List<AnAction> {
     return listOf(
         object : DumbAwareAction("Add Dimension", "", IconUtil.getAddIcon()) {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
                     e?.project,
@@ -107,7 +107,7 @@ class ProductFlavorsPanel(
           }
         },
         object : DumbAwareAction("Add Product Flavor", "", IconUtil.getAddIcon()) {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
                     e?.project,

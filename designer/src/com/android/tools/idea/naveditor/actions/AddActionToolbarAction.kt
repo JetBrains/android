@@ -33,7 +33,7 @@ class AddActionToolbarAction(surface: NavDesignSurface) :
     return supportsSubtag(it[0], NavActionElement::class.java)
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     surface.selectionModel.selection.firstOrNull()?.let {
       WriteCommandAction.runWriteCommandAction(it.model.project) {
         val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it)

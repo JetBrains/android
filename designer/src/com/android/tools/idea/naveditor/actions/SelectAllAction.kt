@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class SelectAllAction(private val surface: NavDesignSurface) : AnAction("Select All") {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     val destinations = surface.currentNavigation.children.filter { it.isDestination }
     surface.selectionModel.setSelection(destinations)
   }

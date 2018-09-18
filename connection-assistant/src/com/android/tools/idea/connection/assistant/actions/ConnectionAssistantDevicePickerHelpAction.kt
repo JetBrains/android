@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
 class ConnectionAssistantDevicePickerHelpAction : DevicePickerHelpAction() {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
       val action = OpenAssistSidePanelAction()
       action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, e?.project)

@@ -26,7 +26,7 @@ abstract class AddToGraphAction(
   name: String
 ) : AnAction(name) {
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     moveIntoNestedGraph(mySurface) { newParent() }
   }
 

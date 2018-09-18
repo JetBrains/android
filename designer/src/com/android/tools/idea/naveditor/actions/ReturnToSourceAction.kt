@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
 class ReturnToSourceAction(private val mySurface: DesignSurface, private val component: NlComponent) : AnAction("Return to Source") {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createReturnToSourceAction()
       mySurface.selectionModel.setSelection(listOf(action))

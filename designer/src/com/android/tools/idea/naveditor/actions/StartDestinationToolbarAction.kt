@@ -37,7 +37,7 @@ class StartDestinationToolbarAction(surface: NavDesignSurface) :
            && !component.isActivity && !component.isStartDestination
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     surface.selectionModel.selection.firstOrNull()?.let {
       WriteCommandAction.runWriteCommandAction(it.model.project) {
         it.setAsStartDestination()

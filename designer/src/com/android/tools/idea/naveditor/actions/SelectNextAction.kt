@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class SelectNextAction(private val surface: NavDesignSurface) : AnAction() {
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     getNextDestination(surface)?.let {
       surface.selectionModel.setSelection(listOf(it))
     }

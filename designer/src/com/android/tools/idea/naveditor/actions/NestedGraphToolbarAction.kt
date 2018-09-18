@@ -29,7 +29,7 @@ class NestedGraphToolbarAction(surface: NavDesignSurface) :
     it.isDestination && it != surface.currentNavigation
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }
   }
 }

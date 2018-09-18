@@ -28,7 +28,7 @@ class StartDestinationAction(private val component: NlComponent) : AnAction("Set
     templatePresentation.isEnabled = isEnabled
   }
 
-  override fun actionPerformed(e: AnActionEvent?) {
+  override fun actionPerformed(e: AnActionEvent) {
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       component.setAsStartDestination()
     }

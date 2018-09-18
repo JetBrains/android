@@ -285,7 +285,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   override fun createActions(fromPopup: Boolean): List<AnAction> =
     listOf(
       object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
-        override fun actionPerformed(e: AnActionEvent?) {
+        override fun actionPerformed(e: AnActionEvent) {
           if (!context.project.isModified ||
               Messages.showYesNoDialog(
                 e?.project,
@@ -307,7 +307,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
         }
       },
       object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
-        override fun actionPerformed(e: AnActionEvent?) {
+        override fun actionPerformed(e: AnActionEvent) {
           val module = (selectedObject as PsModule)
           if (Messages.showYesNoDialog(
               e?.project,

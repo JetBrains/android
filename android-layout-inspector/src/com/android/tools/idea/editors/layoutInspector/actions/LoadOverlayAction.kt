@@ -54,7 +54,7 @@ class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
     return ActionButtonWithText(this, presentation, "Toolbar", ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 
-  override fun update(e: AnActionEvent?) {
+  override fun update(e: AnActionEvent) {
     super.update(e)
     if (e == null) return
     if (myPreview.hasOverlay()) {

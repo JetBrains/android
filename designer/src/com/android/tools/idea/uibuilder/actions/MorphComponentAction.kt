@@ -100,6 +100,6 @@ class MorphComponentAction(component: NlComponent)
     createMorphPopup(morphDialog).showCenteredInCurrentWindow(myProject)
   }
 
-  override fun actionPerformed(e: AnActionEvent?) = showMorphPopup()
+  override fun actionPerformed(e: AnActionEvent) = showMorphPopup()
 }
 
