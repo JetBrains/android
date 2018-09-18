@@ -15,6 +15,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -540,7 +541,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       // Users should follow the reference to obtain the value.
       GradleDslSimpleExpression ref = (GradleDslSimpleExpression)element;
       String refText = ref.getReferenceText();
-      value = refText == null ? null : typeReference.castTo(refText);
+      if (typeReference.getType() == Object.class || typeReference.getType() == ReferenceTo.class) {
+        value = refText == null ? null : typeReference.castTo(new ReferenceTo(refText));
+      }
+      else {
+        value = refText == null ? null : typeReference.castTo(refText);
+      }
     }
     else if (valueType == UNKNOWN) {
       // If its a GradleDslBlockElement use the name, otherwise use the psi text. This prevents is dumping the whole
