@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.res.ResourceFolderRepositoryTest.overrideCacheService
@@ -93,6 +93,22 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  fun testAddVariable_snakeCase() {
+    setupTestWithDataBinding()
+    insertXml(
+      offset = getVariableTag("variable1").textOffset,
+      xml = """
+        <variable
+          name="added_variable"
+          type="Integer"
+        />
+        """.trimIndent())
+    assertVariables(
+      "variable1" to "String",
+      "addedVariable" to "Integer"
+    )
+  }
+
   fun testRenameVariable() {
     setupTestWithDataBinding()
     updateXml(
@@ -103,13 +119,30 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  fun testRenameVariable_snakeCase() {
+    setupTestWithDataBinding()
+    updateXml(
+      range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
+      xml = "variable_1")
+    assertVariables(
+      "variable1" to "String"
+    )
+
+    updateXml(
+      range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
+      xml = "variable_2")
+    assertVariables(
+      "variable2" to "String"
+    )
+  }
+
   fun testRenameVariable_prefix() {
     setupTestWithDataBinding()
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
       xml = "prefix_")
     assertVariables(
-      "prefix_variable1" to "String"
+      "prefixVariable1" to "String"
     )
   }
 
@@ -119,7 +152,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
       xml = "_suffix")
     assertVariables(
-      "variable1_suffix" to "String"
+      "variable1Suffix" to "String"
     )
   }
 
@@ -148,6 +181,24 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  fun testRemoveVariable_afterAddingAnother_snakeCase() {
+    setupTestWithDataBinding()
+    val variableTag = getVariableTag("variable1")
+    insertXml(
+      offset = variableTag.textRange.endOffset,
+      xml = """
+        <variable
+          name="added_variable"
+          type="Integer"
+        />
+        """.trimIndent()
+    )
+    deleteXml(variableTag.textRange)
+    assertVariables(
+      "addedVariable" to "Integer"
+    )
+  }
+
   fun testRemoveVariable_afterAddingIt() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -161,6 +212,24 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
         """.trimIndent()
     )
     deleteXml(getVariableTag("added").textRange)
+    assertVariables(
+      "variable1" to "String"
+    )
+  }
+
+  fun testRemoveVariable_afterAddingIt_snakeCase() {
+    setupTestWithDataBinding()
+    val variableTag = getVariableTag("variable1")
+    insertXml(
+      offset = variableTag.textRange.endOffset,
+      xml = """
+        <variable
+          name="added_variable"
+          type="Integer"
+        />
+        """.trimIndent()
+    )
+    deleteXml(getVariableTag("addedVariable").textRange)
     assertVariables(
       "variable1" to "String"
     )
@@ -458,7 +527,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
       .getItems(DataBindingResourceType.VARIABLE)
       .values
       .map {
-        Pair(it.getExtra(ATTR_NAME), it.getExtra(ATTR_TYPE))
+        Pair(it.name, it.getExtra(SdkConstants.ATTR_TYPE))
       }.toSet()
     assertEquals(expected.toSet(), variablesInInfo)
   }
@@ -472,7 +541,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
       .getItems(DataBindingResourceType.IMPORT)
       .values
       .map {
-        Pair(it.getExtra(ATTR_TYPE), it.getExtra(ATTR_ALIAS))
+        Pair(it.getExtra(SdkConstants.ATTR_TYPE), it.getExtra(SdkConstants.ATTR_ALIAS))
       }
       .toSet()
     assertEquals(expected.toSet(), importsInInfo)

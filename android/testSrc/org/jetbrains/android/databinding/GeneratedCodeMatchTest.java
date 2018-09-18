@@ -94,7 +94,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     myDataBindingBaseBindingClass = mode.viewDataBinding.replace(".", "/") + ".class";
   }
 
-  public void testGeneratedCodeMatchAndoridX() throws Exception {
+  public void testGeneratedCodeMatchAndroidX() throws Exception {
     init(DataBindingMode.ANDROIDX);
     verifyGeneratedCode();
   }
