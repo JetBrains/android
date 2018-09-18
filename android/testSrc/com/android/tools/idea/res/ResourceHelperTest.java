@@ -17,12 +17,15 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
@@ -32,11 +35,16 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
+import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
@@ -51,6 +59,8 @@ import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.Permission;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() {
@@ -283,7 +293,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     assertNotNull(rr);
     ResourceValue rv = rr.getResolvedResource(
-        new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "empty_state_list"));
+        new ResourceReference(RES_AUTO, ResourceType.COLOR, "empty_state_list"));
     assertNotNull(rv);
     assertNull(ResourceHelper.resolveColor(rr, rv, myModule.getProject()));
   }
@@ -387,5 +397,50 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   public void testToFileResourcePathString() {
     assertThat(ResourceHelper.toFileResourcePathString("apk:///foo.apk!/bar.baz")).isEqualTo(new PathString("apk", "/foo.apk!/bar.baz"));
+  }
+
+  public void testPsiElementGetNamespace() {
+
+    // Project XML:
+    XmlFile layoutFile = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
+    assertThat(ResourceHelper.getResourceNamespace(layoutFile)).isEqualTo(RES_AUTO);
+    assertThat(ResourceHelper.getResourceNamespace(layoutFile.getRootTag())).isEqualTo(RES_AUTO);
+
+    // Project class:
+    PsiClass projectClass = myFixture.addClass("package com.example; public class Hello {}");
+    assertThat(ResourceHelper.getResourceNamespace(projectClass)).isEqualTo(RES_AUTO);
+
+    // Project R class:
+    copyRJavaToGeneratedSources();
+    PsiClass rClass = myFixture.getJavaFacade().findClass("p1.p2.R", projectClass.getResolveScope());
+    assertThat(ResourceHelper.getResourceNamespace(rClass)).isEqualTo(RES_AUTO);
+
+    // Project manifest:
+    Manifest manifest = myFacet.getManifest();
+    assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement())).isEqualTo(RES_AUTO);
+    assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement().getContainingFile())).isEqualTo(RES_AUTO);
+
+    // Project Manifest class:
+    copyManifestJavaToGeneratedSources();
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      Permission newPermission = manifest.addPermission();
+      newPermission.getName().setValue("p1.p2.NEW_PERMISSION");
+    });
+    PsiClass manifestClass = myFixture.getJavaFacade().findClass("p1.p2.Manifest", projectClass.getResolveScope());
+    assertThat(ResourceHelper.getResourceNamespace(manifestClass)).isEqualTo(RES_AUTO);
+
+    // Framework class:
+    PsiClass frameworkClass = myFixture.getJavaFacade().findClass("android.app.Activity");
+    assertThat(ResourceHelper.getResourceNamespace(frameworkClass)).isEqualTo(ANDROID);
+
+    // Framework XML:
+    ResourceItem appIconResourceItem =
+      Iterables.getOnlyElement(ResourceRepositoryManager.getOrCreateInstance(myFacet)
+                                                        .getFrameworkResources(false)
+                                                        .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon"));
+    XmlFile appIcon = (XmlFile)PsiManager.getInstance(getProject()).findFile(FileExtensions.toVirtualFile(appIconResourceItem.getSource()));
+    assertThat(ResourceHelper.getResourceNamespace(appIcon)).isEqualTo(ANDROID);
+    assertThat(ResourceHelper.getResourceNamespace(appIcon.getRootTag())).isEqualTo(ANDROID);
+
   }
 }
