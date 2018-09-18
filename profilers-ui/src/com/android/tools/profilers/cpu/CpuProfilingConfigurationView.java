@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.stdui.menu.CommonSeparatorUI;
 import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
@@ -170,7 +171,7 @@ public class CpuProfilingConfigurationView {
                                                   boolean hasFocus) {
       if (value == CONFIG_SEPARATOR_ENTRY) {
         JSeparator separator = new JSeparator();
-        separator.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+        separator.setUI(new CommonSeparatorUI());
         return separator;
       }
       Component listCellRendererComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus);
