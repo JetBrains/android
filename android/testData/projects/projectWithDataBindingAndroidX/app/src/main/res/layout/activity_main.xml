@@ -3,6 +3,7 @@
     <data>
         <variable name="vo" type="com.android.example.appwithdatabinding.DummyVo"/>
         <variable name="voArr" type="com.android.example.appwithdatabinding.DummyVo[]"/>
+        <variable name="snake_case_var" type="String"/>
     </data>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
