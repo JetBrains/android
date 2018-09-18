@@ -45,7 +45,7 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   }
 
   @Override
-  protected Object[] getReferenceVariants(ConvertContext context, GenericDomValue<List<AttributeFormat>> value) {
+  protected Object[] getReferenceVariants(ConvertContext context, GenericDomValue<? extends List<AttributeFormat>> value) {
     List<AttributeFormat> variants = new ArrayList<>(AttributeFormat.values().length);
     Collections.addAll(variants, AttributeFormat.values());
     filterVariants(variants, value);

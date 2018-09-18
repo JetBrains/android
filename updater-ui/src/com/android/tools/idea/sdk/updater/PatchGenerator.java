@@ -201,7 +201,7 @@ public class PatchGenerator {
     }
 
     @Override
-    public Map<String, ValidationResult.Option> askUser(List<ValidationResult> validationResults) throws OperationCancelledException {
+    public Map<String, ValidationResult.Option> askUser(List<? extends ValidationResult> validationResults) throws OperationCancelledException {
       // unused
       return null;
     }
