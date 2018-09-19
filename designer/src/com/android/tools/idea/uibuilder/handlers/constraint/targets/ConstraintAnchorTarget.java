@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BASELINE_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_DES;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -30,12 +37,22 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import javax.swing.Icon;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implements a target anchor for the ConstraintLayout.
@@ -194,7 +211,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
 
   private boolean isBaselineConnected() {
     return myComponent.getAuthoritativeNlComponent()
-             .getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+                      .getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
   @NotNull
@@ -678,6 +695,69 @@ public class ConstraintAnchorTarget extends AnchorTarget {
           }
         }
       }
+      else {
+
+        JBPopupMenu menu = new JBPopupMenu("Connect to:");
+        SceneComponent parent = myComponent.getParent();
+        Collection<SceneComponent> components = myComponent.getScene().getSceneComponents();
+        Rectangle rectangle = new Rectangle();
+        ArrayList<NlComponent> list = new ArrayList<>();
+        list.add(myComponent.getAuthoritativeNlComponent());
+        list.add(myComponent.getAuthoritativeNlComponent());
+        ArrayList<SceneComponent> allItems = new ArrayList<>();
+        int slop = 10;
+        for (SceneComponent component : components) {
+          rectangle.width = component.getDrawWidth();
+          rectangle.height = component.getDrawHeight();
+          rectangle.x = component.getDrawX();
+          rectangle.y = component.getDrawY();
+          if (rectangle.contains(x, y)) {
+            String id = component.getAuthoritativeNlComponent().getId();
+            if (component.equals(myComponent)) {
+              continue;
+            }
+            if (component.equals(parent)) {
+              continue;
+            }
+            allItems.add(component);
+          }
+        }
+
+        for (SceneComponent component : allItems) {
+          list.set(1, component.getAuthoritativeNlComponent());
+          switch (myType) {
+            case LEFT:
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_DES);
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_END_DES);
+              break;
+            case RIGHT:
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_START_DES);
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_DES);
+              break;
+            case TOP:
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_DES);
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_BOTTOM_DES);
+              break;
+            case BOTTOM:
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_TOP_DES);
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToBottom, "Bottom ", " bottom",
+                             CONSTRAIN_BOTTOM_DES);
+              break;
+            case BASELINE:
+              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBaseLineToBaseLine, "Baseline ", " baseline",
+                             CONSTRAIN_BASELINE_DES);
+              break;
+          }
+        }
+
+        double scale = myComponent.getScene().getDesignSurface().getScale();
+        scale *= myComponent.getScene().getDesignSurface().getSceneScalingFactor();
+        float dx = myComponent.getScene().getDesignSurface().getContentOriginX();
+        float dy = myComponent.getScene().getDesignSurface().getContentOriginY();
+
+
+        menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+      }
     }
     finally {
       if (myInDrag) {
@@ -687,6 +767,70 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     }
   }
 
+  /**
+   * adds a connection to the connection menu list
+   *
+   * @param list
+   * @param component
+   * @param menu
+   * @param type
+   * @param from
+   * @param to
+   * @param icon
+   */
+  private void addConnectMenu(ArrayList<NlComponent> list,
+                              List<SceneComponent> allItems,
+                              SceneComponent component,
+                              JBPopupMenu menu,
+                              Scout.Connect type,
+                              String from,
+                              String to,
+                              Icon icon) {
+    if (Scout.connectCheck(list, type, false)) {
+      menu.add(new ConnectMenu(allItems, myComponent, from, component, to, icon, type));
+    }
+  }
+
+  static class ConnectMenu extends JBMenuItem implements ActionListener, ChangeListener {
+    SceneComponent mySrc;
+    SceneComponent myDest;
+    Scout.Connect myType;
+    List<SceneComponent> mAllItems;
+
+    public ConnectMenu(List<SceneComponent> allItems,
+                       SceneComponent src,
+                       String from,
+                       SceneComponent dest, String text, Icon icon, Scout.Connect type) {
+      super(from + " to " + dest.getId() + text, icon);
+      mAllItems = allItems;
+      mySrc = src;
+      myDest = dest;
+      myType = type;
+      addActionListener(this);
+      addChangeListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      List<NlComponent> list = Arrays.asList(mySrc.getAuthoritativeNlComponent(), myDest.getAuthoritativeNlComponent());
+      Scout.connect(list, myType, false, true);
+      NlDesignSurface designSurface = (NlDesignSurface)mySrc.getScene().getDesignSurface();
+      designSurface.forceLayersPaint(true);
+      designSurface.repaint();
+    }
+
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+      for (SceneComponent item : mAllItems) {
+        item.setDrawState(SceneComponent.DrawState.NORMAL);
+      }
+
+      myDest.setDrawState(SceneComponent.DrawState.DRAG);
+      myDest.getScene().needsRebuildList();
+      myDest.getScene().repaint();
+    }
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 }

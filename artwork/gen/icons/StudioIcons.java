@@ -317,6 +317,7 @@ public class StudioIcons {
       public static final Icon CONSTRAIN_BOTTOM_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-bottom.png"); // 16x16
       public static final Icon CONSTRAIN_START_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-start.png"); // 16x16
       public static final Icon CONSTRAIN_END_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-end.png"); // 16x16
+      public static final Icon CONSTRAIN_BASELINE_DES = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-baseline.png"); // 16x16
       public static final Icon CONSTRAIN_TOP_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-top.png"); // 16x16
       public static final Icon CONSTRAIN_BOTTOM_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-bottom.png"); // 16x16
       public static final Icon CONSTRAIN_START_PARENT = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-start.png"); // 16x16

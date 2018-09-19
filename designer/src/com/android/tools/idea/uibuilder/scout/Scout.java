@@ -112,6 +112,7 @@ public class Scout {
 
   public static void connect(List<NlComponent> widgets, Connect action, boolean reverse, boolean margin) {
       ScoutConnectArrange.connect(widgets, action, reverse, margin);
+      commit(widgets, "connect Widgets");
   }
 
   public static boolean connectCheck(List<NlComponent> widgets, Connect test, boolean reverse) {
