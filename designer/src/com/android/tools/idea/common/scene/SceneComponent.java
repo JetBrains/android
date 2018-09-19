@@ -919,7 +919,7 @@ public class SceneComponent {
       synchronized (myTargets) {
         hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
       }
-      if (hasDragTarget) {
+      if (hasDragTarget && myScene.getRoot() != this) {
         addTarget(new CommonDragTarget());
       }
     }
