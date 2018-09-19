@@ -215,6 +215,10 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
           myNdkModuleSetup.setUpModule(context, ndkModel, false /* sync not skipped */);
           cachedModels.addModel(ndkModel);
         }
+        else {
+          // Remove any NdkFacet created in previous sync operation.
+          removeNdkFacetFrom(module);
+        }
       }
       else {
         // This is an Android module without variants. Treat as a non-buildable Java module.
@@ -259,5 +263,10 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
 
   private void removeAndroidFacetFrom(@NotNull Module module) {
     removeAllFacets(myModelsProvider.getModifiableFacetModel(module), AndroidFacet.ID);
+    removeNdkFacetFrom(module);
+  }
+
+  private void removeNdkFacetFrom(@NotNull Module module) {
+    removeAllFacets(myModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
   }
 }
