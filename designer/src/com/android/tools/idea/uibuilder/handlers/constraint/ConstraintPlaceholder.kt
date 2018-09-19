@@ -29,6 +29,8 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   private val delegator = ViewGroupPlaceholder(host)
 
+  override val dominate = false
+
   override val region = delegator.region
 
   override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point) = delegator.snap(left, top, right, bottom, retPoint)

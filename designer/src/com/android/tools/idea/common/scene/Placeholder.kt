@@ -33,6 +33,19 @@ abstract class Placeholder(val host: SceneComponent) {
   open val nextComponent: SceneComponent? = null
 
   /**
+   * The dominating [Placeholder] is rendered when the mouse hovers over the [associatedComponent].
+   * @see dominate
+   */
+  open val associatedComponent: SceneComponent = host
+
+  /**
+   * Only dominate [Placeholder] would be rendered. Also, dominate [Placeholder]s has higher priority than recessive ones. Which means
+   * all dominated [Placeholder]s will be snapped first. If there is no dominated [Placeholder] is snapped, then recessive [Placeholder]s
+   * would be tried.
+   */
+  open val dominate = true
+
+  /**
    * Provide the interactive [Region] of this Placeholder.
    */
   abstract val region: Region

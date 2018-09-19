@@ -16,17 +16,23 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
+import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
+import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
+import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
+import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.intellij.ui.JBColor
+import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
 import java.awt.Point
+import java.awt.Stroke
 
 private const val DEBUG_RENDERER = false
 
@@ -46,6 +52,14 @@ class CommonDragTarget : BaseTarget() {
    * But it will be set immediately after [Target] is created.
    */
   private val placeholders by lazy { myComponent.scene.getPlaceholders(myComponent).filter { it.host != myComponent } }
+
+  private val dominatePlaceholders by lazy { placeholders.filter { it.dominate }.toList() }
+
+  private val recessivePlaceholders by lazy { placeholders.filterNot { it.dominate }.toList() }
+
+  private val placeholderHosts by lazy { placeholders.map { it.host }.toSet() }
+
+  private var currentSnappedPlaceholder: Placeholder? = null
 
   override fun canChangeSelection() = true
 
@@ -94,9 +108,33 @@ class CommonDragTarget : BaseTarget() {
     }
 
     if (myComponent.isDragging) {
-      for (ph in placeholders) {
-        val region = ph.region
-        list.add(DrawPlaceholder(sceneContext, region.left, region.top, region.right, region.bottom))
+      val snappedPlaceholder = currentSnappedPlaceholder
+      if (snappedPlaceholder != null) {
+        // Render dominate component only. Note that the snappedPlaceholder may be recessive one.
+        for (ph in dominatePlaceholders) {
+          // Someone got snapped
+          when {
+            ph == snappedPlaceholder -> {
+              // Snapped Placeholder
+              list.add(DrawSnappedPlaceholder(ph.region.left, ph.region.top, ph.region.right, ph.region.bottom))
+            }
+            ph.associatedComponent == snappedPlaceholder.associatedComponent -> {
+              // Sibling of snapped Placeholder
+              list.add(DrawSiblingsOfSnappedPlaceholder(ph.region.left, ph.region.top, ph.region.right, ph.region.bottom))
+            }
+            else -> Unit // Do nothing for Placeholders in different host
+          }
+        }
+      }
+
+      for (h in placeholderHosts) {
+        // Render hosts
+        if (h == snappedPlaceholder?.host) {
+          list.add(DrawHoveredHost(h.drawLeft, h.drawTop, h.drawRight, h.drawBottom))
+        }
+        else {
+          list.add(DrawNonHoveredHost(h.drawLeft, h.drawTop, h.drawRight, h.drawBottom))
+        }
       }
     }
   }
@@ -108,6 +146,7 @@ class CommonDragTarget : BaseTarget() {
     firstMouseY = y
     offsetX = x - myComponent.getDrawX(System.currentTimeMillis())
     offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
+    currentSnappedPlaceholder = null
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
@@ -147,23 +186,33 @@ class CommonDragTarget : BaseTarget() {
     val yDouble by lazy { top.toDouble() }
 
     val retPoint = Point()
-    for (ph in placeholders) {
-      val currentPlaceholderLevel = targetPlaceholder?.region?.level ?: -1
-      // ignore the placeholders of myComponent and its children.
-      if (ph.region.level < currentPlaceholderLevel) {
-        continue
-      }
 
-      if (ph.snap(left, top, right, bottom, retPoint)) {
-        val distance = retPoint.distance(xDouble, yDouble)
-        if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
-          targetPlaceholder = ph
-          currentDistance = distance
-          snappedX = retPoint.x
-          snappedY = retPoint.y
+    fun doSnap(phs: List<Placeholder>) {
+      for (ph in phs) {
+        val currentPlaceholderLevel = targetPlaceholder?.region?.level ?: -1
+        // ignore the placeholders of myComponent and its children.
+        if (ph.region.level < currentPlaceholderLevel) {
+          continue
+        }
+
+        if (ph.snap(left, top, right, bottom, retPoint)) {
+          val distance = retPoint.distance(xDouble, yDouble)
+          if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
+            targetPlaceholder = ph
+            currentDistance = distance
+            snappedX = retPoint.x
+            snappedY = retPoint.y
+          }
         }
       }
     }
+
+    doSnap(dominatePlaceholders)
+    if (targetPlaceholder == null) {
+      doSnap(recessivePlaceholders)
+    }
+
+    currentSnappedPlaceholder = targetPlaceholder
     myComponent.setPosition(snappedX, snappedY)
     return targetPlaceholder
   }
@@ -217,6 +266,7 @@ class CommonDragTarget : BaseTarget() {
   fun cancel() {
     myComponent.isDragging = false
     myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    currentSnappedPlaceholder = null
   }
 
   override fun newSelection(): List<SceneComponent> = listOf(myComponent)
@@ -226,29 +276,89 @@ class CommonDragTarget : BaseTarget() {
   override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
 }
 
-class DrawPlaceholder(context: SceneContext,
-                      @AndroidDpCoordinate x1: Int,
-                      @AndroidDpCoordinate y1: Int,
-                      @AndroidDpCoordinate x2: Int,
-                      @AndroidDpCoordinate y2: Int)
+private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private val x1: Int,
+                                                 @AndroidDpCoordinate private val y1: Int,
+                                                 @AndroidDpCoordinate private val x2: Int,
+                                                 @AndroidDpCoordinate private val y2: Int)
   : DrawRegion() {
 
-  init {
-    setBounds(context.getSwingXDip(x1.toFloat()),
-              context.getSwingYDip(y1.toFloat()),
-              context.getSwingDimensionDip((x2 - x1).toFloat()),
-              context.getSwingDimensionDip((y2 - y1).toFloat()))
-  }
-
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  final override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val defColor = g.color
+    val defStroke = g.stroke
 
-    val colorSet = sceneContext.colorSet
-    g.color = colorSet.dragReceiverBackground
-    g.fill(this)
-    g.color = colorSet.dragReceiverFrames
+    setBounds(sceneContext.getSwingXDip(x1.toFloat()),
+              sceneContext.getSwingYDip(y1.toFloat()),
+              sceneContext.getSwingDimensionDip((x2 - x1).toFloat()),
+              sceneContext.getSwingDimensionDip((y2 - y1).toFloat()))
+
+    getBackgroundColor(sceneContext.colorSet)?.let {
+      g.color = it
+      g.fill(this)
+    }
+
+    g.stroke = getBorderStroke(sceneContext.colorSet)
+    g.color = getBorderColor(sceneContext.colorSet)
     g.draw(this)
 
     g.color = defColor
+    g.stroke = defStroke
   }
+
+  abstract fun getBackgroundColor(colorSet: ColorSet): Color?
+
+  abstract fun getBorderColor(colorSet: ColorSet): Color
+
+  abstract fun getBorderStroke(colorSet: ColorSet): Stroke
+}
+
+private class DrawSnappedPlaceholder(@AndroidDpCoordinate x1: Int,
+                                     @AndroidDpCoordinate y1: Int,
+                                     @AndroidDpCoordinate x2: Int,
+                                     @AndroidDpCoordinate y2: Int)
+  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+
+  override fun getBackgroundColor(colorSet: ColorSet): Color? = colorSet.dragReceiverBackground
+
+  override fun getBorderColor(colorSet: ColorSet): Color = colorSet.dragReceiverFrames
+
+  override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverStroke
+}
+
+private class DrawSiblingsOfSnappedPlaceholder(@AndroidDpCoordinate x1: Int,
+                                               @AndroidDpCoordinate y1: Int,
+                                               @AndroidDpCoordinate x2: Int,
+                                               @AndroidDpCoordinate y2: Int)
+  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+
+  override fun getBackgroundColor(colorSet: ColorSet): Color? = colorSet.dragReceiverSiblingBackground
+
+  override fun getBorderColor(colorSet: ColorSet): Color = colorSet.dragReceiverSiblingBackground
+
+  override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverSiblingStroke
+}
+
+private class DrawHoveredHost(@AndroidDpCoordinate x1: Int,
+                              @AndroidDpCoordinate y1: Int,
+                              @AndroidDpCoordinate x2: Int,
+                              @AndroidDpCoordinate y2: Int)
+  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+
+  override fun getBackgroundColor(colorSet: ColorSet): Color? = null
+
+  override fun getBorderColor(colorSet: ColorSet): Color = colorSet.dragReceiverFrames
+
+  override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverStroke
+}
+
+private class DrawNonHoveredHost(@AndroidDpCoordinate x1: Int,
+                                 @AndroidDpCoordinate y1: Int,
+                                 @AndroidDpCoordinate x2: Int,
+                                 @AndroidDpCoordinate y2: Int)
+  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+
+  override fun getBackgroundColor(colorSet: ColorSet): Color? = null
+
+  override fun getBorderColor(colorSet: ColorSet): Color = colorSet.dragOtherReceiversFrame
+
+  override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverSiblingStroke
 }
