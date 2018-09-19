@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.BaselineAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.ClearWeightsAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.DistributeWeightsAction;
@@ -520,6 +521,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       }
       list.add(LinearPlaceholderFactory.createHorizontalPlaceholder(component, null, rightOfChildren, top, bottom));
     }
+    list.add(new ViewGroupPlaceholder(component));
     return list;
   }
 }

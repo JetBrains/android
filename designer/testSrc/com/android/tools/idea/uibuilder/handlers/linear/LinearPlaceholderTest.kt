@@ -18,7 +18,10 @@ package com.android.tools.idea.uibuilder.handlers.linear
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
+import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.intellij.testFramework.UsefulTestCase
 import java.awt.Point
 
 class LinearPlaceholderTest : SceneTest() {
@@ -85,6 +88,22 @@ class LinearPlaceholderTest : SceneTest() {
 
     // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
     assertEquals(0, textView2.drawX)
+  }
+
+  fun testAddComponentWithoutSnappingToSeparator() {
+    val linearLayout = myScene.getSceneComponent("linear")!!
+    val placeholders = linearLayout.nlComponent.viewGroupHandler!!.getPlaceholders(linearLayout)
+
+    val left = 50
+    val top = 50
+
+    val p = Point()
+    val snappedPlaceholders = placeholders.filter { it.snap(left, top, left + 50, top + 50, p) }.toList()
+
+    assertSize(1, snappedPlaceholders)
+    assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)
+    assertEquals(left, p.x)
+    assertEquals(top, p.y)
   }
 
   override fun createModel(): ModelBuilder {
