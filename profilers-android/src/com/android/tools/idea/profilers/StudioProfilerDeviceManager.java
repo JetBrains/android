@@ -93,6 +93,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   // On-device daemon uses Unix abstract socket for O and future devices.
   private static final String DEVICE_SOCKET_NAME = "AndroidStudioProfiler";
   private static final String AGENT_CONFIG_FILE = "agent.config";
+  private static final String DEVICE_DIR = "/data/local/tmp/perfd/";
 
   @NotNull
   private final DataStoreService myDataStoreService;
@@ -250,6 +251,64 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     });
   }
 
+  /**
+   * Whether the device is running O or higher APIs
+   */
+  private static boolean isAtLeastO(IDevice device) {
+    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+  }
+
+  /**
+   * Creates and pushes a config file that lives in perfd but is shared between both perfd + perfa
+   */
+  static void pushAgentConfig(IDevice device, boolean isMemoryLiveAllocationEnabledAtStartup)
+    throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
+    int liveAllocationSamplingRate;
+    if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
+      // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
+      if (isMemoryLiveAllocationEnabledAtStartup) {
+        liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
+          IntellijProfilerPreferences.getProfilerPropertyName(
+            MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
+          MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+      }
+      else {
+        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+      }
+    }
+    else {
+      // Sampling feature is disabled, use full mode.
+      liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
+    }
+    Agent.SocketType socketType = isAtLeastO(device) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
+    Agent.AgentConfig agentConfig =
+      Agent.AgentConfig.newBuilder()
+                       .setMemConfig(
+                         Agent.AgentConfig.MemoryConfig
+                           .newBuilder()
+                           .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
+                           .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+                           .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
+                           .setSamplingRate(
+                             MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
+                           .build())
+                       .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
+                       // Using "@" to indicate an abstract socket in unix.
+                       .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
+                       .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+                       .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
+                       .setAndroidFeatureLevel(device.getVersion().getFeatureLevel())
+                       .setCpuConfig(
+                         Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC))
+                       .build();
+
+    File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);
+    OutputStream oStream = new FileOutputStream(configFile);
+    agentConfig.writeTo(oStream);
+    device.executeShellCommand("rm -f " + DEVICE_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
+    device.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
+  }
+
   private class PerfdThread implements Runnable {
     @NotNull private final DataStoreService myDataStore;
     @NotNull private final IDevice myDevice;
@@ -272,21 +331,20 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
         // in AndroidStudioProperties.groovy to package in release.
-        String deviceDir = "/data/local/tmp/perfd/";
-        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
+        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", DEVICE_DIR,
                          true);
         if (isAtLeastO(myDevice)) {
           String productionRoot = "plugins/android/resources";
           String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
-          copyFileToDevice("perfa.jar", productionRoot, devRoot, deviceDir, false);
-          copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
-          pushJvmtiAgentNativeLibraries(deviceDir);
+          copyFileToDevice("perfa.jar", productionRoot, devRoot, DEVICE_DIR, false);
+          copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, DEVICE_DIR, false);
+          pushJvmtiAgentNativeLibraries(DEVICE_DIR);
           // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
-          pushSimpleperf(deviceDir);
+          pushSimpleperf(DEVICE_DIR);
         }
-        pushAgentConfig(AGENT_CONFIG_FILE, deviceDir);
+        pushAgentConfig(myDevice, myIsMemoryLiveAllocationEnabledAtStartup);
 
-        myDevice.executeShellCommand(deviceDir + "perfd -config_file=" + deviceDir + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
+        myDevice.executeShellCommand(DEVICE_DIR + "perfd -config_file=" + DEVICE_DIR + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
@@ -479,55 +537,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
                                   simpleperfDeviceFilenameFormat);
     }
 
-    /**
-     * Creates and pushes a config file that lives in perfd but is shared bewteen both perfd + perfa
-     */
-    private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
-      throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
-      int liveAllocationSamplingRate;
-      if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
-        // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
-        if (myIsMemoryLiveAllocationEnabledAtStartup) {
-          liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
-            IntellijProfilerPreferences.getProfilerPropertyName(
-              MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
-            MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
-        }
-        else {
-          liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
-        }
-      }
-      else {
-        // Sampling feature is disabled, use full mode.
-        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
-      }
-      Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
-      Agent.AgentConfig agentConfig =
-        Agent.AgentConfig.newBuilder()
-          .setMemConfig(
-            Agent.AgentConfig.MemoryConfig
-              .newBuilder()
-              .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
-              .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
-              .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
-              .setSamplingRate(
-                MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
-              .build())
-          .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
-          // Using "@" to indicate an abstract socket in unix.
-          .setServiceSocketName("@" + DEVICE_SOCKET_NAME).setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-          .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
-          .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel())
-          .setCpuConfig(Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC))
-          .build();
-
-      File configFile = FileUtil.createTempFile(fileName, null, true);
-      OutputStream oStream = new FileOutputStream(configFile);
-      agentConfig.writeTo(oStream);
-      myDevice.executeShellCommand("rm -f " + devicePath + fileName, new NullOutputReceiver());
-      myDevice.pushFile(configFile.getAbsolutePath(), devicePath + fileName);
-    }
-
     private void createPerfdProxy() throws TimeoutException, AdbCommandRejectedException, IOException {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
@@ -582,13 +591,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
         throw e;
       }
-    }
-
-    /**
-     * Whether the device is running O or higher APIs
-     */
-    private boolean isAtLeastO(IDevice device) {
-      return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     }
 
     /**
