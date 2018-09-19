@@ -18,7 +18,11 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
+import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.intellij.testFramework.UsefulTestCase
+import junit.framework.TestCase
 import java.awt.Point
 import kotlin.math.sqrt
 
@@ -106,6 +110,22 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(frameLayout.drawY + + frameLayout.drawHeight - textView.drawHeight, textView.drawY)
     assertEquals("@+id/frame", textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR))
     assertEquals("end|bottom", textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY))
+  }
+
+  fun testAddComponentWithoutSnappingToAnchor() {
+    val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
+    val placeholders = coordinatorLayout.nlComponent.viewGroupHandler!!.getPlaceholders(coordinatorLayout)
+
+    val left = 100
+    val top = 120
+
+    val p = Point()
+    val snappedPlaceholders = placeholders.filter { it.snap(left, top, left + 50, top + 50, p) }.toList()
+
+    assertSize(1, snappedPlaceholders)
+    UsefulTestCase.assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)
+    TestCase.assertEquals(left, p.x)
+    TestCase.assertEquals(top, p.y)
   }
 
   override fun createModel(): ModelBuilder {
