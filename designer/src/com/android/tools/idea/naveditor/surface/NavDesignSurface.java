@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.naveditor.surface;
 
+import static com.android.SdkConstants.ATTR_GRAPH;
+import static com.android.annotations.VisibleForTesting.Visibility;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -25,8 +29,18 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.*;
-import com.android.tools.idea.common.surface.*;
+import com.android.tools.idea.common.scene.LerpDouble;
+import com.android.tools.idea.common.scene.LerpPoint;
+import com.android.tools.idea.common.scene.LerpValue;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneInteraction;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
@@ -62,14 +76,9 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -80,10 +89,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.ATTR_GRAPH;
-import static com.android.annotations.VisibleForTesting.Visibility;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import javax.swing.JViewport;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link DesignSurface} for the navigation editor.

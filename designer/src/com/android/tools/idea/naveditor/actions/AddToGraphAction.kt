@@ -43,6 +43,7 @@ abstract class AddToGraphAction(
     WriteCommandAction.runWriteCommandAction(mySurface.project, "Add to Nested Graph", null, Runnable {
       val graph = newParent()
       val ids = components.map { it.id }
+      components.forEach { mySurface.sceneManager?.performUndoablePositionAction(it) }
       // Pick an arbitrary destination to be the start destination,
       // but give preference to destinations with incoming actions
       // TODO: invoke dialog to have user select the best start destination?

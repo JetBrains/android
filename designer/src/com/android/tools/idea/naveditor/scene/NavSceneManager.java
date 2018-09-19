@@ -48,6 +48,8 @@ import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.command.undo.BasicUndoableAction;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -199,15 +201,29 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
+  public void update() {
+    Rectangle rootBounds = null;
+    if (getScene().getRoot() != null) {
+      rootBounds = getScene().getRoot().fillDrawRect(0, null);
+    }
+    super.update();
+    updateRootBounds(rootBounds);
+  }
+
+  @Override
   protected void postUpdateFromComponent(@NotNull SceneComponent sceneComponent) {
     NlComponent nlComponent = sceneComponent.getNlComponent();
     if (NavComponentHelperKt.isNavigation(nlComponent) && nlComponent == getDesignSurface().getCurrentNavigation()) {
       layoutAll(sceneComponent);
-      updateRootBounds(sceneComponent);
     }
   }
 
-  private void updateRootBounds(@NotNull SceneComponent root) {
+  private void updateRootBounds(@Nullable @NavCoordinate Rectangle prevRootBounds) {
+    SceneComponent root = getScene().getRoot();
+    if (root == null) {
+      return;
+    }
+
     NavDesignSurface surface = getDesignSurface();
 
     @SwingCoordinate Dimension extentSize = surface.getExtentSize();
@@ -225,17 +241,14 @@ public class NavSceneManager extends SceneManager {
       rootBounds.grow(extentWidth - panLimit, extentHeight - panLimit);
     }
 
-    @NavCoordinate int drawX = root.getDrawX();
-    @NavCoordinate int drawY = root.getDrawY();
-
     root.setPosition(rootBounds.x, rootBounds.y);
     root.setSize(rootBounds.width, rootBounds.height, false);
     surface.updateScrolledAreaSize();
 
     SceneView view = surface.getCurrentSceneView();
     if (view != null) {
-      @SwingCoordinate int deltaX = Coordinates.getSwingDimension(view, root.getDrawX() - drawX);
-      @SwingCoordinate int deltaY = Coordinates.getSwingDimension(view, root.getDrawY() - drawY);
+      @SwingCoordinate int deltaX = Coordinates.getSwingDimension(view, root.getDrawX() - (prevRootBounds == null ? 0 : prevRootBounds.x));
+      @SwingCoordinate int deltaY = Coordinates.getSwingDimension(view, root.getDrawY() - (prevRootBounds == null ? 0 : prevRootBounds.y));
 
       @SwingCoordinate Point point = surface.getScrollPosition();
       surface.setScrollPosition(point.x - deltaX, point.y - deltaY);
@@ -496,10 +509,11 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   public void layout(boolean animate) {
-    SceneComponent root = getScene().getRoot();
-    if (root != null) {
-      updateRootBounds(root);
+    Rectangle bounds = null;
+    if (getScene().getRoot() != null) {
+      bounds = getScene().getRoot().fillDrawRect(0, null);
     }
+    updateRootBounds(bounds);
     getDesignSurface().updateScrolledAreaSize();
     getScene().needsRebuildList();
   }
@@ -640,5 +654,29 @@ public class NavSceneManager extends SceneManager {
     }
 
     return super.getHitProvider(component);
+  }
+
+  public void performUndoablePositionAction(@NotNull NlComponent component) {
+    SceneComponent sceneComponent = getScene().getSceneComponent(component);
+    if (sceneComponent == null) {
+      return;
+    }
+    Object positionData = getPositionData(sceneComponent);
+    List<String> path = NavComponentHelperKt.getIdPath(component);
+
+    UndoManager.getInstance(getDesignSurface().getProject()).undoableActionPerformed(
+      new BasicUndoableAction(getModel().getFile().getVirtualFile()) {
+      @Override
+      public void undo() {
+        if (positionData == null) {
+          return;
+        }
+        restorePositionData(path, positionData);
+      }
+
+      @Override
+      public void redo() {
+      }
+    });
   }
 }
