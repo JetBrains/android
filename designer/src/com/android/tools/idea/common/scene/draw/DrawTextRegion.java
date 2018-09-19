@@ -186,6 +186,9 @@ public class DrawTextRegion extends DrawRegion {
       return;
     }
 
+    Font originalFont = g2d.getFont();
+    Color originalColor = g2d.getColor();
+
     ColorSet colorSet = sceneContext.getColorSet();
     int horizontalPadding = mHorizontalPadding + mHorizontalMargin;
     int verticalPadding = mVerticalPadding + mVerticalMargin;
@@ -266,6 +269,9 @@ public class DrawTextRegion extends DrawRegion {
       g2d.drawString(string, ftx, fty);
       g2d.setClip(clip);
     }
+
+    g2d.setFont(originalFont);
+    g2d.setColor(originalColor);
   }
 
   private static int switchAlignment(String string, int alignmentX) {
