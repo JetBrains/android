@@ -192,7 +192,7 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
-    test_shard_count = 8,
+    test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
