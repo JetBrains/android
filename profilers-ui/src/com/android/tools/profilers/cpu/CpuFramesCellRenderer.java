@@ -28,10 +28,13 @@ import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import java.awt.Color;
+import java.awt.Component;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameState, AtraceFrame> {
   private final boolean myDebugRenderingEnabled;
@@ -75,7 +78,8 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
     // Offset the label to match the threads component.
-    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
+    Border iconIndent = JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap());
+    myLabel.setBorder(new CompoundBorder(iconIndent, ProfilerLayout.CPU_THREADS_RIGHT_BORDER));
 
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each cpu. StateChart#setModel is currently expensive and will make StateChart#render
