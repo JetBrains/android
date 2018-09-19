@@ -952,8 +952,9 @@ public class Configuration implements Disposable, ModificationTracker {
     // sync the selected locale
     Locale locale = getLocale();
     myFullConfig.setLocaleQualifier(locale.qualifier);
-    if (myEditedConfig.getLayoutDirectionQualifier() != null) {
-      myFullConfig.setLayoutDirectionQualifier(myEditedConfig.getLayoutDirectionQualifier());
+    LayoutDirectionQualifier layoutDirectionQualifier = myEditedConfig.getLayoutDirectionQualifier();
+    if (layoutDirectionQualifier != null && layoutDirectionQualifier != layoutDirectionQualifier.getNullQualifier()) {
+      myFullConfig.setLayoutDirectionQualifier(layoutDirectionQualifier);
     } else if (!locale.hasLanguage()) {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
