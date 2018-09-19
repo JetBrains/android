@@ -23,6 +23,7 @@ import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
 import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -44,7 +45,6 @@ class NamespacedAarPackageRClass(
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace
 ) : AndroidPackageRClassBase(psiManager, packageName) {
-
   override fun getQualifiedName(): String? = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
@@ -52,6 +52,8 @@ class NamespacedAarPackageRClass(
       .mapNotNull { if (it.hasInnerClass) NamespacedAarResourceTypeClass(this, it, resourceNamespace, aarResources) else null }
       .toTypedArray()
   }
+
+  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
@@ -74,6 +76,8 @@ private class NamespacedAarResourceTypeClass(
       containingClass
     )
   }
+
+  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
@@ -113,6 +117,8 @@ class NonNamespacedAarPackageRClass(
   companion object {
     private val LOG: Logger = Logger.getInstance(NonNamespacedAarPackageRClass::class.java)
   }
+
+  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
@@ -145,4 +151,6 @@ private class NonNamespacedResourceTypeClass(
     SymbolJavaType.INT -> PsiType.INT
     SymbolJavaType.INT_LIST -> ResourceTypeClassBase.INT_ARRAY
   }
+
+  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
