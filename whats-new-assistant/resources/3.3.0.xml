@@ -77,6 +77,19 @@
           </section>
         </stepElement>
       </step>
+      <step label="Android App Bundles now support Instant Apps">
+        <stepElement>
+          <section>
+            <![CDATA[
+           You can now build <a href="https://d.android.com/r/studio-wna/aab-overview">Android App Bundles</a> with full support for
+           <a href="https://d.android.com/r/studio-wna/instant-app">Instant Apps</a>. In other words, you can now build and deploy both
+           installed app and Instant App experiences from a single Android Studio project, and include them in a single Android App Bundle.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
+           Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
       <step label="Optimize Project Sync">
         <stepElement>
           <section>
@@ -88,6 +101,50 @@
            If the IDE doesn't prompt you to enable this optimization, enable it manually by navigating to
            <b>Settings/Preferences &gt; Experimental &gt; Gradle</b> and checking the box next to <b>Only resolve selected variants</b>.
            <a href="https://d.android.com/studio/preview/features?utm_source=android-studio&utm_medium=studio-assistant#single_variant_sync">
+           Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Updates to the Android Gradle plugin">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The Android Gradle plugin 3.3.0 requires Gradle 4.10 and higher, and includes the following updates.
+           <br><br>
+           <ul>
+            <li><b>Improved classpath dependency synchronization:</b>
+            When resolving dependencies on your runtime and compile time classpaths, the plugin attempts to automatically fix certain
+            downstream version conflicts for dependencies that appear across multiple classpaths.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/classpath-sync">
+            Learn more</a>
+            </li>
+            <li><b>Lazy task configuration:</b>
+            The plugin now uses Gradle’s
+            <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html#sec:old_vs_new_configuration_api_overview">
+            new task configuration API</a>, which speeds up the configuration phase by not creating and configuring tasks that are not going
+            to be executed.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/lazy-task-configuration">
+            Learn more</a>
+            </li>
+            <li><b>Improved incremental Java compilation when using annotation processors:</b>
+            Faster build times by improving support for incremental Java compilation when using annotation processors.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/incremental-javac">
+            Learn more</a>
+            </li>
+           </ul>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Support for Clang-Tidy">
+        <stepElement>
+          <section>
+            <![CDATA[
+           Android Studio now includes support for static code analysis using
+           <a href="http://clang.llvm.org/extra/clang-tidy/">Clang-Tidy</a> for projects that include native code. To enable support for
+           Clang-Tidy, <a href="https://d.android.com/ndk/guides/#download-ndk">update your NDK</a> to r18 or higher.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/clang-tidy">
            Learn more</a></li>
            ]]>
           </section>
