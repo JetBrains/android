@@ -109,7 +109,6 @@ public class ConstraintLayoutTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/112016147
   public void fileIsFormattedAfterSelectingMarginStart() {
     WizardUtils.createNewProject(guiTest, "Empty Activity");
 
@@ -151,7 +150,6 @@ public class ConstraintLayoutTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/112057046
   public void cleanUpAttributes() throws IOException {
     WizardUtils.createNewProject(guiTest);
 
