@@ -18,8 +18,16 @@ package com.android.tools.idea.resourceExplorer.editor
 import com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
-import com.android.tools.idea.resourceExplorer.view.*
-import com.android.tools.idea.resourceExplorer.viewmodel.*
+import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
+import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
+import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
+import com.android.tools.idea.resourceExplorer.view.ResourceExplorerView
+import com.android.tools.idea.resourceExplorer.view.ResourceImportDragTarget
+import com.android.tools.idea.resourceExplorer.viewmodel.DesignAssetDetailViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ExternalBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceFileHelper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
@@ -31,6 +39,7 @@ import kotlin.properties.Delegates
 
 private const val withExternalBrowser: Boolean = false
 private const val withDetailView: Boolean = false
+internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "true")?.toBoolean() ?: false
 
 /**
  * The resource explorer lets the user browse resources from the provided [AndroidFacet]

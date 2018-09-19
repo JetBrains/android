@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.adtui.ImageUtils.lowQualityFastScale
 import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.res.resolveMultipleColors
+import com.android.tools.idea.resourceExplorer.editor.RESOURCE_DEBUG
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.transform
 import com.google.common.cache.CacheBuilder
@@ -50,13 +51,13 @@ import javax.swing.ListCellRenderer
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
-private val EMPTY_ICON = createIcon(Color.GREEN)
+private val EMPTY_ICON = createIcon(if (RESOURCE_DEBUG) Color.GREEN else Color(0, 0, 0, 0))
 
 private const val VERSION = "version"
 
 private fun String.pluralize(size: Int) = this + (if (size > 1) "s" else "")
 
-fun createIcon(color: Color?) = UIUtil.createImage(
+fun createIcon(color: Color?): BufferedImage = UIUtil.createImage(
   80, 80, BufferedImage.TYPE_INT_ARGB
 ).apply {
   with(createGraphics()) {
