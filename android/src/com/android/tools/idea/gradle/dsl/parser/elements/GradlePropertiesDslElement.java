@@ -244,7 +244,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           psiElement = newElement != null ? newElement : psiElement;
         }
         else {
-          newElements.add(element);
+          newElements.addAll(args);
         }
       }
     }
