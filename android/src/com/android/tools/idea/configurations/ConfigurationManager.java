@@ -398,11 +398,11 @@ public class ConfigurationManager implements Disposable {
       if (!devices.isEmpty()) {
         Device device = devices.get(0);
         for (Device d : devices) {
-          String name = d.getId();
-          if (name.equals("Nexus 4")) {
+          String id = d.getId();
+          if (id.equals("pixel")) {
             device = d;
             break;
-          } else if (name.equals("Galaxy Nexus")) {
+          } else if (id.equals("Galaxy Nexus")) {
             device = d;
           }
         }
