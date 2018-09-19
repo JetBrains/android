@@ -60,11 +60,20 @@ class FilterComponentTest {
   fun changeFilterResult() {
     val ui = FilterComponentUi()
 
-    ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
+    ui.filterComponent.model.setFilterHandler(object : FilterHandler() {
       override fun applyFilter(filter: Filter): FilterResult {
-        return FilterResult(Integer.parseInt(filter.filterString), true)
+        return if (filter.isEmpty) {
+          // The FilterResult should not be enabled with empty filter.
+          // We return an enabled filter intentionally to test if FilterHandler can correct it.
+          FilterResult(0, true)
+        }
+        else {
+          FilterResult(Integer.parseInt(filter.filterString), true)
+        }
       }
     })
+    ui.filterComponent.model.filter = Filter("")
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("")
     ui.filterComponent.model.filter = Filter("0")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("No matches")
     ui.filterComponent.model.filter = Filter("1")
