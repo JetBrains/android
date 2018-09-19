@@ -28,6 +28,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
@@ -371,23 +372,31 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
-    showBalloon(NotificationType.ERROR, title, body, url, urlText);
-  }
+  public void showNotification(@NotNull Notification notification) {
+    NotificationType type = null;
 
-  @Override
-  public void showWarningBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
-    showBalloon(NotificationType.WARNING, title, body, url, urlText);
-  }
+    switch (notification.getSeverity()) {
+      case INFO:
+        type = NotificationType.INFORMATION;
+        break;
+      case WARNING:
+        type = NotificationType.WARNING;
+        break;
+      case ERROR:
+        type = NotificationType.ERROR;
+        break;
+    }
 
-  private void showBalloon(@NotNull NotificationType type, @NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
-    if (url != null && urlText != null) {
-      OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(url, urlText);
+    Notification.UrlData urlData = notification.getUrlData();
+    if (urlData != null) {
+      OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(urlData.getUrl(), urlData.getText());
       AndroidNotification.getInstance(myProject)
-                         .showBalloon(title, body, type, AndroidNotification.BALLOON_GROUP, false, hyperlink);
+                         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP, false,
+                                      hyperlink);
     }
     else {
-      AndroidNotification.getInstance(myProject).showBalloon(title, body, type, AndroidNotification.BALLOON_GROUP);
+      AndroidNotification.getInstance(myProject)
+                         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
     }
   }
 

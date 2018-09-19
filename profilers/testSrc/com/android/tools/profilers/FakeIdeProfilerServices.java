@@ -147,22 +147,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
   /**
-   * Title of the error balloon displayed when {@link #showErrorBalloon} or {@link #showWarningBalloon} is called.
-   */
-  private String myBalloonTitle;
-  /**
-   * Body of the error balloon displayed when {@link #showErrorBalloon} or {@link #showWarningBalloon} is called.
-   */
-  private String myBalloonBody;
-  /**
-   * Url of the error balloon displayed when {@link #showErrorBalloon} or {@link #showWarningBalloon} is called.
-   */
-  private String myBalloonUrl;
-  /**
-   * Linked text of the error balloon displayed when {@link #showErrorBalloon} or {@link #showWarningBalloon} is called.
-   */
-  private String myBalloonUrlText;
-  /**
    * When {@link #openListBoxChooserDialog} is called this index is used to return a specific element in the set of options.
    * If this index is out of bounds, null is returned.
    */
@@ -171,6 +155,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Fake application id to be used by test.
    */
   private String myApplicationId = "";
+
+  @Nullable private Notification myNotification;
 
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
@@ -392,20 +378,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
-    showBalloon(title, body, url, urlText);
-  }
-
-  @Override
-  public void showWarningBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
-    showBalloon(title, body, url, urlText);
-  }
-
-  private void showBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
-    myBalloonTitle = title;
-    myBalloonBody = body;
-    myBalloonUrl = url;
-    myBalloonUrlText = urlText;
+  public void showNotification(@NotNull Notification notification) {
+    myNotification = notification;
   }
 
   @Override
@@ -413,20 +387,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     t.printStackTrace();
   }
 
-  public String getBalloonTitle() {
-    return myBalloonTitle;
-  }
-
-  public String getBalloonBody() {
-    return myBalloonBody;
-  }
-
-  public String getBalloonUrl() {
-    return myBalloonUrl;
-  }
-
-  public String getBalloonUrlText() {
-    return myBalloonUrlText;
+  @Nullable
+  public Notification getNotification() {
+    return myNotification;
   }
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
@@ -459,16 +422,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myLiveTrackingEnabled = enabled;
   }
 
-  public void enableMemorySnapshot(boolean enabled) {
-    myMemorySnapshotEnabled = enabled;
-  }
-
   public void enableSessionsView(boolean enabled) {
     mySessionsViewEnabled = enabled;
-  }
-
-  public void enableSessionImport(boolean enabled) {
-    mySessionsImportEnabled = enabled;
   }
 
   public void enableStartupCpuProfiling(boolean enabled) {

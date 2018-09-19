@@ -199,12 +199,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private Common.Session mySession;
 
-  /**
-   * Shows balloon notifications related to CPU Profiler.
-   */
-  @NotNull
-  private final CpuProfilerNotification myNotification;
-
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, null);
   }
@@ -225,7 +219,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
-    myNotification = new CpuProfilerNotification(profilers.getIdeServices());
 
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
@@ -546,7 +539,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      myNotification.showCaptureStartFailure();
+      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_START_FAILURE);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
@@ -630,7 +623,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
-      myNotification.showCaptureStopFailure();
+      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
@@ -707,10 +700,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
       }
       else if (capture.isCancelled()) {
-        myNotification.showImportTraceParsingAborted();
+        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
       }
       else {
-        myNotification.showImportTraceParsingFailure();
+        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
         // After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         // Track import trace failure
@@ -761,11 +754,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         captureMetadata.setRecordDurationMs(calculateRecordDurationMs(parsedCapture));
       }
       else if (capture.isCancelled()) {
-        myNotification.showParsingAborted();
+        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.PARSING_ABORTED);
       }
       else {
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-        myNotification.showParsingFailure();
+        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.PARSING_FAILURE);
         // After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         setCapture(null);
@@ -961,7 +954,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       ensureCaptureInViewRange();
       if (capture.getType() == CpuProfilerType.ATRACE) {
         if (!isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
-          myNotification.showATraceBufferOverflow();
+          getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
         }
       }
     }
