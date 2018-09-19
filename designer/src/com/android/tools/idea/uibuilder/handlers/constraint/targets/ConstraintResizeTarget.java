@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import static com.intellij.util.ui.JBUI.scale;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
