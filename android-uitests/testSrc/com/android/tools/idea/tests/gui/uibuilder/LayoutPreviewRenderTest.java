@@ -59,7 +59,8 @@ public class LayoutPreviewRenderTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void layoutPreviewRendering() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+                                             .closeProjectPanel();
 
     EditorFixture editorFixture = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.DESIGN);
@@ -69,8 +70,8 @@ public class LayoutPreviewRenderTest {
       .waitForRenderToFinish();
 
     preview.getConfigToolbar()
-      .chooseDevice("Nexus 5")
-      .requireDevice("Nexus 5")
+      .chooseDevice("Nexus 5X")
+      .requireDevice("Nexus 5X")
       .chooseDevice("Nexus 6")
       .requireDevice("Nexus 6");
 
