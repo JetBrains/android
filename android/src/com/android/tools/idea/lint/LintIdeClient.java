@@ -34,6 +34,8 @@ import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
@@ -69,6 +71,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
@@ -79,11 +82,15 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -426,7 +433,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       return "";
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+    return runReadAction(() -> {
       PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
       if (psiFile == null) {
         LOG.info("Cannot find file " + file.getPath() + " in the PSI");
@@ -705,6 +712,102 @@ public class LintIdeClient extends LintClient implements Disposable {
       return myState.getIssues();
     }
 
+    // In order to prevent UI freezes due to long-running Lint read actions,
+    // we cancel incremental Lint sessions if a write action is running, pending, or later requested.
+    // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html#preventing-ui-freezes
+    @Override
+    public void runReadAction(@NonNull Runnable runnable) {
+
+      Application application = ApplicationManager.getApplication();
+      if (application.isUnitTestMode()) {
+        // Do not yield to pending write actions during unit tests;
+        // otherwise the tests will fail before Lint is rescheduled.
+        application.runReadAction(runnable);
+        return;
+      }
+
+      // We use a custom progress indicator to track action cancellation latency,
+      // and to collect a stack dump at the time of cancellation.
+      class ProgressIndicatorWithCancellationInfo extends AbstractProgressIndicatorExBase {
+
+        final Thread readActionThread;
+
+        // These fields are marked volatile since they will be accessed by two threads (the EDT and the read action thread).
+        // Notice that they are set before the progress indicator is marked as cancelled; this establishes a happens-before
+        // relationship with myCanceled (also volatile), thereby ensuring that the new values are visible
+        // to threads which have detected cancellation.
+        volatile StackTraceElement[] cancelStackDump;
+        volatile long cancelStartTimeMs = -1;
+
+        ProgressIndicatorWithCancellationInfo(Thread readActionThread) {
+          this.readActionThread = readActionThread;
+        }
+
+        @Override
+        public void cancel() {
+          if (!isCanceled()) {
+            cancelStartTimeMs = System.currentTimeMillis();
+            cancelStackDump = readActionThread.getStackTrace();
+          }
+          super.cancel();
+        }
+      }
+
+      ProgressIndicatorWithCancellationInfo progressIndicator = new ProgressIndicatorWithCancellationInfo(Thread.currentThread());
+      long actionStartTimeMs = System.currentTimeMillis();
+      boolean successful = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable, progressIndicator);
+
+      if (!successful) {
+        LOG.info("Android Lint read action canceled due to pending write action");
+
+        StackTraceElement[] stackDumpRaw = progressIndicator.cancelStackDump;
+        if (stackDumpRaw != null) {
+
+          // If the read action was canceled *after* being started, then the EDT still has to wait
+          // for the read action to check for cancellation and throw a ProcessCanceledException.
+          // If this takes a while, it will freeze the UI. We want to know about that.
+          long currTimeMs = System.currentTimeMillis();
+          long cancelTimeMs = currTimeMs - progressIndicator.cancelStartTimeMs;
+
+          // Even if the read action was quick to cancel, we still want to report long-running
+          // read actions because those could lead to frequent cancellations or Lint never finishing.
+          long actionTimeMs = currTimeMs - actionStartTimeMs;
+
+          // Report both in the same crash report so that one does not get discarded by the crash report rate limiter.
+          if (cancelTimeMs > 200 || actionTimeMs > 1000) {
+
+            StringBuilder sb = new StringBuilder();
+            for (StackTraceElement e : stackDumpRaw) {
+              sb.append(e.toString());
+              sb.append("\n");
+            }
+            String stackDump = sb.toString();
+
+            StudioCrashReporter.getInstance().submit(
+              new GenericStudioReport.Builder("LintReadActionDelay")
+                .addDataNoPii("summary",
+                         "Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
+                         "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)")
+                .addDataNoPii("timeToCancelMs", String.valueOf(cancelTimeMs))
+                .addDataNoPii("readActionTimeMs", String.valueOf(actionTimeMs))
+                .addDataNoPii("stackDump", stackDump)
+                .build()
+            );
+          }
+        }
+
+        throw new ProcessCanceledException();
+      }
+    }
+
+    @Override
+    public <T> T runReadAction(@NonNull Computable<T> computable) {
+      // Defer to read action implementation for Runnable.
+      Ref<T> res = new Ref<>();
+      runReadAction(() -> res.set(computable.compute()));
+      return res.get();
+    }
+
     @Override
     public void report(@NonNull Context context,
                        @NonNull Issue issue,
@@ -763,7 +866,7 @@ public class LintIdeClient extends LintClient implements Disposable {
         return myState.getMainFileContent();
       }
 
-      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      return runReadAction(() -> {
         final Module module = myState.getModule();
         final Project project = module.getProject();
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);

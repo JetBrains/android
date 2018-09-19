@@ -25,7 +25,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import java.util.Map;
 
 /** Crash report that uses Android Studio product id. */
-abstract class BaseStudioReport extends CrashReport {
+public abstract class BaseStudioReport extends CrashReport {
   BaseStudioReport(@Nullable String version,
                           @Nullable Map<String, String> productData,
                           @NonNull String type) {
