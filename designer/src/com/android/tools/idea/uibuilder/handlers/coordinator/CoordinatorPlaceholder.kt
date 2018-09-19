@@ -30,6 +30,9 @@ const val SIZE = 20
 
 class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComponent, private val type: Type) : Placeholder(host) {
 
+  override val associatedComponent: SceneComponent
+    get() = anchor
+
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) {
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, getAnchorGravity())
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR,

@@ -27,6 +27,8 @@ import java.awt.Point
  */
 class ViewGroupPlaceholder(host: SceneComponent) : Placeholder(host) {
 
+  override val dominate = false
+
   override val region = Region(host.drawX, host.drawY, host.drawX + host.drawWidth, host.drawY + host.drawHeight, host.depth)
 
   override fun snap(@AndroidDpCoordinate left: Int,

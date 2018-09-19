@@ -103,6 +103,13 @@ public class AndroidColorSet extends ColorSet {
                 .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
 
+        // Drag Receiver
+
+        mDragReceiverFrames = new Color(255, 0, 255);
+        mDragReceiverBackground = new Color(255, 0, 255, 102);
+        mDragOtherReceiversFrame = new Color(255, 0, 255, 102);
+        mDragReceiverSiblingBackground = new Color(255, 0, 255, 26);
+
         // Lasso colors
 
         mLassoSelectionBorder = DEFAULT_LASSO_BORDER_COLOR;

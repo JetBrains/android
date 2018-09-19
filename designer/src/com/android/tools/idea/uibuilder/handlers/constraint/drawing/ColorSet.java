@@ -33,6 +33,9 @@ public class ColorSet {
             sNormalStroke = new BasicStroke(1);
 
     public static Stroke
+            sBoldStroke = new BasicStroke(2);
+
+    public static Stroke
             sOutlineStroke = new BasicStroke(2);
 
     public static Stroke
@@ -112,6 +115,10 @@ public class ColorSet {
 
     protected Color mDragReceiverFrames = new Color(135, 195, 77);
     protected Color mDragReceiverBackground = new Color(154, 221, 140, 60);
+    protected Stroke mDragReceiverStroke = sBoldStroke;
+    protected Color mDragOtherReceiversFrame = new Color(135, 195, 77, 102);
+    protected Color mDragReceiverSiblingBackground = new Color(154, 221, 140, 26);
+    protected Stroke mDragReceiverSiblingStroke = sNormalStroke;
 
     protected Color mLassoSelectionBorder;
     protected Color mLassoSelectionFill;
@@ -143,6 +150,20 @@ public class ColorSet {
     public Color getDragReceiverFrames() { return mDragReceiverFrames; }
 
     public Color getDragReceiverBackground() { return mDragReceiverBackground; }
+
+    public Stroke getDragReceiverStroke() {
+        return mDragReceiverStroke;
+    }
+
+    public Color getDragOtherReceiversFrame() {
+        return mDragOtherReceiversFrame;
+    }
+
+    public Color getDragReceiverSiblingBackground() { return mDragReceiverSiblingBackground; }
+
+    public Stroke getDragReceiverSiblingStroke() {
+        return mDragReceiverSiblingStroke;
+    }
 
     public Color getBackground() { return mBackground; }
 
