@@ -54,6 +54,9 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
   public HotswapAction() {
     super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
     setShortcutSet(SHORTCUT_SET);
+    if (StudioFlags.JVMTI_REFRESH.get()) {
+      throw new IllegalStateException("Non JVMTI swap action should not be created");
+    }
   }
 
   @Override
