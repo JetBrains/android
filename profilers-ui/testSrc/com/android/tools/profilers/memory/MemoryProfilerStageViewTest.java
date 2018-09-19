@@ -359,6 +359,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(toolbar.getComponents()).asList().containsExactly(
       view2.getGarbageCollectionButtion(),
       view2.getHeapDumpButton(),
+      view2.getAllocationSamplingRateLabel(),
       view2.getAllocationSamplingRateDropDown()
     );
   }

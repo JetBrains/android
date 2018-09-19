@@ -100,6 +100,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
   @NotNull private final JLabel myCaptureInfoMessage;
+  @NotNull private final JLabel myAllocationSamplingRateLabel;
 
   @NotNull private DurationDataRenderer<GcDurationData> myGcDurationDataRenderer;
   @NotNull private DurationDataRenderer<AllocationSamplingRateDurationData> myAllocationSamplingRateRenderer;
@@ -200,6 +201,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();
 
+    myAllocationSamplingRateLabel = new JLabel("Allocation Tracking Mode");
+    myAllocationSamplingRateLabel.setBorder(JBUI.Borders.emptyLeft(10));
     myAllocationSamplingRateDropDown = new ComboBox<LiveAllocationSamplingMode>();
 
     getStage().getAspect().addDependency(this)
@@ -245,6 +248,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   @VisibleForTesting
+  JLabel getAllocationSamplingRateLabel() {
+    return myAllocationSamplingRateLabel;
+  }
+
+  @VisibleForTesting
   DurationDataRenderer<GcDurationData> getGcDurationDataRenderer() {
     return myGcDurationDataRenderer;
   }
@@ -270,6 +278,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                                                             getStage()::requestLiveAllocationSamplingModeUpdate);
       sampleRateComboView.bind();
       myAllocationSamplingRateDropDown.setRenderer(new LiveAllocationSamplingModeRenderer());
+      toolBar.add(myAllocationSamplingRateLabel);
       toolBar.add(myAllocationSamplingRateDropDown);
     } else {
       toolBar.add(myAllocationButton);
