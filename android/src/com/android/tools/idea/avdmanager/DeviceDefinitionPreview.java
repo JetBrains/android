@@ -26,7 +26,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,13 +88,13 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
    */
   @NotNull
   public static Icon getIcon(@Nullable AvdDeviceData deviceData) {
-    Icon icon = AndroidIcons.FormFactors.Mobile_32;
+    Icon icon = StudioIcons.Avd.DEVICE_MOBILE_LARGE;
     if (deviceData != null) {
       if (deviceData.isTv().get()) {
-        icon = AndroidIcons.FormFactors.Tv_32;
+        icon = StudioIcons.Avd.DEVICE_TV_LARGE;
       }
       else if (deviceData.isWear().get()) {
-        icon = AndroidIcons.FormFactors.Wear_32;
+        icon = StudioIcons.Avd.DEVICE_WEAR_LARGE;
       }
     }
     return icon;
