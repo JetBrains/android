@@ -168,7 +168,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   protected ProjectAbstractTreeStructureBase createStructure() {
     return new ProjectTreeStructure(myProject, ID) {
       @Override
-      protected AbstractTreeNode createRoot(Project project, ViewSettings settings) {
+      protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
         return new AndroidViewProjectNode(project, settings, AndroidProjectViewPane.this);
       }
     };

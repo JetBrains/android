@@ -25,6 +25,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
+import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,12 +53,13 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   public DexGroupNode(@NotNull Project project, @NotNull ViewSettings settings, @Nullable VirtualFile dexFile) {
     this(project, settings, DexSourceFiles.getInstance(project), dexFile);
   }
+  private static final VirtualFile NULL_DEX = new StubVirtualFile();
 
   DexGroupNode(@NotNull Project project,
                @NotNull ViewSettings settings,
                @NotNull DexSourceFiles dexSourceFiles,
                @Nullable VirtualFile dexFile) {
-    super(project, dexFile, settings);
+    super(project, ObjectUtils.notNull(dexFile, NULL_DEX), settings);
     myDexSourceFiles = dexSourceFiles;
     if (dexFile != null) {
       myDexFileStructure = new DexFileStructure(dexFile);
@@ -162,7 +165,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
     presentation.setIcon(SourceRoot);
     presentation.addText(getSourceType().getName(), REGULAR_ATTRIBUTES);
     VirtualFile dexFile = getValue();
-    if (dexFile != null) {
+    if (dexFile != NULL_DEX) {
       presentation.addText(" (" + dexFile.getName() + ")", GRAY_ATTRIBUTES);
     }
   }
@@ -199,7 +202,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     String text = getSourceType().getName();
     VirtualFile dexFile = getValue();
-    if (dexFile != null) {
+    if (dexFile != NULL_DEX) {
       text = text + " (" + dexFile.getName() + ")";
     }
 

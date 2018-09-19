@@ -19,12 +19,13 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
  */
 public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
-  public AndroidViewModuleNode(Project project, Module value, ViewSettings viewSettings) {
+  public AndroidViewModuleNode(Project project, @NotNull Module value, ViewSettings viewSettings) {
     super(project, value, viewSettings);
   }
 
