@@ -114,6 +114,7 @@ public interface IdeProfilerServices {
 
   /**
    * Opens a dialog giving the user to select items from the listbox.
+   *
    * @param title                      tile to be provided to the dialog box.
    * @param message                    optional message to be provided to the user about contents of listbox.
    * @param options                    options used to populate the listbox. The list should not be empty.
@@ -142,21 +143,10 @@ public interface IdeProfilerServices {
   boolean isNativeProfilingConfigurationPreferred();
 
   /**
-   * Displays a balloon message showing the user that an error has occurred.
-   *
-   * @param title   title of the message
-   * @param body    body of the message, followed by a hyperlink as specified by next two parameters
-   * @param url     destination of the hyperlink that follows the body, if neither url or urlText is null
-   * @param urlText shown text of the hyperlink that follows the body, if neither url or urlText is null
+   * Pops up a toast that contains information contained in the notification,
+   * which should particularly draw attention to warning and error messages.
    */
-  void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText);
-
-  /**
-   * Displays a balloon message showing the user a warning balloon.
-   *
-   * See {@link #showErrorBalloon(String, String, String, String)} for argument details.
-   */
-  void showWarningBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText);
+  void showNotification(@NotNull Notification notification);
 
   /**
    * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
