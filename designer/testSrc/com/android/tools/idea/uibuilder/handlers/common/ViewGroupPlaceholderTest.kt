@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.frame
+package com.android.tools.idea.uibuilder.handlers.common
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -21,36 +21,28 @@ import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
 
-class FramePlaceholderTest : SceneTest() {
+class ViewGroupPlaceholderTest : SceneTest() {
 
   fun testRegion() {
-    val frameLayout = myScene.getSceneComponent("frame")!!
+    val viewGroup = myScene.getSceneComponent("viewGroup")!!
 
-    val placeholder = FramePlaceholder(frameLayout,
-                                       frameLayout.drawX,
-                                       frameLayout.drawY,
-                                       frameLayout.drawX + frameLayout.drawWidth,
-                                       frameLayout.drawY + frameLayout.drawHeight)
+    val placeholder = ViewGroupPlaceholder(viewGroup)
 
     val region = placeholder.region
-    assertEquals(frameLayout.drawX, region.left)
-    assertEquals(frameLayout.drawY, region.top)
-    assertEquals(frameLayout.drawX + frameLayout.drawWidth, region.right)
-    assertEquals(frameLayout.drawY + frameLayout.drawHeight, region.bottom)
+    assertEquals(viewGroup.drawX, region.left)
+    assertEquals(viewGroup.drawY, region.top)
+    assertEquals(viewGroup.drawX + viewGroup.drawWidth, region.right)
+    assertEquals(viewGroup.drawY + viewGroup.drawHeight, region.bottom)
   }
 
   fun testSnapSucceed() {
-    val frameLayout = myScene.getSceneComponent("frame")!!
+    val viewGroup = myScene.getSceneComponent("viewGroup")!!
     val textView = myScene.getSceneComponent("textView")!!
 
-    val placeholder = FramePlaceholder(frameLayout,
-                                       frameLayout.drawX,
-                                       frameLayout.drawY,
-                                       frameLayout.drawX + frameLayout.drawWidth,
-                                       frameLayout.drawY + frameLayout.drawHeight)
+    val placeholder = ViewGroupPlaceholder(viewGroup)
 
-    val left = frameLayout.drawX
-    val top = frameLayout.drawY
+    val left = viewGroup.drawX
+    val top = viewGroup.drawY
     val right = left + textView.drawWidth
     val bottom = top + textView.drawHeight
 
@@ -63,17 +55,13 @@ class FramePlaceholderTest : SceneTest() {
   }
 
   fun testSnapFailed() {
-    val frameLayout = myScene.getSceneComponent("frame")!!
+    val viewGroup = myScene.getSceneComponent("viewGroup")!!
     val textView = myScene.getSceneComponent("textView")!!
 
-    val placeholder = FramePlaceholder(frameLayout,
-                                       frameLayout.drawX,
-                                       frameLayout.drawY,
-                                       frameLayout.drawX + frameLayout.drawWidth,
-                                       frameLayout.drawY + frameLayout.drawHeight)
+    val placeholder = ViewGroupPlaceholder(viewGroup)
 
-    val left = frameLayout.drawX - textView.drawWidth
-    val top = frameLayout.drawY - textView.drawHeight
+    val left = viewGroup.drawX - textView.drawWidth
+    val top = viewGroup.drawY - textView.drawHeight
     val right = left + textView.drawWidth
     val bottom = top + textView.drawHeight
 
@@ -86,38 +74,34 @@ class FramePlaceholderTest : SceneTest() {
   }
 
   fun testApply() {
-    val frameLayout = myScene.getSceneComponent("frame")!!
+    val viewGroup = myScene.getSceneComponent("viewGroup")!!
     val textView = myScene.getSceneComponent("textView")!!
 
     assertEquals(200, textView.drawX)
     assertEquals(0, textView.drawY)
 
-    val placeholder = FramePlaceholder(frameLayout,
-                                       frameLayout.drawX,
-                                       frameLayout.drawY,
-                                       frameLayout.drawX + frameLayout.drawWidth,
-                                       frameLayout.drawY + frameLayout.drawHeight)
+    val placeholder = ViewGroupPlaceholder(viewGroup)
 
     val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
     assertTrue(appliedResult)
 
     mySceneManager.update()
-    assertTrue(frameLayout.children.contains(textView))
+    assertTrue(viewGroup.children.contains(textView))
 
     assertEquals(0, textView.drawX)
-    assertTrue(frameLayout.children.contains(textView))
+    assertTrue(viewGroup.children.contains(textView))
   }
 
   override fun createModel(): ModelBuilder {
-    return model("frame.xml",
+    return model("view_group.xml",
                  component(SdkConstants.LINEAR_LAYOUT)
                    .withBounds(0, 0, 1000, 1000)
                    .matchParentWidth()
                    .matchParentHeight()
                    .children(
-                     component(SdkConstants.FRAME_LAYOUT)
+                     component(SdkConstants.VIEW_GROUP)
                        .withBounds(0, 0, 400, 400)
-                       .id("@id/frame")
+                       .id("@id/viewGroup")
                        .width("200dp")
                        .height("200dp")
                        .children(

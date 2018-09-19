@@ -20,14 +20,17 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.xml.XmlBuilder;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -275,6 +278,11 @@ public class ViewGroupHandler extends ViewHandler {
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility callback) {
     return null;
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new ViewGroupPlaceholder(component));
   }
 
   public interface AccessoryPanelVisibility {

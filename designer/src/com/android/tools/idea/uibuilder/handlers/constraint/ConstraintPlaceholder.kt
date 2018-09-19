@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
-import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget
 import java.awt.Point
 
@@ -27,18 +27,13 @@ import java.awt.Point
  */
 class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
-  override val region = Region(host.drawX, host.drawY, host.drawX + host.drawWidth, host.drawY + host.drawHeight, host.depth)
+  private val delegator = ViewGroupPlaceholder(host)
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
-    if (region.left <= left && region.top <= top && region.right >= right && region.bottom >= bottom) {
-      retPoint.x = left
-      retPoint.y = top
-      return true
-    }
-    return false
-  }
+  override val region = delegator.region
+
+  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point) = delegator.snap(left, top, right, bottom, retPoint)
 
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
-    ConstraintDragTarget.ConstraintDropHandler(
-      sceneComponent).updateAttributes(attributes, host, sceneComponent.drawX, sceneComponent.drawY)
+    ConstraintDragTarget.ConstraintDropHandler(sceneComponent)
+      .updateAttributes(attributes, host, sceneComponent.drawX, sceneComponent.drawY)
 }
