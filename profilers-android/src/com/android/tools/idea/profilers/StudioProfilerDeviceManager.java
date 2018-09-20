@@ -34,9 +34,6 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -100,12 +97,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private boolean isAdbInitialized;
 
   /**
-   * Determines whether memory live allocation should be enabled at startup. Unless startup profiling is enabled and the profiling config
-   * has disableLiveAllocation set to true, live allocation is enabled.
-   */
-  private boolean myIsMemoryLiveAllocationEnabledAtStartup = true;
-
-  /**
    * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
    * All accesses to the {@link DeviceContext} must be through its synchronization methods.
    */
@@ -145,17 +136,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
     else {
       getLogger().warn("No adb available");
-    }
-
-    // If startup profiling is enabled and the profiling config disables memory live allocation, disable live allocation at startup.
-    AndroidRunConfigurationBase runConfig = AndroidProfilerLaunchTaskContributor.getSelectedRunConfiguration(project);
-    if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
-      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
-      myIsMemoryLiveAllocationEnabledAtStartup = startupConfig == null || !startupConfig.isDisableLiveAllocation();
-    }
-    else {
-      myIsMemoryLiveAllocationEnabledAtStartup = true;
     }
   }
 
@@ -342,7 +322,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
           pushSimpleperf(DEVICE_DIR);
         }
-        pushAgentConfig(myDevice, myIsMemoryLiveAllocationEnabledAtStartup);
+        pushAgentConfig(myDevice, true);
 
         myDevice.executeShellCommand(DEVICE_DIR + "perfd -config_file=" + DEVICE_DIR + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
           @Override
