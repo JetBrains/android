@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
@@ -27,6 +28,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -35,6 +37,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
+import javax.swing.JLabel
 
 class RecordingInitiatorPaneTest {
   @JvmField
@@ -92,5 +95,69 @@ class RecordingInitiatorPaneTest {
       .first()
 
     assertThat(titleInstruction.text).isEqualTo(RecordingInitiatorPane.HELP_TIP_TITLE)
+  }
+
+  @Test
+  fun testSampledJavaTechnologyDescription() {
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Java",
+                                                                                        CpuProfiler.CpuProfilerType.ART,
+                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+    TreeWalker(RecordingInitiatorPane(stageView))
+      .descendants()
+      .filterIsInstance<JLabel>()
+      .any { it.text == RecordingInitiatorPane.TechnologyDescription.SAMPLED_JAVA.description }
+      .let {
+        assertThat(it).isTrue()
+      }
+  }
+
+  @Test
+  fun testInstrumentedJavaTechnologyDescription() {
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Instrumented Java",
+                                                                                        CpuProfiler.CpuProfilerType.ART,
+                                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED)
+    TreeWalker(RecordingInitiatorPane(stageView))
+      .descendants()
+      .filterIsInstance<JLabel>()
+      .any { it.text == RecordingInitiatorPane.TechnologyDescription.INSTRUMENTED_JAVA.description }
+      .let {
+        assertThat(it).isTrue()
+      }
+  }
+
+  @Test
+  fun testSampledNativeTechnologyDescription() {
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Native",
+                                                                                        CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+    TreeWalker(RecordingInitiatorPane(stageView))
+      .descendants()
+      .filterIsInstance<JLabel>()
+      .any { it.text == RecordingInitiatorPane.TechnologyDescription.SAMPLED_NATIVE.description }
+      .let {
+        assertThat(it).isTrue()
+      }
+  }
+
+  @Test
+  fun testATraceTechnologyDescription() {
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("ATrace",
+                                                                                        CpuProfiler.CpuProfilerType.ATRACE,
+                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+    TreeWalker(RecordingInitiatorPane(stageView))
+      .descendants()
+      .filterIsInstance<JLabel>()
+      .any { it.text == RecordingInitiatorPane.TechnologyDescription.ATRACE.description }
+      .let {
+        assertThat(it).isTrue()
+      }
   }
 }

@@ -21,11 +21,13 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.CpuProfilerToolbar;
 import com.android.tools.profilers.cpu.CpuProfilingConfigurationView;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -76,15 +78,21 @@ class RecordingInitiatorPane extends CapturePane {
     }
 
     // TODO(b/109661512): Remove |JBUI.scale(10)| once the issue is fixed.
-    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,*").setVGap(JBUI.scale(10)));
+    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,*").setVGap(JBUI.scale(10)));
 
     JLabel label = new JLabel("Select CPU Profiling mode");
     label.setFont(ProfilerFonts.H2_FONT);
     label.setForeground(StandardColors.TEXT_COLOR);
 
+    ProfilingConfiguration config = myStageView.getStage().getProfilerConfigModel().getProfilingConfiguration();
+    JLabel technologyDescription = new JLabel(TechnologyDescription.fromConfig(config).getDescription());
+    technologyDescription.setFont(ProfilerFonts.STANDARD_FONT);
+    technologyDescription.setForeground(StandardColors.TEXT_COLOR);
+
     content.add(label, new TabularLayout.Constraint(1, 1));
     content.add(myConfigsView.getComponent(), new TabularLayout.Constraint(2, 1));
     content.add(myRecordButton, new TabularLayout.Constraint(2, 2));
+    content.add(technologyDescription, new TabularLayout.Constraint(3, 1, 3));
 
     panel.add(content, BorderLayout.CENTER);
   }
@@ -101,5 +109,42 @@ class RecordingInitiatorPane extends CapturePane {
       new TextInstruction(bodyMetrics, "or select a capture in the timeline.")
     ).setColors(JBColor.foreground(), null)
      .build();
+  }
+
+  enum TechnologyDescription {
+    SAMPLED_JAVA("Samples Java code using Android Runtime"),
+    INSTRUMENTED_JAVA("Instruments Java code using Android Runtime"),
+    SAMPLED_NATIVE("Samples native code using simpleperf"),
+    ATRACE("Traces Java and native code at the Android platform level");
+
+    @NotNull private final String myDescription;
+
+    TechnologyDescription(@NotNull String description) {
+      myDescription = description;
+    }
+
+    @NotNull
+    public String getDescription() {
+      return myDescription;
+    }
+
+    @NotNull
+    public static TechnologyDescription fromConfig(@NotNull ProfilingConfiguration config) {
+      switch (config.getProfilerType()) {
+        case ART:
+          if (config.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
+            return SAMPLED_JAVA;
+          }
+          else {
+            return INSTRUMENTED_JAVA;
+          }
+        case SIMPLEPERF:
+          return SAMPLED_NATIVE;
+        case ATRACE:
+          return ATRACE;
+        default:
+          throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
+      }
+    }
   }
 }
