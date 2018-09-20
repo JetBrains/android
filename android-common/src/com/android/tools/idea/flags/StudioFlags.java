@@ -86,7 +86,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
     PROFILER, "event.fragment", "Enable fragment profiling",
     "Shows fragment information in event profiler's activity bar and tooltip.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
     PROFILER, "show.session", "Enable the sessions panel",
