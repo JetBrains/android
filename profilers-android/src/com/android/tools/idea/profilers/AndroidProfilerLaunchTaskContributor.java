@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.profilers;
 
+import static com.android.tools.idea.profilers.AndroidProfilerToolWindow.LAST_RUN_APP_INFO;
+
+import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -44,13 +49,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.profilers.AndroidProfilerToolWindow.LAST_RUN_APP_INFO;
 
 /**
  * A {@link AndroidLaunchTaskContributor} specific to profiler. For example, this contributor provides "--attach-agent $agentArgs"
@@ -93,10 +96,28 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
+    pushNewAgentConfig(project, device);
     String agentArgs = getAttachAgentArgs(applicationId, profilerService, device, deviceId);
     String startupProfilingResult = startStartupProfiling(applicationId, module, profilerService, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
+
+  private static void pushNewAgentConfig(@NotNull Project project, @NotNull IDevice device) {
+    // Memory live allocation setting may change in the run config so push a new one
+    try {
+      StudioProfilerDeviceManager.pushAgentConfig(device, shouldEnableMemoryLiveAllocationAtStartup(project));
+    }
+    catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
+      throw new RuntimeException(e);
+    }
+    catch (AdbCommandRejectedException | IOException e) {
+      // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
+      // We don't want to crash in this case.
+      getLogger().warn("Error when trying to push AgentConfig:");
+      getLogger().warn(e);
+    }
+  }
+
 
   @NotNull
   private static String getAttachAgentArgs(@NotNull String appPackageName,
@@ -188,12 +209,25 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @Nullable
-  static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {
+  private static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {
     RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
     if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
       return (AndroidRunConfigurationBase)settings.getConfiguration();
     }
     return null;
+  }
+
+  /**
+   * If startup profiling is enabled and the profiling config disables memory live allocation, disable live allocation at startup.
+   */
+  private static boolean shouldEnableMemoryLiveAllocationAtStartup(@NotNull Project project) {
+    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
+    if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
+      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
+      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
+      return startupConfig == null || !startupConfig.isDisableLiveAllocation();
+    }
+    return true;
   }
 
   /**
