@@ -104,7 +104,7 @@ public class ConfigurationTest extends AndroidTestCase {
     }
 
     Density density = configuration.getDensity();
-    assertEquals(Density.DPI_420, density);
+    assertEquals(Density.XHIGH, density);
 
     DensityQualifier qualifier = new DensityQualifier().getNullQualifier();
     configuration.getFullConfig().setDensityQualifier(qualifier);
