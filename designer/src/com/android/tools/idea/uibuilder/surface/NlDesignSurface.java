@@ -626,11 +626,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return 10;
   }
 
-  @Override
-  public boolean canZoomToFit() {
-    return Math.abs(getScale() - getFitScale(true)) > 0.01;
-  }
-
   public boolean hasCustomDevice() {
     Configuration configuration = getConfiguration();
     if (configuration == null) {
