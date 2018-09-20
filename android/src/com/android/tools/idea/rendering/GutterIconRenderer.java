@@ -28,19 +28,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
+import javax.swing.Icon;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
   private final PsiElement myElement;
@@ -51,15 +49,6 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     myResourceResolver = resourceResolver;
     myElement = element;
     myFile = file;
-  }
-
-  /**
-   * @deprecated Use {@link #GutterIconRenderer(ResourceResolver, PsiElement, VirtualFile)}
-   * <p>Preserved for Kotlin binary compatibility only.
-   */
-  @Deprecated
-  public GutterIconRenderer(ResourceResolver resourceResolver, @NotNull PsiElement element, @NotNull File file) {
-    this(resourceResolver, element, VfsUtil.findFileByIoFile(file, false));
   }
 
   @Override

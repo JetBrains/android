@@ -16,6 +16,50 @@
 
 package org.jetbrains.android.util;
 
+import static com.android.SdkConstants.AAPT_PREFIX;
+import static com.android.SdkConstants.AAPT_URI;
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.ATTR_COLOR;
+import static com.android.SdkConstants.ATTR_DRAWABLE;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_R;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_STRING;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.android.builder.model.AaptOptions.Namespacing;
+import static com.android.resources.ResourceType.ARRAY;
+import static com.android.resources.ResourceType.ATTR;
+import static com.android.resources.ResourceType.BOOL;
+import static com.android.resources.ResourceType.COLOR;
+import static com.android.resources.ResourceType.DIMEN;
+import static com.android.resources.ResourceType.DRAWABLE;
+import static com.android.resources.ResourceType.FRACTION;
+import static com.android.resources.ResourceType.ID;
+import static com.android.resources.ResourceType.INTEGER;
+import static com.android.resources.ResourceType.LAYOUT;
+import static com.android.resources.ResourceType.NAVIGATION;
+import static com.android.resources.ResourceType.PLURALS;
+import static com.android.resources.ResourceType.STRING;
+import static com.android.resources.ResourceType.STYLE;
+import static com.android.resources.ResourceType.STYLEABLE;
+import static com.android.resources.ResourceType.fromXmlTag;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -25,7 +69,12 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.AndroidInternalRClassFinder;
+import com.android.tools.idea.res.AndroidPackageRClassBase;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -48,13 +97,38 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.ManifestClass;
@@ -73,15 +147,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AaptOptions.Namespacing;
-import static com.android.resources.ResourceType.*;
-import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 /**
  * @author Eugene.Kudelevsky
@@ -1051,14 +1116,18 @@ public class AndroidResourceUtil {
       return null;
     }
 
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, getRClassNamespace(facet, qName), fromManifest);
+  }
+
+  @NotNull
+  public static ResourceNamespace getRClassNamespace(@NotNull AndroidFacet facet, String qName) {
     ResourceNamespace resourceNamespace;
     if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == Namespacing.DISABLED) {
       resourceNamespace = ResourceNamespace.RES_AUTO;
     } else {
       resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(qName));
     }
-
-    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, resourceNamespace, fromManifest);
+    return resourceNamespace;
   }
 
   /**
@@ -1216,12 +1285,6 @@ public class AndroidResourceUtil {
       myFromManifest = fromManifest;
     }
 
-    @Deprecated // TODO(b/109656760): kept for Kotlin binary compatibility.
-    public MyReferredResourceFieldInfo(
-      @NotNull String className, @NotNull String fieldName, @Nullable Module resolvedModule, boolean system, boolean fromManifest) {
-      this(className, fieldName, resolvedModule, ResourceNamespace.fromBoolean(system), fromManifest);
-    }
-
     @NotNull
     public String getClassName() {
       return myClassName;
@@ -1244,11 +1307,6 @@ public class AndroidResourceUtil {
 
     public boolean isFromManifest() {
       return myFromManifest;
-    }
-
-    @Deprecated // TODO(b/109656760): kept for Kotlin binary compatibility.
-    public boolean isSystem() {
-      return myNamespace == ResourceNamespace.ANDROID;
     }
   }
 

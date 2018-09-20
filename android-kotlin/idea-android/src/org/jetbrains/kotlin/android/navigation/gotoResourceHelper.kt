@@ -24,7 +24,9 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.PsiClass
 import org.jetbrains.android.util.AndroidUtils
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.res.AndroidInternalRClassFinder
+import com.android.tools.idea.res.ResourceRepositoryManager
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
@@ -81,7 +83,13 @@ private fun getReferredInfo(
     val qName = resolvedClass.qualifiedName
 
     if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
-        return AndroidResourceUtil.MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, true, false)
+        return AndroidResourceUtil.MyReferredResourceFieldInfo(
+          resClassName,
+          resFieldName,
+          facet.module,
+          ResourceNamespace.ANDROID,
+          false
+        )
     }
 
     val isSpecialAndroidClass =
@@ -92,7 +100,13 @@ private fun getReferredInfo(
         return null
     }
 
-    return AndroidResourceUtil.MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, false, fromManifest)
+    return AndroidResourceUtil.MyReferredResourceFieldInfo(
+      resClassName,
+      resFieldName,
+      facet.module,
+      AndroidResourceUtil.getRClassNamespace(facet, qName),
+      fromManifest
+    )
 }
 
 private fun getReceiverAsSimpleNameExpression(exp: KtSimpleNameExpression): KtSimpleNameExpression? {
