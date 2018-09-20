@@ -21,6 +21,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
+import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
@@ -124,6 +125,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
+      val hosts = findReferences(model.file).map { it.containingFile }
       for (resourceFile in resourceManager.findResourceFiles(ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
         // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
         val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
@@ -131,9 +133,14 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val element = item.element as? PsiClass ?: continue
           val tags = schema.getTagsForDestinationClass(element) ?: continue
           if (tags.size == 1) {
-            val destination =
-              Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
-            classToDestination[element] = destination
+            if (resourceFile in hosts) {
+              // This will remove the class entry that was added earlier
+              classToDestination.remove(element)
+            }
+            else {
+              val destination = Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
+              classToDestination[element] = destination
+            }
           }
         }
       }
