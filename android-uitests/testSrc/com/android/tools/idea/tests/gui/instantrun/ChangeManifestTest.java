@@ -125,7 +125,7 @@ public class ChangeManifestTest {
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), TimeUnit.MINUTES.toSeconds(5));
 
     ideFrameFixture
       .getEditor()
@@ -147,7 +147,7 @@ public class ChangeManifestTest {
 
     try {
       // Verify that the IDE shows that the app has been restarted:
-      contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+      contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), TimeUnit.MINUTES.toSeconds(5));
     } catch(WaitTimedOutError timeout) {
       // Check the num of start counts. Perhaps the listening logic for waiting for process to start has a race condition?
       throw new Exception("We started " + myProcessStarter.getStartCount() + " processes", timeout);
