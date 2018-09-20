@@ -13,35 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.google.common.base.Charsets;
 import com.intellij.diagnostic.ThreadDumper;
+import java.util.Map;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
-import java.util.Map;
-
-public class StudioPerformanceWatcherReport extends BaseStudioReport {
-  private static final String EXCEPTION_TYPE = "com.android.ApplicationNotResponding";
+public class StudioHistogramReport extends BaseStudioReport {
+  private static final String EXCEPTION_TYPE = "com.android.OutOfMemory";
 
   private static final String EMPTY_ANR_STACKTRACE =
     EXCEPTION_TYPE + ": \n" +
-    "\tat " + StudioPerformanceWatcherReport.class.getName() + ".missingEdtStack(Unknown source)";
+    "\tat " + StudioHistogramReport.class.getName() + ".missingEdtStack(Unknown source)";
 
-  @NonNull private final String fileName;
-  @NonNull private final String threadDump;
+  private @NonNull String threadDump;
+  private @NonNull String histogram;
 
-  private StudioPerformanceWatcherReport(@Nullable String version,
-                                         @NonNull String fileName,
-                                         @NonNull String threadDump,
-                                         @Nullable Map<String, String> productData) {
-    super(version, productData, "Performance");
-    this.fileName = fileName;
+  public StudioHistogramReport(@Nullable String version,
+                        @NonNull String threadDump,
+                        @NonNull String histogram,
+                        @Nullable Map<String, String> productData) {
+    super(version, productData, "Histogram");
     this.threadDump = threadDump;
+    this.histogram = histogram;
   }
 
   @Override
@@ -52,33 +50,35 @@ public class StudioPerformanceWatcherReport extends BaseStudioReport {
 
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,
                         edtStack != null ? edtStack : EMPTY_ANR_STACKTRACE);
-    builder.addTextBody(fileName, threadDump, ContentType.create("text/plain", Charsets.UTF_8));
+    builder.addTextBody("histogram", histogram, ContentType.create("text/plain", Charsets.UTF_8));
+    builder.addTextBody("threadDump", threadDump, ContentType.create("text/plain", Charsets.UTF_8));
   }
 
-  public static final class Builder extends BaseBuilder<StudioPerformanceWatcherReport, Builder> {
-    private String fileName;
+  public static final class Builder extends BaseBuilder<StudioHistogramReport, StudioHistogramReport.Builder> {
+    private String histogram;
     private String threadDump;
 
     @Override
-    protected Builder getThis() {
+    protected StudioHistogramReport.Builder getThis() {
       return this;
     }
 
     @NonNull
-    public Builder setFile(@NonNull String fileName) {
-      this.fileName = fileName;
+    public StudioHistogramReport.Builder setHistogram(@NonNull String histogram) {
+      this.histogram = histogram;
       return this;
     }
 
     @NonNull
-    public Builder setThreadDump(@NonNull String threadDump) {
+    public StudioHistogramReport.Builder setThreadDump(@NonNull String threadDump) {
       this.threadDump = threadDump;
       return this;
     }
 
     @Override
-    public StudioPerformanceWatcherReport build() {
-      return new StudioPerformanceWatcherReport(getVersion(), fileName, threadDump, getProductData());
+    public StudioHistogramReport build() {
+      return new StudioHistogramReport(getVersion(), threadDump, histogram, getProductData());
     }
   }
+
 }

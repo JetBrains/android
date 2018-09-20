@@ -17,6 +17,8 @@ package com.android.tools.idea.diagnostics;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioHistogramReport;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -31,6 +33,7 @@ import com.intellij.concurrency.JobScheduler;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
+import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.ExceptionRegistry;
@@ -38,7 +41,6 @@ import com.intellij.ide.HistogramUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.StackTrace;
-import com.intellij.ide.ThreadDumpsDatabase;
 import com.intellij.ide.actions.*;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
@@ -58,7 +60,16 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import org.HdrHistogram.Histogram;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -79,6 +90,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import sun.tools.attach.HotSpotVirtualMachine;
 
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
@@ -122,7 +134,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
   private static final long TOO_MANY_EXCEPTIONS_THRESHOLD = 10000;
 
-  private final ThreadDumpsDatabase myThreadDumpsDatabase = new ThreadDumpsDatabase(new File(PathManager.getTempPath(), "threads.dmp"));
+  private final StudioReportDatabase myReportsDatabase = new StudioReportDatabase(new File(PathManager.getTempPath(), "reports.dmp"));
 
   private static final Object ACTION_INVOCATIONS_LOCK = new Object();
   private static final Lock REPORT_EXCEPTIONS_LOCK = new ReentrantLock();
@@ -134,8 +146,95 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private boolean myTooManyExceptionsPromptShown = false;
   private static long ourCurrentSessionStudioExceptionCount = 0;
 
+  private static AndroidStudioSystemHealthMonitor ourInstance;
+
   public AndroidStudioSystemHealthMonitor(@NotNull PropertiesComponent properties) {
     myProperties = properties;
+    if (ourInstance != null) {
+      LOG.warn("Multiple instances of AndroidStudioSystemHealthMonitor!");
+    } else {
+      ourInstance = this;
+    }
+  }
+
+  public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
+    return ourInstance;
+  }
+
+  public void addHistogramToDatabase(@Nullable String description) {
+    try {
+      Path histogramDirPath = createHistogramPath();
+      if (java.nio.file.Files.exists(histogramDirPath)) {
+        LOG.info("Histogram path already exists: " + histogramDirPath.toString());
+        return;
+      }
+      java.nio.file.Files.createDirectories(histogramDirPath);
+      Path histogramFilePath = histogramDirPath.resolve("histogram.txt");
+      java.nio.file.Files.write(histogramFilePath, getHistogram().getBytes(), StandardOpenOption.CREATE);
+
+      Path threadDumpFilePath = histogramDirPath.resolve("threadDump.txt");
+      FileUtil.writeToFile(threadDumpFilePath.toFile(), ThreadDumper.dumpThreadsToString());
+
+      myReportsDatabase.appendHistogram(threadDumpFilePath, histogramFilePath, description);
+    } catch (IOException e) {
+      LOG.info("Exception while creating histogram", e);
+    }
+  }
+
+  private static Path createHistogramPath() {
+    String datePart = new SimpleDateFormat("yyyyMMdd-HHmmss").format(System.currentTimeMillis());
+    String dirName = "threadDumps-histogram-" + datePart;
+    return Paths.get(PathManager.getLogPath(), dirName);
+  }
+
+  private static long getMyPID() {
+    String pidAndMachineName = ManagementFactory.getRuntimeMXBean().getName();
+    String[] split = pidAndMachineName.split("@");
+    long pid = -1;
+    if (split.length == 2) {
+      try {
+        pid = Long.parseLong(split[0]);
+      } catch (NumberFormatException ignore) {
+      }
+    }
+    return pid;
+  }
+
+  private static String getHistogram() throws UnsupportedOperationException {
+    StringBuilder sb = new StringBuilder();
+    VirtualMachine vm;
+    try {
+      vm = VirtualMachine.attach(Long.toString(getMyPID()));
+      if (!(vm instanceof HotSpotVirtualMachine)) {
+        throw new UnsupportedOperationException();
+      }
+      HotSpotVirtualMachine hotSpotVM = (HotSpotVirtualMachine) vm;
+      char[] chars = new char[1024];
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(hotSpotVM.heapHisto("-live")))) {
+        int read;
+        while ((read = reader.read(chars)) != -1) {
+          sb.append(chars, 0, read);
+        }
+      }
+    } catch (AttachNotSupportedException | IOException e) {
+      throw new UnsupportedOperationException(e);
+    }
+    String fullHistogram = sb.toString();
+    String[] lines = fullHistogram.split("\r?\n");
+    final int TOP_LINES = 103;
+    final int BOTTOM_LINES = 1;
+    if (lines.length <= TOP_LINES + BOTTOM_LINES) {
+      return sb.toString();
+    }
+    sb.setLength(0);
+    for (int i = 0; i < TOP_LINES; i++) {
+      sb.append(lines[i]).append("\n");
+    }
+    sb.append("[...]\n");
+    for (int i = lines.length - BOTTOM_LINES; i < lines.length; i++) {
+      sb.append(lines[i]).append("\n");
+    }
+    return sb.toString();
   }
 
   public static void recordEventTime(int interval, long durationMs) {
@@ -167,7 +266,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
-    trackPerfWatcherReports(myThreadDumpsDatabase.reapThreadDumps());
+    trackStudioReports(myReportsDatabase.reapReportDetails());
 
     Application application = ApplicationManager.getApplication();
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
@@ -194,7 +293,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
         // We don't want to add additional overhead when the IDE is already slow, so we just note down the file to which the threads
         // were dumped.
         try {
-          myThreadDumpsDatabase.appendThreadDump(toFile.toPath());
+          myReportsDatabase.appendPerformanceThreadDump(toFile.toPath(), "UIFreeze");
         }
         catch (IOException ignored) { // don't worry about errors during analytics events
         }
@@ -207,6 +306,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     if (myListener != null) {
       AndroidStudioSystemHealthMonitorAdapter.unregisterEventsListener(myListener);
     }
+    ourInstance = null;
   }
 
   private void registerPlatformEventsListener() {
@@ -324,25 +424,25 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     showNotification("sys.health.too.many.exceptions", notificationAction);
   }
 
-  private static void trackPerfWatcherReports(@NotNull List<Path> threadDumps) {
-    if (threadDumps.isEmpty()) {
+  private static void trackStudioReports(@NotNull List<StudioReportDetails> reports) {
+    if (reports.isEmpty()) {
       return;
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      threadDumps.stream()
-        .limit(10) // an arbitrary limit, we don't want to overload the backend with too many of these..
-        .forEach(t -> {
-          List<String> lines;
-          try {
-            lines = java.nio.file.Files.readAllLines(t);
-          }
-          catch (IOException e) {
-            return;
-          }
-
-          reportAnr(t.getFileName().toString(), lines);
-        });
+      reports.stream().filter(r -> r.getType().equals("PerformanceThreadDump")).limit(10).forEach(r -> {
+        if (r.getThreadDumpPath() == null) {
+          return;
+        }
+        try {
+          List<String> lines = java.nio.file.Files.readAllLines(r.getThreadDumpPath());
+          reportAnr(r.getThreadDumpPath().getFileName().toString(), lines);
+        }
+        catch (IOException e) {
+          // Ignore
+        }
+      });
+      reports.stream().filter(r -> r.getType().equals("Histogram")).limit(10).forEach(r -> reportHistogram(r));
     });
   }
 
@@ -659,6 +759,27 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
+  private static void reportHistogram(StudioReportDetails details) {
+    if (!AnalyticsSettings.getOptedIn()) {
+      return;
+    }
+
+    try {
+      if (details.getHistogramPath() == null || details.getThreadDumpPath() == null) {
+        return;
+      }
+      StudioHistogramReport histogramReport = new StudioHistogramReport.Builder()
+        .setThreadDump(new String(Files.asCharSource(details.getThreadDumpPath().toFile(), Charsets.UTF_8).read()))
+        .setHistogram(new String(Files.asCharSource(details.getHistogramPath().toFile(), Charsets.UTF_8).read()))
+        .build();
+      // Performance reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(histogramReport, true);
+    }
+    catch (IOException e) {
+      // Ignore
+    }
+  }
+
   private static class AndroidStudioExceptionEvent extends IdeaLoggingEvent {
     private final StackTrace myStackTrace;
 
@@ -710,4 +831,5 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
                              "crashDetails", myCrashDetails);
     }
   }
+
 }
