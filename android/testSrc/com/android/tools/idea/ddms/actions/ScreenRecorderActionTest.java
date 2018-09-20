@@ -17,14 +17,20 @@ package com.android.tools.idea.ddms.actions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ScreenRecorderOptions;
+import com.android.sdklib.ISystemImage;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
@@ -106,6 +112,51 @@ public final class ScreenRecorderActionTest {
 
     assertTrue(myPresentation.isEnabled());
     assertEquals("Screen Record", myPresentation.getText());
+  }
+
+  @Test
+  public void getTemporaryVideoPathDeviceDoesntHaveScreenRecord() {
+    ScreenRecorderAction action = new ScreenRecorderAction(myRule.getProject(), myContext, myFeatures);
+    IDevice device = Mockito.mock(IDevice.class);
+    AvdManager manager = Mockito.mock(AvdManager.class);
+
+    Object path = action.getTemporaryVideoPathForVirtualDevice(device, manager);
+
+    assertNull(path);
+  }
+
+  @Test
+  public void getTemporaryVideoPathForVirtualDeviceVirtualDeviceIsNull() {
+    ScreenRecorderAction action = new ScreenRecorderAction(myRule.getProject(), myContext, myFeatures);
+    IDevice device = Mockito.mock(IDevice.class);
+    AvdManager manager = Mockito.mock(AvdManager.class);
+
+    Mockito.when(myFeatures.screenRecord(device)).thenReturn(true);
+
+    Object path = action.getTemporaryVideoPathForVirtualDevice(device, manager);
+
+    assertNull(path);
+  }
+
+  @Test
+  public void getTemporaryVideoPathForVirtualDevice() {
+    ScreenRecorderAction action = new ScreenRecorderAction(myRule.getProject(), myContext, myFeatures);
+    IDevice device = Mockito.mock(IDevice.class);
+    AvdManager manager = Mockito.mock(AvdManager.class);
+
+    AvdInfo virtualDevice = new AvdInfo(
+      "Pixel_2_XL_API_28",
+      new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.ini"),
+      "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.avd",
+      Mockito.mock(ISystemImage.class),
+      null);
+
+    Mockito.when(myFeatures.screenRecord(device)).thenReturn(true);
+    Mockito.when(manager.getAvd(device.getAvdName(), true)).thenReturn(virtualDevice);
+
+    Object path = action.getTemporaryVideoPathForVirtualDevice(device, manager);
+
+    assertEquals(Paths.get("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.avd/tmp.webm"), path);
   }
 
   @Test
