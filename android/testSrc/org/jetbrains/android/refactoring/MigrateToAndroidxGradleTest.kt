@@ -72,6 +72,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     val gradleProperties = getTextForFile("gradle.properties")
     assertTrue(gradleProperties.contains("android.useAndroidX=true") &&
                gradleProperties.contains("android.enableJetifier=true"))
+    assertTrue(mainActivityKt.contains("import kotlinx.android.synthetic.main.activity_main.*"))
   }
 
   fun testExistingGradleProperties() {
