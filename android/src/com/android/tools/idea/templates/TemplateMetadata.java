@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.tools.idea.templates.Template.ATTR_DESCRIPTION;
+import static com.android.tools.idea.templates.Template.ATTR_FORMAT;
+import static com.android.tools.idea.templates.Template.ATTR_NAME;
+import static com.android.tools.idea.templates.Template.ATTR_TYPE;
+import static com.android.tools.idea.templates.Template.ATTR_VALUE;
+import static com.android.tools.idea.templates.Template.CURRENT_FORMAT;
+import static com.android.tools.idea.templates.Template.RELATIVE_FILES_FORMAT;
+import static com.android.tools.idea.templates.Template.TAG_ICONS;
+import static com.android.tools.idea.templates.Template.TAG_PARAMETER;
+import static com.android.tools.idea.templates.Template.TAG_THUMB;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -22,16 +33,18 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import static com.android.tools.idea.templates.Template.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * An ADT template along with metadata
@@ -123,6 +136,10 @@ public class TemplateMetadata {
   public static final String ATTR_KOTLIN_EAP_REPO = "includeKotlinEapRepo";
   public static final String ATTR_KOTLIN_EAP_REPO_URL = "kotlinEapRepoUrl";
   public static final String KOTLIN_EAP_REPO_URL = "https://dl.bintray.com/kotlin/kotlin-eap";
+
+  public static final String ATTR_APP_THEME_NAME = "name";
+  public static final String ATTR_APP_THEME_IS_APP_COMPAT = "isAppCompat";
+  public static final String ATTR_APP_THEME_EXISTS = "exists";
 
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
