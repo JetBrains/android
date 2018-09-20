@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
 import org.mockito.Mockito.`when`
@@ -103,8 +105,11 @@ class AddDestinationMenuTest : NavTestCase() {
     addFragment("fragment2")
 
     addActivity("activity2")
-    addActivity("activity3")
-    addActivity("activity1")
+    addActivityWithLayout("activity3")
+    val activity3VirtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity3.xml")
+    val activity3XmlFile = PsiManager.getInstance(project).findFile(activity3VirtualFile!!) as XmlFile
+
+    addActivityWithNavHost("activity1")
 
     addIncludeFile("include3")
     addIncludeFile("include2")
@@ -121,9 +126,8 @@ class AddDestinationMenuTest : NavTestCase() {
       Destination.IncludeDestination("include2.xml", parent),
       Destination.IncludeDestination("include3.xml", parent),
       Destination.IncludeDestination("navigation.xml", parent),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity1")),
       Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity2")),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3")),
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile),
       Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile))
 
     val destinations = AddDestinationMenu(surface).destinations
@@ -308,6 +312,39 @@ class AddDestinationMenuTest : NavTestCase() {
 
   private fun addFragment(name: String) {
     addDestination(name, "android.support.v4.app.Fragment")
+  }
+
+  private fun addActivityWithNavHost(name: String) {
+    addActivity(name)
+    val relativePath = "res/layout/$name.xml"
+    val fileText = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <android.support.constraint.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
+                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   tools:context=".$name">
+        <fragment
+            android:id="@+id/navhost"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav"/>
+
+      </android.support.constraint.ConstraintLayout>
+    """.trimIndent()
+
+    myFixture.addFileToProject(relativePath, fileText)
+  }
+
+  private fun addActivityWithLayout(name: String) {
+    addActivity(name)
+    val relativePath = "res/layout/$name.xml"
+    val fileText = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <android.support.constraint.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
+                                                   tools:context=".$name"/>
+    """.trimIndent()
+
+    myFixture.addFileToProject(relativePath, fileText)
   }
 
   private fun addActivity(name: String) {
