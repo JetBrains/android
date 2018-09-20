@@ -33,6 +33,7 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.function.Supplier;
 
 /** Represents a dynamic "class R" for resources in an Android module. */
 public class ModulePackageRClass extends AndroidPackageRClassBase {
@@ -40,11 +41,18 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
 
   @NotNull private final Module myModule;
   @NotNull private final AaptOptions.Namespacing myNamespacing;
+  @NotNull private final Supplier<String> myPackageSupplier;
 
   public ModulePackageRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull AaptOptions.Namespacing namespacing) {
+    this(psiManager, module, namespacing, () -> getPackageName(module));
+  }
+
+  public ModulePackageRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull AaptOptions.Namespacing namespacing,
+                             Supplier<String> packageSupplier) {
     // TODO(b/110188226): Update the file package name when the module's package name changes.
-    super(psiManager, getPackageName(module));
+    super(psiManager, packageSupplier.get());
     myModule = module;
+    myPackageSupplier = packageSupplier;
     myNamespacing = namespacing;
     this.putUserData(ModuleUtilCore.KEY_MODULE, module);
     // Some scenarios move up to the file level and then attempt to get the module from the file.
@@ -109,12 +117,7 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
   @Nullable
   @Override
   public String getQualifiedName() {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
-    if (androidFacet == null) {
-      return null;
-    }
-
-    String packageName = AndroidManifestUtils.getPackageName(androidFacet);
+    String packageName = myPackageSupplier.get();
     if (packageName == null) {
       return null;
     }
