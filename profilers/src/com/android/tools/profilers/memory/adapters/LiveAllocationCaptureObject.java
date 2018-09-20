@@ -301,6 +301,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           return null;
         }
 
+        boolean hasNonFullTrackingRegion = !MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(
+          myClient, mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
+
         joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
 
@@ -385,9 +388,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             deltaFreeList.addAll(rightDeallocations);
           }
         }
-
-        boolean hasNonFullTrackingRegion = !MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(
-          myClient, mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
 
         myPreviousQueryStartTimeNs = newStartTimeNs;
         myPreviousQueryEndTimeNs = newEndTimeNs;
