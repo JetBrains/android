@@ -24,9 +24,9 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.screenrecord.ScreenRecorderOptionsDialog;
 import com.android.tools.idea.log.LogWrapper;
@@ -39,8 +39,9 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import icons.AndroidIcons;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.util.AndroidBundle;
@@ -105,23 +106,16 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
-    StringHolder hostRecordingFileName = new StringHolder();
+    AvdManager manager = getVirtualDeviceManager();
+    // TODO Change this to a Path
+    String hostRecordingFileName;
 
-    if (myFeatures.screenRecord(device)) {
-      try {
-        // Store the temp media file in the respective avd folder
-        AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-        AvdManager avdManager = AvdManager.getInstance(handler, new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
-        assert avdManager != null;
-
-        AvdInfo avdInfo = avdManager.getAvd(device.getAvdName(), true);
-        assert avdInfo != null;
-
-        hostRecordingFileName.myValue = avdInfo.getDataFolderPath() + File.separator + EMU_TMP_FILENAME;
-      }
-      catch (Exception e) {
-        showError(myProject, "Unexpected error while launching screen recorder", e);
-      }
+    if (manager == null) {
+      hostRecordingFileName = null;
+    }
+    else {
+      Path path = getTemporaryVideoPathForVirtualDevice(device, manager);
+      hostRecordingFileName = path == null ? null : path.toString();
     }
 
     boolean showTouchEnabled = isShowTouchEnabled(device);
@@ -131,10 +125,10 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
         setShowTouch(device, options.showTouches);
       }
       try {
-        if (hostRecordingFileName.myValue != null) { // Use emulator screen recording
+        if (hostRecordingFileName != null) { // Use emulator screen recording
           EmulatorConsole console = EmulatorConsole.getConsole(device);
           if (console != null) {
-            console.startEmulatorScreenRecording(getEmulatorScreenRecorderOptions(hostRecordingFileName.myValue, options));
+            console.startEmulatorScreenRecording(getEmulatorScreenRecorderOptions(hostRecordingFileName, options));
           }
         }
         else {
@@ -153,13 +147,38 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
       }
     });
 
-    Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, device, latch, receiver, hostRecordingFileName.myValue);
+    Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, device, latch, receiver, hostRecordingFileName);
     screenRecorderShellTask.setCancelText("Stop Recording");
     screenRecorderShellTask.queue();
   }
 
-  private static final class StringHolder {
-    private String myValue;
+  @Nullable
+  private static AvdManager getVirtualDeviceManager() {
+    Logger logger = Logger.getInstance(ScreenRecorderAction.class);
+
+    try {
+      return AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(logger));
+    }
+    catch (AndroidLocationException exception) {
+      logger.warn(exception);
+      return null;
+    }
+  }
+
+  @Nullable
+  @VisibleForTesting
+  Path getTemporaryVideoPathForVirtualDevice(@NotNull IDevice device, @NotNull AvdManager manager) {
+    if (!myFeatures.screenRecord(device)) {
+      return null;
+    }
+
+    AvdInfo virtualDevice = manager.getAvd(device.getAvdName(), true);
+
+    if (virtualDevice == null) {
+      return null;
+    }
+
+    return Paths.get(virtualDevice.getDataFolderPath(), EMU_TMP_FILENAME);
   }
 
   private static void setShowTouch(@NotNull IDevice device, boolean isEnabled) {
