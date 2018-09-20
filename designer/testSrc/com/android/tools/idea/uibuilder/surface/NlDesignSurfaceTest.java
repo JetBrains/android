@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
@@ -36,14 +41,12 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.util.stream.Collectors;
+import javax.swing.JViewport;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
 
 public class NlDesignSurfaceTest extends LayoutTestCase {
   private NlDesignSurface mySurface;
@@ -537,5 +540,30 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
                   "\" but current ids are: " +
                   model.flattenComponents().map(NlComponent::getId).collect(Collectors.joining(", ")),
                   component);
+  }
+
+  public void testCanZoomToFit() {
+    NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight())
+      .build();
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
+    model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
+    mySurface.setModel(model);
+    mySurface.setSize(1000, 1000);
+    mySurface.doLayout();
+
+    mySurface.zoomIn();
+    assertTrue(mySurface.canZoomOut());
+    assertTrue(mySurface.canZoomIn());
+    mySurface.setScale(mySurface.getMinScale(), -1, -1);
+    assertTrue(mySurface.canZoomIn());
+    assertFalse(mySurface.canZoomOut());
+    mySurface.zoomToFit();
+    assertFalse(mySurface.canZoomToFit());
+    assertTrue(mySurface.canZoomIn());
+    assertFalse(mySurface.canZoomOut());
   }
 }
