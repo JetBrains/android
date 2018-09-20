@@ -206,7 +206,7 @@ class ProjectLightResourceClassService(
   }
 
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
-    // TODO(b/77801019): cache this and figure out how to invalidate that cache.
+    // TODO(b/110188226): cache this and figure out how to invalidate that cache.
     return projectFacetManager.getFacets(AndroidFacet.ID).filter { AndroidManifestUtils.getPackageName(it) == packageName }
   }
 
