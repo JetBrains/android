@@ -61,7 +61,7 @@ public class FlatSeparator extends JComponent {
       }
     }
     else {
-      g.setColor(UIUtil.getSeparatorColor());
+      g.setColor(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground());
       if (getParent() != null) {
         LinePainter2D.paint((Graphics2D)g, 3, 2, 3, getParent().getSize().height - 2);
       }
