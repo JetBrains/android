@@ -89,12 +89,6 @@ public class RunInstantAppTask implements LaunchTask {
       return false;
     }
 
-    if (!mySdk.shouldUseSdkLibraryToRun()) {
-      // This shouldn't happen as it would have already been checked by AndroidLaunchTasksProvider
-      printer.stderr("The Instant Apps SDK is not available or this task has been disabled");
-      return false;
-    }
-
     // We expect exactly one zip file per Instant App that will contain the apk-splits for the
     // Instant App
     if (myPackages.size() != 1) {

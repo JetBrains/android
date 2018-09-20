@@ -40,7 +40,8 @@ public class CpuProfilerConfigConverter {
       .newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
-      .setSamplingIntervalUs(config.getSamplingIntervalUs());
+      .setSamplingIntervalUs(config.getSamplingIntervalUs())
+      .setDisableLiveAllocation(config.isDisableLiveAllocation());
 
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
@@ -71,7 +72,8 @@ public class CpuProfilerConfigConverter {
     CpuProfilerConfig config = new CpuProfilerConfig()
       .setName(proto.getName())
       .setSamplingIntervalUs(proto.getSamplingIntervalUs())
-      .setBufferSizeMb(proto.getBufferSizeInMb());
+      .setBufferSizeMb(proto.getBufferSizeInMb())
+      .setDisableLiveAllocation(proto.getDisableLiveAllocation());
 
     switch (proto.getProfilerType()) {
       case ART:

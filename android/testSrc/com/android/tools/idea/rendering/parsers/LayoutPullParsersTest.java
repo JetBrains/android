@@ -29,6 +29,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
+import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -173,9 +174,10 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertEquals(expected, XmlPrettyPrinter.prettyPrint(parser.getRoot(), true));
   }
 
-  public void testRenderAdaptiveIcon() {
-    // TODO: Replace the drawable with an actual adaptive-icon (see TODO below)
-    VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/mipmap/adaptive.xml");
+  public void testRenderAdaptiveIcon() throws IOException {
+    VirtualFile file = myFixture.copyFileToProject("drawables/adaptive.xml", "res/mipmap/adaptive.xml");
+    myFixture.copyFileToProject("drawables/foreground.xml", "res/drawable/foreground.xml");
+    myFixture.copyFileToProject("drawables/background.xml", "res/drawable/background.xml");
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
     assertNotNull(task);
@@ -195,8 +197,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    // TODO: Create the golden image once layoutlib adaptive-icon rendering is merged
-    //checkRendering(task, "mipmap/adaptive.png");
+    RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/mipmap/adaptive.png");
   }
 
 

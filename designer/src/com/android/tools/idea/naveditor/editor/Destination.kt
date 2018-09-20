@@ -31,6 +31,7 @@ import icons.StudioIcons
 import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
 import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
 
@@ -38,6 +39,7 @@ private const val THUMBNAIL_X = 11
 private const val THUMBNAIL_Y = 28
 private const val THUMBNAIL_WIDTH = 50
 private const val THUMBNAIL_HEIGHT = 56
+private val THUMBNAIL_DIMENSION = Dimension(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
 
 sealed class Destination : Comparable<Destination> {
   /**
@@ -77,9 +79,10 @@ sealed class Destination : Comparable<Destination> {
     override val thumbnail: Image by lazy {
       val model = parent.model
       if (layoutFile != null) {
-        val future = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
+        val refinableImage = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration,
+                                                                                    THUMBNAIL_DIMENSION)
         // TODO: wait for rendering nicely
-        val image = future.get()
+        val image = refinableImage.terminalImage
         if (image != null) {
           val scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
           val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)

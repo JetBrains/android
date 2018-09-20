@@ -382,7 +382,6 @@
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <stepsBeforeRunProvider implementation="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <applicationConfigurable groupId="build" id="instant.run"
@@ -971,7 +970,7 @@
                       facetIdList="android,android-gradle"
                       anchor="left"
                       secondary="true"
-                      icon="AndroidIcons.AndroidToolWindow"
+                      icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <facet.toolWindow id="Device File Explorer"
                       facetIdList="android"
@@ -1352,6 +1351,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GenericErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMIPS64elLinuxAndroidMissingHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
@@ -1372,9 +1372,12 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider" />
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider" />
-    <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider" />
+    <!-- TODO Make sure http://b/116011467 doesn't recur when readding this -->
+    <!-- <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/> -->
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider"/>
+
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 

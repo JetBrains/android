@@ -49,6 +49,9 @@ public class CpuFramesView {
   private final CpuProfilerStage myStage;
 
   @NotNull
+  private final CpuFramesCellRenderer myRenderer;
+
+  @NotNull
   private JBList<CpuFramesModel.FrameState> myFrames;
 
   public CpuFramesView(@NotNull CpuProfilerStage stage) {
@@ -58,7 +61,8 @@ public class CpuFramesView {
 
     setupListeners();
     myFrames.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    myFrames.setCellRenderer(new CpuFramesCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(), myFrames));
+    myRenderer = new CpuFramesCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(), myFrames);
+    myFrames.setCellRenderer(myRenderer);
     myStage.getFramesModel().addListDataListener(new ListDataListener() {
       @Override
       public void contentsChanged(ListDataEvent e) {
@@ -110,9 +114,34 @@ public class CpuFramesView {
             CpuFrameTooltip tooltip = (CpuFrameTooltip)myStage.getTooltip();
             tooltip.setFrameSeries(model.getSeries());
           }
+          frameHighlighted(model);
+        }
+        else {
+          myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
         }
       }
     });
+
+    myFrames.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseExited(MouseEvent e) {
+        myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
+      }
+    });
+  }
+
+  /**
+   * Marks the frame that the user is over to be highlighted.
+   */
+  private void frameHighlighted(@NotNull CpuFramesModel.FrameState model) {
+    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    List<SeriesData<AtraceFrame>> modelList =
+      model.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
+    if (modelList.isEmpty()) {
+      myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
+      return;
+    }
+    myRenderer.setHighlightedFrame(modelList.get(0).value);
   }
 
   @NotNull

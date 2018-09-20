@@ -237,7 +237,7 @@ public class NewProjectTest {
    *   Dependency should be added to build.gradle with latest version from maven
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/115754632, fast
   @Test
   public void latestSupportLibraryWhileDndLayouts() throws Exception {
     IdeFrameFixture ideFrameFixture = newProject("Test Application").withMinSdk("26").create(guiTest);

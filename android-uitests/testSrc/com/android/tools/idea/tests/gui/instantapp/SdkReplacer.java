@@ -39,9 +39,9 @@ public class SdkReplacer {
 
     replaceService(new InstantAppSdks() {
       @Override
-      public File getInstantAppSdk(boolean tryToInstall) {
+      public File getOrInstallInstantAppSdk() {
         if (sdkLocation == null) {
-          return null;
+          throw new LoadInstantAppSdkException("No SDK location set");
         }
         return new File(sdkLocation);
       }

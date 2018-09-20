@@ -28,13 +28,23 @@ import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import java.awt.Color;
+import java.awt.Component;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameState, AtraceFrame> {
   private final boolean myDebugRenderingEnabled;
+
+  /**
+   * The current frame that the mouse is over.
+   */
+  private AtraceFrame myHighlightedFrame = AtraceFrame.EMPTY;
+
+  private JList<CpuFramesModel.FrameState> myCpuStates;
 
   /**
    * Creates a new {@link CpuFramesCellRenderer}, this cell renderer creates a label, as well as a {@link StateChart} for each element
@@ -44,6 +54,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
   public CpuFramesCellRenderer(@NotNull FeatureConfig featureConfig,
                                @NotNull JList<CpuFramesModel.FrameState> cpuStateList) {
     super(cpuStateList);
+    myCpuStates = cpuStateList;
     myDebugRenderingEnabled = featureConfig.isPerformanceMonitoringEnabled();
   }
 
@@ -67,7 +78,8 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
     // Offset the label to match the threads component.
-    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
+    Border iconIndent = JBUI.Borders.emptyLeft(StudioIcons.LayoutEditor.Menu.MENU.getIconWidth() + myLabel.getIconTextGap());
+    myLabel.setBorder(new CompoundBorder(iconIndent, ProfilerLayout.CPU_THREADS_RIGHT_BORDER));
 
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each cpu. StateChart#setModel is currently expensive and will make StateChart#render
@@ -81,6 +93,29 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
     panel.add(myLabel, new TabularLayout.Constraint(0, 0));
     panel.add(stateChart, new TabularLayout.Constraint(0, 0, 2));
     return panel;
+  }
+
+  private void repaint() {
+    myCpuStates.repaint();
+  }
+
+  void setHighlightedFrame(@NotNull AtraceFrame frame) {
+    if (myHighlightedFrame != frame) {
+      myHighlightedFrame = frame;
+      // We force the whole list to be repainted as we need the associated frame to be repainted as well.
+      repaint();
+    }
+  }
+
+  /**
+   * Checks if the frame should be highlighted or not.
+   * A frame should be highlighted if the mouse is over it or over a frame that is associated with it.
+   */
+  private boolean isFrameHighlighted(@NotNull AtraceFrame frame) {
+    if (myHighlightedFrame == AtraceFrame.EMPTY) {
+      return false;
+    }
+    return frame == myHighlightedFrame || frame == myHighlightedFrame.getAssociatedFrame();
   }
 
   /**
@@ -98,11 +133,16 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
                                                             @Override
                                                             public Color getColor(boolean isMouseOver,
                                                                                   @NotNull AtraceFrame value) {
+                                                              boolean isHighlighted = isFrameHighlighted(value);
                                                               switch (value.getPerfClass()) {
                                                                 case BAD:
-                                                                  return ProfilerColors.SLOW_FRAME_COLOR;
+                                                                  return isHighlighted
+                                                                         ? ProfilerColors.SLOW_FRAME_COLOR_HIGHLIGHTED
+                                                                         : ProfilerColors.SLOW_FRAME_COLOR;
                                                                 case GOOD:
-                                                                  return ProfilerColors.NORMAL_FRAME_COLOR;
+                                                                  return isHighlighted
+                                                                         ? ProfilerColors.NORMAL_FRAME_COLOR_HIGHLIGHTED
+                                                                         : ProfilerColors.NORMAL_FRAME_COLOR;
                                                                 default:
                                                                   return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
                                                               }

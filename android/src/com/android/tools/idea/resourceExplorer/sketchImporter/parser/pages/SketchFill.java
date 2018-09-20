@@ -63,7 +63,7 @@ public class SketchFill {
    * Represented as a percentage when patternFillType = 0
    */
   private final int patternTileScale;
-  private Color color;
+  private final Color color;
 
   public SketchFill(boolean isEnabled,
                     @NotNull Color color,
@@ -94,10 +94,6 @@ public class SketchFill {
   @NotNull
   public Color getColor() {
     return color;
-  }
-
-  public void setColor(@NotNull Color color) {
-    this.color = color;
   }
 
   @Nullable
@@ -133,25 +129,5 @@ public class SketchFill {
 
   public int getPatternTileScale() {
     return patternTileScale;
-  }
-
-  public void applyGraphicContextSettings(@Nullable SketchGraphicsContextSettings settings) {
-    if (settings != null) {
-      double opacity = settings.getOpacity();
-      if (contextSettings != null) {
-        opacity *= contextSettings.getOpacity();
-      }
-
-      SketchGradient gradient = getGradient();
-      if (gradient != null) {
-        SketchGradientStop[] stops = gradient.getStops();
-        for (SketchGradientStop gradientStop : stops) {
-          gradientStop.setColor(SketchStyle.addAlpha(gradientStop.getColor(), opacity));
-        }
-      }
-      else {
-        color = SketchStyle.addAlpha(color, opacity);
-      }
-    }
   }
 }

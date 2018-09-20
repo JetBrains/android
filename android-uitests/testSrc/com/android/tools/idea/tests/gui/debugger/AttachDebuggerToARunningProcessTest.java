@@ -60,7 +60,7 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
    *   1. Verify that dual debugger running, Java and C++ breakpoints are hit.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testWithDualDebugger() throws Exception {
     IdeFrameFixture ideFrame =

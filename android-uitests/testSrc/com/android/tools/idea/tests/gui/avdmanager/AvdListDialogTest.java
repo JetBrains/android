@@ -44,7 +44,7 @@ public class AvdListDialogTest {
    * TT ID: TODO need to add a test tracker ID
    *
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testCreateAvd() throws Exception {
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
@@ -78,7 +78,7 @@ public class AvdListDialogTest {
    * TT ID: TODO need to add a test tracker ID
    *
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/115748835, fast
   @Test
   public void testEditAvd() throws Exception {
     makeNexus5();

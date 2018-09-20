@@ -188,7 +188,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @Nullable
-  private static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {
+  static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {
     RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
     if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
       return (AndroidRunConfigurationBase)settings.getConfiguration();

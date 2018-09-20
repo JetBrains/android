@@ -105,7 +105,7 @@ public class AndroidColorSet extends ColorSet {
 
         // Lasso colors
 
-        mLassoSelectionBorder = new Color(24, 134, 247, 192);
-        mLassoSelectionFill = new Color(24, 134, 247, 26);
+        mLassoSelectionBorder = DEFAULT_LASSO_BORDER_COLOR;
+        mLassoSelectionFill = DEFAULT_LASSO_FILL_COLOR;
     }
 }

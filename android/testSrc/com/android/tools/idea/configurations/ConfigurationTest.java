@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.*;
@@ -262,5 +263,24 @@ public class ConfigurationTest extends AndroidTestCase {
     IAndroidTarget target = configuration.getTarget();
     assertNotNull(target);
     assertTrue(target.getVersion().getFeatureLevel() >= 11);
+  }
+
+  public void testRtlFromLocale() {
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
+
+    LayoutDirectionQualifier layoutDirectionQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    assertNotNull(layoutDirectionQualifier);
+    assertEquals(LayoutDirection.LTR, layoutDirectionQualifier.getValue());
+
+    configuration.setLocale(Locale.create("ar"));
+    layoutDirectionQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    assertNotNull(layoutDirectionQualifier);
+    assertEquals(LayoutDirection.RTL, layoutDirectionQualifier.getValue());
+
+    configuration.setLocale(Locale.create("fr"));
+    layoutDirectionQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    assertNotNull(layoutDirectionQualifier);
+    assertEquals(LayoutDirection.LTR, layoutDirectionQualifier.getValue());
   }
 }

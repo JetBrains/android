@@ -86,7 +86,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
     PROFILER, "event.fragment", "Enable fragment profiling",
     "Shows fragment information in event profiler's activity bar and tooltip.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
     PROFILER, "show.session", "Enable the sessions panel",
@@ -160,6 +160,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_PERFORMANCE_MONITORING = Flag.create(
     PROFILER, "performance.monitoring", "Enable Profiler Performance Monitoring Options",
     "Toggles if profiler performance metrics options are enabled.",
+    false
+  );
+
+  public static final Flag<Boolean> PROFILER_CPU_NEW_RECORDING_WORKFLOW = Flag.create(
+    PROFILER, "cpu.new.recording.workflow", "Enable new CPU recording workflow",
+    "Shows recording options and status of the ongoing recording in the method trace pane.",
     false
   );
 
@@ -244,8 +250,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
     NELE, "new.color.picker", "New Color Picker",
-    "Enable new Color Picker in layout Editor",
-    false);
+    "Enable new Color Picker in Layout Editor",
+    true);
 
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
@@ -256,10 +262,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
-    true);
-  public static final Flag<Boolean> RUNDEBUG_USE_AIA_SDK_LIBRARY = Flag.create(
-    RUNDEBUG, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
-    "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
     true);
 
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(

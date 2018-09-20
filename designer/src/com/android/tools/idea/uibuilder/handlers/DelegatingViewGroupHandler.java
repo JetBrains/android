@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.dnd.DropTargetDropEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -117,7 +116,7 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Override
   public void performDrop(@NotNull NlModel model,
-                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlDropEvent event,
                           @NotNull NlComponent receiver,
                           @NotNull List<NlComponent> dragged,
                           @Nullable NlComponent before, @NotNull InsertType type) {

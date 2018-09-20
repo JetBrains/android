@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.xml.XmlBuilder;
@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.dnd.DropTargetDropEvent;
 import java.util.Collection;
 import java.util.List;
 
@@ -225,7 +224,7 @@ public class ViewGroupHandler extends ViewHandler {
    * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
    */
   public void performDrop(@NotNull NlModel model,
-                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlDropEvent event,
                           @NotNull NlComponent receiver,
                           @NotNull List<NlComponent> dragged,
                           @Nullable NlComponent before,

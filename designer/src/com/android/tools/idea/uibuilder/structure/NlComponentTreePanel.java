@@ -58,6 +58,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
 
   @Override
   public void dispose() {
+    myNavigationComponent.setDesignSurface(null);
   }
 
   @Override

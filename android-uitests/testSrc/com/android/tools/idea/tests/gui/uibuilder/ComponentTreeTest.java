@@ -15,30 +15,33 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.Point;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import org.fest.swing.fixture.JTreeFixture;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class ComponentTreeTest {
@@ -118,5 +121,32 @@ public final class ComponentTreeTest {
     assertTrue(tree.target().getSelectionModel().isRowSelected(1));
 
     tree.requireVisible();
+  }
+
+  @Test
+  public void dragDropFromTreeToSurfaceDoNotDelete() {
+    EditorFixture editor = null;
+    try {
+      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+                        .getEditor()
+                        .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
+    }
+    catch (IOException e) {
+      fail(e.getMessage());
+    }
+
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    layoutEditor.waitForRenderToFinish();
+
+    JTreeFixture tree = layoutEditor.getComponentTree();
+    DesignSurfaceFixture surface = layoutEditor.getSurface();
+    assertEquals("Initial components count unexpected", 2, layoutEditor.getAllComponents().size());
+    Point rootCenter = ((NlComponentFixture)surface.getAllComponents().get(0)).getMidPoint();
+    Point childLocation = ((NlComponentFixture)surface.getAllComponents().get(1)).getMidPoint();
+    tree.drag(1);
+    surface.drop(rootCenter);
+    layoutEditor.waitForRenderToFinish();
+    assertEquals("Components count after drag unexpected", 2, layoutEditor.getAllComponents().size());
+    assertNotEquals(childLocation, ((NlComponentFixture)surface.getAllComponents().get(1)).getMidPoint());
   }
 }

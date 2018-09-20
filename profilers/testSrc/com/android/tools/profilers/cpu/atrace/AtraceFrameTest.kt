@@ -43,7 +43,7 @@ class AtraceFrameTest {
   @Test
   fun testFramePerformance() {
     val bitmapsProcess = myModel.processes[TEST_PID]!!
-    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1)
+    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
     val goodFrameRange = Range(1.0, 1.01)
     val badFrameRange = Range(1.0, 10.0)
     frame.addSlice(bitmapsProcess.threads[0].slices[0], goodFrameRange)
@@ -55,7 +55,7 @@ class AtraceFrameTest {
   @Test
   fun testRangeValues() {
     val bitmapsProcess = myModel.processes[TEST_PID]!!
-    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, 0)
+    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, 0, AtraceFrame.FrameThread.MAIN)
     val smallRange = Range(1.0 + myModel.beginTimestamp, 2.0 + myModel.beginTimestamp)
     val smallUserRange = Range(convertTimeStamps(smallRange.min).toDouble(), convertTimeStamps(smallRange.max).toDouble())
     frame.addSlice(bitmapsProcess.threads[0].slices[0], smallRange)

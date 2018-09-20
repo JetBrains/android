@@ -159,12 +159,15 @@ public class VariantOnlyProjectModels implements Serializable {
   }
 
   @Nullable
-  private static Variant syncAndAddVariant(@NotNull VariantOnlyModuleModel moduleModel,
-                                           @NotNull String variantName,
-                                           @NotNull BuildController controller) {
+  private Variant syncAndAddVariant(@NotNull VariantOnlyModuleModel moduleModel,
+                                    @NotNull String variantName,
+                                    @NotNull BuildController controller) {
     GradleProject gradleProject = moduleModel.getGradleProject();
     Variant variant = controller.findModel(gradleProject, Variant.class, ModelBuilderParameter.class,
-                                           parameter -> parameter.setVariantName(variantName));
+                                           parameter -> {
+                                             parameter.setVariantName(variantName);
+                                             parameter.setShouldGenerateSources(mySyncOptions.myShouldGenerateSources);
+                                           });
     if (variant != null) {
       moduleModel.addVariant(variant);
     }

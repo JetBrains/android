@@ -45,7 +45,8 @@ import static java.util.Objects.requireNonNull;
 public class SelectedVariantChooser implements Serializable {
   void chooseSelectedVariants(@NotNull List<SyncModuleModels> projectModels,
                               @NotNull BuildController controller,
-                              @NotNull SelectedVariants selectedVariants) {
+                              @NotNull SelectedVariants selectedVariants,
+                              boolean shouldGenerateSources) {
     Map<String, AndroidModule> modulesById = new HashMap<>();
     LinkedList<String> allModules = new LinkedList<>();
     Set<String> visitedModules = new HashSet<>();
@@ -74,11 +75,11 @@ public class SelectedVariantChooser implements Serializable {
         visitedModules.add(moduleId);
         AndroidModule module = modulesById.get(moduleId);
         requireNonNull(module);
-        Variant variant = selectVariantForAppOrLeaf(module, controller, selectedVariants, moduleId);
+        Variant variant = selectVariantForAppOrLeaf(module, controller, selectedVariants, moduleId, shouldGenerateSources);
         if (variant != null) {
           String abi = syncAndAddNativeVariantAbi(module, controller, variant.getName(), selectedVariants.getSelectedAbi(moduleId));
           module.addSelectedVariant(variant, abi);
-          selectVariantForDependencyModules(module, controller, modulesById, visitedModules);
+          selectVariantForDependencyModules(module, controller, modulesById, visitedModules, shouldGenerateSources);
         }
       }
     }
@@ -87,7 +88,8 @@ public class SelectedVariantChooser implements Serializable {
   private static void selectVariantForDependencyModules(@NotNull AndroidModule androidModule,
                                                         @NotNull BuildController controller,
                                                         @NotNull Map<String, AndroidModule> libModulesById,
-                                                        @NotNull Set<String> visitedModules) {
+                                                        @NotNull Set<String> visitedModules,
+                                                        boolean shouldGenerateSources) {
     for (ModuleDependency dependency : androidModule.getModuleDependencies()) {
       String dependencyModuleId = dependency.id;
       visitedModules.add(dependencyModuleId);
@@ -100,10 +102,10 @@ public class SelectedVariantChooser implements Serializable {
           if (nativeProject != null) {
             abiName = syncAndAddNativeVariantAbi(dependencyModule, controller, variantName, dependency.abi);
           }
-          Variant dependencyVariant = syncAndAddVariant(variantName, dependencyModule.getModuleModels(), controller);
+          Variant dependencyVariant = syncAndAddVariant(variantName, dependencyModule.getModuleModels(), controller, shouldGenerateSources);
           if (dependencyVariant != null) {
             dependencyModule.addSelectedVariant(dependencyVariant, abiName);
-            selectVariantForDependencyModules(dependencyModule, controller, libModulesById, visitedModules);
+            selectVariantForDependencyModules(dependencyModule, controller, libModulesById, visitedModules, shouldGenerateSources);
           }
         }
       }
@@ -114,7 +116,8 @@ public class SelectedVariantChooser implements Serializable {
   private static Variant selectVariantForAppOrLeaf(@NotNull AndroidModule androidModule,
                                                    @NotNull BuildController controller,
                                                    @NotNull SelectedVariants selectedVariants,
-                                                   @NotNull String moduleId) {
+                                                   @NotNull String moduleId,
+                                                   boolean shouldGenerateSources) {
     String variant = selectedVariants.getSelectedVariant(moduleId);
     Collection<String> variantNames = androidModule.getAndroidProject().getVariantNames();
     // Selected variant is null means that this is the very first sync, choose debug or the first one.
@@ -122,7 +125,7 @@ public class SelectedVariantChooser implements Serializable {
     if (variant == null || !variantNames.contains(variant)) {
       variant = getDefaultOrFirstItem(variantNames, "debug");
     }
-    return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller) : null;
+    return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller, shouldGenerateSources) : null;
   }
 
   @Nullable
@@ -136,12 +139,16 @@ public class SelectedVariantChooser implements Serializable {
   @Nullable
   private static Variant syncAndAddVariant(@NotNull String variantName,
                                            @NotNull SyncModuleModels moduleModels,
-                                           @NotNull BuildController controller) {
+                                           @NotNull BuildController controller,
+                                           boolean shouldGenerateSources) {
     GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
     requireNonNull(gradleProject);
 
     Variant variant = controller.findModel(gradleProject, Variant.class, ModelBuilderParameter.class,
-                                           parameter -> parameter.setVariantName(variantName));
+                                           parameter -> {
+                                             parameter.setVariantName(variantName);
+                                             parameter.setShouldGenerateSources(shouldGenerateSources);
+                                           });
     if (variant != null) {
       moduleModels.addModel(Variant.class, variant);
     }

@@ -18,13 +18,11 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.memory.AllocationSamplingRateDurationData;
+import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -33,7 +31,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TLongObjectHashMap;
-import javax.print.DocFlavor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -228,7 +225,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Nullable
   @Override
-  public MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
+  public StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
     StackFrameInfoResponse frameInfo = myFrameInfoResponseMap.get(methodId);
     if (frameInfo == null) {
       frameInfo = getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setSession(getSession()).setMethodId(methodId).build());
@@ -303,6 +300,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         if (newStartTimeNs == myPreviousQueryStartTimeNs && newEndTimeNs == myPreviousQueryEndTimeNs && newEndTimeNs != Long.MAX_VALUE) {
           return null;
         }
+
+        boolean hasNonFullTrackingRegion = !MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(
+          myClient, mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
 
         joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
@@ -388,8 +388,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             deltaFreeList.addAll(rightDeallocations);
           }
         }
-
-        boolean hasNonFullTrackingRegion = hasNonFullSamplingRegion(newStartTimeNs, newEndTimeNs);
 
         myPreviousQueryStartTimeNs = newStartTimeNs;
         myPreviousQueryEndTimeNs = newEndTimeNs;
@@ -619,14 +617,5 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           assert false;
       }
     }
-  }
-
-  private boolean hasNonFullSamplingRegion(long startTimeNs, long endTimeNs) {
-    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes =
-      myStage.getAllocationSamplingRateDataSeries().getDataForXRange(new Range(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
-                                                                               TimeUnit.NANOSECONDS.toMicros(endTimeNs)));
-    return !(samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
-                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue());
-
   }
 }

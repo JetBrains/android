@@ -56,16 +56,16 @@ public class NlPreviewTest {
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(true);
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().chooseDevice("Nexus 5");
+    preview.getConfigToolbar().chooseDevice("Pixel");
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().requireDevice("Nexus 5");
+    preview.getConfigToolbar().requireDevice("pixel"); // The id of Pixel is "pixel"
     VirtualFile file = editor.getCurrentFile();
     assertThat(file.getParent().getName()).isEqualTo("layout");
     preview.getConfigToolbar().requireOrientation("Portrait");
 
     preview.getConfigToolbar().chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().requireDevice("Nexus 7 2013");
+    preview.getConfigToolbar().requireDevice("Nexus 7 2013"); // The id of Nexus 7 is "Nexus 7 2013"
     assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
 
     preview.getConfigToolbar().chooseDevice("Nexus 10");
@@ -81,7 +81,7 @@ public class NlPreviewTest {
 
     preview.getConfigToolbar().chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().chooseDevice("Nexus 4");
+    preview.getConfigToolbar().chooseDevice("Pixel");
     preview.waitForRenderToFinish();
     editor.open("app/src/main/res/layout-sw600dp/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
@@ -89,7 +89,7 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
+    preview.getConfigToolbar().requireDevice("pixel"); // because it's the most recently configured small screen compatible device
   }
 
   @Test

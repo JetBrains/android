@@ -15,17 +15,11 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
-import com.android.tools.adtui.instructions.InstructionsPanel;
-import com.android.tools.adtui.instructions.NewRowInstruction;
-import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.cpu.*;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -94,7 +88,7 @@ public class CpuCaptureView {
     }
 
     if (myStage.getCapture() == null) {
-      return new HelpTipPane(myStageView);
+      return new RecordingInitiatorPane(myStageView);
     }
     else {
       return new DetailsCapturePane(myStageView);
@@ -104,33 +98,6 @@ public class CpuCaptureView {
   @NotNull
   public JComponent getComponent() {
     return myPanel;
-  }
-
-  /**
-   * A {@link CapturePane} that is used to display a help message when there is no selected capture.
-   */
-  static class HelpTipPane extends CapturePane {
-    HelpTipPane(@NotNull CpuProfilerStageView stageView) {
-      super(stageView);
-      disableInteraction();
-      updateView();
-    }
-
-    @Override
-    void populateContent(@NotNull JPanel panel) {
-      FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(this, ProfilerFonts.H3_FONT);
-      FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(this, ProfilerFonts.STANDARD_FONT);
-      InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-        new TextInstruction(headerMetrics, "Thread details unavailable"),
-        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(bodyMetrics, "Click Record to start capturing CPU activity"),
-        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(bodyMetrics, "or select a capture in the timeline."))
-        .setColors(JBColor.foreground(), null)
-        .build();
-
-      panel.add(infoMessage, BorderLayout.CENTER);
-    }
   }
 
   /**

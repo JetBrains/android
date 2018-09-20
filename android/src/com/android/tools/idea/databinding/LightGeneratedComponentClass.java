@@ -133,11 +133,6 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
     return new LightMethod(PsiManager.getInstance(project), method, this);
   }
 
-  @Override
-  public String toString() {
-    return "DATA binding component class";
-  }
-
   @Nullable
   @Override
   public String getQualifiedName() {

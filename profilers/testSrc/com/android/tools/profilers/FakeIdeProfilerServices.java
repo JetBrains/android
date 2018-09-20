@@ -129,6 +129,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCpuApiTracingEnabled = false;
 
   /**
+   * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
+   */
+  private boolean myCpuNewRecordingWorkflowEnabled = false;
+
+  /**
+   * Toggle for live allocation sampling mode.
+   */
+  private boolean myLiveAllocationsSamplingEnabled = true;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -235,6 +245,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isCpuNewRecordingWorkflowEnabled() {
+        return myCpuNewRecordingWorkflowEnabled;
+      }
+
+      @Override
       public boolean isEnergyProfilerEnabled() {
         return myEnergyProfilerEnabled;
       }
@@ -264,7 +279,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isLiveAllocationsSamplingEnabled() {
-        return true;
+        return myLiveAllocationsSamplingEnabled;
       }
 
       @Override
@@ -461,7 +476,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableCpuApiTracing(boolean enabled) {
-    myStartupCpuProfilingEnabled = enabled;
+    myIsCpuApiTracingEnabled = enabled;
   }
 
   public void enableExportTrace(boolean enabled) {
@@ -470,5 +485,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableImportTrace(boolean enabled) {
     myImportCpuTraceEnabled = enabled;
+  }
+
+  public void enableCpuNewRecordingWorkflow(boolean enabled) {
+    myCpuNewRecordingWorkflowEnabled = enabled;
+  }
+
+  public void enableLiveAllocationsSampling(boolean enabled) {
+    myLiveAllocationsSamplingEnabled = enabled;
   }
 }

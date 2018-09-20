@@ -100,6 +100,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
   @NotNull private final JLabel myCaptureInfoMessage;
+  @NotNull private final JLabel myAllocationSamplingRateLabel;
+
+  @NotNull private DurationDataRenderer<GcDurationData> myGcDurationDataRenderer;
+  @NotNull private DurationDataRenderer<AllocationSamplingRateDurationData> myAllocationSamplingRateRenderer;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
@@ -197,6 +201,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();
 
+    myAllocationSamplingRateLabel = new JLabel("Allocation Tracking Mode");
+    myAllocationSamplingRateLabel.setBorder(JBUI.Borders.emptyLeft(10));
     myAllocationSamplingRateDropDown = new ComboBox<LiveAllocationSamplingMode>();
 
     getStage().getAspect().addDependency(this)
@@ -241,6 +247,21 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return myAllocationSamplingRateDropDown;
   }
 
+  @VisibleForTesting
+  JLabel getAllocationSamplingRateLabel() {
+    return myAllocationSamplingRateLabel;
+  }
+
+  @VisibleForTesting
+  DurationDataRenderer<GcDurationData> getGcDurationDataRenderer() {
+    return myGcDurationDataRenderer;
+  }
+
+  @VisibleForTesting
+  DurationDataRenderer<AllocationSamplingRateDurationData> getAllocationSamplingRateRenderer() {
+    return myAllocationSamplingRateRenderer;
+  }
+
   @Override
   public JComponent getToolbar() {
     JPanel toolBar = new JPanel(createToolbarLayout());
@@ -257,6 +278,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                                                             getStage()::requestLiveAllocationSamplingModeUpdate);
       sampleRateComboView.bind();
       myAllocationSamplingRateDropDown.setRenderer(new LiveAllocationSamplingModeRenderer());
+      toolBar.add(myAllocationSamplingRateLabel);
       toolBar.add(myAllocationSamplingRateDropDown);
     } else {
       toolBar.add(myAllocationButton);
@@ -450,8 +472,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
     lineChart.setFillEndGap(true);
 
-    DurationDataRenderer<GcDurationData> gcRenderer =
-      new DurationDataRenderer.Builder<>(memoryUsage.getGcDurations(), Color.BLACK)
+    myGcDurationDataRenderer = new DurationDataRenderer.Builder<>(memoryUsage.getGcDurations(), Color.BLACK)
         .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
         // Need to offset the GcDurationData by the margin difference between the overlay component and the
         // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
@@ -460,13 +481,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
         .setClickRegionPadding(0, 0)
         .build();
-    lineChart.addCustomRenderer(gcRenderer);
+    lineChart.addCustomRenderer(myGcDurationDataRenderer);
 
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     final OverlayComponent overlay = new OverlayComponent(mySelectionComponent);
-    overlay.addDurationDataRenderer(gcRenderer);
+    overlay.addDurationDataRenderer(myGcDurationDataRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
 
     // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
@@ -496,16 +517,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       overlay.addDurationDataRenderer(allocationRenderer);
     }
     else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()){
-      DurationDataRenderer<AllocationSamplingRateDurationData> samplingModeRenderer =
-        new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
+      myAllocationSamplingRateRenderer = new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
           .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
           .setIcon(StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE)
           .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
                            StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f + Y_AXIS_TOP_MARGIN)
           .setClickRegionPadding(0, 0)
           .build();
-      lineChart.addCustomRenderer(samplingModeRenderer);
-      overlay.addDurationDataRenderer(samplingModeRenderer);
+      lineChart.addCustomRenderer(myAllocationSamplingRateRenderer);
+      overlay.addDurationDataRenderer(myAllocationSamplingRateRenderer);
     }
 
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =

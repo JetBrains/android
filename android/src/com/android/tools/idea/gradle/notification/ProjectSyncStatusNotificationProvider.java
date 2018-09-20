@@ -105,9 +105,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (mySyncState.lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (mySyncState.getSummary().hasSyncErrors()) {
-      return NotificationPanel.Type.ERRORS;
-    }
 
     ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
     if (gradleSyncNeeded == YES) {
@@ -139,14 +136,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @NotNull
         NotificationPanel create(@NotNull Project project) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-          return new SyncProblemNotificationPanel(project, this, text);
-        }
-      },
-      ERRORS() {
-        @Override
-        @NotNull
-        NotificationPanel create(@NotNull Project project) {
-          String text = "Gradle project sync completed with some errors. Open the 'Build' view to see the errors found.";
           return new SyncProblemNotificationPanel(project, this, text);
         }
       },

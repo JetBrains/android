@@ -47,7 +47,7 @@ abstract class AbstractAndroidCompletionTest : KotlinAndroidTestCase() {
         copyResourceDirectoryForTest(path)
         val virtualFile = myFixture.copyFileToProject(path + getTestName(true) + ".kt", "src/" + getTestName(true) + ".kt")
         myFixture.configureFromExistingVirtualFile(virtualFile)
-        val fileText = FileUtil.loadFile(File(path + getTestName(true) + ".kt"), true)
+        val fileText = FileUtil.loadFile(File(testDataPath, path + getTestName(true) + ".kt"), true)
         testCompletion(fileText, JvmPlatform, { completionType, count -> myFixture.complete(completionType, count) })
     }
 

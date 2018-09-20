@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateLoginActivityTest {
@@ -45,6 +45,13 @@ public class CreateLoginActivityTest {
    *   3. Click Next
    *   4. Select "Login Activity" and click Next
    *   5. Configure the activity details and click Finish (Verify 1)
+   *
+   *   With Android Studio 3.3+
+   *   1. On the Welcome Screen, select "Start a new Android Studio Project"
+   *   2. Create a default "Empty Activity" Project
+   *   3. After the Project finishes sync, "File > New > Activity > Login Activity"
+   *   4. Configure the activity details and click Finish (Verify 1)
+   *
    *   Verification
    *   1. An activity template that provides input fields and a sample implementation of
    *      an AsyncTask that asks users to login or register with their credentials is added to the project
@@ -54,18 +61,34 @@ public class CreateLoginActivityTest {
   @Test
   public void activityTemplate() {
     // Create a new project with Login Activity.
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
-    newProjectWizard.getConfigureAndroidProjectStep()
-                    .setCppSupport(false)
-                    .enterApplicationName("LoginActApp")
-                    .enterCompanyDomain("android.devtools")
-                    .enterPackageName("dev.tools");
-    newProjectWizard.clickNext();
+    if (NPW_DYNAMIC_APPS.get()) {
+      guiTest.welcomeFrame().createNewProject()
+             .getChooseAndroidProjectStep()
+             .chooseActivity("Empty Activity")
+             .wizard()
+             .clickNext()
+             .clickFinish();
 
-    newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step.
-    newProjectWizard.chooseActivity("Login Activity");
-    newProjectWizard.clickNext(); // Use default activity name.
-    newProjectWizard.clickFinish();
+      guiTest.testSystem().waitForProjectSyncToFinish(guiTest.ideFrame());
+
+      guiTest.ideFrame()
+             .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
+             .clickFinish();
+    }
+    else {
+      guiTest.welcomeFrame().createNewProject()
+             .getConfigureAndroidProjectStep()
+             .setCppSupport(false)
+             .enterApplicationName("LoginActApp")
+             .enterCompanyDomain("android.devtools")
+             .enterPackageName("dev.tools")
+             .wizard()
+             .clickNext()
+             .clickNext() // Skip "Select minimum SDK Api" step.
+             .chooseActivity("Login Activity")
+             .clickNext() // Use default activity name.
+             .clickFinish();
+    }
 
     guiTest.testSystem().waitForProjectSyncToFinish(guiTest.ideFrame());
 

@@ -28,6 +28,8 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
@@ -91,8 +93,20 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   @NotNull
   @Override
   protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
-    final String rootTag = myLastRootComponentName != null ? myLastRootComponentName : getDefaultRootTag();
+    Module module = ModuleUtilCore.findModuleForPsiElement(directory);
+    final String rootTag = myLastRootComponentName != null ? myLastRootComponentName : getDefaultRootTag(module);
     return doCreateAndNavigate(newName, directory, rootTag, false, true);
+  }
+
+  @Override
+  public String getDefaultRootTag(@Nullable Module module) {
+    if (module == null
+        || myResourceFolderType != ResourceFolderType.LAYOUT
+        || !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
+      return super.getDefaultRootTag(module);
+    }
+
+    return SdkConstants.CONSTRAINT_LAYOUT.oldName();
   }
 
   @NotNull
@@ -100,12 +114,8 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
     assert myResourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
 
-    if (DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-      myDefaultRootTag = SdkConstants.CONSTRAINT_LAYOUT.oldName();
-    }
-
     List<String> roots = getPossibleRoots(facet);
-    assert roots.contains(myDefaultRootTag);
+    assert roots.contains(getDefaultRootTag(facet.getModule()));
 
     return roots;
   }
@@ -131,7 +141,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       final List<String> tagNames = getSortedAllowedTagNames(facet);
       myRootElementField = new TextFieldWithAutoCompletion<String>(
         facet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(tagNames, null), true, null);
-      myRootElementField.setText(myDefaultRootTag);
+      myRootElementField.setText(getDefaultRootTag(facet.getModule()));
       myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);
       myRootElementLabel.setLabelFor(myRootElementField);
       init();

@@ -15,24 +15,29 @@
  */
 package com.android.tools.idea.profilers.profilingconfig
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 import javax.swing.*
 
 
 class CpuProfilingConfigPanelTest {
+  @get:Rule public val myRestoreFlagRule = RestoreFlagRule(StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS)
+
   private lateinit var myConfigPanel: CpuProfilingConfigPanel
   private lateinit var myConfiguration: ProfilingConfiguration
 
   @Before
   fun setUp() {
-    myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.N_MR1)
+    myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.O)
     myConfiguration = ProfilingConfiguration()
     myConfigPanel.setConfiguration(myConfiguration, false)
   }
@@ -80,6 +85,15 @@ class CpuProfilingConfigPanelTest {
   }
 
   @Test
+  fun testDisableLiveAllocationValueSet() {
+    assertThat(myConfiguration.isDisableLiveAllocation).isTrue()
+
+    val disableLiveAllocation = TreeWalker(myConfigPanel.component).descendants().filterIsInstance<JCheckBox>().first()
+    disableLiveAllocation.isSelected = false
+    assertThat(myConfiguration.isDisableLiveAllocation).isFalse()
+  }
+
+  @Test
   fun testUsingDefaultConfiguration() {
     myConfigPanel.setConfiguration(ProfilingConfiguration(), true)
 
@@ -123,6 +137,14 @@ class CpuProfilingConfigPanelTest {
     assertThat(samplingInterval.isEnabled).isFalse()
     assertThat(samplingIntervalText.isEnabled).isFalse()
     assertThat(samplingIntervalUnit.isEnabled).isFalse()
+
+    val disableLiveAllocation = treeWalker.descendants().filterIsInstance<JCheckBox>().first()
+    val disableLiveAllocationText = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.DISABLE_LIVE_ALLOCATION
+    }
+
+    assertThat(disableLiveAllocation.isEnabled).isFalse()
+    assertThat(disableLiveAllocationText.isEnabled).isFalse()
   }
 
   @Test
@@ -130,6 +152,7 @@ class CpuProfilingConfigPanelTest {
     val configuration = ProfilingConfiguration()
     configuration.profilingBufferSizeInMb = 1234
     configuration.profilingSamplingIntervalUs = 56789
+    configuration.isDisableLiveAllocation = true
 
     myConfigPanel.setConfiguration(configuration, false)
 
@@ -144,6 +167,9 @@ class CpuProfilingConfigPanelTest {
 
     val samplingInterval = treeWalker.descendants().filterIsInstance<JSpinner>().first()
     assertThat(samplingInterval.model.value).isEqualTo(56789)
+
+    val disableLiveAllocation = treeWalker.descendants().filterIsInstance<JCheckBox>().first()
+    assertThat(disableLiveAllocation.isSelected).isTrue()
   }
 
   @Test
@@ -168,12 +194,13 @@ class CpuProfilingConfigPanelTest {
     assertThat(simpleperfButton.isSelected).isFalse()
 
     val fileSize = treeWalker.descendants().filterIsInstance<JSlider>().first()
-
     assertThat(fileSize.value).isEqualTo(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB)
 
     val samplingInterval = treeWalker.descendants().filterIsInstance<JSpinner>().first()
-
     assertThat(samplingInterval.model.value).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
+
+    val disableLiveAllocation = treeWalker.descendants().filterIsInstance<JCheckBox>().first()
+    assertThat(disableLiveAllocation.isSelected).isFalse()
   }
 
   @Test
@@ -197,5 +224,20 @@ class CpuProfilingConfigPanelTest {
     assertThat(myConfiguration.profilingBufferSizeInMb).isEqualTo(CpuProfilingConfigPanel.MIN_FILE_SIZE_LIMIT_MB)
     assertThat(fileSize.value).isEqualTo(CpuProfilingConfigPanel.MIN_FILE_SIZE_LIMIT_MB)
     assertThat(fileSizeLimit.text).isEqualTo(String.format("%d MB", CpuProfilingConfigPanel.MIN_FILE_SIZE_LIMIT_MB))
+  }
+
+  @Test
+  fun testDisableLiveAllocationPresence() {
+    // Requires an O+ device and feature flag enabled.
+    assertThat(TreeWalker(myConfigPanel.component).descendants().filterIsInstance<JCheckBox>()).isNotEmpty()
+
+    // Pre-O device
+    myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.N_MR1)
+    assertThat(TreeWalker(myConfigPanel.component).descendants().filterIsInstance<JCheckBox>()).isEmpty()
+
+    // Feature flag disabled
+    StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.override(false)
+    myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.O)
+    assertThat(TreeWalker(myConfigPanel.component).descendants().filterIsInstance<JCheckBox>()).isEmpty()
   }
 }

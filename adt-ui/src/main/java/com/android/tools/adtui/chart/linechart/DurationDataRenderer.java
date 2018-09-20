@@ -127,7 +127,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
   @VisibleForTesting
   @NotNull
-  List<Rectangle2D.Float> getClickRegionCache() {
+  public List<Rectangle2D.Float> getClickRegionCache() {
     return myClickRegionCache;
   }
 
@@ -179,6 +179,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
               double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
               yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
               break;
+            }
+            else if (j == attachedSeriesList.size() - 1) {
+              // The duration data is after the last data point on the attached series. We assume the lastFoundData to continue to extend
+              // indefinitely, so place the DurationData at that data's y value.
+              yStart = 1 - (seriesData.value - yMin) / (yMax - yMin);
             }
             lastFoundData = seriesData;
           }
@@ -292,46 +297,56 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     }
   }
 
+  @VisibleForTesting Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
+    float paddedHeight = rect.height + myClickRegionPaddingY * 2;
+    float paddedWidth = rect.width + myClickRegionPaddingX * 2;
+    float scaledStartX = rect.x * componentWidth + myLabelXOffset + myLineStrokeOffset;
+    float scaledStartY = getClampedLabelY(rect.y, paddedHeight, componentHeight);
+    return new Rectangle2D.Float(scaledStartX, scaledStartY, paddedWidth, paddedHeight);
+  }
+
   public void renderOverlay(@NotNull Component host, @NotNull Graphics2D g2d) {
     for (int i = 0; i < myClickRegionCache.size(); i++) {
-      Rectangle2D.Float rect = myClickRegionCache.get(i);
-      float paddedHeight = rect.height + myClickRegionPaddingY * 2;
-      float paddedWidth = rect.width + myClickRegionPaddingX * 2;
-      float scaledStartX = rect.x * host.getWidth() + myLabelXOffset + myLineStrokeOffset;
-      float scaledStartY = getClampedLabelY(rect.y, paddedHeight, host.getHeight());
+      Rectangle2D.Float rect = getScaledClickRegion(myClickRegionCache.get(i), host.getWidth(), host.getHeight());
       if (myLabelBgColor != null) {
         g2d.setColor(myLabelBgColor);
-        Rectangle2D scaledRect = new Rectangle2D.Float(scaledStartX,
-                                                       scaledStartY,
-                                                       paddedWidth,
-                                                       paddedHeight);
-        if (myMousePosition != null && scaledRect.contains(myMousePosition)) {
+        if (myMousePosition != null && rect.contains(myMousePosition)) {
           g2d.setColor((myHoverHandler != null || (myClick && myClickHandler != null)) ? myLabelClickedBgColor : myLabelHoveredBgColor);
         }
-        g2d.fill(scaledRect);
+        g2d.fill(rect);
       }
 
-      scaledStartX += myClickRegionPaddingX;
-      scaledStartY += myClickRegionPaddingY;
-      g2d.translate(scaledStartX, scaledStartY);
+      rect.x += myClickRegionPaddingX;
+      rect.y += myClickRegionPaddingY;
+      g2d.translate(rect.x, rect.y);
       if (myIcon != null) {
         myIcon.paintIcon(host, g2d, 0, 0);
         float shift = myIcon.getIconWidth();
         g2d.translate(shift, 0);
-        scaledStartX += shift;  // keep track of the amount of shift to revert the translate at the end.
+        rect.x += shift;  // keep track of the amount of shift to revert the translate at the end.
       }
 
       if (myLabelProvider != null) {
         myLabelCache.get(i).paint(g2d);
       }
 
-      g2d.translate(-scaledStartX, -scaledStartY);
+      g2d.translate(-rect.x, -rect.y);
     }
 
     myClick = false;
   }
 
-  public boolean handleMouseEvent(@NotNull MouseEvent event) {
+  private boolean isHoveringOverClickRegion(@NotNull Component overlayComponent, @NotNull MouseEvent event) {
+    for (int i = 0; i < myClickRegionCache.size(); ++i) {
+      Rectangle2D.Float rect = getScaledClickRegion(myClickRegionCache.get(i), overlayComponent.getWidth(), overlayComponent.getHeight());
+      if (myMousePosition != null && rect.contains(myMousePosition)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean handleMouseEvent(@NotNull Component overlayComponent, @NotNull Component selectionComponent, @NotNull MouseEvent event) {
     myMousePosition = event.getPoint();
     if (event.getID() == MouseEvent.MOUSE_ENTERED) {
       myInComponentRegion = true;
@@ -350,6 +365,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myClick = event.getClickCount() > 0;
     if (myClickHandler != null && myClick && pickData != null) {
       myClickHandler.accept(pickData);
+      return true;
+    }
+
+    if (isHoveringOverClickRegion(overlayComponent, event)) {
+      selectionComponent.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       return true;
     }
 

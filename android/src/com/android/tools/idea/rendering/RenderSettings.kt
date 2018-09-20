@@ -25,7 +25,8 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(name = "RenderSettings", storages = [(Storage("render.experimental.xml"))])
 data class RenderSettings(var quality: Float = 0.9f,
-                          var useLiveRendering: Boolean = StudioFlags.NELE_DEFAULT_LIVE_RENDER.get()) : PersistentStateComponent<RenderSettings> {
+                          var useLiveRendering: Boolean = StudioFlags.NELE_DEFAULT_LIVE_RENDER.get(),
+                          var showDecorations: Boolean = false) : PersistentStateComponent<RenderSettings> {
   override fun getState(): RenderSettings = this
 
   override fun loadState(state: RenderSettings) {

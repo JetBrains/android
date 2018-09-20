@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.stdui.menu.CommonSeparatorUI;
+import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
@@ -31,13 +33,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class CpuProfilingConfigurationView {
+public class CpuProfilingConfigurationView {
   /**
    * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
    */
@@ -63,7 +63,7 @@ class CpuProfilingConfigurationView {
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
   @NotNull private final JComboBox<ProfilingConfiguration> myComboBox;
 
-  CpuProfilingConfigurationView(@NotNull CpuProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  public CpuProfilingConfigurationView(@NotNull CpuProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
     myComboBox = new ComboBox<>(new DefaultComboBoxModel<ProfilingConfiguration>() {
@@ -85,7 +85,7 @@ class CpuProfilingConfigurationView {
 
   @VisibleForTesting
   @NotNull
-  ProfilingConfiguration getProfilingConfiguration() {
+  public ProfilingConfiguration getProfilingConfiguration() {
     // Show fake, short-lived API_INITIATED_TRACING_PROFILING_CONFIG while API-initiated tracing is in progress.
     if (myStage.isApiInitiatedTracingInProgress()) {
       return API_INITIATED_TRACING_PROFILING_CONFIG;
@@ -150,35 +150,10 @@ class CpuProfilingConfigurationView {
       new JComboBoxView<>(myComboBox, myStage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
                           this::getProfilingConfigurations, this::getProfilingConfiguration, this::setProfilingConfiguration);
     profilingConfiguration.bind();
-    // Do not support keyboard accessibility until it is supported product-wide in Studio.
-    myComboBox.setFocusable(false);
-    myComboBox.addKeyListener(new KeyAdapter() {
-      /**
-       * Select the next item, skipping over any separators encountered
-       */
-      private void skipSeparators(int indexDelta) {
-        int selectedIndex = myComboBox.getSelectedIndex() + indexDelta;
-        if (selectedIndex < 0 || selectedIndex == myComboBox.getItemCount()) {
-          return;
-        }
-        while (myComboBox.getItemAt(selectedIndex) == CONFIG_SEPARATOR_ENTRY) {
-          selectedIndex += indexDelta;
-        }
-        myComboBox.setSelectedIndex(selectedIndex);
-      }
 
-      @Override
-      public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-          skipSeparators(1);
-          e.consume();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_UP) {
-          skipSeparators(-1);
-          e.consume();
-        }
-      }
-    });
+    // This disables firing actions like setSelectedItem when the user is using keyboard to navigate through the combobox menu
+    myComboBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+    SwingUtil.doNotSelectItems(myComboBox, e -> e == CONFIG_SEPARATOR_ENTRY);
     myComboBox.setRenderer(new ProfilingConfigurationRenderer());
   }
 
@@ -196,7 +171,7 @@ class CpuProfilingConfigurationView {
                                                   boolean hasFocus) {
       if (value == CONFIG_SEPARATOR_ENTRY) {
         JSeparator separator = new JSeparator();
-        separator.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+        separator.setUI(new CommonSeparatorUI());
         return separator;
       }
       Component listCellRendererComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus);

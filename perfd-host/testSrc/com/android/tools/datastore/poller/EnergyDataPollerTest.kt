@@ -22,7 +22,14 @@ import com.android.tools.datastore.TestGrpcService
 import com.android.tools.datastore.energy.BatteryModel
 import com.android.tools.datastore.energy.PowerProfile
 import com.android.tools.datastore.service.EnergyService
-import com.android.tools.profiler.proto.*
+import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profiler.proto.CpuServiceGrpc
+import com.android.tools.profiler.proto.EnergyProfiler
+import com.android.tools.profiler.proto.EnergyServiceGrpc
+import com.android.tools.profiler.proto.NetworkProfiler
+import com.android.tools.profiler.proto.NetworkServiceGrpc
+import com.android.tools.profiler.proto.Profiler
+import com.android.tools.profiler.proto.ProfilerServiceGrpc
 import com.google.common.collect.Lists
 import io.grpc.stub.StreamObserver
 import org.junit.After
@@ -51,13 +58,11 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     private val THREE_FOURTH_SEC_MS = ONE_SEC_MS * 3 / 4
 
     private val NETWORK_WIFI_STATE = NetworkProfiler.ConnectivityData.newBuilder()
-      .setRadioState(NetworkProfiler.ConnectivityData.RadioState.HIGH)
-      .setDefaultNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
+      .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
       .build()
 
     private val NETWORK_RADIO_STATE = NetworkProfiler.ConnectivityData.newBuilder()
-      .setRadioState(NetworkProfiler.ConnectivityData.RadioState.HIGH)
-      .setDefaultNetworkType(NetworkProfiler.ConnectivityData.NetworkType.MOBILE)
+      .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.MOBILE)
       .build()
   }
 

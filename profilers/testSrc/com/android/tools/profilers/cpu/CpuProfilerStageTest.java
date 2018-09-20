@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
@@ -32,6 +33,7 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.Iterators;
@@ -39,7 +41,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -54,19 +55,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_DATA_FILE;
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_MISSING_DATA_FILE;
 import static com.google.common.truth.Truth.assertThat;
 
 public class CpuProfilerStageTest extends AspectObserver {
   private final FakeProfilerService myProfilerService = new FakeProfilerService();
-
   private final FakeCpuService myCpuService = new FakeCpuService();
-
+  private final FakeMemoryService myMemoryService = new FakeMemoryService();
   private final FakeTimer myTimer = new FakeTimer();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
-                        new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
+                        myMemoryService, new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CpuProfilerStage myStage;
 
@@ -197,7 +199,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setOngoingCaptureConfiguration(config, 100L, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(timeline.isStreaming()).isFalse();
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(false);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
     assertThat(timeline.isStreaming()).isTrue();
   }
@@ -576,6 +578,23 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void traceMissingDataShowsDialog() throws IOException {
+    // Set a capture of type atrace.
+    myCpuService.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_DATA_FILE)));
+    // Select valid capture no dialog should be presented.
+    myStage.setAndSelectCapture(0);
+
+    assertThat(myServices.getBalloonTitle()).isNull();
+    assertThat(myServices.getBalloonBody()).isNull();
+    // Select invalid capture we should see dialog.
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)));
+    myStage.setAndSelectCapture(1);
+    checkNotificationReceived(CpuProfilerNotification.Notification.ATRACE_BUFFER_OVERFLOW);
+  }
+
+  @Test
   public void changingCaptureShouldKeepThreadSelection() throws Exception {
     CpuCapture capture1 = CpuProfilerTestUtils.getValidCapture();
     CpuCapture capture2 = CpuProfilerTestUtils.getValidCapture();
@@ -867,15 +886,83 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
 
     // Verify the STOPPING state isn't changed due to API tracing.
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STOPPING);
 
     // Simulate the parsing of prior capture (the one being parsed when entering the test) is done.
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
 
     // Verify API-initiated tracing is shown as capturing.
-    myStage.updateProfilingState();
+    myStage.updateProfilingState(true);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Test
+  public void transitsToIdleWhenApiInitiatedTracingEnds() {
+    myServices.enableCpuApiTracing(true);
+
+    // API-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration artConfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
+
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    myCpuService.setAppBeingProfiled(true);
+    myStage.updateProfilingState(true);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    myCpuService.setAppBeingProfiled(false);
+    myStage.updateProfilingState(true);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+  }
+
+  @Test
+  public void updateProfilingStatePreservesCapturingWhenNonApiInitiatedTracingEnds() {
+    myServices.enableCpuApiTracing(true);
+
+    // UI-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration artConfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    myCpuService.setAppBeingProfiled(true);
+    myStage.updateProfilingState(false);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    myCpuService.setAppBeingProfiled(false);
+    myStage.updateProfilingState(false);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Test
+  public void updateProfilingStateDontGoBackToRecordingForUiInitiatedTraces() {
+    myServices.enableCpuApiTracing(true);
+    myTimer.setHandler(myStage.getStudioProfilers().getUpdater());
+    myStage.enter();
+
+    // UI-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration artConfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    myCpuService.setOngoingCaptureConfiguration(artConfig, 100, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+    // Make the server return that the app is being profiled to simulate the race condition we might have between data poller and UI threads
+    myCpuService.setAppBeingProfiled(true);
+    // Simulate UPDATE_COUNT_TO_CALL_CALLBACK ticks in the updater. That should trigger a call to updateProfilingState from the
+    // CpuCaptureStateUpdatable. We do this instead of calling updataeProfilingState(true) directly because if the updatable callback is
+    // changed later for some reason this test will fail.
+    for (int i = 0; i <= CpuProfilerStage.CpuCaptureStateUpdatable.UPDATE_COUNT_TO_CALL_CALLBACK; i++) {
+      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    }
+
+    // We shouldn't go to CAPTURING despite the fact our service returns that the app is being profiled, beacause the trace was not
+    // initiated by API.
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
   @Test
@@ -1473,11 +1560,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
-
+    checkNotificationReceived(CpuProfilerNotification.Notification.CAPTURE_START_FAILURE);
     assertThat(myStage.getCapture()).isNull();
   }
 
@@ -1505,11 +1588,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
-
+    checkNotificationReceived(CpuProfilerNotification.Notification.CAPTURE_STOP_FAILURE);
     assertThat(myStage.getCapture()).isNull();
   }
 
@@ -1547,10 +1626,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+    checkNotificationReceived(CpuProfilerNotification.Notification.PARSING_FAILURE);
 
     assertThat(transitionsCount.get()).isEqualTo(2);
     assertThat(aspectFired.get()).isTrue();
@@ -1611,10 +1687,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     // We should show a balloon saying the import has failed
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+    checkNotificationReceived(CpuProfilerNotification.Notification.IMPORT_TRACE_PARSING_FAILURE);
 
     // We should track failed imports
     assertThat(tracker.getLastCpuProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
@@ -1635,10 +1708,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_IMPORTED_TRACE_ABORTED_BALLOON_TEXT);
-    assertThat(myServices.getBalloonUrl()).isNull();
-    assertThat(myServices.getBalloonUrlText()).isNull();
+    checkNotificationReceived(CpuProfilerNotification.Notification.IMPORT_TRACE_PARSING_ABORTED);
   }
 
   @Test
@@ -1653,10 +1723,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing(stage);
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
-    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_RECORDED_TRACE_ABORTED_BALLOON_TEXT);
-    assertThat(myServices.getBalloonUrl()).isNull();
-    assertThat(myServices.getBalloonUrlText()).isNull();
+    checkNotificationReceived(CpuProfilerNotification.Notification.PARSING_ABORTED);
   }
 
   @Test
@@ -1801,6 +1868,53 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myCpuService.getStartStopCapturingSession()).isEqualTo(stageSession);
   }
 
+  @Test
+  public void testMemoryLiveAllocationIsDisabledIfApplicable() {
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setValidTrace(true);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+
+    // Initialize all conditions to false.
+    myServices.getPersistentProfilerPreferences().setInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
+    myServices.enableLiveAllocationsSampling(false);
+    addAndSetDevice(AndroidVersion.VersionCodes.N_MR1, "FOO");
+    ProfilingConfiguration config = new ProfilingConfiguration("My Instrumented Config",
+                                                                     CpuProfiler.CpuProfilerType.ART,
+                                                                     CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+    config.setDisableLiveAllocation(false);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+
+    // Live allocation sampling rate should remain the same.
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Enable feature flag.
+    // Live allocation sampling rate should still remain the same.
+    myServices.enableLiveAllocationsSampling(true);
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Set an O+ device.
+    // Live allocation sampling rate should still remain the same.
+    addAndSetDevice(AndroidVersion.VersionCodes.O, "FOO");
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Set profiling config to true.
+    // Now all conditions are met, live allocation should be disabled during capture and re-enabled after capture is stopped.
+    config.setDisableLiveAllocation(true);
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()
@@ -1846,6 +1960,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     stopCapturing();
+  }
+
+  private void checkNotificationReceived(@NotNull CpuProfilerNotification.Notification notification) {
+    assertThat(myServices.getBalloonTitle()).isEqualTo(notification.getTitle());
+    assertThat(myServices.getBalloonBody()).isEqualTo(notification.getText());
+    assertThat(myServices.getBalloonUrl()).isEqualTo(notification.getUrl());
+    assertThat(myServices.getBalloonUrlText()).isEqualTo(notification.getUrlText());
   }
 
   /**

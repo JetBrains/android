@@ -73,9 +73,11 @@ public class ProfilerColors {
   public static final Color CPU_KERNEL_OTHER = new JBColor(0xE5F1F5, 0x353C45);
   public static final Color CPU_KERNEL_OTHER_HOVER = new JBColor(0x80B7CA, 0x587495);
 
-  public static final Color SLOW_FRAME_COLOR = new JBColor(new Color(0xAAE06571, true), new Color(0xAAE46868, true));
+  public static final Color SLOW_FRAME_COLOR = new JBColor(new Color(0xAAF0697D, true), new Color(0xAACD6767, true));
+  public static final Color SLOW_FRAME_COLOR_HIGHLIGHTED = new JBColor(new Color(0xAACD6767, true), new Color(0xAAF0697D, true));
 
   public static final Color NORMAL_FRAME_COLOR = new JBColor(new Color(0xAAD4D4D4, true), new Color(0xAA58595A, true));
+  public static final Color NORMAL_FRAME_COLOR_HIGHLIGHTED = new JBColor(new Color(0xAAB9B9B9, true), new Color(0xAA767778, true));
 
   /**
    * Represents pair of colors of non-selected and hovered states of a thread.

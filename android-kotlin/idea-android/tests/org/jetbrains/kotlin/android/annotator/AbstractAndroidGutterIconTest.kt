@@ -31,8 +31,7 @@ import javax.swing.ImageIcon
 abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
 
     fun doTest(path: String) {
-        val testFile = File(path)
-        val testFileText = FileUtil.loadFile(testFile)
+        val testFileText = FileUtil.loadFile(File(testDataPath, path))
         val withRuntime = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// WITH_RUNTIME")
 
         val drawable = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// DRAWABLE")
@@ -47,7 +46,7 @@ abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
             }
 
             copyResourceDirectoryForTest(path)
-            myFixture.copyFileToProject(testFile.parent + "/R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
+            myFixture.copyFileToProject(File(path).parent + "/R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
 
             val sourceFile = myFixture.copyFileToProject(path, "src/${PathUtil.getFileName(path)}")
             myFixture.configureFromExistingVirtualFile(sourceFile)

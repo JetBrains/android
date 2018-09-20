@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Stopwatch;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.MouseEventHandler;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -336,7 +337,11 @@ public final class StateChart<T> extends AnimatedComponent {
         else {
           myMouseX = event.getX();
         }
-        opaqueRepaint();
+        if (event.getSource() instanceof JComponent) {
+          // StateChart is commonly used as a cell renderer component, and therefore is not in the proper Swing hierarchy.
+          // Because of this, we need to use the source (which is probably a JList) to perform the actual repaint.
+          ((JComponent)event.getSource()).repaint();
+        }
       }
     };
     addMouseListener(handler);

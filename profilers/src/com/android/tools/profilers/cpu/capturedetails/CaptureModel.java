@@ -95,9 +95,12 @@ public class CaptureModel {
     myCaptureConvertedRange.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
   }
 
-  public void setCapture(@Nullable CpuCapture capture) {
+  /**
+   * @return true, if the {@param capture} is different than the current capture.
+   */
+  public boolean setCapture(@Nullable CpuCapture capture) {
     if (myCapture == capture) {
-      return;
+      return false;
     }
     myCapture = capture;
     if (myCapture != null) {
@@ -110,6 +113,7 @@ public class CaptureModel {
     }
     rebuildDetails();
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_SELECTION);
+    return true;
   }
 
   @Nullable

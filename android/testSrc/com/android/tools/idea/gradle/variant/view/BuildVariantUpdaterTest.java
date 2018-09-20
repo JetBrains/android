@@ -22,10 +22,14 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
@@ -41,10 +45,13 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.io.File;
 import java.util.Collections;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -211,5 +218,71 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
+  }
+
+  public void testCompoundSyncEnabled() {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+
+      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
+
+      GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
+      GradleModuleModel gradleModel = mock(GradleModuleModel.class);
+      gradleFacet.setGradleModuleModel(gradleModel);
+      when(gradleModel.getRootFolderPath()).thenReturn(new File(""));
+      when(gradleModel.getGradlePath()).thenReturn(":");
+
+      String variantToSelect = "release";
+      when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+      when(myAndroidModel.variantExists(variantToSelect)).thenReturn(false);
+      when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+
+      myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+
+      // Check the BuildAction has its property set to generate sources and the sync request not
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+      request.generateSourcesOnSuccess = true;
+      request.variantOnlySyncOptions =
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, true);
+      verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
+  }
+
+  public void testCompoundSyncDisabled() {
+    try {
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
+
+      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
+
+      GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
+      GradleModuleModel gradleModel = mock(GradleModuleModel.class);
+      gradleFacet.setGradleModuleModel(gradleModel);
+      when(gradleModel.getRootFolderPath()).thenReturn(new File(""));
+      when(gradleModel.getGradlePath()).thenReturn(":");
+
+      String variantToSelect = "release";
+      when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+      when(myAndroidModel.variantExists(variantToSelect)).thenReturn(false);
+      when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+
+      myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+
+      // Check the BuildAction has its property set to not generate sources and the sync request does
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+      request.generateSourcesOnSuccess = true;
+      request.variantOnlySyncOptions =
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect);
+      verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
+    }
+    finally {
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
   }
 }

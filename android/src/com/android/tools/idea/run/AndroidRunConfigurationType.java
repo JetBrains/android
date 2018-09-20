@@ -24,7 +24,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +80,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.AndroidModule;
+    return StudioIcons.Shell.Filetree.ANDROID_PROJECT;
   }
 
   @Override

@@ -79,7 +79,6 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       .setForceStopRunningApp(true)
 
     instantAppSdks = IdeComponents(null, testRootDisposable).mockApplicationService(InstantAppSdks::class.java)
-    Mockito.`when`(instantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(true)
   }
 
   fun testDeployInstantAppAsInstantAPK() {

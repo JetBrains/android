@@ -122,11 +122,6 @@ public class LightBrClass extends AndroidLightClassBase {
     return new LightBRField(PsiManager.getInstance(project), field, this);
   }
 
-  @Override
-  public String toString() {
-    return "BR class for " + myFacet;
-  }
-
   @Nullable
   @Override
   public String getQualifiedName() {

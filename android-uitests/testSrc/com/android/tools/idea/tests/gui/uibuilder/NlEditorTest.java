@@ -251,8 +251,7 @@ public class NlEditorTest {
       fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
-      ideFrame.robot().enterText("TextView");
-      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+      fixture.getTextField().replaceText("TextView");
       assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
       fixture.getOkButton().click();
       layout.waitForRenderToFinish();
@@ -356,7 +355,6 @@ public class NlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/72239224
   @Test
   public void testNavigateEditorsWithoutTabs() throws Exception {
     // Regression test for b/37138939

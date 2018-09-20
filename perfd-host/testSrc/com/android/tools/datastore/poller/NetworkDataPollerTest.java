@@ -15,6 +15,11 @@
  */
 package com.android.tools.datastore.poller;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
@@ -23,19 +28,13 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.stub.StreamObserver;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class NetworkDataPollerTest extends DataStorePollerTest {
 
@@ -62,8 +61,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .newBuilder().setConnectionNumber(CONNECTION_COUNT).build();
   private static final NetworkProfiler.ConnectivityData NETWORK_CONNECTIVITY_DATA = NetworkProfiler.ConnectivityData
     .newBuilder()
-    .setRadioState(NetworkProfiler.ConnectivityData.RadioState.HIGH)
-    .setDefaultNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
+    .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
     .build();
   private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse
     .newBuilder()

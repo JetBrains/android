@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom.converters;
 
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.util.AndroidUtils;
 
 /**
@@ -23,6 +24,6 @@ import org.jetbrains.android.util.AndroidUtils;
  */
 public class ViewClassConverter extends PackageClassConverter {
   public ViewClassConverter() {
-    super(false, true, AndroidUtils.VIEW_CLASS_NAME);
+    super(false, ArrayUtil.EMPTY_STRING_ARRAY, true, new String[]{AndroidUtils.VIEW_CLASS_NAME});
   }
 }

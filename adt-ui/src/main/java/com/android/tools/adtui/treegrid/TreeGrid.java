@@ -23,7 +23,6 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.speedSearch.FilteringListModel;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -468,7 +467,7 @@ public class TreeGrid<T> extends Box {
       return true;
     }
     else {
-      for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
+      for (int listIndex = myLists.indexOf(list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
         JList<T> nextList = myLists.get(listIndex);
         int itemCount = nextList.getModel().getSize();
         if (itemCount > 0 && nextList.isVisible()) {
@@ -496,7 +495,7 @@ public class TreeGrid<T> extends Box {
       return true;
     }
     else {
-      for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
+      for (int listIndex = myLists.indexOf(list) - 1; listIndex >= 0; listIndex--) {
         JList<T> prevList = myLists.get(listIndex);
         int itemCount = prevList.getModel().getSize();
         if (itemCount > 0 && prevList.isVisible()) {
@@ -518,7 +517,7 @@ public class TreeGrid<T> extends Box {
       selectNewItem(list, selectedIndex + 1, list);
       return true;
     }
-    for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
+    for (int listIndex = myLists.indexOf(list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
       JList<T> nextList = myLists.get(listIndex);
       int itemCount = nextList.getModel().getSize();
       if (itemCount > 0 && nextList.isVisible()) {
@@ -538,7 +537,7 @@ public class TreeGrid<T> extends Box {
       selectNewItem(list, selectedIndex - 1, list);
       return true;
     }
-    for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
+    for (int listIndex = myLists.indexOf(list) - 1; listIndex >= 0; listIndex--) {
       JList<T> prevList = myLists.get(listIndex);
       int itemCount = prevList.getModel().getSize();
       if (itemCount > 0 && prevList.isVisible()) {

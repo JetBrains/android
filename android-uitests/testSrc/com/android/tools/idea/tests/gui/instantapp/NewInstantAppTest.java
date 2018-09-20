@@ -184,6 +184,7 @@ public class NewInstantAppTest {
     testNoWarningsInDefaultNewInstantAppProjects(false, "testNoWarningsInDefaultNewInstantAppProjects_NO_UAB");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/116163055
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_UAB() {
     testNoWarningsInDefaultNewInstantAppProjects(true, "testNoWarningsInDefaultNewInstantAppProjects_UAB");

@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.instantapp.ProvisionTasks;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -102,7 +101,6 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final RunManagerEx myRunManager;
-  @NotNull private final ProvisionTasks myProvisionTasks;
   @NotNull private final EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
 
   @NotNull
@@ -124,7 +122,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerEx.getInstanceEx(project), new ProvisionTasks(), new EnableDisableSingleVariantSyncStep());
+         RunManagerEx.getInstanceEx(project), new EnableDisableSingleVariantSyncStep());
   }
 
   @VisibleForTesting
@@ -142,7 +140,6 @@ public class PostSyncProjectSetup {
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
                        @NotNull RunManagerEx runManager,
-                       @NotNull ProvisionTasks provisionTasks,
                        @NotNull EnableDisableSingleVariantSyncStep enableSingleVariantSyncStep) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -158,7 +155,6 @@ public class PostSyncProjectSetup {
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
-    myProvisionTasks = provisionTasks;
     myEnableDisableSingleVariantSyncStep = enableSingleVariantSyncStep;
   }
 
@@ -229,8 +225,6 @@ public class PostSyncProjectSetup {
 
       modifyJUnitRunConfigurations();
       RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
-
-      myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 
       AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
       myProjectStructure.analyzeProjectStructure(progressIndicator);

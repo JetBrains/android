@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.android.annotations.VisibleForTesting
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.Alarm
@@ -41,28 +42,28 @@ private val COLOR_RANGE = 0..255
 private val HUE_RANGE = 0..360
 private val PERCENT_RANGE = 0..100
 
+enum class AlphaFormat {
+  BYTE,
+  PERCENTAGE;
+
+  fun next() : AlphaFormat = when (this) {
+    BYTE -> PERCENTAGE
+    PERCENTAGE -> BYTE
+  }
+}
+
+enum class ColorFormat {
+  RGB,
+  HSB;
+
+  fun next() : ColorFormat = when (this) {
+    RGB -> HSB
+    HSB -> RGB
+  }
+}
+
 class ColorValuePanel(private val model: ColorPickerModel)
   : JPanel(GridBagLayout()), DocumentListener, ColorListener {
-
-  enum class AlphaFormat {
-    BYTE,
-    PERCENTAGE;
-
-    fun next() : AlphaFormat = when (this) {
-      BYTE -> PERCENTAGE
-      PERCENTAGE -> BYTE
-    }
-  }
-
-  enum class ColorFormat {
-    RGB,
-    HSB;
-
-    fun next() : ColorFormat = when (this) {
-      RGB -> HSB
-      HSB -> RGB
-    }
-  }
 
   /**
    * Used to update the color of picker when color text fields are edited.
@@ -82,6 +83,16 @@ class ColorValuePanel(private val model: ColorPickerModel)
   private val colorLabel2 = ColorLabel()
   private val colorLabel3 = ColorLabel()
 
+  @VisibleForTesting
+  val alphaButtonPanel = createAlphaLabel(alphaLabel) {
+    currentAlphaFormat = currentAlphaFormat.next()
+  }
+
+  @VisibleForTesting
+  val colorFormatButtonPanel = createFormatLabels(colorLabel1, colorLabel2, colorLabel3) {
+    currentColorFormat = currentColorFormat.next()
+  }
+
   @get:TestOnly
   val colorField1 = ColorValueField()
   private val redDocument = DigitColorDocument(colorField1, COLOR_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
@@ -96,14 +107,16 @@ class ColorValuePanel(private val model: ColorPickerModel)
   private val brightnessDocument = DigitColorDocument(colorField3, PERCENT_RANGE).apply { addDocumentListener(this@ColorValuePanel) }
 
   @VisibleForTesting
-  var currentAlphaFormat by Delegates.observable(AlphaFormat.BYTE) { _, _, _ ->
+  var currentAlphaFormat by Delegates.observable(loadAlphaFormatProperty()) { _, _, newValue ->
     updateAlphaFormat()
+    saveAlphaFormatProperty(newValue)
     repaint()
   }
 
   @VisibleForTesting
-  var currentColorFormat by Delegates.observable(ColorFormat.RGB) { _, _, _ ->
+  var currentColorFormat by Delegates.observable(loadColorFormatProperty()) { _, _, newValue ->
     updateColorFormat()
+    saveColorFormatProperty(newValue)
     repaint()
   }
 
@@ -119,7 +132,7 @@ class ColorValuePanel(private val model: ColorPickerModel)
     c.weightx = 0.12
     c.gridx = 0
     c.gridy = 0
-    add(createAlphaLabel(), c)
+    add(alphaButtonPanel, c)
     c.gridy = 1
     add(alphaField, c)
 
@@ -127,7 +140,7 @@ class ColorValuePanel(private val model: ColorPickerModel)
     c.gridwidth = 3
     c.gridx = 1
     c.gridy = 0
-    add(createFormatLabels(), c)
+    add(colorFormatButtonPanel, c)
 
     c.gridwidth = 1
     c.weightx = 0.12
@@ -159,32 +172,6 @@ class ColorValuePanel(private val model: ColorPickerModel)
   }
 
   override fun requestFocusInWindow() = alphaField.requestFocusInWindow()
-
-  private fun createAlphaLabel() = object : ButtonPanel() {
-
-    init {
-      layout = GridLayout(1, 1)
-      add(alphaLabel)
-    }
-
-    override fun clicked(e: MouseEvent?) {
-      currentAlphaFormat = currentAlphaFormat.next()
-    }
-  }
-
-  private fun createFormatLabels() = object : ButtonPanel() {
-
-    init {
-      layout = GridLayout(1, 3)
-      add(colorLabel1)
-      add(colorLabel2)
-      add(colorLabel3)
-    }
-
-    override fun clicked(e: MouseEvent?) {
-      currentColorFormat = currentColorFormat.next()
-    }
-  }
 
   private fun updateAlphaFormat() {
     when (currentAlphaFormat) {
@@ -303,6 +290,37 @@ class ColorValuePanel(private val model: ColorPickerModel)
     }
     model.setColor(color, this)
   }
+
+  companion object {
+    private fun createAlphaLabel(alphaLabel: ColorLabel, onClick: () -> Unit) = object : ButtonPanel() {
+
+      init {
+        layout = GridLayout(1, 1)
+        add(alphaLabel)
+      }
+
+      override fun clicked() {
+        onClick.invoke()
+      }
+    }
+
+    private fun createFormatLabels(label1: ColorLabel,
+                                   label2: ColorLabel,
+                                   label3: ColorLabel,
+                                   onClick: () -> Unit) = object : ButtonPanel() {
+
+      init {
+        layout = GridLayout(1, 3)
+        add(label1)
+        add(label2)
+        add(label3)
+      }
+
+      override fun clicked() {
+        onClick.invoke()
+      }
+    }
+  }
 }
 
 private const val HOVER_BORDER_LEFT = 0
@@ -319,31 +337,57 @@ private val PRESSED_BORDER_COLOR = Color.GRAY
 
 private const val BORDER_CORNER_ARC = 7
 
-private abstract class ButtonPanel : JPanel() {
+private const val ACTION_PRESS_BUTTON_PANEL = "pressButtonPanel"
+private const val ACTION_RELEASE_BUTTON_PANEL = "releaseButtonPanel"
 
-  private enum class MouseStatus { NORMAL, HOVER, PRESSED }
+@VisibleForTesting
+abstract class ButtonPanel : JPanel() {
 
-  private var mouseStatus by Delegates.observable(MouseStatus.NORMAL) { _, _, _ ->
+  companion object {
+    private enum class Status { NORMAL, HOVER, PRESSED }
+  }
+
+  private var mouseStatus by Delegates.observable(Status.NORMAL) { _, _, _ ->
     repaint()
   }
 
   private val mouseAdapter = object : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent?) = clicked(e)
+
+    override fun mouseClicked(e: MouseEvent?) = clicked()
 
     override fun mouseEntered(e: MouseEvent?) {
-      mouseStatus = MouseStatus.HOVER
+      if (!isFocusOwner) {
+        mouseStatus = Status.HOVER
+      }
     }
 
     override fun mouseExited(e: MouseEvent?) {
-      mouseStatus = MouseStatus.NORMAL
+      if (!isFocusOwner) {
+        mouseStatus = Status.NORMAL
+      }
     }
 
     override fun mousePressed(e: MouseEvent?) {
-      mouseStatus = MouseStatus.PRESSED
+      if (!isFocusOwner) {
+        mouseStatus = Status.PRESSED
+      }
     }
 
     override fun mouseReleased(e: MouseEvent?) {
-      mouseStatus = if (mouseStatus == MouseStatus.PRESSED) MouseStatus.HOVER else MouseStatus.NORMAL
+      if (!isFocusOwner) {
+        mouseStatus = if (mouseStatus == Status.PRESSED) Status.HOVER else Status.NORMAL
+      }
+    }
+  }
+
+  private val focusAdapter = object : FocusAdapter() {
+
+    override fun focusGained(e: FocusEvent?) {
+      mouseStatus = Status.HOVER
+    }
+
+    override fun focusLost(e: FocusEvent?) {
+      mouseStatus = Status.NORMAL
     }
   }
 
@@ -351,25 +395,52 @@ private abstract class ButtonPanel : JPanel() {
     border = BorderFactory.createEmptyBorder()
     background = PICKER_BACKGROUND_COLOR
     addMouseListener(mouseAdapter)
+    addFocusListener(focusAdapter)
+
+    with (getInputMap(JComponent.WHEN_FOCUSED)) {
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), ACTION_PRESS_BUTTON_PANEL)
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), ACTION_RELEASE_BUTTON_PANEL)
+    }
+
+    with (actionMap) {
+      put(ACTION_PRESS_BUTTON_PANEL, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          mouseStatus = Status.PRESSED
+        }
+      })
+
+      put(ACTION_RELEASE_BUTTON_PANEL, object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          mouseStatus = Status.HOVER
+          clicked()
+        }
+      })
+    }
   }
 
+  // Needs to be final to be used in init block
   final override fun addMouseListener(l: MouseListener?) = super.addMouseListener(l)
 
-  abstract fun clicked(e: MouseEvent?)
+  // Needs to be final to be used in init block
+  final override fun addFocusListener(l: FocusListener?) = super.addFocusListener(l)
+
+  override fun isFocusable() = true
+
+  abstract fun clicked()
 
   override fun paintBorder(g: Graphics) {
     g as? Graphics2D ?: return
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     val originalStroke = g.stroke
     when (mouseStatus) {
-      MouseStatus.HOVER -> {
+      Status.HOVER -> {
         g.stroke = HOVER_BORDER_STROKE
         g.color = HOVER_BORDER_COLOR
         g.drawRoundRect(HOVER_BORDER_LEFT,HOVER_BORDER_TOP,
                         width - HOVER_BORDER_WIDTH, height - HOVER_BORDER_WIDTH,
                         BORDER_CORNER_ARC, BORDER_CORNER_ARC)
       }
-      MouseStatus.PRESSED -> {
+      Status.PRESSED -> {
         g.stroke = PRESSED_BORDER_STROKE
         g.color = PRESSED_BORDER_COLOR
         g.drawRoundRect(PRESSED_BORDER_LEFT, PRESSED_BORDER_TOP,
@@ -387,6 +458,9 @@ private class ColorLabel(text: String = ""): JLabel(text, SwingConstants.CENTER)
     foreground = PICKER_TEXT_COLOR
   }
 }
+
+private const val ACTION_UP = "up"
+private const val ACTION_DOWN = "down"
 
 @VisibleForTesting
 class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 else 3) {
@@ -407,6 +481,30 @@ class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 e
         selectionEnd = size
       }
     })
+    if (!hex) {
+      // Don't increase value for hex field.
+      with(getInputMap(JComponent.WHEN_FOCUSED)) {
+        put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_UP)
+        put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_DOWN)
+      }
+      with(actionMap) {
+        put(ACTION_UP, object : AbstractAction() {
+          override fun actionPerformed(e: ActionEvent) = increaseValue(1)
+        })
+        put(ACTION_DOWN, object : AbstractAction() {
+          override fun actionPerformed(e: ActionEvent) = increaseValue(-1)
+        })
+      }
+    }
+  }
+
+  private fun increaseValue(diff: Int) {
+    assert(!hex)
+
+    val doc = document as DigitColorDocument
+    val newValue = doc.getText(0, doc.length).toInt() + diff
+    val valueInRange = Math.max(doc.valueRange.start, Math.min(newValue, doc.valueRange.endInclusive))
+    text = valueInRange.toString()
   }
 
   override fun isFocusable() = true
@@ -445,7 +543,7 @@ private abstract class ColorDocument(internal val src: JTextField) : PlainDocume
   abstract fun isLegalValue(str: String): Boolean
 }
 
-private class DigitColorDocument(src: JTextField, private val valueRange: IntRange) : ColorDocument(src) {
+private class DigitColorDocument(src: JTextField, val valueRange: IntRange) : ColorDocument(src) {
 
   override fun isLegalCharacter(c: Char) = c.isDigit()
 
@@ -467,4 +565,40 @@ private fun convertHexToColor(hex: String): Color {
   val g = i shr 8 and 0xFF
   val b = i and 0xFF
   return Color(r.toInt(), g.toInt(), b.toInt(), a.toInt())
+}
+
+private const val PROPERTY_PREFIX = "colorValuePanel_"
+
+private const val PROPERTY_NAME_ALPHA_FORMAT = PROPERTY_PREFIX + "alphaFormat"
+private val DEFAULT_ALPHA_FORMAT = AlphaFormat.PERCENTAGE
+
+private const val PROPERTY_NAME_COLOR_FORMAT = PROPERTY_PREFIX + "colorFormat"
+private val DEFAULT_COLOR_FORMAT = ColorFormat.RGB
+
+private fun loadAlphaFormatProperty(): AlphaFormat {
+  val alphaFormatName = PropertiesComponent.getInstance().getValue(PROPERTY_NAME_ALPHA_FORMAT, DEFAULT_ALPHA_FORMAT.name)
+  return try {
+    AlphaFormat.valueOf(alphaFormatName)
+  }
+  catch (e: IllegalArgumentException) {
+    DEFAULT_ALPHA_FORMAT
+  }
+}
+
+private fun saveAlphaFormatProperty(alphaFormat: AlphaFormat) {
+  PropertiesComponent.getInstance().setValue(PROPERTY_NAME_ALPHA_FORMAT, alphaFormat.name)
+}
+
+private fun loadColorFormatProperty(): ColorFormat {
+  val colorFormatName = PropertiesComponent.getInstance().getValue(PROPERTY_NAME_COLOR_FORMAT, DEFAULT_COLOR_FORMAT.name)
+  return try {
+    ColorFormat.valueOf(colorFormatName)
+  }
+  catch (e: IllegalArgumentException) {
+    DEFAULT_COLOR_FORMAT
+  }
+}
+
+private fun saveColorFormatProperty(colorFormat: ColorFormat) {
+  PropertiesComponent.getInstance().setValue(PROPERTY_NAME_COLOR_FORMAT, colorFormat.name)
 }

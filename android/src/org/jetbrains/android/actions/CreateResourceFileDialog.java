@@ -218,13 +218,12 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     final CreateTypedResourceFileAction action = getSelectedAction(myResourceTypeCombo);
 
     if (action != null) {
+      final Module module = myFacet.getModule();
       final List<String> allowedTagNames = action.getSortedAllowedTagNames(myFacet);
       myRootElementField = new TextFieldWithAutoCompletion<>(
-        myFacet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null);
+        module.getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null);
       myRootElementField.setEnabled(allowedTagNames.size() > 1);
-      myRootElementField.setText(!action.isChooseTagName()
-                                 ? action.getDefaultRootTag()
-                                 : "");
+      myRootElementField.setText(action.isChooseTagName() ? "" : action.getDefaultRootTag(module));
       myRootElementFieldWrapper.removeAll();
       myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);
       myRootElementLabel.setLabelFor(myRootElementField);

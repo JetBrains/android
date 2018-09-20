@@ -129,7 +129,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_BACKGROUND_TINT)
     checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_FAB_ALIGNMENT_MODE)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_FAB_ATTACHED)
+    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_FAB_ANIMATION_MODE)
     checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_FAB_CRADLE_MARGIN)
     checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS)
     checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_FAB_CRADLE_VERTICAL_OFFSET)
@@ -203,11 +203,11 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_CHECKABLE)
     checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_TEXT)
     checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_CHIP_ICON)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_CHIP_ICON_ENABLED)
+    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_CHIP_ICON_VISIBLE)
     checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_CHECKED_ICON)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_CHECKED_ICON_ENABLED)
+    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_CHECKED_ICON_VISIBLE)
     checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_CLOSE_ICON)
-    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_CLOSE_ICON_ENABLED)
+    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_CLOSE_ICON_VISIBLE)
   }
 
   @Test

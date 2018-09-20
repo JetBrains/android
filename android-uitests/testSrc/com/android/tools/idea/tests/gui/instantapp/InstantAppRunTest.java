@@ -118,7 +118,7 @@ public class InstantAppRunTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void runFromCmdLine() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProject("TopekaInstantApp", null);
     guiTest.testSystem().waitForProjectSyncToFinish(ideFrame);

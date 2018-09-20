@@ -128,12 +128,7 @@ public class InstantApps {
    */
   @NotNull
   public static String getDefaultInstantAppUrl(@NotNull AndroidFacet facet) {
-    String defaultUrl = "<<ERROR - NO URL SET>>";
-
-    if (InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
-      // The new SDK supports launching instant apps with no URL; override the error text
-      defaultUrl = "";
-    }
+    String defaultUrl = "";
 
     List<Module> featureModules = findFeatureModules(facet);
     for (Module module : featureModules) {
@@ -152,10 +147,7 @@ public class InstantApps {
 
   @NotNull
   public static File getInstantAppSdk() throws FileNotFoundException {
-    File sdk = InstantAppSdks.getInstance().getInstantAppSdk(true);
-    if (sdk == null) {
-      throw new FileNotFoundException("Instant App SDK couldn't be found.");
-    }
+    File sdk = InstantAppSdks.getInstance().getOrInstallInstantAppSdk();
 
     return sdk;
   }

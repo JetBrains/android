@@ -37,12 +37,12 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
     }
 
     fun doTest(path: String) {
-        val configFile = File(path)
+        val configFile = File(testDataPath, path)
         val testDataPath = configFile.parent
 
         myFixture.testDataPath = testDataPath
 
-        val config = JsonParser().parse(FileUtil.loadFile(File(path), true)) as JsonObject
+        val config = JsonParser().parse(FileUtil.loadFile(configFile, true)) as JsonObject
 
         val intentionClass = if (config.has("intentionClass")) config.getString("intentionClass") else null
         val intentionText = if (config.has("intentionText")) config.getString("intentionText") else null
@@ -54,7 +54,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
             myFixture.copyFileToProject(rFile, "gen/$COM_MYAPP_PACKAGE_PATH" + PathUtil.getFileName(rFile))
         }
         else {
-            if (File(testDataPath + "/R.java").isFile) {
+            if (File("$testDataPath/R.java").isFile) {
                 myFixture.copyFileToProject("R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
             }
         }
@@ -63,7 +63,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
             myFixture.copyDirectoryToProject(resDirectory, "res")
         }
         else {
-            if (File(testDataPath + "/res").isDirectory) {
+            if (File("$testDataPath/res").isDirectory) {
                 myFixture.copyDirectoryToProject("res", "res")
             }
         }

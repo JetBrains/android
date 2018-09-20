@@ -284,12 +284,12 @@ public class PalettePanelTest extends LayoutTestCase {
     listener.actionPerformed(event);
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
-      "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-      "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
-      "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<TextView>, bounds=[0,6:768x200, instance=1}\n" +
+      "    NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
 
     assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
-      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
   }
 
   public void testOpenContextPopupOnMousePressed() {
@@ -331,12 +331,12 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.getAddToDesignAction().actionPerformed(event);
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
-      "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-      "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
-      "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<TextView>, bounds=[0,6:768x200, instance=1}\n" +
+      "    NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
 
     assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
-      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
   }
 
   public void testAddToDesignUpdateDoesNotCauseDependencyDialog() {

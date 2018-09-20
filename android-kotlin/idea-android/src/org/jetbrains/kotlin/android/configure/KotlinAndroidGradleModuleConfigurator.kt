@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.idea.versions.hasJreSpecificRuntime
 import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 
-class KotlinAndroidGradleModuleConfigurator internal constructor() : KotlinWithGradleConfigurator() {
+class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override val name: String = NAME
 

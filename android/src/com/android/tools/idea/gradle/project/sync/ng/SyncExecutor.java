@@ -41,7 +41,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
 import org.gradle.tooling.BuildActionExecuter;
-import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +59,6 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskT
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.emptyList;
-import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class SyncExecutor {
@@ -93,19 +91,26 @@ class SyncExecutor {
   List<SyncModuleModels> fetchGradleModels(ProgressIndicator indicator) {
     GradleExecutionSettings executionSettings = findGradleExecutionSettings();
     Function<ProjectConnection, SyncProjectModels> syncFunction =
-      connection -> doFetchModels(connection, executionSettings, indicator, createId(myProject), null);
+      connection -> doFetchModels(connection, executionSettings, indicator, createId(myProject), null, false/* full variants sync */);
     SyncProjectModels models = myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
     return models.getModuleModels();
   }
 
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback) {
-    syncProject(indicator, callback, null /* full gradle sync*/);
+    syncProject(indicator, callback, null /* full gradle sync*/, false);
   }
 
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback,
-                   @Nullable VariantOnlySyncOptions options) {
+                   @NotNull VariantOnlySyncOptions options) {
+    syncProject(indicator, callback, options, options.myShouldGenerateSources);
+  }
+
+  void syncProject(@NotNull ProgressIndicator indicator,
+                   @NotNull SyncExecutionCallback callback,
+                   @Nullable VariantOnlySyncOptions options,
+                   boolean shouldGenerateSources) {
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }
@@ -115,7 +120,7 @@ class SyncExecutor {
     GradleExecutionSettings executionSettings = findGradleExecutionSettings();
 
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      syncProject(connection, executionSettings, indicator, callback, options);
+      syncProject(connection, executionSettings, indicator, callback, options, shouldGenerateSources);
       return null;
     };
 
@@ -141,7 +146,8 @@ class SyncExecutor {
                            @NotNull GradleExecutionSettings executionSettings,
                            @NotNull ProgressIndicator indicator,
                            @NotNull SyncExecutionCallback callback,
-                           @Nullable VariantOnlySyncOptions options) {
+                           @Nullable VariantOnlySyncOptions options,
+                           boolean shouldGenerateSources) {
     // Create a task id for this sync
     ExternalSystemTaskId id = createId(myProject);
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
@@ -158,11 +164,19 @@ class SyncExecutor {
       });
     syncViewManager.onEvent(startEvent);
     try {
-      if (options == null) {
-        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback);
+      if (shouldGenerateSources) {
+        if (options != null) {
+          executeVariantOnlySyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
+        }
+        else {
+          executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback);
+        }
+      }
+      else if (options != null) {
+        executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
       }
       else {
-        executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
+        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback);
       }
     }
     catch (RuntimeException e) {
@@ -183,7 +197,8 @@ class SyncExecutor {
                                @NotNull ExternalSystemTaskId id,
                                @NotNull BuildOutputInstantReaderImpl buildOutputReader,
                                @NotNull SyncExecutionCallback callback) {
-    SyncProjectModels projectModels = doFetchModels(connection, executionSettings, indicator, id, buildOutputReader);
+    SyncProjectModels projectModels =
+      doFetchModels(connection, executionSettings, indicator, id, buildOutputReader, isSingleVariantSync(myProject));
     callback.setDone(projectModels, id);
   }
 
@@ -192,14 +207,28 @@ class SyncExecutor {
                                           @NotNull GradleExecutionSettings executionSettings,
                                           @NotNull ProgressIndicator indicator,
                                           @NotNull ExternalSystemTaskId id,
-                                          @Nullable BuildOutputInstantReaderImpl buildOutputReader) {
-    SyncAction syncAction = createSyncAction();
+                                          @Nullable BuildOutputInstantReaderImpl buildOutputReader,
+                                          boolean isSingleVariantSync) {
+    SyncAction syncAction = createSyncAction(false, isSingleVariantSync);
     BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
 
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
-    CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
-    executor.withCancellationToken(cancellationTokenSource.token());
     return executor.run();
+  }
+
+  private void executeFullSyncAndGenerateSources(@NotNull ProjectConnection connection,
+                                                 @NotNull GradleExecutionSettings executionSettings,
+                                                 @NotNull ProgressIndicator indicator,
+                                                 @NotNull ExternalSystemTaskId id,
+                                                 @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                                                 @NotNull SyncExecutionCallback callback) {
+    SyncAction syncAction = createSyncAction(true, isSingleVariantSync(myProject));
+    // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
+    BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
+                                                   .build().forTasks(emptyList());
+
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    executor.run();
   }
 
   private static void executeVariantOnlySync(@NotNull ProjectConnection connection,
@@ -215,14 +244,30 @@ class SyncExecutor {
     callback.setDone(executor.run(), id);
   }
 
+  private static void executeVariantOnlySyncAndGenerateSources(@NotNull ProjectConnection connection,
+                                                               @NotNull GradleExecutionSettings executionSettings,
+                                                               @NotNull ProgressIndicator indicator,
+                                                               @NotNull ExternalSystemTaskId id,
+                                                               @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                                                               @NotNull SyncExecutionCallback callback,
+                                                               @NotNull VariantOnlySyncOptions options) {
+    VariantOnlySyncAction syncAction = new VariantOnlySyncAction(options);
+    // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
+    BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
+                                                   .build().forTasks(emptyList());
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    executor.run();
+  }
+
   @VisibleForTesting
   @NotNull
-  SyncAction createSyncAction() {
+  SyncAction createSyncAction(boolean shouldGenerateSources, boolean isSingleVariantSync) {
     SyncActionOptions options = new SyncActionOptions();
-    options.setSingleVariantSyncEnabled(isSingleVariantSync(myProject));
+    options.setSingleVariantSyncEnabled(isSingleVariantSync);
     if (options.isSingleVariantSyncEnabled()) {
       SelectedVariants selectedVariants = mySelectedVariantCollector.collectSelectedVariants();
       options.setSelectedVariants(selectedVariants);
+      options.setShouldGenerateSources(shouldGenerateSources);
     }
     return new SyncAction(myExtraModelsManager.getAndroidModelTypes(), myExtraModelsManager.getJavaModelTypes(), options);
   }

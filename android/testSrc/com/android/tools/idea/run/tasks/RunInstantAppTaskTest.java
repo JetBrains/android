@@ -63,21 +63,11 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
 
     when(device.getSerialNumber()).thenReturn(DEVICE_ID);
     when(launchStatus.isLaunchTerminated()).thenReturn(false);
-    when(instantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(true);
   }
 
   @Test
   public void testPerformWithlaunchTerminated() {
     when(launchStatus.isLaunchTerminated()).thenReturn(true);
-
-    RunInstantAppTask task = new RunInstantAppTask(apkInfos, "");
-    assertThat(task.perform(device, launchStatus, consolePrinter)).isFalse();
-    verifyNoMoreInteractions(runHandler);
-  }
-
-  @Test
-  public void testPerformWithSdkLibraryDisabled() {
-    when(instantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(false);
 
     RunInstantAppTask task = new RunInstantAppTask(apkInfos, "");
     assertThat(task.perform(device, launchStatus, consolePrinter)).isFalse();

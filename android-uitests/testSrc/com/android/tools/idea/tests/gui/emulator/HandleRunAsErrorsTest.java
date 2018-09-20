@@ -73,7 +73,7 @@ public class HandleRunAsErrorsTest {
    *   1. Application should run successfully without any errors.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/77635374, fast
   @Test
   public void testHandleRunAsErrors() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");

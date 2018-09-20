@@ -17,6 +17,10 @@ package org.jetbrains.android.augment
 
 import com.android.SdkConstants
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.text.StringUtil.getShortName
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -34,6 +38,8 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
 
+private val LOG: Logger get() = logger(::LOG)
+
 /**
  * Manifest class for a given module.
  */
@@ -46,6 +52,12 @@ class ManifestClass(
   psiManager,
   listOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
 ) {
+
+  init {
+    putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+    myFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+  }
+
   override fun getQualifiedName(): String? = AndroidManifestUtils.getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
 
   override fun doGetInnerClasses(): Array<PsiClass> {
@@ -103,6 +115,7 @@ sealed class ManifestInnerClass(
   override fun getFields(): Array<PsiField> = myFieldsCache.value
 
   private fun doGetFields(): List<FieldInfo> {
+    LOG.debug { "Recomputing fields for $this" }
     return getNamesFromManifest().map { FieldInfo(getFieldNameByResourceName(getShortName(it)), it) }
   }
 

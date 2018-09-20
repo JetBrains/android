@@ -22,14 +22,15 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.intellij.util.ui.JBUI.scale
 import java.awt.Rectangle
 import kotlin.math.max
 import kotlin.math.min
 
 @SwingCoordinate
-private val SWING_GAP = 6
+private val SWING_GAP = scale(6)
 @SwingCoordinate
-private val SWING_DIMENSION = 25
+private val SWING_DIMENSION = scale(25)
 
 /**
  * [ActionGroupTarget] lays out [ActionTarget] and handle their visibility
