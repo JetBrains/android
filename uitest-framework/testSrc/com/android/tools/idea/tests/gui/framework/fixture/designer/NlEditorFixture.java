@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import static junit.framework.TestCase.assertTrue;
+
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.common.editor.NlEditorPanel;
@@ -27,9 +29,13 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlRhsConfigToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlViewActionToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
@@ -38,6 +44,14 @@ import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.util.List;
+import javax.swing.JMenuItem;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -48,13 +62,6 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.util.List;
-
-import static junit.framework.TestCase.assertTrue;
 
 /**
  * Fixture wrapping the the layout editor for a particular file
@@ -297,7 +304,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlEditorFixture showOnlyDesignView() {
     getConfigToolbar().selectDesign();
-    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
@@ -308,7 +314,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlEditorFixture showOnlyBlueprintView() {
     getConfigToolbar().selectBlueprint();
-    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
