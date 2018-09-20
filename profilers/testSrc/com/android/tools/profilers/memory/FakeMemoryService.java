@@ -121,6 +121,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
+  /**
+   * By default assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE.
+   */
+  private static final long DEFAULT_LATEST_ALLOCATION_TIME = Long.MAX_VALUE - 1;
+
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
@@ -134,6 +139,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private int myTrackAllocationCount;
   private Common.Session mySession;
   private int mySamplingRate = 1;
+
+  /**
+   * Stores the return value for {@link #getLatestAllocationTime(LatestAllocationTimeRequest, StreamObserver)}.
+   */
+  private long myLatestAllocationTime = DEFAULT_LATEST_ALLOCATION_TIME;
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
@@ -262,8 +272,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void getLatestAllocationTime(LatestAllocationTimeRequest request,
                                       StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    // Assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE
-    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(Long.MAX_VALUE - 1).build());
+    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(myLatestAllocationTime).build());
     responseObserver.onCompleted();
   }
 
@@ -553,5 +562,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public int getSamplingRate() {
     return mySamplingRate;
+  }
+
+  public void setLatestAllocationTime(long latestAllocationTime) {
+    myLatestAllocationTime = latestAllocationTime;
+  }
+
+  public void resetLatestAllocationTime() {
+    setLatestAllocationTime(DEFAULT_LATEST_ALLOCATION_TIME);
   }
 }

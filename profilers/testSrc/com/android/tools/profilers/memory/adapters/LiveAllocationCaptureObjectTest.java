@@ -93,6 +93,7 @@ public class LiveAllocationCaptureObjectTest {
     public void before() {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
+      myService.resetLatestAllocationTime();
     }
 
     @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}")
@@ -520,6 +521,9 @@ public class LiveAllocationCaptureObjectTest {
             .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
         .build();
       myService.setMemoryData(memoryData);
+
+      // When sampling mode is set to NONE, latest allocation time should stop updating.
+      myService.setLatestAllocationTime(CAPTURE_START_TIME + 2);
 
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
