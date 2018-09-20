@@ -415,9 +415,9 @@ public class NlModelTest extends LayoutTestCase {
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,100:200x70, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
@@ -452,9 +452,9 @@ public class NlModelTest extends LayoutTestCase {
       model.createComponent(model.getSurface(), recyclerViewTag, null, null, InsertType.CREATE);
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,100:200x70, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
@@ -492,9 +492,9 @@ public class NlModelTest extends LayoutTestCase {
 
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, model.getSurface());
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,100:200x200, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x200, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 

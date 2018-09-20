@@ -46,6 +46,7 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -58,8 +59,6 @@ import javax.swing.SwingUtilities
 
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
-
-private const val ATRACE_MISSING_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
 
 private const val ART_TRACE_FILE = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
 
@@ -77,8 +76,8 @@ class CpuProfilerStageViewTest {
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
-      "CpuCaptureViewTestChannel", myCpuService, myProfilerService,
-      FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
+    "CpuCaptureViewTestChannel", myCpuService, myProfilerService,
+    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
   private lateinit var myStage: CpuProfilerStage
@@ -99,6 +98,7 @@ class CpuProfilerStageViewTest {
     myProfilersView = StudioProfilersView(profilers, myComponents)
   }
 
+  @Ignore("b/113554750")
   @Test
   fun splitterRatioChangesOnAtraceCapture() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
@@ -133,17 +133,17 @@ class CpuProfilerStageViewTest {
     val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
     val overlayMouseUi = FakeUi(overlayComponent)
     overlayComponent.setBounds(1, 1, 10, 10)
-    overlayMouseUi.mouse.moveTo(0,0)
+    overlayMouseUi.mouse.moveTo(0, 0)
     // Grab the selection component and move the mouse to set the mode to !MOVE.
     val selectionComponent = treeWalker.descendants().filterIsInstance<SelectionComponent>()[0]
-    FakeUi(selectionComponent).mouse.moveTo(0,0)
+    FakeUi(selectionComponent).mouse.moveTo(0, 0)
     val mockGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
     // Paint without letting the overlay component think we are over it.
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.never()).draw(Mockito.any())
     // Enter the overlay component and paint again, this time we expect to draw the spark line.
-    overlayMouseUi.mouse.moveTo(5,5)
+    overlayMouseUi.mouse.moveTo(5, 5)
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
     // Exit the overlay component and paint a third time. We don't expect our draw count to increase because the spark line
@@ -152,7 +152,6 @@ class CpuProfilerStageViewTest {
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
   }
-
 
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
@@ -187,23 +186,6 @@ class CpuProfilerStageViewTest {
     // component contains the CpuCaptureView and is set to null when it's not displayed.
     val captureViewComponent = treeWalker.descendants().filterIsInstance<JBSplitter>().first().secondComponent
     assertThat(captureViewComponent).isNotNull()
-  }
-
-  @Test
-  fun traceMissingDataShowsDialog() {
-    // Set a capture of type atrace.
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
-    // Select valid capture no dialog should be presented.
-    myStage.setAndSelectCapture(0)
-    assertThat(myIdeServices.balloonTitle).isNull()
-    assertThat(myIdeServices.balloonBody).isNull()
-    // Select invalid capture we should see dialog.
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)))
-    myStage.setAndSelectCapture(1)
-    assertThat(myIdeServices.balloonTitle).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_TITLE)
-    assertThat(myIdeServices.balloonBody).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_MESSAGE)
   }
 
   @Test
@@ -263,7 +245,7 @@ class CpuProfilerStageViewTest {
   fun recordButtonShouldntHaveTooltip() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-     it.text == CpuProfilerToolbar.RECORD_TEXT
+      it.text == CpuProfilerToolbar.RECORD_TEXT
     }
     assertThat(recordButton.toolTipText).isNull()
 
@@ -373,6 +355,8 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun dontHideDetailsPanelWhenGoingBackToNormalMode() {
+    myIdeServices.enableCpuNewRecordingWorkflow(false)
+
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
 
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
@@ -392,6 +376,22 @@ class CpuProfilerStageViewTest {
     // Even though we went back to NORMAL (non maximized) mode so the user can view the code editor, we keep displaying the CpuCaptureView.
     assertThat(splitter.secondComponent).isNotNull()
     assertThat(splitter.secondComponent.isVisible).isTrue()
+  }
+
+  @Test
+  fun showsCpuCaptureViewAlwaysOnNewRecordingWorkflow() {
+    // We're not reusing |myStage| because we want to test the stage with the enabled feature flag.
+    // Once the new recording workflow is stable and the flag is removed, we should remove the entire block.
+    run {
+      myIdeServices.enableCpuNewRecordingWorkflow(true)
+      myStage = CpuProfilerStage(myStage.studioProfilers)
+      myStage.enter()
+    }
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
+
+    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
+    assertThat(splitter.secondComponent).isNotNull()
   }
 
   private fun getUsageView(stageView: CpuProfilerStageView) = TreeWalker(stageView.component)

@@ -19,10 +19,9 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.SubTagList;
+import java.util.List;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
-
-import java.util.List;
 
 @DefinesXml
 @Styleable("AndroidManifest")

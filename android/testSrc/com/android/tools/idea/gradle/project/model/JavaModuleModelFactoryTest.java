@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.java.model.JavaLibrary;
 import com.android.java.model.JavaProject;
+import com.android.java.model.LibraryVersion;
 import com.android.java.model.SourceSet;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Iterables;
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.junit.Before;
@@ -77,6 +79,7 @@ public class JavaModuleModelFactoryTest {
     assertFalse(javaModuleModel.isAndroidModuleWithoutVariants());
     assertEquals(myBuildFolderPath, javaModuleModel.getBuildFolderPath());
     assertNotNull(javaModuleModel.getJavaLanguageLevel());
+    //noinspection deprecation
     assertEquals(myJavaLanguageLevel, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
   }
@@ -93,12 +96,18 @@ public class JavaModuleModelFactoryTest {
     JavaLibrary moduleLibrary = mock(JavaLibrary.class);
     JavaLibrary compileJarLibrary = mock(JavaLibrary.class);
     JavaLibrary testJarLibrary = mock(JavaLibrary.class);
+    LibraryVersion libraryVersion = mock(LibraryVersion.class);
 
     when(moduleLibrary.getName()).thenReturn("lib2");
     when(moduleLibrary.getProject()).thenReturn(":lib2");
     when(moduleLibrary.getBuildId()).thenReturn("/mock/project");
 
     when(compileJarLibrary.getJarFile()).thenReturn(compileJarFile);
+    when(compileJarLibrary.getLibraryVersion()).thenReturn(libraryVersion);
+    when(libraryVersion.getGroup()).thenReturn("com.google.example");
+    when(libraryVersion.getName()).thenReturn("MyApplication");
+    when(libraryVersion.getVersion()).thenReturn("1.0");
+
     when(testJarLibrary.getJarFile()).thenReturn(testJarFile);
 
     SourceSet mainSourceSet = mock(SourceSet.class);
@@ -130,6 +139,11 @@ public class JavaModuleModelFactoryTest {
       // Jar dependency from main sourceSet
       if (jarLibraryDependency.getScope().equals("COMPILE")) {
         assertEquals(compileJarFile, jarLibraryDependency.getBinaryPath());
+        GradleModuleVersion version = jarLibraryDependency.getModuleVersion();
+        assertNotNull(version);
+        assertEquals("com.google.example", version.getGroup());
+        assertEquals("MyApplication", version.getName());
+        assertEquals("1.0", version.getVersion());
       }
       else {
         // Jar dependency from test sourceSet

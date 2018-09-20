@@ -83,6 +83,11 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
   @NotNull
   protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File projectRoot = super.prepareProjectForImport(relativePath);

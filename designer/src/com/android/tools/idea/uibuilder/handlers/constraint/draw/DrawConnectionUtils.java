@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import static com.intellij.util.ui.JBUI.scale;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 
 import java.awt.*;
@@ -27,9 +29,9 @@ import java.awt.geom.Rectangle2D;
  * Utilities for creating various graphics
  */
 public class DrawConnectionUtils {
-  static final int ZIGZAG = 2;
-  static final int CENTER_ZIGZAG = 3;
-  public static final int MARGIN_SPACING = 3;
+  static final int ZIGZAG = scale(2);
+  static final int CENTER_ZIGZAG = scale(3);
+  public static final int MARGIN_SPACING = scale(3);
 
   private static final boolean DEBUG = false;
   private static final boolean DRAW_ARROW = false;
@@ -39,23 +41,23 @@ public class DrawConnectionUtils {
   private static Polygon sRightArrow;
   private static Polygon sBottomArrow;
 
-  static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
-  static Font sFontReference = new Font("Helvetica", Font.ITALIC | Font.BOLD, 12);
+  static Font sFont = new Font("Helvetica", Font.PLAIN, scale(12));
+  static Font sFontReference = new Font("Helvetica", Font.ITALIC | Font.BOLD, scale(12));
 
-  private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 8);
+  private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, scale(8));
 
   public static Stroke
     sSpreadDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-                                          BasicStroke.JOIN_BEVEL, 0, new float[]{1, 4}, 0);
+                                          BasicStroke.JOIN_BEVEL, 0, new float[]{1, scale(4)}, 0);
 
   public static Stroke
     sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-                                    BasicStroke.JOIN_BEVEL, 0, new float[]{2}, 0);
+                                    BasicStroke.JOIN_BEVEL, 0, new float[]{scale(2)}, 0);
 
-  public static final int ARROW_SIDE = 6;
-  public static final int CONNECTION_ARROW_SIZE = 5;
-  public static final int SMALL_ARROW_SIDE = 4;
-  public static final int SMALL_ARROW_SIZE = 3;
+  public static final int ARROW_SIDE = scale(6);
+  public static final int CONNECTION_ARROW_SIZE = scale(5);
+  public static final int SMALL_ARROW_SIDE = scale(4);
+  public static final int SMALL_ARROW_SIZE = scale(3);
 
   /**
    * Utility function to draw a circle text centered at coordinates (x, y)
@@ -107,7 +109,7 @@ public class DrawConnectionUtils {
     Graphics2D g2 = (Graphics2D)g.create();
     g2.setFont(font);
     FontMetrics fm = g2.getFontMetrics();
-    int padding = 4;
+    int padding = scale(4);
     Rectangle2D bounds = fm.getStringBounds(text, g2);
     double th = bounds.getHeight() + padding * 2;
     double tw = bounds.getWidth() + padding * 2;
@@ -171,7 +173,7 @@ public class DrawConnectionUtils {
     Font font = isMarginReference ? sFontReference : sFont;
     FontMetrics fm = c.getFontMetrics(font);
     g.setFont(font);
-    int padding = 4;
+    int padding = scale(4);
     Rectangle2D bounds = fm.getStringBounds(text, g);
     int th = (int)bounds.getHeight();
     int tw = (int)bounds.getWidth();
@@ -246,7 +248,7 @@ public class DrawConnectionUtils {
     Font font = isMarginReference ? sFontReference : sFont;
     FontMetrics fm = c.getFontMetrics(font);
     g.setFont(font);
-    int padding = 4;
+    int padding = scale(4);
     Rectangle2D bounds = fm.getStringBounds(text, g);
     int th = (int)bounds.getHeight();
 
@@ -642,8 +644,8 @@ public class DrawConnectionUtils {
    * @param y2   the y end coordiante
    */
   public static void addVerticalSmallSpring(Path2D.Float path, @SwingCoordinate int x0, @SwingCoordinate int y1, @SwingCoordinate int y2) {
-    int springHeight = 2;
-    int springWidth = 2;
+    int springHeight = scale(2);
+    int springWidth = scale(2);
     int distance = Math.abs(y2 - y1);
     int numSprings = (distance / (springHeight));
     int leftOver = (distance - (numSprings * springHeight)) / 2;
@@ -680,8 +682,8 @@ public class DrawConnectionUtils {
                                               @SwingCoordinate int y0,
                                               @SwingCoordinate int x1,
                                               @SwingCoordinate int x2) {
-    int springHeight = 2;
-    int springWidth = 2;
+    int springHeight = scale(2);
+    int springWidth = scale(2);
     int distance = Math.abs(x2 - x1);
     int numSprings = (distance / (springHeight));
     int leftOver = (distance - (numSprings * springHeight)) / 2;

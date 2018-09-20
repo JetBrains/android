@@ -16,7 +16,6 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -29,7 +28,7 @@ public class AreaModel extends ShapeModel {
   private final Area area;
 
   public AreaModel(@NotNull Area shape,
-                   @Nullable SketchStyle style,
+                   @Nullable StyleModel style,
                    boolean flippedHorizontal,
                    boolean flippedVertical,
                    boolean closed,
@@ -38,10 +37,9 @@ public class AreaModel extends ShapeModel {
                    @NotNull Point2D.Double framePosition,
                    boolean hasClippingMask,
                    boolean shouldBreakMaskChain,
-                   boolean isLastShapeGroup,
-                   double parentOpacity) {
+                   boolean isLastShapeGroup) {
     super(shape, style, flippedHorizontal, flippedVertical, closed, rotation, operation, framePosition, hasClippingMask,
-          shouldBreakMaskChain, isLastShapeGroup, parentOpacity);
+          shouldBreakMaskChain, isLastShapeGroup);
     area = shape;
   }
 

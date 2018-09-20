@@ -436,6 +436,7 @@ public class RenderService implements Disposable {
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
     private float myDownscaleFactor = 1f;
+    private boolean showDecorations = true;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -502,6 +503,15 @@ public class RenderService implements Disposable {
         throw new IllegalStateException("This method can only be called in unit test mode");
       }
       this.isSecurityManagerEnabled = false;
+      return this;
+    }
+
+    /**
+     * Disables the decorations (status and navigation bars) for the rendered image.
+     */
+    @NotNull
+    public RenderTaskBuilder disableDecorations() {
+      this.showDecorations = false;
       return this;
     }
 
@@ -582,6 +592,8 @@ public class RenderService implements Disposable {
         if (myPsiFile instanceof XmlFile) {
           task.setXmlFile((XmlFile)myPsiFile);
         }
+
+        task.setDecorations(showDecorations);
 
         return task;
       } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {

@@ -129,6 +129,9 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     if (facet != null) {
       result.add(TOOLS_URI);
       result.add(NS_RESOURCES);
+      if (ManifestDomFileDescription.isManifestFile(file)) {
+        result.add(DIST_URI);
+      }
       ResourceFolderType type = ResourceHelper.getFolderType(file.getOriginalFile());
       if (type != ResourceFolderType.MIPMAP && type != ResourceFolderType.RAW) {
         if (type == ResourceFolderType.DRAWABLE) {
@@ -151,6 +154,9 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
   public String getDefaultPrefix(@NotNull @NonNls String namespace, @NotNull XmlFile context) {
     if (ANDROID_URI.equals(namespace)) {
       return ANDROID_NS_NAME;
+    }
+    else if (namespace.equals(DIST_URI)) {
+      return DIST_PREFIX;
     }
     else if (namespace.equals(TOOLS_URI)) {
       return TOOLS_PREFIX;

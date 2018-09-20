@@ -24,7 +24,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ public class DeviceMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Device for Preview", AndroidIcons.NeleIcons.VirtualDevice);
+    super("", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
@@ -135,23 +135,23 @@ public class DeviceMenuAction extends DropDownAction {
    * Similar to {@link FormFactor#getFormFactor(Device)}
    * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
    */
-  public Icon getDeviceClassIcon(@Nullable Device device) {
+  private static Icon getDeviceClassIcon(@Nullable Device device) {
     if (device != null) {
       if (isWear(device)) {
-        return AndroidIcons.NeleIcons.Wear;
+        return StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR;
       }
       else if (isTv(device)) {
-        return AndroidIcons.NeleIcons.Tv;
+        return StudioIcons.LayoutEditor.Toolbar.DEVICE_TV;
       }
 
       // Glass, Car not yet in the device list
 
       if (DeviceArtPainter.isTablet(device)) {
-        return AndroidIcons.NeleIcons.Tablet;
+        return StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET;
       }
     }
 
-    return AndroidIcons.NeleIcons.Phone;
+    return StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE;
   }
 
   @Override
@@ -167,22 +167,18 @@ public class DeviceMenuAction extends DropDownAction {
     if (LIST_RECENT_DEVICES) {
       List<Device> recent = configurationManager.getDevices();
       if (recent.size() > 1) {
-        boolean separatorNeeded = false;
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
           Icon icon = getDeviceClassIcon(device);
           add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
-          separatorNeeded = true;
         }
-        if (separatorNeeded) {
-          addSeparator();
-        }
+        addSeparator();
       }
     }
 
     Map<DeviceGroup, List<Device>> groupedDevices = DeviceUtils.getSuitableDevices(configuration);
 
-    addDeviceSection(groupedDevices, DeviceGroup.NEXUS, current);
+    // We don't add DeviceGroup.NEXUS because all Nexus devices with small screen size are legacy devices.
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, current);
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, current);
     addDeviceSection(groupedDevices, DeviceGroup.WEAR, current);
@@ -200,14 +196,33 @@ public class DeviceMenuAction extends DropDownAction {
                                 @Nullable Device current) {
     List<Device> devices = groupedDevices.getOrDefault(group, Collections.emptyList());
     if (!devices.isEmpty()) {
-      boolean first = true;
+      add(new DeviceCategory(getGroupTitle(group), null, getDeviceClassIcon(devices.get(0))));
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
-        Icon icon = first ? getDeviceClassIcon(device) : null;
-        add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
-        first = false;
+        add(new SetDeviceAction(myRenderContext, label, device, null, current == device));
       }
       addSeparator();
+    }
+  }
+
+  @NotNull
+  private static String getGroupTitle(@NotNull DeviceGroup group) {
+    switch (group) {
+      case NEXUS:
+      case NEXUS_XL:
+        return "Phone";
+      case NEXUS_TABLET:
+        return "Tablet";
+      case WEAR:
+        return "Wear";
+      case TV:
+        return "TV";
+      case GENERIC:
+        return "Generic";
+      case OTHER:
+        return "Other";
+      default:
+        return "Device";
     }
   }
 
@@ -218,6 +233,7 @@ public class DeviceMenuAction extends DropDownAction {
 
   private void addAvdDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
     if (!devices.isEmpty()) {
+      add(new DeviceCategory("Virtual Device", null, StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES));
       for (final Device device : devices) {
         boolean selected = current != null && current.getId().equals(device.getId());
 
@@ -251,6 +267,25 @@ public class DeviceMenuAction extends DropDownAction {
     }
 
     return isNexus ? getNexusMenuLabel(device) : getGenericLabel(device);
+  }
+
+  private static final class DeviceCategory extends AnAction {
+
+    private Icon myIcon;
+
+    public DeviceCategory(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
+      super(text, description, null);
+      myIcon = icon;
+
+      Presentation p = getTemplatePresentation();
+      p.setDisabledIcon(myIcon);
+      p.setEnabled(false);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      // Always disable, do nothing
+    }
   }
 
   protected abstract class DeviceAction extends ConfigurationAction {

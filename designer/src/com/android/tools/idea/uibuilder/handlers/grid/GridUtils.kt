@@ -16,34 +16,39 @@
 package com.android.tools.idea.uibuilder.handlers.grid
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.model.Insets
 
 /**
  * data for record the information of barriers of GridLayout
  */
-class GridBarriers(val context: SceneContext,val left: Int, val top: Int, val right: Int, val bottom: Int,
-                   val rows: Array<Int>, val columns: Array<Int>)
+class GridBarriers(@AndroidDpCoordinate val left: Int,
+                   @AndroidDpCoordinate val top: Int,
+                   @AndroidDpCoordinate val right: Int,
+                   @AndroidDpCoordinate val bottom: Int,
+                   @AndroidDpCoordinate val rows: Array<Int>,
+                   @AndroidDpCoordinate val columns: Array<Int>)
 
 /**
  * Function for getting Barriers of
  */
-fun getGridBarriers(sceneContext: SceneContext, gridComponent: SceneComponent): GridBarriers {
+fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
   val isSupportLibrary = SdkConstants.GRID_LAYOUT_V7.isEquals(gridComponent.nlComponent.tagName)
 
-  fun toSwingX(x: Int) = sceneContext.getSwingXDip(x.toFloat())
-  fun toSwingY(y: Int) = sceneContext.getSwingYDip(y.toFloat())
-  fun pxToSwing(px: Int) = (sceneContext.pxToDp(px) + 0.5f).toInt()
+  // Helper function to convert px to dp
+  fun Int.toDp() = Coordinates.pxToDp(gridComponent.scene.designSurface, this)
 
-  val padding = retrievePaddings(gridComponent.authoritativeNlComponent)
+  @AndroidCoordinate val padding = retrievePaddings(gridComponent.authoritativeNlComponent)
 
-  val left = toSwingX(gridComponent.drawX) + pxToSwing(padding.left)
-  val top = toSwingY(gridComponent.drawY) + pxToSwing(padding.top)
-  val right = toSwingX(gridComponent.drawX + gridComponent.drawWidth) - pxToSwing(padding.right)
-  val bottom = toSwingY(gridComponent.drawY + gridComponent.drawHeight) - pxToSwing(padding.bottom)
+  val left = gridComponent.drawX + padding.left.toDp()
+  val top = gridComponent.drawY + padding.top.toDp()
+  val right = gridComponent.drawX + gridComponent.drawWidth - padding.right.toDp()
+  val bottom = gridComponent.drawY + gridComponent.drawHeight - padding.bottom.toDp()
 
   val children = gridComponent.children
 
@@ -63,12 +68,12 @@ fun getGridBarriers(sceneContext: SceneContext, gridComponent: SceneComponent): 
       cellData.row = previousRow
     }
 
-    val marginInsets = retrieveMargins(child.authoritativeNlComponent)
+    @AndroidCoordinate val marginInsets = retrieveMargins(child.authoritativeNlComponent)
 
-    val cellLeft = toSwingX(child.drawX) - pxToSwing(marginInsets.left)
-    val cellTop = toSwingY(child.drawY) - pxToSwing(marginInsets.top)
-    val cellRight = toSwingX(child.drawX + child.drawWidth) + pxToSwing(marginInsets.right)
-    val cellBottom = toSwingY(child.drawY + child.drawHeight) + pxToSwing(marginInsets.bottom)
+    val cellLeft = child.drawX - marginInsets.left.toDp()
+    val cellTop = child.drawY - marginInsets.top.toDp()
+    val cellRight = child.drawX + child.drawWidth + marginInsets.right.toDp()
+    val cellBottom = child.drawY + child.drawHeight + marginInsets.bottom.toDp()
 
     // Avoid drawing the left edge of GridLayout
     if (cellData.column != 0) {
@@ -98,16 +103,16 @@ fun getGridBarriers(sceneContext: SceneContext, gridComponent: SceneComponent): 
   val columnCount = columnMap.keys.max()?.plus(1) ?: 1
   val rowCount = rowMap.keys.max()?.plus(1) ?: 1
 
-  columnMap.put(0, left)
-  columnMap.put(columnCount, right)
+  columnMap[0] = left
+  columnMap[columnCount] = right
 
-  rowMap.put(0, top)
-  rowMap.put(rowCount, bottom)
+  rowMap[0] = top
+  rowMap[rowCount] = bottom
 
   val columnArray: Array<Int> = Array(columnCount + 1) { columnMap[it] ?: Int.MIN_VALUE }
   val rowArray: Array<Int> = Array(rowCount + 1) { rowMap[it] ?: Int.MIN_VALUE }
 
-  return GridBarriers(sceneContext, left, top, right, bottom, rowArray, columnArray)
+  return GridBarriers(left, top, right, bottom, rowArray, columnArray)
 }
 
 private const val UNDEFINED_ROW = -1
@@ -125,9 +130,9 @@ private class CellInfo(var row: Int, var column: Int, val rowSpan: Int, val colu
  * @see [CellInfo]
  */
 private fun retrieveCellData(nlComponent: NlComponent, isSupportLibrary: Boolean): CellInfo {
-  val getAttribute: (attributeName: String, defaultValue: Int) -> Int = { name, defaultValue ->
-    val nameSpace = if (isSupportLibrary) SdkConstants.AUTO_URI else SdkConstants.ANDROID_URI
-    nlComponent.getLiveAttribute(nameSpace, name)?.toIntOrNull() ?: defaultValue
+  val namespace = if (isSupportLibrary) SdkConstants.AUTO_URI else SdkConstants.ANDROID_URI
+  val getAttribute: (String, Int) -> Int = { name, defaultValue ->
+    nlComponent.getLiveAttribute(namespace, name)?.toIntOrNull() ?: defaultValue
   }
 
   // If the span is not defined, the default (rowSpan, columnSpan) is (1, 1)
@@ -150,12 +155,14 @@ private fun NlComponent.getLiveAndroidAttribute(androidAttribute: String) = getL
  * Get the padding of component by retrieving the live attributes.
  * The unit of returned [Insets] is px
  */
+@AndroidCoordinate
 private fun retrieveMargins(nlComponent: NlComponent): Insets = retrieveInsets(nlComponent, MARGIN_ATTRIBUTES)
 
 /**
  * Get the padding of component by retrieving the live attributes.
  * The unit of returned [Insets] is px
  */
+@AndroidCoordinate
 private fun retrievePaddings(nlComponent: NlComponent): Insets = retrieveInsets(nlComponent, PADDING_ATTRIBUTES)
 
 private val PADDING_ATTRIBUTES = InsetsAttributes(
@@ -172,6 +179,7 @@ private val MARGIN_ATTRIBUTES = InsetsAttributes(
     Pair(SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT),
     SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)
 
+@AndroidCoordinate
 private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): Insets {
   val left: Int
   val top: Int
@@ -181,7 +189,7 @@ private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): I
   var valueString: String? = nlComponent.getLiveAndroidAttribute(attrs.all)
 
   if (valueString != null) {
-    val padding = getDpValue(nlComponent, valueString)
+    val padding = getPxValue(nlComponent, valueString)
     left = padding
     top = padding
     right = padding
@@ -189,16 +197,16 @@ private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): I
   }
   else {
     valueString = nlComponent.getLiveAndroidAttribute(attrs.left.first) ?: nlComponent.getLiveAndroidAttribute(attrs.left.second)
-    left = getDpValue(nlComponent, valueString)
+    left = getPxValue(nlComponent, valueString)
 
     valueString = nlComponent.getLiveAndroidAttribute(attrs.top)
-    top = getDpValue(nlComponent, valueString)
+    top = getPxValue(nlComponent, valueString)
 
     valueString = nlComponent.getLiveAndroidAttribute(attrs.right.first) ?: nlComponent.getLiveAndroidAttribute(attrs.right.second)
-    right = getDpValue(nlComponent, valueString)
+    right = getPxValue(nlComponent, valueString)
 
     valueString = nlComponent.getLiveAndroidAttribute(attrs.bottom)
-    bottom = getDpValue(nlComponent, valueString)
+    bottom = getPxValue(nlComponent, valueString)
   }
   return Insets(left, top, right, bottom)
 }
@@ -207,7 +215,8 @@ private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): I
  * Get the value of resource string. The unit of return value is px
  * If [value] is null or illegal number format, return 0.
  */
-private fun getDpValue(nlComponent: NlComponent, value: String?): Int {
+@AndroidCoordinate
+private fun getPxValue(nlComponent: NlComponent, value: String?): Int {
   if (value != null) {
     val configuration = nlComponent.model.configuration
     val resourceResolver = configuration.resourceResolver

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SketchGradientStop {
   private final double position;
-  private Color color;
+  private final Color color;
 
   public SketchGradientStop(@NotNull Color color, double position) {
     this.color = color;
@@ -33,10 +33,6 @@ public class SketchGradientStop {
   @NotNull
   public Color getColor() {
     return color;
-  }
-
-  public void setColor(@NotNull Color color) {
-    this.color = color;
   }
 
   public double getPosition() {

@@ -265,6 +265,15 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     "    </declare-styleable>\n" +
     "</resources>";
 
+  @Language("JAVA")
+  String myLayoutManager =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.support.v7.widget.LinearLayoutManager;\n" +
+    "\n" +
+    "class MyLayoutManager extends LinearLayoutManager {\n" +
+    "}";
+
   public void testLayoutManagerAttribute() throws Throwable {
     // RecyclerView has a "layoutManager" attribute that should give completions that extend
     // the RecyclerView.LayoutManager class.
@@ -273,6 +282,14 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariants("recycler_view.xml",
                              "android.support.v7.widget.GridLayoutManager",
                              "android.support.v7.widget.LinearLayoutManager");
+  }
+
+  public void testLayoutManagerAttributeHighlighting() throws Throwable {
+    // Check the highlighting of the "layoutManager" attribute values for a RecyclerView.
+    myFixture.addClass(recyclerView);
+    myFixture.addClass(myLayoutManager);
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs);
+    doTestHighlighting("recycler_view_1.xml");
   }
 
   public void testDataBindingHighlighting1() throws Throwable {
@@ -1182,7 +1199,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(false);
+    doTestNamespaceCompletion();
   }
 
   public void testDimenUnitsCompletion1() throws Exception {

@@ -19,13 +19,14 @@ import java.util.concurrent.TimeUnit
 
 class AtraceTestUtils {
   companion object {
-    val DELTA = .00000001
-    val TEST_PID = 2652
+    const val DELTA = .00000001
+    const val TEST_PID = 2652
+    const val TEST_RENDER_ID = 1234
     val SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1).toDouble()
 
     @JvmStatic
     fun convertTimeStamps(secondsTime: Double): Long {
-      return secondsTime.toLong();
+      return secondsTime.toLong()
     }
   }
 }

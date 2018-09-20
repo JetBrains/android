@@ -26,10 +26,14 @@ import com.google.common.collect.ImmutableList
  */
 class GridLayoutV7Handler : GridLayoutHandler() {
 
+  override val namespace = SdkConstants.AUTO_URI
+
   override fun getGradleCoordinateId(viewTag: String) = if (viewTag.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX))
     AndroidxNameUtils.getCoordinateMapping(SdkConstants.GRID_LAYOUT_LIB_ARTIFACT)
   else
     SdkConstants.GRID_LAYOUT_LIB_ARTIFACT
 
-  override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = true))
+  override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) {
+    listBuilder.add(GridDragTarget(isSupportLibrary = true))
+  }
 }

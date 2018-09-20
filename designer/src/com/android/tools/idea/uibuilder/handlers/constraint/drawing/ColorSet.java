@@ -16,12 +16,18 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
+import com.intellij.ui.JBColor;
 import java.awt.*;
 
 /**
  * Holds a set of colors for drawing a scene
  */
 public class ColorSet {
+
+    public static final JBColor DEFAULT_LASSO_BORDER_COLOR =
+      new JBColor(new Color(0xc01886f7, true), new Color(0xc09ccdff, true));
+    public static final JBColor DEFAULT_LASSO_FILL_COLOR =
+      new JBColor(new Color(0x1a1886f7, true), new Color(0x1a9ccdff, true));
 
     public static Stroke
             sNormalStroke = new BasicStroke(1);

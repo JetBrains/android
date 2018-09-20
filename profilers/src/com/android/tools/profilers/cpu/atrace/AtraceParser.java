@@ -81,7 +81,7 @@ public class AtraceParser implements TraceParser {
   // Trebuchet.Model is what Trebuchet uses to represent all captured data.
   private Model myModel;
   private Range myRange;
-  private AtraceFrameFactory myFrameInfo;
+  private AtraceFrameManager myFrameInfo;
 
   /**
    * This constructor parses the atrace model from the file and should be used for getting the list
@@ -120,7 +120,7 @@ public class AtraceParser implements TraceParser {
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();
-    myFrameInfo = new AtraceFrameFactory(myProcessModel, this::convertToUserTimeUs);
+    myFrameInfo = new AtraceFrameManager(myProcessModel, this::convertToUserTimeUs, findRenderThreadId(myProcessModel));
     return new AtraceCpuCapture(this, traceId);
   }
 

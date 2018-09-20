@@ -81,10 +81,11 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.impl.DirectoryIndex
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -261,7 +262,8 @@ fun getResourceVariations(file: VirtualFile?, includeSelf: Boolean): List<Virtua
   if (qualifiers != -1) {
     parentName = prefix.substring(0, qualifiers)
     prefix = prefix.substring(0, qualifiers + 1)
-  } else {
+  }
+  else {
     prefix += '-'
   }
   for (resource in resFolder.children) {
@@ -315,7 +317,8 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     // Special case: starting from API level 20, classes from "android.app" also inflated
     // without fully qualified names
     !isDirectlyInPackage(qualifiedName, ANDROID_APP_PKG)
-  } else {
+  }
+  else {
     true
   }
 }
@@ -394,7 +397,8 @@ private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Pr
   val stateColor = parseColor(state.value) ?: resolveColor(findResValue(state.value, false), project, depth + 1) ?: return null
   return try {
     makeColorWithAlpha(stateColor, state.alpha)
-  } catch (e: NumberFormatException) {
+  }
+  catch (e: NumberFormatException) {
     // If the alpha value is not valid, Android uses 1.0
     LOG.warn(
       String.format(
@@ -467,13 +471,15 @@ private fun RenderResources.resolveMultipleColors(value: ResourceValue?, project
       val resolvedStateResource = findResValue(state.value, false)
       stateColors = if (resolvedStateResource != null) {
         resolveMultipleColors(resolvedStateResource, project, depth + 1)
-      } else {
+      }
+      else {
         listOfNotNull(parseColor(state.value))
       }
       for (color in stateColors) {
         try {
           result.add(makeColorWithAlpha(color, state.alpha))
-        } catch (e: NumberFormatException) {
+        }
+        catch (e: NumberFormatException) {
           // If the alpha value is not valid, Android uses 1.0 so nothing more needs to be done, we simply take color as it is
           result.add(color)
           LOG.warn(String.format(ALPHA_FLOATING_ERROR_FORMAT, stateList.dirName, stateList.fileName))
@@ -481,7 +487,8 @@ private fun RenderResources.resolveMultipleColors(value: ResourceValue?, project
 
       }
     }
-  } else {
+  }
+  else {
     val color = parseColor(resolvedValue.value)
     if (color != null) {
       result.add(color)
@@ -506,7 +513,7 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
   val openFiles = FileEditorManager.getInstance(module.project).openFiles
   for (file in openFiles) {
     if (file.name.endsWith(DOT_XML) && file.parent != null &&
-      file.parent.name.startsWith(FD_RES_LAYOUT)) {
+        file.parent.name.startsWith(FD_RES_LAYOUT)) {
       return file
     }
   }
@@ -517,7 +524,7 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
       if (folder.name.startsWith(FD_RES_LAYOUT) && folder.isDirectory) {
         for (file in folder.children) {
           if (file.name.endsWith(DOT_XML) && file.parent != null &&
-            file.parent.name.startsWith(FD_RES_LAYOUT)) {
+              file.parent.name.startsWith(FD_RES_LAYOUT)) {
             return file
           }
         }
@@ -529,26 +536,38 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
 }
 
 /**
- * Returns the {@link ResourceNamespace} for the given PSI element, or null if the project is misconfigured.
+ * Returns the {@link ResourceNamespace} for the given PSI element (including elements from the SDK or AARs), or null if the project is
+ * misconfigured.
  *
  * Has to be called inside a read action.
  */
-val PsiElement.resourceNamespace: ResourceNamespace? get() {
-  val androidFacet = AndroidFacet.getInstance(this)
-  return if (androidFacet != null) {
-    ResourceRepositoryManager.getOrCreateInstance(androidFacet).namespace
-  } else {
-    // The file doesn't belong to any known Android module, let's check if it's part of the SDK or an AAR.
-    val directoryIndex = DirectoryIndex.getInstance(project)
-    val orderEntries = directoryIndex.getOrderEntries(directoryIndex.getInfoForFile(containingFile.virtualFile ?: return null))
-    when {
-      orderEntries.any { it is JdkOrderEntry } -> ResourceNamespace.ANDROID
-      // TODO(b/110082720): Handle sources for namespaced libraries and return the correct namespace here.
-      orderEntries.any { it is LibraryOrderEntry } -> ResourceNamespace.RES_AUTO
-      else -> null
+val PsiElement.resourceNamespace: ResourceNamespace?
+  get() {
+    val projectFileIndex = ProjectFileIndex.getInstance(project)
+
+    // There may be no virtual file for light R and Manifest classes.
+    val vFile: VirtualFile? = containingFile.originalFile.virtualFile
+
+    // First, we need to figure out if this file belongs to the project. For PsiFile, ModuleUtil.findModuleForPsiElement will "find" modules
+    // that use a given SDK file, which is not what we need. On the other hand, isInSource if false for the manifest (at least in the
+    // standard AGP structure) because it doesn't live under src/main/java nor src/main/res, but `getModuleForFile` finds the module by
+    // walking up the file system.
+    return if (getUserData(ModuleUtilCore.KEY_MODULE) != null
+               || (vFile != null && (projectFileIndex.isInSource(vFile) || projectFileIndex.getModuleForFile(vFile) != null))) {
+      AndroidFacet.getInstance(this)
+        ?.let { ResourceRepositoryManager.getOrCreateInstance(it) }
+        ?.namespace
+    }
+    else {
+      val orderEntries = projectFileIndex.getOrderEntriesForFile(vFile ?: return null)
+      when {
+        orderEntries.any { it is JdkOrderEntry } -> ResourceNamespace.ANDROID
+        // TODO(b/110082720): Handle sources for namespaced libraries and return the correct namespace here.
+        orderEntries.any { it is LibraryOrderEntry } -> ResourceNamespace.RES_AUTO
+        else -> null
+      }
     }
   }
-}
 
 /** A pair of the current ("context") [ResourceNamespace] and a [ResourceNamespace.Resolver] for dealing with prefixes. */
 data class ResourceNamespaceContext(val currentNs: ResourceNamespace, val resolver: ResourceNamespace.Resolver)
@@ -568,7 +587,7 @@ fun RenderResources.resolve(resourceUrl: ResourceUrl, element: XmlElement): Reso
 /** Resolves a given namespace prefix in the context of the [XmlElement]. */
 fun XmlElement.resolveResourceNamespace(prefix: String?): ResourceNamespace? {
   val (namespace, namespaceResolver) = getNamespacesContext(this) ?: return null
-  return ResourceNamespace.fromNamespacePrefix(prefix, namespace,  namespaceResolver)
+  return ResourceNamespace.fromNamespacePrefix(prefix, namespace, namespaceResolver)
 }
 
 /** Resolves the given [ResourceUrl] in the context of the [XmlElement]. */
@@ -602,7 +621,8 @@ private fun RenderResources.resolveStateList(resourceValue: ResourceValue, proje
   if (value.startsWith(PREFIX_RESOURCE_REF)) {
     val resValue = findResValue(value, resourceValue.isFramework) ?: return null
     return resolveStateList(resValue, project, depth + 1)
-  } else {
+  }
+  else {
     val virtualFile = LocalFileSystem.getInstance().findFileByPath(value) ?: return null
     val psiFile = (AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as? XmlFile) ?: return null
     return runReadAction {
@@ -674,7 +694,8 @@ fun parseColor(s: String?): Color? {
 
     if (trimmed.length == 7) {
       longColor = longColor or -0x1000000
-    } else if (trimmed.length != 9) {
+    }
+    else if (trimmed.length != 9) {
       return null
     }
     return Color(longColor.toInt(), true)
@@ -748,7 +769,8 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
     if (value.startsWith(PREFIX_RESOURCE_REF)) {
       resolvedLayout = findResValue(value, resolvedLayout.isFramework) ?: break
       value = resolvedLayout.value
-    } else {
+    }
+    else {
       return toFileResourcePathString(value)?.toVirtualFile()
     }
 
@@ -816,7 +838,8 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
   val resourcePrefix = computeResourcePrefix(androidModel.androidProject) ?: return name
   return if (name != null) {
     if (name.startsWith(resourcePrefix)) name else computeResourceName(resourcePrefix, name, folderType)
-  } else {
+  }
+  else {
     resourcePrefix
   }
 }
@@ -839,7 +862,8 @@ fun getCompletionFromTypes(
   // Use drawables for mipmaps
   if (types.contains(ResourceType.MIPMAP)) {
     types.add(ResourceType.DRAWABLE)
-  } else if (types.contains(ResourceType.DRAWABLE)) {
+  }
+  else if (types.contains(ResourceType.DRAWABLE)) {
     types.add(ResourceType.MIPMAP)
   }
 
@@ -957,7 +981,8 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
     return ReadAction.compute<String, RuntimeException> {
       if (!element.isValid) {
         null
-      } else {
+      }
+      else {
         val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
         tag?.let(compute).let(StringUtil::nullize)
       }
@@ -971,7 +996,8 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
     // have to use "android" as the prefix, which is equivalent not to defining a prefix at all (since "android" is the package name of the
     // framework). We also need to keep in mind we recognize "tools" even without the xmlns definition in non-namespaced projects.
     ResourceNamespace.Resolver.TOOLS_ONLY
-  } else {
+  }
+  else {
     // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
     object : ResourceNamespace.Resolver {
       override fun uriToPrefix(namespaceUri: String): String? = withTag { tag -> tag.getPrefixByNamespace(namespaceUri) }
@@ -994,7 +1020,8 @@ fun getTextContent(tag: XmlTag): String {
   if (subTags.isEmpty()) {
     if (textElements.size == 1) {
       return getXmlTextValue(textElements[0])
-    } else if (textElements.isEmpty()) {
+    }
+    else if (textElements.isEmpty()) {
       return ""
     }
   }
@@ -1022,7 +1049,8 @@ private fun getXmlTextValue(element: XmlText): String {
       current = current.nextSibling ?: break
     }
     return sb.toString()
-  } else if (current.node.elementType === XmlElementType.XML_CDATA) {
+  }
+  else if (current.node.elementType === XmlElementType.XML_CDATA) {
     val children = current.children
     if (children.size == 3) { // XML_CDATA_START, XML_DATA_CHARACTERS, XML_CDATA_END
       assert(children[1].node.elementType === XmlTokenType.XML_DATA_CHARACTERS)
@@ -1038,7 +1066,8 @@ private fun appendText(sb: StringBuilder, tag: XmlTag) {
   for (child in children) {
     if (child is XmlText) {
       sb.append(getXmlTextValue(child))
-    } else if (child is XmlTag) {
+    }
+    else if (child is XmlTag) {
       // xliff support
       if (XLIFF_G_TAG == child.localName && child.namespace.startsWith(XLIFF_NAMESPACE_PREFIX)) {
         val example = child.getAttributeValue(ATTR_EXAMPLE)
@@ -1046,7 +1075,8 @@ private fun appendText(sb: StringBuilder, tag: XmlTag) {
           // <xliff:g id="number" example="7">%d</xliff:g> minutes => "(7) minutes"
           sb.append('(').append(example).append(')')
           continue
-        } else {
+        }
+        else {
           val id = child.getAttributeValue(ATTR_ID)
           if (id != null) {
             // Step <xliff:g id="step_number">%1$d</xliff:g> => Step ${step_number}
@@ -1148,7 +1178,8 @@ private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name:
   val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
     (repoManager.getFrameworkResources(false) as FrameworkResourceRepository).isPublic(type, name)
-  } else {
+  }
+  else {
     !repoManager.resourceVisibility.isPrivate(type, name)
   }
 }

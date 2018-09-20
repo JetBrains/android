@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.naveditor.scene.RefinableImage
 import org.junit.Test
 import org.mockito.Mockito.*
 import java.awt.Dimension
@@ -35,22 +36,21 @@ class TestDrawNavScreen {
     var graphics = createGraphics()
     val context = mock(SceneContext::class.java)
 
-    var drawCommand = DrawNavScreen(createRectangle(), CompletableFuture.completedFuture(null), null)
+    var drawCommand = DrawNavScreen(createRectangle(), RefinableImage())
     drawCommand.paint(graphics, context)
     verify(graphics).drawString(eq("Preview"), anyFloat(), anyFloat())
     verify(graphics).drawString(eq("Unavailable"), anyFloat(), anyFloat())
 
     graphics = createGraphics()
 
-    drawCommand = DrawNavScreen(createRectangle(),
-                                CompletableFuture(), null)
+    drawCommand = DrawNavScreen(createRectangle(), RefinableImage(null, CompletableFuture()))
     drawCommand.paint(graphics, context)
     verify(graphics).drawString(eq("Loading..."), anyFloat(), anyFloat())
 
     graphics = createGraphics()
 
     val image = createImage()
-    drawCommand = DrawNavScreen(createRectangle(), CompletableFuture.completedFuture(image), null)
+    drawCommand = DrawNavScreen(createRectangle(), RefinableImage(null, CompletableFuture.completedFuture(RefinableImage(image))))
     drawCommand.paint(graphics, context)
     verify(graphics).drawImage(image, createTransform(), null)
 
@@ -58,13 +58,13 @@ class TestDrawNavScreen {
 
     val oldImage = createImage()
 
-    drawCommand = DrawNavScreen(createRectangle(), CompletableFuture.completedFuture(image), oldImage)
+    drawCommand = DrawNavScreen(createRectangle(), RefinableImage(oldImage, CompletableFuture.completedFuture(RefinableImage(image))))
     drawCommand.paint(graphics, context)
     verify(graphics).drawImage(image, createTransform(), null)
 
     graphics = createGraphics()
 
-    drawCommand = DrawNavScreen(createRectangle(), CompletableFuture(), oldImage)
+    drawCommand = DrawNavScreen(createRectangle(), RefinableImage(oldImage, CompletableFuture()))
     drawCommand.paint(graphics, context)
     verify(graphics).drawImage(oldImage, createTransform(), null)
   }
@@ -92,8 +92,6 @@ class TestDrawNavScreen {
   private fun createTransform() : AffineTransform {
     val transform = AffineTransform()
     transform.translate(DRAW_COMMAND_RECTANGLE.x.toDouble(), DRAW_COMMAND_RECTANGLE.y.toDouble())
-    transform.scale(DRAW_COMMAND_RECTANGLE.width.toDouble() / IMAGE_DIMENSION.width,
-                    DRAW_COMMAND_RECTANGLE.height.toDouble() / IMAGE_DIMENSION.height)
     return transform
   }
 }

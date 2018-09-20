@@ -65,7 +65,7 @@ public class ProjectWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void createKotlinFileAndClassInKotlinSupportProject() throws Exception {
     createKotlinFileAndClassAndVerify(KOTLIN_SUPPORT_PROJECT_DIR_NAME, KOTLIN_SUPPORT_PACKAGE_NAME, true, guiTest, emulator);
   }

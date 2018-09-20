@@ -153,6 +153,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
      !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName())
     );
     myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
+    myGcStatsModel.setAttachPredicate(
+      // Only attach to the object series if live allocation is disabled or the gc event happens within full-tracking mode.
+      data -> !useLiveAllocationTracking() ||
+              MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(myClient, mySessionData, data.x, data.x));
     myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
     myAllocationSamplingRateDurations.setAttachPredicate(data ->
        // The DurationData should attach to the Objects series at both the start and end of the FULL tracking mode region.

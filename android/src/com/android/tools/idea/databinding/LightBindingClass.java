@@ -150,11 +150,6 @@ public class LightBindingClass extends AndroidLightClassBase {
     return constructor;
   }
 
-  @Override
-  public String toString() {
-    return myInfo.getClassName();
-  }
-
   @Nullable
   @Override
   public String getQualifiedName() {

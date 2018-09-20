@@ -197,9 +197,11 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static final String PACKAGE_PREFIX = "com.example.myapplication.";
 
     protected ActivityComponent myActivityComponent;
-    private EventModel<LifecycleEvent> myStackedEventModel;
+    private EventModel<LifecycleEvent> myActivityEventModel;
+    private EventModel<LifecycleEvent> myFragmentEventModel;
 
-    private DefaultDataSeries<EventAction<LifecycleEvent>> myData;
+    private DefaultDataSeries<EventAction<LifecycleEvent>> myActivityData;
+    private DefaultDataSeries<EventAction<LifecycleEvent>> myFragmentData;
 
     ActivityEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -211,9 +213,11 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myData = new DefaultDataSeries<>();
-      myStackedEventModel = new EventModel<>(new RangedSeries<>(myXRange, myData));
-      myActivityComponent = new ActivityComponent(myStackedEventModel);
+      myActivityData = new DefaultDataSeries<>();
+      myActivityEventModel = new EventModel<>(new RangedSeries<>(myXRange, myActivityData));
+      myFragmentData = new DefaultDataSeries<>();
+      myFragmentEventModel = new EventModel<>(new RangedSeries<>(myXRange, myFragmentData));
+      myActivityComponent = new ActivityComponent(myActivityEventModel, myFragmentEventModel);
       myActivityComponent.setFont(ImageDiffUtil.getDefaultFont());
       myContentPane.add(myActivityComponent, BorderLayout.CENTER);
     }
@@ -230,7 +234,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
       // Start event
       LifecycleEvent action = LifecycleEvent.COMPLETED;
-      myData.add(startTime, new LifecycleAction(startTime, endTime, action, activityName));
+      myActivityData.add(startTime, new LifecycleAction(startTime, endTime, action, activityName));
     }
   }
 

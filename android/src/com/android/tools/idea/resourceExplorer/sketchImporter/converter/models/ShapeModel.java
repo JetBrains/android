@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchBorder;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchFill;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
+import static java.awt.geom.PathIterator.SEG_CLOSE;
+import static java.awt.geom.PathIterator.SEG_CUBICTO;
+import static java.awt.geom.PathIterator.SEG_LINETO;
+import static java.awt.geom.PathIterator.SEG_MOVETO;
+import static java.awt.geom.PathIterator.SEG_QUADTO;
+
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.PathStringBuilder;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class ShapeModel {
 
-  protected final double myParentOpacity;
-  @Nullable protected SketchStyle shapeStyle;
+  private static final int DEFAULT_BORDER_WIDTH_VALUE = 0;
+  private static final int DEFAULT_COLOR_VALUE = 0;
+
+  @Nullable protected StyleModel shapeStyle;
   protected boolean isFlippedHorizontal;
   protected boolean isFlippedVertical;
   protected boolean isClosed;
@@ -42,7 +48,7 @@ public abstract class ShapeModel {
   @NotNull private Shape shape;
 
   public ShapeModel(@NotNull Shape shape,
-                    @Nullable SketchStyle style,
+                    @Nullable StyleModel style,
                     boolean flippedHorizontal,
                     boolean flippedVertical,
                     boolean closed,
@@ -51,10 +57,8 @@ public abstract class ShapeModel {
                     @NotNull Point2D.Double framePosition,
                     boolean hasClippingMask,
                     boolean shouldBreakMaskChain,
-                    boolean isLastShapeGroup,
-                    double parentOpacity) {
+                    boolean isLastShapeGroup) {
     this.shape = shape;
-    myParentOpacity = parentOpacity;
     isFlippedHorizontal = flippedHorizontal;
     isFlippedVertical = flippedVertical;
     isClosed = closed;
@@ -64,12 +68,7 @@ public abstract class ShapeModel {
     this.hasClippingMask = hasClippingMask;
     this.shouldBreakMaskChain = shouldBreakMaskChain;
     isLastShape = isLastShapeGroup;
-
-    if (style != null) {
-      shapeStyle = style;
-      shapeStyle.makeGradientRelative(this.shape);
-      shapeStyle.applyParentOpacity(myParentOpacity);
-    }
+    shapeStyle = style;
   }
 
   @NotNull
@@ -82,25 +81,61 @@ public abstract class ShapeModel {
   }
 
   @Nullable
-  public SketchBorder getShapeBorder() {
-    SketchBorder[] sketchBorders = shapeStyle != null ? shapeStyle.getBorders() : null;
-    return sketchBorders != null ? sketchBorders[0] : null;
+  public BorderModel getShapeBorder() {
+    return shapeStyle != null ? shapeStyle.getBorder() : null;
+  }
+
+  public int getBorderColor() {
+    return getShapeBorder() != null ? getShapeBorder().getColor().getRGB() : DEFAULT_COLOR_VALUE;
+  }
+
+  public int getBorderWidth() {
+    return getShapeBorder() != null ? getShapeBorder().getWidth() : DEFAULT_BORDER_WIDTH_VALUE;
   }
 
   @Nullable
-  public SketchFill getFill() {
-    SketchFill[] sketchFills = shapeStyle != null ? shapeStyle.getFills() : null;
-    return sketchFills != null ? sketchFills[0] : null;
+  public FillModel getFill() {
+    return shapeStyle != null ? shapeStyle.getFill() : null;
   }
 
-  public boolean isHasClippingMask() {
+  public int getFillColor() {
+    return getFill() != null ? getFill().getColor().getRGB() : DEFAULT_COLOR_VALUE;
+  }
+
+  @Nullable
+  public GradientModel getGradient() {
+    return getFill() != null ? getFill().getGradientModel() : null;
+  }
+
+  /**
+   * Method that checks if the model should be used to mask other shapes in the drawable file.
+   * Used for generating XML clipping groups.
+   *
+   * @return true if the DrawableModel is a sketch clipping mask
+   */
+  public boolean hasClippingMask() {
     return hasClippingMask;
   }
 
-  public boolean isShouldBreakMaskChain() {
+  /**
+   * There can be cases when a group has multiple clipped shapes, along with shapes that
+   * are not clipped. The first shape that follows a chain of masked shapes and is not
+   * masked like the previous shapes is known to 'break the mask chain'
+   *
+   * @return true if the DrawableModel breaks the chain of masked shapes in its group.
+   */
+  public boolean shouldBreakMaskChain() {
     return shouldBreakMaskChain;
   }
 
+  /**
+   * Because the hierarchy of shapes and groups is gone after generating the models,
+   * shapes that follow a clipping group and are not included in it do not necessarily
+   * break the mask chain, but they were simply placed in a different group in the SketchFile.
+   * Method is used to correctly close any needed groups and add the DrawableModel to root.
+   *
+   * @return true if the DrawableModel is the last shape in the SketchPage's list of layers
+   */
   public boolean isLastShape() {
     return isLastShape;
   }
@@ -142,6 +177,38 @@ public abstract class ShapeModel {
     return shapeTransform;
   }
 
+  @NotNull
+  public String getPathString() {
+    PathStringBuilder pathStringBuilder = new PathStringBuilder();
+    PathIterator pathIterator = shape.getPathIterator(null);
+
+    while (!pathIterator.isDone()) {
+      double[] coordinates = new double[6];
+      int type = pathIterator.currentSegment(coordinates);
+
+      switch (type) {
+        case SEG_MOVETO:
+          pathStringBuilder.startPath(coordinates[0], coordinates[1]);
+          break;
+        case SEG_LINETO:
+          pathStringBuilder.createLine(coordinates[0], coordinates[1]);
+          break;
+        case SEG_CUBICTO:
+          pathStringBuilder.createBezierCurve(coordinates);
+          break;
+        case SEG_QUADTO:
+          pathStringBuilder.createQuadCurve(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
+          break;
+        case SEG_CLOSE:
+          pathStringBuilder.endPath();
+          break;
+      }
+
+      pathIterator.next();
+    }
+    return pathStringBuilder.build();
+  }
+
   /**
    * Applies all the transformations that have been done on a shape to its corresponding gradient
    * by modifying the style property of the ShapeModel.
@@ -149,9 +216,8 @@ public abstract class ShapeModel {
    * @param transform
    */
   protected void transformGradient(@NotNull AffineTransform transform) {
-    SketchFill[] shapeFills = shapeStyle != null ? shapeStyle.getFills() : null;
-    SketchFill shapeFill = shapeFills != null && shapeFills.length != 0 ? shapeFills[0] : null;
-    SketchGradient shapeGradient = shapeFill != null ? shapeFill.getGradient() : null;
+    FillModel shapeFill = shapeStyle != null ? shapeStyle.getFill() : null;
+    GradientModel shapeGradient = shapeFill != null ? shapeFill.getGradientModel() : null;
     if (shapeGradient != null) {
       shapeGradient.applyTransformation(transform);
     }
@@ -159,7 +225,7 @@ public abstract class ShapeModel {
 
   public void applyOpacity(double parentOpacity) {
     if (shapeStyle != null) {
-      shapeStyle.applyParentOpacity(parentOpacity);
+      shapeStyle.applyOpacity(parentOpacity);
     }
   }
 

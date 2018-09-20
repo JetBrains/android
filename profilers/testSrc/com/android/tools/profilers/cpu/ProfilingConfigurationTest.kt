@@ -17,9 +17,15 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.profiler.proto.CpuProfiler
 import com.google.common.truth.Truth.assertThat
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 
 class ProfilingConfigurationTest {
+
+  @get:Rule
+  val myThrown = ExpectedException.none()
+
   @Test
   fun fromProto() {
     val proto = CpuProfiler.CpuProfilerConfiguration.newBuilder()
@@ -28,6 +34,7 @@ class ProfilingConfigurationTest {
       .setProfilerType(CpuProfiler.CpuProfilerType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
+      .setDisableLiveAllocation(true)
       .build()
     val config = ProfilingConfiguration.fromProto(proto)
 
@@ -36,6 +43,7 @@ class ProfilingConfigurationTest {
     assertThat(config.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+    assertThat(config.isDisableLiveAllocation).isTrue()
   }
 
   @Test
@@ -44,6 +52,7 @@ class ProfilingConfigurationTest {
                                                CpuProfiler.CpuProfilerMode.SAMPLED).apply {
       profilingBufferSizeInMb = 12
       profilingSamplingIntervalUs = 1234
+      isDisableLiveAllocation = true
     }
     val proto = configuration.toProto()
 
@@ -52,5 +61,50 @@ class ProfilingConfigurationTest {
     assertThat(proto.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
+    assertThat(proto.disableLiveAllocation).isTrue()
+  }
+
+  @Test
+  fun artSampledTechnologyName() {
+    val artSampledConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.ART,
+                                                         CpuProfiler.CpuProfilerMode.SAMPLED)
+    assertThat(ProfilingConfiguration.getTechnologyName(artSampledConfiguration)).isEqualTo(ProfilingConfiguration.ART_SAMPLED_NAME)
+  }
+
+  @Test
+  fun artInstrumentedTechnologyName() {
+    val artInstrumentedConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.ART,
+                                                         CpuProfiler.CpuProfilerMode.INSTRUMENTED)
+    assertThat(ProfilingConfiguration.getTechnologyName(artInstrumentedConfiguration))
+      .isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED_NAME)
+  }
+
+  @Test
+  fun artUnspecifiedTechnologyName() {
+    val artUnspecifiedConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.ART,
+                                                             CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE)
+    assertThat(ProfilingConfiguration.getTechnologyName(artUnspecifiedConfiguration)).isEqualTo(ProfilingConfiguration.ART_UNSPECIFIED_NAME)
+  }
+
+  @Test
+  fun simpleperfTechnologyName() {
+    val simpleperfConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                         CpuProfiler.CpuProfilerMode.SAMPLED)
+    assertThat(ProfilingConfiguration.getTechnologyName(simpleperfConfiguration)).isEqualTo(ProfilingConfiguration.SIMPLEPERF_NAME)
+  }
+
+  @Test
+  fun atraceTechnologyName() {
+    val atraceConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.ATRACE,
+                                                     CpuProfiler.CpuProfilerMode.SAMPLED)
+    assertThat(ProfilingConfiguration.getTechnologyName(atraceConfiguration)).isEqualTo(ProfilingConfiguration.ATRACE_NAME)
+  }
+
+  @Test
+  fun unexpectedTechnologyName() {
+    val unexpectedConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER,
+                                                         CpuProfiler.CpuProfilerMode.SAMPLED)
+    myThrown.expect(IllegalStateException::class.java)
+    assertThat(ProfilingConfiguration.getTechnologyName(unexpectedConfiguration)).isEqualTo("any config. it should fail before.")
   }
 }

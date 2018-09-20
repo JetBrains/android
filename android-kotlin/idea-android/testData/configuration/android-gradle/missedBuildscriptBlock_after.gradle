@@ -1,4 +1,5 @@
 apply plugin: 'android'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
 repositories {

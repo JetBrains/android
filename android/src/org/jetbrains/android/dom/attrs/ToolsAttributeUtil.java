@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.*;
@@ -44,10 +46,18 @@ import static java.util.Collections.singletonList;
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
-  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, false, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final ResolvingConverter VIEW_CONVERTER = new ViewClassConverter();
-  private static final ResolvingConverter VIEW_GROUP_CONVERTER = new ViewGroupClassConverter();
-
+  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter.Builder()
+    .useManifestBasePackage(true)
+    .withExtendClassNames(AndroidUtils.ACTIVITY_BASE_CLASS_NAME)
+    .build();
+  private static final ResolvingConverter VIEW_CONVERTER = new PackageClassConverter.Builder()
+    .completeLibraryClasses(true)
+    .withExtendClassNames(CLASS_VIEW)
+    .build();
+  private static final ResolvingConverter VIEW_GROUP_CONVERTER = new PackageClassConverter.Builder()
+    .completeLibraryClasses(true)
+    .withExtendClassNames(CLASS_VIEWGROUP)
+    .build();
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
 
   // Manifest merger attribute names

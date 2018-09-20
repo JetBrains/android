@@ -15,6 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.APP_BAR_LAYOUT;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
+import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.SdkConstants.COLLAPSING_TOOLBAR_LAYOUT;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -35,24 +62,17 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mockito.Mock;
-
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mockito.Mock;
 
 public class NlComponentTreeTest extends LayoutTestCase {
 
@@ -102,6 +122,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myButton = findFirst(BUTTON);
     myTextView = findFirst(TEXT_VIEW);
     myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
+    Disposer.register(myDisposable, myTree);
   }
 
   @NotNull
@@ -334,7 +355,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
   public void testDropOnChain() {
     myModel = createModelWithConstraintLayout();
     mySurface.setModel(myModel);
-    myTree = new NlComponentTree(getProject(), mySurface);
     NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName());
     copy(myButton);
     mySurface.getSelectionModel().toggle(chain);
@@ -554,7 +574,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
-    myTree = new NlComponentTree(getProject(), mySurface);
 
     // Check initial state
     myTree.expandRow(3);
@@ -602,7 +621,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
-    myTree = new NlComponentTree(getProject(), mySurface);
 
     // Check initial state
     myTree.expandRow(3);

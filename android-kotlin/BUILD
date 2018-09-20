@@ -31,6 +31,7 @@ iml_module(
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
     visibility = ["//visibility:public"],
+    exports = ["//tools/idea/.idea/libraries:kotlin-plugin"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/xml/relaxng:intellij.relaxng",
@@ -59,7 +60,6 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/android-kotlin:lib/dx",
-        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
     ],
 )
 
@@ -99,7 +99,6 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:kotlin-plugin",
-        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
 
@@ -144,4 +143,61 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.kotlin.tests",
+    iml_files = ["intellij.android.kotlin.tests.iml"],
+    test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//tools/adt/idea/android/annotations",
+        "//tools/idea:platform-build-info",
+        ":testData",
+    ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
+    ],
+    test_srcs = [
+        "android-extensions-idea/tests",
+        "idea-android/tests",
+    ],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-plugin-test[test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/idea/.idea/libraries:gson[test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
+    ],
+)
+
+filegroup(
+    name = "testData",
+    srcs = glob([
+        "idea-android/testData/**",
+        "android-extensions-idea/testData/**",
+        "android-extensions-jps/testData/**",
+        "android-extensions-runtime/src/**",
+    ]),
+    visibility = ["//visibility:public"],
 )

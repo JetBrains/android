@@ -623,6 +623,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private class LoadProguardAction extends AnAction {
     public LoadProguardAction() {
       super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
+      getTemplatePresentation().setDisabledIcon(EmptyIcon.ICON_0);
     }
 
     @Override

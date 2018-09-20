@@ -87,6 +87,11 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     return false;
   }
 
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
+  }
+
   public void testModulesCreatedForIncludedProjects() throws Exception {
     loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
     List<Module> modules = new ArrayList<>();

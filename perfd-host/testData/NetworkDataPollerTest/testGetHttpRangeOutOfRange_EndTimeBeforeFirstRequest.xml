@@ -47,8 +47,7 @@ end_timestamp: 9223372036854775807
         <Message>data {
   end_timestamp: 86400000000000
   connectivity_data {
-    radio_state: HIGH
-    default_network_type: WIFI
+    network_type: WIFI
   }
 }
 data {
@@ -70,8 +69,7 @@ data {
         <message>data {
   end_timestamp: 86400000000000
   connectivity_data {
-    radio_state: HIGH
-    default_network_type: WIFI
+    network_type: WIFI
   }
 }
 data {

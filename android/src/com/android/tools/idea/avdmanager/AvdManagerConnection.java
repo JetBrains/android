@@ -44,8 +44,10 @@ import com.android.utils.ILogger;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -673,8 +675,21 @@ public class AvdManagerConnection {
     Runnable cancel = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
     Runnable action = AccelerationErrorSolution.getActionForFix(error, project, retry, cancel);
     ApplicationManager.getApplication().invokeLater(action);
-    return Futures.dereference(future);
+    return dereference(future);
   }
+
+  private static <V> ListenableFuture<V> dereference(ListenableFuture<? extends ListenableFuture<? extends V>> nested) {
+    //noinspection unchecked
+    return Futures.transformAsync(nested, (AsyncFunction)DEREFERENCER, MoreExecutors.directExecutor());
+  }
+
+  private static final AsyncFunction<ListenableFuture<Object>, Object> DEREFERENCER =
+    new AsyncFunction<ListenableFuture<Object>, Object>() {
+      @Override
+      public ListenableFuture<Object> apply(ListenableFuture<Object> input) {
+        return input;
+      }
+    };
 
   /**
    * Run "emulator -accel-check" to check the status for emulator acceleration on this machine.

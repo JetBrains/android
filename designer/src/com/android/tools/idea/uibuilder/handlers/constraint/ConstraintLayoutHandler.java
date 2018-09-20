@@ -166,7 +166,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     // noinspection unchecked
     actions.add(new NestedViewActionMenu("View Options", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
-        new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", true),
+        new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
         new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
         new ToggleLiveRenderingAction()

@@ -17,6 +17,8 @@ package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.utils.TraceUtils;
@@ -770,5 +772,12 @@ public class AndroidUtils {
       }
     }
     return false;
+  }
+
+  public static boolean hasAndroidFacets(@NotNull Project project) {
+    ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
+    return facetManager.hasFacets(AndroidFacet.getFacetType().getId()) ||
+           facetManager.hasFacets(ApkFacet.getFacetTypeId()) ||
+           facetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 }

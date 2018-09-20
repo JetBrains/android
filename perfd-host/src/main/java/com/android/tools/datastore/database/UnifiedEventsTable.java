@@ -31,8 +31,9 @@ import java.util.List;
 
 public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statements> {
   public enum Statements {
+    // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
     INSERT(
-      "INSERT INTO [UnifiedEventsTable] (StreamId, SessionId, EventId, Kind, Type, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, SessionId, EventId, Kind, Type, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?, ?)"),
     QUERY_WITHIN_TIME("SELECT Data FROM [UnifiedEventsTable] WHERE Timestamp >= ? AND Timestamp <= ?");
 
     @NotNull private final String mySqlStatement;
@@ -72,7 +73,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
 
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "EventId", "Kind", "Timestamp");
+      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "EventId", "Kind", "Type", "Timestamp");
     }
     catch (SQLException ex) {
       onError(ex);

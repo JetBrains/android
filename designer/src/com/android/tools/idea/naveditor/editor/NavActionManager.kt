@@ -15,13 +15,33 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.tools.idea.common.actions.*
+import com.android.tools.idea.common.actions.ActivateComponentAction
+import com.android.tools.idea.common.actions.GotoComponentAction
+import com.android.tools.idea.common.actions.ZoomInAction
+import com.android.tools.idea.common.actions.ZoomOutAction
+import com.android.tools.idea.common.actions.ZoomToFitAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
-import com.android.tools.idea.naveditor.actions.*
-import com.android.tools.idea.naveditor.model.*
+import com.android.tools.idea.naveditor.actions.AddGlobalAction
+import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
+import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
+import com.android.tools.idea.naveditor.actions.AutoArrangeAction
+import com.android.tools.idea.naveditor.actions.EditExistingAction
+import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
+import com.android.tools.idea.naveditor.actions.SelectAllAction
+import com.android.tools.idea.naveditor.actions.SelectNextAction
+import com.android.tools.idea.naveditor.actions.SelectPreviousAction
+import com.android.tools.idea.naveditor.actions.StartDestinationAction
+import com.android.tools.idea.naveditor.actions.ToDestinationAction
+import com.android.tools.idea.naveditor.actions.ToSelfAction
+import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.supportsActions
+import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
@@ -29,6 +49,7 @@ import com.intellij.openapi.util.SystemInfo
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 
 /**
  * Provides and handles actions in the navigation editor
@@ -48,14 +69,14 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
 
-  override fun registerActionsShortcuts(component: JComponent) {
-    ActionManager.registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
-    selectNextAction.registerCustomShortcutSet(KeyEvent.VK_TAB, 0, mySurface)
-    selectPreviousAction.registerCustomShortcutSet(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK, mySurface)
-    ActionManager.registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component)
+  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) {
+    registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable)
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), mySurface, parentDisposable)
+    registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component, parentDisposable)
 
     val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, keyEvent, mySurface)
+    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface, parentDisposable)
   }
 
   override fun createPopupMenu(

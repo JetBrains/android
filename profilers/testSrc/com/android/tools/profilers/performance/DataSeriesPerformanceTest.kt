@@ -56,6 +56,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
@@ -63,6 +64,7 @@ import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
+@Ignore("b/115665506")
 class DataSeriesPerformanceTest {
   companion object {
     private val START_TIME = TimeUnit.SECONDS.toNanos(0)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Extract from material-1.0.0-alpha2 (special build) -->
+<!-- Extract from material-1.0.0-alpha2 (special build) Modified with later changes for BottomAppBar and Chip -->
 <resources xmlns:ns1="http://schemas.android.com/tools">
   <attr format="reference" name="bottomAppBarStyle"/>
   <attr format="reference" name="bottomNavigationStyle"/>
@@ -76,12 +76,32 @@
 
     <flag name="snapMargins" value="0x20"/>
   </attr><attr format="reference" name="layout_scrollInterpolator"/></declare-styleable>
-  <declare-styleable name="BottomAppBar"><attr name="backgroundTint"/><attr name="fabAlignmentMode">
-
-    <enum name="center" value="0"/>
-
-    <enum name="end" value="1"/>
-  </attr><attr format="boolean" name="fabAttached"/><attr format="dimension" name="fabCradleMargin"/><attr format="dimension" name="fabCradleRoundedCornerRadius"/><attr format="dimension" name="fabCradleVerticalOffset"/><attr format="boolean" name="hideOnScroll"/></declare-styleable>
+  <declare-styleable name="BottomAppBar">
+    <!-- Background for the BottomAppBar. -->
+    <attr name="backgroundTint"/>
+    <!-- The alignment of the fab relative to the BottomAppBar. -->
+    <attr name="fabAlignmentMode">
+      <!-- Mode that aligns the fab to the center. -->
+      <enum name="center" value="0"/>
+      <!-- Mode that aligns the fab to the end. -->
+      <enum name="end" value="1"/>
+    </attr>
+    <!-- The animation mode that should be used when the fab animates between alignment modes. -->
+    <attr name="fabAnimationMode">
+      <!-- Mode that scales the fab down to a point, moves it, then scales the fab back to its normal size. -->
+      <enum name="scale" value="0"/>
+      <!-- Mode that slides the fab from one alignment mode to the next. -->
+      <enum name="slide" value="1"/>
+    </attr>
+    <!-- The margin between the semi-circular cradle for the fab and the fab. -->
+    <attr name="fabCradleMargin" format="dimension"/>
+    <!-- The radius of the rounded corners on each side of the cradle. -->
+    <attr name="fabCradleRoundedCornerRadius" format="dimension"/>
+    <!-- The vertical offset between the fab from the cradle. -->
+    <attr name="fabCradleVerticalOffset" format="dimension"/>
+    <!-- Whether the BottomAppBar should hide when a NestedScrollView is scrolled. -->
+    <attr name="hideOnScroll" format="boolean"/>
+  </declare-styleable>
   <declare-styleable name="BottomNavigationView"><attr name="menu"/><attr name="labelVisibilityMode">
 
     <enum name="auto" value="-1"/>
@@ -96,8 +116,130 @@
 
     <enum name="auto" value="-1"/>
   </attr><attr format="boolean" name="behavior_hideable"/><attr format="boolean" name="behavior_skipCollapsed"/><attr format="boolean" name="behavior_fitToContents"/></declare-styleable>
-  <declare-styleable name="Chip"><attr format="color" name="chipBackgroundColor"/><attr format="dimension" name="chipMinHeight"/><attr format="dimension" name="chipCornerRadius"/><attr format="color" name="chipStrokeColor"/><attr format="dimension" name="chipStrokeWidth"/><attr name="rippleColor"/><attr name="android:text"/><attr name="android:textAppearance"/><attr name="android:ellipsize"/><attr format="boolean" name="chipIconEnabled"/><attr format="reference" name="chipIcon"/><attr format="dimension" name="chipIconSize"/><attr format="boolean" name="closeIconEnabled"/><attr format="reference" name="closeIcon"/><attr format="color" name="closeIconTint"/><attr format="dimension" name="closeIconSize"/><attr name="android:checkable"/><attr format="boolean" name="checkedIconEnabled"/><attr format="reference" name="checkedIcon"/><attr name="showMotionSpec"/><attr name="hideMotionSpec"/><attr format="dimension" name="chipStartPadding"/><attr format="dimension" name="iconStartPadding"/><attr format="dimension" name="iconEndPadding"/><attr format="dimension" name="textStartPadding"/><attr format="dimension" name="textEndPadding"/><attr format="dimension" name="closeIconStartPadding"/><attr format="dimension" name="closeIconEndPadding"/><attr format="dimension" name="chipEndPadding"/></declare-styleable>
-  <declare-styleable name="ChipGroup"><attr format="dimension" name="chipSpacing"/><attr format="dimension" name="chipSpacingHorizontal"/><attr format="dimension" name="chipSpacingVertical"/><attr format="boolean" name="singleLine"/><attr format="boolean" name="singleSelection"/><attr format="reference" name="checkedChip"/></declare-styleable>
+  <declare-styleable name="Chip">
+    <!-- Surface layer color to apply to the chip. -->
+    <attr name="chipSurfaceColor" format="color"/>
+    <!-- Background color to apply to the chip. -->
+    <attr name="chipBackgroundColor" format="color"/>
+    <!-- Min height to apply to the chip. Total height includes stroke width. -->
+    <attr name="chipMinHeight" format="dimension"/>
+    <!-- Corner radius to apply to the chip's shape. -->
+    <attr name="chipCornerRadius" format="dimension"/>
+    <!-- Stroke color to apply to the chip's outline. -->
+    <attr name="chipStrokeColor" format="color"/>
+    <!-- Stroke width to apply to the chip's outline. -->
+    <attr name="chipStrokeWidth" format="dimension"/>
+    <!-- Ripple color to apply to the chip. -->
+    <attr name="rippleColor"/>
+    <!-- Minimum size of chip's touch target, by default, Android recommended 48dp. -->
+    <attr name="chipMinTouchTargetSize" format="dimension"/>
+    <!-- Reference to touch target delegate used to ensure that chip meets the minimum accessible
+     touch target size (48dp by default). Ignored if chip's hitRect already meets the minimum. -->
+    <attr name="chipTouchTargetDelegate" format="reference"/>
+
+    <!-- Text to display on the chip. -->
+    <attr name="android:text"/>
+    <!-- Text color. -->
+    <attr name="android:textColor"/>
+    <!-- Default appearance of text: color, typeface, size, and style. -->
+    <attr name="android:textAppearance"/>
+    <!-- If set, causes words that are longer than the view is wide to be ellipsized instead of
+         truncated at the end. -->
+    <attr name="android:ellipsize"/>
+    <!-- Make the Chip to be at most this many pixels wide. -->
+    <attr name="android:maxWidth"/>
+
+    <!-- Whether to show the chip icon. -->
+    <attr name="chipIconVisible" format="boolean"/>
+    <!-- Deprecated. Use chipIconVisible instead. -->
+    <attr name="chipIconEnabled" format="boolean"/>
+    <!-- Icon drawable to display at the start of the chip. -->
+    <attr name="chipIcon" format="reference"/>
+    <!-- Tint to apply to the chip icon. -->
+    <attr name="chipIconTint" format="color"/>
+    <!-- Size of the chip's icon and checked icon. -->
+    <attr name="chipIconSize" format="dimension"/>
+
+    <!-- Whether to show the close icon. -->
+    <attr name="closeIconVisible" format="boolean"/>
+    <!-- Deprecated. Use closeIconVisible instead. -->
+    <attr name="closeIconEnabled" format="boolean"/>
+    <!-- Close icon drawable to display at the end of the chip. -->
+    <attr name="closeIcon" format="reference"/>
+    <!-- Tint to apply to the chip's close icon. -->
+    <attr name="closeIconTint" format="color"/>
+    <!-- Size of the chip's close icon. -->
+    <attr name="closeIconSize" format="dimension"/>
+
+    <!-- Whether the chip can be checked. If false, the chip will act as a button. -->
+    <attr name="android:checkable"/>
+    <!-- Whether to show the checked icon. -->
+    <attr name="checkedIconVisible" format="boolean"/>
+    <!-- Deprecated. Use checkedIconVisible instead -->
+    <attr name="checkedIconEnabled" format="boolean"/>
+    <!-- Check icon drawable to overlay the chip's icon. -->
+    <attr name="checkedIcon" format="reference"/>
+
+    <!-- Motion spec for show animation. This should be a MotionSpec resource. -->
+    <attr name="showMotionSpec"/>
+    <!-- Motion spec for hide animation. This should be a MotionSpec resource. -->
+    <attr name="hideMotionSpec"/>
+
+    <!-- The following attributes are adjustable padding on the chip, listed from start to end. -->
+
+    <!-- Chip starts here. -->
+
+    <!-- Padding at the start of the chip, before the icon. -->
+    <attr name="chipStartPadding" format="dimension"/>
+    <!-- Padding at the start of the icon, after the start of the chip. If icon exists. -->
+    <attr name="iconStartPadding" format="dimension"/>
+
+    <!-- Icon is here. -->
+
+    <!-- Padding at the end of the icon, before the text. If icon exists. -->
+    <attr name="iconEndPadding" format="dimension"/>
+    <!-- Padding at the start of the text, after the icon. -->
+    <attr name="textStartPadding" format="dimension"/>
+
+    <!-- Text is here. -->
+
+    <!-- Padding at the end of the text, before the close icon. -->
+    <attr name="textEndPadding" format="dimension"/>
+    <!-- Padding at the start of the close icon, after the text. If close icon exists. -->
+    <attr name="closeIconStartPadding" format="dimension"/>
+
+    <!-- Close icon is here. -->
+
+    <!-- Padding at the end of the close icon, before the end of the chip. If close icon exists. -->
+    <attr name="closeIconEndPadding" format="dimension"/>
+    <!-- Padding at the end of the chip, after the close icon. -->
+    <attr name="chipEndPadding" format="dimension"/>
+
+    <!-- Chip ends here. -->
+  </declare-styleable>
+
+  <declare-styleable name="ChipGroup">
+
+    <!-- Horizontal and vertical spacing between chips in this group. -->
+    <attr name="chipSpacing" format="dimension"/>
+    <!-- Horizontal spacing between chips in this group. -->
+    <attr name="chipSpacingHorizontal" format="dimension"/>
+    <!-- Vertical spacing between chips in this group. -->
+    <attr name="chipSpacingVertical" format="dimension"/>
+
+    <!-- Constrains the chips in this group to a single horizontal line. By default, this is false
+         and the chips in this group will reflow to multiple lines.
+
+         If you set this to true, you'll usually want to wrap this ChipGroup in a
+         HorizontalScrollView. -->
+    <attr name="singleLine" format="boolean"/>
+
+    <!-- Whether only a single chip in this group is allowed to be checked at any time. By default,
+         this is false and multiple chips in this group are allowed to be checked at once. -->
+    <attr name="singleSelection" format="boolean"/>
+    <!-- The id of the child chip that should be checked by default within this chip group. -->
+    <attr name="checkedChip" format="reference"/>
+  </declare-styleable>
   <declare-styleable name="CollapsingToolbarLayout"><attr format="dimension" name="expandedTitleMargin"/><attr format="dimension" name="expandedTitleMarginStart"/><attr format="dimension" name="expandedTitleMarginTop"/><attr format="dimension" name="expandedTitleMarginEnd"/><attr format="dimension" name="expandedTitleMarginBottom"/><attr format="reference" name="expandedTitleTextAppearance"/><attr format="reference" name="collapsedTitleTextAppearance"/><attr format="color" name="contentScrim"/><attr format="color" name="statusBarScrim"/><attr format="reference" name="toolbarId"/><attr format="dimension" name="scrimVisibleHeightTrigger"/><attr format="integer" name="scrimAnimationDuration"/><attr name="collapsedTitleGravity">
 
     <flag name="top" value="0x30"/>

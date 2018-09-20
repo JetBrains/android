@@ -36,7 +36,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -111,6 +110,11 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
     return false;
   }
 

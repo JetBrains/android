@@ -31,9 +31,9 @@ abstract class AbstractParcelCheckerTest : KotlinAndroidTestCase() {
     }
 
     fun doTest(filename: String) {
-        myFixture.copyDirectoryToProject("plugins/android-extensions/android-extensions-runtime/src", "src/androidExtensionsRuntime")
+        myFixture.copyDirectoryToProject("android-extensions-runtime/src", "src/androidExtensionsRuntime")
 
-        val ktFile = File(filename)
+        val ktFile = File("$testDataPath/$filename")
         val virtualFile = myFixture.copyFileToProject(ktFile.absolutePath, "src/" + getTestName(true) + ".kt")
         myFixture.configureFromExistingVirtualFile(virtualFile)
 

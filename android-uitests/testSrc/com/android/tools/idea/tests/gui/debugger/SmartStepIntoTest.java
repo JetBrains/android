@@ -78,7 +78,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
    *   3. Should be able to step over through the native code and then successfully resume the app.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testSmartStepIntoNativeMethodWithDualDebugger() throws Exception {
     IdeFrameFixture ideFrame =

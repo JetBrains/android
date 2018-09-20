@@ -23,6 +23,8 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -711,6 +713,29 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
     return String.format("%s (%s)", process.getName(), buildDeviceName(device));
+  }
+
+  /**
+   * Enable or disable Memory Profiler live allocation tracking to improve app performance.
+   *
+   * @param enabled True to enable live allocation, false to disable.
+   */
+  public void setMemoryLiveAllocationEnabled(boolean enabled) {
+    if (getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled() &&
+        getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+      int savedSamplingRate = getIdeServices().getPersistentProfilerPreferences().getInt(
+        MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+      int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+      // If live allocation is already disabled, don't send any request.
+      if (savedSamplingRate != samplingRateOff) {
+        getClient().getMemoryClient().setAllocationSamplingRate(
+          SetAllocationSamplingRateRequest
+            .newBuilder()
+            .setSession(getSession())
+            .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff))
+            .build());
+      }
+    }
   }
 
   /**

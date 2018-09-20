@@ -17,18 +17,25 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.io.FileUtil;
+import icons.StudioIcons;
+import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -58,7 +65,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService, new FakeCpuService());
+    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService,
+                        new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -293,8 +301,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testContextMenu() {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
     FakeIdeProfilerComponents ideProfilerComponents = (FakeIdeProfilerComponents)stageView.getIdeComponents();
-    ContextMenuItem[] items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
 
+    ideProfilerComponents.clearContextMenuItems();
+    new MemoryProfilerStageView(myProfilersView, myStage);
+    ContextMenuItem[] items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
     assertThat(items.length).isEqualTo(13);
     assertThat(items[0].getText()).isEqualTo("Export...");
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
@@ -310,11 +320,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(items[11].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
     assertThat(items[12].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
 
-    // Adding allocation info to make getStage().useLiveAllocationTracking() return true;
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(AllocationsInfo.newBuilder()
-                                                                                      .setStatus(AllocationsInfo.Status.IN_PROGRESS)
-                                                                                      .setStartTime(1).setEndTime(5)
-                                                                                      .setLegacy(false).build()).build());
+    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
+    myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()).build());
     ideProfilerComponents.clearContextMenuItems();
     new MemoryProfilerStageView(myProfilersView, myStage);
     items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
@@ -345,15 +352,142 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     );
 
     // Test toolbar configuration for O+;
-    AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(liveAllocInfo).build());
+    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
+    myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()).build());
     MemoryProfilerStageView view2 = new MemoryProfilerStageView(myProfilersView, myStage);
     toolbar = (JPanel)view2.getToolbar().getComponent(0);
     assertThat(toolbar.getComponents()).asList().containsExactly(
       view2.getGarbageCollectionButtion(),
       view2.getHeapDumpButton(),
+      view2.getAllocationSamplingRateLabel(),
       view2.getAllocationSamplingRateDropDown()
     );
+  }
+
+  @Test
+  public void testGcDurationAttachment() {
+    // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
+    MemoryData data = MemoryData.newBuilder()
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(1000).setEndTime(2000))
+      .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(6000).setEndTime(7000))
+      .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(8000).setEndTime(9000))
+      .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(10000).setEndTime(11000))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(1000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(5000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(8000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(10000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+      .build();
+    myService.setMemoryData(data);
+
+    // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
+    myProfilerService.setAgentStatus(
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.getSessionsManager().beginSession(
+      Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build(),
+      Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build()
+    );
+    myProfilers.setStage(myStage);
+
+    // Manually set the time ranges so that the models are updated based on data within those ranges.
+    myProfilers.getTimeline().getDataRange().set(0, 10);
+    myProfilers.getTimeline().getViewRange().set(0, 10);
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    myTimer.setCurrentTimeNs(TimeUnit.MICROSECONDS.toNanos(10));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    DurationDataRenderer<GcDurationData> durationDataRenderer = view.getGcDurationDataRenderer();
+    java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
+    assertThat(renderedRegions.size()).isEqualTo(4);
+    int iconWidth = StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth();
+    int iconHeight = StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight();
+    // Point should be attached due to start of FULL mode
+    validateRegion(renderedRegions.get(0), 0.1f, 0.9f, iconWidth, iconHeight);
+    // Point should be detached due to SAMPLED mode
+    validateRegion(renderedRegions.get(1), 0.6f, 1f, iconWidth, iconHeight);
+    // Point should be detached due to NONE mode
+    validateRegion(renderedRegions.get(2), 0.8f, 1f, iconWidth, iconHeight);
+    // Point should be attached due to start of FULL mode
+    validateRegion(renderedRegions.get(3), 1f, 0f, iconWidth, iconHeight);
+  }
+
+  @Test
+  public void testAllocationSamplingRateAttachment() {
+    // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
+    MemoryData data = MemoryData.newBuilder()
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(1000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(5000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(8000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
+      .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
+         .setTimestamp(10000)
+         .setSamplingRate(AllocationSamplingRate.newBuilder()
+            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+      .build();
+    myService.setMemoryData(data);
+
+    // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
+    myProfilerService.setAgentStatus(
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.getSessionsManager().beginSession(
+      Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build(),
+      Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build()
+    );
+    myProfilers.setStage(myStage);
+
+    // Manually set the time ranges so that the models are updated based on data within those ranges.
+    myProfilers.getTimeline().getDataRange().set(0, 10);
+    myProfilers.getTimeline().getViewRange().set(0, 10);
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    myTimer.setCurrentTimeNs(TimeUnit.MICROSECONDS.toNanos(10));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer = view.getAllocationSamplingRateRenderer();
+    java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
+    assertThat(renderedRegions.size()).isEqualTo(4);
+    int iconWidth = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth();
+    int iconHeight = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight();
+    // Point should be attached due to start of FULL mode
+    validateRegion(renderedRegions.get(0), 0.1f, 0.9f, iconWidth, iconHeight);
+    // Point should be attached due to end of FULL mode
+    validateRegion(renderedRegions.get(1), 0.5f, 0.5f, iconWidth, iconHeight);
+    // Point should be detached because it's between SAMPLED and NONE modes
+    validateRegion(renderedRegions.get(2), 0.8f, 1f, iconWidth, iconHeight);
+    // Point should be attached due to start of FULL mode
+    validateRegion(renderedRegions.get(3), 1f, 0f, iconWidth, iconHeight);
+  }
+
+  private void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
+    final float EPSILON = 1e-6f;
+    assertThat(rect.x).isWithin(EPSILON).of(xStart);
+    assertThat(rect.y).isWithin(EPSILON).of(yStart);
+    assertThat(rect.width).isWithin(EPSILON).of(width);
+    assertThat(rect.height).isWithin(EPSILON).of(height);
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,

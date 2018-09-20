@@ -99,7 +99,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testNativeDebuggerBreakpoints() throws Exception {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 

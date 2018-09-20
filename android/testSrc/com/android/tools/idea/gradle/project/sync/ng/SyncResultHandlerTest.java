@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -24,6 +25,7 @@ import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import java.util.Collections;
 import org.mockito.Mock;
 
 import static org.mockito.Matchers.any;
@@ -119,5 +121,39 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener, never()).syncFailed(any(), any());
 
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+  }
+
+  public void testOnCompoundSyncModelsForOldPlugin() {
+    SyncProjectModels projectModels = mock(SyncProjectModels.class);
+    SyncModuleModels moduleModels = mock(SyncModuleModels.class);
+    AndroidProject androidProject = mock(AndroidProject.class);
+
+    when(projectModels.getModuleModels()).thenReturn(Collections.singletonList(moduleModels));
+    when(moduleModels.findModel(eq(AndroidProject.class))).thenReturn(androidProject);
+    when(androidProject.getModelVersion()).thenReturn("3.2.0");
+    when(mySyncCallback.getSyncModels()).thenReturn(projectModels);
+
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.generateSourcesAfterSync = false;
+    myResultHandler.onCompoundSyncModels(mySyncCallback, setupRequest, myIndicator, mySyncListener, false, true);
+
+    assertTrue(setupRequest.generateSourcesAfterSync);
+  }
+
+  public void testOnCompoundSyncModelsForNewPlugin() {
+    SyncProjectModels projectModels = mock(SyncProjectModels.class);
+    SyncModuleModels moduleModels = mock(SyncModuleModels.class);
+    AndroidProject androidProject = mock(AndroidProject.class);
+
+    when(projectModels.getModuleModels()).thenReturn(Collections.singletonList(moduleModels));
+    when(moduleModels.findModel(eq(AndroidProject.class))).thenReturn(androidProject);
+    when(androidProject.getModelVersion()).thenReturn("3.3.0");
+    when(mySyncCallback.getSyncModels()).thenReturn(projectModels);
+
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.generateSourcesAfterSync = false;
+    myResultHandler.onCompoundSyncModels(mySyncCallback, setupRequest, myIndicator, mySyncListener, false, true);
+
+    assertFalse(setupRequest.generateSourcesAfterSync);
   }
 }

@@ -865,6 +865,10 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.withDownscaleFactor(settings.getQuality());
     }
 
+    if (!settings.getShowDecorations()) {
+      taskBuilder.disableDecorations();
+    }
+
     return taskBuilder;
   }
 

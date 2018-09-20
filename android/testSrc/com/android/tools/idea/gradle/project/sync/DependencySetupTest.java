@@ -84,6 +84,11 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     return false;
   }
 
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
+  }
+
   public void testWithNonExistingInterModuleDependencies() throws Exception {
     loadSimpleApplication();
 

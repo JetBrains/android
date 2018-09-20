@@ -37,6 +37,8 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.*;
 import com.intellij.util.xml.*;
+import java.util.Arrays;
+import java.util.Objects;
 import org.jetbrains.android.dom.CompleteLibraryClasses;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -54,32 +56,82 @@ import java.util.List;
 public class PackageClassConverter extends ResolvingConverter<PsiClass> implements CustomReferenceConverter<PsiClass> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.converters.PackageClassConverter");
 
+  /**
+   * Use this {@link Builder} to construct a {@link PackageClassConverter}.
+   */
+  public static class Builder {
+    private boolean myUseManifestBasePackage;
+    private String[] myExtendClassesNames = ArrayUtil.EMPTY_STRING_ARRAY;
+    private String[] myExtraBasePackages = ArrayUtil.EMPTY_STRING_ARRAY;
+    private boolean myCompleteLibraryClasses;
+
+    /**
+     * @param doUseManifestBasePackage if true, even when the attribute it's not defined within the manifest,
+     *                                 the resolution will use the manifest package for completion.
+     */
+    public Builder useManifestBasePackage(boolean doUseManifestBasePackage) {
+      myUseManifestBasePackage = doUseManifestBasePackage;
+      return this;
+    }
+
+    /**
+     * @param doCompleteLibraryClasses if true, offer library classes in code completion
+     */
+    public Builder completeLibraryClasses(boolean doCompleteLibraryClasses) {
+      myCompleteLibraryClasses = doCompleteLibraryClasses;
+      return this;
+    }
+
+    /**
+     * @param classNames list of the classes that the searched class can extend
+     */
+    public Builder withExtendClassNames(String... classNames) {
+      myExtendClassesNames = classNames;
+      return this;
+    }
+
+    /**
+     * @param basePackages  list of package names that will be used for class resolution if the class name is specified without
+     *                      a package name. A preceding "." in the class name indicates that the manifest package name should be
+     *                      used instead of these package names. The specified package names must end with a "."
+     */
+    public Builder withExtraBasePackages(String... basePackages) {
+      myExtraBasePackages = basePackages;
+      return this;
+    }
+
+    public PackageClassConverter build() {
+      return new PackageClassConverter(myUseManifestBasePackage, myExtraBasePackages, myCompleteLibraryClasses, myExtendClassesNames);
+    }
+  }
+
   private final boolean myUseManifestBasePackage;
   private final String[] myExtendClassesNames;
+  private final String[] myExtraBasePackages;
   private final boolean myCompleteLibraryClasses;
 
   /**
    * Constructs a new {@link PackageClassConverter}.
    *
-   * @param useManifestBasePackage if true, even when the attribute it's not defined within the manifest, the resolution will use the
-   *                               manifest package for completion
-   * @param completeLibraryClasses if true, offer library classes in code completion
-   * @param extendClassesNames     list of the classes that the searched class can extend
    *
    * @see CompleteLibraryClasses
    */
-  public PackageClassConverter(boolean useManifestBasePackage, boolean completeLibraryClasses, String... extendClassesNames) {
+  protected PackageClassConverter(boolean useManifestBasePackage,
+                                  String[] extraBasePackages,
+                                  boolean completeLibraryClasses,
+                                  String[] extendClassesNames) {
     myUseManifestBasePackage = useManifestBasePackage;
+    myExtraBasePackages = extraBasePackages;
     myCompleteLibraryClasses = completeLibraryClasses;
     myExtendClassesNames = extendClassesNames;
   }
 
   public PackageClassConverter(String... extendClassesNames) {
-    this(false, false, extendClassesNames);
+    this(false, ArrayUtil.EMPTY_STRING_ARRAY, false, extendClassesNames);
   }
 
   public PackageClassConverter() {
-    this(false, false, ArrayUtil.EMPTY_STRING_ARRAY);
+    this(false, ArrayUtil.EMPTY_STRING_ARRAY, false, ArrayUtil.EMPTY_STRING_ARRAY);
   }
 
   @Override
@@ -104,32 +156,80 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   }
 
   @Override
-  public PsiClass fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
-    if (s == null) {
-      return null;
-    }
+  @Nullable
+  public PsiClass fromString(@Nullable @NonNls String nameValue, @NotNull ConvertContext context) {
     String manifestPackage = getManifestPackage(context);
-    s = s.replace('$', '.');
-    String className = null;
-
-    if (manifestPackage != null) {
-      if (s.startsWith(".")) {
-        className = manifestPackage + s;
-      }
-      else {
-        className = manifestPackage + "." + s;
-      }
-    }
     JavaPsiFacade facade = JavaPsiFacade.getInstance(context.getPsiManager().getProject());
-    final Module module = context.getModule();
+    Module module = context.getModule();
     GlobalSearchScope scope = module != null
                               ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
                               : context.getInvocationElement().getResolveScope();
-    PsiClass psiClass = className != null ? facade.findClass(className, scope) : null;
-    if (psiClass == null) {
-      psiClass = facade.findClass(s, scope);
+    return findClassFromString(nameValue, facade, scope, manifestPackage, myExtraBasePackages);
+  }
+
+  @Nullable
+  private static PsiClass findClassFromString(@Nullable String s,
+                                              @NotNull JavaPsiFacade facade,
+                                              @NotNull GlobalSearchScope scope,
+                                              @Nullable String manifestPackage,
+                                              @NotNull String[] extraBasePackages) {
+    if (s == null) {
+      return null;
     }
-    return psiClass;
+    s = s.replace('$', '.');
+    List<String> prefixes = new ArrayList<>();
+
+    if (s.startsWith(".")) {
+      if (manifestPackage != null) {
+        prefixes.add(manifestPackage);
+      }
+      else {
+        return null;
+      }
+    }
+    else {
+      if (extraBasePackages.length > 0) {
+        prefixes.addAll(Arrays.asList(extraBasePackages));
+      }
+      if (manifestPackage != null) {
+        prefixes.add(manifestPackage + ".");
+      }
+      prefixes.add("");
+    }
+    String className = s;
+    return prefixes.stream()
+                   .map(prefix -> facade.findClass(prefix + className, scope))
+                   .filter(Objects::nonNull)
+                   .findFirst()
+                   .orElse(null);
+  }
+
+  @Nullable
+  private static PsiPackage findPackageFromString(@Nullable String s, @NotNull JavaPsiFacade facade, @Nullable String manifestPackage) {
+    if (s == null) {
+      return null;
+    }
+    List<String> prefixes = new ArrayList<>();
+
+    if (s.startsWith(".")) {
+      if (manifestPackage != null) {
+        prefixes.add(manifestPackage);
+      }
+      else {
+        return null;
+      }
+    }
+    else {
+      if (manifestPackage != null) {
+        prefixes.add(manifestPackage + ".");
+      }
+      prefixes.add("");
+    }
+    return prefixes.stream()
+                   .map(prefix -> facade.findPackage(prefix + s))
+                   .filter(Objects::nonNull)
+                   .findFirst()
+                   .orElse(null);
   }
 
   @NotNull
@@ -174,8 +274,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         if (index > myPartStart) {
           final TextRange range = new TextRange(start + myPartStart, start + index);
           final MyReference reference =
-            new MyReference(element, range, manifestPackage, startsWithPoint, start, myIsPackage, module, extendClassesNames,
-                            completeLibraryClasses, isTestFile);
+            new MyReference(element, range, manifestPackage, myExtraBasePackages, startsWithPoint, start, myIsPackage, module,
+                            extendClassesNames, completeLibraryClasses, isTestFile);
           result.add(reference);
         }
 
@@ -269,7 +369,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
   private static class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
     private final int myStart;
-    private final String myBasePackage;
+    private final String myManifestPackage;
+    private final String[] myExtraBasePackages;
     private final boolean myStartsWithPoint;
     private final boolean myIsPackage;
     @Nullable private final Module myModule;
@@ -279,7 +380,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     public MyReference(PsiElement element,
                        TextRange range,
-                       String basePackage,
+                       String manifestPackage,
+                       String[] extraBasePackages,
                        boolean startsWithPoint,
                        int start,
                        boolean isPackage,
@@ -288,7 +390,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
                        boolean completeLibraryClasses,
                        boolean includeTests) {
       super(element, range, true);
-      myBasePackage = basePackage;
+      myManifestPackage = manifestPackage;
+      myExtraBasePackages = extraBasePackages;
       myStartsWithPoint = startsWithPoint;
       myStart = start;
       myIsPackage = isPackage;
@@ -300,41 +403,22 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     @Override
     public PsiElement resolve() {
-      return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, new ResolveCache.Resolver() {
-        @Nullable
-        @Override
-        public PsiElement resolve(@NotNull PsiReference reference, boolean incompleteCode) {
-          return resolveInner();
-        }
-      }, false, false);
+      return ResolveCache.getInstance(myElement.getProject())
+                         .resolveWithCaching(this,
+                                             (ResolveCache.Resolver)(reference, incompleteCode) -> resolveInner(), false, false);
     }
 
     @Nullable
     private PsiElement resolveInner() {
-      final String value = getCurrentValue();
-      final JavaPsiFacade facade = JavaPsiFacade.getInstance(myElement.getProject());
+      String value = getCurrentValue();
+      JavaPsiFacade facade = JavaPsiFacade.getInstance(myElement.getProject());
+      GlobalSearchScope scope = myModule != null
+                                ? myModule.getModuleWithDependenciesAndLibrariesScope(myIncludeTests)
+                                : myElement.getResolveScope();
 
-      if (!myStartsWithPoint) {
-        final PsiElement element = myIsPackage ?
-                                   facade.findPackage(value) :
-                                   facade.findClass(value, myModule != null
-                                                           ? myModule.getModuleWithDependenciesAndLibrariesScope(myIncludeTests)
-                                                           : myElement.getResolveScope());
-
-        if (element != null) {
-          return element;
-        }
-      }
-
-      final String absName = getAbsoluteName(value);
-      if (absName != null) {
-        return myIsPackage ?
-               facade.findPackage(absName) :
-               facade.findClass(absName, myModule != null
-                                         ? myModule.getModuleWithDependenciesAndLibrariesScope(myIncludeTests)
-                                         : myElement.getResolveScope());
-      }
-      return null;
+      return myIsPackage ?
+             findPackageFromString(value, facade, myManifestPackage) :
+             findClassFromString(value, facade, scope, myManifestPackage, myExtraBasePackages);
     }
 
     @NotNull
@@ -345,10 +429,10 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     @Nullable
     private String getAbsoluteName(String value) {
-      if (myBasePackage == null) {
+      if (myManifestPackage == null) {
         return null;
       }
-      return myBasePackage + (myStartsWithPoint ? "" : ".") + value;
+      return myManifestPackage + (myStartsWithPoint ? "" : ".") + value;
     }
 
     @NotNull
@@ -365,7 +449,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         for (int i = 0, n = classes.size(); i < n; i++) {
           final PsiClass psiClass = classes.get(i);
           final String prefix = myElement.getText().substring(myStart, getRangeInElement().getStartOffset());
-          String name = classToString(psiClass, myBasePackage, prefix);
+          String name = classToString(psiClass, myManifestPackage, prefix);
 
           if (name != null && name.startsWith(prefix)) {
             name = name.substring(prefix.length());
@@ -402,25 +486,25 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     @Override
     public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
       if (element instanceof PsiClass || element instanceof PsiPackage) {
-        if (myIsPackage && myBasePackage != null &&
-            AndroidUtils.isPackagePrefix(getCurrentValue(), myBasePackage)) {
+        if (myIsPackage && myManifestPackage != null &&
+            AndroidUtils.isPackagePrefix(getCurrentValue(), myManifestPackage)) {
           // in such case reference updating is performed by AndroidPackageConverter.MyPsiPackageReference#bindToElement()
           return super.bindToElement(element);
         }
         String newName;
         if (element instanceof PsiClass) {
-          newName = classToString((PsiClass)element, myBasePackage, "");
+          newName = classToString((PsiClass)element, myManifestPackage, "");
           // Check if the class has a full-qualified name. In this case, as classToString(...) will return a shortened version, add the base
           // package as a prefix of the new name.
-          if (myBasePackage != null && AndroidUtils.isPackagePrefix(myBasePackage, getCurrentValue()) &&
-              newName != null && !newName.startsWith(myBasePackage)) {
-            newName = myBasePackage + (newName.startsWith(".") ? "" : ".") + newName;
+          if (myManifestPackage != null && AndroidUtils.isPackagePrefix(myManifestPackage, getCurrentValue()) &&
+              newName != null && !newName.startsWith(myManifestPackage)) {
+            newName = myManifestPackage + (newName.startsWith(".") ? "" : ".") + newName;
           }
         } else {
           // Check if the current package has a full-qualified name and, in case it has, make sure the renamed package
           // has also a full-qualified name. resolveInner() is used to check if the package has full-qualified name because it returns null
           // if the package is named using shortened notation.
-          newName = packageToString((PsiPackage)element, myBasePackage, resolve() != null);
+          newName = packageToString((PsiPackage)element, myManifestPackage, resolve() != null);
         }
 
         assert newName != null;
@@ -458,7 +542,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       }
 
       String value = getCurrentValue();
-      if (myStartsWithPoint && myBasePackage != null) {
+      if (myStartsWithPoint && myManifestPackage != null) {
         value = getAbsoluteName(value);
       }
 
@@ -478,5 +562,4 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       return new LocalQuickFix[]{new CreateMissingClassQuickFix(aPackage, value.substring(dot + 1), myModule, baseClassFqcn)};
     }
   }
-
 }

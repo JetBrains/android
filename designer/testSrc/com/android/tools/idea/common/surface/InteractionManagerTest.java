@@ -81,8 +81,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,100:2x2, instance=0}\n" +
-                      "    NlComponent{tag=<TextView>, bounds=[0,100:2x2, instance=1}";
+    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
+                      "    NlComponent{tag=<TextView>, bounds=[0,0:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
     assertEquals("Hello World", model.find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
   }
@@ -111,8 +111,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,100:2x2, instance=0}\n" +
-                      "    NlComponent{tag=<ImageView>, bounds=[0,100:2x2, instance=1}";
+    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
+                      "    NlComponent{tag=<ImageView>, bounds=[0,0:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
     assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
   }

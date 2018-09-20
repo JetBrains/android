@@ -43,7 +43,7 @@ public class SketchGraphicsContextSettings {
   /**
    * Opacity as a percentage
    */
-  private double opacity;
+  private final double opacity;
 
   public SketchGraphicsContextSettings(short blendMode, double opacity) {
     this.blendMode = blendMode;
@@ -56,14 +56,5 @@ public class SketchGraphicsContextSettings {
 
   public double getOpacity() {
     return opacity;
-  }
-
-  /**
-   * Multiplies the current opacity with the provided one
-   *
-   * @param opacityParam
-   */
-  public void addOpacity(double opacityParam) {
-    opacity *= opacityParam;
   }
 }

@@ -27,11 +27,11 @@ class ChipHandler : ViewHandler() {
       ATTR_CHECKABLE,
       ATTR_TEXT,
       ATTR_CHIP_ICON,
-      ATTR_CHIP_ICON_ENABLED,
+      ATTR_CHIP_ICON_VISIBLE,
       ATTR_CHECKED_ICON,
-      ATTR_CHECKED_ICON_ENABLED,
+      ATTR_CHECKED_ICON_VISIBLE,
       ATTR_CLOSE_ICON,
-      ATTR_CLOSE_ICON_ENABLED)
+      ATTR_CLOSE_ICON_VISIBLE)
   }
 
   override fun getBaseStyles(tagName: String): List<String> {

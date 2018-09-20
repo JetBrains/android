@@ -15,22 +15,80 @@
  */
 package com.android.tools.adtui.chart.linechart
 
-import com.android.tools.adtui.model.*
+import com.android.tools.adtui.model.DefaultDataSeries
+import com.android.tools.adtui.model.DurationData
+import com.android.tools.adtui.model.DurationDataModel
+import com.android.tools.adtui.model.Interpolatable
+import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.RangedContinuousSeries
+import com.android.tools.adtui.model.RangedSeries
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Color
+import java.awt.Component
+import java.awt.Cursor
+import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Rectangle
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
-import java.util.*
-import java.util.function.Predicate
+import java.util.Arrays
+import java.util.Collections
 import javax.swing.Icon
+import javax.swing.JPanel
 
 const val EPSILON: Float = 1e-6f
 
 class DurationDataRendererTest {
+
+  @Test
+  fun testCursorIsSetToDefaultWhenMouseIsOverLabel() {
+    // Setup some data for the attached data seres
+    val xRange = Range(0.0, 10.0)
+    val yRange = Range(0.0, 10.0)
+    val attachedSeries = DefaultDataSeries<Long>()
+    attachedSeries.add(4, 4)
+    val attachedRangeSeries = RangedContinuousSeries("attached", xRange, yRange, attachedSeries)
+
+    // Setup the duration data series
+    val dataSeries = DefaultDataSeries<DurationData>()
+    dataSeries.add(0, DurationData { 0 })
+    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
+    durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
+    durationData.setAttachPredicate { data -> data.x == 6L }
+
+    // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
+    // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
+    val dummyIcon = object : Icon {
+      override fun getIconHeight(): Int = 5
+      override fun getIconWidth(): Int = 5
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    val underneathComponent = JPanel()
+    val overlayComponent = OverlayComponent(underneathComponent)
+    overlayComponent.bounds = Rectangle(0, 0, 200, 50)
+    overlayComponent.addDurationDataRenderer(durationDataRenderer)
+
+    durationData.update(1) // Forces duration data renderer to update
+
+    assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(1)
+    validateRegion(durationDataRenderer.clickRegionCache[0], 0f, 1f, 5f, 5f)       // attached series has no data before this point, y == 1.
+
+    underneathComponent.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+
+    val fakeUi = FakeUi(overlayComponent)
+    val clickRegionRect = durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 200, 50)
+    fakeUi.mouse.moveTo(0, 0)
+    assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+
+    fakeUi.mouse.moveTo(clickRegionRect.x.toInt()+1, clickRegionRect.y.toInt()+1)
+    assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+  }
 
   @Test
   fun testDurationDataPositioning() {
@@ -58,7 +116,7 @@ class DurationDataRendererTest {
     }
     val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
-    durationData.setAttachPredicate { data -> data.x == 6L}
+    durationData.setAttachPredicate { data -> data.x >= 6L}
 
     // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
     val mockIcon = mock(Icon::class.java)
@@ -72,7 +130,9 @@ class DurationDataRendererTest {
     validateRegion(durationDataRenderer.clickRegionCache[1], 0.2f, 1f, 5f, 5f)    // attached series has no data before this point, y == 1.
     validateRegion(durationDataRenderer.clickRegionCache[2], 0.4f, 1f, 5f, 5f)    // attached predicate fails.
     validateRegion(durationDataRenderer.clickRegionCache[3], 0.6f, 0.4f, 5f, 5f)
-    validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 1f, 5f, 5f)   // attached series has no data after this point. y == 1.
+    // attached series has no data after this point, use the last point as the attached y.
+    validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
+
   }
 
   @Test

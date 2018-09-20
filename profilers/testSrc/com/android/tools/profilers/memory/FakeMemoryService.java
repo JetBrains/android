@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
@@ -64,6 +65,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -119,6 +121,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
+  /**
+   * By default assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE.
+   */
+  private static final long DEFAULT_LATEST_ALLOCATION_TIME = Long.MAX_VALUE - 1;
+
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
@@ -131,6 +138,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
   private Common.Session mySession;
+  private int mySamplingRate = 1;
+
+  /**
+   * Stores the return value for {@link #getLatestAllocationTime(LatestAllocationTimeRequest, StreamObserver)}.
+   */
+  private long myLatestAllocationTime = DEFAULT_LATEST_ALLOCATION_TIME;
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
@@ -259,8 +272,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void getLatestAllocationTime(LatestAllocationTimeRequest request,
                                       StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    // Assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE
-    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(Long.MAX_VALUE - 1).build());
+    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(myLatestAllocationTime).build());
     responseObserver.onCompleted();
   }
 
@@ -467,6 +479,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void setAllocationSamplingRate(MemoryProfiler.SetAllocationSamplingRateRequest request,
+                                        StreamObserver<MemoryProfiler.SetAllocationSamplingRateResponse> responseObserver) {
+    mySamplingRate = request.getSamplingRate().getSamplingNumInterval();
+    responseObserver.onNext(MemoryProfiler.SetAllocationSamplingRateResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
   @NotNull
   public FakeMemoryService setExplicitAllocationsStatus(@Nullable Status status) {
     myExplicitAllocationsStatus = status;
@@ -538,5 +558,17 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public void resetTrackAllocationCount() {
     myTrackAllocationCount = 0;
+  }
+
+  public int getSamplingRate() {
+    return mySamplingRate;
+  }
+
+  public void setLatestAllocationTime(long latestAllocationTime) {
+    myLatestAllocationTime = latestAllocationTime;
+  }
+
+  public void resetLatestAllocationTime() {
+    setLatestAllocationTime(DEFAULT_LATEST_ALLOCATION_TIME);
   }
 }

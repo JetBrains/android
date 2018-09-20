@@ -60,7 +60,7 @@ public class JavaDepTest {
    *   1. Create a new Android Studio project.
    *   2. Go to File Menu > New Module > Java Library.
    *   3. Create new Java library module.
-   *   4. Add "compile 'com.google.code.gson:gson:2.6.2" to library module's build.gradle file in dependencies section.
+   *   4. Add "api 'com.google.code.gson:gson:2.6.2" to library module's build.gradle file in dependencies section.
    *   5. Right click on the app module > Module settings under dependencies, add module dependency to library create in step 2.
    *   6. Add in the line "Gson gson = new Gson();" in class files of app module and library module.
    *   Verification
@@ -81,7 +81,7 @@ public class JavaDepTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("/lib/build.gradle")
       .select("dependencies \\{()")
-      .enterText("\ncompile 'com.google.code.gson:gson:2.6.2'\n");
+      .enterText("\napi 'com.google.code.gson:gson:2.6.2'\n");
 
     ideFrame.getProjectView()
       .selectProjectPane()
@@ -95,10 +95,10 @@ public class JavaDepTest {
       .clickOk();
 
     editor.open("/app/src/main/java/android/com/app/MainActivity.java")
-      .select("()public class MainActivity")
-      .enterText("import com.google.gson.Gson;\n\n")
-      .moveBetween("public class MainActivity extends AppCompatActivity {", "")
-      .enterText("\nGson gson = new Gson();\n");
+          .moveBetween("setContentView(R.layout.activity_main);", "")
+          .enterText("\nGson gson = new Gson();")
+          .select("()public class MainActivity")
+          .enterText("import com.google.gson.Gson;\n\n");
 
     GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());

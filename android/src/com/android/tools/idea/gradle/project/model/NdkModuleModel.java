@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static java.util.Collections.sort;
+
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeSettings;
 import com.android.builder.model.NativeToolchain;
@@ -23,18 +25,22 @@ import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.*;
-
-import static java.util.Collections.sort;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -235,6 +241,14 @@ public class NdkModuleModel implements ModuleModel {
    */
   @NotNull
   public String getVariantName(@NotNull String ndkVariantName) {
+    NdkVariantName result = myVariantNamesByVariantAndAbiName.get(ndkVariantName);
+    if (result == null) {
+      throw new RuntimeException(String.format(
+        "Variant named '%s' but only variants named '%s' were found.",
+        ndkVariantName,
+        Joiner.on(",").join(myVariantNamesByVariantAndAbiName.keySet())));
+    }
+
     return myVariantNamesByVariantAndAbiName.get(ndkVariantName).variant;
   }
 
@@ -353,7 +367,7 @@ public class NdkModuleModel implements ModuleModel {
     if (!(obj instanceof NdkModuleModel)) {
       return false;
     }
-    NdkModuleModel that = (NdkModuleModel) obj;
+    NdkModuleModel that = (NdkModuleModel)obj;
     if (!Objects.equals(this.myModuleName, that.myModuleName)) {
       return false;
     }
