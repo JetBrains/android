@@ -76,12 +76,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
-        val wildcardCoordinate = GradleCoordinate(mavenGroupId, mavenArtifactId, "+")
-        return availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
-               ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
-      }
-
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
         : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
         val found = mutableListOf<GradleCoordinate>()

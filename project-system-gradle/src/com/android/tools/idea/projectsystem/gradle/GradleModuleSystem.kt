@@ -92,12 +92,6 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
     return getInstantRunCapabilityStatus(module)
   }
 
-  @Deprecated("Use analyzeDependencyCompatibility instead")
-  override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
-    val (found, _, _) = analyzeDependencyCompatibility(listOf(GradleCoordinate(mavenGroupId, mavenArtifactId, "+")))
-    return found.firstOrNull()
-  }
-
   private fun createGradleCoordinate(mavenGroupId: String, mavenArtifactId: String, version: GradleVersion) =
     GradleCoordinate(mavenGroupId, mavenArtifactId, version.toString())
 

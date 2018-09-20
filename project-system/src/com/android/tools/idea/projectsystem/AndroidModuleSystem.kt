@@ -39,18 +39,6 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Returns a [GradleCoordinate] of the latest compatible artifact of the given maven project.
-   * This function returns non-null only if the build system can find a version of the artifact that is
-   * compatible with the rest of this module's dependencies.
-   * When there are multiple versions of the artifact that satisfy the above conditions, the latest
-   * stable artifact is selected. In the event that a stable artifact does not exist this function
-   * will fallback to searching for preview artifacts.
-   * <p>
-   * **Note**: This function may perform read actions.
-   */
-  fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate?
-
-  /**
    * Analyzes the compatibility of the [dependenciesToAdd] with the existing artifacts in the project.
    *
    * The version component of each of the coordinates in [dependenciesToAdd] are disregarded.
