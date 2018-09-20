@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-
-import java.awt.*;
+import com.intellij.util.ui.JBUI;
+import java.awt.Color;
+import java.awt.Graphics2D;
 
 /**
  * Draw Anchors
@@ -30,6 +31,7 @@ import java.awt.*;
 public class DrawResize extends DrawRegion {
   public static final int NORMAL = 0;
   public static final int OVER = 1;
+  public static final int SIZE = JBUI.scale(8);
 
   int myMode;
 
@@ -40,8 +42,8 @@ public class DrawResize extends DrawRegion {
     myMode = Integer.parseInt(sp[c++]);
   }
 
-  public DrawResize(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, int mode) {
-    super(x, y, width, height);
+  public DrawResize(@SwingCoordinate int x, @SwingCoordinate int y, int mode) {
+    super(x - SIZE / 2, y - SIZE / 2, SIZE, SIZE);
     myMode = mode;
   }
 
@@ -51,6 +53,9 @@ public class DrawResize extends DrawRegion {
     Color background = colorSet.getSelectedFrames();
     g.setColor(background);
     g.fillRect(x, y, width, height);
+    //noinspection UseJBColor
+    g.setColor(Color.WHITE);
+    g.drawRect(x, y, width, height);
   }
 
   @Override
@@ -62,13 +67,9 @@ public class DrawResize extends DrawRegion {
                          SceneContext transform,
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
-                         @AndroidDpCoordinate float right,
-                         @AndroidDpCoordinate float bottom,
                          int mode) {
     int l = transform.getSwingXDip(left);
     int t = transform.getSwingYDip(top);
-    int w = transform.getSwingDimensionDip(right - left);
-    int h = transform.getSwingDimensionDip(bottom - top);
-    list.add(new DrawResize(l, t, w, h, mode));
+    list.add(new DrawResize(l, t, mode));
   }
 }

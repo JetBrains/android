@@ -56,7 +56,7 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (isHittable()) {
-      DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
+      DrawResize.add(list, sceneContext, myLeft, myTop, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
 
       if (myWrapSize != null) {
         renderWrapSizeSnapLines(list, sceneContext, myWrapSize.width, myWrapSize.height);

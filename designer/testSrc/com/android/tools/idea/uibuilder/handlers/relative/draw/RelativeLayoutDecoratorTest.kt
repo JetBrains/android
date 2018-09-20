@@ -356,10 +356,10 @@ DrawComponentBackground,275,215,30,10,1
 DrawSwitch,275,215,30,10,0,0,false,false,2,2,14,1.0,"switch"
 DrawComponentBackground,195,275,30,10,3
 DrawNlComponentFrame,195,275,30,10,3,20,20
-DrawResize,193,273,4,4,0
-DrawResize,193,283,4,4,0
-DrawResize,223,273,4,4,0
-DrawResize,223,283,4,4,0
+DrawResize,191,271,8,8,0
+DrawResize,191,281,8,8,0
+DrawResize,221,271,8,8,0
+DrawResize,221,281,8,8,0
 DrawAnchor,192,277,6,6,0
 DrawAnchor,207,271,6,6,0
 DrawAnchor,222,277,6,6,0

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import static com.intellij.util.ui.JBUI.scale;
-
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -31,10 +29,9 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Cursor;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for resizing targets.
@@ -42,7 +39,6 @@ import java.util.List;
 public abstract class ResizeBaseTarget extends BaseTarget {
 
   protected final Type myType;
-  protected final int mySize = scale(2);
 
   @AndroidDpCoordinate protected int myStartX1;
   @AndroidDpCoordinate protected int myStartY1;
@@ -77,85 +73,54 @@ public abstract class ResizeBaseTarget extends BaseTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
-    float size = (mySize * ratio);
-    float minWidth = 4 * size;
-    float minHeight = 4 * size;
-    if (r - l < minWidth) {
-      float d = (minWidth - (r - l)) / 2f;
-      l -= d;
-      r += d;
-    }
-    if (b - t < minHeight) {
-      float d = (minHeight - (b - t)) / 2f;
-      t -= d;
-      b += d;
-    }
-    int w = r - l;
-    int h = b - t;
-    int mw = l + w / 2;
-    int mh = t + h / 2;
+    int width = r - l;
+    int height = b - t;
+    int horizontalCenter = l + width / 2;
+    int verticalCenter = t + height / 2;
     switch (myType) {
       case LEFT: {
-        myLeft = l - size;
-        myTop = mh - size;
-        myRight = l + size;
-        myBottom = mh + size;
+        myLeft = l;
+        myTop = verticalCenter;
       }
       break;
       case TOP: {
-        myLeft = mw - size;
-        myTop = t - size;
-        myRight = mw + size;
-        myBottom = t + size;
+        myLeft = horizontalCenter;
+        myTop = t;
       }
       break;
       case RIGHT: {
-        myLeft = r - size;
-        myTop = mh - size;
-        myRight = r + size;
-        myBottom = mh + size;
+        myLeft = r;
+        myTop = verticalCenter;
       }
       break;
       case BOTTOM: {
-        myLeft = mw - size;
-        myTop = b - size;
-        myRight = mw + size;
-        myBottom = b + size;
+        myLeft = horizontalCenter;
+        myTop = b;
       }
       break;
       case LEFT_TOP: {
-        myLeft = l - size;
-        myTop = t - size;
-        myRight = l + size;
-        myBottom = t + size;
+        myLeft = l;
+        myTop = t;
       }
       break;
       case LEFT_BOTTOM: {
-        myLeft = l - size;
-        myTop = b - size;
-        myRight = l + size;
-        myBottom = b + size;
+        myLeft = l;
+        myTop = b;
       }
       break;
       case RIGHT_TOP: {
-        myLeft = r - size;
-        myTop = t - size;
-        myRight = r + size;
-        myBottom = t + size;
+        myLeft = r;
+        myTop = t;
       }
       break;
       case RIGHT_BOTTOM: {
-        myLeft = r - size;
-        myTop = b - size;
-        myRight = r + size;
-        myBottom = b + size;
+        myLeft = r;
+        myTop = b;
       }
       break;
     }
+    myRight = myLeft;
+    myBottom = myTop;
     return false;
   }
 
@@ -191,15 +156,18 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (isHittable()) {
-      DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
+      DrawResize.add(list, sceneContext, myLeft, myTop, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
     }
   }
 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     if (isHittable()) {
-      picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
-                     transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+      int halfSize = DrawResize.SIZE / 2;
+      picker.addRect(this, 0, transform.getSwingXDip(myLeft) - halfSize,
+                     transform.getSwingYDip(myTop) - halfSize,
+                     transform.getSwingXDip(myRight) + halfSize,
+                     transform.getSwingYDip(myBottom) + halfSize);
     }
   }
 

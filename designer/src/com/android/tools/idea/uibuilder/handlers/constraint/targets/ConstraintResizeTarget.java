@@ -15,108 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import static com.intellij.util.ui.JBUI.scale;
-
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
 public class ConstraintResizeTarget extends ResizeBaseTarget {
 
   public ConstraintResizeTarget(@NotNull Type type) {
     super(type);
-  }
-
-  @Override
-  public boolean layout(@NotNull SceneContext sceneTransform,
-                        @AndroidDpCoordinate int l,
-                        @AndroidDpCoordinate int t,
-                        @AndroidDpCoordinate int r,
-                        @AndroidDpCoordinate int b) {
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
-    float size = (mySize * ratio);
-    float minWidth = 4 * size;
-    float minHeight = 4 * size;
-    if (r - l < minWidth) {
-      float d = (minWidth - (r - l)) / 2f;
-      l -= d;
-      r += d;
-    }
-    if (b - t < minHeight) {
-      float d = (minHeight - (b - t)) / 2f;
-      t -= d;
-      b += d;
-    }
-    int w = r - l;
-    int h = b - t;
-    switch (myType) {
-      case LEFT: {
-        myLeft = l - size;
-        myTop = t;
-        myRight = l + size;
-        myBottom = b;
-      }
-      break;
-      case TOP: {
-        myLeft = l;
-        myTop = t - size;
-        myRight = r;
-        myBottom = t + size;
-      }
-      break;
-      case RIGHT: {
-        myLeft = r - size;
-        myTop = t;
-        myRight = r + size;
-        myBottom = b;
-      }
-      break;
-      case BOTTOM: {
-        myLeft = l;
-        myTop = b - size;
-        myRight = r;
-        myBottom = b + size;
-      }
-      break;
-      case LEFT_TOP: {
-        myLeft = l - size;
-        myTop = t - size;
-        myRight = l + size;
-        myBottom = t + size;
-      }
-      break;
-      case LEFT_BOTTOM: {
-        myLeft = l - size;
-        myTop = b - size;
-        myRight = l + size;
-        myBottom = b + size;
-      }
-      break;
-      case RIGHT_TOP: {
-        myLeft = r - size;
-        myTop = t - size;
-        myRight = r + size;
-        myBottom = t + size;
-      }
-      break;
-      case RIGHT_BOTTOM: {
-        myLeft = r - size;
-        myTop = b - size;
-        myRight = r + size;
-        myBottom = b + size;
-      }
-      break;
-    }
-    return false;
   }
 
   @Override

@@ -98,10 +98,10 @@ Clip,0,0,1000,1000
 DrawComponentBackground,100,200,100,20,3
 DrawTextRegion,100,200,100,20,2,0,false,false,5,5,28,1.0,""
 DrawNlComponentFrame,100,200,100,20,3,20,20
-DrawResize,98,198,4,4,0
-DrawResize,98,218,4,4,0
-DrawResize,198,198,4,4,0
-DrawResize,198,218,4,4,0
+DrawResize,96,196,8,8,0
+DrawResize,96,216,8,8,0
+DrawResize,196,196,8,8,0
+DrawResize,196,216,8,8,0
 DrawAnchor,97,207,6,6,0
 DrawAnchor,147,197,6,6,0
 DrawAnchor,197,207,6,6,0
