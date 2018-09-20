@@ -18,7 +18,6 @@ package com.android.tools.idea.ddms.actions;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
-import com.android.utils.FileUtils;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
@@ -33,6 +32,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -45,13 +47,13 @@ final class ScreenRecorderTask extends Task.Modal {
   private final IDevice myDevice;
   private final CountDownLatch myCompletionLatch;
   private final CollectingOutputReceiver myReceiver;
-  private String mHostTmpFileName;
+  private final Path mHostTmpFileName;
 
   public ScreenRecorderTask(@NotNull Project project,
                             @NotNull IDevice device,
                             @NotNull CountDownLatch completionLatch,
                             @NotNull CollectingOutputReceiver receiver,
-                            @Nullable String hostTmpFileName) {
+                            @Nullable Path hostTmpFileName) {
     super(project, ScreenRecorderAction.TITLE, true);
 
     myDevice = device;
@@ -129,10 +131,9 @@ final class ScreenRecorderTask extends Task.Modal {
       return;
     }
 
-    File f = fileWrapper.getFile();
-
     try {
-      FileUtils.copyFile(new File(mHostTmpFileName), f);
+      assert mHostTmpFileName != null;
+      Files.copy(mHostTmpFileName, fileWrapper.getFile().toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
     }
     catch (IOException e) {
       ScreenRecorderAction.showError(myProject, "Unable to copy file to destination", e);

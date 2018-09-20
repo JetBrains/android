@@ -106,19 +106,9 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
-    AvdManager manager = getVirtualDeviceManager();
-    // TODO Change this to a Path
-    String hostRecordingFileName;
-
-    if (manager == null) {
-      hostRecordingFileName = null;
-    }
-    else {
-      Path path = getTemporaryVideoPathForVirtualDevice(device, manager);
-      hostRecordingFileName = path == null ? null : path.toString();
-    }
-
     boolean showTouchEnabled = isShowTouchEnabled(device);
+    AvdManager manager = getVirtualDeviceManager();
+    Path hostRecordingFileName = manager == null ? null : getTemporaryVideoPathForVirtualDevice(device, manager);
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       if (options.showTouches != showTouchEnabled) {
@@ -204,10 +194,8 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
     return false;
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
-  static String getEmulatorScreenRecorderOptions(
-    @NotNull String filePath,
-    @NotNull ScreenRecorderOptions options) {
+  @VisibleForTesting
+  static String getEmulatorScreenRecorderOptions(@NotNull Path filePath, @NotNull ScreenRecorderOptions options) {
     StringBuilder sb = new StringBuilder();
 
     if (options.width > 0 && options.height > 0) {
