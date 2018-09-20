@@ -24,11 +24,13 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -247,7 +249,13 @@ public class DragDropInteraction extends Interaction {
           }
         }
         if (error == null) {
-          myDragHandler = myCurrentHandler.createDragHandler(new ViewEditorImpl(mySceneView), myDragReceiver, myDraggedComponents, myType);
+          ViewEditorImpl editorImpl = new ViewEditorImpl(mySceneView);
+          if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && CommonDragHandler.isSupportCommonDragHandler(myCurrentHandler)) {
+            myDragHandler = new CommonDragHandler(editorImpl, myCurrentHandler, myDragReceiver, myDraggedComponents, myType);
+          }
+          else {
+            myDragHandler = myCurrentHandler.createDragHandler(editorImpl, myDragReceiver, myDraggedComponents, myType);
+          }
           if (myDragHandler != null) {
             myDragHandler
               .start(Coordinates.getAndroidXDip(mySceneView, myStartX), Coordinates.getAndroidYDip(mySceneView, myStartY), myStartMask);
