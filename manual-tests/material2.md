@@ -38,7 +38,7 @@ Next, choosing any of the following components from the palette, should NOT offe
  - TabLayout
  - TabItem
 
-Next, choosing any of the following M2 components from the palette, should offer to add the material library to the project (hit cancel every time):
+None of the following components should be available on the palette:
  - ChipGroup
  - Chip
  - BottomAppBar
