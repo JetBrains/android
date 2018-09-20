@@ -26,7 +26,7 @@ import com.android.tools.datastore.DeviceId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark
-import com.android.tools.perflogger.MedianWindowDeviationAnalyzer
+import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeGrpcChannel
@@ -60,7 +60,6 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
-import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
@@ -145,7 +144,9 @@ class DataSeriesPerformanceTest {
       }
     }
     nameToMetrics.values.forEach {
-      it.setAnalyzers(benchmark, setOf(MedianWindowDeviationAnalyzer.Builder().build()))
+      it.setAnalyzers(benchmark, setOf(WindowDeviationAnalyzer.Builder()
+                                         .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
+                                         .build()))
       it.commit()
     }
   }
