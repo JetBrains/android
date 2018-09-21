@@ -70,6 +70,9 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null || !isLibraryValid(library, binaryPaths)) {
+      if (library != null) {
+        modelsProvider.removeLibrary(library);
+      }
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
     }
