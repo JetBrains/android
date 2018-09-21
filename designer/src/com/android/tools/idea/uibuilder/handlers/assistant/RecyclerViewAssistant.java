@@ -145,8 +145,6 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
     myComponent = context.getComponent();
     AndroidFacet facet = myComponent.getModel().getFacet();
-    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
-    assert resourceDir != null;
     myProject = facet.getModule().getProject();
 
     Template[] availableTemplates = TEMPLATES.stream()
@@ -272,11 +270,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
                                      @NotNull String resourceName,
                                      @NotNull Template template) {
     String content = template.getMyTemplate();
-    AndroidFacet facet = component.getModel().getFacet();
-    VirtualFile resourceDir = facet.getMainSourceProvider().getResDirectories().stream()
-                                   .map(resDir -> VfsUtil.findFileByIoFile(resDir, true))
-                                   .findFirst()
-                                   .orElse(null);
+    // The layout file must live in a subdirectory of the resource directory.
+    VirtualFile resourceDir = component.getModel().getVirtualFile().getParent().getParent();
     assert resourceDir != null;
 
     return WriteCommandAction.runWriteCommandAction(project, (Computable<PsiFile>)() -> {
