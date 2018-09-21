@@ -15,43 +15,49 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static org.fest.swing.timing.Pause.pause;
+
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.scene.target.ActionGroupTarget;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.target.ActionGroupTarget;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import org.fest.swing.core.ComponentDragAndDrop;
-import org.fest.swing.core.MouseButton;
-import org.fest.swing.core.Robot;
-import org.fest.swing.driver.ComponentDriver;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.fixture.JMenuItemFixture;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.intellij.openapi.ui.JBPopupMenu;
+import java.awt.Point;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-import static org.fest.swing.timing.Pause.pause;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.SwingUtilities;
+import org.fest.swing.core.ComponentDragAndDrop;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.MouseButton;
+import org.fest.swing.core.Robot;
+import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JMenuItemFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a view in the layout editor
  */
 public class NlComponentFixture {
+  private static final long TIMEOUT_FOR_WRITE_IN_SECONDS = 10;
   private final Robot myRobot;
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
@@ -169,7 +175,10 @@ public class NlComponentFixture {
   public NlComponentFixture createConstraintFromBottomToLeftOf(@NotNull NlComponentFixture destination) {
     myDragAndDrop.drag(mySurface, getBottomCenterPoint());
     myDragAndDrop.drop(mySurface, destination.getLeftCenterPoint());
-    pause(SceneComponent.ANIMATION_DURATION);
+
+    // There is no possible connection here, so expect a popup, and just close it:
+    JPopupMenuFixture menu = waitForPopup();
+    menu.target().setVisible(false);
     return this;
   }
 
@@ -177,7 +186,7 @@ public class NlComponentFixture {
   public NlComponentFixture createConstraintFromBottomToTopOf(@NotNull NlComponentFixture destination) {
     myDragAndDrop.drag(mySurface, getBottomCenterPoint());
     myDragAndDrop.drop(mySurface, destination.getTopCenterPoint());
-    pause(SceneComponent.ANIMATION_DURATION);
+    waitForWrite(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, destination);
     return this;
   }
 
@@ -187,7 +196,7 @@ public class NlComponentFixture {
     myDragAndDrop.drag(mySurface, bottomCenterPoint);
     SceneView sceneView = mySurface.getCurrentSceneView();
     myDragAndDrop.drop(mySurface, new Point(bottomCenterPoint.x, mySurface.getCurrentSceneView().getY() + sceneView.getSize().height));
-    pause(SceneComponent.ANIMATION_DURATION);
+    waitForWrite(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent");
     return this;
   }
 
@@ -196,7 +205,7 @@ public class NlComponentFixture {
     Point topCenterPoint = getTopCenterPoint();
     myDragAndDrop.drag(mySurface, topCenterPoint);
     myDragAndDrop.drop(mySurface, new Point(topCenterPoint.x, mySurface.getCurrentSceneView().getY()));
-    pause(SceneComponent.ANIMATION_DURATION);
+    waitForWrite(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
     return this;
   }
 
@@ -205,7 +214,7 @@ public class NlComponentFixture {
     Point leftCenterPoint = getLeftCenterPoint();
     myDragAndDrop.drag(mySurface, leftCenterPoint);
     myDragAndDrop.drop(mySurface, new Point(mySurface.getCurrentSceneView().getX(), leftCenterPoint.y));
-    pause(SceneComponent.ANIMATION_DURATION);
+    waitForWrite(SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent");
     return this;
   }
 
@@ -215,7 +224,7 @@ public class NlComponentFixture {
     myDragAndDrop.drag(mySurface, rightCenterPoint);
     SceneView sceneView = mySurface.getCurrentSceneView();
     myDragAndDrop.drop(mySurface, new Point(sceneView.getX() + sceneView.getSize().width, rightCenterPoint.y));
-    pause(SceneComponent.ANIMATION_DURATION);
+    waitForWrite(SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent");
     return this;
   }
 
@@ -242,7 +251,7 @@ public class NlComponentFixture {
     destinationBaseline
       .translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(destination.getComponent())) - 1);
     myDragAndDrop.drop(mySurface, destinationBaseline);
-    pause(SceneComponent.ANIMATION_DURATION);
+    waitForWrite(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, destination);
     return this;
   }
 
@@ -320,6 +329,27 @@ public class NlComponentFixture {
   /** Converts from scrollable area coordinate system to viewpoint coordinate system */
   private Point convertToViewport(@SwingCoordinate int x, @SwingCoordinate int y) {
     return SwingUtilities.convertPoint(mySurface.getLayeredPane(), x, y, mySurface.getScrollPane().getViewport());
+  }
+
+  private void waitForWrite(@NotNull String attributeName, @NotNull NlComponentFixture destination) {
+    waitForWrite(attributeName, SdkConstants.NEW_ID_PREFIX + destination.getComponent().getId());
+  }
+
+  private void waitForWrite(@NotNull String attributeName, @NotNull String expectedValue) {
+    Wait.seconds(TIMEOUT_FOR_WRITE_IN_SECONDS)
+        .expecting(String.format("%1$s = %2$s", expectedValue, myComponent.getAttribute(SdkConstants.AUTO_URI, attributeName)))
+        .until(() -> expectedValue.equals(myComponent.getAttribute(SdkConstants.AUTO_URI, attributeName)));
+  }
+
+  @NotNull
+  private JPopupMenuFixture waitForPopup() {
+    JBPopupMenu menu = waitUntilFound(myRobot, null, new GenericTypeMatcher<JBPopupMenu>(JBPopupMenu.class) {
+      @Override
+      protected boolean isMatching(@NotNull JBPopupMenu menu) {
+        return "Connect to:".equals(menu.getLabel());
+      }
+    });
+    return new JPopupMenuFixture(myRobot, menu);
   }
 
   @NotNull
