@@ -16,6 +16,12 @@
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.ObjIntConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
@@ -27,13 +33,6 @@ import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.ObjIntConsumer;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 public final class FrozenColumnTableFixture {
   private final FrozenColumnTable myTarget;
 
@@ -44,6 +43,11 @@ public final class FrozenColumnTableFixture {
     myTarget = target;
     myFrozenTable = new JTableFixture(robot, target.getFrozenTable());
     myScrollableTable = new JTableFixture(robot, target.getScrollableTable());
+  }
+
+  @NotNull
+  JTableFixture getFrozenTable() {
+    return myFrozenTable;
   }
 
   @NotNull
