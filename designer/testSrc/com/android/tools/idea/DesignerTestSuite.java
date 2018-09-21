@@ -30,7 +30,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // Flaky
-  com.android.tools.idea.uibuilder.property.NlXmlPropertyBuilderTest.class,  // b/110329807
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
 
