@@ -16,6 +16,44 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
+import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_CONSTRAINTSET;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_MAX_HEIGHT;
+import static com.android.SdkConstants.ATTR_MAX_WIDTH;
+import static com.android.SdkConstants.ATTR_MIN_HEIGHT;
+import static com.android.SdkConstants.ATTR_MIN_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
+import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
+import static com.android.SdkConstants.NS_RESOURCES;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.TAG;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_MENU;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
+import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
+import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
+import static icons.StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE;
+
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -35,15 +73,37 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.api.CustomPanel;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.NestedViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineActionTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ClearConstraintsTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.PopupMenuActionTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -62,23 +122,30 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.swing.Icon;
+import javax.swing.Timer;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.Timer;
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
-import static icons.StudioIcons.LayoutEditor.Toolbar.*;
 
 /**
  * Handles interactions for the ConstraintLayout
@@ -311,6 +378,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new DisappearingActionMenu("Helpers", VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
+    actions.add(new ClearConstraintsSelectedComponentsAction());
     return true;
   }
 
@@ -403,17 +471,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
     if (baseline > 0) {
       listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, true));
-      ActionTarget baselineActionTarget =
-        new ActionTarget(BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
-          @NotNull
-          @Override
-          public String getToolTipText() {
-            return EDIT_BASELINE_ACTION_TOOLTIP;
-          }
-        };
+      ActionTarget baselineActionTarget = new BaseLineActionTarget();
       listBuilder.add(baselineActionTarget);
     }
     listBuilder.add(new ChainCycleTarget(null));
+    listBuilder.add(new PopupMenuActionTarget());
 
     return listBuilder.build();
   }
@@ -484,6 +546,32 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @InputEventMask int modifiers) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
       presentation.setLabel("Clear All Constraints");
+    }
+  }
+
+  private static class ClearConstraintsSelectedComponentsAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
+      for (NlComponent child : selectedChildren) {
+        ConstraintComponentUtilities.clearAttributes(child);
+      }
+      ensureLayersAreShown(editor, 1000);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
+      presentation.setLabel("Clear Constraints of Selection");
     }
   }
 
@@ -1411,7 +1499,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private static class ConnectSource extends DisappearingActionMenu {
       int mIndex = 0;
 
-      public ConnectSource(@NotNull int index,
+      public ConnectSource(int index,
                            @Nullable Icon icon,
                            @NotNull List<ViewAction> actions) {
         super("", icon, actions);
