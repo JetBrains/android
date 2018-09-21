@@ -697,7 +697,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       }
       else {
 
-        JBPopupMenu menu = new JBPopupMenu("Connect to:");
+
         SceneComponent parent = myComponent.getParent();
         Collection<SceneComponent> components = myComponent.getScene().getSceneComponents();
         Rectangle rectangle = new Rectangle();
@@ -722,41 +722,43 @@ public class ConstraintAnchorTarget extends AnchorTarget {
             allItems.add(component);
           }
         }
-
-        for (SceneComponent component : allItems) {
-          list.set(1, component.getAuthoritativeNlComponent());
-          switch (myType) {
-            case LEFT:
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_DES);
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_END_DES);
-              break;
-            case RIGHT:
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_START_DES);
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_DES);
-              break;
-            case TOP:
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_DES);
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_BOTTOM_DES);
-              break;
-            case BOTTOM:
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_TOP_DES);
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToBottom, "Bottom ", " bottom",
-                             CONSTRAIN_BOTTOM_DES);
-              break;
-            case BASELINE:
-              addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBaseLineToBaseLine, "Baseline ", " baseline",
-                             CONSTRAIN_BASELINE_DES);
-              break;
+        if (!allItems.isEmpty()) {
+          JBPopupMenu menu = new JBPopupMenu("Connect to:");
+          for (SceneComponent component : allItems) {
+            list.set(1, component.getAuthoritativeNlComponent());
+            switch (myType) {
+              case LEFT:
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_END_DES);
+                break;
+              case RIGHT:
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_START_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_DES);
+                break;
+              case TOP:
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_BOTTOM_DES);
+                break;
+              case BOTTOM:
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_TOP_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToBottom, "Bottom ", " bottom",
+                               CONSTRAIN_BOTTOM_DES);
+                break;
+              case BASELINE:
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBaseLineToBaseLine, "Baseline ", " baseline",
+                               CONSTRAIN_BASELINE_DES);
+                break;
+            }
           }
+
+          double scale = myComponent.getScene().getDesignSurface().getScale();
+          scale *= myComponent.getScene().getDesignSurface().getSceneScalingFactor();
+          float dx = myComponent.getScene().getDesignSurface().getContentOriginX();
+          float dy = myComponent.getScene().getDesignSurface().getContentOriginY();
+
+
+          menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
         }
-
-        double scale = myComponent.getScene().getDesignSurface().getScale();
-        scale *= myComponent.getScene().getDesignSurface().getSceneScalingFactor();
-        float dx = myComponent.getScene().getDesignSurface().getContentOriginX();
-        float dy = myComponent.getScene().getDesignSurface().getContentOriginY();
-
-
-        menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
       }
     }
     finally {
