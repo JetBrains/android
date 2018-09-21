@@ -43,6 +43,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 
 import static java.util.Collections.singletonList;
@@ -137,6 +138,9 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
     when(myModuleModels.getModuleId()).thenReturn(moduleId);
     NativeVariantAbiModel abiModel = new NativeVariantAbiModel("release-x86", variantAbi);
     when(myModuleModels.getNativeVariantAbi()).thenReturn(abiModel);
+    Variant variant = mock(Variant.class);
+    when(myModuleModels.getVariants()).thenReturn(singletonList(variant));
+    when(variant.getName()).thenReturn("release");
 
     ModuleSetupContext appModuleContext = mock(ModuleSetupContext.class);
     when(myContextFactory.create(appModule, myModelsProvider)).thenReturn(appModuleContext);
@@ -148,8 +152,10 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
     verify(myNdkModuleModel).addVariantOnlyModuleModel(any());
     // Verify the selected variant is updated.
     verify(myNdkModuleModel).setSelectedVariantName("release-x86");
-    // Verify that the module setup steps were invoked.
-    verify(myNdkModuleSetup).setUpModule(appModuleContext, myNdkModuleModel);
+    // Verify that ndk module setup steps were invoked before android module setup steps.
+    InOrder inOrder = inOrder(myNdkModuleSetup, myAndroidModuleSetup);
+    inOrder.verify(myNdkModuleSetup).setUpModule(appModuleContext, myNdkModuleModel);
+    inOrder.verify(myAndroidModuleSetup).setUpModule(appModuleContext, myAndroidModuleModel);
     // Verify cache is updated for app module, and unchanged for java module.
     verify(myCachedProjectModels.findCacheForModule("app")).addModel(myNdkModuleModel);
     verify(myCachedProjectModels).saveToDisk(myProject);
@@ -175,11 +181,15 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
   private Module createAppModuleWithNdkFacet() {
     Module module = createModule("app");
     FacetManager facetManager = FacetManager.getInstance(module);
-    NdkFacet facet = facetManager.createFacet(NdkFacet.getFacetType(), NdkFacet.getFacetName(), null);
-    facet.setNdkModuleModel(myNdkModuleModel);
+    NdkFacet ndkFacet = facetManager.createFacet(NdkFacet.getFacetType(), NdkFacet.getFacetName(), null);
+    ndkFacet.setNdkModuleModel(myNdkModuleModel);
+    // Ndk module also contains AndroidFacet.
+    AndroidFacet androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+    androidFacet.getConfiguration().setModel(myAndroidModuleModel);
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
-      model.addFacet(facet);
+      model.addFacet(ndkFacet);
+      model.addFacet(androidFacet);
       model.commit();
     });
     return module;
