@@ -25,7 +25,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -174,6 +173,10 @@ public final class GradleWrapper {
     String distributionUrl = getDistributionUrl(gradleVersion, false);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (property != null && (property.equals(distributionUrl) || property.equals(getDistributionUrl(gradleVersion, true)))) {
+      return false;
+    }
+    if (property != null && property.startsWith("file:")) {
+      // Assume local distributions are maintained by user (eg. UI Tests), so don't overwrite
       return false;
     }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
