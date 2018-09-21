@@ -64,12 +64,6 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
 
-    if (StudioFlags.JVMTI_REFRESH.get()) {
-      // TODO: b/112309245 There will be some restrictions, but currently just enable it always.
-      presentation.setEnabled(true);
-      return;
-    }
-
     if (!InstantRunSettings.isInstantRunEnabled()) {
       presentation.setText("Apply Changes: Instant Run has been disabled");
       return;
