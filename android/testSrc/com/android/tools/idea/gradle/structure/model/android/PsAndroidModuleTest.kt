@@ -67,6 +67,20 @@ class PsAndroidModuleTest : DependencyTestCase() {
       .containsExactly("foo", "bar").inOrder()
   }
 
+  fun testValidateFlavorDimensionName() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule);
+
+    assertThat(appModule.validateFlavorDimensionName("")).isEqualTo("Flavor dimension name cannot be empty.")
+    assertThat(appModule.validateFlavorDimensionName("foo")).isEqualTo("Duplicate flavor dimension name: 'foo'")
+    assertThat(appModule.validateFlavorDimensionName("ok")).isNull()
+  }
+
   fun testAddFlavorDimension() {
     loadProject(PSD_SAMPLE)
 
@@ -195,6 +209,20 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertTrue(release!!.isDeclared)
   }
 
+  fun testValidateProductFlavorName() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule);
+
+    assertThat(appModule.validateProductFlavorName("")).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("paid")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("ok")).isNull()
+  }
+
   fun testAddProductFlavor() {
     loadProject(PROJECT_WITH_APPAND_LIB)
 
@@ -306,6 +334,20 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val release = libModule.findBuildType("release")
     assertNotNull(release)
     assertTrue(release!!.isDeclared)
+  }
+
+  fun testValidateBuildTypeName() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule);
+
+    assertThat(appModule.validateBuildTypeName("")).isEqualTo("Build type name cannot be empty.")
+    assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
+    assertThat(appModule.validateBuildTypeName("ok")).isNull()
   }
 
   fun testAddBuildType() {
@@ -452,6 +494,20 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val debugConfig = appModule.findSigningConfig("debug")
     assertNotNull(debugConfig)
     assertTrue(!debugConfig!!.isDeclared)
+  }
+
+  fun testValidateSigningConfigName() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule);
+
+    assertThat(appModule.validateSigningConfigName("")).isEqualTo("Signing config name cannot be empty.")
+    assertThat(appModule.validateSigningConfigName("myConfig")).isEqualTo("Duplicate signing config name: 'myConfig'")
+    assertThat(appModule.validateSigningConfigName("ok")).isNull()
   }
 
   fun testAddSigningConfig() {

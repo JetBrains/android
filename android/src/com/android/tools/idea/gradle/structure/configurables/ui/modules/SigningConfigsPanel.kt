@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.findChildFor
 import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.actionSystem.AnAction
@@ -75,7 +76,8 @@ class SigningConfigsPanel(
                     null,
                     "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
+                  override fun canClose(inputString: String?): Boolean =
+                    validateAndShow { module.validateSigningConfigName(inputString.orEmpty()) }
                 })
             if (newName != null) {
               val signingConfig = module.addNewSigningConfig(newName)

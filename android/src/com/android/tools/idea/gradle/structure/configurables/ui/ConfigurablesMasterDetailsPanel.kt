@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.MasterDetailsComponent
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.JBSplitter
@@ -30,7 +31,7 @@ import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
-import java.util.*
+import java.util.ArrayList
 import javax.swing.JComponent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
@@ -194,3 +195,6 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     myHistory = history
   }
 }
+
+fun validateAndShow(title: String = "Error", validateAction: () -> String?): Boolean =
+  validateAction()?.also { Messages.showErrorDialog(it, title) } == null
