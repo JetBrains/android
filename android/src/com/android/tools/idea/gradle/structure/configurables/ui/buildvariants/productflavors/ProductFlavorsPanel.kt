@@ -14,15 +14,15 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors
 
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
-import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.*
+import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.FlavorDimensionConfigurable
+import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorConfigurable
 import com.android.tools.idea.gradle.structure.configurables.findChildFor
 import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -96,7 +96,8 @@ class ProductFlavorsPanel(
                     null,
                     "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
+                  override fun canClose(inputString: String?): Boolean
+                    = validateAndShow { module.validateFlavorDimensionName(inputString.orEmpty()) }
                 })
             if (newName != null) {
               val flavorDimension = module.addNewFlavorDimension(newName)
@@ -115,7 +116,8 @@ class ProductFlavorsPanel(
                     null,
                     "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
+                  override fun canClose(inputString: String?): Boolean =
+                    validateAndShow { module.validateProductFlavorName(inputString.orEmpty()) }
                 })
             if (newName != null) {
               val selectedObject = selectedConfigurable

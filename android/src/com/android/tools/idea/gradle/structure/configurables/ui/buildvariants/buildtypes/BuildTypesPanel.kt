@@ -18,6 +18,7 @@ import com.android.tools.idea.gradle.structure.configurables.findChildFor
 import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.intellij.openapi.actionSystem.AnAction
@@ -68,7 +69,8 @@ class BuildTypesPanel(
                     null,
                     "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
+                  override fun canClose(inputString: String?): Boolean =
+                    validateAndShow { module.validateBuildTypeName(inputString.orEmpty()) }
                 })
             if (newName != null) {
               val buildType = module.addNewBuildType(newName)

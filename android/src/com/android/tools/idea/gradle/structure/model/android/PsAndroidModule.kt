@@ -18,10 +18,16 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModelCollection
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleType
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.gradle.structure.model.moduleTypeFromAndroidModuleType
+import com.android.tools.idea.gradle.structure.model.parsedModelModuleType
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
@@ -152,20 +158,44 @@ class PsAndroidModule(
 
   fun addNewBuildType(name: String): PsBuildType = getOrCreateBuildTypeCollection().addNew(name)
 
+  fun validateBuildTypeName(name: String): String? = when {
+    name.isEmpty() -> "Build type name cannot be empty."
+    getOrCreateBuildTypeCollection().any { it.name == name } -> "Duplicate build type name: '$name'"
+    else -> null
+  }
+
   fun removeBuildType(buildType: PsBuildType) = getOrCreateBuildTypeCollection().remove(buildType.name)
 
   fun addNewFlavorDimension(name: String) = getOrCreateFlavorDimensionCollection().addNew(name)
+
+  fun validateFlavorDimensionName(name: String): String? = when {
+    name.isEmpty() -> "Flavor dimension name cannot be empty."
+    getOrCreateFlavorDimensionCollection().any { it.name == name } -> "Duplicate flavor dimension name: '$name'"
+    else -> null
+  }
 
   fun removeFlavorDimension(flavorDimension: PsFlavorDimension) = getOrCreateFlavorDimensionCollection().remove(flavorDimension.name)
 
   fun addNewProductFlavor(dimension: String, name: String): PsProductFlavor =
     getOrCreateProductFlavorCollection().addNew(PsProductFlavorKey(dimension, name))
 
+  fun validateProductFlavorName(name: String): String? = when {
+    name.isEmpty() -> "Product flavor name cannot be empty."
+    getOrCreateProductFlavorCollection().any { it.name == name } -> "Duplicate product flavor name: '$name'"
+    else -> null
+  }
+
   fun removeProductFlavor(productFlavor: PsProductFlavor) =
     getOrCreateProductFlavorCollection()
       .remove(PsProductFlavorKey(productFlavor.dimension.maybeValue.orEmpty(), productFlavor.name))
 
   fun addNewSigningConfig(name: String): PsSigningConfig = getOrCreateSigningConfigCollection().addNew(name)
+
+  fun validateSigningConfigName(name: String): String? = when {
+    name.isEmpty() -> "Signing config name cannot be empty."
+    getOrCreateSigningConfigCollection().any { it.name == name } -> "Duplicate signing config name: '$name'"
+    else -> null
+  }
 
   fun removeSigningConfig(signingConfig: PsSigningConfig) = getOrCreateSigningConfigCollection().remove(signingConfig.name)
 

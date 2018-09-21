@@ -50,6 +50,7 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
   }
 
   override fun instantiateNew(key: PsProductFlavorKey) {
+    if (entries.keys.any { it.name == key.name }) throw RuntimeException("Duplicate flavor name: ${key.name}")
     parent
       .parsedModel!!
       .android()
