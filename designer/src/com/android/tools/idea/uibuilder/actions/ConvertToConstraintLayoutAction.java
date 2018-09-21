@@ -55,6 +55,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.usageView.UsageInfo;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,8 +161,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     boolean flatten = dialog.getFlattenHierarchy();
     boolean includeIds = dialog.getFlattenReferenced();
     boolean includeCustomViews = dialog.getIncludeCustomViews();
-
-    GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
+    boolean isAndroidx = MigrateToAndroidxUtil.isAndroidx(project);
+    GoogleMavenArtifactId artifact = isAndroidx ?
                                      GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                      GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
 
