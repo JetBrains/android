@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import org.jetbrains.annotations.Nullable;
@@ -27,5 +28,10 @@ public class InstantRunConfigurableProvider extends ConfigurableProvider {
   @Override
   public Configurable createConfigurable() {
     return new InstantRunConfigurable();
+  }
+
+  @Override
+  public boolean canCreateConfigurable() {
+    return !StudioFlags.JVMTI_REFRESH.get();
   }
 }
