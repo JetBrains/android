@@ -231,7 +231,6 @@ public class DecoratorUtilities {
           break;
 
         case BASELINE:
-          System.out.println("baseline");
           mask = MASK_BASELINE;
           connected = getConnected(component, sisters,
                                    ConstraintComponentUtilities.ourBottomAttributes,
