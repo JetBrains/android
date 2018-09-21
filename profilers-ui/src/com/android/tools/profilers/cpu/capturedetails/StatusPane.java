@@ -17,14 +17,12 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,7 +62,7 @@ abstract class StatusPane extends CapturePane {
     myStage = stageView.getStage();
     myStatus = statusLabel;
     myDurationLabel = createLabel("", false);
-    myTechnology = ProfilingConfiguration.getTechnologyName(myStage.getProfilerConfigModel().getProfilingConfiguration());
+    myTechnology = ProfilingTechnology.fromConfig(myStage.getProfilerConfigModel().getProfilingConfiguration()).getName();
     myObserver = new AspectObserver();
 
     myStage.getAspect().addDependency(myObserver)

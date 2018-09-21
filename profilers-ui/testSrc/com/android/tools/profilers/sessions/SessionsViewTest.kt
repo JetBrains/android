@@ -487,7 +487,7 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isFalse()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF_NAME)
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo("00:01:00.000")
 
     // Prepare FakeCpuService to return a valid trace.
@@ -543,7 +543,7 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isTrue()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.ATRACE_NAME)
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.ATRACE.getName())
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
     assertThat(cpuCaptureItem.exportLabel).isNull()
 
