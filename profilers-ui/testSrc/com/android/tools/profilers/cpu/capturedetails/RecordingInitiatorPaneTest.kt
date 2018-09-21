@@ -29,6 +29,7 @@ import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -107,7 +108,7 @@ class RecordingInitiatorPaneTest {
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<JLabel>()
-      .any { it.text == RecordingInitiatorPane.TechnologyDescription.SAMPLED_JAVA.description }
+      .any { it.text == ProfilingTechnology.ART_SAMPLED.description }
       .let {
         assertThat(it).isTrue()
       }
@@ -123,7 +124,7 @@ class RecordingInitiatorPaneTest {
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<JLabel>()
-      .any { it.text == RecordingInitiatorPane.TechnologyDescription.INSTRUMENTED_JAVA.description }
+      .any { it.text == ProfilingTechnology.ART_INSTRUMENTED.description }
       .let {
         assertThat(it).isTrue()
       }
@@ -139,7 +140,7 @@ class RecordingInitiatorPaneTest {
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<JLabel>()
-      .any { it.text == RecordingInitiatorPane.TechnologyDescription.SAMPLED_NATIVE.description }
+      .any { it.text == ProfilingTechnology.SIMPLEPERF.description }
       .let {
         assertThat(it).isTrue()
       }
@@ -155,7 +156,7 @@ class RecordingInitiatorPaneTest {
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<JLabel>()
-      .any { it.text == RecordingInitiatorPane.TechnologyDescription.ATRACE.description }
+      .any { it.text == ProfilingTechnology.ATRACE.description }
       .let {
         assertThat(it).isTrue()
       }

@@ -28,6 +28,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.CpuProfilerToolbar;
 import com.android.tools.profilers.cpu.CpuProfilingConfigurationView;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -85,7 +86,7 @@ class RecordingInitiatorPane extends CapturePane {
     label.setForeground(StandardColors.TEXT_COLOR);
 
     ProfilingConfiguration config = myStageView.getStage().getProfilerConfigModel().getProfilingConfiguration();
-    JLabel technologyDescription = new JLabel(TechnologyDescription.fromConfig(config).getDescription());
+    JLabel technologyDescription = new JLabel(ProfilingTechnology.fromConfig(config).getDescription());
     technologyDescription.setFont(ProfilerFonts.STANDARD_FONT);
     technologyDescription.setForeground(StandardColors.TEXT_COLOR);
 
@@ -109,42 +110,5 @@ class RecordingInitiatorPane extends CapturePane {
       new TextInstruction(bodyMetrics, "or select a capture in the timeline.")
     ).setColors(JBColor.foreground(), null)
      .build();
-  }
-
-  enum TechnologyDescription {
-    SAMPLED_JAVA("Samples Java code using Android Runtime"),
-    INSTRUMENTED_JAVA("Instruments Java code using Android Runtime"),
-    SAMPLED_NATIVE("Samples native code using simpleperf"),
-    ATRACE("Traces Java and native code at the Android platform level");
-
-    @NotNull private final String myDescription;
-
-    TechnologyDescription(@NotNull String description) {
-      myDescription = description;
-    }
-
-    @NotNull
-    public String getDescription() {
-      return myDescription;
-    }
-
-    @NotNull
-    public static TechnologyDescription fromConfig(@NotNull ProfilingConfiguration config) {
-      switch (config.getProfilerType()) {
-        case ART:
-          if (config.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
-            return SAMPLED_JAVA;
-          }
-          else {
-            return INSTRUMENTED_JAVA;
-          }
-        case SIMPLEPERF:
-          return SAMPLED_NATIVE;
-        case ATRACE:
-          return ATRACE;
-        default:
-          throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
-      }
-    }
   }
 }

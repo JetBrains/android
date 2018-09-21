@@ -78,7 +78,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
   @Override
   @NotNull
   public String getName() {
-    return ProfilingConfiguration.getTechnologyName(myInfo.getProfilerType(), myInfo.getProfilerMode());
+    return ProfilingTechnology.fromTypeAndMode(myInfo.getProfilerType(), myInfo.getProfilerMode()).getName();
   }
 
   public String getSubtitle() {
