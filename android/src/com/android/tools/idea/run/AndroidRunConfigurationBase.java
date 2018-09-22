@@ -64,8 +64,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
-
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element> implements PreferGradleMake {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
