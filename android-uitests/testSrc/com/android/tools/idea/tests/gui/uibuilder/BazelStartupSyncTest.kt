@@ -30,6 +30,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
 
+@RunIn(TestGroup.UNRELIABLE)  // b/73037396
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory::class)
 class BazelStartupSyncTest {
@@ -42,7 +43,6 @@ class BazelStartupSyncTest {
     fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/73037396
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun startupBazelSyncSucceeds() {
