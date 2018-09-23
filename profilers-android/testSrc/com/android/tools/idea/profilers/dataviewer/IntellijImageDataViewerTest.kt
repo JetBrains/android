@@ -22,11 +22,17 @@ import com.intellij.testFramework.IdeaTestCase
 class IntellijImageDataViewerTest : IdeaTestCase() {
   fun testCanCreateImageViewer() {
     val viewer = IntellijImageDataViewer.createImageViewer(
-      IntellijImageDataViewerTest::class.java.getResource("/image.png").readBytes())
+      IntellijImageDataViewerTest::class.java.getResource("/image.png").readBytes())!!
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
     assertThat(viewer.image.width).isGreaterThan(0)
     assertThat(viewer.image.height).isGreaterThan(0)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
+  }
+
+  fun testInvalidImageViewerReturnsNull() {
+    val invalidViewer = IntellijImageDataViewer.createImageViewer("invalid".toByteArray())
+
+    assertThat(invalidViewer).isNull()
   }
 }
