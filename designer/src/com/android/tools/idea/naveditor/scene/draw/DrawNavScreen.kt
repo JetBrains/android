@@ -29,8 +29,10 @@ import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.setRenderingHints
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.Font
 import java.awt.Graphics2D
+import java.awt.Rectangle
 import java.awt.geom.AffineTransform
 import java.awt.geom.Rectangle2D
 
@@ -69,7 +71,7 @@ class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     if (image != null) {
       val transform = AffineTransform()
       transform.translate(rectangle.x.toDouble(), rectangle.y.toDouble())
-      g.drawImage(image, transform, null)
+      UIUtil.drawImage(g, image, rectangle.x.toInt(), rectangle.y.toInt(), null)
     }
     else if (lastCompleted.refined == null) {
       drawText(UNAVAILABLE_TEXT_1, UNAVAILABLE_TEXT_2, g, sceneContext)
