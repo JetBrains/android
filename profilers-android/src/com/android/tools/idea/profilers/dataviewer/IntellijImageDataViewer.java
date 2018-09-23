@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.dataviewer;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.profilers.ResizableImage;
 import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import java.awt.image.BufferedImage;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntellijImageDataViewer implements ImageDataViewer {
   @NotNull
@@ -31,10 +31,22 @@ public class IntellijImageDataViewer implements ImageDataViewer {
   @NotNull
   private final JComponent myComponent;
 
-  @NotNull
-  public static IntellijImageDataViewer createImageViewer(@NotNull byte[] content) throws IOException {
+  /**
+   * Return an image-viewing data viewer, unless the passed in {@code content} bytes are invalid or
+   * represent an unknown image type, in which case, {@code null} is returned.
+   */
+  @Nullable
+  public static IntellijImageDataViewer createImageViewer(@NotNull byte[] content) {
     try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
-      return new IntellijImageDataViewer(ImageIO.read(inputStream));
+      BufferedImage image = ImageIO.read(inputStream);
+      if (image == null) {
+        return null;
+      }
+
+      return new IntellijImageDataViewer(image);
+    }
+    catch (IOException e) {
+      return null;
     }
   }
 

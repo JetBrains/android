@@ -36,7 +36,6 @@ import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.function.Consumer;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -121,12 +120,11 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     assert(styleHint != DataViewer.Style.INVALID);
 
     if (contentType.isImageType()) {
-      try {
-        return IntellijImageDataViewer.createImageViewer(content);
+      DataViewer viewer = IntellijImageDataViewer.createImageViewer(content);
+      if (viewer == null) {
+        viewer = IntellijDataViewer.createInvalidViewer();
       }
-      catch (IOException ignored) {
-      }
-      return IntellijDataViewer.createInvalidViewer();
+      return viewer;
     }
     if (styleHint == DataViewer.Style.RAW) {
       return IntellijDataViewer.createRawTextViewer(content);
