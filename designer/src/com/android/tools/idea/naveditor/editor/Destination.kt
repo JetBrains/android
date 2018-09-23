@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceType
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.util.iconToImage
@@ -27,12 +28,14 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
 import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Dimension
 import java.awt.Image
+import java.awt.Rectangle
 import java.awt.image.BufferedImage
 
 private const val THUMBNAIL_X = 11
@@ -84,11 +87,16 @@ sealed class Destination : Comparable<Destination> {
         // TODO: wait for rendering nicely
         val image = refinableImage.terminalImage
         if (image != null) {
-          val scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
+          var scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
+          if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+            scale = 1.0
+          }
           val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)
           DESTINATION.paintIcon(null, result.graphics, 0, 0)
-          result.graphics.drawImage(image, (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
-                                    (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt(), null)
+
+          UIUtil.drawImage(result.graphics, image,
+                           Rectangle((THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
+                                     (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt()), null)
           return@lazy result
         }
       }

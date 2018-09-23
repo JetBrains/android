@@ -18,11 +18,14 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import org.junit.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyFloat
+import org.mockito.Mockito.eq
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.Graphics2D
-import java.awt.geom.AffineTransform
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
@@ -52,7 +55,7 @@ class TestDrawNavScreen {
     val image = createImage()
     drawCommand = DrawNavScreen(createRectangle(), RefinableImage(null, CompletableFuture.completedFuture(RefinableImage(image))))
     drawCommand.paint(graphics, context)
-    verify(graphics).drawImage(image, createTransform(), null)
+    verify(graphics).drawImage(image, 1, 2, 0, 0, null)
 
     graphics = createGraphics()
 
@@ -60,13 +63,13 @@ class TestDrawNavScreen {
 
     drawCommand = DrawNavScreen(createRectangle(), RefinableImage(oldImage, CompletableFuture.completedFuture(RefinableImage(image))))
     drawCommand.paint(graphics, context)
-    verify(graphics).drawImage(image, createTransform(), null)
+    verify(graphics).drawImage(image, 1, 2, 0, 0, null)
 
     graphics = createGraphics()
 
     drawCommand = DrawNavScreen(createRectangle(), RefinableImage(oldImage, CompletableFuture()))
     drawCommand.paint(graphics, context)
-    verify(graphics).drawImage(oldImage, createTransform(), null)
+    verify(graphics).drawImage(oldImage, 1, 2, 0, 0, null)
   }
 
   private fun createGraphics(): Graphics2D {
@@ -87,11 +90,5 @@ class TestDrawNavScreen {
     `when`(image.width).thenReturn(IMAGE_DIMENSION.width)
     `when`(image.height).thenReturn(IMAGE_DIMENSION.height)
     return image
-  }
-
-  private fun createTransform() : AffineTransform {
-    val transform = AffineTransform()
-    transform.translate(DRAW_COMMAND_RECTANGLE.x.toDouble(), DRAW_COMMAND_RECTANGLE.y.toDouble())
-    return transform
   }
 }
