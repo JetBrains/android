@@ -295,6 +295,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
 
     LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), true);
     assertEquals("LinearLayout", parser.myRoot.tagName);
+    assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI));
+    assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI));
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
 
     // Now, do not honor the parentTag. We should get the <merge> tag as root.
