@@ -18,18 +18,18 @@ package com.android.tools.idea.editors.strings.table;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
+import javax.swing.KeyStroke;
+import javax.swing.SortOrder;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class StringResourceTable extends FrozenColumnTable {
   private final TableCellRenderer myLocaleRenderer;
@@ -40,7 +40,7 @@ public final class StringResourceTable extends FrozenColumnTable {
   private boolean myColumnPreferredWidthsSet;
 
   public StringResourceTable() {
-    super(new StringResourceTableModel(), 2);
+    super(new StringResourceTableModel(), 4);
 
     setDefaultEditor(String.class, new StringTableCellEditor());
     setDefaultRenderer(String.class, new StringsCellRenderer());
