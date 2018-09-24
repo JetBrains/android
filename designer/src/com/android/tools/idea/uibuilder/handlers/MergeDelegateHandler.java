@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,50 +15,41 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
-import com.google.common.collect.ImmutableList;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 
-/**
- * Handler for the {@code <merge>} tag
- */
-public final class MergeHandler extends FrameLayoutHandler {
-  @Override
-  @NotNull
-  public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_SHOW_IN, ATTR_PARENT_TAG);
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+
+public class MergeDelegateHandler extends DelegatingViewGroupHandler {
+
+  public MergeDelegateHandler(@NotNull ViewGroupHandler handler) {
+    super(handler);
   }
 
-  @Override
   @NotNull
+  @Override
   public String getTitle(@NotNull String tagName) {
     return "<merge>";
   }
 
-  @Override
   @NotNull
+  @Override
   public String getTitle(@NotNull NlComponent component) {
     return "<merge>";
   }
 
-  @Override
-  @Language("XML")
   @NotNull
-  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    switch (xmlType) {
-      case PREVIEW_ON_PALETTE:
-      case DRAG_PREVIEW:
-        return NO_PREVIEW;
-      default:
-        return super.getXml(tagName, xmlType);
-    }
+  @Override
+  public List<String> getInspectorProperties() {
+    return ImmutableList.<String>builder()
+      .add(TOOLS_NS_NAME_PREFIX + ATTR_SHOW_IN)
+      .add(TOOLS_NS_NAME_PREFIX + ATTR_PARENT_TAG)
+      .addAll(getDelegateHandler().getInspectorProperties())
+      .build();
   }
 }
