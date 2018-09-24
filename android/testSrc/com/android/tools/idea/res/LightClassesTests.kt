@@ -516,6 +516,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           """
           int string my_aar_string 0x7f010001
           int string another_aar_string 0x7f010002
+          int attr attrOne 0x7f040001
+          int attr attrTwo 0x7f040002
+          int[] styleable LibStyleable { 0x7f040001, 0x7f040002 }
+          int styleable LibStyleable_attrOne 0
+          int styleable LibStyleable_attrTwo 1
           """.trimIndent()
         )
       }
@@ -553,7 +558,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarPackageRClass::class.java)
     }
 
-    fun testResourceNames() {
+    fun testResourceNames_string() {
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -574,9 +579,42 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "another_aar_string", "class")
+    }
+
+    fun testResourceNames_styleable() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.styleable.${caret}LibStyleable_attrOne);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly(
+        "LibStyleable",
+        "LibStyleable_attrOne",
+        "LibStyleable_attrTwo",
+        "class"
+      )
     }
 
     fun testRClassCompletion_java() {
@@ -619,6 +657,89 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         "com.example.mylibrary.R",
         "com.example.anotherLib.R"
       )
+    }
+
+    fun testMalformedRTxt_styleables() {
+      addAarDependency(myModule, "brokenLib", "com.example.brokenLib") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+          """
+            int[] styleable FontFamilyFont { notANumber, 0x7f040008, 0x7f040009 }
+            int styleable FontFamilyFont_android_font 0
+            int styleable FontFamilyFont_android_fontStyle 1
+            int styleable FontFamilyFont_android_fontWeight 2
+            int styleable FontFamilyFont_font notANumber
+            int styleable FontFamilyFont_fontStyle 4
+            int styleable FontFamilyFont_fontWeight 5
+          """.trimIndent()
+        )
+      }
+
+
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                int[] ids = com.example.brokenLib.R.styleable.${caret}FontFamilyFont;
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly(
+        "FontFamilyFont",
+        "FontFamilyFont_android_font",
+        "FontFamilyFont_android_fontStyle",
+        "FontFamilyFont_android_fontWeight",
+        "FontFamilyFont_font",
+        "FontFamilyFont_fontStyle",
+        "FontFamilyFont_fontWeight",
+        "class"
+      )
+    }
+
+    fun testMalformedRTxt_completelyWrong() {
+      addAarDependency(myModule, "brokenLib", "com.example.brokenLib") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("Hello from the internet")
+      }
+
+
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                Object o = com.example.brokenLib.R.${caret}class;
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+      myFixture.completeBasic()
+      // The R class itself exists, but has not inner classes because we don't know what to put in them.
+      assertThat(myFixture.lookupElementStrings).containsExactly("class")
     }
   }
 }

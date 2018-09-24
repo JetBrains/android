@@ -17,10 +17,13 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.symbols.Symbol
 import com.android.ide.common.symbols.SymbolIo
 import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
+import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
@@ -28,9 +31,10 @@ import com.intellij.psi.PsiType
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.ResourceTypeClassBase
 import java.io.File
+import java.io.IOException
 
 /**
- * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR's [ResourceRepository] that's assumed not to change.
+ * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR [ResourceRepository] that's assumed not to change.
  *
  * It only contains entries for resources included in the library itself, not any of its dependencies.
  */
@@ -87,16 +91,27 @@ class NonNamespacedAarPackageRClass(
   override fun getQualifiedName(): String? = "$packageName.R"
 
   /**
-   * [SymbolTable] read from the symbol file.
+   * [SymbolTable] read from the symbol file or an empty one if we failed to find or parse it.
    */
-  private val symbolTable: SymbolTable? = symbolFile.takeIf { it.exists() }?.let { SymbolIo.readFromAapt(it, packageName) }
+  private val symbolTable: SymbolTable = symbolFile.takeIf { it.exists() }?.let {
+    try {
+      SymbolIo.readFromAaptNoValues(it, packageName)
+    }
+    catch (e: IOException) {
+      LOG.warn("Failed to build R class from ${symbolFile.path}", e)
+      null
+    }
+  } ?: SymbolTable.builder().build()
 
   override fun doGetInnerClasses(): Array<out PsiClass> {
     return symbolTable
-             ?.resourceTypes
-             ?.map { NonNamespacedResourceTypeClass(this, it, symbolTable) }
-             ?.toTypedArray()
-           ?: PsiClass.EMPTY_ARRAY
+             .resourceTypes
+             .map { NonNamespacedResourceTypeClass(this, it, symbolTable) }
+             .toTypedArray()
+  }
+
+  companion object {
+    private val LOG: Logger = Logger.getInstance(NonNamespacedAarPackageRClass::class.java)
   }
 }
 
@@ -111,7 +126,15 @@ private class NonNamespacedResourceTypeClass(
 
   override fun doGetFields(): Array<PsiField> {
     return buildResourceFields(
-      symbolTable.getSymbolByResourceType(resourceType).associateBy({ it.canonicalName }, { it.javaType.toPsiType() }),
+      symbolTable.getSymbolByResourceType(resourceType).fold(HashMap<String, PsiType>()) { map, symbol ->
+          map[symbol.canonicalName] = symbol.javaType.toPsiType()
+          if (symbol is Symbol.StyleableSymbol) {
+            for (childName in symbol.children) {
+              map["${symbol.canonicalName}_${canonicalizeValueResourceName(childName)}"] = PsiType.INT
+            }
+          }
+          map
+        },
       resourceType,
       containingClass,
       FieldModifier.NON_FINAL
