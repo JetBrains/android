@@ -40,8 +40,8 @@ public class DeleteStringAction extends AbstractAction {
     StringResourceTable table = myPanel.getTable();
     int[] rows = table.getSelectedModelRowIndices();
     int[] cols = table.getSelectedModelColumnIndices();
-    int tableRow = table.rowAtPoint(event.getPoint());
-    int tableColumn = table.columnAtPoint(event.getPoint());
+    int tableRow = event.getViewRowIndex();
+    int tableColumn = event.getViewColumnIndex();
 
     // nothing is selected, select cell under mouse
     if ((rows.length == 0 || cols.length == 0) && tableRow >= 0 && tableColumn >= 0) {
