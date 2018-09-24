@@ -19,6 +19,7 @@ import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
+import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,11 +31,11 @@ public class AndroidGradlePluginWarningParser implements BuildOutputParser {
   @NotNull
   private static final String ANDROID_MESSAGES_GROUP = "Android Gradle Plugin"; // Name of the message group to show in the build window
   @NotNull
-  private static final String WARNING_PREFIX = "WARNING:"; // Prefix used by the Android Gradle Plugin when reporting errors.
+  private static final String WARNING_PREFIX = "warning:"; // Prefix used by the Android Gradle Plugin when reporting errors.
 
   @Override
   public boolean parse(String line, BuildOutputInstantReader reader, Consumer<MessageEvent> messageConsumer) {
-    if (line.startsWith(WARNING_PREFIX)) {
+    if (WARNING_PREFIX.regionMatches(true, 0, line, 0, WARNING_PREFIX.length())) {
       String message = line.substring(WARNING_PREFIX.length()).trim();
       messageConsumer
         .accept(new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.WARNING, ANDROID_MESSAGES_GROUP, message, message));
