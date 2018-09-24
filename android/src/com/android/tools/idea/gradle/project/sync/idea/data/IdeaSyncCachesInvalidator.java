@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -30,6 +31,9 @@ public class IdeaSyncCachesInvalidator extends CachesInvalidator {
     for (Project project : openProjects) {
       if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
         DataNodeCaches.getInstance(project).clearCaches();
+
+        // Delete New Sync cached models if they exist
+        CachedProjectModels.eraseDiskCache(project);
 
         // Remove contents in .idea/libraries to recover from any invalid library entries.
         deleteLibrariesFolder(getBaseDirPath(project));
