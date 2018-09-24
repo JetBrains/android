@@ -40,6 +40,7 @@ import static com.android.SdkConstants.TAG_LAYOUT;
 import static com.android.SdkConstants.TAG_STRING;
 import static com.android.SdkConstants.TOOLS_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.builder.model.AaptOptions.Namespacing;
 import static com.android.resources.ResourceType.ARRAY;
@@ -1343,7 +1344,7 @@ public class AndroidResourceUtil {
     if (valuesResourceFile) {
       return AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE;
     }
-    if (LAYOUT.getName().equals(resourceType) && !TAG_LAYOUT.equals(rootTagName)) {
+    if (LAYOUT.getName().equals(resourceType) && !TAG_LAYOUT.equals(rootTagName) && !VIEW_MERGE.equals(rootTagName)) {
       return AndroidUtils.TAG_LINEAR_LAYOUT.equals(rootTagName)
              ? AndroidFileTemplateProvider.LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE
              : AndroidFileTemplateProvider.LAYOUT_RESOURCE_FILE_TEMPLATE;
