@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -24,29 +22,39 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.SimpleColoredComponent.ColoredIterator;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import javax.swing.AbstractButton;
-import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
+import org.fest.swing.cell.JTableCellWriter;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.driver.AbstractJTableCellWriter;
+import org.fest.swing.driver.JTableCheckBoxEditorCellWriter;
+import org.fest.swing.driver.JTableTextComponentEditorCellWriter;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static org.fest.swing.edt.GuiTask.execute;
 
 public final class TranslationsEditorFixture {
   private final Robot myRobot;
@@ -147,8 +155,6 @@ public final class TranslationsEditorFixture {
   @NotNull
   public FrozenColumnTableFixture getTable() {
     FrozenColumnTableFixture table = new FrozenColumnTableFixture(myRobot, myTable);
-
-    table.getFrozenTable().replaceCellWriter(new TranslationsEditorTableCellWriter(myRobot));
     table.getScrollableTable().replaceCellWriter(new TranslationsEditorTableCellWriter(myRobot));
 
     return table;
@@ -223,5 +229,62 @@ public final class TranslationsEditorFixture {
     TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myLoadingPanel, "translationTextField");
     myRobot.click(field.getButton());
     return MultilineStringEditorDialogFixture.find(myRobot);
+  }
+
+  /**
+   * Sometimes a PSI document is created when a Table Cell finishes its editing - ie stopCellEditing() is called. Users normally do this by
+   * pressing enter, changing focus to other cell, etc. Creating documents on the UI thread is not allowed, unless its called inside a
+   * performUserActivity().
+   * When stopCellEditing() is called from a "User Event", IntelliJ wraps the call with a performUserActivity().
+   * When stopCellEditing() is called from FEST, we need to do this ourselves.
+   * See IdeEventQueue@startActivity() for the list of AWT UI events classified as "User Events".
+   */
+  private class TranslationsEditorTableCellWriter extends AbstractJTableCellWriter {
+    private final JTableCheckBoxEditorCellWriter checkBoxWriter;
+    private final JTableTextComponentEditorCellWriter textComponentWriter;
+
+    public TranslationsEditorTableCellWriter(@NotNull Robot robot) {
+      super(robot);
+      checkBoxWriter = new JTableCheckBoxEditorCellWriter(robot);
+      textComponentWriter = new JTableTextComponentEditorCellWriter(robot) {
+        @Override
+        public void stopCellEditing(@NotNull JTable table, int row, int column) {
+          execute(() -> ((TransactionGuardImpl)TransactionGuard.getInstance()).performUserActivity(table.getCellEditor()::stopCellEditing));
+          myRobot.waitForIdle();
+        }
+      };
+    }
+
+    @Override
+    public void enterValue(@NotNull JTable table, int row, int column, @NotNull String value) {
+      cellWriterFor(table, row, column).enterValue(table, row, column, value);
+    }
+
+    @Override
+    public void startCellEditing(@NotNull JTable table, int row, int column) {
+      cellWriterFor(table, row, column).startCellEditing(table, row, column);
+    }
+
+    @Override
+    public void stopCellEditing(@NotNull JTable table, int row, int column) {
+      cellWriterFor(table, row, column).stopCellEditing(table, row, column);
+    }
+
+    @NotNull
+    private JTableCellWriter cellWriterFor(@NotNull JTable table, int row, int column) {
+      Component editor = editorForCell(table, row, column);
+      if (editor instanceof JCheckBox) {
+        return checkBoxWriter;
+      }
+      if (editor instanceof JTextComponent) {
+        return textComponentWriter;
+      }
+      throw cannotFindOrActivateEditor(row, column);
+    }
+
+    @Override
+    public void cancelCellEditing(@NotNull JTable table, int row, int column) {
+      cellWriterFor(table, row, column).cancelCellEditing(table, row, column);
+    }
   }
 }
