@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import java.awt.Component;
-import java.awt.Point;
-import java.util.EventObject;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.util.EventObject;
+
 public final class FrozenColumnTableEvent extends EventObject {
-  private final int myViewRowIndex;
-  private final int myViewColumnIndex;
+  private final int myModelRowIndex;
+  private final int myModelColumnIndex;
   private final Point myPoint;
   private final Component mySubcomponent;
 
   FrozenColumnTableEvent(@NotNull FrozenColumnTable source,
-                         int viewRowIndex,
-                         int viewColumnIndex,
+                         int modelRowIndex,
+                         int modelColumnIndex,
                          @NotNull Point point,
                          @NotNull Component subcomponent) {
     super(source);
 
-    myViewRowIndex = viewRowIndex;
-    myViewColumnIndex = viewColumnIndex;
+    myModelRowIndex = modelRowIndex;
+    myModelColumnIndex = modelColumnIndex;
     myPoint = point;
     mySubcomponent = subcomponent;
   }
@@ -44,20 +44,12 @@ public final class FrozenColumnTableEvent extends EventObject {
     return (FrozenColumnTable)super.getSource();
   }
 
-  public int getViewRowIndex() {
-    return myViewRowIndex;
-  }
-
   public int getModelRowIndex() {
-    return getSource().convertRowIndexToModel(myViewRowIndex);
-  }
-
-  public int getViewColumnIndex() {
-    return myViewColumnIndex;
+    return myModelRowIndex;
   }
 
   public int getModelColumnIndex() {
-    return getSource().convertColumnIndexToModel(myViewColumnIndex);
+    return myModelColumnIndex;
   }
 
   @NotNull
