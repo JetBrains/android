@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -37,7 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -54,7 +53,7 @@ public class RenameTest {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
       for (final VirtualFile sourceRoot : sourceRoots) {
         PsiDirectory directory = GuiQuery.getNonNull(() -> PsiManager.getInstance(project).findDirectory(sourceRoot));
-        for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
+        for (final RenameHandler handler : RenameHandler.EP_NAME.getExtensionList()) {
           if (handler instanceof DirectoryAsPackageRenameHandler) {
             final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, guiTest.robot());
             assertFalse(renameDialog.warningExists(null));
