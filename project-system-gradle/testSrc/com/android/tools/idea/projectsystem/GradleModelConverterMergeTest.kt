@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.projectsystem
 
-import com.android.ide.common.gradle.model.toProjectModel
+import com.android.ide.common.gradle.model.toSubmodule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_MODEL_MULTIFLAVOR
 import com.google.common.truth.Truth.assertThat
@@ -22,7 +22,7 @@ class GradleModelConverterMergeTest : AndroidGradleTestCase() {
   fun testResolvedConfiguration() {
     loadProject(PROJECT_MODEL_MULTIFLAVOR)
     val input = model.androidProject
-    val output = input.toProjectModel()
+    val output = input.toSubmodule()
 
     for (variant in output.variants) {
       val artifact = variant.mainArtifact

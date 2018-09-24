@@ -29,7 +29,7 @@ import com.android.SdkConstants.DOT_AAR
 import com.android.SdkConstants.FD_JARS
 import com.android.SdkConstants.LIBS_FOLDER
 import com.android.builder.model.AaptOptions
-import com.android.projectmodel.AndroidProject
+import com.android.projectmodel.AndroidSubmodule
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -43,7 +43,7 @@ import java.io.File
  * Returns information about all [ExternalLibrary] dependencies that contribute resources in the project, indexed by
  * [ExternalLibrary.address] which is unique within a project.
  *
- * TODO: ExternalLibrary.address is unique within an [AndroidProject], not necessarily within a [Project]
+ * TODO: ExternalLibrary.address is unique within an [AndroidSubmodule], not necessarily within a [Project]
  */
 fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary> {
   return ModuleManager.getInstance(project)

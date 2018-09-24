@@ -30,8 +30,8 @@ object CommonModelFactories {
   val SINGLE_LIB_MODULE: ModelFactory  = singleModuleProject("lib", ProjectType.LIBRARY)
 
   val APP_AND_LIB: ModelFactory = { fixture ->
-    val app = SINGLE_APP_MODULE(fixture).projects.single()
-    val lib = SINGLE_LIB_MODULE(fixture).projects.single()
+    val app = SINGLE_APP_MODULE(fixture).submodules.single()
+    val lib = SINGLE_LIB_MODULE(fixture).submodules.single()
 
     val appVariant = app.variants.single()
     val newConfig = appVariant.mainArtifact.resolved.copy(
@@ -69,7 +69,7 @@ private fun singleModuleProject(
 
   AndroidModel(
     listOf(
-      AndroidProject(
+      AndroidSubmodule(
         name= moduleName,
         type = type,
         variants = listOf(
