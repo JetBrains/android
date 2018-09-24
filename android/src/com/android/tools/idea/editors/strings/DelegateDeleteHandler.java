@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings;
 
 import com.intellij.ide.util.DeleteHandler;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -34,6 +33,7 @@ import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -66,7 +66,7 @@ public class DelegateDeleteHandler {
     Set<PsiElement> fullElementsSet = new LinkedHashSet<>();
     for (PsiElement element : elementRoots) {
       boolean found = false;
-      for (SafeDeleteProcessorDelegate delegate : Extensions.getExtensions(SafeDeleteProcessorDelegate.EP_NAME)) {
+      for (SafeDeleteProcessorDelegate delegate : SafeDeleteProcessorDelegate.EP_NAME.getExtensionList()) {
         if (delegate.handlesElement(element)) {
           found = true;
           Collection<? extends PsiElement> addElements = delegate instanceof SafeDeleteProcessorDelegateBase
