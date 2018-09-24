@@ -20,8 +20,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-
-import java.awt.*;
+import java.awt.Color;
 
 public class ProfilerColors {
 
@@ -132,6 +131,8 @@ public class ProfilerColors {
   public static final Color CPU_AXIS_GUIDE_COLOR = AXIS_MARKER_COLOR;
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
+
+  public static final Color CPU_CAPTURE_LINES = new JBColor(0x434343, 0xBCBCBC);
 
   public static final Color CPU_THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
