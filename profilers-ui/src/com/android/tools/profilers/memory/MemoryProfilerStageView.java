@@ -201,8 +201,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();
 
-    myAllocationSamplingRateLabel = new JLabel("Allocation Tracking Mode");
-    myAllocationSamplingRateLabel.setBorder(JBUI.Borders.emptyLeft(10));
+    myAllocationSamplingRateLabel = new JLabel("Allocation Tracking");
+    myAllocationSamplingRateLabel.setBorder(JBUI.Borders.empty(0, 8));
     myAllocationSamplingRateDropDown = new ComboBox<LiveAllocationSamplingMode>();
 
     getStage().getAspect().addDependency(this)
