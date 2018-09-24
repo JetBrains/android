@@ -477,7 +477,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         // Need to offset the GcDurationData by the margin difference between the overlay component and the
         // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
         .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
-                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f + Y_AXIS_TOP_MARGIN)
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
+        .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
         .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
         .setClickRegionPadding(0, 0)
         .build();
@@ -521,7 +522,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
           .setIcon(StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE)
           .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
-                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f + Y_AXIS_TOP_MARGIN)
+                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f)
+          .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
           .setClickRegionPadding(0, 0)
           .build();
       lineChart.addCustomRenderer(myAllocationSamplingRateRenderer);

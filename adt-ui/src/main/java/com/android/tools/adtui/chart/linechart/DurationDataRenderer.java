@@ -72,6 +72,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   private float myLineStrokeOffset;
   private float myLabelXOffset;
   private float myLabelYOffset;
+  @NotNull private final Insets myHostInsets;
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset. Initial values are defaults.
    */
@@ -103,6 +104,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myLabelTextColor = builder.myLabelTextColor;
     myLabelXOffset = builder.myLabelXOffset;
     myLabelYOffset = builder.myLabelYOffset;
+    myHostInsets = builder.myHostInsets;
     myClickRegionPaddingX = builder.myClickRegionPaddingX;
     myClickRegionPaddingY = builder.myClickRegionPaddingY;
     if (myStroke instanceof BasicStroke) {
@@ -300,7 +302,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   @VisibleForTesting Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
     float paddedHeight = rect.height + myClickRegionPaddingY * 2;
     float paddedWidth = rect.width + myClickRegionPaddingX * 2;
-    float scaledStartX = rect.x * componentWidth + myLabelXOffset + myLineStrokeOffset;
+    int totalXInsets = myHostInsets.left + myHostInsets.right;
+    float scaledStartX = myHostInsets.left + rect.x * (componentWidth - totalXInsets) + myLabelXOffset + myLineStrokeOffset;
     float scaledStartY = getClampedLabelY(rect.y, paddedHeight, componentHeight);
     return new Rectangle2D.Float(scaledStartX, scaledStartY, paddedWidth, paddedHeight);
   }
@@ -417,9 +420,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
    * Clamp and return the y position (accounting for height + custom offsets) of the label so that it is always within bounds of the host.
    */
   private float getClampedLabelY(float normalizedY, float height, int hostHeight) {
-    float maxScaledY = hostHeight - height;
-    float scaledY = normalizedY * hostHeight - height + myLabelYOffset;
-    return Math.max(0, Math.min(scaledY, maxScaledY));
+    float totalYInsets = myHostInsets.top + myHostInsets.bottom;
+    float maxScaledY = hostHeight - myHostInsets.bottom - height;
+    float scaledY = myHostInsets.top + normalizedY * (hostHeight - totalYInsets) - height + myLabelYOffset;
+    return Math.max(myHostInsets.top, Math.min(scaledY, maxScaledY));
   }
 
   public static class Builder<E extends DurationData> {
@@ -438,6 +442,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @Nullable private Color myLabelTextColor = null;
     private float myLabelXOffset;
     private float myLabelYOffset;
+    @NotNull private Insets myHostInsets = new Insets(0, 0, 0, 0);
     private int myClickRegionPaddingX = 4;
     private int myClickRegionPaddingY = 2;
 
@@ -508,6 +513,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     public Builder<E> setLabelOffsets(float xOffset, float yOffset) {
       myLabelXOffset = xOffset;
       myLabelYOffset = yOffset;
+      return this;
+    }
+
+    public Builder<E> setHostInsets(@NotNull Insets insets) {
+      myHostInsets = insets;
       return this;
     }
 

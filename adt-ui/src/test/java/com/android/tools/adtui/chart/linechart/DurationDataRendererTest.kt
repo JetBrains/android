@@ -32,6 +32,7 @@ import java.awt.Component
 import java.awt.Cursor
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
@@ -122,7 +123,8 @@ class DurationDataRendererTest {
     val mockIcon = mock(Icon::class.java)
     `when`(mockIcon.iconWidth).thenReturn(5)
     `when`(mockIcon.iconHeight).thenReturn(5)
-    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(mockIcon).build()
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
+      .setIcon(mockIcon).setHostInsets(Insets(5, 10, 15, 20)).setClickRegionPadding(0, 0).build ()
     durationData.update(-1)  // value doesn't matter here.
 
     assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(5)
@@ -133,6 +135,32 @@ class DurationDataRendererTest {
     // attached series has no data after this point, use the last point as the attached y.
     validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
 
+    // Also checked for the post-scaled values.
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 100, 100),
+                   10f, // Account for the 10 pixel left inset
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[1], 100, 100),
+                   24f, // 10 pixel left inset + 0.2 * 70 pixels (after accounting for padding)
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[2], 100, 100),
+                   38f, // 10 pixel left inset + 0.4 * 70 pixels (after accounting for padding)
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[3], 100, 100),
+                   52f, // 10 pixel left inset + 0.6 * 70 pixels (after accounting for padding)
+                   32f, // Account for the 15 pixel bottom inset + icon height + 0.4 * 80 pixels after accounting for padding)
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[4], 100, 100),
+                   66f, // 10 pixel left inset + 0.8 * 70 pixels (after accounting for padding)
+                   16f, // Account for the 15 pixel bottom inset + icon height + 0.2 * 80 pixels after accounting for padding)
+                   5f,
+                   5f)
   }
 
   @Test
