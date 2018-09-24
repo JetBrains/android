@@ -68,10 +68,20 @@ public class AndroidGradlePluginWarningParserTest {
     assertFalse(myParser.parse(line, myReader, myConsumer));
   }
 
+  /**
+   * Javac warnings without sources are currently treated as AGP warnings as there is no reliable way to distinguish them from each other.
+   */
   @Test
   public void testParseJavacWithoutSource() {
     String line = "warning: [serial] serializable class MyClass has no definition of serialVersionUID";
     when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
-    assertFalse(myParser.parse(line, myReader, myConsumer));
+    assertTrue(myParser.parse(line, myReader, myConsumer));
+  }
+
+  @Test
+  public void testParseAGPResourceWarning() {
+    String line = "warning: string 'snowball' has no default translation.\n";
+    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    assertTrue(myParser.parse(line, myReader, myConsumer));
   }
 }
