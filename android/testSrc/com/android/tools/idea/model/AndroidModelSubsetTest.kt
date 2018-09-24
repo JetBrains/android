@@ -20,7 +20,7 @@ import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.projectmodel.AndroidPathType
-import com.android.projectmodel.AndroidProject
+import com.android.projectmodel.AndroidSubmodule
 import com.android.projectmodel.ArtifactDependency
 import com.android.projectmodel.Config
 import com.android.projectmodel.ExternalLibrary
@@ -55,7 +55,7 @@ class AndroidModelSubsetTest {
     )
 
   private val typicalGradleModel = com.android.projectmodel.AndroidModel(listOf(
-    AndroidProject(
+    AndroidSubmodule(
       name = "myProject",
       type = ProjectType.APP,
       variants = typicalGradleConfigTable.generateVariants(),
@@ -63,18 +63,18 @@ class AndroidModelSubsetTest {
     )
   ))
 
-  private fun typicalBlazeProjectModel(targetName: String, extraCompileDeps: List<ArtifactDependency> = listOf()): AndroidProject {
+  private fun typicalBlazeTargetModel(targetName: String, extraCompileDeps: List<ArtifactDependency> = listOf()): AndroidSubmodule {
     val configTable = configTableWith(simpleConfig("src").copy(compileDeps = extraCompileDeps, applicationIdSuffix = targetName))
-    return AndroidProject(
+    return AndroidSubmodule(
       name = targetName,
       type = ProjectType.APP
     ).withVariantsGeneratedBy(configTable)
   }
 
   private val typicalBlazeModel = com.android.projectmodel.AndroidModel(listOf(
-    typicalBlazeProjectModel("app", listOf(databindingLib)),
-    typicalBlazeProjectModel("tests"),
-    typicalBlazeProjectModel("resources")
+    typicalBlazeTargetModel("app", listOf(databindingLib)),
+    typicalBlazeTargetModel("tests"),
+    typicalBlazeTargetModel("resources")
   ))
 
   @Test
@@ -100,7 +100,7 @@ class AndroidModelSubsetTest {
     val selection = selectAllVariants(typicalBlazeModel)
 
     assertThat(selection.firstMainArtifact()!!.artifact.resolved.sources.javaDirectories).containsExactly(PathString("src"))
-    assertThat(selection.selectedArtifacts(ARTIFACT_NAME_MAIN).toList().map { it.project.name })
+    assertThat(selection.selectedArtifacts(ARTIFACT_NAME_MAIN).toList().map { it.submodule.name })
       .containsExactly("app", "tests", "resources")
     assertThat(selection.selectedConfigs(ARTIFACT_NAME_UNIT_TEST).toList().map { it.path.simpleName }).isEmpty()
     assertThat(selection.selectedConfigs().toList().map { it.config.applicationIdSuffix }).containsExactly("app", "tests", "resources")
