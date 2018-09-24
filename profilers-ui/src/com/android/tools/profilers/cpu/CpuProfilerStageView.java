@@ -20,8 +20,11 @@ import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
@@ -44,6 +47,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.FontMetrics;
@@ -159,7 +163,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);
-
+    OverlayComponent traceLinesOverlay = setupTraceLinesOverlayComponent();
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myToolbar::update);
@@ -185,6 +189,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     // Order matters as such our tooltip component should be first so it draws on top of all elements.
     details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
+    details.add(traceLinesOverlay, new TabularLayout.Constraint(0, 0, 3, 1));
 
     if (!myStage.isImportTraceMode()) {
       // We shouldn't display the events monitor while in import trace mode.
@@ -225,6 +230,21 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
+  }
+
+  private OverlayComponent setupTraceLinesOverlayComponent() {
+    final BasicStroke dashed =
+      new BasicStroke(1.0f,
+                      BasicStroke.CAP_BUTT,
+                      BasicStroke.JOIN_MITER,
+                      5.0f, new float[]{5.0f}, 0.0f);
+    DurationDataRenderer<CpuTraceInfo> traceRenderer =
+      new DurationDataRenderer.Builder<>(myStage.getTraceDurations(), ProfilerColors.CPU_CAPTURE_LINES)
+        .setStroke(dashed)
+        .build();
+    OverlayComponent traceLinesOverlay = new OverlayComponent();
+    traceLinesOverlay.addDurationDataRenderer(traceRenderer);
+    return traceLinesOverlay;
   }
 
   @NotNull
@@ -268,6 +288,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     cpuStatePanel.add(myFrames.getComponent(), new TabularLayout.Constraint(PanelSizing.FRAME.getRow(), 0));
     //endregion
 
+    // Listening to the range change ensures we repaint all components when we update the view. If we don't do this,
+    // we end up with the capture lines not being updated over the HideablePanel labels.
+    getTimeline().getViewRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> cpuStatePanel.repaint());
     return cpuStatePanel;
   }
 
