@@ -43,12 +43,12 @@ public class IdInspectorProviderTest extends PropertyTestCase {
   }
 
   public void testIsApplicable() {
-    assertThat(isApplicable(myProvider, myMerge)).isTrue();
+    assertThat(isApplicable(myProvider, myMerge)).isFalse();
     assertThat(isApplicable(myProvider, myTextView)).isTrue();
     assertThat(isApplicable(myProvider, myCheckBox1)).isTrue();
     assertThat(isApplicable(myProvider, myProgressBar)).isTrue();
     assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch)).isTrue();
-    assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch, myMerge)).isTrue();
+    assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch, myMerge)).isFalse();
   }
 
   public void testIsNotApplicableForPreferenceAndMenuComponents() {
