@@ -71,6 +71,7 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
    * Create a [NelePropertyItem] for testing purposes.
    */
   fun createPropertyItem(
+    attrNamespace: String,
     attrName: String,
     type: NelePropertyType,
     components: List<NlComponent>,
@@ -82,7 +83,7 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
         frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NelePropertyItem(ANDROID_URI, attrName, type, definition, "", model, components)
+    return NelePropertyItem(attrNamespace, attrName, type, definition, "", model, components)
   }
 
   fun getSceneManager(property: NelePropertyItem): SyncLayoutlibSceneManager {

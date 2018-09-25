@@ -56,7 +56,8 @@ object TypeResolver {
     when (name) {
       SdkConstants.ATTR_STYLE -> NelePropertyType.STYLE
       SdkConstants.ATTR_CLASS -> NelePropertyType.FRAGMENT
-      SdkConstants.ATTR_LAYOUT -> NelePropertyType.LAYOUT
+      SdkConstants.ATTR_LAYOUT,
+      SdkConstants.ATTR_SHOW_IN -> NelePropertyType.LAYOUT
       else -> null
     }
 
