@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.android.utils.HtmlBuilder;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -34,7 +35,9 @@ public class MockIssueFactory {
 
   @NotNull
   private static Issue createIssue() {
-    return Issue.create("toto", "tata", "titi", Category.LINT, 10, Severity.ERROR, Mockito.mock(Implementation.class));
+    Implementation implementation = Mockito.mock(Implementation.class);
+    Mockito.when(implementation.getScope()).thenReturn(Scope.RESOURCE_FILE_SCOPE);
+    return Issue.create("toto", "tata", "titi", Category.LINT, 10, Severity.ERROR, implementation);
   }
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level) {
