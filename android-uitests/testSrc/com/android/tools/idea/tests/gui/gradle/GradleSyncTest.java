@@ -44,7 +44,6 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -86,8 +85,8 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -171,7 +170,7 @@ public class GradleSyncTest {
 
     Project project = guiTest.ideFrame().getProject();
     AndroidTreeStructureProvider treeStructureProvider = null;
-    TreeStructureProvider[] treeStructureProviders = Extensions.getExtensions(TreeStructureProvider.EP_NAME, project);
+    TreeStructureProvider[] treeStructureProviders = TreeStructureProvider.EP_NAME.getExtensions(project);
     for (TreeStructureProvider current : treeStructureProviders) {
       if (current instanceof AndroidTreeStructureProvider) {
         treeStructureProvider = (AndroidTreeStructureProvider)current;
