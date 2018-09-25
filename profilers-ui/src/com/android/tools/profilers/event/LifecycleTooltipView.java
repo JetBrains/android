@@ -38,7 +38,7 @@ import org.jetbrains.annotations.TestOnly;
 
 public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
 
-  private static final int HOVER_OVER_WIDTH_PX = ActivityComponent.EVENT_LINE_WIDTH_PX;
+  private static final int HOVER_OVER_WIDTH_PX = ActivityComponent.EVENT_LINE_WIDTH_PX + ActivityComponent.EVENT_LINE_GAP_WIDTH_PX * 2;
 
   @NotNull
   private final LifecycleTooltip myLifecycleTooltip;
@@ -100,7 +100,7 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
     if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
       myFragmentsPanel.removeAll();
       double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
-      Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX, tooltipX);
+      Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
       List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
       List<JLabel> labels = new ArrayList<>();
       fragments.forEach(fragment -> {
