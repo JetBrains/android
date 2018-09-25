@@ -16,10 +16,15 @@ package com.android.tools.idea.projectsystem
 import com.android.ide.common.gradle.model.*
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathStrings
+import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidSubmodule
+import com.android.projectmodel.matchAllArtifacts
 import com.android.projectmodel.matchArtifactsWith
+import com.android.projectmodel.submodulePathOf
+import com.android.projectmodel.toConfigPath
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
@@ -66,7 +71,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
   fun assertHasConfigs(vararg expectedPaths:String) {
     for (path in expectedPaths) {
       val configPath = matchArtifactsWith(path)
-      assertTrue("Config table should contain exactly 1 config for " + path, converted.configTable.filter { it.path == configPath }.configs.size == 1)
+      assertTrue("Config table should contain exactly 1 config for $path", converted.configTable.filter { it.path == configPath }.configs.size == 1)
     }
   }
 
@@ -82,7 +87,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
           assertThat(compileSdkVersion).isNull()
           assertThat(applicationId).isNull()
         }
-        assertThat(sources.get(AndroidPathType.ASSETS)[0].portablePath.endsWith("src/debug/assets")).isTrue()
+        assertThat(sources[AndroidPathType.ASSETS][0].portablePath.endsWith("src/debug/assets")).isTrue()
       }
     }
   }
@@ -116,19 +121,20 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
 
   fun checkVariants() {
     with(converted) {
+      val variantPathList = configTable.schema.allVariantPaths().toList()
       // (release, debug) * (x86, arm) * (free, pro) = 2 * 2 * 2 = 8
-      assertThat(variants.size).isEqualTo(8)
+      assertThat(variantPathList.size).isEqualTo(8)
       val originalVariant = firstVariant()
       val originalTestArtifact = originalVariant.extraAndroidArtifacts.iterator().next()!!
       val originalArtifact = originalVariant.mainArtifact
 
-      val freeX86DebugPath = matchArtifactsWith("free/x86/debug")
-      val variant = variants.first { it.configPath == freeX86DebugPath }
-      val mainArtifact = variant.mainArtifact
-      val testArtifact = variant.androidTestArtifact
+      val freeX86DebugVariantPath = submodulePathOf("free", "x86", "debug")
+      val variant = getVariantByPath(freeX86DebugVariantPath)!!
+      val mainArtifact = getArtifact(freeX86DebugVariantPath + ARTIFACT_NAME_MAIN)!!
+      val testArtifact = getArtifact(freeX86DebugVariantPath + ARTIFACT_NAME_ANDROID_TEST)!!
 
+      assertThat(variant.name).isEqualTo(freeX86DebugVariantPath.toConfigPath().simpleName)
       with (mainArtifact) {
-        assertThat(name).isEqualTo(ARTIFACT_NAME_MAIN)
         assertThat(classFolders).isEqualTo(
           listOf(PathString(originalArtifact.classesFolder)) + originalArtifact.additionalClassesFolders.toPathStrings())
         assertThat(packageName).isEqualTo(project.defaultConfig.productFlavor.applicationId)
@@ -142,8 +148,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
         }
       }
 
-      with (testArtifact!!) {
-        assertThat(name).isEqualTo(originalTestArtifact.name)
+      with (testArtifact) {
         assertThat(classFolders).isEqualTo(
             listOf(PathString(originalTestArtifact.classesFolder)) + originalTestArtifact.additionalClassesFolders.toPathStrings())
         // Note that we don't currently fill in the package name for test artifacts, since the gradle model doesn't return it
@@ -154,9 +159,6 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
           }
         }
       }
-
-      assertThat(variant.mainArtifactConfigPath).isEqualTo(matchArtifactsWith("free/x86/debug/${ARTIFACT_NAME_MAIN}"))
-      assertThat(variant.configPath).isEqualTo(matchArtifactsWith("free/x86/debug"))
     }
   }
 
@@ -167,7 +169,6 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
         originalVariantVar = it
       }
     }
-    val originalVariant = originalVariantVar!!
-    return originalVariant
+    return originalVariantVar!!
   }
 }

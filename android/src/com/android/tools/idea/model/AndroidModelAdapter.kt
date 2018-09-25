@@ -192,7 +192,7 @@ fun getMinSdkVersion(input: AndroidModelSubset) : AndroidVersion? {
       // If this version has a codename, try to find the most specific override without a codename
       if (minSdkVersion.codename != null) {
         artifactContext.submodule.configTable
-          .configsIntersecting(artifactContext.variant.configPath)
+          .configsIntersecting(artifactContext.artifactPath.toConfigPath())
           .reversed().mapNotNull {
             it.manifestValues.compileSdkVersion
           }.firstOrNull { it.codename != null }
@@ -203,7 +203,7 @@ fun getMinSdkVersion(input: AndroidModelSubset) : AndroidVersion? {
 }
 
 fun getAllApplicationIds(model: com.android.projectmodel.AndroidModel): Set<String>
-  = model.submodules.flatMap { it.variants }.flatMap { it.artifacts.mapNotNull {it.resolved.manifestValues.applicationId } }.toSet()
+  = model.submodules.flatMap { it.artifacts.values.mapNotNull {it.resolved.manifestValues.applicationId } }.toSet()
 
 /**
  * Attempts to guess a representative application ID for the given model. If the model contains multiple application IDs, this returns the

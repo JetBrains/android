@@ -57,10 +57,8 @@ class AndroidModelSubsetTest {
   private val typicalGradleModel = com.android.projectmodel.AndroidModel(listOf(
     AndroidSubmodule(
       name = "myProject",
-      type = ProjectType.APP,
-      variants = typicalGradleConfigTable.generateVariants(),
-      configTable = typicalGradleConfigTable
-    )
+      type = ProjectType.APP
+    ).withVariantsGeneratedBy(typicalGradleConfigTable)
   ))
 
   private fun typicalBlazeTargetModel(targetName: String, extraCompileDeps: List<ArtifactDependency> = listOf()): AndroidSubmodule {
@@ -84,12 +82,12 @@ class AndroidModelSubsetTest {
     assertThat(selection.firstMainArtifact()!!.artifact.resolved.sources.javaDirectories).containsExactly(PathString("main"),
                                                                                                           PathString("release"),
                                                                                                           PathString("app"))
-    assertThat(selection.selectedArtifacts().toList().map { it.artifact.name }).containsExactly(ARTIFACT_NAME_MAIN, ARTIFACT_NAME_UNIT_TEST,
+    assertThat(selection.selectedArtifacts().toList().map { it.artifactPath.lastSegment }).containsExactly(ARTIFACT_NAME_MAIN, ARTIFACT_NAME_UNIT_TEST,
                                                                                                 ARTIFACT_NAME_ANDROID_TEST)
-    assertThat(selection.selectedArtifacts(ARTIFACT_NAME_MAIN).toList().map { it.artifact.name }).containsExactly(ARTIFACT_NAME_MAIN)
+    assertThat(selection.selectedArtifacts(ARTIFACT_NAME_MAIN).toList().map { it.artifactPath.lastSegment }).containsExactly(ARTIFACT_NAME_MAIN)
     assertThat(selection.selectedConfigs(ARTIFACT_NAME_UNIT_TEST).toList().map { it.path.simpleName }).containsExactly("main", "release")
     assertThat(selection.selectedConfigs().toList().map { it.path.simpleName }).containsExactly("main", "release", ARTIFACT_NAME_MAIN)
-    assertThat(selection.selectedVariants().toList().map { it.variant.configPath.simpleName }).containsExactly("release")
+    assertThat(selection.selectedVariants().toList().map { it.variantPath.simpleName }).containsExactly("release")
     assertThat(selection.dependsOn(ANDROIDX_DATA_BINDING_LIB.getCoordinate("+"))).isTrue()
     assertThat(selection.dependsOn(ANDROIDX_DATA_BINDING_LIB.getCoordinate(""))).isTrue()
     assertThat(selection.dependsOn(DATA_BINDING_LIB.getCoordinate("+"))).isFalse()
@@ -104,7 +102,7 @@ class AndroidModelSubsetTest {
       .containsExactly("app", "tests", "resources")
     assertThat(selection.selectedConfigs(ARTIFACT_NAME_UNIT_TEST).toList().map { it.path.simpleName }).isEmpty()
     assertThat(selection.selectedConfigs().toList().map { it.config.applicationIdSuffix }).containsExactly("app", "tests", "resources")
-    assertThat(selection.selectedVariants().toList().map { it.variant.mainArtifact.resolved.applicationIdSuffix })
+    assertThat(selection.selectedVariants().toList().map { it.getArtifact(ARTIFACT_NAME_MAIN)!!.resolved.applicationIdSuffix })
       .containsExactly("app", "tests", "resources")
     assertThat(selection.dependsOn(ANDROIDX_DATA_BINDING_LIB.getCoordinate("+"))).isTrue()
     assertThat(selection.dependsOn(DATA_BINDING_LIB.getCoordinate("+"))).isFalse()
