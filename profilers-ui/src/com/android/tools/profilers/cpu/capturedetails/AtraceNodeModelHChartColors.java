@@ -55,7 +55,7 @@ class AtraceNodeModelHChartColors {
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.
-      color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
+      color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER_IDLE : ProfilerColors.CPU_FLAMECHART_APP_IDLE;
     }
     return isUnmatched ? toUnmatchColor(color) : color;
   }

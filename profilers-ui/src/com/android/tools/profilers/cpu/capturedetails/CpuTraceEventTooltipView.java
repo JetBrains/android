@@ -28,6 +28,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,12 +39,18 @@ import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
  * Tooltip view for the Trace Event chart in Systrace.
  */
 class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
-  @NotNull private TraceEventTooltipLegends myLegends;
+  @NotNull private final TraceEventTooltipLegends myLegends;
+  @NotNull private final Color myRunningColor;
+  @NotNull private final Color myIdleColor;
 
   protected CpuTraceEventTooltipView(@NotNull HTreeChart<CaptureNode> chart,
-                                     @NotNull CpuProfilerStageView stageView) {
+                                     @NotNull CpuProfilerStageView stageView,
+                                     @NotNull Color runningColor,
+                                     @NotNull Color idleColor) {
     super(chart, stageView);
     myLegends = new TraceEventTooltipLegends();
+    myRunningColor = runningColor;
+    myIdleColor = idleColor;
   }
 
   @Override
@@ -62,8 +69,8 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
     LegendComponent legend = new LegendComponent.Builder(myLegends).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.setForeground(ProfilerColors.TOOLTIP_TEXT);
     legend
-      .configure(myLegends.getRunningDurationLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
-    legend.configure(myLegends.getIdleDurationLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_TRACE_IDLE));
+      .configure(myLegends.getRunningDurationLegend(), new LegendConfig(LegendConfig.IconType.BOX, myRunningColor));
+    legend.configure(myLegends.getIdleDurationLegend(), new LegendConfig(LegendConfig.IconType.BOX, myIdleColor));
 
     JLabel totalLabel = new JLabel(String.format("Total: %s", TimeFormatter.getSingleUnitDurationString(totalDuration)));
 

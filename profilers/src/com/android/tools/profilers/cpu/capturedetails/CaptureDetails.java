@@ -151,7 +151,7 @@ public interface CaptureDetails {
     private void selectionRangeChanged() {
       assert myTopDownNode != null;
       myTopDownNode.update(mySelectionRange);
-      if (myTopDownNode.getTotal() > 0) {
+      if (myTopDownNode.getGlobalTotal() > 0) {
         double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
         myFlameNode = convertToFlameChart(myTopDownNode, start, 0);
       }
@@ -190,14 +190,14 @@ public interface CaptureDetails {
      * building a {@link TopDownNode} instance only on creation gives a performance improvement in every update.
      */
     private CaptureNode convertToFlameChart(@NotNull TopDownNode topDown, double start, int depth) {
-      assert topDown.getTotal() > 0;
+      assert topDown.getGlobalTotal() > 0;
 
       CaptureNode node = new CaptureNode(topDown.getNodes().get(0).getData());
       node.setFilterType(topDown.getNodes().get(0).getFilterType());
       node.setStartGlobal((long)start);
       node.setStartThread((long)start);
-      node.setEndGlobal((long)(start + topDown.getTotal()));
-      node.setEndThread((long)(start + topDown.getTotal()));
+      node.setEndGlobal((long)(start + topDown.getGlobalTotal()));
+      node.setEndThread((long)(start + topDown.getThreadTotal()));
 
       node.setDepth(depth);
 
@@ -211,16 +211,16 @@ public interface CaptureDetails {
       // List#sort api is stable, i.e it keeps order of the appearance if sorting arguments are equal.
       sortedChildren.sort((o1, o2) -> {
         int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
-        return cmp == 0 ? Double.compare(o2.getTotal(), o1.getTotal()) : cmp;
+        return cmp == 0 ? Double.compare(o2.getGlobalTotal(), o1.getGlobalTotal()) : cmp;
       });
 
       for (TopDownNode child : sortedChildren) {
-        if (child.getTotal() == 0) {
+        if (child.getGlobalTotal() == 0) {
           // Sorted in descending order, so starting from now every child's total is zero.
           continue;
         }
         node.addChild(convertToFlameChart(child, start, depth + 1));
-        start += child.getTotal();
+        start += child.getGlobalTotal();
       }
 
       return node;
