@@ -106,7 +106,14 @@ public class CaptureModel {
     if (myCapture != null) {
       // If a thread was already selected, keep the selection. Otherwise select the capture main thread.
       setThread(myThread != NO_THREAD ? myThread : capture.getMainThreadId());
-      myCapture.updateClockType(myClockType);
+      // Not all captures support both clocks, this check allows us to keep thread type clocks
+      // for captures that support it, otherwise we use the global clock.
+      if (myCapture.isDualClock()) {
+        setClockType(myClockType);
+      }
+      else {
+        setClockType(ClockType.GLOBAL);
+      }
     }
     else {
       setThread(NO_THREAD);
@@ -135,7 +142,7 @@ public class CaptureModel {
   }
 
   public void setClockType(@NotNull ClockType type) {
-    if (myClockType == type) {
+    if (myClockType == type || (myCapture != null && !myCapture.isDualClock() && type == ClockType.THREAD)) {
       return;
     }
     myClockType = type;

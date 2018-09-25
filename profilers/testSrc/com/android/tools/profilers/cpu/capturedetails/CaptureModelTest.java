@@ -158,6 +158,46 @@ public class CaptureModelTest {
   }
 
   @Test
+  public void testClockTypeGetsReset() {
+    CaptureNode root = createFilterTestTree();
+
+    CpuThreadInfo info = new CpuThreadInfo(101, "main");
+    TraceParser globalOnlyClockSupported = new FakeTraceParser(new Range(0, 30),
+                                                               new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
+                                                                 .put(info, root)
+                                                                 .build(), false);
+    TraceParser dualClockSupported = new FakeTraceParser(new Range(0, 30),
+                                                         new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
+                                                           .put(info, root)
+                                                           .build(), true);
+
+    CpuCapture globalOnlyCapture = new CpuCapture(globalOnlyClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture dualCapture1 = new CpuCapture(dualClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture dualCapture2 = new CpuCapture(dualClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    myModel.setCapture(globalOnlyCapture);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
+    myModel.setClockType(ClockType.THREAD);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
+
+    myModel.setCapture(dualCapture1);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
+    myModel.setClockType(ClockType.THREAD);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.THREAD);
+
+    // If we set a capture that supports dual clock we don't change the clock.
+    myModel.setCapture(dualCapture2);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.THREAD);
+
+    // If we set a capture that does not support dual clock we reset back to global.
+    myModel.setCapture(globalOnlyCapture);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
+
+    // If we set a capture that does support dual clock after setting to global we stick to global.
+    myModel.setCapture(dualCapture1);
+    assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
+  }
+
+  @Test
   public void testDetailsFeatureTracking() {
     FakeFeatureTracker tracker = (FakeFeatureTracker)myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
 
