@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantAppSdks;
@@ -29,6 +30,7 @@ import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
+import java.util.stream.Collectors;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,14 +60,12 @@ public class RunInstantAppTask implements LaunchTask {
   @Nullable private final String myDeepLink;
   @NotNull private final InstantAppSdks mySdk;
   @NotNull private final List<String> myDisabledFeatures;
-  @Nullable private Path myTempDir;
 
   public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link, @NotNull List<String> disabledFeatures) {
     myPackages = packages;
     myDeepLink = link;
     mySdk = InstantAppSdks.getInstance();
     myDisabledFeatures = disabledFeatures;
-    myTempDir = null;
   }
 
   public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link) {
@@ -92,19 +92,9 @@ public class RunInstantAppTask implements LaunchTask {
     // We expect exactly one zip file per Instant App that will contain the apk-splits for the
     // Instant App
     if (myPackages.size() != 1) {
-      printer.stderr("Zip file not found or not unique.");
+      printer.stderr("Package not found or not unique.");
       return false;
     }
-
-    ApkInfo apkInfo = myPackages.iterator().next();
-    File zipFile;
-    try {
-      zipFile = createDeploymentFile(apkInfo);
-    } catch (IOException e) {
-      printer.stderr("Could not create temporary archive for package.");
-      return false;
-    }
-
 
     URL url = null;
     if (myDeepLink != null && !myDeepLink.isEmpty()) {
@@ -116,47 +106,59 @@ public class RunInstantAppTask implements LaunchTask {
       }
     }
 
+    ResultStream resultStream = new ResultStream() {
+      @Override
+      public void write(HandlerResult result) {
+        if (result.isError()) {
+          printer.stderr(result.toString());
+          getLogger().error(new RunInstantAppException(result.getMessage()));
+        }
+        else {
+          printer.stdout(result.toString());
+        }
+      }
+    };
+
     try {
       ExtendedSdk aiaSdk = mySdk.loadLibrary();
       // If null, this entire task will not be called
       assert aiaSdk != null;
-      StatusCode status = aiaSdk.getRunHandler().runInstantApp(
-        url,
-        zipFile,
-        device.getSerialNumber(),
-        SetupBehavior.SET_UP_IF_NEEDED,
-        new ResultStream() {
-          @Override
-          public void write(HandlerResult result) {
-            if (result.isError()) {
-              printer.stderr(result.toString());
-              getLogger().error(new RunInstantAppException(result.getMessage()));
-            }
-            else {
-              printer.stdout(result.toString());
-            }
-          }
-        },
-        new ProgressIndicator() {
-          @Override
-          public void setProgress(double v) {
-          }
-        }
-      );
+
+      ApkInfo apkInfo = myPackages.iterator().next();
+      List<ApkFileUnit> artifactFiles = apkInfo.getFiles();
+
+      StatusCode status;
+      if (isSingleZipFile(artifactFiles)) {
+        // This is a ZIP built by the feature plugin, containing all the app splits
+        status = aiaSdk.getRunHandler().runZip(
+          artifactFiles.get(0).getApkFile(),
+          url,
+          AndroidDebugBridge.getSocketAddress(),
+          device.getSerialNumber(),
+          null,
+          resultStream,
+          new NullProgressIndicator());
+      } else {
+        // This is a set of individual APKs, such as might be built from a bundle
+        status = aiaSdk.getRunHandler().runApks(
+          artifactFiles.stream()
+                       // Remove disabled APKs
+                       .filter((apkFileUnit) -> (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)))
+                        .map(ApkFileUnit::getApkFile)
+                        .collect(ImmutableList.toImmutableList()),
+          url,
+          AndroidDebugBridge.getSocketAddress(),
+          device.getSerialNumber(),
+          null,
+          resultStream,
+          new NullProgressIndicator());
+      }
+
       return status == StatusCode.SUCCESS;
     } catch (Exception e) {
       printer.stderr(e.toString());
       getLogger().error(new RunInstantAppException(e));
       return false;
-    } finally {
-      if (myTempDir != null) {
-        zipFile.delete();
-        try {
-          Files.deleteIfExists(myTempDir);
-        } catch (IOException e) {
-          printer.stderr("Could not delete temporary directory for instant app deploy.");
-        }
-      }
     }
   }
 
@@ -178,36 +180,19 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   @NotNull
-  private File createDeploymentFile(ApkInfo apkInfo) throws IOException {
-    List<ApkFileUnit> apkFiles = apkInfo.getFiles();
-    if (apkFiles.size() == 1) {
-      return apkFiles.get(0).getApkFile();
-    } else {
-      // TODO: Zip up apks for now, change API to support List of Files in the future.
-      myTempDir = Files.createTempDirectory(apkInfo.getApplicationId());
-      File zipFile = new File(myTempDir.toFile(), apkInfo.getApplicationId() + DOT_ZIP);
-      try (ZipOutputStream zipOutputStream =
-          new ZipOutputStream(new FileOutputStream(zipFile))) {
-        for (ApkFileUnit apkFileUnit : apkFiles) {
-          if (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)) {
-            File apkFile = apkFileUnit.getApkFile();
-            try (FileInputStream fileInputStream = new FileInputStream(apkFile)) {
-              byte[] inputBuffer = IOUtils.toByteArray(fileInputStream);
-              zipOutputStream.putNextEntry(new ZipEntry(apkFile.getName()));
-              zipOutputStream.write(inputBuffer, 0, inputBuffer.length);
-              zipOutputStream.closeEntry();
-            }
-          }
-        }
-      }
-      return zipFile;
-    }
-  }
-
-  @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(RunInstantAppTask.class);
   }
+
+  private static boolean isSingleZipFile(List<ApkFileUnit> artifactFiles) {
+    return artifactFiles.size() == 1 && artifactFiles.get(0).getApkFile().getName().toLowerCase().endsWith(".zip");
+  }
+
+  private static class NullProgressIndicator implements ProgressIndicator {
+    @Override
+    public void setProgress(double v) {
+    }
+  };
 
   @TestOnly
   @NotNull
