@@ -27,6 +27,8 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -56,6 +58,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -334,13 +337,26 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   private void initPreviewFormAfterInitialBuild() {
-    SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
-      if (result.isSuccessful()) {
-        initPreviewFormAfterBuildOnEventDispatchThread();
+    ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
+
+    if (!syncManager.isSyncInProgress()) {
+      if (syncManager.getLastSyncResult().isSuccessful()) {
+        UIUtil.invokeLaterIfNeeded(this::initPreviewFormAfterBuildOnEventDispatchThread);
+        return;
       }
       else {
         buildError();
-        SyncUtil.listenUntilNextSync(myProject, this, ignore -> initPreviewFormAfterBuildOnEventDispatchThread());
+      }
+    }
+
+    // Wait for a successful sync in case the module containing myFile was
+    // just added and the Android facet isn't available yet.
+    SyncUtil.listenUntilNextSuccessfulSync(myProject, this, result -> {
+      if (result.isSuccessful()) {
+        UIUtil.invokeLaterIfNeeded(this::initPreviewFormAfterBuildOnEventDispatchThread);
+      }
+      else {
+        buildError();
       }
     });
   }
