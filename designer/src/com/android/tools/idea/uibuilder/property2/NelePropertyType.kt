@@ -52,6 +52,7 @@ enum class NelePropertyType {
       NelePropertyType.FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
       NelePropertyType.ID -> EnumSet.of(ResourceType.ID)
       NelePropertyType.INTEGER -> EnumSet.of(ResourceType.INTEGER)
+      NelePropertyType.LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
       NelePropertyType.LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
       NelePropertyType.READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
       NelePropertyType.STRING -> EnumSet.of(ResourceType.STRING)

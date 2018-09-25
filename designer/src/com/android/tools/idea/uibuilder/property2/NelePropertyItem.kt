@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TOOLS_URI
@@ -58,6 +59,8 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.Color
@@ -305,6 +308,14 @@ open class NelePropertyItem(
   }
 
   protected open fun getCompletionValues(): List<String> {
+    if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
+      // Exception:
+      val tags = ReadAction.compute<Collection<String>, RuntimeException> {
+        AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getViewGroupClassMap(model.facet))
+      }.toMutableList()
+      tags.sort()
+      return tags
+    }
     val values = mutableListOf<String>()
     if (definition != null && definition.values.isNotEmpty()) {
       values.addAll(definition.values)
@@ -312,7 +323,6 @@ open class NelePropertyItem(
     val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
     val localRepository = resourceManagers.localResourceManager.resourceRepository
     val frameworkRepository = resourceManagers.frameworkResourceManager?.resourceRepository
-    val namespaceResolver = namespaceResolver
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
