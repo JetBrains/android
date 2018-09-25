@@ -216,8 +216,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     return mySurface != null ? mySurface.getScene() : null;
   }
 
-  private void setModel(@Nullable NlModel model) {
-    if (model == myModel) {
+  private void setModel(@Nullable NlModel model, boolean forceUpdate) {
+    if (!forceUpdate && model == myModel) {
       return;
     }
     if (myModel != null) {
@@ -230,6 +230,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
 
     updateHierarchy();
+  }
+
+  private void setModel(@Nullable NlModel model) {
+    setModel(model, false);
   }
 
   @Nullable
@@ -483,7 +487,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-    setModel(model);
+    setModel(model, true);
   }
 
   @Override
