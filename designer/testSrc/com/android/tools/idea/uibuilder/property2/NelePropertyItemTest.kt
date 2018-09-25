@@ -19,6 +19,8 @@ import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property2.api.PropertiesModel
+import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
@@ -250,6 +252,22 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isNull()
   }
 
+  fun testSetParentTagValue() {
+    var propertiesGenerated = false
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    model.addListener(object: PropertiesModelListener<NelePropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+        propertiesGenerated = true
+      }
+      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      }
+    })
+    val components = createMerge()
+    val property = createPropertyItem(TOOLS_URI, ATTR_PARENT_TAG, NelePropertyType.STRING, components, model)
+    property.value = LINEAR_LAYOUT
+    assertThat(propertiesGenerated).isTrue()
+  }
+
   fun testToolTipForValue() {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val components = createTextView()
@@ -289,7 +307,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     val components = createMerge()
     val text = createPropertyItem(TOOLS_URI, ATTR_PARENT_TAG, NelePropertyType.STRING, components, model)
     val values = text.editingSupport.completion()
-    assertThat(values).containsAllOf("LinearLayout", "AbsoluteLayout", "FrameLayout")
+    assertThat(values).containsAllOf(LINEAR_LAYOUT, ABSOLUTE_LAYOUT, FRAME_LAYOUT)
   }
 
   private fun createTextView(): List<NlComponent> {
