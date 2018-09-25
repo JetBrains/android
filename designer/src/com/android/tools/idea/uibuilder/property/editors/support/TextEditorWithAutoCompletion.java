@@ -27,6 +27,7 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupListener;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.HighlighterColors;
@@ -38,18 +39,25 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import icons.StudioIcons;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.event.MouseWheelListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JScrollPane;
+import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseWheelListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.*;
-import java.util.List;
 
 public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<String> {
   private final TextAttributes myTextAttributes;
@@ -138,6 +146,17 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     List<String> items = new ArrayList<>();
 
     if (property != null) {
+      switch (property.getName()) {
+        case SdkConstants.ATTR_PARENT_TAG:
+          items.addAll(
+            ReadAction.compute(() -> AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getViewGroupClassMap(facet))));
+          return items;
+        case SdkConstants.ATTR_SHOW_IN:
+          types.clear();
+          types.add(ResourceType.LAYOUT);
+          break;
+      }
+
       AttributeDefinition definition = property.getDefinition();
       if (definition != null && definition.getValues().length > 0) {
         items.addAll(Arrays.asList(definition.getValues()));
