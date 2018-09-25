@@ -56,7 +56,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
  */
 abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
-    Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
+    Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getGlobalTotal));
 
   @NotNull protected final JPanel myPanel;
 
@@ -125,18 +125,18 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getGlobalTotal, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getGlobalTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getGlobalTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getGlobalTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
@@ -161,18 +161,18 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getGlobalChildrenTotal, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getGlobalChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getGlobalChildrenTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getGlobalChildrenTotal)))
       .setTreeSorter(mySorter)
       .setBorder(DEFAULT_TOP_BORDER)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
@@ -285,7 +285,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
         double v = myGetter.apply(node);
         if (myShowPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format("%.2f", v / root.getTotal() * 100), attributes);
+          append(String.format("%.2f", v / root.getGlobalTotal() * 100), attributes);
         }
         else {
           append(String.format("%,.0f", v), attributes);
@@ -333,7 +333,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
       CpuTreeNode node = getNode(value);
       if (node != null) {
-        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getTotal();
+        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalTotal();
       }
       mySparkLineColor = selected ? ProfilerColors.CPU_CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CPU_CAPTURE_SPARKLINE;
     }

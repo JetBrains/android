@@ -103,11 +103,11 @@ public class TopDownNodeTest {
       child.update(new Range(root.getStart(), root.getEnd()));
     }
 
-    assertEquals(10, topDown.getTotal(), 0);
+    assertEquals(10, topDown.getGlobalTotal(), 0);
     assertEquals(6, topDown.getSelf(), 0);
 
     topDown.reset();
-    assertEquals(0, topDown.getTotal(), 0);
+    assertEquals(0, topDown.getGlobalTotal(), 0);
   }
 
   @Test
@@ -121,6 +121,25 @@ public class TopDownNodeTest {
     assertTrue(model instanceof JavaMethodModel);
     assertEquals("com.package.Class", ((JavaMethodModel) model).getClassName());
     assertEquals("A", model.getName());
+  }
+
+  @Test
+  public void testThreadTime() {
+    CaptureNode root = newNode("A", 0, 10);
+    root.addChild(newNode("D", 3, 5));
+    root.addChild(newNode("E", 7, 9));
+
+    TopDownNode topDown = new TopDownNode(root);
+    topDown.update(new Range(root.getStart(), root.getEnd()));
+    for (TopDownNode child : topDown.getChildren()) {
+      child.update(new Range(root.getStart(), root.getEnd()));
+    }
+
+    assertEquals(9, topDown.getThreadTotal(), 0);
+    assertEquals(6, topDown.getSelf(), 0);
+
+    topDown.reset();
+    assertEquals(0, topDown.getThreadTotal(), 0);
   }
 
   /**
@@ -164,6 +183,8 @@ public class TopDownNodeTest {
     CaptureNode node = new CaptureNode(method);
     node.setStartGlobal(start);
     node.setEndGlobal(end);
+    node.setStartThread(start);
+    node.setEndThread(end - 1);
     return node;
   }
 

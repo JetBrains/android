@@ -207,10 +207,10 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(ProfilerColors.CPU_TRACE_IDLE_HOVER)
 
     color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, false)
-    assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
+    assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_IDLE)
 
     color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, true)
-    assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER)
+    assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER_IDLE)
   }
 
   @Test

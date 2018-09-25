@@ -100,8 +100,15 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       .build();
 
     if (node != null) {
-      if (node.getData() instanceof AtraceNodeModel && type == CaptureDetails.Type.CALL_CHART) {
-        chart.addMouseMotionListener(new CpuTraceEventTooltipView(chart, myStageView));
+      if (node.getData() instanceof AtraceNodeModel) {
+        if (type == CaptureDetails.Type.CALL_CHART) {
+          chart.addMouseMotionListener(
+            new CpuTraceEventTooltipView(chart, myStageView, ProfilerColors.CPU_USAGE_CAPTURED, ProfilerColors.CPU_TRACE_IDLE));
+        }
+        else {
+          chart.addMouseMotionListener(
+            new CpuTraceEventTooltipView(chart, myStageView, ProfilerColors.CPU_FLAMECHART_APP, ProfilerColors.CPU_FLAMECHART_APP_IDLE));
+        }
       }
       else {
         chart.addMouseMotionListener(new CpuChartTooltipView(chart, myStageView));
