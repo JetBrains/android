@@ -395,7 +395,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     if (infoMessage != null) {
       myCaptureInfoMessage.setVisible(true);
-      myCaptureInfoMessage.setToolTipText(infoMessage);
+      myCaptureInfoMessage.setText(infoMessage);
     }
     else {
       myCaptureInfoMessage.setVisible(false);
@@ -706,6 +706,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
+      toolbar.add(myCaptureInfoMessage);
+    }
 
     JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.add(toolbar, BorderLayout.WEST);
@@ -728,9 +731,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       filterComponent.setVisible(false);
       filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
-    }
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
-      buttonToolbar.add(myCaptureInfoMessage);
     }
     headingPanel.add(buttonToolbar, BorderLayout.EAST);
 
