@@ -21,6 +21,8 @@ import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.ForwardingQueue;
 import com.google.common.collect.Sets;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -317,6 +319,7 @@ class ImagePoolImpl implements ImagePool {
 
   public static class ImageImpl implements ImagePool.Image {
     private FinalizablePhantomReference<ImagePool.Image> myOwnReference = null;
+    private ReadWriteLock myLock = new ReentrantReadWriteLock();
 
     @VisibleForTesting
     @Nullable
@@ -348,18 +351,30 @@ class ImagePoolImpl implements ImagePool {
     @Override
     public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
       assert myBuffer != null : "Image was already disposed";
-      g.drawImage(myBuffer, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+      myLock.readLock().lock();
+      try {
+        g.drawImage(myBuffer, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+      }
+      finally {
+        myLock.readLock().unlock();
+      }
     }
 
     @Override
     public void paint(@NotNull Consumer<Graphics2D> command) {
       assert myBuffer != null : "Image was already disposed";
-      Graphics2D g = myBuffer.createGraphics();
+      myLock.readLock().lock();
       try {
-        command.accept(g);
+        Graphics2D g = myBuffer.createGraphics();
+        try {
+          command.accept(g);
+        }
+        finally {
+          g.dispose();
+        }
       }
       finally {
-        g.dispose();
+        myLock.readLock().unlock();
       }
     }
 
@@ -367,45 +382,67 @@ class ImagePoolImpl implements ImagePool {
     @NotNull
     public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
       assert myBuffer != null : "Image was already disposed";
+      myLock.readLock().lock();
+      try {
 
-      if (x + w > myWidth) {
-        throw new IndexOutOfBoundsException(String.format("x + y is out bounds (image width is = %d)", h));
+        if (x + w > myWidth) {
+          throw new IndexOutOfBoundsException(String.format("x + y is out bounds (image width is = %d)", h));
+        }
+
+        if (y + h > myHeight) {
+          throw new IndexOutOfBoundsException(String.format("y + h is out bounds (image height is = %d)", h));
+        }
+
+        BufferedImage newImage;
+        if (gc != null) {
+          newImage = gc.createCompatibleImage(w, h);
+        }
+        else {
+          newImage = new BufferedImage(w, h, myBuffer.getType());
+        }
+
+        Graphics2D g = newImage.createGraphics();
+        try {
+          g.drawImage(myBuffer, 0, 0, w, h, x, y, x + w, y + h, null);
+        }
+        finally {
+          g.dispose();
+        }
+
+        return newImage;
       }
-
-      if (y + h > myHeight) {
-        throw new IndexOutOfBoundsException(String.format("y + h is out bounds (image height is = %d)", h));
+      finally {
+        myLock.readLock().unlock();
       }
-
-      BufferedImage newImage;
-      if (gc != null) {
-        newImage = gc.createCompatibleImage(w, h);
-      }
-      else {
-        newImage = new BufferedImage(w, h, myBuffer.getType());
-      }
-
-      Graphics2D g = newImage.createGraphics();
-      g.drawImage(myBuffer, 0, 0, w, h, x, y, x + w, y + h, null);
-      g.dispose();
-
-      return newImage;
     }
 
     @Override
     @NotNull
     public BufferedImage getCopy() {
       assert myBuffer != null : "Image was already disposed";
-      WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(0, 0, myWidth, myHeight));
-      //noinspection UndesirableClassUsage
-      return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
+      myLock.readLock().lock();
+      try {
+        WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(0, 0, myWidth, myHeight));
+        //noinspection UndesirableClassUsage
+        return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
+      }
+      finally {
+        myLock.readLock().unlock();
+      }
     }
 
     @Override
     public void dispose() {
       assert myBuffer != null : "Image was already disposed";
-      myBuffer = null;
-      if (myOwnReference != null) {
-        myOwnReference.finalizeReferent();
+      myLock.writeLock().lock();
+      try {
+        myBuffer = null;
+        if (myOwnReference != null) {
+          myOwnReference.finalizeReferent();
+        }
+      }
+      finally {
+        myLock.writeLock().unlock();
       }
     }
 
@@ -414,12 +451,18 @@ class ImagePoolImpl implements ImagePool {
      */
     void drawFrom(@NotNull BufferedImage origin) {
       assert myBuffer != null : "Image was already disposed";
-      Graphics g = myBuffer.getGraphics();
+      myLock.readLock().lock();
       try {
-        g.drawImage(origin, 0, 0, null);
+        Graphics g = myBuffer.getGraphics();
+        try {
+          g.drawImage(origin, 0, 0, null);
+        }
+        finally {
+          g.dispose();
+        }
       }
       finally {
-        g.dispose();
+        myLock.readLock().unlock();
       }
     }
   }

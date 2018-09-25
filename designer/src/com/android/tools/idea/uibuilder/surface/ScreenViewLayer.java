@@ -97,7 +97,7 @@ public class ScreenViewLayer extends Layer {
    */
   @NotNull
   private static BufferedImage getPreviewImage(@NotNull GraphicsConfiguration configuration,
-                                               @NotNull ImagePool.Image renderedImage,
+                                               @NotNull BufferedImage renderedImage,
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
                                                double xScaleFactor, double yScaleFactor,
@@ -120,9 +120,7 @@ public class ScreenViewLayer extends Layer {
     }
     Graphics2D cacheImageGraphics = image.createGraphics();
     cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
-    renderedImage.drawImageTo(cacheImageGraphics,
-                                   0, 0, image.getWidth(), image.getHeight(),
-                                   sx1, sy1, sx2, sy2);
+    cacheImageGraphics.drawImage(renderedImage, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2, null);
     cacheImageGraphics.dispose();
 
     return image;
@@ -141,7 +139,7 @@ public class ScreenViewLayer extends Layer {
 
     // In some cases, we will try to re-use the previous image to paint on top of it, assuming that it still matches the right dimensions.
     // This way we can save the allocation.
-    BufferedImage previousVisibleImage = null;
+    BufferedImage previousVisibleImage;
     RenderResult renderResult = myScreenView.getResult();
     previousVisibleImage = myCachedVisibleImage;
     if (renderResultHasChanged(renderResult)) {
@@ -151,10 +149,12 @@ public class ScreenViewLayer extends Layer {
 
     Graphics2D g = (Graphics2D) graphics2D.create();
     BufferedImage cachedVisibleImage = myCachedVisibleImage;
-    if (myLastRenderResult != null) {
-      if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
-        int resultImageWidth = myLastRenderResult.getRenderedImage().getWidth();
-        int resultImageHeight = myLastRenderResult.getRenderedImage().getHeight();
+    if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+      if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
+        BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
+        assert renderedImage != null : "Image was already disposed";
+        int resultImageWidth = renderedImage.getWidth();
+        int resultImageHeight = renderedImage.getHeight();
 
         myCachedScreenViewDisplaySize.setBounds(myScreenViewVisibleSize);
         // Obtain the factors to convert from screen view coordinates to our result image coordinates
@@ -169,8 +169,7 @@ public class ScreenViewLayer extends Layer {
           requestHighQualityScaledImage();
         }
 
-        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
-                                             myLastRenderResult.getRenderedImage(),
+        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
                                              myScreenView.getX(), myScreenView.getY(),
                                              myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
                                              previousVisibleImage);
