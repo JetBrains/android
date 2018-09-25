@@ -117,10 +117,9 @@ public class ProfilingConfiguration {
 
   public int getRequiredDeviceLevel() {
     switch (myProfilerType) {
-      // Atrace is supported from Android 4.1 (J) minimum, however the trace events changed in Android 7.0 (M).
-      // For more info see b/79212883.
+      // Atrace is fully supported from Android 8.0 (O)
       case ATRACE:
-        return AndroidVersion.VersionCodes.M;
+        return AndroidVersion.VersionCodes.O;
       // Simpleperf is supported from Android 8.0 (O)
       case SIMPLEPERF:
         return AndroidVersion.VersionCodes.O;
