@@ -34,8 +34,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.driver.BasicJListCellReader;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,16 +52,6 @@ import static org.junit.Assert.*;
 public class NavNlEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void setUp() {
-    NavTestSetupKt.beforeNavTest();
-  }
-
-  @After
-  public void tearDown() {
-    NavTestSetupKt.afterNavTest();
-  }
 
   @Test
   public void testSelectComponent() throws Exception {

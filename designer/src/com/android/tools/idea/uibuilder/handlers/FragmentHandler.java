@@ -27,7 +27,6 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +34,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-
 /**
  * Handler for the {@code <fragment>} tag
  */
@@ -44,17 +42,11 @@ public final class FragmentHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    if (NavigationSchema.enableNavigationEditor()) {
-      return ImmutableList.of(
-        ATTR_NAME,
-        ATTR_LAYOUT,
-        ATTR_CLASS,
-        ATTR_NAV_GRAPH);
-    }
     return ImmutableList.of(
       ATTR_NAME,
       ATTR_LAYOUT,
-      ATTR_CLASS);
+      ATTR_CLASS,
+      ATTR_NAV_GRAPH);
   }
 
   @Override

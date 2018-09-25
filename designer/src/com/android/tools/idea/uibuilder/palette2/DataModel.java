@@ -90,8 +90,7 @@ public class DataModel {
 
       return myDependencyManager.useAndroidXDependencies() ? isAndroidxTag : isOldSupportLibTag;
     };
-    Condition<Palette.Item> navFilter = item -> !item.getId().equals("NavHostFragment") || NavigationSchema.enableNavigationEditor();
-    myFilterCondition = Conditions.and(Conditions.and(androidxFilter, myFilterPattern), navFilter);
+    myFilterCondition = Conditions.and(androidxFilter, myFilterPattern);
   }
 
   @NotNull
