@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlPropertiesManager> {
 
-  Map<PropertyComponentHandler, CustomPanel> myCachedCustomComponents = new HashMap<>();
+  Map<String, CustomPanel> myCachedCustomComponents = new HashMap<>();
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
@@ -45,24 +45,24 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
     }
 
     NlComponent parent = components.get(0).getParent();
-
     if (parent == null) {
       return false;
     }
 
     PropertyComponentHandler handler = NlComponentHelperKt.getViewHandler(parent);
-
     if (handler == null) {
       return false;
     }
-    if (myCachedCustomComponents.containsKey(handler)) {
+
+    String parentTagName = parent.getTagName();
+    if (myCachedCustomComponents.containsKey(parentTagName)) {
       return true;
     }
     CustomPanel customComponent = handler.getLayoutCustomPanel();
     if (customComponent == null) {
       return false;
     }
-    myCachedCustomComponents.put(handler, customComponent);
+    myCachedCustomComponents.put(parentTagName, customComponent);
     return true;
   }
 
@@ -77,8 +77,8 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
 
     assert parent != null;
 
-    PropertyComponentHandler handler = NlComponentHelperKt.getViewHandler(parent);
-    CustomPanel customPanel = myCachedCustomComponents.get(handler);
+    String parentTagName = parent.getTagName();
+    CustomPanel customPanel = myCachedCustomComponents.get(parentTagName);
 
     assert customPanel != null;
 
