@@ -49,13 +49,17 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
 import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
 import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.mock;
 
+import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -1601,7 +1605,14 @@ public class TemplateTest extends AndroidGradleTestCase {
     File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
     assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
     createGradleWrapper(projectRoot);
-    updateVersionAndDependencies(projectRoot);
+
+    File gradleFile = new File(projectRoot, SdkConstants.FN_BUILD_GRADLE);
+    String origContent = com.google.common.io.Files.toString(gradleFile, UTF_8);
+    String newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy());
+    if (!newContent.equals(origContent)) {
+      com.google.common.io.Files.write(newContent, gradleFile, UTF_8);
+    }
+
     LocalFileSystem.getInstance().refresh(false);
     if (syncProject) {
       importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot, null);
