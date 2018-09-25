@@ -42,7 +42,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
-  private JCheckBox myEnableNavEditorCheckbox;
   private JSlider myLayoutEditorQualitySlider;
 
   @SuppressWarnings("unused") // called by IDE
@@ -107,7 +106,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public boolean isModified() {
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
-        StudioFlags.ENABLE_NAV_EDITOR.get() != enableNavEditor() ||
         myPerProjectSettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
         (int)(myRenderSettings.getQuality() * 100) != getQualitySetting()) {
       return true;
@@ -130,8 +128,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
     }
-
-    StudioFlags.ENABLE_NAV_EDITOR.override(enableNavEditor());
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
   }
@@ -177,17 +173,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseSingleVariantSyncCheckbox.setSelected(value);
   }
 
-  private boolean enableNavEditor() {
-    return myEnableNavEditorCheckbox.isSelected();
-  }
-
   @Override
   public void reset() {
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(myPerProjectSettings.USE_SINGLE_VARIANT_SYNC);
-    myEnableNavEditorCheckbox.setSelected(StudioFlags.ENABLE_NAV_EDITOR.get());
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
   }
 

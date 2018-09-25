@@ -71,10 +71,6 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  */
 public class NavigationSchema implements Disposable {
 
-  public static boolean enableNavigationEditor() {
-    return StudioFlags.ENABLE_NAV_EDITOR.get();
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   //region Constants
   /////////////////////////////////////////////////////////////////////////////

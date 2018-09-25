@@ -73,14 +73,12 @@ abstract class NavTestCase : AndroidTestCase() {
     }
 
     TestableThumbnailManager.register(myFacet, myRootDisposable)
-    StudioFlags.ENABLE_NAV_EDITOR.override(true)
   }
 
   override fun tearDown() {
     try {
       Disposer.dispose(myRootDisposable)
       deleteManifest()
-      StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
     }
     finally {
       super.tearDown()
