@@ -298,30 +298,32 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
     Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValuesList());
     myDevicesList.setPaintBusy(true);
-    // Obtaining device list is a potentially long running operation. Execute it on a background thread.
+
+    // Look for connected devices and AVDs on a separate thread so we
+    // do not delay the UI
     executeOnPooledThread(() -> {
       List<IDevice> connectedDevices = Arrays.asList(bridge.getDevices());
+      // We should have the list of connected devices pretty quickly. Show
+      // the connected devices now and then take more time to find the AVDs.
+      DevicePickerListModel initialModel = new DevicePickerListModel(connectedDevices, Collections.emptyList());
+      invokeLater(() -> {
+        if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
+          return;
+        }
+        setModelAndSelectAvd(initialModel, avdToSelect, selectedSerials);
+      });
 
       List<AvdInfo> infos = myAvdInfos.get();
       if (infos == null) {
         return;
       }
-      // DevicePickerListModel may query device to get info. Need to run on background thread.
-      DevicePickerListModel model = new DevicePickerListModel(connectedDevices, infos);
+      DevicePickerListModel fullModel = new DevicePickerListModel(connectedDevices, infos);
 
       invokeLater(() -> {
         if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
           return;
         }
-
-        setModel(model);
-        if (avdToSelect != null) {
-          selectAvd(avdToSelect);
-        }
-        else {
-          int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
-          myDevicesList.setSelectedIndices(selectedIndices);
-        }
+        setModelAndSelectAvd(fullModel, avdToSelect, selectedSerials);
 
         // The help hyper link is shown only when there is no inline troubleshoot link.
         myHelpHyperlink.setVisible(myModel.getNumberOfConnectedDevices() == 0);
@@ -330,6 +332,19 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
         myDevicesList.setPaintBusy(false);
       });
     });
+  }
+
+  private void setModelAndSelectAvd(@NotNull DevicePickerListModel model,
+                                    @Nullable AvdInfo avdToSelect,
+                                    @NotNull Set<String> selectedSerials) {
+    setModel(model);
+    if (avdToSelect != null) {
+      selectAvd(avdToSelect);
+    }
+    else {
+      int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
+      myDevicesList.setSelectedIndices(selectedIndices);
+    }
   }
 
   private void setModel(@NotNull DevicePickerListModel model) {
