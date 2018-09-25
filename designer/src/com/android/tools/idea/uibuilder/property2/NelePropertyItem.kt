@@ -264,6 +264,12 @@ open class NelePropertyItem(
       NlWriteCommandAction.run(components, "Set $componentName.$name to $newValue") {
         components.forEach { it.setAttribute(namespace, name, newValue) }
         model.logPropertyValueChanged(this)
+        if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
+          // When the "parentTag" attribute is set on a <merge> tag,
+          // we may have a different set of available properties available,
+          // since the attributes of the "parentTag" are included if set.
+          model.firePropertiesGenerated()
+        }
       }
     })
   }
