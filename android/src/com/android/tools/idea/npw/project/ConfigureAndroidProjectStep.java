@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_NAV_EDITOR;
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
@@ -195,7 +194,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       FormFactor formFactor = getModel().formFactor().get();
       boolean isCppTemplate = myProjectModel.enableCppSupport().get();
 
-      myNavigationControllerCheck.setVisible(formFactor == FormFactor.MOBILE && ENABLE_NAV_EDITOR.get() && !isCppTemplate);
+      myNavigationControllerCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myInstantAppCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);

@@ -86,7 +86,7 @@ public enum NlLayoutType {
   NAV(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return NavigationSchema.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
+      return NavigationDomFileDescription.isNavFile(file);
     }
 
     @NotNull
