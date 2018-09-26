@@ -61,6 +61,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   @Nullable private final Color myDurationBgColor;
 
   @Nullable private Icon myIcon;
+  @Nullable private Function<E, Icon> myIconMapper;
   @Nullable private Stroke myStroke;
   @Nullable private Function<E, String> myLabelProvider;
   @Nullable private Consumer<E> myClickHandler;
@@ -94,6 +95,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myColor = builder.myColor;
     myDurationBgColor = builder.myDurationBgColor;
     myIcon = builder.myIcon;
+    myIconMapper = builder.myIconMapper;
     myStroke = builder.myStroke;
     myLabelProvider = builder.myLabelProvider;
     myClickHandler = builder.myClickHandler;
@@ -194,9 +196,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
       double regionWidth = 0;
       double regionHeight = 0;
-      if (myIcon != null) {
-        regionWidth += myIcon.getIconWidth();
-        regionHeight += myIcon.getIconHeight();
+      Icon icon = getIcon(data.value);
+      if (icon != null) {
+        regionWidth += icon.getIconWidth();
+        regionHeight += icon.getIconHeight();
       }
 
       if (myLabelProvider != null) {
@@ -322,9 +325,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       rect.x += myClickRegionPaddingX;
       rect.y += myClickRegionPaddingY;
       g2d.translate(rect.x, rect.y);
-      if (myIcon != null) {
-        myIcon.paintIcon(host, g2d, 0, 0);
-        float shift = myIcon.getIconWidth();
+      Icon icon = getIcon(myDataCache.get(i).value);
+      if (icon != null) {
+        icon.paintIcon(host, g2d, 0, 0);
+        float shift = icon.getIconWidth();
         g2d.translate(shift, 0);
         rect.x += shift;  // keep track of the amount of shift to revert the translate at the end.
       }
@@ -426,12 +430,30 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     return Math.max(myHostInsets.top, Math.min(scaledY, maxScaledY));
   }
 
+  /**
+   * If an icon mapper is set, return the icon mapped from the given duration data.
+   * If an icon is set, return the icon.
+   * Otherwise return null.
+   */
+  @VisibleForTesting
+  @Nullable
+  Icon getIcon(E durationData) {
+    if (myIconMapper != null) {
+      return myIconMapper.apply(durationData);
+    }
+    if (myIcon != null) {
+      return myIcon;
+    }
+    return null;
+  }
+
   public static class Builder<E extends DurationData> {
     // Required
     @NotNull private final DurationDataModel<E> myModel;
     @NotNull private final Color myColor;
     @Nullable private Color myDurationBgColor;
     @Nullable private Icon myIcon = null;
+    @Nullable private Function<E, Icon> myIconMapper = null;
     @Nullable private Stroke myStroke = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
@@ -461,6 +483,14 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
      */
     public Builder<E> setIcon(@NotNull Icon icon) {
       myIcon = icon;
+      return this;
+    }
+
+    /**
+     * Sets the icon mapper which maps a data point to an icon.
+     */
+    public Builder<E> setIconMapper(@Nullable Function<E, Icon> iconMapper) {
+      myIconMapper = iconMapper;
       return this;
     }
 

@@ -200,6 +200,30 @@ class DurationDataRendererTest {
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)
   }
 
+  @Test
+  fun testGetIcon() {
+    val xRange = Range(0.0, 10.0)
+    val dataSeries = DefaultDataSeries<DurationData>()
+    dataSeries.add(0, DurationData { 0 })
+    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
+    val dummyIcon = object : Icon {
+      override fun getIconHeight(): Int = 1
+      override fun getIconWidth(): Int = 1
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+    val dummyIcon2 = object : Icon {
+      override fun getIconHeight(): Int = 2
+      override fun getIconWidth(): Int = 2
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+
+    var durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon)
+
+    durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIconMapper { _ -> dummyIcon2 }.build()
+    assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon2)
+  }
+
   private fun validateRegion(rect: Rectangle2D.Float, xStart: Float, yStart: Float, width: Float, height: Float) {
     assertThat(rect.x).isWithin(EPSILON).of(xStart)
     assertThat(rect.y).isWithin(EPSILON).of(yStart)

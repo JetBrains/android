@@ -520,7 +520,20 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()){
       myAllocationSamplingRateRenderer = new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
           .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
-          .setIcon(StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE)
+          .setIconMapper(durationData -> {
+            LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
+              .getModeFromFrequency(durationData.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval());
+            switch (mode) {
+              // TODO(b/116430034): use real icons when they're done.
+              case FULL:
+                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+              case SAMPLED:
+                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+              case NONE:
+                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+            }
+            throw new AssertionError("Unhandled sampling mode: " + mode);
+          })
           .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
                            StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f)
           .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
