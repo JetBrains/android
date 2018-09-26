@@ -37,7 +37,6 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -519,8 +518,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     }
     else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()){
       myAllocationSamplingRateRenderer = new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
-          .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
-          .setIconMapper(durationData -> {
+        .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+        .setIconMapper(durationData -> {
             LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
               .getModeFromFrequency(durationData.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval());
             switch (mode) {
@@ -534,11 +533,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
             }
             throw new AssertionError("Unhandled sampling mode: " + mode);
           })
-          .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
+        .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
                            StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f)
-          .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
-          .setClickRegionPadding(0, 0)
-          .build();
+        .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
+        .setClickRegionPadding(0, 0)
+        .setHoverHandler(getStage().getTooltipLegends().getSamplingRateDurationLegend()::setPickData)
+        .build();
       lineChart.addCustomRenderer(myAllocationSamplingRateRenderer);
       overlay.addDurationDataRenderer(myAllocationSamplingRateRenderer);
     }
@@ -848,19 +848,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @VisibleForTesting
   static class LiveAllocationSamplingModeRenderer extends ColoredListCellRenderer<LiveAllocationSamplingMode> {
-    private static ImmutableMap<LiveAllocationSamplingMode, String> MODE_TO_NAME = ImmutableMap.of(
-      LiveAllocationSamplingMode.NONE, "None",
-      LiveAllocationSamplingMode.SAMPLED, "Sampled",
-      LiveAllocationSamplingMode.FULL, "Full"
-    );
-
     @Override
     protected void customizeCellRenderer(@NotNull JList list,
                                          LiveAllocationSamplingMode value,
                                          int index,
                                          boolean selected,
                                          boolean hasFocus) {
-      append(MODE_TO_NAME.get(value), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      append(value.getDisplayName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
   }
 }
