@@ -389,11 +389,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
   }
 
-  @Override
-  public void addGlobalVariable(@NotNull String id, @NotNull Object value) {
-    myContext.getParamMap().put(id, value);
-  }
-
   /**
    * Create a directory at the specified location (if not already present). This will also create
    * any parent directories that don't exist, as well.
@@ -750,7 +745,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     @Override
     public String mergeBuildFiles(@NotNull String dependencies,
                                   @NotNull String destinationContents,
-                                  @NotNull Project project,
+                                  Project project,
                                   String compileSdkVersion) {
       return destinationContents;
     }
