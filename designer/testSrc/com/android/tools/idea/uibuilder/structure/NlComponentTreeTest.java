@@ -69,6 +69,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,8 +108,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
     };
     mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
       @Override
-      public void requestRender() {
+      public CompletableFuture<Void> requestRender() {
         // We do not need layoutlib renders for these tests
+        return CompletableFuture.completedFuture(null);
       }
     };
     mySurface.setModel(myModel);
