@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,9 @@ public class AbsoluteDragTarget extends DragBaseTarget {
 
   @Override
   protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, Math.max(x - myComponent.getParent().getDrawX(), 0)));
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, Math.max(y - myComponent.getParent().getDrawY(), 0)));
+    SceneComponent parent = myComponent.getParent();
+    assert parent != null;
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, x - myComponent.getParent().getDrawX()));
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, y - myComponent.getParent().getDrawY()));
   }
 }

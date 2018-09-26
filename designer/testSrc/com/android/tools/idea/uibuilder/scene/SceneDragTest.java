@@ -102,7 +102,7 @@ public class SceneDragTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"0dp\" />");
+                 "        tools:layout_editor_absoluteX=\"-850dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"-510dp\" />");
   }
 }

@@ -178,8 +178,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         applyMargin(attributes, targetEndMargin, dx);
       }
       else {
-        int dx = Math.max(0, x - parent.getDrawX());
-        String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
+        String positionX = String.format(SdkConstants.VALUE_N_DP, x - parent.getDrawX());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
       }
 
@@ -218,8 +217,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
       }
       else {
-        int dy = Math.max(0, y - parent.getDrawY());
-        String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
+        String positionY = String.format(SdkConstants.VALUE_N_DP, y - parent.getDrawY());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
       }
       ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());

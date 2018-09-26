@@ -59,11 +59,7 @@ class RelativeDragTarget : DragBaseTarget() {
   }
 
   override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
-    // Remove offset, so (dx, dy) is the position of left-top corner of component.
-    val parent = myComponent.parent!!
-    val dx = Math.max(parent.drawLeft, Math.min(x - myOffsetX, parent.drawRight - myComponent.drawWidth))
-    val dy = Math.max(parent.drawTop, Math.min(y - myOffsetY, parent.drawBottom - myComponent.drawHeight))
-    dropHandler.updateAttributes(attributes, dx, dy)
+    dropHandler.updateAttributes(attributes, x - myOffsetX, y - myOffsetY)
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
