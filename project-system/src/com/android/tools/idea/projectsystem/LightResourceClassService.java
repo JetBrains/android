@@ -36,7 +36,7 @@ public interface LightResourceClassService {
    * Returns all R classes that should be visible from the given module.
    */
   @NotNull
-  Collection<? extends PsiClass> getLightRClassesAccessibleFromModule(@NotNull Module module);
+  Collection<? extends PsiClass> getLightRClassesAccessibleFromModule(@NotNull Module module, boolean includeTestClasses);
 
   /**
    * Returns all R classes that may contain resources from the given module.
