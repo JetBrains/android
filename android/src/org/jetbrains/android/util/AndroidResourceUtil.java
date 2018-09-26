@@ -71,7 +71,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
-import com.android.tools.idea.res.AndroidPackageRClassBase;
+import com.android.tools.idea.res.AndroidRClassBase;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
@@ -764,7 +764,7 @@ public class AndroidResourceUtil {
 
   public static boolean isRJavaClass(@NotNull PsiClass psiClass) {
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      return psiClass instanceof AndroidPackageRClassBase;
+      return psiClass instanceof AndroidRClassBase;
     }
     PsiFile file = psiClass.getContainingFile();
     if (file == null) {

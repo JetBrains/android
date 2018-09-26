@@ -18,9 +18,12 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.highlightedAs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -29,7 +32,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.VfsTestUtil
+import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.util.ui.UIUtil
@@ -69,7 +72,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
    * @see AndroidResolveScopeEnlarger
    */
   protected fun Module.createImlFile() {
-    VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, moduleFilePath)
+    createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, moduleFilePath)
     assertNotNull(moduleFile)
   }
 
@@ -508,7 +511,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarPackageRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NamespacedAarRClass::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
     }
@@ -588,7 +591,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarPackageRClass::class.java)
+      assertThat(resolveReferenceUnderCaret()).isInstanceOf(NonNamespacedAarRClass::class.java)
     }
 
     fun testResourceNames_string() {
@@ -677,7 +680,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       // MainActivity has an import for a class from com.example.anotherLib, which would put com.example.anotherLib.R at the top if not for
       // AndroidLightClassWeigher.
       val firstSuggestion = myFixture.lookupElements?.first()?.psiElement
-      assertThat(firstSuggestion).isInstanceOf(ModulePackageRClass::class.java)
+      assertThat(firstSuggestion).isInstanceOf(ResourceRepositoryRClass::class.java)
       assertThat((firstSuggestion as PsiClass).qualifiedName).isEqualTo("p1.p2.R")
 
       assertThat(
@@ -774,5 +777,101 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       // The R class itself exists, but has not inner classes because we don't know what to put in them.
       assertThat(myFixture.lookupElementStrings).containsExactly("class")
     }
+  }
+}
+
+/**
+ * Legacy projects (without the model) have no concept of test resources, so for now this needs to be tested using Gradle.
+ */
+class TestRClassesTest : AndroidGradleTestCase() {
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
+  }
+
+  override fun tearDown() {
+    try {
+      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
+    }
+    finally {
+      super.tearDown()
+    }
+  }
+
+  fun testLocalTestResources() {
+    loadSimpleApplication()
+
+    createFile(
+      project.baseDir,
+      "app/src/androidTest/res/values/strings.xml",
+      // language=xml
+      """
+        <resources>
+          <string name='localTestResource'>This is a local test resource.</string>
+          <string name='anotherLocalTestResource'>This is another local test resource.</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    val androidTest = createFile(
+      project.baseDir,
+      "app/src/androidTest/java/google/simpleapplication/RClassAndroidTest.java",
+      // language=java
+      """
+      package google.simpleapplication;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int id = google.simpleapplication.test.R.string.${caret}localTestResource;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+    myFixture.checkHighlighting()
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "localTestResource",
+      "anotherLocalTestResource",
+      "class"
+    )
+
+    val unitTest = createFile(
+      project.baseDir,
+      "app/src/test/java/google/simpleapplication/RClassUnitTest.java",
+      // language=java
+      """
+      package google.simpleapplication;
+
+      public class RClassUnitTest {
+          void useResources() {
+             int id = google.simpleapplication.test.${"R" highlightedAs ERROR}.string.localTestResource;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(unitTest)
+    myFixture.checkHighlighting()
+
+    val normalClass = createFile(
+      project.baseDir,
+      "app/src/main/java/google/simpleapplication/NormalClass.java",
+      // language=java
+      """
+      package google.simpleapplication;
+
+      public class NormalClass {
+          void useResources() {
+             int id = google.simpleapplication.test.${"R" highlightedAs ERROR}.string.localTestResource;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(normalClass)
+    myFixture.checkHighlighting()
   }
 }

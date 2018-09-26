@@ -29,7 +29,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.augment.AndroidPsiAugmentProvider;
 import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.augment.ManifestInnerClass;
-import org.jetbrains.android.augment.ModuleResourceTypeClass;
+import org.jetbrains.android.augment.ResourceRepositoryInnerRClass;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  * A {@link PsiElementFinder} for finding inner classes of R and Manifest classes, e.g. {@code R.string}.
  *
  * <p>As the top-level R class for a given package is either generated or augmented, new inner classes may be added by creating instances of
- * {@link ModuleResourceTypeClass}. Both modes (generating the R class from scratch or augmenting an existing one) support retrieving such
+ * {@link ResourceRepositoryInnerRClass}. Both modes (generating the R class from scratch or augmenting an existing one) support retrieving such
  * inner class by calling {@link PsiClass#findInnerClassByName(String, boolean)}, so this is exactly what this {@link PsiElementFinder} does
  * if it suspects the class in question is an inner class of an R class.
  *
@@ -46,8 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * inner classes.
  *
  * @see AndroidPsiAugmentProvider
- * @see ModuleResourceTypeClass
- * @see ModulePackageRClass
+ * @see ResourceRepositoryRClass
+ * @see ResourceRepositoryInnerRClass
  * @see ManifestClass
  * @see ManifestInnerClass
  */
