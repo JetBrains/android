@@ -22,8 +22,8 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ref.GCUtil;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public class FileResourceRepositoryTest extends TestCase {
       assertNotNull(FileResourceRepository.getCached(dir));
       // However, in low memory conditions we should:
       try {
-        PlatformTestUtil.tryGcSoftlyReachableObjects();
+        GCUtil.tryGcSoftlyReachableObjects();
       } catch (Throwable t) {
         // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
       }

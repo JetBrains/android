@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.ref.GCUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -74,7 +74,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(manager.hasCachedConfiguration(file2));
 
     try {
-      PlatformTestUtil.tryGcSoftlyReachableObjects();
+      GCUtil.tryGcSoftlyReachableObjects();
     } catch (Throwable t) {
       // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
     }
