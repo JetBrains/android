@@ -134,7 +134,7 @@ public class AndroidProfilerTest {
 
     gc();
     long initialMemoryUsed = getMemoryUsed();
-    benchmark.log("initial_mem", initialMemoryUsed, analyzer);
+    benchmark.log("initial_mem", initialMemoryUsed);
 
     long gcStartTime = getGCTotalTime();
     long methodStartTime = System.currentTimeMillis();
@@ -155,7 +155,7 @@ public class AndroidProfilerTest {
 
       gc();
       long finalMemoryUsed = getMemoryUsed();
-      benchmark.log("final_mem", finalMemoryUsed, analyzer);
+      benchmark.log("final_mem", finalMemoryUsed);
       benchmark.log("mem_used", finalMemoryUsed - initialMemoryUsed, analyzer);
     }
   }
