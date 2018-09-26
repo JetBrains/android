@@ -15,15 +15,17 @@
  */
 package com.android.tools.adtui
 
-import com.android.tools.adtui.LegendComponent.IconInstruction
+import com.android.tools.adtui.LegendComponent.LegendIconInstruction
 import com.android.tools.adtui.LegendComponent.Orientation
 import com.android.tools.adtui.instructions.GapInstruction
+import com.android.tools.adtui.instructions.IconInstruction
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.RenderInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.google.common.truth.Truth.assertThat
+import icons.StudioIcons
 import org.junit.Test
 import java.awt.Color
 import java.util.concurrent.TimeUnit
@@ -85,12 +87,17 @@ class LegendComponentTest {
     val legend1 = FakeLegend("Test1", "Value1")
     val legend2 = FakeLegend("Test2", "Value2")
     val legend3 = FakeLegend("Test3", "Value3")
+    val legend4 = FakeLegend("Test4", "Value4")
     val config2 = LegendConfig(LegendConfig.IconType.BOX, Color.GREEN)
     val config3 = LegendConfig(LegendConfig.IconType.LINE, Color.BLUE)
+    val icon = StudioIcons.Common.ADD
+    val croppedIcon = LegendComponent.cropAndCacheIcon(icon)
+    val config4 = LegendConfig({ s -> if ("Value4" == s) icon else null }, Color.RED)
 
     val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
     legendComponent.configure(legend2, config2)
     legendComponent.configure(legend3, config3)
+    legendComponent.configure(legend4, config4)
 
     assertThat(legendComponent.instructions.size).isEqualTo(0)
     assertIcons(legendComponent, listOf())
@@ -106,6 +113,10 @@ class LegendComponentTest {
     model.add(legend3)
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertIcons(legendComponent, listOf(LegendConfig.IconType.BOX, LegendConfig.IconType.LINE))
+
+    model.add(legend4)
+    model.update(TimeUnit.SECONDS.toNanos(1))
+    assertThat(legendComponent.instructions.filterIsInstance<IconInstruction>().map { it.icon }).containsExactly(croppedIcon)
   }
 
   @Test
@@ -247,7 +258,11 @@ class LegendComponentTest {
     for (type in LegendConfig.IconType.values()) {
       if (type != LegendConfig.IconType.NONE) {
         val legend = FakeLegend(type.name, "1 b/s")
-        val legendConfig = LegendConfig(type, Color.BLUE)
+        val legendConfig =
+          if (type == LegendConfig.IconType.CUSTOM)
+            LegendConfig({ _ -> StudioIcons.Common.ADD }, Color.RED)
+          else
+            LegendConfig(type, Color.BLUE)
         legendComponent.configure(legend, legendConfig)
         model.add(legend)
       }
@@ -255,9 +270,9 @@ class LegendComponentTest {
     model.update(TimeUnit.SECONDS.toNanos(1))
 
     val instructions = legendComponent.instructions
-    val first = instructions.first { it is IconInstruction }
+    val first = instructions.first { it is LegendIconInstruction }
     val getNext = { item: RenderInstruction -> instructions.get(instructions.indexOf(item) + 1) }
-    instructions.filterIsInstance<IconInstruction>().forEach {
+    instructions.filterIsInstance<LegendIconInstruction>().forEach {
       assertThat(it.size.width + getNext(it).size.width).isEqualTo(first.size.width + getNext(first).size.width)
     }
   }
@@ -268,7 +283,7 @@ class LegendComponentTest {
   }
 
   private fun assertIcons(legend: LegendComponent, icons: List<LegendConfig.IconType>) {
-    assertThat(legend.instructions.filterIsInstance<IconInstruction>().map { it.myType })
+    assertThat(legend.instructions.filterIsInstance<LegendIconInstruction>().map { it.myType })
         .containsExactlyElementsIn(icons).inOrder()
   }
 
