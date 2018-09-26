@@ -28,12 +28,15 @@ class ResizableImageTest {
     val image = BufferedImage(123, 456, TYPE_INT_ARGB)
     val resizableImage = ResizableImage(image)
 
-    assertThat(resizableImage.preferredSize).isEqualTo(Dimension(123, 456))
+    assertThat(resizableImage.preferredSize).isEqualTo(Dimension(133, 466))
+    assertThat(resizableImage.maximumSize).isEqualTo(Dimension(133, 466))
 
-    resizableImage.preferredSize = Dimension(48, 48)
-    assertThat(resizableImage.preferredSize).isEqualTo(Dimension(48, 48))
+    resizableImage.setBounds(0, 0, 40, 20)
+    assertThat(resizableImage.maximumSize).isEqualTo(Dimension(133, 466))
+    assertThat(resizableImage.preferredSize.height).isEqualTo(20)
+    assertThat(resizableImage.preferredSize.width).isLessThan(20)
 
-    resizableImage.preferredSize = null // Setting to "null" signifies reset to default
-    assertThat(resizableImage.preferredSize!!).isEqualTo(Dimension(123, 456))
+    resizableImage.setBounds(0, 0, 20, 10)
+    assertThat(resizableImage.preferredSize).isEqualTo(Dimension(0, 0))
   }
 }
