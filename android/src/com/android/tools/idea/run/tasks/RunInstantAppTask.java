@@ -28,30 +28,20 @@ import com.google.android.instantapps.sdk.api.ProgressIndicator;
 import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
-import java.util.stream.Collectors;
-import org.apache.commons.compress.utils.IOUtils;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.TestOnly;
 
-import static com.android.SdkConstants.DOT_ZIP;
 import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
-import static com.google.android.instantapps.sdk.api.RunHandler.SetupBehavior;
 
 public class RunInstantAppTask implements LaunchTask {
   private static final String ID = "RUN_INSTANT_APP";
@@ -110,8 +100,10 @@ public class RunInstantAppTask implements LaunchTask {
       @Override
       public void write(HandlerResult result) {
         if (result.isError()) {
+          ApplicationManager.getApplication().invokeLater(
+            () -> Messages.showWarningDialog(result.getDetail(), "Instant App Deployment Failed"));
           printer.stderr(result.toString());
-          getLogger().error(new RunInstantAppException(result.getMessage()));
+          getLogger().warn(new RunInstantAppException(result.getMessage()));
         }
         else {
           printer.stdout(result.toString());
@@ -144,8 +136,8 @@ public class RunInstantAppTask implements LaunchTask {
           artifactFiles.stream()
                        // Remove disabled APKs
                        .filter((apkFileUnit) -> (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)))
-                        .map(ApkFileUnit::getApkFile)
-                        .collect(ImmutableList.toImmutableList()),
+                       .map(ApkFileUnit::getApkFile)
+                       .collect(ImmutableList.toImmutableList()),
           url,
           AndroidDebugBridge.getSocketAddress(),
           device.getSerialNumber(),
@@ -192,7 +184,7 @@ public class RunInstantAppTask implements LaunchTask {
     @Override
     public void setProgress(double v) {
     }
-  };
+  }
 
   @TestOnly
   @NotNull
