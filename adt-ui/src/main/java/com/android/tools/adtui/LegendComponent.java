@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
@@ -53,6 +54,11 @@ public class LegendComponent extends AnimatedComponent {
    * Space between a legend icon and its text
    */
   private static final int ICON_MARGIN_PX = JBUI.scale(6);
+
+  /**
+   * A cache for cropped icons.
+   */
+  private static final Map<Icon, Icon> myCroppedIconCache = new HashMap<>();
 
   private final int myLeftPadding;
   private final int myRightPadding;
@@ -173,10 +179,19 @@ public class LegendComponent extends AnimatedComponent {
       }
 
       if (config.getIconType() != LegendConfig.IconType.NONE) {
-        IconInstruction iconInstruction = new IconInstruction(config.getIconType(), config.getColor());
+        RenderInstruction iconInstruction;
+        int gapAdjust;
+        if (config.getIconType() == LegendConfig.IconType.CUSTOM) {
+          assert config.getIconGetter() != null;
+          iconInstruction = new IconInstruction(cropAndCacheIcon(config.getIconGetter().apply(value)), 0, config.getColor());
+          gapAdjust = 0;
+        }
+        else {
+          iconInstruction = new LegendIconInstruction(config.getIconType(), config.getColor());
+          // For vertical legends, Components after icons need be aligned to left, so adjust the gap width after icon.
+          gapAdjust = myOrientation == Orientation.VERTICAL ? LegendIconInstruction.ICON_MAX_WIDTH - iconInstruction.getSize().width : 0;
+        }
         myInstructions.add(iconInstruction);
-        // For vertical legends, Components after icons need be aligned to left, so adjust the gap width after icon.
-        int gapAdjust = myOrientation == Orientation.VERTICAL ? IconInstruction.ICON_MAX_WIDTH - iconInstruction.getSize().width : 0;
         myInstructions.add(new GapInstruction(ICON_MARGIN_PX + gapAdjust));
       }
 
@@ -207,6 +222,19 @@ public class LegendComponent extends AnimatedComponent {
       revalidate();
     }
     repaint();
+  }
+
+  /**
+   * Crop an icon and store it in a cache so we can retrieve it later without performing another expensive cropping operation.
+   *
+   * @return An icon cropped to match a LegendIconInstruction. If called with an icon cropped before will return one from cache.
+   */
+  @VisibleForTesting
+  static Icon cropAndCacheIcon(Icon icon) {
+    if (!myCroppedIconCache.containsKey(icon)) {
+      myCroppedIconCache.put(icon, IconUtil.cropIcon(icon, LegendIconInstruction.ICON_MAX_WIDTH, LegendIconInstruction.ICON_HEIGHT_PX));
+    }
+    return myCroppedIconCache.get(icon);
   }
 
   public enum Orientation {
@@ -277,7 +305,7 @@ public class LegendComponent extends AnimatedComponent {
    * An instruction to render an {@link LegendConfig.IconType} icon.
    */
   @VisibleForTesting
-  static final class IconInstruction extends RenderInstruction {
+  static final class LegendIconInstruction extends RenderInstruction {
     private static final int ICON_HEIGHT_PX = 15;
     private static final int LINE_THICKNESS = 3;
 
@@ -303,7 +331,7 @@ public class LegendComponent extends AnimatedComponent {
     final LegendConfig.IconType myType;
     @NotNull private final Color myColor;
 
-    public IconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
+    public LegendIconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
       switch (type) {
         case BOX:
         case LINE:
