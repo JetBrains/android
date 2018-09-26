@@ -69,7 +69,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   // To have the sequence specified by design, we hardcode the sequence.
   private final String[] ORDERED_ACTIVITY_NAMES = {
     "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fullscreen Activity", "Master/Detail Flow",
-    "Navigation Drawer Activity"
+    "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
   };
 
   private final List<FormFactorInfo> myFormFactors = new ArrayList<>();
