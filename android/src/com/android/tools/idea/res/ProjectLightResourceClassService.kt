@@ -51,7 +51,13 @@ import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-private data class ResourceClasses(val namespaced: PsiClass?, val nonNamespaced: PsiClass?)
+private data class ResourceClasses(
+  val namespaced: PsiClass?,
+  val nonNamespaced: PsiClass?,
+  val testNonNamespaced: PsiClass?
+) {
+  val all = sequenceOf(namespaced, nonNamespaced, testNonNamespaced)
+}
 
 /**
  * A [LightResourceClassService] that provides R classes for local modules by finding manifests of all Android modules in the project.
@@ -100,13 +106,13 @@ class ProjectLightResourceClassService(
   override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope): List<PsiClass> {
     val packageName = qualifiedName.dropLast(2)
     return (getModuleRClasses(packageName) + getAarRClasses(packageName))
-      .flatMap { classes -> sequenceOf(classes.namespaced, classes.nonNamespaced) }
+      .flatMap { classes -> classes.all }
       .filterNotNull()
-      .filter { PsiSearchScopeUtil.isInScope(scope, it) }
+      .filter { it.qualifiedName == qualifiedName && PsiSearchScopeUtil.isInScope(scope, it) }
       .toList()
   }
 
-  override fun getLightRClassesAccessibleFromModule(module: Module): Collection<PsiClass> {
+  override fun getLightRClassesAccessibleFromModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
     val namespacing = ResourceRepositoryManager.getOrCreateInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
@@ -122,12 +128,14 @@ class ProjectLightResourceClassService(
       result.add(getAarRClasses(aarLibrary))
     }
 
-    return result.mapNotNull { (namespaced, nonNamespaced) ->
+    return result.flatMap { (namespaced, nonNamespaced, testNonNamespaced) ->
       when (namespacing) {
-        AaptOptions.Namespacing.REQUIRED -> namespaced
-        AaptOptions.Namespacing.DISABLED -> nonNamespaced
+        AaptOptions.Namespacing.REQUIRED -> listOf(namespaced)
+        AaptOptions.Namespacing.DISABLED -> {
+          if (includeTestClasses) listOf(nonNamespaced, testNonNamespaced) else listOf(nonNamespaced)
+        }
       }
-    }
+    }.filterNotNull()
   }
 
   override fun getLightRClassesContainingModuleResources(module: Module): Collection<PsiClass> {
@@ -156,8 +164,9 @@ class ProjectLightResourceClassService(
   private fun getModuleRClasses(facet: AndroidFacet): ResourceClasses {
     return moduleClassesCache.getAndUnwrap(facet) {
       ResourceClasses(
-        namespaced = ModulePackageRClass(psiManager, facet.module, AaptOptions.Namespacing.REQUIRED),
-        nonNamespaced = ModulePackageRClass(psiManager, facet.module, AaptOptions.Namespacing.DISABLED)
+        namespaced = ModuleRClass(psiManager, facet, AaptOptions.Namespacing.REQUIRED),
+        nonNamespaced = ModuleRClass(psiManager, facet, AaptOptions.Namespacing.DISABLED),
+        testNonNamespaced = ModuleTestRClass(psiManager, facet, AaptOptions.Namespacing.DISABLED)
       )
     }
   }
@@ -172,7 +181,7 @@ class ProjectLightResourceClassService(
     return aarClassesCache.getAndUnwrap(aarLibrary) {
       ResourceClasses(
         namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
-          NamespacedAarPackageRClass(
+          NamespacedAarRClass(
             psiManager,
             packageName,
             aarResourceRepositoryCache.getProtoRepository(resApk, aarLibrary.address),
@@ -180,8 +189,10 @@ class ProjectLightResourceClassService(
           )
         },
         nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
-          NonNamespacedAarPackageRClass(psiManager, packageName, symbolFile)
-        }
+          NonNamespacedAarRClass(psiManager, packageName, symbolFile)
+        },
+
+        testNonNamespaced = null
       )
     }
   }
@@ -200,14 +211,16 @@ class ProjectLightResourceClassService(
     val moduleClasses = projectFacetManager.getFacets(AndroidFacet.ID).asSequence().map { getModuleRClasses(it) }
 
     return (libraryClasses + moduleClasses)
-      .flatMap { sequenceOf(it.namespaced, it.nonNamespaced) }
+      .flatMap { it.all }
       .filterNotNull()
       .toList()
   }
 
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return projectFacetManager.getFacets(AndroidFacet.ID).filter { AndroidManifestUtils.getPackageName(it) == packageName }
+    return projectFacetManager.getFacets(AndroidFacet.ID).filter {
+      AndroidManifestUtils.getPackageName(it) == packageName || AndroidManifestUtils.getTestPackageName(it) == packageName
+    }
   }
 
   private fun getAllAars(): Multimap<String, ExternalLibrary> {
