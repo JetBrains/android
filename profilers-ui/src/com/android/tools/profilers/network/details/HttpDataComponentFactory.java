@@ -28,14 +28,18 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
-import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager2;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -158,7 +162,7 @@ final class HttpDataComponentFactory {
 
   /**
    * Creates the raw data view of given {@link Payload}.
-   *
+   * <p>
    * Assumes the payload is not empty.
    */
   @NotNull
@@ -168,14 +172,14 @@ final class HttpDataComponentFactory {
     JComponent viewerComponent = viewer.getComponent();
     viewerComponent.setName(ID_PAYLOAD_VIEWER);
     viewerComponent.setBorder(PAYLOAD_BORDER);
-    JComponent payloadComponent = new JPanel(new BorderLayout());
-    payloadComponent.add(viewerComponent);
-    return payloadComponent;
+    JPanel compressedVerticalPanel = new JPanel(new CompressedVerticalLayout());
+    compressedVerticalPanel.add(viewerComponent);
+    return compressedVerticalPanel;
   }
 
   /**
    * Creates the parsed data view of given {@link Payload}, or returns null if the payload is not applicable for parsing.
-   *
+   * <p>
    * Assumes the payload is not empty.
    */
   @Nullable
@@ -202,8 +206,11 @@ final class HttpDataComponentFactory {
       // disable here. A straightforward way to do this is to iterate through all scroll panes
       // (there should only ever be one, but this code should still be harmless even if in the
       // future there are 0 or several).
-      new TreeWalker(viewerComponent).descendantStream().filter(c -> c instanceof JScrollPane).map(c -> (JScrollPane)c).forEach(scroller ->
-        NestedScrollPaneMouseWheelListener.installOn(scroller));
+      new TreeWalker(viewerComponent)
+        .descendantStream()
+        .filter(c -> c instanceof JScrollPane)
+        .map(c -> (JScrollPane)c)
+        .forEach(scroller -> NestedScrollPaneMouseWheelListener.installOn(scroller));
 
       return viewerComponent;
     }
@@ -250,6 +257,116 @@ final class HttpDataComponentFactory {
     @NotNull
     String getBodyComponentId() {
       return (this == REQUEST) ? "REQUEST_PAYLOAD_COMPONENT" : "RESPONSE_PAYLOAD_COMPONENT";
+    }
+  }
+
+  @VisibleForTesting
+  static class CompressedVerticalLayout implements LayoutManager2 {
+    private static final int INVALID_SIZE = -1;
+    private final Dimension myMinSize = new Dimension(INVALID_SIZE, INVALID_SIZE);
+    private final Dimension myPreferredSize = new Dimension(INVALID_SIZE, INVALID_SIZE);
+    private final Dimension myMaxSize = new Dimension(INVALID_SIZE, INVALID_SIZE);
+    private boolean myNeedsLayout = true;
+
+    @Override
+    public Dimension minimumLayoutSize(Container parent) {
+      // This layout manager doesn't respect minimum size.
+      return getSize(parent, c -> c.getMinimumSize(), myMinSize);
+    }
+
+    @Override
+    public Dimension preferredLayoutSize(Container parent) {
+      int parentWidth = parent.getWidth();
+      return getSize(parent, c -> {
+        // Always resize prior to getting the preferred size, since we allow our components to be as large as possible.
+        c.setBounds(0, 0, parentWidth, Short.MAX_VALUE); // Short.MAX_VALUE since that's what Swing uses (not Integer.MAX_VALUE).
+        return c.getPreferredSize();
+      }, myPreferredSize);
+    }
+
+    @Override
+    public Dimension maximumLayoutSize(Container parent) {
+      return getSize(parent, c -> c.getMaximumSize(), myMaxSize);
+    }
+
+    @Override
+    public void layoutContainer(Container parent) {
+      if (!myNeedsLayout) {
+        return;
+      }
+
+      int componentCount = parent.getComponentCount();
+      int totalWidth = parent.getWidth();
+      int totalHeight = parent.getHeight();
+      for (int i = 0; i < componentCount; i++) {
+        Component c = parent.getComponent(i);
+        if (c.isMaximumSizeSet()) {
+          Dimension maxDim = c.getMaximumSize();
+          int width = Math.min(totalWidth, maxDim.width);
+          c.setBounds(0, 0, width, maxDim.height);
+        }
+        Dimension preferredDim = c.getPreferredSize();
+        int width = Math.min(totalWidth, preferredDim.width);
+        int height = Math.min(totalHeight, preferredDim.height);
+        c.setBounds(0, 0, width, height);
+      }
+      myNeedsLayout = false;
+    }
+
+    @Override
+    public float getLayoutAlignmentX(Container target) {
+      return 0;
+    }
+
+    @Override
+    public float getLayoutAlignmentY(Container target) {
+      return 0.0f;
+    }
+
+    @Override
+    public void invalidateLayout(Container target) {
+      invalidateLayout();
+    }
+
+    @Override
+    public void addLayoutComponent(Component comp, Object constraints) {
+      invalidateLayout();
+    }
+
+    @Override
+    public void addLayoutComponent(String name, Component comp) {
+      invalidateLayout();
+    }
+
+    @Override
+    public void removeLayoutComponent(Component comp) {
+      invalidateLayout();
+    }
+
+    @NotNull
+    private static Dimension getSize(@NotNull Container parent,
+                                     @NotNull Function<Component, Dimension> componentSizeGetter,
+                                     @NotNull Dimension resultDimension) {
+      if (resultDimension.width != INVALID_SIZE && resultDimension.height != INVALID_SIZE) {
+        return resultDimension;
+      }
+
+      int w = 0;
+      int h = 0;
+      for (Component c : parent.getComponents()) {
+        Dimension d = componentSizeGetter.apply(c);
+        w = Math.max(w, d.width);
+        h += d.height;
+      }
+      resultDimension.setSize(w, h);
+      return resultDimension;
+    }
+
+    private void invalidateLayout() {
+      myMinSize.setSize(INVALID_SIZE, INVALID_SIZE);
+      myPreferredSize.setSize(INVALID_SIZE, INVALID_SIZE);
+      myMaxSize.setSize(INVALID_SIZE, INVALID_SIZE);
+      myNeedsLayout = true;
     }
   }
 }
