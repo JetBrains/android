@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.Robot;
@@ -172,5 +173,11 @@ public class NlPreviewFixture extends ToolWindowFixture {
   @NotNull
   public String getAdaptiveIconPathDescription() {
     return myDesignSurfaceFixture.target().getAdaptiveIconShape().getPathDescription();
+  }
+
+  @NotNull
+  public NlPreviewFixture maximize() {
+    ToolWindowManager.getInstance(myProject).setMaximized(myToolWindow, true);
+    return this;
   }
 }

@@ -67,6 +67,7 @@ public class LayoutPreviewRenderTest {
 
     NlPreviewFixture preview = editorFixture
       .getLayoutPreview(true)
+      .maximize()
       .waitForRenderToFinish();
 
     preview.getConfigToolbar()
