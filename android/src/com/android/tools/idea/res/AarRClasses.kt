@@ -23,14 +23,15 @@ import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
 import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
-import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
-import org.jetbrains.android.augment.ResourceTypeClassBase
+import org.jetbrains.android.augment.InnerRClassBase
+import org.jetbrains.android.augment.InnerRClassBase.buildResourceFields
 import java.io.File
 import java.io.IOException
 
@@ -39,17 +40,17 @@ import java.io.IOException
  *
  * It only contains entries for resources included in the library itself, not any of its dependencies.
  */
-class NamespacedAarPackageRClass(
+class NamespacedAarRClass(
   psiManager: PsiManager,
   private val packageName: String,
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace
-) : AndroidPackageRClassBase(psiManager, packageName) {
+) : AndroidRClassBase(psiManager, packageName) {
   override fun getQualifiedName(): String? = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     return aarResources.getResourceTypes(resourceNamespace)
-      .mapNotNull { if (it.hasInnerClass) NamespacedAarResourceTypeClass(this, it, resourceNamespace, aarResources) else null }
+      .mapNotNull { if (it.hasInnerClass) NamespacedAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
       .toTypedArray()
   }
 
@@ -57,21 +58,21 @@ class NamespacedAarPackageRClass(
 }
 
 /**
- * Implementation of [ResourceTypeClassBase] used by [NamespacedAarPackageRClass].
+ * Implementation of [InnerRClassBase] used by [NamespacedAarRClass].
  */
-private class NamespacedAarResourceTypeClass(
+private class NamespacedAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
   private val aarResources: ResourceRepository
-) : ResourceTypeClassBase(parent, resourceType) {
+) : InnerRClassBase(parent, resourceType) {
 
   override fun doGetFields(): Array<PsiField> {
     return buildResourceFields(
-      null,
       aarResources,
       resourceNamespace,
       FieldModifier.NON_FINAL,
+      { _, _ -> true},
       resourceType,
       containingClass
     )
@@ -86,11 +87,11 @@ private class NamespacedAarResourceTypeClass(
  * It contains entries for resources present in the AAR as well as all its dependencies, which is how the build system generates the R class
  * from the symbol file at build time.
  */
-class NonNamespacedAarPackageRClass(
+class NonNamespacedAarRClass(
   psiManager: PsiManager,
   private val packageName: String,
   symbolFile: File
-) : AndroidPackageRClassBase(psiManager, packageName) {
+) : AndroidRClassBase(psiManager, packageName) {
 
   override fun getQualifiedName(): String? = "$packageName.R"
 
@@ -110,25 +111,25 @@ class NonNamespacedAarPackageRClass(
   override fun doGetInnerClasses(): Array<out PsiClass> {
     return symbolTable
              .resourceTypes
-             .map { NonNamespacedResourceTypeClass(this, it, symbolTable) }
+             .map { NonNamespacedInnerRClass(this, it, symbolTable) }
              .toTypedArray()
   }
 
   companion object {
-    private val LOG: Logger = Logger.getInstance(NonNamespacedAarPackageRClass::class.java)
+    private val LOG: Logger = Logger.getInstance(NonNamespacedAarRClass::class.java)
   }
 
   override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
- * Implementation of [ResourceTypeClassBase] used by [NonNamespacedAarPackageRClass].
+ * Implementation of [InnerRClassBase] used by [NonNamespacedAarRClass].
  */
-private class NonNamespacedResourceTypeClass(
+private class NonNamespacedInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
   private val symbolTable: SymbolTable
-) : ResourceTypeClassBase(parent, resourceType) {
+) : InnerRClassBase(parent, resourceType) {
 
   override fun doGetFields(): Array<PsiField> {
     return buildResourceFields(
@@ -149,7 +150,7 @@ private class NonNamespacedResourceTypeClass(
 
   private fun SymbolJavaType.toPsiType() = when (this) {
     SymbolJavaType.INT -> PsiType.INT
-    SymbolJavaType.INT_LIST -> ResourceTypeClassBase.INT_ARRAY
+    SymbolJavaType.INT_LIST -> InnerRClassBase.INT_ARRAY
   }
 
   override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)

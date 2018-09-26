@@ -19,16 +19,17 @@ import com.android.SdkConstants;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiModifier;
+import org.jetbrains.android.augment.InnerRClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for implementations of light R classes (top-level, which only contain inner classes for every resource type).
  *
- * @see org.jetbrains.android.augment.ResourceTypeClassBase
+ * @see InnerRClassBase
  */
-public abstract class AndroidPackageRClassBase extends AndroidClassWithOnlyInnerClassesBase {
-  public AndroidPackageRClassBase(@NotNull PsiManager psiManager, @Nullable String packageName) {
+public abstract class AndroidRClassBase extends AndroidClassWithOnlyInnerClassesBase {
+  public AndroidRClassBase(@NotNull PsiManager psiManager, @Nullable String packageName) {
     super(SdkConstants.R_CLASS, packageName, psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
   }
 }

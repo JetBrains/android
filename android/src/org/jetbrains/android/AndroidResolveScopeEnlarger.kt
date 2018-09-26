@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.ModuleUtil
@@ -51,7 +52,10 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
     project.getProjectSystem()
       .getLightResourceClassService()
-      .getLightRClassesAccessibleFromModule(module)
+      .getLightRClassesAccessibleFromModule(
+        module,
+        TestArtifactSearchScopes.get(module)?.isAndroidTestSource(file) ?: false
+      )
       .let(result::addAll)
 
     result.addAll(AndroidManifestClassPsiElementFinder.getInstance(project).getManifestClassesAccessibleFromModule(module))

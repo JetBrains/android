@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.android.resourceManagers.ResourceManager;
+import java.util.function.BiPredicate;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Implementations need to implement {@link #doGetFields()}, most likely by calling one of the {@code buildResourceFields} methods.
  */
-public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
-  private static final Logger LOG = Logger.getInstance(ResourceTypeClassBase.class);
+public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
+  private static final Logger LOG = Logger.getInstance(InnerRClassBase.class);
 
   @NotNull
   protected final ResourceType myResourceType;
@@ -41,16 +41,16 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
 
   protected static PsiType INT_ARRAY = PsiType.INT.createArrayType();
 
-  public ResourceTypeClassBase(@NotNull PsiClass context, @NotNull ResourceType resourceType) {
+  public InnerRClassBase(@NotNull PsiClass context, @NotNull ResourceType resourceType) {
     super(context, resourceType.getName());
     myResourceType = resourceType;
   }
 
   @NotNull
-  protected static PsiField[] buildResourceFields(@Nullable ResourceManager manager,
-                                                  @NotNull ResourceRepository repository,
+  protected static PsiField[] buildResourceFields(@NotNull ResourceRepository repository,
                                                   @NotNull ResourceNamespace namespace,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
+                                                  @NotNull BiPredicate<ResourceType, String> isPublic,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context) {
     Map<String, PsiType> fieldNames = new HashMap<>();
@@ -67,7 +67,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
         if (value != null) {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {
-            if (manager == null || manager.isResourcePublic(attr.getResourceType().getName(), attr.getName())) {
+            if (isPublic.test(attr.getResourceType(), attr.getName())) {
               ResourceNamespace attrNamespace = attr.getNamespace();
               String packageName = attrNamespace.getPackageName();
               if (attrNamespace.equals(namespace) || StringUtil.isEmpty(packageName)) {

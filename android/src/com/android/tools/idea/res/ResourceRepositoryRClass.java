@@ -16,7 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AaptOptions;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -24,50 +25,38 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.ArrayUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.augment.ModuleResourceTypeClass;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import org.jetbrains.android.augment.ResourceRepositoryInnerRClass;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.function.Supplier;
 
-/** Represents a dynamic "class R" for resources in an Android module. */
-public class ModulePackageRClass extends AndroidPackageRClassBase {
-  private static final Logger LOG = Logger.getInstance(ModulePackageRClass.class);
+/** Represents a dynamic "class R" for resources in a {@link ResourceRepository}. */
+public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
+  private static final Logger LOG = Logger.getInstance(ResourceRepositoryRClass.class);
 
-  @NotNull private final Module myModule;
-  @NotNull private final AaptOptions.Namespacing myNamespacing;
-  @NotNull private final Supplier<String> myPackageSupplier;
-
-  public ModulePackageRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull AaptOptions.Namespacing namespacing) {
-    this(psiManager, module, namespacing, () -> getPackageName(module));
+  /**
+   * Determines the package name, where the resources should come from and which namespace is used to find them in the repository.
+   */
+  public interface ResourcesSource {
+    @Nullable String getPackageName();
+    @NotNull LocalResourceRepository getResourceRepository();
+    @NotNull ResourceNamespace getResourceNamespace();
   }
 
-  public ModulePackageRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull AaptOptions.Namespacing namespacing,
-                             Supplier<String> packageSupplier) {
+  @NotNull protected final Module myModule;
+  @NotNull private final ResourcesSource mySource;
+
+  public ResourceRepositoryRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull ResourcesSource source) {
     // TODO(b/110188226): Update the file package name when the module's package name changes.
-    super(psiManager, packageSupplier.get());
+    super(psiManager, source.getPackageName());
+    mySource = source;
     myModule = module;
-    myPackageSupplier = packageSupplier;
-    myNamespacing = namespacing;
     this.putUserData(ModuleUtilCore.KEY_MODULE, module);
     // Some scenarios move up to the file level and then attempt to get the module from the file.
     myFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
-  }
-
-  /** Helper static method that can be called to compute the value to be passed to the super constructor. */
-  @Nullable
-  private static String getPackageName(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      return null;
-    }
-
-    return AndroidManifestUtils.getPackageName(androidFacet);
   }
 
   @NotNull
@@ -89,13 +78,12 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
       return PsiClass.EMPTY_ARRAY;
     }
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-    Set<ResourceType> types = repositoryManager.getAppResources(true).getResourceTypes(repositoryManager.getNamespace());
+    Set<ResourceType> types = mySource.getResourceRepository().getResourceTypes(mySource.getResourceNamespace());
     List<PsiClass> result = new ArrayList<>();
 
     for (ResourceType type : types) {
       if (type.getHasInnerClass()) {
-        result.add(new ModuleResourceTypeClass(facet, myNamespacing, type, this));
+        result.add(new ResourceRepositoryInnerRClass(facet, type, mySource, this));
       }
     }
     LOG.debug("R_CLASS_AUGMENT: " + result.size() + " classes added");
@@ -105,23 +93,18 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
   @NotNull
   @Override
   protected Object[] getInnerClassesDependencies() {
-    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myModule);
-    return appResources == null ? ArrayUtil.EMPTY_OBJECT_ARRAY : new Object[]{appResources};
+    return new Object[]{mySource.getResourceRepository()};
   }
 
   /**
    * {@inheritDoc}
    *
-   * For {@link ModulePackageRClass} this is the package name specified in the module's manifest.
+   * For {@link ResourceRepositoryRClass} this is the package name specified in the module's manifest.
    */
   @Nullable
   @Override
   public String getQualifiedName() {
-    String packageName = myPackageSupplier.get();
-    if (packageName == null) {
-      return null;
-    }
-
-    return packageName + "." + SdkConstants.R_CLASS;
+    String packageName = mySource.getPackageName();
+    return packageName == null ? SdkConstants.R_CLASS : packageName + "." + SdkConstants.R_CLASS;
   }
 }
