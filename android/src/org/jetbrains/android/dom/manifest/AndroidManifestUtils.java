@@ -15,8 +15,14 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-import com.android.ide.common.util.PathStrings;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.NS_RESOURCES;
+import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
+
+import com.android.builder.model.ProductFlavor;
 import com.android.ide.common.util.PathString;
+import com.android.ide.common.util.PathStrings;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.util.ModificationTracker;
@@ -25,13 +31,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.kxml2.io.KXmlParser;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,10 +39,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.NS_RESOURCES;
-import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * Methods for working with Android manifests.
@@ -119,6 +120,26 @@ public class AndroidManifestUtils {
       String packageName = manifest.getPackage().getValue();
       return CachedValueProvider.Result.create(StringUtil.nullize(packageName, true), manifest.getXmlTag());
     });
+  }
+
+  @Nullable
+  public static String getTestPackageName(@NotNull AndroidFacet androidFacet) {
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(androidFacet);
+    if (moduleModel == null) {
+      return null;
+    }
+    ProductFlavor flavor = moduleModel.getSelectedVariant().getMergedFlavor();
+    String testApplicationId = flavor.getTestApplicationId();
+    if (testApplicationId != null) {
+      return testApplicationId;
+    }
+
+    String applicationId = flavor.getApplicationId();
+    if (applicationId != null) {
+      return applicationId + ".test";
+    }
+
+    return null;
   }
 
   public static boolean isRequiredAttribute(@NotNull XmlName attrName, @NotNull DomElement element) {
