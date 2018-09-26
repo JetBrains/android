@@ -57,7 +57,7 @@
           </section>
         </stepElement>
       </step>
-      <step label="Updates to Project Structure Dialog">
+      <step label="Updated Project Structure Dialog">
         <stepElement>
           <section>
             <![CDATA[
@@ -77,7 +77,7 @@
           </section>
         </stepElement>
       </step>
-      <step label="Android App Bundles now support Instant Apps">
+      <step label="Instant apps in app bundles">
         <stepElement>
           <section>
             <![CDATA[
@@ -106,7 +106,7 @@
           </section>
         </stepElement>
       </step>
-      <step label="Updates to the Android Gradle plugin">
+      <step label="Build system updates">
         <stepElement>
           <section>
             <![CDATA[
@@ -132,20 +132,83 @@
             <a href="https://d.android.com/r/studio-wna/3.3.0/incremental-javac">
             Learn more</a>
             </li>
+            <li><b>Better debug info for obsolete API:</b>
+            When the plugin detects that you're using API that's no longer supported, it
+            can now provide more detailed information to help you determine where that API is being
+            used. To see the additional info, you need to include the following in your
+            project's <code>gradle.properties</code> file.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/obsolete_api">
+            Learn more</a>s
+
+            <br><br>s
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android.debug.obsoleteApi=true</pre>
+            </div>
+            </li>
            </ul>
            ]]>
           </section>
         </stepElement>
       </step>
-      <step label="Support for Clang-Tidy">
+      <step label="Improved C/C++ support">
         <stepElement>
           <section>
             <![CDATA[
-           Android Studio now includes support for static code analysis using
-           <a href="http://clang.llvm.org/extra/clang-tidy/">Clang-Tidy</a> for projects that include native code. To enable support for
-           Clang-Tidy, <a href="https://d.android.com/ndk/guides/#download-ndk">update your NDK</a> to r18 or higher.
-           <a href="https://d.android.com/r/studio-wna/3.3.0/clang-tidy">
-           Learn more</a></li>
+           Projects that include C/C++ code can benefit from the following improvements:
+           <ul>
+            <li><b>Support for Clang-Tidy:</b>Android Studio now includes support for static code analysis using
+            <a href="http://clang.llvm.org/extra/clang-tidy/">Clang-Tidy</a>. To enable this feature,
+            <a href="https://d.android.com/ndk/guides/#download-ndk">update your NDK</a> to r18 or higher.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/clang-tidy">
+            Learn more</a>
+            </li>
+            <li><b>Updated CMake version:</b>
+            CMake 3.10.2 is now available from the SDK Manager, and you can tell Gradle to use it by including the following
+            in your module's <code>build.gradle</code> file.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/cmake_version">
+            Learn more</a>
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android {
+    ...
+    externalNativeBuild {
+        cmake {
+            ...
+            version "3.10.2"
+        }
+    }
+}</pre>
+            </div>
+           </ul>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Preview R8">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Preview R8, a new code shrinker that also obfuscates, by adding the line below to your project’s
+            <code>gradle.properties</code> file.
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android.enableR8 = true</pre>
+            </div>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Delete old Android Studio data">
+        <stepElement>
+          <section>
+            <![CDATA[
+            After you update Android Studio, a dialog appears to help you remove data from older versions of the IDE, such as
+            caches, settings, and logs. Simply check the boxes next to the versions of the IDE that you want to remove and click
+            <b>Delete Directories</b>.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/delete_unused_dirs">
+           Learn more</a>
            ]]>
           </section>
         </stepElement>
@@ -162,7 +225,7 @@
            Simply click the icon that best represents your current experience with the IDE. When you do so, the IDE sends usage statistics
            that allows the Android Studio team to better understand your sentiment.
            <a href="https://d.android.com/r/studio-wna/3.3.0/feedback-buttons">
-           Learn more</a></li>
+           Learn more</a>
            ]]>
           </section>
         </stepElement>
