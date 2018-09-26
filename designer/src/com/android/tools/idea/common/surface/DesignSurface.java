@@ -39,6 +39,7 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -50,6 +51,7 @@ import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -408,10 +410,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     reactivateInteractionManager();
     zoomToFit();
-    requestRender();
-
-    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-      listener.modelChanged(this, model);
+    if (model != null) {
+      // Request a new render and notify the listeners after the render has completed
+      // TODO: The listeners have the expectation of the call happening in the EDT. We need
+      //       to address that.
+      requestRender().whenCompleteAsync((result, ex) -> {
+        for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+          listener.modelChanged(this, model);
+        }
+      }, EdtExecutor.INSTANCE);
     }
   }
 
@@ -1327,11 +1334,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Invalidates all models and request a render of the layout. This will re-inflate the layout and render it.
+   * The result {@link ListenableFuture} will notify when the render has completed.
    */
-  public void requestRender() {
-    for (SceneManager manager : myModelToSceneManagers.values()) {
-      manager.requestRender();
+  @NotNull
+  public CompletableFuture<Void> requestRender() {
+    if (myModelToSceneManagers.isEmpty()) {
+      return CompletableFuture.completedFuture(null);
     }
+
+    return CompletableFuture.allOf(myModelToSceneManagers.values().stream()
+                                                         .map(manager -> manager.requestRender())
+                                                         .toArray(CompletableFuture[]::new));
   }
 
   @NotNull

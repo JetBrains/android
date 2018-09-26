@@ -28,13 +28,13 @@ import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
@@ -236,7 +236,8 @@ abstract public class SceneManager implements Disposable {
     return myScene;
   }
 
-  public abstract void requestRender();
+  @NotNull
+  public abstract CompletableFuture<Void> requestRender();
 
   public void requestLayoutAndRender(boolean animate) {}
 
