@@ -60,16 +60,16 @@ public final class ProfilerDeviceFileManager {
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
-    copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", DEVICE_DIR,
+    copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android",
                      true);
     if (isAtLeastO(myDevice)) {
       String productionRoot = "plugins/android/resources";
       String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
-      copyFileToDevice("perfa.jar", productionRoot, devRoot, DEVICE_DIR, false);
-      copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, DEVICE_DIR, false);
-      pushJvmtiAgentNativeLibraries(DEVICE_DIR);
+      copyFileToDevice("perfa.jar", productionRoot, devRoot, false);
+      copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, false);
+      pushJvmtiAgentNativeLibraries();
       // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
-      pushSimpleperf(DEVICE_DIR);
+      pushSimpleperf();
     }
     pushAgentConfig(myDevice, true);
   }
@@ -92,7 +92,7 @@ public final class ProfilerDeviceFileManager {
    * Copies a file from host (where Studio is running) to the device.
    * If executable, then the abi is taken into account.
    */
-  private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean executable)
+  private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, boolean executable)
     throws AdbCommandRejectedException, IOException {
     File dir = new File(PathManager.getHomePath(), hostReleaseDir);
     if (!dir.exists()) {
@@ -116,10 +116,10 @@ public final class ProfilerDeviceFileManager {
         file = candidate;
       }
     }
-    pushFileToDevice(file, fileName, deviceDir, executable);
+    pushFileToDevice(file, fileName, executable);
   }
 
-  private void pushFileToDevice(File file, String fileName, String deviceDir, boolean executable)
+  private void pushFileToDevice(File file, String fileName, boolean executable)
     throws AdbCommandRejectedException, IOException {
     try {
       // TODO: Handle the case where we don't have file for this platform.
@@ -131,10 +131,10 @@ public final class ProfilerDeviceFileManager {
        * If copying the agent fails, we will attach the previous version of the agent
        * Hence we first delete old agent before copying new one
        */
-      getLogger().info(String.format("Pushing %s to %s...", fileName, deviceDir));
-      myDevice.executeShellCommand("rm -f " + deviceDir + fileName, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
-      myDevice.pushFile(file.getAbsolutePath(), deviceDir + fileName);
+      getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
+      myDevice.executeShellCommand("rm -f " + DEVICE_DIR + fileName, new NullOutputReceiver());
+      myDevice.executeShellCommand("mkdir -p " + DEVICE_DIR, new NullOutputReceiver());
+      myDevice.pushFile(file.getAbsolutePath(), DEVICE_DIR + fileName);
 
       if (executable) {
         /*
@@ -142,12 +142,12 @@ public final class ProfilerDeviceFileManager {
          * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
          */
         ChmodOutputListener chmodListener = new ChmodOutputListener();
-        myDevice.executeShellCommand("chmod +x " + deviceDir + fileName, chmodListener);
+        myDevice.executeShellCommand("chmod +x " + DEVICE_DIR + fileName, chmodListener);
         if (chmodListener.hasErrors()) {
-          myDevice.executeShellCommand("chmod 777 " + deviceDir + fileName, new NullOutputReceiver());
+          myDevice.executeShellCommand("chmod 777 " + DEVICE_DIR + fileName, new NullOutputReceiver());
         }
       }
-      getLogger().info(String.format("Successfully pushed %s to %s.", fileName, deviceDir));
+      getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
     }
     catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
       throw new RuntimeException(e);
@@ -216,13 +216,13 @@ public final class ProfilerDeviceFileManager {
    * Push JVMTI agent binary to device. The native library is to be attached to app's thread. It needs to be consistent with app's abi,
    * so we use {@link #pushAbiDependentBinaryFiles}.
    */
-  private void pushJvmtiAgentNativeLibraries(String devicePath) throws AdbCommandRejectedException, IOException {
+  private void pushJvmtiAgentNativeLibraries() throws AdbCommandRejectedException, IOException {
     String jvmtiResourcesReleasePath = "plugins/android/resources/perfa";
     String jvmtiResourcesDevPath = "../../bazel-bin/tools/base/profiler/native/perfa/android";
     String libperfaFilename = "libperfa.so";
     String libperfaDeviceFilenameFormat = "libperfa_%s.so"; // e.g. libperfa_arm64.so
 
-    pushAbiDependentBinaryFiles(devicePath, jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename,
+    pushAbiDependentBinaryFiles(jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename,
                                 libperfaDeviceFilenameFormat);
   }
 
@@ -230,19 +230,18 @@ public final class ProfilerDeviceFileManager {
    * Push one binary for each supported ABI CPU architecture, i.e. CPU family. ABI of same CPU family can share the same binary,
    * like "armeabi" and "armeabi-v7a", which share the "arm".
    *
-   * @param devicePath           Device path where the binaries should be pushed to.
    * @param hostReleaseDir       Host release path containing the binaries to be pushed to device.
    * @param hostDevDir           Host development path containing the binaries to be pushed to device.
    * @param hostFilename         Filename of the original binaries on the host.
    * @param deviceFilenameFormat Format of the binaries filename on device. The binaries have the same name in the host because they're
    *                             usually placed on different folders. On the device, however, the binaries are all placed inside
-   *                             {@code devicePath}, so they need different names, each one identifying the ABI corresponding to the
+   *                             {@code DEVICE_DIR}, so they need different names, each one identifying the ABI corresponding to the
    *                             binary. For instance, the format "libperfa_%s.so" can generate binaries named "libperfa_arm.so",
    *                             "libperfa_x86_64.so", etc.
    * @throws AdbCommandRejectedException
    * @throws IOException
    */
-  private void pushAbiDependentBinaryFiles(String devicePath, String hostReleaseDir, String hostDevDir, String hostFilename,
+  private void pushAbiDependentBinaryFiles(String hostReleaseDir, String hostDevDir, String hostFilename,
                                            String deviceFilenameFormat) throws AdbCommandRejectedException, IOException {
     File dir = new File(PathManager.getHomePath(), hostReleaseDir);
     if (!dir.exists()) {
@@ -255,7 +254,7 @@ public final class ProfilerDeviceFileManager {
       if (candidate.exists()) {
         String abiCpuArch = Abi.getEnum(abi).getCpuArch();
         if (!cpuArchSet.contains(abiCpuArch)) {
-          pushFileToDevice(candidate, String.format(deviceFilenameFormat, abiCpuArch), devicePath, true);
+          pushFileToDevice(candidate, String.format(deviceFilenameFormat, abiCpuArch), true);
           cpuArchSet.add(abiCpuArch);
         }
       }
@@ -265,13 +264,13 @@ public final class ProfilerDeviceFileManager {
   /**
    * Pushes simpleperf binaries to device. It needs to be consistent with app's abi, so we use {@link #pushAbiDependentBinaryFiles}.
    */
-  private void pushSimpleperf(String devicePath) throws AdbCommandRejectedException, IOException {
+  private void pushSimpleperf() throws AdbCommandRejectedException, IOException {
     String simpleperfBinariesReleasePath = "plugins/android/resources/simpleperf";
     String simpleperfBinariesDevPath = "../../prebuilts/tools/common/simpleperf";
     String simpleperfFilename = "simpleperf";
     String simpleperfDeviceFilenameFormat = "simpleperf_%s"; // e.g. simpleperf_arm64
 
-    pushAbiDependentBinaryFiles(devicePath, simpleperfBinariesReleasePath, simpleperfBinariesDevPath, simpleperfFilename,
+    pushAbiDependentBinaryFiles(simpleperfBinariesReleasePath, simpleperfBinariesDevPath, simpleperfFilename,
                                 simpleperfDeviceFilenameFormat);
   }
 
