@@ -15,13 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
+import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
+
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -33,7 +45,10 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderSettings;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -67,25 +82,28 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.awt.Rectangle;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.concurrent.GuardedBy;
+import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-
-import javax.annotation.concurrent.GuardedBy;
-import javax.swing.Timer;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.ATTR_SHOW_IN;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
-import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
@@ -128,7 +146,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private String myPreviousTheme;
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
-  private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
+  private final LinkedList<CompletableFuture<Void>> myRenderFutures = new LinkedList<>();
   private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
   @NotNull private final ViewEditor myViewEditor;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
@@ -511,11 +529,11 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  private void requestRender(@Nullable Runnable callback, @Nullable LayoutEditorRenderResult.Trigger trigger) {
-    if (callback != null) {
-      synchronized (myRenderCallbacks) {
-        myRenderCallbacks.add(callback);
-      }
+  @NotNull
+  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    CompletableFuture<Void> callback = new CompletableFuture<>();
+    synchronized (myRenderFutures) {
+      myRenderFutures.add(callback);
     }
     // This update is low priority so the model updates take precedence
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
@@ -529,6 +547,8 @@ public class LayoutlibSceneManager extends SceneManager {
         return this.equals(update);
       }
     });
+
+    return callback;
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -547,16 +567,17 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @Override
-  public void requestRender() {
-    requestRender(null, getTriggerFromChangeType(getModel().getLastChangeType()));
+  public CompletableFuture<Void> requestRender() {
+    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   /**
    * Similar to {@link #requestRender()} but it will be logged as a user initiated action. This is
    * not exposed at SceneManager level since it only makes sense for the Layout editor.
    */
-  public void requestUserInitiatedRender() {
-    requestRender(null, LayoutEditorRenderResult.Trigger.USER);
+  @NotNull
+  public CompletableFuture<Void> requestUserInitiatedRender() {
+    return requestRender(LayoutEditorRenderResult.Trigger.USER);
   }
 
   @Override
@@ -571,7 +592,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   void doRequestLayoutAndRender(boolean animate) {
-    requestRender(() -> getModel().notifyListenersModelLayoutComplete(animate), getTriggerFromChangeType(getModel().getLastChangeType()));
+    requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
+      .whenComplete((result, ex) -> getModel().notifyListenersModelLayoutComplete(animate));
   }
 
   /**
@@ -897,12 +919,12 @@ public class LayoutlibSceneManager extends SceneManager {
         throw e;
       }
     } finally {
-      ImmutableList<Runnable> callbacks;
-      synchronized (myRenderCallbacks) {
-        callbacks = ImmutableList.copyOf(myRenderCallbacks);
-        myRenderCallbacks.clear();
+      ImmutableList<CompletableFuture<Void>> callbacks;
+      synchronized (myRenderFutures) {
+        callbacks = ImmutableList.copyOf(myRenderFutures);
+        myRenderFutures.clear();
       }
-      callbacks.forEach(Runnable::run);
+      callbacks.forEach(callback -> callback.complete(null));
     }
   }
 
