@@ -105,7 +105,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   private static void pushNewAgentConfig(@NotNull Project project, @NotNull IDevice device) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
-      StudioProfilerDeviceManager.pushAgentConfig(device, shouldEnableMemoryLiveAllocationAtStartup(project));
+      ProfilerDeviceFileManager.pushAgentConfig(device, shouldEnableMemoryLiveAllocationAtStartup(project));
     }
     catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
       throw new RuntimeException(e);
