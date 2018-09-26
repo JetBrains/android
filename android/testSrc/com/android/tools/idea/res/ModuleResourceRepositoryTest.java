@@ -57,7 +57,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testSingleResourceFolder() {
-    LocalResourceRepository repository = ModuleResourceRepository.create(myFacet);
+    LocalResourceRepository repository = ModuleResourceRepository.forMainResources(myFacet);
     assertTrue(repository instanceof ResourceFolderRepository);
   }
 
