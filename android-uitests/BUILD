@@ -1046,6 +1046,7 @@ java_test(
         "//prebuilts/studio/sdk:platforms/android-23",
         "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platforms/android-25",
+        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutLocalTest/**",
     ]),
