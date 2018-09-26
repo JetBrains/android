@@ -531,17 +531,14 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
     SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
     searchField.setText("ele");
-    fireEnterKey(searchField.getTextEditor());
     searchField.setText("eleva");
-    fireEnterKey(searchField.getTextEditor());
+    fireFocusLost(searchField.getTextEditor());
     searchField.setText("vi");
-    fireEnterKey(searchField.getTextEditor());
     searchField.setText("visible");
-    fireEnterKey(searchField.getTextEditor());
+    fireFocusLost(searchField.getTextEditor());
     searchField.setText("con");
-    fireEnterKey(searchField.getTextEditor());
     searchField.setText("contex");
-    fireEnterKey(searchField.getTextEditor());
+    fireFocusLost(searchField.getTextEditor());
 
     assertThat(myPropertiesComponent.getValue(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.TEXT_SEARCH_HISTORY"))
       .isEqualTo("contex\nvisible\neleva");
@@ -597,6 +594,12 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(myToolWindow.getProperty(PropertyType.SPLIT)).isFalse();
   }
 
+  private static void fireFocusLost(@NotNull JComponent component) {
+    for (FocusListener listener : component.getFocusListeners()) {
+      listener.focusLost(new FocusEvent(component, FocusEvent.FOCUS_LOST));
+    }
+  }
+
   private static void fireMouseDragged(@NotNull JComponent component, @NotNull MouseEvent event) {
     for (MouseMotionListener listener : component.getMouseMotionListeners()) {
       listener.mouseDragged(event);
@@ -613,10 +616,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     for (MouseListener listener : component.getMouseListeners()) {
       listener.mouseClicked(event);
     }
-  }
-
-  private static void fireEnterKey(@NotNull JComponent component) {
-    fireKey(component, KeyEvent.VK_ENTER);
   }
 
   private static void fireKey(@NotNull JComponent component, int keyCode) {
