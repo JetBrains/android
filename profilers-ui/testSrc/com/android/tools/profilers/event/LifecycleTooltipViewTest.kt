@@ -82,9 +82,7 @@ class LifecycleTooltipViewTest {
     assertThat(myActivityTooltipView.headingText).isEqualTo("00:01.001")
     assertThat(myActivityTooltipView.activityNameText).isEqualTo(ACTIVITY_NAME)
 
-    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel,
-                                      arrayOf(FragmentTextEntry("TestFragment1", Font.BOLD),
-                                              FragmentTextEntry("TestFragment2", Font.BOLD)))
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - Resumed", "TestFragment2 - Resumed"))
     assertThat(myActivityTooltipView.durationText).isEqualTo("00:01.000 - 00:04.000")
 
     // Check text when hovering over activity bar.
@@ -92,9 +90,7 @@ class LifecycleTooltipViewTest {
     myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
     assertThat(myActivityTooltipView.headingText).isEqualTo("00:02.000")
     assertThat(myActivityTooltipView.activityNameText).isEqualTo(ACTIVITY_NAME)
-    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel,
-                                      arrayOf(FragmentTextEntry("TestFragment1", Font.PLAIN),
-                                              FragmentTextEntry("TestFragment2", Font.PLAIN)))
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1", "TestFragment2"))
     assertThat(myActivityTooltipView.durationText).isEqualTo("00:01.000 - 00:04.000")
 
     // Check text when hovering over event line for removing fragment.
@@ -103,9 +99,7 @@ class LifecycleTooltipViewTest {
     myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
     assertThat(myActivityTooltipView.headingText).isEqualTo("00:05.000")
     assertThat(myActivityTooltipView.activityNameText).isEqualTo("")
-    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel,
-                                      arrayOf(FragmentTextEntry("TestFragment1", Font.ITALIC),
-                                              FragmentTextEntry("TestFragment2", Font.ITALIC)))
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - Paused", "TestFragment2 - Paused"))
     assertThat(myActivityTooltipView.durationText).isEqualTo("")
   }
 
@@ -133,17 +127,10 @@ class LifecycleTooltipViewTest {
   }
 
 
-  private fun fragmentPanelContainsExpectedText(fragmentPanel: JPanel, expectedTextEntries: Array<FragmentTextEntry>) {
-    assertThat(fragmentPanel.componentCount).isEqualTo(expectedTextEntries.size)
-    for (i in expectedTextEntries.indices) {
-      assertThat((fragmentPanel.getComponent(i) as JLabel).text).isEqualTo(expectedTextEntries[i].text)
-      when (expectedTextEntries[i].fontStyle) {
-        Font.BOLD -> assertThat((fragmentPanel.getComponent(i) as JLabel).font.isBold).isTrue()
-        Font.ITALIC -> assertThat((fragmentPanel.getComponent(i) as JLabel).font.isItalic).isTrue()
-        else -> { // Note the block
-          assertThat((fragmentPanel.getComponent(i) as JLabel).font.isPlain).isTrue()
-        }
-      }
+  private fun fragmentPanelContainsExpectedText(fragmentPanel: JPanel, expectedTextArray: Array<String>) {
+    assertThat(fragmentPanel.componentCount).isEqualTo(expectedTextArray.size)
+    for (i in expectedTextArray.indices) {
+      assertThat((fragmentPanel.getComponent(i) as JLabel).text).isEqualTo(expectedTextArray[i])
     }
   }
 
@@ -232,8 +219,6 @@ class LifecycleTooltipViewTest {
     val durationText: String
       get() = durationLabel.text
   }
-
-  private data class FragmentTextEntry(val text: String, val fontStyle: Int)
 
   private class ActivityStateData constructor(var activityState: EventProfiler.ActivityStateData.ActivityState, var activityStateTime: Long)
 
