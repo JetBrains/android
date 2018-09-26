@@ -19,6 +19,8 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.model.includeFile
+import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
@@ -146,11 +148,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
 
       val result = classToDestination.values.toMutableList()
+      val existingIncludes = parent.children.filter { it.isInclude }.map { it.includeFile }
 
       for (navPsi in resourceManager.findResourceFiles(ResourceFolderType.NAVIGATION).filterIsInstance<XmlFile>()) {
-        if (surface.model!!.file == navPsi) {
+        if (model.file == navPsi || existingIncludes.contains(navPsi)) {
           continue
         }
+
         result.add(Destination.IncludeDestination(navPsi.name, parent))
       }
 

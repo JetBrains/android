@@ -18,8 +18,10 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNlEditor
@@ -31,7 +33,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
@@ -39,7 +40,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
 import org.mockito.Mockito.`when`
@@ -52,6 +52,9 @@ import javax.swing.JPanel
 // TODO: testing with custom navigators
 class AddDestinationMenuTest : NavTestCase() {
 
+  private var _modelBuilder: ModelBuilder? = null
+  private val modelBuilder
+    get() = _modelBuilder!!
 
   private var _model: SyncNlModel? = null
   private val model
@@ -69,16 +72,21 @@ class AddDestinationMenuTest : NavTestCase() {
   private val panel
     get() = _panel!!
 
+  private var _root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+  private val root
+    get() = _root!!
+
   override fun setUp() {
     super.setUp()
-    _model = model("nav.xml") {
+    _modelBuilder = modelBuilder("nav.xml") {
       navigation("navigation") {
         fragment("fragment")
         navigation("subnav") {
           fragment("fragment2")
         }
-      }
+      }.also { _root = it }
     }
+    _model = modelBuilder.build()
 
     _surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
@@ -116,7 +124,7 @@ class AddDestinationMenuTest : NavTestCase() {
     addIncludeFile("include1")
 
     val parent = model.components[0]
-    val expected = listOf(
+    val expected = mutableListOf(
       Destination.PlaceholderDestination(parent),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment")),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1")),
@@ -130,7 +138,15 @@ class AddDestinationMenuTest : NavTestCase() {
       Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile),
       Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile))
 
-    val destinations = AddDestinationMenu(surface).destinations
+    var destinations = AddDestinationMenu(surface).destinations
+    assertEquals(destinations, expected)
+
+    root.include("include1")
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    expected.removeAt(5)
+    destinations = AddDestinationMenu(surface).destinations
     assertEquals(destinations, expected)
   }
 
