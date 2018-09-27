@@ -105,10 +105,10 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
         boolean justAdded = fragment.getStartUs() > hoverRange.getMin() && fragment.getStartUs() <= hoverRange.getMax();
         boolean justRemoved = fragment.getEndUs() != 0 && fragment.getEndUs() > hoverRange.getMin() && fragment.getEndUs() <= hoverRange.getMax();
         if (justAdded) {
-          text += " - Resumed";
+          text += " - resumed";
         }
         else if (justRemoved) {
-          text += " - Paused";
+          text += " - paused";
         }
         labels.add(new JLabel(text));
       });
