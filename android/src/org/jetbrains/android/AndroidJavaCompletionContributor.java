@@ -1,5 +1,7 @@
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.R_CLASS;
+
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -8,13 +10,14 @@ import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReferenceExpression;
+import java.util.Objects;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.R_CLASS;
 
 /**
  * @author Eugene.Kudelevsky
@@ -55,8 +58,25 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
         PsiReferenceExpression ref2 = (PsiReferenceExpression)ref.getQualifierExpression();
         if (ref2.getQualifierExpression() instanceof PsiReferenceExpression) {
           PsiReferenceExpression ref3 = (PsiReferenceExpression)ref2.getQualifierExpression();
-          if (ref3.getQualifierExpression() == null && R_CLASS.equals(ref3.getReferenceName())) {
-            filterPrivateResources(parameters, resultSet, facet);
+          if (R_CLASS.equals(ref3.getReferenceName())) {
+            // We do the filtering only on the R class of this module, users who explicitly reference other R classes are assumed to know
+            // what they're doing.
+            boolean filterPrivateResources = false;
+            PsiExpression qualifierExpression = ref3.getQualifierExpression();
+            if (qualifierExpression == null) {
+              filterPrivateResources = true;
+            }
+            else if (qualifierExpression instanceof PsiReferenceExpression) {
+              PsiReferenceExpression referenceExpression = (PsiReferenceExpression)qualifierExpression;
+              if (Objects.equals(AndroidManifestUtils.getPackageName(facet), referenceExpression.getQualifiedName()) ||
+                  Objects.equals(AndroidManifestUtils.getTestPackageName(facet), referenceExpression.getQualifiedName())) {
+                filterPrivateResources = true;
+              }
+            }
+
+            if (filterPrivateResources) {
+              filterPrivateResources(parameters, resultSet, facet);
+            }
           }
         }
       }
