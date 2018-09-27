@@ -38,8 +38,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public final class ProfilerDeviceFileManager {
@@ -119,30 +122,27 @@ public final class ProfilerDeviceFileManager {
   @VisibleForTesting
   void copyFileToDevice(@NotNull ProfilerHostFile hostFile)
     throws AdbCommandRejectedException, IOException {
+    final File dir = hostFile.getDir();
 
-    if (hostFile.isAbiDependent()) {
-      pushAbiDependentBinaryFiles(hostFile);
+    if (!hostFile.isExecutable()) {
+      File file = new File(dir, hostFile.getFileName());
+      pushFileToDevice(file, hostFile.getFileName(), hostFile.isExecutable());
       return;
     }
 
-    File dir = hostFile.getDir();
-    File file = null;
-    if (hostFile.isExecutable()) {
-      for (String abi : myDevice.getAbis()) {
-        File candidate = new File(dir, abi + "/" + hostFile.getFileName());
-        if (candidate.exists()) {
-          file = candidate;
-          break;
-        }
-      }
+    if (!hostFile.isAbiDependent()) {
+      Abi abi = getBestAbi(hostFile);
+      File file = new File(dir, abi + "/" + hostFile.getFileName());
+      pushFileToDevice(file, hostFile.getFileName(), true);
     }
     else {
-      File candidate = new File(dir, hostFile.getFileName());
-      if (candidate.exists()) {
-        file = candidate;
+      String format = hostFile.getOnDeviceAbiFileNameFormat();
+      assert format != null;
+      for (Abi abi : getBestAbis(hostFile)) {
+        File file = new File(dir, abi + "/" + hostFile.getFileName());
+        pushFileToDevice(file, String.format(format, abi.getCpuArch()), true);
       }
     }
-    pushFileToDevice(file, hostFile.getFileName(), hostFile.isExecutable());
   }
 
   private void pushFileToDevice(File file, String fileName, boolean executable)
@@ -238,33 +238,29 @@ public final class ProfilerDeviceFileManager {
     device.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
   }
 
-  /**
-   * Push one binary for each supported ABI CPU architecture, i.e. CPU family. ABI of same CPU family can share the same binary,
-   * like "armeabi" and "armeabi-v7a", which share the "arm".
-   *
-   * @throws AdbCommandRejectedException
-   * @throws IOException
-   *
-   * TODO(b/116774425): unify with logic in {@link #copyFileToDevice(ProfilerHostFile)}, because they're very similar.
-   */
-  private void pushAbiDependentBinaryFiles(@NotNull ProfilerHostFile hostFile) throws AdbCommandRejectedException, IOException {
-    assert hostFile.getOnDeviceAbiFileNameFormat() != null;
+  @NotNull
+  private Abi getBestAbi(@NotNull ProfilerHostFile hostFile) {
+    return getBestAbis(hostFile).get(0);
+  }
 
-    File dir = hostFile.getDir();
-    // Multiple abis of same cpu arch need only one binary to push, for example, "armeabi" and "armeabi-v7a" abis' cpu arch is "arm".
-    Set<String> cpuArchSet = new HashSet<>();
-    for (String abi : myDevice.getAbis()) {
-      File candidate = new File(dir, abi + "/" + hostFile.getFileName());
-      if (candidate.exists()) {
-        Abi abiEnum = Abi.getEnum(abi);
-        assert abiEnum != null;
-        String abiCpuArch = abiEnum.getCpuArch();
-        if (!cpuArchSet.contains(abiCpuArch)) {
-          pushFileToDevice(candidate, String.format(hostFile.getOnDeviceAbiFileNameFormat(), abiCpuArch), true);
-          cpuArchSet.add(abiCpuArch);
-        }
+  @NotNull
+  private List<Abi> getBestAbis(@NotNull ProfilerHostFile hostFile) {
+    final File dir = hostFile.getDir();
+    List<Abi> supportedAbis = myDevice.getAbis()
+                                      .stream()
+                                      .map(abi -> Abi.getEnum(abi))
+                                      .filter(abi -> new File(dir, abi + "/" + hostFile.getFileName()).exists())
+                                      .collect(Collectors.toList());
+
+    List<Abi> bestAbis = new ArrayList<>();
+    Set<String> seenCpuArch = new HashSet<>();
+    for (Abi abi : supportedAbis) {
+      if (!seenCpuArch.contains(abi.getCpuArch())) {
+        seenCpuArch.add(abi.getCpuArch());
+        bestAbis.add(abi);
       }
     }
+    return bestAbis;
   }
 
   private static class ChmodOutputListener implements IShellOutputReceiver {
