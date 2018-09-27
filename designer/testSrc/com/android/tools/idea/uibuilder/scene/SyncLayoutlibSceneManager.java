@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
+import com.android.ide.common.rendering.api.*;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderService;
@@ -29,10 +27,10 @@ import com.intellij.openapi.command.CommandEvent;
 import com.intellij.openapi.command.CommandListener;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.util.concurrency.EdtExecutorService;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
@@ -47,13 +45,8 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  public CompletableFuture<Void> requestRender() {
-    CompletableFuture<Void> result = new CompletableFuture<>();
-    runAfterCommandIfNecessary(() -> {
-      render(getTriggerFromChangeType(getModel().getLastChangeType()));
-      result.complete(null);
-    });
-    return result;
+  public void requestRender() {
+    runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
   }
 
   @Override

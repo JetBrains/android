@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import org.mockito.Mock;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import org.mockito.Mock;
+
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MockupTest extends MockupTestCase {
 
@@ -242,9 +241,8 @@ public class MockupTest extends MockupTestCase {
 
     NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject()) {
       @Override
-      public CompletableFuture<Void> requestRender() {
+      public void requestRender() {
         // No need for layoutlib render
-        return CompletableFuture.completedFuture(null);
       }
     };
     surface.setModel(model);
@@ -271,9 +269,8 @@ public class MockupTest extends MockupTestCase {
 
     NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject()) {
       @Override
-      public CompletableFuture<Void> requestRender() {
+      public void requestRender() {
         // No need for layoutlib render
-        return CompletableFuture.completedFuture(null);
       }
     };
     surface.setModel(model);
