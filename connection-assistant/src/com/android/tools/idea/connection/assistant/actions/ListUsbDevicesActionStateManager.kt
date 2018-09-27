@@ -32,13 +32,14 @@ import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.util.AndroidBundle
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
-val Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbDevicesActionStateManager::class.java)
+val Logger: Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbDevicesActionStateManager::class.java)
 
 /**
  * StateManager for {@link ListUsbDevicesAction}, displays if there are any connected USB devices to the user
@@ -131,9 +132,15 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
     val bodyHtmlBuilder = HtmlBuilder().openHtmlBody()
     if (devices.isNotEmpty()) {
-      devices.forEach { (name, _, productId) ->
+      // Instead of displaying multiple devices of the same name, merge them into one and display the count
+      devices.groupBy { usbDevice -> usbDevice.name }.forEach { _, deviceList ->
+        val name = deviceList.first().name
+        var count = ""
+        if (deviceList.size > 1)
+          count = " (" + deviceList.size + "x)"
+
         bodyHtmlBuilder.addHtml("<p>")
-          .addHtml("<b>$name</b> ($productId)")
+          .addHtml("<b>$name</b>$count")
           .newlineIfNecessary().addHtml("</p>")
       }
     } else {
