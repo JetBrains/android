@@ -467,34 +467,39 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   public String getAttributeValue(String namespace, String localName) {
     // get the current uiNode
     TagSnapshot tag = getCurrentNode();
-    if (tag != null) {
-      if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(tag.tagName)) {
-        String layout = tag.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
-        if (layout != null) {
-          return layout;
-        }
-        String navGraph = tag.getAttribute(ATTR_NAV_GRAPH, AUTO_URI);
-        if (navGraph != null) {
-          return NavXmlHelperKt.getStartDestLayoutId(navGraph, myRoot.tag.getProject(), myResourceResolver);
-        }
-      } else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
-        String srcCompatValue = getAttributeValue(AUTO_URI, ATTR_SRC_COMPAT);
-        if (srcCompatValue != null) {
-          return srcCompatValue;
-        }
+    if (tag == null) {
+      return null;
+    }
+
+    if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(tag.tagName)) {
+      String layout = tag.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
+      if (layout != null) {
+        return layout;
       }
+      String navGraph = tag.getAttribute(ATTR_NAV_GRAPH, AUTO_URI);
+      if (navGraph != null) {
+        return NavXmlHelperKt.getStartDestLayoutId(navGraph, myRoot.tag.getProject(), myResourceResolver);
+      }
+    }
+    else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
+      String srcCompatValue = getAttributeValue(AUTO_URI, ATTR_SRC_COMPAT);
+      if (srcCompatValue != null) {
+        return srcCompatValue;
+      }
+    }
 
-      String value = null;
-      if (namespace == null) {
-        value = tag.getAttribute(localName);
-      } else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
-        // tools attributes can override both android and app namespace attributes
-        String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
-        if (toolsPrefix == null) {
-          // tools namespace is not declared
-          return tag.getAttribute(localName, namespace);
-        }
-
+    String value = null;
+    if (namespace == null) {
+      value = tag.getAttribute(localName);
+    }
+    else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
+      // tools attributes can override both android and app namespace attributes
+      String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
+      if (toolsPrefix == null) {
+        // tools namespace is not declared
+        value = tag.getAttribute(localName, namespace);
+      }
+      else {
         //noinspection ForLoopReplaceableByForEach
         for (int i = 0, n = tag.attributes.size(); i < n; i++) {
           AttributeSnapshot attribute = tag.attributes.get(i);
@@ -506,57 +511,61 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                 value = tag.getAttribute(localName, ANDROID_URI) != null ? null : value;
               }
               break;
-            } else if (namespace.equals(attribute.namespace)) {
+            }
+            else if (namespace.equals(attribute.namespace)) {
               value = attribute.value;
               // Don't break: continue searching in case we find a tools design time attribute
             }
           }
         }
-      } else {
-        // The namespace is not android, app or null
-        if (!TOOLS_URI.equals(namespace)) {
-          // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
-          // will be for the current application's resource package, e.g.
-          // http://schemas.android.com/apk/res/foo.bar, but the XML document will
-          // be using http://schemas.android.com/apk/res-auto in library projects:
-          //noinspection ForLoopReplaceableByForEach
-          for (int i = 0, n = tag.attributes.size(); i < n; i++) {
-            AttributeSnapshot attribute = tag.attributes.get(i);
-            if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
-                                                     AUTO_URI.equals(attribute.namespace))) {
-              value = attribute.value;
-              break;
-            }
-          }
-        } else {
-          // We are asked specifically to return a tools attribute
-          value = tag.getAttribute(localName, namespace);
-        }
       }
-
-      if (value != null) {
-        // on the fly convert match_parent to fill_parent for compatibility with older
-        // platforms.
-        if (VALUE_MATCH_PARENT.equals(value) &&
-            (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
-            ANDROID_URI.equals(namespace)) {
-          return VALUE_FILL_PARENT;
-        }
-
-        // Handle unicode and XML escapes
-        for (int i = 0, n = value.length(); i < n; i++) {
-          char c = value.charAt(i);
-          if (c == '&' || c == '\\') {
-            value = ValueXmlHelper.unescapeResourceString(value, true, false);
+    }
+    else {
+      // The namespace is not android, app or null
+      if (!TOOLS_URI.equals(namespace)) {
+        // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
+        // will be for the current application's resource package, e.g.
+        // http://schemas.android.com/apk/res/foo.bar, but the XML document will
+        // be using http://schemas.android.com/apk/res-auto in library projects:
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+          AttributeSnapshot attribute = tag.attributes.get(i);
+          if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
+                                                   AUTO_URI.equals(attribute.namespace))) {
+            value = attribute.value;
             break;
           }
         }
       }
-
-      return value;
+      else {
+        // We are asked specifically to return a tools attribute
+        value = tag.getAttribute(localName, namespace);
+      }
     }
 
-    return null;
+    if (value != null) {
+      // on the fly convert match_parent to fill_parent for compatibility with older
+      // platforms.
+      if (VALUE_MATCH_PARENT.equals(value) &&
+          (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
+          ANDROID_URI.equals(namespace)) {
+        return VALUE_FILL_PARENT;
+      }
+
+      // Replace all whitespace characters with a standard space
+      value = value.replaceAll("\\s", " ");
+
+      // Handle unicode and XML escapes
+      for (int i = 0, n = value.length(); i < n; i++) {
+        char c = value.charAt(i);
+        if (c == '&' || c == '\\') {
+          value = ValueXmlHelper.unescapeResourceString(value, true, false);
+          break;
+        }
+      }
+    }
+
+    return value;
   }
 
   @Override

@@ -535,6 +535,38 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("@layout/main_fragment", parser.getAttributeValue(null, ATTR_LAYOUT));
   }
 
+  public void testMultiLineText() throws XmlPullParserException {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    android:orientation=\"vertical\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        android:text=\"This should end up\n" +
+                           "being on one line\"/>\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        android:text=\"This should end up\\nbeing on two lines\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // First TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("This should end up being on one line", parser.getAttributeValue(ANDROID_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag()); // Second TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("This should end up\nbeing on two lines", parser.getAttributeValue(ANDROID_URI, "text"));
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
