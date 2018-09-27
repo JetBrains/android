@@ -254,6 +254,7 @@ public class MockupTest extends MockupTestCase {
         return 1.0;
       }
     };
+    
     final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
                                                               Coordinates.getSwingDimension(screenView, 1000),
                                                               // See createModel for the 1000 value
