@@ -38,6 +38,7 @@ public class ToolbarHandler extends ViewHandler {
     return ImmutableList.of(
       ATTR_THEME,
       ATTR_BACKGROUND,
+      ATTR_NAVIGATION_ICON,
       ATTR_POPUP_THEME,
       ATTR_MIN_HEIGHT,
       ATTR_ELEVATION);
@@ -78,7 +79,7 @@ public class ToolbarHandler extends ViewHandler {
             .androidAttribute(ATTR_STYLE, "?attr/toolbarNavigationButtonStyle")
             .endTag(IMAGE_BUTTON)
             .startTag(TEXT_VIEW)
-            .androidAttribute(ATTR_TEXT, "v7 Toolbar")
+            .androidAttribute(ATTR_TEXT, "Toolbar")
             .androidAttribute(ATTR_TEXT_APPEARANCE, "@style/TextAppearance.Widget.AppCompat.Toolbar.Title")
             .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
             .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
