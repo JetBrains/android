@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -27,12 +26,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.google.common.truth.Truth.assertAbout;
+import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.*;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 
 public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTest {
 
@@ -75,5 +75,28 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     assertEquals("Unresolved dependencies", message.getTitle());
     assertThat(message.getMessage()).contains(
       "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
+  }
+
+  public void testSingleVariantSyncAfterFailedIdeaSync() throws Exception {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
+    loadProject(HELLO_JNI);
+
+    // Write empty CMakeLists file to force empty variants models from AGP.
+    File cmakeFile = new File(getProjectFolderPath(), join("app", "src", "main", "cpp", "CMakeLists.txt"));
+    writeToFile(cmakeFile, "");
+    requestSyncAndWait();
+    // Verify Ndk model only contains one dummy variant.
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(getModule("app"));
+    assertThat(ndkModuleModel.getVariants()).hasSize(1);
+    assertThat(ndkModuleModel.getNdkVariantNames()).contains("-----");
+    assertThat(ndkModuleModel.getVariantName("-----")).isEqualTo("---");
+
+    // Switch to single-variant sync, and verify sync is succeeded.
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+    requestSyncAndWait();
+    ndkModuleModel = NdkModuleModel.get(getModule("app"));
+    // Verify Single-variant sync is able to retrieve variant names with empty CMakeList.
+    assertThat(ndkModuleModel.getNdkVariantNames().size()).isGreaterThan(1);
+    assertThat(ndkModuleModel.getNdkVariantNames()).doesNotContain("-----");
   }
 }
