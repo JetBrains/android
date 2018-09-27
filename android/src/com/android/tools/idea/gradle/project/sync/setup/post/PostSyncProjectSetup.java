@@ -367,7 +367,7 @@ public class PostSyncProjectSetup {
 
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
     // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
-    List<BeforeRunTask> newBeforeRunTasks = new LinkedList<>();
+    List<BeforeRunTask<?>> newBeforeRunTasks = new LinkedList<>(runConfiguration.getBeforeRunTasks());
     RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
     for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
@@ -383,7 +383,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, true);
+    runConfiguration.setBeforeRunTasks(newBeforeRunTasks);
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
