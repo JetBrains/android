@@ -60,17 +60,31 @@ class FilterComponentTest {
   fun changeFilterResult() {
     val ui = FilterComponentUi()
 
-    ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
+    ui.filterComponent.model.setFilterHandler(object : FilterHandler() {
       override fun applyFilter(filter: Filter): FilterResult {
-        return FilterResult(Integer.parseInt(filter.filterString), true)
+        return if (filter.isEmpty) {
+          // The FilterResult should not be enabled with empty filter.
+          // We return an enabled filter intentionally to test if FilterHandler can correct it.
+          FilterResult(0, true)
+        }
+        else {
+          FilterResult(Integer.parseInt(filter.filterString), true)
+        }
       }
     })
+    val normalBackground = ui.filterComponent.searchField.textEditor.background;
+    ui.filterComponent.model.filter = Filter("")
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
     ui.filterComponent.model.filter = Filter("0")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("No matches")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(FilterComponent.NO_MATCHES_COLOR)
     ui.filterComponent.model.filter = Filter("1")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("One match")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
     ui.filterComponent.model.filter = Filter("1234567")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("1,234,567 matches")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
   }
 
   @Test

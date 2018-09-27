@@ -54,18 +54,15 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
   public HotswapAction() {
     super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
     setShortcutSet(SHORTCUT_SET);
+    if (StudioFlags.JVMTI_REFRESH.get()) {
+      throw new IllegalStateException("Non JVMTI swap action should not be created");
+    }
   }
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
-
-    if (StudioFlags.JVMTI_REFRESH.get()) {
-      // TODO: b/112309245 There will be some restrictions, but currently just enable it always.
-      presentation.setEnabled(true);
-      return;
-    }
 
     if (!InstantRunSettings.isInstantRunEnabled()) {
       presentation.setText("Apply Changes: Instant Run has been disabled");

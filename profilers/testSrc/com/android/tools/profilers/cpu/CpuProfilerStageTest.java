@@ -586,12 +586,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Select valid capture no dialog should be presented.
     myStage.setAndSelectCapture(0);
 
-    assertThat(myServices.getBalloonTitle()).isNull();
-    assertThat(myServices.getBalloonBody()).isNull();
+    assertThat(myServices.getNotification()).isNull();
     // Select invalid capture we should see dialog.
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)));
     myStage.setAndSelectCapture(1);
-    checkNotificationReceived(CpuProfilerNotification.Notification.ATRACE_BUFFER_OVERFLOW);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
   }
 
   @Test
@@ -1560,7 +1559,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
-    checkNotificationReceived(CpuProfilerNotification.Notification.CAPTURE_START_FAILURE);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_START_FAILURE);
+
     assertThat(myStage.getCapture()).isNull();
   }
 
@@ -1588,7 +1588,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
-    checkNotificationReceived(CpuProfilerNotification.Notification.CAPTURE_STOP_FAILURE);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
     assertThat(myStage.getCapture()).isNull();
   }
 
@@ -1626,7 +1626,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    checkNotificationReceived(CpuProfilerNotification.Notification.PARSING_FAILURE);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.PARSING_FAILURE);
 
     assertThat(transitionsCount.get()).isEqualTo(2);
     assertThat(aspectFired.get()).isTrue();
@@ -1687,7 +1687,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     // We should show a balloon saying the import has failed
-    checkNotificationReceived(CpuProfilerNotification.Notification.IMPORT_TRACE_PARSING_FAILURE);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
 
     // We should track failed imports
     assertThat(tracker.getLastCpuProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
@@ -1708,7 +1708,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    checkNotificationReceived(CpuProfilerNotification.Notification.IMPORT_TRACE_PARSING_ABORTED);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
   }
 
   @Test
@@ -1723,7 +1723,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing(stage);
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    checkNotificationReceived(CpuProfilerNotification.Notification.PARSING_ABORTED);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.PARSING_ABORTED);
   }
 
   @Test
@@ -1960,13 +1960,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     stopCapturing();
-  }
-
-  private void checkNotificationReceived(@NotNull CpuProfilerNotification.Notification notification) {
-    assertThat(myServices.getBalloonTitle()).isEqualTo(notification.getTitle());
-    assertThat(myServices.getBalloonBody()).isEqualTo(notification.getText());
-    assertThat(myServices.getBalloonUrl()).isEqualTo(notification.getUrl());
-    assertThat(myServices.getBalloonUrlText()).isEqualTo(notification.getUrlText());
   }
 
   /**

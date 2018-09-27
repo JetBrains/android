@@ -21,11 +21,11 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.command.WriteCommandAction;
+import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
+import javax.swing.JMenuItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 
 public class DeleteStringAction extends AbstractAction {
 
@@ -40,8 +40,8 @@ public class DeleteStringAction extends AbstractAction {
     StringResourceTable table = myPanel.getTable();
     int[] rows = table.getSelectedModelRowIndices();
     int[] cols = table.getSelectedModelColumnIndices();
-    int tableRow = table.rowAtPoint(event.getPoint());
-    int tableColumn = table.columnAtPoint(event.getPoint());
+    int tableRow = event.getViewRowIndex();
+    int tableColumn = event.getViewColumnIndex();
 
     // nothing is selected, select cell under mouse
     if ((rows.length == 0 || cols.length == 0) && tableRow >= 0 && tableColumn >= 0) {
@@ -100,16 +100,13 @@ public class DeleteStringAction extends AbstractAction {
     }
     else {
       // remove all in a single action (so we can undo it in 1 go)
-      new WriteCommandAction.Simple(myPanel.getFacet().getModule().getProject(), "Delete multiple strings") {
-        @Override
-        protected void run() {
-          for (int row : rows) {
-            for (int col : cols) {
-              table.getModel().setValueAt("", row, col);
-            }
+      WriteCommandAction.runWriteCommandAction(myPanel.getFacet().getModule().getProject(), "Delete multiple strings", null, () -> {
+        for (int row : rows) {
+          for (int col : cols) {
+            table.getModel().setValueAt("", row, col);
           }
         }
-      }.execute();
+      });
     }
   }
 }

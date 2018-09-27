@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
@@ -152,6 +153,8 @@ public class CpuFramesView {
       .setShowSeparator(false)
       .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
       .setInitiallyExpanded(false)
+      .setIconTextGap(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP)
+      .setTitleLeftPadding(ProfilerLayout.CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING)
       .build();
 
     CpuListScrollPane scrollingFrames = new CpuListScrollPane(myFrames, framesPanel);

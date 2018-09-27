@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/116536009
 @RunWith(GuiTestRemoteRunner.class)
 public class FindInPathTest {
 

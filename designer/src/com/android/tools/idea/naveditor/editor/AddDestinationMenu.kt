@@ -19,8 +19,11 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.model.includeFile
+import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
+import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
@@ -64,7 +67,6 @@ import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
-import java.awt.Image
 import java.awt.Point
 import java.awt.event.HierarchyEvent
 import java.awt.event.KeyAdapter
@@ -78,6 +80,7 @@ import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ListModel
+import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
@@ -124,6 +127,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
+      val hosts = findReferences(model.file).map { it.containingFile }
       for (resourceFile in resourceManager.findResourceFiles(ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
         // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
         val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
@@ -131,19 +135,26 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val element = item.element as? PsiClass ?: continue
           val tags = schema.getTagsForDestinationClass(element) ?: continue
           if (tags.size == 1) {
-            val destination =
-              Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
-            classToDestination[element] = destination
+            if (resourceFile in hosts) {
+              // This will remove the class entry that was added earlier
+              classToDestination.remove(element)
+            }
+            else {
+              val destination = Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
+              classToDestination[element] = destination
+            }
           }
         }
       }
 
       val result = classToDestination.values.toMutableList()
+      val existingIncludes = parent.children.filter { it.isInclude }.map { it.includeFile }
 
       for (navPsi in resourceManager.findResourceFiles(ResourceFolderType.NAVIGATION).filterIsInstance<XmlFile>()) {
-        if (surface.model!!.file == navPsi) {
+        if (model.file == navPsi || existingIncludes.contains(navPsi)) {
           continue
         }
+
         result.add(Destination.IncludeDestination(navPsi.name, parent))
       }
 
@@ -163,6 +174,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return if (getCellBounds(pointIndex, pointIndex).contains(location)) pointIndex else -1
     }
   }
+  var maxIconWidth: Int = 0
 
   @VisibleForTesting
   lateinit var searchField: SearchTextField
@@ -242,7 +254,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     destinationsList.emptyText.text = "Loading..."
     destinationsList.setPaintBusy(true)
     destinationsList.setCellRenderer { _, value, _, selected, _ ->
-      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail.getScaledInstance(JBUI.scale(50), JBUI.scale(64), Image.SCALE_SMOOTH))
+      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail)
+      THUMBNAIL_RENDERER.iconTextGap = (maxIconWidth - THUMBNAIL_RENDERER.icon.iconWidth).coerceAtLeast(0)
       PRIMARY_TEXT_RENDERER.text = value.label
       SECONDARY_TEXT_RENDERER.text = value.typeLabel
       RENDERER.isOpaque = selected
@@ -287,6 +300,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
+          val dests = ApplicationManager.getApplication().runReadAction(Computable { destinations } )
+          maxIconWidth = dests.map { it.thumbnail.getWidth(null) }.max() ?: 0
           val listModel = application.runReadAction(Computable {
             FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
           })
@@ -399,10 +414,15 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     init {
       SECONDARY_TEXT_RENDERER.foreground = NavColorSet.SUBDUED_TEXT_COLOR
-      RENDERER.add(THUMBNAIL_RENDERER, BorderLayout.WEST)
+      val leftPanel = JPanel(VerticalLayout(0, SwingConstants.CENTER))
+      leftPanel.isOpaque = false
+      THUMBNAIL_RENDERER.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+      THUMBNAIL_RENDERER.text = " "
+      leftPanel.add(THUMBNAIL_RENDERER, VerticalLayout.CENTER)
+      RENDERER.add(leftPanel, BorderLayout.WEST)
       val rightPanel = JPanel(VerticalLayout(8))
       rightPanel.isOpaque = false
-      rightPanel.border = JBUI.Borders.empty(12, 6, 0, 0)
+      rightPanel.border = JBUI.Borders.empty(14, 6, 10, 0)
       rightPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
       rightPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
       RENDERER.add(rightPanel, BorderLayout.CENTER)

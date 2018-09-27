@@ -712,6 +712,7 @@ class AttachedToolWindow<T> implements Disposable {
         showSearchField(false);
       }
       myOldFocusComponent = null;
+      super.onFocusLost();
     }
 
     @Override

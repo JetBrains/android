@@ -18,7 +18,7 @@ import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathStrings
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.AndroidPathType
-import com.android.projectmodel.AndroidProject
+import com.android.projectmodel.AndroidSubmodule
 import com.android.projectmodel.matchArtifactsWith
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -31,13 +31,13 @@ import com.google.common.truth.Truth.assertThat
  */
 class GradleModelConverterTest : AndroidGradleTestCase() {
   lateinit var project : IdeAndroidProject
-  lateinit var converted: AndroidProject
+  lateinit var converted: AndroidSubmodule
 
   override fun setUp() {
     super.setUp()
     loadProject(TestProjectPaths.PROJECT_MODEL_MULTIFLAVOR)
     project = model.androidProject
-    converted = project.toProjectModel()
+    converted = project.toSubmodule()
   }
 
   fun testConversion() {

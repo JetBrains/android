@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.npw.model.JavaToKotlinHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -26,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
@@ -149,8 +148,8 @@ public class AddKotlinTest {
       .getCurrentFileContents();
 
     String newBuildGradleContents = buildGradleContents.replaceAll(
-        "ext\\.kotlin_version.*=.*",
-        "ext.kotlin_version = '" + new ConvertJavaToKotlinDefaultImpl().getKotlinVersion() + '\'')
+      "ext\\.kotlin_version.*=.*",
+      "ext.kotlin_version = '" + JavaToKotlinHandler.getJavaToKotlinConversionProvider().getKotlinVersion() + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""
@@ -164,7 +163,7 @@ public class AddKotlinTest {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       ApplicationManager.getApplication().runWriteAction(() -> {
         try (
-          Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8);
+          Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8)
         ) {
           buildGradleWriter.write(newBuildGradleContents);
         } catch (IOException writeError) {

@@ -245,7 +245,7 @@ class ColorValuePanel(private val model: ColorPickerModel)
       colorField2.setTextIfNeeded((hsb[1] * 100).roundToInt().toString(), source)
       colorField3.setTextIfNeeded((hsb[2] * 100).roundToInt().toString(), source)
     }
-    hexField.setTextIfNeeded(Integer.toHexString(color.rgb), source)
+    hexField.setTextIfNeeded(String.format("%08X", color.rgb), source)
     // Cleanup the update requests which triggered by setting text in this function
     updateAlarm.cancelAllRequests()
   }

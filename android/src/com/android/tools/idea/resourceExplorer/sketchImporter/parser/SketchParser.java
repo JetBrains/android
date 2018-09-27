@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.ColorDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.ConstraintDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.PointDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchDocumentDeserializer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer;
@@ -54,6 +56,7 @@ public class SketchParser {
     .registerTypeAdapter(SketchLayer.class, new SketchLayerDeserializer())
     .registerTypeAdapter(Color.class, new ColorDeserializer())
     .registerTypeAdapter(SketchPoint2D.class, new PointDeserializer())
+    .registerTypeAdapter(ResizingConstraint.class, new ConstraintDeserializer())
     .create();
 
   /**

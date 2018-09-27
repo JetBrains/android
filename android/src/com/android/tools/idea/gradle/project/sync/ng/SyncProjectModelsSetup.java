@@ -198,10 +198,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     if (androidProject != null) {
       AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(module, androidProject, moduleModels);
       if (androidModel != null) {
-        myAndroidModuleSetup.setUpModule(context, androidModel, false /* sync not skipped */);
-        myAndroidModules.add(module);
-        cachedModels.addModel(androidModel);
-
         // "Native" projects also both AndroidProject and AndroidNativeProject
         NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
         if (nativeAndroidProject != null) {
@@ -219,6 +215,9 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
           // Remove any NdkFacet created in previous sync operation.
           removeNdkFacetFrom(module);
         }
+        myAndroidModuleSetup.setUpModule(context, androidModel, false /* sync not skipped */);
+        myAndroidModules.add(module);
+        cachedModels.addModel(androidModel);
       }
       else {
         // This is an Android module without variants. Treat as a non-buildable Java module.

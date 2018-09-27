@@ -56,10 +56,13 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
         case TAG_GROUP:
         case TAG_ITEM:
         case TAG_MENU:
+        case VIEW_MERGE:
           return false;
       }
     }
-    return true;
+    return properties.containsKey(ATTR_ID) ||
+           (properties.containsKey(ATTR_LAYOUT_WIDTH) &&
+            properties.containsKey(ATTR_LAYOUT_HEIGHT));
   }
 
   @NotNull

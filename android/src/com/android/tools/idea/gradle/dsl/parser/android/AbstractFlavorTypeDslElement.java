@@ -35,6 +35,13 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
       return;
     }
 
+    if (property.equals("setProguardFiles")) {
+      // Clear the property since setProguardFiles overwrites these.
+      removeProperty("proguardFiles");
+      addToParsedExpressionList("proguardFiles", element);
+      return;
+    }
+
     if (property.equals("proguardFiles") || property.equals("proguardFile")) {
       addToParsedExpressionList("proguardFiles", element);
       return;

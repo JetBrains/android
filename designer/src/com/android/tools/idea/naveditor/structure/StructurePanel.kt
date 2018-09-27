@@ -16,12 +16,18 @@
 package com.android.tools.idea.naveditor.structure
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.adtui.workbench.*
+import com.android.tools.adtui.workbench.AutoHide
+import com.android.tools.adtui.workbench.Side
+import com.android.tools.adtui.workbench.Split
+import com.android.tools.adtui.workbench.StartFilteringListener
+import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Factory
+import com.intellij.ui.JBColor
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -45,7 +51,8 @@ class StructurePanel : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurf
     if (toolContext is NavDesignSurface) {
       val hostPanel = AdtSecondaryPanel(BorderLayout())
       val hostSeparator = TitledSeparator("HOST")
-      hostSeparator.isEnabled = false
+      hostSeparator.isEnabled = true
+      hostSeparator.label.foreground = JBColor.GRAY
       hostSeparator.border = JBUI.Borders.empty(5)
       hostPanel.add(hostSeparator, BorderLayout.NORTH)
       hostPanel.add(HostPanel(toolContext), BorderLayout.SOUTH)
@@ -55,7 +62,8 @@ class StructurePanel : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurf
       destinationList = dl
       val graphHeader = AdtSecondaryPanel(BorderLayout())
       val graphSeparator = TitledSeparator("GRAPH")
-      graphSeparator.isEnabled = false
+      graphSeparator.isEnabled = true
+      graphSeparator.label.foreground = JBColor.GRAY
       graphSeparator.border = JBUI.Borders.empty(5)
       graphHeader.add(graphSeparator, BorderLayout.NORTH)
       backPanel = BackPanel(toolContext, dl::updateComponentList, this)

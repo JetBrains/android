@@ -30,7 +30,12 @@ public abstract class FilterHandler {
   public final void setFilter(@NotNull Filter filter) {
     myFilter = filter;
     FilterResult result = applyFilter(filter);
-    myMatchCountResultListeners.forEach(action -> action.consume(result));
+    // Disable result when filter is empty.
+    if (filter.isEmpty() && result.isFilterEnabled()) {
+      result = new FilterResult(result.getMatchCount(), false);
+    }
+    FilterResult finalResult = result;
+    myMatchCountResultListeners.forEach(action -> action.consume(finalResult));
   }
 
   /**

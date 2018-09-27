@@ -32,6 +32,7 @@ import java.awt.Component
 import java.awt.Cursor
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
@@ -122,7 +123,8 @@ class DurationDataRendererTest {
     val mockIcon = mock(Icon::class.java)
     `when`(mockIcon.iconWidth).thenReturn(5)
     `when`(mockIcon.iconHeight).thenReturn(5)
-    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(mockIcon).build()
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
+      .setIcon(mockIcon).setHostInsets(Insets(5, 10, 15, 20)).setClickRegionPadding(0, 0).build ()
     durationData.update(-1)  // value doesn't matter here.
 
     assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(5)
@@ -133,6 +135,32 @@ class DurationDataRendererTest {
     // attached series has no data after this point, use the last point as the attached y.
     validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
 
+    // Also checked for the post-scaled values.
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 100, 100),
+                   10f, // Account for the 10 pixel left inset
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[1], 100, 100),
+                   24f, // 10 pixel left inset + 0.2 * 70 pixels (after accounting for padding)
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[2], 100, 100),
+                   38f, // 10 pixel left inset + 0.4 * 70 pixels (after accounting for padding)
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[3], 100, 100),
+                   52f, // 10 pixel left inset + 0.6 * 70 pixels (after accounting for padding)
+                   32f, // Account for the 15 pixel bottom inset + icon height + 0.4 * 80 pixels after accounting for padding)
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[4], 100, 100),
+                   66f, // 10 pixel left inset + 0.8 * 70 pixels (after accounting for padding)
+                   16f, // Account for the 15 pixel bottom inset + icon height + 0.2 * 80 pixels after accounting for padding)
+                   5f,
+                   5f)
   }
 
   @Test
@@ -170,6 +198,30 @@ class DurationDataRendererTest {
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.25)
     // rangeSeries2 isn't updated as the custom LineConfig is not a dash stroke.
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)
+  }
+
+  @Test
+  fun testGetIcon() {
+    val xRange = Range(0.0, 10.0)
+    val dataSeries = DefaultDataSeries<DurationData>()
+    dataSeries.add(0, DurationData { 0 })
+    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
+    val dummyIcon = object : Icon {
+      override fun getIconHeight(): Int = 1
+      override fun getIconWidth(): Int = 1
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+    val dummyIcon2 = object : Icon {
+      override fun getIconHeight(): Int = 2
+      override fun getIconWidth(): Int = 2
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+
+    var durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon)
+
+    durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIconMapper { _ -> dummyIcon2 }.build()
+    assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon2)
   }
 
   private fun validateRegion(rect: Rectangle2D.Float, xStart: Float, yStart: Float, width: Float, height: Float) {

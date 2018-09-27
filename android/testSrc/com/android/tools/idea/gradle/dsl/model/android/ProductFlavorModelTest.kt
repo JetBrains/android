@@ -2610,4 +2610,92 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
   }
+
+  /**
+   * This test ensures that we parse the arguments of setProguardFiles correctly, that they are surfaced by the model
+   * and can be edited correctly.
+   */
+  @Test
+  fun testSetProguardFiles() {
+    val text = """
+      android {
+        defaultConfig {
+          setProguardFiles([getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'])
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val defaultConfig = buildModel.android().defaultConfig()
+    val proguardFiles = defaultConfig.proguardFiles()
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro"))
+    proguardFiles.addListValue().setValue("value")
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro", "value"))
+    proguardFiles.toList()!![0].delete()
+    verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
+
+    applyChanges(buildModel)
+    val expected = """
+      android {
+        defaultConfig {
+          setProguardFiles(['proguard-rules.pro', 'value'])
+        }
+      }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  /**
+   * This test ensures that we parse reference arguments of setProguardFiles correctly, that they are surfaced by the model
+   * and can be edited correctly.
+   */
+  @Test
+  fun testSetProguardFilesWithReference() {
+    val text = """
+      ext.list = [getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro']
+      android {
+        defaultConfig {
+          setProguardFiles(list)
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val defaultConfig = buildModel.android().defaultConfig()
+    val proguardFiles = defaultConfig.proguardFiles()
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro"))
+    val varModel = buildModel.ext().findProperty("list")
+    varModel.addListValue().setValue("value")
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro", "value"))
+    varModel.toList()!![0].delete()
+    verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
+
+    applyChanges(buildModel)
+    val expected = """
+      ext.list = ['proguard-rules.pro', 'value']
+      android {
+        defaultConfig {
+          setProguardFiles(list)
+        }
+      }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  /**
+   * This test ensures that setProguardFiles clears all current proguard files.
+   */
+  @Test
+  fun testSetProguardFilesClearsProguardFiles() {
+    val text = """
+      android {
+        defaultConfig {
+          proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+          setProguardFiles(['val1', 'val2'])
+        }
+      }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
+    verifyListProperty(proguardFiles, listOf("val1", "val2"))
+  }
 }

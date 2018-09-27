@@ -138,6 +138,8 @@ effects.**
 
 ### System Tracing
 
+(This test is expected to work only on Android O+, API >= 26)
+
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Code With Trace Markers" scenario.
 1. In the CPU profiler, make sure the selected configuration is set to
@@ -146,6 +148,7 @@ effects.**
 1. After about five seconds, you should get a toast, showing the message
    "Computation finished"
 1. In the CPU profiler, press "Stop" to finish the recording.
+1. **Verify there's a "FRAMES" view (with "Main" and "Render" entries).**
 1. **Verify there's a "KERNEL" view (with one or more "CPU" entries).**
 1. In the "THREADS" view, scroll down and select the thread with a name which
    will be something like "AsyncTask #3" or "AsyncTask #4" (the exact number may
@@ -201,7 +204,33 @@ effects.**
 
 ![Memory - Java Memory Allocation][memory-alloc-java]
 
-### Native Memory Allocaion
+### Live Allocation Sampling
+
+(This test is expected to work only on Android O+, API >= 26)
+
+1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. In the QA App, select the "Java Memory Allocation" scenario.
+1. Observe the sampling pulldown (which should be set to *Sampled* unless changed
+   in a previous session).
+   * This may be set to another value if you changed it in a previous session and
+     left it set to that value. In that case, go ahead and set it to "Sampled" now.
+     If you restart Studio and your sampling value is not saved across sessions,
+     please file a bug.
+1. Change the pulldown from "Sampled" to "None"
+1. You should see **the dashed chart line end, finishing with an empty circle
+   icon**
+1. **Important**: Set the pulldown back to "Sampled" to avoid unintentionally
+   affecting other memory tests.
+1. You should see **the dashed chart line restart, beginning with an empty
+   circle icon**
+
+![Memory - Live Allocation Sampling, None][memory-alloc-sample-none]
+
+---
+
+![Memory - Live Allocation Sampling, Full][memory-alloc-sample-full]
+
+### Native Memory Allocation
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
 1. In the QA App, select the "Native Memory Allocation" scenario.
@@ -283,6 +312,8 @@ effects.**
 ![Network - OkHttp Request][network-okhttp]
 
 ## Energy
+
+(All energy tests are expected to work only on Android O+, API >= 26)
 
 ### Basic Profiling
 
@@ -375,8 +406,8 @@ of whichever profiler you have selected.
 1. In the QA App, select the "Basic Events" scenario.
    * This is actually optional - events will be detected in any scenario. This
      scenario simply exists as a reminder to test them.
-1. Tap the screen and you **should see a purple circle**
-1. Tap and hold the screen and you **should see an extended purple circle**
+1. Tap the screen and you **should see a pink circle**
+1. Tap and hold the screen and you **should see an extended pink circle**
 1. Press volume down and you **should see a "volume up" icon**
 1. Press volume up and you **should see a "volume down" icon**
 1. Rotate the screen and you **should see a "rotation" icon**
@@ -400,19 +431,40 @@ of whichever profiler you have selected.
 
 1. In the QA App, select the "Switch Activities" scenario.
 1. Press the "run" button
-1. In the QA App, the **screen will be replaced with an empty activity**.
-1. On the event profiler, **MainActivity becomes "saved and stopped" and
-   event.EmptyActivity starts**. You can also see a **purple dot** since we
-   tapped the screen.
+1. In the QA App, the **screen will be replaced with another activity**.
+   * **Note:** You can ignore the contents of the activity for this test.
+1. On the event profiler, **MainActivity becomes "saved - stopped" and
+   fragment.FragmentHostActivity starts**. You can also see a **pink
+   circle** since we tapped the screen.
 
 ![Events - Enter Activty][events-activity-enter]
 
 1. Hit "back" button to return back to the main activity
-1. On tge event profiler, **event.EmptyActivity becomes "stopped and destroyed"
-   and MainActivity starts**. You can also see a **back icon** since we pressed
-   the "back" button
+1. On the event profiler, **fragment.FragmentHostActivity becomes
+   "stopped - destroyed" and MainActivity starts**. You can also
+   see a **back icon** since we pressed the "back" button.
 
 ![Events - Exit Activity][events-activity-exit]
+
+### Fragment Indicators
+
+(This test is expected to work only on Android O+, API >= 26)
+
+1. In the QA App, select the "Switch Activities" scenario.
+1. Press the "run" button
+1. In the QA App, the **screen will be replaced with a fragment hosting
+   activity**.
+1. Press the "Navigate" button a couple of times, waiting a few seconds
+   between presses.
+   * (This will not change the current activity but will toggle which fragment
+   is active within the activity, each time the button is pressed.)
+1. On the event profiler, observe that the Activity bar is now **tagged with
+   markers indicating when fragments were started and stopped.** You can also
+   see **pink circles** above these locations since we tapped the screen.
+1. Hover the cursor anywhere over the FragmentHostActivity bar and note that
+   there will be a fragment (either FragmentA or FragmentB) listed in the tooltips.
+
+![Events - Enter Activty][events-fragment-markers]
 
 [toolbar]: res/perf-tools/toolbar.png
 [app]: res/perf-tools/app.png
@@ -429,6 +481,8 @@ of whichever profiler you have selected.
 [memory-alloc-java]: res/perf-tools/memory-alloc-java.png
 [memory-alloc-native]: res/perf-tools/memory-alloc-native.png
 [memory-alloc-object]: res/perf-tools/memory-alloc-object.png
+[memory-alloc-sample-none]: res/perf-tools/memory-alloc-sample-none.png
+[memory-alloc-sample-full]: res/perf-tools/memory-alloc-sample-full.png
 [memory-jni-app]: res/perf-tools/memory-jni-app.png
 [memory-jni-studio]: res/perf-tools/memory-jni-studio.png
 [memory-heap-export]: res/perf-tools/memory-heap-export.png
@@ -444,4 +498,5 @@ of whichever profiler you have selected.
 [events-typing]: res/perf-tools/events-typing.png
 [events-activity-enter]: res/perf-tools/events-activity-enter.png
 [events-activity-exit]: res/perf-tools/events-activity-exit.png
+[events-fragment-markers]: res/perf-tools/events-fragment-markers.png
 [session-import]: res/perf-tools/session-import.png

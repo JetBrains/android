@@ -24,14 +24,18 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.UncheckedIOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
 import static com.android.SdkConstants.*;
+import static com.android.utils.FileUtils.isSameFile;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.io.File.separatorChar;
 
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
@@ -65,7 +69,10 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
 
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
-    if (library == null) {
+    if (library == null || !isLibraryValid(library, binaryPaths)) {
+      if (library != null) {
+        modelsProvider.removeLibrary(library);
+      }
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
     }
@@ -94,7 +101,7 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
 
       // Add external annotations.
       // TODO: Add this to the model instead!
-      for (File binaryPath: binaryPaths) {
+      for (File binaryPath : binaryPaths) {
         String pathName = binaryPath.getPath();
         if (pathName.endsWith(FD_RES) && pathName.length() > FD_RES.length() &&
             pathName.charAt(pathName.length() - FD_RES.length() - 1) == separatorChar) {
@@ -119,5 +126,30 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     }
 
     addLibraryAsDependency(library, libraryName, scope, module, modelsProvider, exported);
+  }
+
+  /**
+   * Check if the cached Library instance is still valid, by comparing the cached classes path and the current
+   * binary path. This can be false if a library is recompiled with updated sources but the same version, in which
+   * case the artifact will be exploded to a different directory.
+   */
+  private static boolean isLibraryValid(@NotNull Library library, @NotNull File[] binaryPaths) {
+    VirtualFile[] cachedFiles = library.getRootProvider().getFiles(CLASSES);
+    if (cachedFiles.length == 0 || binaryPaths.length == 0) {
+      return true;
+    }
+    // All of the class files are extracted to the same Gradle cache folder, it is sufficient to only check one of the files.
+    File cachedFile = virtualToIoFile(cachedFiles[0]);
+    for (File binaryPath : binaryPaths) {
+      try {
+        if (isSameFile(binaryPath, cachedFile)) {
+          return true;
+        }
+      }
+      catch (UncheckedIOException ignored) {
+        return false;
+      }
+    }
+    return false;
   }
 }

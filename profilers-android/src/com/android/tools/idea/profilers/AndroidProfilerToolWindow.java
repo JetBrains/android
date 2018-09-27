@@ -60,10 +60,13 @@ public class AndroidProfilerToolWindow implements Disposable {
 
   private static final String HIDE_STOP_PROMPT = "profilers.hide.stop.prompt";
 
-  private static final String OPEN_FILE_FAILURE_BALLOON_TITLE = "Failed to open file";
-
-  private static final String OPEN_FILE_FAILURE_BALLOON_TEXT = "The profiler was unable to open the selected file. Please try opening it " +
-                                                               "again or select a different file.";
+  @NotNull
+  private static final Notification OPEN_FILE_FAILURE_NOTIFICATION = new Notification.Builder(
+    "Failed to open file",
+    "The profiler was unable to open the selected file. Please try opening it " +
+    "again or select a different file.")
+    .setSeverity(Notification.Severity.ERROR)
+    .build();
 
   private static final String NO_CLIENT_TITLE = "Initialization failed";
   private static final String NO_CLIENT_MESSAGE = "You can run the profiler for a single project at a time.";
@@ -186,7 +189,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     if (tryInitializeProfilers()) {
       StudioProfilers profilers = myProfilersWrapper.getProfilers();
       if (!profilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
-        profilers.getIdeServices().showErrorBalloon(OPEN_FILE_FAILURE_BALLOON_TITLE, OPEN_FILE_FAILURE_BALLOON_TEXT, null, null);
+        profilers.getIdeServices().showNotification(OPEN_FILE_FAILURE_NOTIFICATION);
       }
     }
   }

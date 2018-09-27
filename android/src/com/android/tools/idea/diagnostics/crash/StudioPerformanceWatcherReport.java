@@ -26,8 +26,10 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import java.util.Map;
 
 public class StudioPerformanceWatcherReport extends BaseStudioReport {
+  private static final String EXCEPTION_TYPE = "com.android.ApplicationNotResponding";
+
   private static final String EMPTY_ANR_STACKTRACE =
-    "com.android.ApplicationNotResponding: \n" +
+    EXCEPTION_TYPE + ": \n" +
     "\tat " + StudioPerformanceWatcherReport.class.getName() + ".missingEdtStack(Unknown source)";
 
   @NonNull private final String fileName;
@@ -46,7 +48,7 @@ public class StudioPerformanceWatcherReport extends BaseStudioReport {
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
     super.serializeTo(builder);
 
-    String edtStack = ThreadDumper.getEdtStackForCrash(threadDump);
+    String edtStack = ThreadDumper.getEdtStackForCrash(threadDump, EXCEPTION_TYPE);
 
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,
                         edtStack != null ? edtStack : EMPTY_ANR_STACKTRACE);

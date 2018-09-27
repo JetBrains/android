@@ -275,11 +275,11 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // ImageView
     assertEquals("ImageView", parser.getName());
-    assertEquals("@aapt:_aapt/" + expectedId, parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals("@aapt:_aapt/aapt" + expectedId, parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
     assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
 
     assertEquals(START_TAG, parser.nextTag()); // ImageView (@id/second)
-    assertEquals("@aapt:_aapt/" + (expectedId + 1), parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals("@aapt:_aapt/aapt" + (expectedId + 1), parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
     assertEquals(END_TAG, parser.nextTag()); // ImageView
 
     assertEquals("21dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId)).getAttribute("width", ANDROID_URI));
@@ -295,6 +295,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
 
     LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), true);
     assertEquals("LinearLayout", parser.myRoot.tagName);
+    assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI));
+    assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI));
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
 
     // Now, do not honor the parentTag. We should get the <merge> tag as root.

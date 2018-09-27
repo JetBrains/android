@@ -319,6 +319,10 @@ public class AttributeProcessingUtil {
     return getClassMap(facet, VIEW_CLASS_NAME);
   }
 
+  public static Map<String, PsiClass> getViewGroupClassMap(@NotNull AndroidFacet facet) {
+    return getClassMap(facet, CLASS_VIEWGROUP);
+  }
+
   private static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();

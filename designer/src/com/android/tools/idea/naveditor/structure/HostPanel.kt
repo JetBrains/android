@@ -156,31 +156,31 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
       cardLayout.show(this, "LIST")
     }
   }
+}
 
-  @VisibleForTesting
-  fun findReferences(psi: XmlFile): List<XmlTag> {
-    val result = mutableListOf<XmlTag>()
-    val query: Query<PsiReference> = ReferencesSearch.search(psi)
-    for (ref: PsiReference in query) {
-      val element = ref.element as? XmlAttributeValue ?: continue
-      val file = element.containingFile as? XmlFile ?: continue
-      if (!LayoutDomFileDescription.isLayoutFile(file)) {
-        continue
-      }
-      val attribute = element.parent as? XmlAttribute ?: continue
-      if (attribute.localName != ATTR_NAV_GRAPH || attribute.namespace != ResourceNamespace.TODO().xmlNamespaceUri) {
-        continue
-      }
-      val tag = attribute.parent
-      if (tag.name != VIEW_FRAGMENT) {
-        continue
-      }
-      val className = tag.getAttributeValue(ATTR_NAME, ANDROID_URI)
-      if (className != FQCN_NAV_HOST_FRAGMENT) {
-        continue
-      }
-      result.add(tag)
+@VisibleForTesting
+fun findReferences(psi: XmlFile): List<XmlTag> {
+  val result = mutableListOf<XmlTag>()
+  val query: Query<PsiReference> = ReferencesSearch.search(psi)
+  for (ref: PsiReference in query) {
+    val element = ref.element as? XmlAttributeValue ?: continue
+    val file = element.containingFile as? XmlFile ?: continue
+    if (!LayoutDomFileDescription.isLayoutFile(file)) {
+      continue
     }
-    return result
+    val attribute = element.parent as? XmlAttribute ?: continue
+    if (attribute.localName != ATTR_NAV_GRAPH || attribute.namespace != ResourceNamespace.TODO().xmlNamespaceUri) {
+      continue
+    }
+    val tag = attribute.parent
+    if (tag.name != VIEW_FRAGMENT) {
+      continue
+    }
+    val className = tag.getAttributeValue(ATTR_NAME, ANDROID_URI)
+    if (className != FQCN_NAV_HOST_FRAGMENT) {
+      continue
+    }
+    result.add(tag)
   }
+  return result
 }

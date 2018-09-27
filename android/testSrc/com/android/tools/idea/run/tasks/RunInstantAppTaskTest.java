@@ -17,12 +17,13 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.instantapp.InstantAppSdks;
+import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.android.instantapps.sdk.api.RunHandler;
-import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestCase;
@@ -36,17 +37,17 @@ import java.net.URL;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class RunInstantAppTaskTest extends AndroidTestCase {
   private final String DEVICE_ID = "dev1234";
   private final File zipFile = new File("/tmp/fake.zip");
-  private final ApkInfo apkInfo = new ApkInfo(zipFile, "com.foo");
-  private final ImmutableList<ApkInfo> apkInfos = ImmutableList.of(apkInfo);
+  private final ImmutableList<ApkInfo> apkInfoListForZip = ImmutableList.of(new ApkInfo(zipFile, "com.foo"));
 
   private InstantAppSdks instantAppSdks;
-  @Mock private Sdk sdkLib;
+  @Mock private ExtendedSdk sdkLib;
   @Mock private RunHandler runHandler;
   @Mock private IDevice device;
   @Mock private LaunchStatus launchStatus;
@@ -69,7 +70,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   public void testPerformWithlaunchTerminated() {
     when(launchStatus.isLaunchTerminated()).thenReturn(true);
 
-    RunInstantAppTask task = new RunInstantAppTask(apkInfos, "");
+    RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
     assertThat(task.perform(device, launchStatus, consolePrinter)).isFalse();
     verifyNoMoreInteractions(runHandler);
   }
@@ -83,21 +84,68 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
 
   @Test
   public void testPerformWithEmptyStringUrl() {
-    RunInstantAppTask task = new RunInstantAppTask(apkInfos, "");
+    RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
     // Note here that an empty string URL should be transformed to null in the call to runInstantApp
-    when(runHandler.runInstantApp(isNull(), eq(zipFile), eq(DEVICE_ID),
-                                  eq(RunHandler.SetupBehavior.SET_UP_IF_NEEDED), any(), any()))
+    when(runHandler.runZip(
+      /* zipFile= */ eq(zipFile),
+      /* url= */ isNull(),
+      /* adbHost= */ any(),
+      /* adbDeviceId= */ eq(DEVICE_ID),
+      /* runtimeApkDir= */ isNull(),
+      /* resultStream= */ any(),
+      /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
     assertThat(task.perform(device, launchStatus, consolePrinter)).isTrue();
   }
 
   @Test
   public void testPerformWithSpecifiedUrl() throws Exception {
-    RunInstantAppTask task = new RunInstantAppTask(apkInfos, "http://foo.app");
-    when(runHandler
-           .runInstantApp(eq(new URL("http://foo.app")), eq(zipFile), eq(DEVICE_ID), eq(RunHandler.SetupBehavior.SET_UP_IF_NEEDED), any(),
-                          any()))
+    RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "http://foo.app");
+    when(runHandler.runZip(
+      /* zipFile= */ eq(zipFile),
+      /* url= */ eq(new URL("http://foo.app")),
+      /* adbHost= */ any(),
+      /* adbDeviceId= */ eq(DEVICE_ID),
+      /* runtimeApkDir= */ isNull(),
+      /* resultStream= */ any(),
+      /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
     assertThat(task.perform(device, launchStatus, consolePrinter)).isTrue();
+  }
+
+  @Test
+  public void testPerformWithListOfApks() throws Exception {
+    File apk1 = new File("one.apk");
+    File apk2 = new File("two.apk");
+    File excludedApk = new File("excluded.apk");
+    ImmutableList<ApkInfo> apkInfos = ImmutableList.of(
+      new ApkInfo(ImmutableList.of(
+        new ApkFileUnit("one", apk1),
+        new ApkFileUnit("two", apk2),
+        new ApkFileUnit("excluded", excludedApk)
+      ), "com.dontcare"));
+
+    RunInstantAppTask task = new RunInstantAppTask(apkInfos, "http://foo.app", ImmutableList.of("excluded"));
+
+    when(runHandler.runApks(
+      /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),
+      /* url= */ eq(new URL("http://foo.app")),
+      /* adbHost= */ any(),
+      /* adbDeviceId= */ eq(DEVICE_ID),
+      /* runtimeApkDir= */ isNull(),
+      /* resultStream= */ any(),
+      /* progressIndicator= */ any()))
+      .thenReturn(StatusCode.SUCCESS);
+
+    assertThat(task.perform(device, launchStatus, consolePrinter)).isTrue();
+
+    verify(runHandler).runApks(
+      /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),
+      /* url= */ eq(new URL("http://foo.app")),
+      /* adbHost= */ any(),
+      /* adbDeviceId= */ eq(DEVICE_ID),
+      /* runtimeApkDir= */ isNull(),
+      /* resultStream= */ any(),
+      /* progressIndicator= */ any());
   }
 }

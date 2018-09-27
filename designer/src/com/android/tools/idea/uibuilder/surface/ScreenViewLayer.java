@@ -97,7 +97,7 @@ public class ScreenViewLayer extends Layer {
    */
   @NotNull
   private static BufferedImage getPreviewImage(@NotNull GraphicsConfiguration configuration,
-                                               @NotNull ImagePool.Image renderedImage,
+                                               @NotNull BufferedImage renderedImage,
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
                                                double xScaleFactor, double yScaleFactor,
@@ -120,9 +120,7 @@ public class ScreenViewLayer extends Layer {
     }
     Graphics2D cacheImageGraphics = image.createGraphics();
     cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
-    renderedImage.drawImageTo(cacheImageGraphics,
-                                   0, 0, image.getWidth(), image.getHeight(),
-                                   sx1, sy1, sx2, sy2);
+    cacheImageGraphics.drawImage(renderedImage, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2, null);
     cacheImageGraphics.dispose();
 
     return image;
@@ -141,25 +139,28 @@ public class ScreenViewLayer extends Layer {
 
     // In some cases, we will try to re-use the previous image to paint on top of it, assuming that it still matches the right dimensions.
     // This way we can save the allocation.
-    BufferedImage previousVisibleImage = null;
+    BufferedImage previousVisibleImage;
     RenderResult renderResult = myScreenView.getResult();
+    previousVisibleImage = myCachedVisibleImage;
     if (renderResultHasChanged(renderResult)) {
       myLastRenderResult = renderResult;
-      previousVisibleImage = myCachedVisibleImage;
       myCachedVisibleImage = null;
     }
 
     Graphics2D g = (Graphics2D) graphics2D.create();
     BufferedImage cachedVisibleImage = myCachedVisibleImage;
-    if (myLastRenderResult != null) {
-      if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
-        int resultImageWidth = myLastRenderResult.getRenderedImage().getWidth();
-        int resultImageHeight = myLastRenderResult.getRenderedImage().getHeight();
+    if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+      if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
+        BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
+        assert renderedImage != null : "Image was already disposed";
+        int resultImageWidth = renderedImage.getWidth();
+        int resultImageHeight = renderedImage.getHeight();
 
         myCachedScreenViewDisplaySize.setBounds(myScreenViewVisibleSize);
         // Obtain the factors to convert from screen view coordinates to our result image coordinates
         double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
         double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
+        cancelHighQualityScaleRequests();
         if (Math.abs(1 - xScaleFactor) > 0.2 && Math.abs(1 - yScaleFactor) > 0.2) {
           // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
           // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
@@ -168,8 +169,7 @@ public class ScreenViewLayer extends Layer {
           requestHighQualityScaledImage();
         }
 
-        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(),
-                                             myLastRenderResult.getRenderedImage(),
+        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
                                              myScreenView.getX(), myScreenView.getY(),
                                              myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
                                              previousVisibleImage);
@@ -199,7 +199,7 @@ public class ScreenViewLayer extends Layer {
 
   private void cancelHighQualityScaleRequests() {
     if (myScheduledFuture != null && !myScheduledFuture.isDone()) {
-      myScheduledFuture.cancel(false);
+      myScheduledFuture.cancel(true);
     }
   }
 
@@ -218,7 +218,6 @@ public class ScreenViewLayer extends Layer {
    * </pre>
    */
   private void requestHighQualityScaledImage() {
-    cancelHighQualityScaleRequests();
     if (myLastRenderResult == null) {
       return;
     }

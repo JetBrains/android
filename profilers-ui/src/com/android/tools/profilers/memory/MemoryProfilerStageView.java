@@ -37,7 +37,6 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -201,8 +200,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();
 
-    myAllocationSamplingRateLabel = new JLabel("Allocation Tracking Mode");
-    myAllocationSamplingRateLabel.setBorder(JBUI.Borders.emptyLeft(10));
+    myAllocationSamplingRateLabel = new JLabel("Allocation Tracking");
+    myAllocationSamplingRateLabel.setBorder(JBUI.Borders.empty(0, 8));
     myAllocationSamplingRateDropDown = new ComboBox<LiveAllocationSamplingMode>();
 
     getStage().getAspect().addDependency(this)
@@ -395,7 +394,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     if (infoMessage != null) {
       myCaptureInfoMessage.setVisible(true);
-      myCaptureInfoMessage.setToolTipText(infoMessage);
+      myCaptureInfoMessage.setText(infoMessage);
     }
     else {
       myCaptureInfoMessage.setVisible(false);
@@ -477,7 +476,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         // Need to offset the GcDurationData by the margin difference between the overlay component and the
         // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
         .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
-                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f + Y_AXIS_TOP_MARGIN)
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
+        .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
         .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
         .setClickRegionPadding(0, 0)
         .build();
@@ -518,12 +518,27 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     }
     else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()){
       myAllocationSamplingRateRenderer = new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
-          .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
-          .setIcon(StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE)
-          .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
-                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f + Y_AXIS_TOP_MARGIN)
-          .setClickRegionPadding(0, 0)
-          .build();
+        .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
+        .setIconMapper(durationData -> {
+            LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
+              .getModeFromFrequency(durationData.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval());
+            switch (mode) {
+              // TODO(b/116430034): use real icons when they're done.
+              case FULL:
+                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+              case SAMPLED:
+                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+              case NONE:
+                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+            }
+            throw new AssertionError("Unhandled sampling mode: " + mode);
+          })
+        .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
+                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f)
+        .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
+        .setClickRegionPadding(0, 0)
+        .setHoverHandler(getStage().getTooltipLegends().getSamplingRateDurationLegend()::setPickData)
+        .build();
       lineChart.addCustomRenderer(myAllocationSamplingRateRenderer);
       overlay.addDurationDataRenderer(myAllocationSamplingRateRenderer);
     }
@@ -704,6 +719,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
+      toolbar.add(myCaptureInfoMessage);
+    }
 
     JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.add(toolbar, BorderLayout.WEST);
@@ -726,9 +744,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       filterComponent.setVisible(false);
       filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
-    }
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
-      buttonToolbar.add(myCaptureInfoMessage);
     }
     headingPanel.add(buttonToolbar, BorderLayout.EAST);
 
@@ -833,19 +848,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @VisibleForTesting
   static class LiveAllocationSamplingModeRenderer extends ColoredListCellRenderer<LiveAllocationSamplingMode> {
-    private static ImmutableMap<LiveAllocationSamplingMode, String> MODE_TO_NAME = ImmutableMap.of(
-      LiveAllocationSamplingMode.NONE, "None",
-      LiveAllocationSamplingMode.SAMPLED, "Sampled",
-      LiveAllocationSamplingMode.FULL, "Full"
-    );
-
     @Override
     protected void customizeCellRenderer(@NotNull JList list,
                                          LiveAllocationSamplingMode value,
                                          int index,
                                          boolean selected,
                                          boolean hasFocus) {
-      append(MODE_TO_NAME.get(value), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      append(value.getDisplayName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
   }
 }

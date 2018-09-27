@@ -15,24 +15,53 @@
  */
 package org.jetbrains.android.dom.attrs;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.ATTR_DISCARD;
+import static com.android.SdkConstants.ATTR_IGNORE;
+import static com.android.SdkConstants.ATTR_KEEP;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LISTFOOTER;
+import static com.android.SdkConstants.ATTR_LISTHEADER;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_LOCALE;
+import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_MOCKUP;
+import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
+import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
+import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
+import static com.android.SdkConstants.ATTR_PARENT_TAG;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.ATTR_SHRINK_MODE;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.ATTR_TARGET_API;
+import static com.android.SdkConstants.ATTR_USE_HANDLER;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.SdkConstants.VALUE_SAFE;
+import static com.android.SdkConstants.VALUE_STRICT;
+import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
+import static java.util.Collections.singletonList;
+
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.converters.*;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.android.dom.converters.TargetApiConverter;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static java.util.Collections.singletonList;
 
 /**
  * Class containing utility methods to handle XML attributes in the "tools" namespace.
@@ -53,10 +82,12 @@ public class ToolsAttributeUtil {
   private static final ResolvingConverter VIEW_CONVERTER = new PackageClassConverter.Builder()
     .completeLibraryClasses(true)
     .withExtendClassNames(CLASS_VIEW)
+    .withExtraBasePackages(WIDGET_PKG_PREFIX)
     .build();
   private static final ResolvingConverter VIEW_GROUP_CONVERTER = new PackageClassConverter.Builder()
     .completeLibraryClasses(true)
     .withExtendClassNames(CLASS_VIEWGROUP)
+    .withExtraBasePackages(WIDGET_PKG_PREFIX)
     .build();
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
 

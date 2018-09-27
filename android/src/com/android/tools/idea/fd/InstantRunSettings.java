@@ -17,6 +17,7 @@ package com.android.tools.idea.fd;
 
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
+import com.android.tools.idea.flags.StudioFlags;
 
 public class InstantRunSettings {
   /**
@@ -26,7 +27,7 @@ public class InstantRunSettings {
    */
   public static boolean isInstantRunEnabled() {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
-    return configuration.INSTANT_RUN;
+    return !StudioFlags.JVMTI_REFRESH.get() && configuration.INSTANT_RUN;
   }
 
   public static void setInstantRunEnabled(boolean en) {

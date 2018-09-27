@@ -120,7 +120,7 @@ class CpuCaptureViewTest {
     }
     val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
     val technologyLabel = TreeWalker(recordingPane).descendants().filterIsInstance<JLabel>().first {
-      it.text == ProfilingConfiguration.ART_SAMPLED_NAME
+      it.text == ProfilingTechnology.ART_SAMPLED.getName()
     }
     assertThat(technologyLabel).isNotNull()
   }
@@ -215,7 +215,7 @@ class CpuCaptureViewTest {
     stageView.stage.captureParser.updateParsingStateWhenStarting()
     val parsingPane = getCapturePane()
     val technologyLabel = TreeWalker(parsingPane).descendants().filterIsInstance<JLabel>().first {
-      it.text == ProfilingConfiguration.SIMPLEPERF_NAME
+      it.text == ProfilingTechnology.SIMPLEPERF.getName()
     }
     assertThat(technologyLabel).isNotNull()
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchExportOptions;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +35,10 @@ public abstract class SketchSymbol extends SketchLayer {
                       boolean isVisible,
                       @NotNull String name,
                       int rotation,
-                      boolean shouldBreakMaskChain) {
+                      boolean shouldBreakMaskChain,
+                      @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
   }
 
   public abstract String getSymbolId();

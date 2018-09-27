@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_PARENT_TAG
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.VIEW_MERGE
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property2.api.EditorProvider
+import com.android.tools.idea.common.property2.api.InspectorBuilder
+import com.android.tools.idea.common.property2.api.InspectorPanel
+import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
@@ -66,21 +75,22 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
 
   private fun getLayoutAttributes(properties: PropertiesTable<NelePropertyItem>): List<String> {
     val attributes = mutableListOf(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
-    val parentTagName = getParentTagName(properties) ?: return attributes
-    val handler = viewHandlerManager.getHandler(parentTagName) ?: return attributes
+    val parent = getParentComponent(properties) ?: return attributes
+    val handler = viewHandlerManager.getHandler(parent) ?: return attributes
     attributes.addAll(handler.layoutInspectorProperties)
     return attributes
   }
 
-  private fun getParentTagName(properties: PropertiesTable<NelePropertyItem>): String? {
+  private fun getParentComponent(properties: PropertiesTable<NelePropertyItem>): NlComponent? {
     val property = properties.first ?: return null
-    val parentTagName = property.components.firstOrNull()?.parent?.tagName ?: return null
-    return if (property.components.all { it.parent?.tagName == parentTagName }) parentTagName else null
+    val firstParent = property.components.firstOrNull()?.parent ?: return null
+    return if (property.components.all { it.parent?.tagName == firstParent.tagName }) firstParent else null
   }
 
   private fun setupCustomPanel(properties: PropertiesTable<NelePropertyItem>): JPanel? {
-    val parentTagName = getParentTagName(properties) ?: return null
-    val panel = cachedCustomPanels[parentTagName] ?: createCustomPanel(parentTagName)
+    val parent = getParentComponent(properties) ?: return null
+    val customPanelKey = getCustomPanelKey(parent)
+    val panel = cachedCustomPanels[customPanelKey] ?: createCustomPanel(parent, customPanelKey)
     if (panel == DummyCustomPanel.INSTANCE) return null
 
     val property = properties.first ?: return null
@@ -89,10 +99,15 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
     return panel.panel
   }
 
-  private fun createCustomPanel(parentTagName: String): CustomPanel {
-    val handler = viewHandlerManager.getHandler(parentTagName)
+  private fun getCustomPanelKey(parent: NlComponent): String {
+    val tagName = parent.tagName
+    return if (tagName != VIEW_MERGE) tagName else parent.getAttribute(TOOLS_URI, ATTR_PARENT_TAG) ?: tagName
+  }
+
+  private fun createCustomPanel(parent: NlComponent, customPanelKey: String): CustomPanel {
+    val handler = viewHandlerManager.getHandler(parent)
     val panel = handler?.layoutCustomPanel ?: DummyCustomPanel.INSTANCE
-    cachedCustomPanels[parentTagName] = panel
+    cachedCustomPanels[customPanelKey] = panel
     return panel
   }
 }

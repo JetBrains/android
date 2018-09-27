@@ -98,9 +98,8 @@ public class CachedProjectModels implements Serializable {
     return saveToDisk(cacheFilePath);
   }
 
-  @VisibleForTesting
   @NotNull
-  static File getCacheFilePath(@NotNull Project project) {
+  public static File getCacheFilePath(@NotNull Project project) {
     return new File(getCacheFolderRootPath(project), "gradle_models.ser");
   }
 
@@ -125,6 +124,13 @@ public class CachedProjectModels implements Serializable {
         getLog().warn(String.format("Failed to open path '%1$s'", path.getPath()), e);
       }
     });
+  }
+
+  public static void eraseDiskCache(@NotNull Project project) {
+    File cache = getCacheFilePath(project);
+    if (cache.exists()) {
+      cache.delete();
+    }
   }
 
   @NotNull

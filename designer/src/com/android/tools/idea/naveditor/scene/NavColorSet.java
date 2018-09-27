@@ -44,6 +44,7 @@ public class NavColorSet extends ColorSet {
   public static final JBColor ACTIVITY_BORDER_COLOR = new JBColor(0xa7a7a7, 0x2d2f31);
   // Note that this must match the highlight color of ActionButtonWithText
   public static final JBColor LIST_MOUSEOVER_COLOR = new JBColor(Gray.xDB, new Color(0x55595c));
+  public static final JBColor THUMBNAIL_BORDER_COLOR = new JBColor(0xcccccc, 0x3f4244);
 
   private Color mActions;
   private Color mHighlightedActions;

@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.frame.FrameResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -122,6 +123,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
       .filterNot { component.scene.selection.contains(it.nlComponent) }
       .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }
       .toList()
+      .plus(ViewGroupPlaceholder(component))
 }
 
 // The resize behaviour is similar to the FrameResizeTarget so far.

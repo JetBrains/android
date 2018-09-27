@@ -18,7 +18,8 @@ package com.android.tools.idea.uibuilder.property.assistant
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.util.ui.JBUI
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Component
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -58,6 +59,7 @@ open class AssistantPopupPanel @JvmOverloads constructor(
     isOpaque = false
     add(titleLabel)
     add(contentWrapper)
+    minimumSize = JBUI.size(250, 10)
   }
 
   fun addContent(content: JComponent) {

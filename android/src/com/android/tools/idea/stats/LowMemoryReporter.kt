@@ -17,12 +17,16 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.components.ApplicationComponent
 import com.intellij.openapi.util.LowMemoryWatcher
+import java.util.concurrent.TimeUnit
 
 class LowMemoryReporter : ApplicationComponent {
   private var lowMemoryWatcher: LowMemoryWatcher? = null
+
+  private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), singleShotOnly = true)
 
   override fun initComponent() {
     lowMemoryWatcher = LowMemoryWatcher.register {
@@ -32,6 +36,9 @@ class LowMemoryReporter : ApplicationComponent {
       UsageTracker.log(AndroidStudioEvent.newBuilder()
                          .setKind(AndroidStudioEvent.EventKind.STUDIO_LOW_MEMORY_EVENT)
                          .setJavaProcessStats(CommonMetricsData.javaProcessStats))
+      if (limiter.tryAcquire()) {
+        AndroidStudioSystemHealthMonitor.getInstance()?.addHistogramToDatabase("LowMemoryWatcher")
+      }
     }
   }
 

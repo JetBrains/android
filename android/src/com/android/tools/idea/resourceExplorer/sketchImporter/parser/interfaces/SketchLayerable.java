@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchStyle;
 import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
@@ -32,4 +33,13 @@ public interface SketchLayerable {
 
   @NotNull
   Rectangle2D.Double getFrame();
+
+  int getRotation();
+
+  boolean isFlippedVertical();
+
+  boolean isFlippedHorizontal();
+
+  @NotNull
+  ResizingConstraint getResizingConstraint();
 }

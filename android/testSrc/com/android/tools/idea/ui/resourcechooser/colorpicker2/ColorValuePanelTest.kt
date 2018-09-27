@@ -301,6 +301,36 @@ class ColorValuePanelTest : IdeaTestCase() {
     assertEquals("128", panel.alphaField.text)
   }
 
+  fun testHexFiledHasLeftPaddingZero() {
+    val model = ColorPickerModel()
+    val panel = ColorValuePanel(model)
+    panel.setSize(300, 300)
+
+    model.setColor(Color(0, 0, 0, 0x0F))
+    assertEquals("0F000000", panel.hexField.text)
+
+    model.setColor(Color(0xF0, 0, 0, 0))
+    assertEquals("00F00000", panel.hexField.text)
+
+    model.setColor(Color(0x0F, 0, 0, 0))
+    assertEquals("000F0000", panel.hexField.text)
+
+    model.setColor(Color(0, 0xF0, 0, 0))
+    assertEquals("0000F000", panel.hexField.text)
+
+    model.setColor(Color(0, 0x0F, 0, 0))
+    assertEquals("00000F00", panel.hexField.text)
+
+    model.setColor(Color(0, 0, 0xF0, 0))
+    assertEquals("000000F0", panel.hexField.text)
+
+    model.setColor(Color(0, 0, 0x0F, 0))
+    assertEquals("0000000F", panel.hexField.text)
+
+    model.setColor(Color(0, 0, 0, 0))
+    assertEquals("00000000", panel.hexField.text)
+  }
+
   fun testUpAndDownOnColorField() {
     val model = ColorPickerModel()
     val panel = ColorValuePanel(model)

@@ -16,13 +16,15 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A custom component that handles drawing and mouse interaction with DurationData
@@ -32,12 +34,35 @@ import java.util.ArrayList;
 public final class OverlayComponent extends AnimatedComponent {
 
   @NotNull private final ArrayList<DurationDataRenderer> myDurationRenderers;
-  @NotNull private final Component myDispatchComponent;
+  private final Component myDispatchComponent;
 
-  public OverlayComponent(@NotNull Component dispatchComponent) {
+  public OverlayComponent() {
+    this(null);
+  }
+
+  public OverlayComponent(Component dispatchComponent) {
     myDurationRenderers = new ArrayList<>();
     myDispatchComponent = dispatchComponent;
+    if (myDispatchComponent != null) {
+      registerEventListeners();
+    }
+  }
 
+  public void addDurationDataRenderer(@NotNull DurationDataRenderer renderer) {
+    myDurationRenderers.add(renderer);
+  }
+
+  @Override
+  protected void draw(Graphics2D g, Dimension size) {
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    // TODO make this an interface
+    for (DurationDataRenderer renderer : myDurationRenderers) {
+      renderer.renderOverlay(this, g);
+    }
+  }
+
+  private void registerEventListeners() {
+    assert myDispatchComponent != null;
     addMouseListener(new MouseListener() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -78,24 +103,11 @@ public final class OverlayComponent extends AnimatedComponent {
     });
   }
 
-  public void addDurationDataRenderer(@NotNull DurationDataRenderer renderer) {
-    myDurationRenderers.add(renderer);
-  }
-
-  @Override
-  protected void draw(Graphics2D g, Dimension size) {
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    // TODO make this an interface
-    for (DurationDataRenderer renderer : myDurationRenderers) {
-      renderer.renderOverlay(this, g);
-    }
-  }
-
   private void handleOrDispatchEvent(MouseEvent e) {
     boolean handled = false;
     for (DurationDataRenderer renderer : myDurationRenderers) {
       // TODO make this an interface
-      handled |= renderer.handleMouseEvent(this, myDispatchComponent, e);
+      handled = renderer.handleMouseEvent(this, myDispatchComponent, e);
       if (handled) {
         break;
       }

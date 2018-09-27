@@ -19,8 +19,6 @@ import com.android.testutils.JarTestSuiteRunner
 import com.android.testutils.TestUtils
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
-import java.io.File
-import java.nio.file.Files
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(org.jetbrains.kotlin.android.KotlinAndroidTestSuite::class)
@@ -37,11 +35,6 @@ class KotlinAndroidTestSuite : IdeaTestSuiteBase() {
         "tools/adt/idea/android-kotlin/android-extensions-idea/testData",
         "tools/adt/idea/android-kotlin/android-extensions-jps/testData",
         "tools/adt/idea/android-kotlin/idea-android/testData")
-
-      // The Kotlin plugin test framework code expects a 'dist' directory pointing to the Kotlin plugin.
-      val distDir = File(TestUtils.getWorkspaceRoot(), "tools/adt/idea/android-kotlin/dist").toPath()
-      val kotlinDir = File(TestUtils.getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin").toPath()
-      Files.createSymbolicLink(distDir, kotlinDir)
 
       // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
       System.setProperty("plugin.path", TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").absolutePath)

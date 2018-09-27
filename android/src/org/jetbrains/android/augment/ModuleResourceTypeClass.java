@@ -5,6 +5,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.utils.Pair;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
@@ -42,6 +43,13 @@ public class ModuleResourceTypeClass extends ResourceTypeClassBase {
                                                AndroidLightField.FieldModifier.NON_FINAL;
 
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+    Pair<LocalResourceRepository, ResourceNamespace> resources = pickRepositoryAndNamespace(namespacing, facet);
+    return buildResourceFields(resourceManager, resources.getFirst(), resources.getSecond(), modifier, resourceType, context);
+  }
+
+  @NotNull
+  private static Pair<LocalResourceRepository, ResourceNamespace> pickRepositoryAndNamespace(@NotNull AaptOptions.Namespacing namespacing,
+                                                                                             @NotNull AndroidFacet facet) {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
     ResourceNamespace namespace;
     LocalResourceRepository repository;
@@ -52,12 +60,18 @@ public class ModuleResourceTypeClass extends ResourceTypeClassBase {
       namespace = repositoryManager.getNamespace();
       repository = repositoryManager.getModuleResources(true);
     }
-    return buildResourceFields(resourceManager, repository, namespace, modifier, resourceType, context);
+    return Pair.of(repository, namespace);
   }
 
   @NotNull
   @Override
   protected PsiField[] doGetFields() {
     return buildLocalResourceFields(myFacet, myResourceType, myNamespacing, this);
+  }
+
+  @NotNull
+  @Override
+  protected Object[] getFieldsDependencies() {
+    return new Object[] {pickRepositoryAndNamespace(myNamespacing, myFacet).getFirst()};
   }
 }

@@ -51,8 +51,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return Logger.getInstance(LiveAllocationCaptureObject.class);
   }
 
-  @VisibleForTesting static final String SAMPLING_INFO_MESSAGE =
-    "Data shown might not be accurate because the selected range contains region where full tracking was not enabled.";
+  @VisibleForTesting static final String SAMPLING_INFO_MESSAGE = "Selected region does not have full tracking. Data may be inaccurate.";
 
   @Nullable private MemoryProfilerStage myStage;
 

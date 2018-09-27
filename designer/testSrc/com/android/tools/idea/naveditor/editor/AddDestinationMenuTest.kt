@@ -18,8 +18,10 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNlEditor
@@ -50,6 +52,9 @@ import javax.swing.JPanel
 // TODO: testing with custom navigators
 class AddDestinationMenuTest : NavTestCase() {
 
+  private var _modelBuilder: ModelBuilder? = null
+  private val modelBuilder
+    get() = _modelBuilder!!
 
   private var _model: SyncNlModel? = null
   private val model
@@ -67,16 +72,21 @@ class AddDestinationMenuTest : NavTestCase() {
   private val panel
     get() = _panel!!
 
+  private var _root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+  private val root
+    get() = _root!!
+
   override fun setUp() {
     super.setUp()
-    _model = model("nav.xml") {
+    _modelBuilder = modelBuilder("nav.xml") {
       navigation("navigation") {
         fragment("fragment")
         navigation("subnav") {
           fragment("fragment2")
         }
-      }
+      }.also { _root = it }
     }
+    _model = modelBuilder.build()
 
     _surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
@@ -103,15 +113,18 @@ class AddDestinationMenuTest : NavTestCase() {
     addFragment("fragment2")
 
     addActivity("activity2")
-    addActivity("activity3")
-    addActivity("activity1")
+    addActivityWithLayout("activity3")
+    val activity3VirtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity3.xml")
+    val activity3XmlFile = PsiManager.getInstance(project).findFile(activity3VirtualFile!!) as XmlFile
+
+    addActivityWithNavHost("activity1")
 
     addIncludeFile("include3")
     addIncludeFile("include2")
     addIncludeFile("include1")
 
     val parent = model.components[0]
-    val expected = listOf(
+    val expected = mutableListOf(
       Destination.PlaceholderDestination(parent),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment")),
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1")),
@@ -121,12 +134,19 @@ class AddDestinationMenuTest : NavTestCase() {
       Destination.IncludeDestination("include2.xml", parent),
       Destination.IncludeDestination("include3.xml", parent),
       Destination.IncludeDestination("navigation.xml", parent),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity1")),
       Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity2")),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3")),
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile),
       Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile))
 
-    val destinations = AddDestinationMenu(surface).destinations
+    var destinations = AddDestinationMenu(surface).destinations
+    assertEquals(destinations, expected)
+
+    root.include("include1")
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    expected.removeAt(5)
+    destinations = AddDestinationMenu(surface).destinations
     assertEquals(destinations, expected)
   }
 
@@ -308,6 +328,39 @@ class AddDestinationMenuTest : NavTestCase() {
 
   private fun addFragment(name: String) {
     addDestination(name, "android.support.v4.app.Fragment")
+  }
+
+  private fun addActivityWithNavHost(name: String) {
+    addActivity(name)
+    val relativePath = "res/layout/$name.xml"
+    val fileText = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <android.support.constraint.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
+                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   tools:context=".$name">
+        <fragment
+            android:id="@+id/navhost"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav"/>
+
+      </android.support.constraint.ConstraintLayout>
+    """.trimIndent()
+
+    myFixture.addFileToProject(relativePath, fileText)
+  }
+
+  private fun addActivityWithLayout(name: String) {
+    addActivity(name)
+    val relativePath = "res/layout/$name.xml"
+    val fileText = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <android.support.constraint.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
+                                                   tools:context=".$name"/>
+    """.trimIndent()
+
+    myFixture.addFileToProject(relativePath, fileText)
   }
 
   private fun addActivity(name: String) {

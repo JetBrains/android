@@ -24,16 +24,15 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ArrayUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.augment.ModuleResourceTypeClass;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /** Represents a dynamic "class R" for resources in an Android module. */
 public class ModulePackageRClass extends AndroidPackageRClassBase {
@@ -82,8 +81,8 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
       return PsiClass.EMPTY_ARRAY;
     }
 
-    Set<ResourceType> types =
-        ResourceReferenceConverter.getResourceTypesInCurrentModule(facet);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    Set<ResourceType> types = repositoryManager.getAppResources(true).getResourceTypes(repositoryManager.getNamespace());
     List<PsiClass> result = new ArrayList<>();
 
     for (ResourceType type : types) {
@@ -93,6 +92,13 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
     }
     LOG.debug("R_CLASS_AUGMENT: " + result.size() + " classes added");
     return result.toArray(PsiClass.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  @Override
+  protected Object[] getInnerClassesDependencies() {
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myModule);
+    return appResources == null ? ArrayUtil.EMPTY_OBJECT_ARRAY : new Object[]{appResources};
   }
 
   /**

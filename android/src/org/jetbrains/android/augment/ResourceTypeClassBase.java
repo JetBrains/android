@@ -8,20 +8,22 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
-import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.resourceManagers.ResourceManager;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for light implementations of inner classes of the R class, e.g. {@code R.string}.
@@ -118,7 +120,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          return CachedValueProvider.Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
+          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
         });
     }
     return myFieldsCache.getValue();
@@ -126,6 +128,13 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
 
   @NotNull
   protected abstract PsiField[] doGetFields();
+
+  /**
+   * Dependencies (as defined by {@link CachedValueProvider.Result#getDependencyItems()}) for the cached set of inner classes computed by
+   * {@link #doGetFields()}.
+   */
+  @NotNull
+  protected abstract Object[] getFieldsDependencies();
 
   @NotNull
   public ResourceType getResourceType() {

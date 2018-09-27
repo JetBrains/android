@@ -73,6 +73,11 @@ class ManifestClass(
 
     return classes.toTypedArray()
   }
+
+  override fun getInnerClassesDependencies(): Array<Any> {
+    // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
+    return arrayOf(PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
+  }
 }
 
 /**

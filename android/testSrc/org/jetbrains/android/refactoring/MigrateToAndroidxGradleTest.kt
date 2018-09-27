@@ -60,7 +60,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
 
     assertEquals("""
     def testVariable = 'com.google.android.material:material:V.V.V'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
     implementation 'androidx.constraintlayout:constraintlayout:V.V.V'
     implementation group: 'androidx.appcompat', name: 'appcompat', version: 'V.V.V'
     implementation testVariable
@@ -72,6 +72,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     val gradleProperties = getTextForFile("gradle.properties")
     assertTrue(gradleProperties.contains("android.useAndroidX=true") &&
                gradleProperties.contains("android.enableJetifier=true"))
+    assertTrue(mainActivityKt.contains("import kotlinx.android.synthetic.main.activity_main.*"))
   }
 
   fun testExistingGradleProperties() {

@@ -274,7 +274,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
       verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), eq(true));
 
-      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false), eq(true));
+      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false));
       verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
       verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
     }
@@ -304,7 +304,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
       verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), anyBoolean());
 
-      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true), eq(true));
+      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true));
       verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
       verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
     }

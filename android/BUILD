@@ -118,7 +118,7 @@ iml_module(
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
-        "//tools/adt/idea/android/lib:instantapps-api-1.0",
+        "//tools/adt/idea/android/lib:instantapps-api-1.5",
         "//tools/idea/.idea/libraries:batik",
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
@@ -267,7 +267,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem.tests[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
-        "//tools/adt/idea/android/lib:instantapps-api-1.0",
+        "//tools/adt/idea/android/lib:instantapps-api-1.5",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:aapt-proto-jarjar",
@@ -547,7 +547,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-android-aar/1.2.3:aar",
         "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-core/1.2.2:jar",
         "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-core/1.2.3:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jre7/1.2.61:jar",
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/2.7.1:jar",
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.5:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
@@ -1215,7 +1214,7 @@ maven_java_library(
 # ATTENTION: This file is generated from tools/buildSrc/base/dependencies.properties, see top of this file.
 maven_java_library(
     name = "org.jetbrains.kotlin_kotlin-reflect",
-    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-reflect/1.1.3-2:jar",
+    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-reflect/1.2.71:jar",
     visibility = ["//visibility:public"],
     exports = [":org.jetbrains.kotlin_kotlin-stdlib"],
 )
@@ -1223,7 +1222,7 @@ maven_java_library(
 # ATTENTION: This file is generated from tools/buildSrc/base/dependencies.properties, see top of this file.
 maven_java_library(
     name = "org.jetbrains.kotlin_kotlin-stdlib",
-    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.1.3-2:jar",
+    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.71:jar",
     visibility = ["//visibility:public"],
     exports = [":org.jetbrains_annotations"],
 )

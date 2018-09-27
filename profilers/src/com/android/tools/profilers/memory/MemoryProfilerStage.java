@@ -787,6 +787,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final SeriesLegend myTotalLegend;
     @NotNull private final SeriesLegend myObjectsLegend;
     @NotNull private final EventLegend<GcDurationData> myGcDurationLegend;
+    @NotNull private final EventLegend<AllocationSamplingRateDurationData> mySamplingRateDurationLegend;
 
     public MemoryStageLegends(@NotNull MemoryProfilerStage memoryStage, @NotNull Range range, boolean isTooltip) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
@@ -820,9 +821,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myGcDurationLegend =
         new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
           .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDurationUs(), true));
+      mySamplingRateDurationLegend =
+        new EventLegend<>("Tracking", duration -> LiveAllocationSamplingMode
+          .getModeFromFrequency(duration.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval()).getDisplayName());
 
       List<Legend> legends = isTooltip ? Arrays.asList(myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
-                                                       myNativeLegend, myJavaLegend, myObjectsLegend, myGcDurationLegend, myTotalLegend)
+                                                       myNativeLegend, myJavaLegend, myObjectsLegend, mySamplingRateDurationLegend,
+                                                       myGcDurationLegend, myTotalLegend)
                                        : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
                                                        myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend, myObjectsLegend);
       legends.forEach(this::add);
@@ -872,6 +877,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     public EventLegend<GcDurationData> getGcDurationLegend() {
       return myGcDurationLegend;
     }
+
+    @NotNull
+    public EventLegend<AllocationSamplingRateDurationData> getSamplingRateDurationLegend() {
+      return mySamplingRateDurationLegend;
+    }
   }
 
   private class CaptureElapsedTimeUpdatable implements Updatable {
@@ -907,9 +917,12 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public enum LiveAllocationSamplingMode {
-    NONE(0),      // 0 is a special value for disabling tracking.
-    SAMPLED(10),  // Sample every 10 allocations
-    FULL(1);      // Sample every allocation
+    // 0 is a special value for disabling tracking.
+    NONE(0, "None"),
+    // Sample every 10 allocations
+    SAMPLED(10, "Sampled"),
+    // Sample every allocation
+    FULL(1, "Full");
 
     static final Map<Integer, LiveAllocationSamplingMode> MAP;
     static {
@@ -920,9 +933,16 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       MAP = ImmutableMap.copyOf(map);
     }
 
-    int mySamplingFrequency;
-    LiveAllocationSamplingMode(int frequency) {
+    private String myDisplayName;
+    private int mySamplingFrequency;
+
+    LiveAllocationSamplingMode(int frequency, String displayName) {
+      myDisplayName = displayName;
       mySamplingFrequency = frequency;
+    }
+
+    public String getDisplayName() {
+      return myDisplayName;
     }
 
     public int getValue() {

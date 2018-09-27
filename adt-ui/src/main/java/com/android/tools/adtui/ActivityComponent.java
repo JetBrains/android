@@ -37,7 +37,8 @@ import static com.android.tools.adtui.common.AdtUiUtils.*;
  */
 public class ActivityComponent extends AnimatedComponent {
 
-  public static final int EVENT_LINE_WIDTH_PX = 2;
+  public static final int EVENT_LINE_WIDTH_PX = 4;
+  public static final int EVENT_LINE_GAP_WIDTH_PX = 1;
   private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
   private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
   private static final Color EVENT_LINE = new JBColor(0x898B8E, 0x999A9A);
@@ -143,6 +144,9 @@ public class ActivityComponent extends AnimatedComponent {
     double min = myActivityModel.getRangedSeries().getXRange().getMin();
     double max = myActivityModel.getRangedSeries().getXRange().getMax();
     FontMetrics metrics = g2d.getFontMetrics();
+    Object previousHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+
     ListIterator<ActivityRenderData> itor = myActivities.listIterator();
     while (itor.hasNext()) {
       ActivityRenderData renderData = itor.next();
@@ -177,13 +181,22 @@ public class ActivityComponent extends AnimatedComponent {
       g2d.setColor(DEFAULT_FONT_COLOR);
       g2d.drawString(text, startPosition, FONT_SPACING);
     }
+    g2d.setColor(g2d.getBackground());
+    for (Double normalizedPosition : myFragmentPositions) {
+      g2d.fill(scale.createTransformedShape(
+        new Rectangle2D.Double(normalizedPosition - (EVENT_LINE_WIDTH_PX / 2.0 + EVENT_LINE_GAP_WIDTH_PX) / dim.getWidth(),
+                               1 - DEFAULT_LINE_THICKNESS, (EVENT_LINE_WIDTH_PX + 2 * EVENT_LINE_GAP_WIDTH_PX) / dim.getWidth(),
+                               DEFAULT_LINE_THICKNESS)));
+    }
 
     g2d.setColor(EVENT_LINE);
     for (Double normalizedPosition : myFragmentPositions) {
       g2d.fill(scale.createTransformedShape(
-        new Rectangle2D.Double(normalizedPosition, 1 - DEFAULT_LINE_THICKNESS, EVENT_LINE_WIDTH_PX / dim.getWidth(),
+        new Rectangle2D.Double(normalizedPosition - EVENT_LINE_WIDTH_PX / 2.0 / dim.getWidth(), 1 - DEFAULT_LINE_THICKNESS,
+                               EVENT_LINE_WIDTH_PX / dim.getWidth(),
                                DEFAULT_LINE_THICKNESS)));
     }
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, previousHint);
   }
 
   private static class ActivityRenderData {

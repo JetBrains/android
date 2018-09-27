@@ -75,6 +75,7 @@ public class DataModel {
     myLayoutType = NlLayoutType.UNKNOWN;
     myPalette = Palette.EMPTY;
     myCurrentSelectedGroup = COMMON;
+    myDependencyManager.addDependencyChangeListener(() -> onDependenciesChanged());
 
     myFilterPattern = new PatternFilter();
     // This filter will hide or display the androidx.* components in the palette depending on whether the
@@ -216,9 +217,9 @@ public class DataModel {
   }
 
   /**
-   * Notifies the {@link DataModel} that the dependencies have changed so the items might need to be re-filtered.
+   * The dependencies have changed so the items might need to be re-filtered.
    */
-  void notifyDependenciesUpdated() {
+  private void onDependenciesChanged() {
     update();
     categorySelectionChanged(myCurrentSelectedGroup);
   }

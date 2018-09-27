@@ -19,10 +19,12 @@ package org.jetbrains.kotlin.android
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_PKG
 import com.android.SdkConstants.R_CLASS
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.*
 import com.android.tools.idea.res.AndroidInternalRClassFinder
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.dom.AndroidAttributeValue
@@ -119,11 +121,11 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
         return null
     }
 
+    val qName = rClassDescriptor.fqNameSafe.asString()
     if (!localOnly) {
-        val qName = rClassDescriptor.fqNameSafe.asString()
 
         if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
-            return MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, true, false)
+            return MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, ResourceNamespace.ANDROID, false)
         }
     }
 
@@ -131,7 +133,13 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
         return null
     }
 
-    return MyReferredResourceFieldInfo(resClassName, resFieldName, facet.module, false, false)
+    return MyReferredResourceFieldInfo(
+      resClassName,
+      resFieldName,
+      facet.module,
+      AndroidResourceUtil.getRClassNamespace(facet, qName),
+      false
+    )
 }
 
 private fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {

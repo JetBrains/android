@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.AAPT_ATTR_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
@@ -39,7 +38,9 @@ import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
 import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
@@ -66,6 +67,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -102,7 +104,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -460,8 +461,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return null;
     }
     ILayoutPullParser parser;
-    if (!myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
-      TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(value, AAPT_ATTR_PREFIX));
+    if (!myAaptDeclaredResources.isEmpty() && layoutResource.getResourceType() == ResourceType.AAPT) {
+      TagSnapshot aaptResource = myAaptDeclaredResources.get(layoutResource.getValue());
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
@@ -876,6 +877,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
     if (key.equals(FLAG_KEY_ADAPTIVE_ICON_MASK_PATH)) {
       return (T)myAdaptiveIconMaskPath;
+    }
+    if (key.equals(FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW)) {
+      return (T)StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    }
+    if (key.equals(FLAG_KEY_ENABLE_SHADOW)) {
+      return (T)StudioFlags.NELE_ENABLE_SHADOW.get();
     }
     return null;
   }

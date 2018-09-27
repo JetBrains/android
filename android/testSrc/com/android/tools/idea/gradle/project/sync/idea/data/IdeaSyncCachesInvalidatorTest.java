@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.File;
@@ -61,5 +63,27 @@ public class IdeaSyncCachesInvalidatorTest extends AndroidGradleTestCase {
     // Verify that after invalidating cache, libraries folder is deleted.
     myInvalidator.invalidateCaches();
     assertDoesntExist(librariesFolderPath);
+  }
+
+  public void testNewSyncCacheIsInvalidated() throws Exception {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+
+      loadSimpleApplication();
+
+      // Models were cached
+      assertTrue(CachedProjectModels.getCacheFilePath(getProject()).exists());
+
+      // After invalidating cache, models are not in the cache anymore
+      myInvalidator.invalidateCaches();
+      assertFalse(CachedProjectModels.getCacheFilePath(getProject()).exists());
+
+      // Sync and check if models are replaced
+      requestSyncAndWait();
+      assertTrue(CachedProjectModels.getCacheFilePath(getProject()).exists());
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+    }
   }
 }

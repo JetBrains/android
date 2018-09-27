@@ -123,9 +123,17 @@ public class ViewHandlerManager implements ProjectComponent {
         }
 
         return new ItemHandler();
+
       case VIEW_MERGE:
         String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
-        return getHandler(parentTag == null ? tag : parentTag);
+        if (parentTag != null) {
+          ViewHandler groupHandler = getHandler(parentTag);
+          if (groupHandler instanceof ViewGroupHandler) {
+            return new MergeDelegateHandler((ViewGroupHandler)groupHandler);
+          }
+        }
+        return getHandler(VIEW_MERGE);
+
       default:
         return getHandler(tag);
     }
@@ -336,6 +344,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new TabHostHandler();
       case TAG_GROUP:
         return new GroupHandler();
+      case TAG_LAYOUT:
+        return new LayoutHandler();
       case TAG_MENU:
         return new MenuHandler();
       case TAG_SELECTOR:

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.adtui.TableUtils;
 import com.google.common.collect.Maps;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -24,19 +23,16 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
-import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.IntStream;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class SubTable extends JBTable implements DataProvider, PasteProvider {
   private final FrozenColumnTable myFrozenColumnTable;
@@ -49,48 +45,9 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
 
     setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     setCellSelectionEnabled(true);
-    addMouseListener(new CellPopupTriggerListener(this));
 
     new TableSpeedSearch(this);
     myFrozenColumnTable = frozenColumnTable;
-  }
-
-  private static final class CellPopupTriggerListener extends MouseAdapter {
-    private final SubTable mySubTable;
-
-    private CellPopupTriggerListener(@NotNull SubTable subTable) {
-      mySubTable = subTable;
-    }
-
-    @Override
-    public void mousePressed(@NotNull MouseEvent event) {
-      mousePressedOrReleased(event);
-    }
-
-    @Override
-    public void mouseReleased(@NotNull MouseEvent event) {
-      mousePressedOrReleased(event);
-    }
-
-    private void mousePressedOrReleased(@NotNull MouseEvent event) {
-      if (!event.isPopupTrigger()) {
-        return;
-      }
-
-      FrozenColumnTable source = mySubTable.myFrozenColumnTable;
-      Point point = event.getPoint();
-      int viewRowIndex = mySubTable.rowAtPoint(point);
-      int viewColumnIndex = mySubTable.columnAtPoint(point);
-
-      FrozenColumnTableEvent frozenColumnTableEvent = new FrozenColumnTableEvent(
-        source,
-        mySubTable.convertRowIndexToModel(viewRowIndex),
-        ((SubTableModel)mySubTable.getModel()).convertColumnIndexToDelegate(mySubTable.convertColumnIndexToModel(viewColumnIndex)),
-        point,
-        mySubTable);
-
-      source.getListeners().forEach(listener -> listener.cellPopupTriggered(frozenColumnTableEvent));
-    }
   }
 
   @NotNull
@@ -132,53 +89,9 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
   @Override
   protected JTableHeader createDefaultTableHeader() {
     JTableHeader header = new JBTableHeader();
-
     header.setReorderingAllowed(false);
-    header.addMouseListener(new HeaderPopupTriggerListener(this));
 
     return header;
-  }
-
-  private static final class HeaderPopupTriggerListener extends MouseAdapter {
-    private final SubTable mySubTable;
-
-    private HeaderPopupTriggerListener(@NotNull SubTable subTable) {
-      mySubTable = subTable;
-    }
-
-    @Override
-    public void mousePressed(@NotNull MouseEvent event) {
-      mousePressedOrReleased(event);
-    }
-
-    @Override
-    public void mouseReleased(@NotNull MouseEvent event) {
-      mousePressedOrReleased(event);
-    }
-
-    private void mousePressedOrReleased(@NotNull MouseEvent event) {
-      if (!event.isPopupTrigger()) {
-        return;
-      }
-
-      JTableHeader header = (JTableHeader)event.getSource();
-      int viewColumnIndex = header.columnAtPoint(event.getPoint());
-
-      if (viewColumnIndex == -1) {
-        return;
-      }
-
-      FrozenColumnTable source = mySubTable.myFrozenColumnTable;
-
-      FrozenColumnTableEvent frozenColumnTableEvent = new FrozenColumnTableEvent(
-        source,
-        -1,
-        ((SubTableModel)mySubTable.getModel()).convertColumnIndexToDelegate(mySubTable.convertColumnIndexToModel(viewColumnIndex)),
-        event.getPoint(),
-        header);
-
-      source.getListeners().forEach(listener -> listener.headerPopupTriggered(frozenColumnTableEvent));
-    }
   }
 
   @Override
@@ -261,9 +174,11 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
   public void performPaste(@NotNull DataContext dataContext) {
     Transferable transferable = CopyPasteManager.getInstance().getContents();
 
-    if (transferable != null) {
-      TableUtils.paste(this, transferable);
+    if (transferable == null) {
+      return;
     }
+
+    myFrozenColumnTable.paste(transferable);
   }
 
   @Override

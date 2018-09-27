@@ -52,6 +52,8 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.Point
+import java.awt.geom.Line2D
+import java.awt.geom.Path2D
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -130,7 +132,8 @@ class CpuProfilerStageViewTest {
     val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
     tooltipComponent.setSize(10, 10)
     // Grab the overlay component and move the mouse to update the last position in the tooltip component.
-    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
+    // Note the 0th element here is the overlay component to render the capture lines.
+    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[1]
     val overlayMouseUi = FakeUi(overlayComponent)
     overlayComponent.setBounds(1, 1, 10, 10)
     overlayMouseUi.mouse.moveTo(0, 0)
@@ -151,6 +154,33 @@ class CpuProfilerStageViewTest {
     overlayMouseUi.mouse.moveTo(0, 0)
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
+  }
+
+  @Test
+  fun selectedCaptureRendersCaptureLines() {
+    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
+    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ART
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+    myCpuService.setValidTrace(true)
+    myCpuService.setTraceId(0)
+    // Ensure we have a valid capture selected.
+    myCpuService.setTrace(ByteString.copyFrom(TestUtils.getWorkspaceFile(ART_TRACE_FILE).readBytes()))
+    myStage.capture = myCpuService.parseTraceFile()
+    myStage.setAndSelectCapture(0)
+    cpuProfilerStageView.timeline.tooltipRange.set(0.0, 0.0)
+    // Ensure our view range will find the capture.
+    cpuProfilerStageView.timeline.viewRange.set(0.0, Double.MAX_VALUE)
+    // Update the DurationDataModel.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    // Grab the overlay component and move the mouse to update the last position in the tooltip component.
+    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
+    overlayComponent.setBounds(1, 1, 10, 10)
+    val mockGraphics = Mockito.mock(Graphics2D::class.java)
+    Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
+    // Paint without letting the overlay component think we are over it.
+    overlayComponent.paint(mockGraphics)
+    Mockito.verify(mockGraphics, Mockito.times(2)).draw(Mockito.any(Line2D.Float::class.java))
   }
 
   @Test

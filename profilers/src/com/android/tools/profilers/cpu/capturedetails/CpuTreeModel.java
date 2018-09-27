@@ -118,7 +118,7 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
 
   public boolean isEmpty() {
     T data = (T)((DefaultMutableTreeNode)getRoot()).getUserObject();
-    return data.getTotal() == 0;
+    return data.getGlobalTotal() == 0;
   }
 
   abstract void expand(@NotNull DefaultMutableTreeNode node);

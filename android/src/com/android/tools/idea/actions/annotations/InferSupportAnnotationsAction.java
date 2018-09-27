@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions.annotations;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -70,6 +69,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.SequentialTask;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -289,7 +289,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            GoogleMavenArtifactId annotation = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
+            GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
                                                GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
                                                GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
             String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);

@@ -134,8 +134,8 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     when(mySyncCallback.getSyncModels()).thenReturn(projectModels);
 
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    myResultHandler.onCompoundSyncModels(mySyncCallback, setupRequest, myIndicator, mySyncListener, false, true);
+    setupRequest.generateSourcesAfterSync = true;
+    myResultHandler.onCompoundSyncModels(mySyncCallback, setupRequest, myIndicator, mySyncListener, false);
 
     assertTrue(setupRequest.generateSourcesAfterSync);
   }
@@ -152,7 +152,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
 
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
-    myResultHandler.onCompoundSyncModels(mySyncCallback, setupRequest, myIndicator, mySyncListener, false, true);
+    myResultHandler.onCompoundSyncModels(mySyncCallback, setupRequest, myIndicator, mySyncListener, false);
 
     assertFalse(setupRequest.generateSourcesAfterSync);
   }

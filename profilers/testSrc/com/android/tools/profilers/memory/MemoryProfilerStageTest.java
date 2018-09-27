@@ -625,7 +625,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     List<String> legendNames = legends.getLegends().stream()
       .map(legend -> legend.getName())
       .collect(Collectors.toList());
-    assertThat(legendNames).containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "GC Duration", "Total")
+    assertThat(legendNames)
+      .containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "Tracking", "GC Duration", "Total")
       .inOrder();
   }
 

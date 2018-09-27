@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
@@ -129,7 +130,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
   @Override
   public void update(@NotNull Range range) {
     // how much time was spent in this call stack path, and in the functions it called
-    myTotal = 0;
+    myGlobalTotal = 0;
     // how much time was spent doing work directly in this call stack path
     double self = 0;
 
@@ -145,22 +146,22 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
           // |outerSoFar| is at the top of the call stack
-          myTotal += getIntersection(range, outerSoFar);
+          myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
         }
         outerSoFar = node;
       }
 
-      self += getIntersection(range, node);
+      self += getIntersection(range, node, ClockType.GLOBAL);
       for (CaptureNode child : node.getChildren()) {
-        self -= getIntersection(range, child);
+        self -= getIntersection(range, child, ClockType.GLOBAL);
       }
     }
 
     if (outerSoFar != null) {
       // |outerSoFar| is at the top of the call stack
-      myTotal += getIntersection(range, outerSoFar);
+      myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
     }
-    myChildrenTotal = myTotal - self;
+    myGlobalChildrenTotal = myGlobalTotal - self;
   }
 
   @NotNull

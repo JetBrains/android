@@ -74,6 +74,14 @@ public enum ContentType {
   @NotNull
   public static ContentType fromMimeType(@NotNull String mimeType) {
     String[] typeAndSubType = mimeType.split("/", 2);
-    return get(typeAndSubType[typeAndSubType.length - 1]);
+    if (typeAndSubType.length < 2) {
+      return DEFAULT;
+    }
+
+    String[] subTypeAndSuffix = typeAndSubType[1].split("\\+", 2);
+    // Without suffix: json, xml, html, etc.
+    // With suffix: vnd.api+json, svg+xml, etc.
+    // See also: https://en.wikipedia.org/wiki/Media_type#Suffix
+    return get(subTypeAndSuffix[subTypeAndSuffix.length - 1]);
   }
 }

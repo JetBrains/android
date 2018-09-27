@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
+import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
@@ -30,6 +34,8 @@ import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
@@ -42,8 +48,22 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.IdeDeprecatedSdkRegistry;
 import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.checks.ApiLookup;
-import com.android.tools.lint.client.api.*;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.client.api.Configuration;
+import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.GradleVisitor;
+import com.android.tools.lint.client.api.IssueRegistry;
+import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.client.api.LintDriver;
+import com.android.tools.lint.client.api.UastParser;
+import com.android.tools.lint.client.api.XmlParser;
+import com.android.tools.lint.detector.api.Context;
+import com.android.tools.lint.detector.api.DefaultPosition;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.Location;
+import com.android.tools.lint.detector.api.Position;
+import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.utils.Pair;
@@ -51,6 +71,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
@@ -61,21 +82,41 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -85,22 +126,9 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.uast.UCallExpression;
-import org.jetbrains.uast.UExpression;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
-import java.util.function.Predicate;
-
-import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
-import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * Implementation of the {@linkplain LintClient} API for executing lint within the IDE:
@@ -345,23 +373,6 @@ public class LintIdeClient extends LintClient implements Disposable {
             }
             return null;
           }
-
-          @NotNull
-          @Override
-          public Map<UExpression, PsiParameter> computeArgumentMapping(@NotNull UCallExpression call, @NotNull PsiMethod method) {
-            if (method.getParameterList().getParametersCount() == 0) {
-              return Collections.emptyMap();
-            }
-
-            // Call into lint-kotlin to look up the argument mapping if this call is a Kotlin method.
-            Map<UExpression, PsiParameter> kotlinMap =
-              LintKotlinReflectionUtilsKt.computeKotlinArgumentMapping(call, method);
-            if (kotlinMap != null) {
-              return kotlinMap;
-            }
-
-            return super.computeArgumentMapping(call, method);
-          }
         };
       }
     };
@@ -422,7 +433,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       return "";
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+    return runReadAction(() -> {
       PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
       if (psiFile == null) {
         LOG.info("Cannot find file " + file.getPath() + " in the PSI");
@@ -701,6 +712,102 @@ public class LintIdeClient extends LintClient implements Disposable {
       return myState.getIssues();
     }
 
+    // In order to prevent UI freezes due to long-running Lint read actions,
+    // we cancel incremental Lint sessions if a write action is running, pending, or later requested.
+    // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html#preventing-ui-freezes
+    @Override
+    public void runReadAction(@NonNull Runnable runnable) {
+
+      Application application = ApplicationManager.getApplication();
+      if (application.isUnitTestMode()) {
+        // Do not yield to pending write actions during unit tests;
+        // otherwise the tests will fail before Lint is rescheduled.
+        application.runReadAction(runnable);
+        return;
+      }
+
+      // We use a custom progress indicator to track action cancellation latency,
+      // and to collect a stack dump at the time of cancellation.
+      class ProgressIndicatorWithCancellationInfo extends AbstractProgressIndicatorExBase {
+
+        final Thread readActionThread;
+
+        // These fields are marked volatile since they will be accessed by two threads (the EDT and the read action thread).
+        // Notice that they are set before the progress indicator is marked as cancelled; this establishes a happens-before
+        // relationship with myCanceled (also volatile), thereby ensuring that the new values are visible
+        // to threads which have detected cancellation.
+        volatile StackTraceElement[] cancelStackDump;
+        volatile long cancelStartTimeMs = -1;
+
+        ProgressIndicatorWithCancellationInfo(Thread readActionThread) {
+          this.readActionThread = readActionThread;
+        }
+
+        @Override
+        public void cancel() {
+          if (!isCanceled()) {
+            cancelStartTimeMs = System.currentTimeMillis();
+            cancelStackDump = readActionThread.getStackTrace();
+          }
+          super.cancel();
+        }
+      }
+
+      ProgressIndicatorWithCancellationInfo progressIndicator = new ProgressIndicatorWithCancellationInfo(Thread.currentThread());
+      long actionStartTimeMs = System.currentTimeMillis();
+      boolean successful = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable, progressIndicator);
+
+      if (!successful) {
+        LOG.info("Android Lint read action canceled due to pending write action");
+
+        StackTraceElement[] stackDumpRaw = progressIndicator.cancelStackDump;
+        if (stackDumpRaw != null) {
+
+          // If the read action was canceled *after* being started, then the EDT still has to wait
+          // for the read action to check for cancellation and throw a ProcessCanceledException.
+          // If this takes a while, it will freeze the UI. We want to know about that.
+          long currTimeMs = System.currentTimeMillis();
+          long cancelTimeMs = currTimeMs - progressIndicator.cancelStartTimeMs;
+
+          // Even if the read action was quick to cancel, we still want to report long-running
+          // read actions because those could lead to frequent cancellations or Lint never finishing.
+          long actionTimeMs = currTimeMs - actionStartTimeMs;
+
+          // Report both in the same crash report so that one does not get discarded by the crash report rate limiter.
+          if (cancelTimeMs > 200 || actionTimeMs > 1000) {
+
+            StringBuilder sb = new StringBuilder();
+            for (StackTraceElement e : stackDumpRaw) {
+              sb.append(e.toString());
+              sb.append("\n");
+            }
+            String stackDump = sb.toString();
+
+            StudioCrashReporter.getInstance().submit(
+              new GenericStudioReport.Builder("LintReadActionDelay")
+                .addDataNoPii("summary",
+                         "Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
+                         "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)")
+                .addDataNoPii("timeToCancelMs", String.valueOf(cancelTimeMs))
+                .addDataNoPii("readActionTimeMs", String.valueOf(actionTimeMs))
+                .addDataNoPii("stackDump", stackDump)
+                .build()
+            );
+          }
+        }
+
+        throw new ProcessCanceledException();
+      }
+    }
+
+    @Override
+    public <T> T runReadAction(@NonNull Computable<T> computable) {
+      // Defer to read action implementation for Runnable.
+      Ref<T> res = new Ref<>();
+      runReadAction(() -> res.set(computable.compute()));
+      return res.get();
+    }
+
     @Override
     public void report(@NonNull Context context,
                        @NonNull Issue issue,
@@ -759,7 +866,7 @@ public class LintIdeClient extends LintClient implements Disposable {
         return myState.getMainFileContent();
       }
 
-      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      return runReadAction(() -> {
         final Module module = myState.getModule();
         final Project project = module.getProject();
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);

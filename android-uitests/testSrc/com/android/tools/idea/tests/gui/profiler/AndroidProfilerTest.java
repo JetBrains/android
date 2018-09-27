@@ -26,7 +26,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
 import com.android.tools.perflogger.Benchmark;
-import com.android.tools.perflogger.MedianWindowDeviationAnalyzer;
+import com.android.tools.perflogger.WindowDeviationAnalyzer;
 import com.google.common.truth.Correspondence;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.openapi.project.Project;
@@ -128,9 +128,13 @@ public class AndroidProfilerTest {
   }
 
   private static void benchmarkMethod(@NotNull Benchmark benchmark, @NotNull Runnable method) {
+    WindowDeviationAnalyzer analyzer = new WindowDeviationAnalyzer.Builder()
+      .addMeanTolerance(new WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
+      .build();
+
     gc();
     long initialMemoryUsed = getMemoryUsed();
-    benchmark.log("initial_mem", initialMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
+    benchmark.log("initial_mem", initialMemoryUsed);
 
     long gcStartTime = getGCTotalTime();
     long methodStartTime = System.currentTimeMillis();
@@ -144,14 +148,15 @@ public class AndroidProfilerTest {
     finally {
       long methodEndTime = System.currentTimeMillis();
       long gcTime = getGCTotalTime() - gcStartTime;
-      benchmark.log("total_time", methodEndTime - methodStartTime, new MedianWindowDeviationAnalyzer.Builder().build());
-      benchmark.log("test_time", methodEndTime - methodStartTime - gcTime, new MedianWindowDeviationAnalyzer.Builder().build());
-      benchmark.log("gc_time", gcTime, new MedianWindowDeviationAnalyzer.Builder().build());
+
+      benchmark.log("total_time", methodEndTime - methodStartTime, analyzer);
+      benchmark.log("test_time", methodEndTime - methodStartTime - gcTime, analyzer);
+      benchmark.log("gc_time", gcTime, analyzer);
 
       gc();
       long finalMemoryUsed = getMemoryUsed();
-      benchmark.log("final_mem", finalMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
-      benchmark.log("mem_used", finalMemoryUsed - initialMemoryUsed, new MedianWindowDeviationAnalyzer.Builder().build());
+      benchmark.log("final_mem", finalMemoryUsed);
+      benchmark.log("mem_used", finalMemoryUsed - initialMemoryUsed, analyzer);
     }
   }
 

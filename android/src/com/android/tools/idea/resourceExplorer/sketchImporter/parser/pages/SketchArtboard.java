@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayerable;
 import java.awt.Color;
@@ -49,9 +50,10 @@ public class SketchArtboard extends SketchLayer implements SketchLayerable {
                         @NotNull SketchLayer[] layers,
                         @NotNull Color backgroundColor,
                         boolean hasBackgroundColor,
-                        boolean includeBackgroundColorInExport) {
+                        boolean includeBackgroundColorInExport,
+                        @NotNull ResizingConstraint constraint) {
     super(classType, objectId, booleanOperation, exportOptions, frame, isFlippedHorizontal, isFlippedVertical, isVisible, name, rotation,
-          shouldBreakMaskChain);
+          shouldBreakMaskChain, constraint);
 
     this.style = style;
     this.layers = layers;
