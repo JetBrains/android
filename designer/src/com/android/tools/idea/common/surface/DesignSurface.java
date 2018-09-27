@@ -50,7 +50,6 @@ import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -409,12 +408,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     reactivateInteractionManager();
     zoomToFit();
-    // Request a new render and notify the listeners after the render has completed
-    requestRender().whenComplete((result, ex) -> {
-      for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-        listener.modelChanged(this, model);
-      }
-    });
+    requestRender();
+
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.modelChanged(this, model);
+    }
   }
 
   /**
@@ -1329,13 +1327,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Invalidates all models and request a render of the layout. This will re-inflate the layout and render it.
-   * The result {@link ListenableFuture} will notify when the render has completed.
    */
-  @NotNull
-  public CompletableFuture<Void> requestRender() {
-    return CompletableFuture.allOf(myModelToSceneManagers.values().stream()
-                                                         .map(manager -> manager.requestRender())
-                                                         .toArray(CompletableFuture[]::new));
+  public void requestRender() {
+    for (SceneManager manager : myModelToSceneManagers.values()) {
+      manager.requestRender();
+    }
   }
 
   @NotNull

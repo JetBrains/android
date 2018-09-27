@@ -53,18 +53,13 @@ import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 /**
  * {@link SceneManager} for the navigation editor.
@@ -354,7 +349,7 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
-  public CompletableFuture<Void> requestRender() {
+  public void requestRender() {
     boolean wasEmpty = getScene().getRoot() == null || getScene().getRoot().getChildCount() == 0;
     update();
     SceneComponent root = getScene().getRoot();
@@ -365,8 +360,6 @@ public class NavSceneManager extends SceneManager {
     if (wasEmpty) {
       getDesignSurface().zoomToFit();
     }
-
-    return CompletableFuture.completedFuture(null);
   }
 
   private void layoutAll(@NotNull SceneComponent root) {
