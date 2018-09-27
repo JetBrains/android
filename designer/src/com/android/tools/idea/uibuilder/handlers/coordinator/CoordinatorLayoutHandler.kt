@@ -15,16 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
-import com.android.SdkConstants
-import com.android.SdkConstants.*
-import com.android.tools.idea.uibuilder.api.DragHandler
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS
+import com.android.SdkConstants.ATTR_LAYOUT_ANCHOR
+import com.android.SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY
+import com.android.SdkConstants.ATTR_LAYOUT_BEHAVIOR
+import com.android.SdkConstants.ATTR_LAYOUT_GRAVITY
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.BOTTOM_APP_BAR
+import com.android.SdkConstants.COORDINATOR_LAYOUT
+import com.android.SdkConstants.FLOATING_ACTION_BUTTON
+import com.android.SdkConstants.ID_PREFIX
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneInteraction
+import com.android.tools.idea.common.scene.TemporarySceneComponent
+import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.*
-import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.frame.FrameResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
@@ -48,12 +62,16 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
   }
 
-  // Don't do the same behavior as ScrollViewHandler does.
-  override fun onChildInserted(editor: ViewEditor, parent: NlComponent, child: NlComponent, insertType: InsertType) = Unit
+  override fun onChildInserted(editor: ViewEditor, parent: NlComponent, child: NlComponent, insertType: InsertType) {
+    // b/67452405 Do not call super()
+    if (COORDINATOR_LAYOUT.newName() == parent.tagName && BOTTOM_APP_BAR == child.tagName) {
+      configureNewBottomAppBar(parent, child)
+    }
+  }
 
   override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
-    newChild.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY)
-    newChild.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR)
+    newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
+    newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
   }
 
   override fun createDragHandler(editor: ViewEditor,
@@ -124,6 +142,17 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
       .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }
       .toList()
       .plus(ViewGroupPlaceholder(component))
+
+  private fun configureNewBottomAppBar(parent: NlComponent, bottomAppBar: NlComponent) {
+    val fab = parent.children.firstOrNull { FLOATING_ACTION_BUTTON.newName() == it.tagName }
+    if (fab != null && !bottomAppBar.id.isNullOrEmpty()) {
+      NlWriteCommandAction.run(listOf(fab), "Move fab to BottomAppBar") {
+        fab.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, ID_PREFIX + bottomAppBar.id!!)
+        fab.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, null)
+        fab.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN, null)
+      }
+    }
+  }
 }
 
 // The resize behaviour is similar to the FrameResizeTarget so far.
