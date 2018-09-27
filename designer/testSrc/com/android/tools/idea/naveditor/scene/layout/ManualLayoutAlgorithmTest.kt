@@ -18,6 +18,8 @@ package com.android.tools.idea.naveditor.scene.layout
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.common.editor.NlEditor
+import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.NavSceneManager
@@ -27,7 +29,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito.mock
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.stream.Collectors
@@ -64,6 +65,37 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(456, scene.getSceneComponent("fragment1")!!.drawY)
     assertEquals(456, scene.getSceneComponent("fragment2")!!.drawX)
     assertEquals(789, scene.getSceneComponent("fragment2")!!.drawY)
+  }
+
+  fun testNewNestedGraph() {
+    val model = model("nav.xml") {
+      navigation {
+        navigation("subnav") {
+          fragment("fragment1")
+          fragment("fragment2")
+          fragment("fragment4")
+        }
+        fragment("fragment3")
+      }
+    }
+    val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
+    val positions = ManualLayoutAlgorithm.LayoutPositions()
+    rootPositions.put("nav.xml", positions)
+
+    for (i in 1..4) {
+      val newPositions = ManualLayoutAlgorithm.LayoutPositions()
+      newPositions.myPosition = ManualLayoutAlgorithm.Point(i * 100, i * 100 + 50)
+      positions.put("fragment$i", newPositions)
+    }
+
+    val scene = model.surface.scene!!
+    val algorithm = ManualLayoutAlgorithm(rootPositions, myModule, mock(NavSceneManager::class.java))
+    algorithm.layout(scene.root!!.children)
+
+    assertEquals(232, scene.getSceneComponent("subnav")!!.drawX)
+    assertEquals(283, scene.getSceneComponent("subnav")!!.drawY)
+    assertEquals(300, scene.getSceneComponent("fragment3")!!.drawX)
+    assertEquals(350, scene.getSceneComponent("fragment3")!!.drawY)
   }
 
   fun testDifferentFiles() {
