@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
+import com.android.testutils.TestUtils
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
@@ -37,8 +38,11 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
         val checkManifest = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// CHECK_MANIFEST")
 
         try {
-            ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime",
-                                         "dist/kotlinc/lib", arrayOf("android-extensions-runtime.jar"))
+            val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
+            val compilerLib = "$kotlinPlugin/kotlinc/lib"
+            ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", compilerLib, arrayOf("android-extensions-runtime.jar"))
+            ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))
+
             if (withRuntime) {
                 ConfigLibraryUtil.configureKotlinRuntime(myFixture.module)
             }
@@ -76,6 +80,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
         }
         finally {
             ConfigLibraryUtil.removeLibrary(myModule, "androidExtensionsRuntime")
+            ConfigLibraryUtil.removeLibrary(myModule, "kotlinStdlib")
             if (withRuntime) {
                 ConfigLibraryUtil.unConfigureKotlinRuntime(myFixture.module)
             }
