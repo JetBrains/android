@@ -19,8 +19,10 @@ import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
+import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
@@ -40,6 +42,7 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 
 /**
  * Tests for the whole setup of light, in-memory R classes.
@@ -787,6 +790,59 @@ class TestRClassesTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
     StudioFlags.IN_MEMORY_R_CLASSES.override(true)
+
+    val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
+
+
+    File(projectRoot, "app/build.gradle").appendText("""
+      dependencies {
+        androidTestImplementation project(':lib')
+        androidTestImplementation 'com.android.support:design:+'
+      }
+    """)
+
+    File(projectRoot, "lib/build.gradle").appendText("""
+      dependencies {
+        androidTestImplementation 'com.android.support:design:+'
+      }
+    """)
+
+    requestSyncAndWait()
+
+    createFile(
+      project.baseDir,
+      "app/src/androidTest/res/values/strings.xml",
+      // language=xml
+      """
+        <resources>
+          <string name='appTestResource'>app test resource</string>
+          <string name='anotherAppTestResource'>another app test resource</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    createFile(
+      project.baseDir,
+      "lib/src/androidTest/res/values/strings.xml",
+      // language=xml
+      """
+        <resources>
+          <string name='libTestResource'>lib test resource</string>
+          <string name='anotherLibTestResource'>another lib test resource</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    createFile(
+      project.baseDir,
+      "lib/src/main/res/values/strings.xml",
+      // language=xml
+      """
+        <resources>
+          <string name='libResource'>lib resource</string>
+        </resources>
+      """.trimIndent()
+    )
   }
 
   override fun tearDown() {
@@ -798,31 +854,29 @@ class TestRClassesTest : AndroidGradleTestCase() {
     }
   }
 
-  fun testLocalTestResources() {
-    loadSimpleApplication()
-
-    createFile(
-      project.baseDir,
-      "app/src/androidTest/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='localTestResource'>This is a local test resource.</string>
-          <string name='anotherLocalTestResource'>This is another local test resource.</string>
-        </resources>
-      """.trimIndent()
-    )
-
+  fun testAppResources() {
     val androidTest = createFile(
       project.baseDir,
-      "app/src/androidTest/java/google/simpleapplication/RClassAndroidTest.java",
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
-      package google.simpleapplication;
+      package com.example.projectwithappandlib.app;
 
       public class RClassAndroidTest {
           void useResources() {
-             int id = google.simpleapplication.test.R.string.${caret}localTestResource;
+             int[] id = new int[] {
+              com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource,
+              com.example.projectwithappandlib.app.test.R.string.libResource,
+              com.example.projectwithappandlib.app.test.R.color.primary_material_dark,
+
+              // Main resources are not in the test R class:
+              com.example.projectwithappandlib.app.test.R.string.${"app_name" highlightedAs ERROR},
+
+              // Main resources from dependencies are not in R class:
+              com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs ERROR},
+
+              R.string.app_name // Main R class is still accessible.
+             };
           }
       }
       """.trimIndent()
@@ -832,22 +886,68 @@ class TestRClassesTest : AndroidGradleTestCase() {
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "localTestResource",
-      "anotherLocalTestResource",
-      "class"
+    assertThat(myFixture.lookupElementStrings).containsAllOf(
+      "appTestResource", // app test resources
+      "libResource", // lib main resources
+      "password_toggle_content_description" // androidTestImplementation AAR
     )
 
-    val unitTest = createFile(
+    // Private resources are filtered out.
+    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+  }
+
+  fun testLibResources() {
+    val androidTest = createFile(
       project.baseDir,
-      "app/src/test/java/google/simpleapplication/RClassUnitTest.java",
+      "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
-      package google.simpleapplication;
+      package com.example.projectwithappandlib.lib;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
+              com.example.projectwithappandlib.lib.test.R.color.primary_material_dark,
+
+              // Main resources are in the test R class:
+              com.example.projectwithappandlib.lib.test.R.string.libResource,
+
+              R.string.libResource // Main R class is still accessible.
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+    myFixture.checkHighlighting()
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf(
+      "libTestResource", // lib test resources
+      "libResource", // lib main resources
+      "password_toggle_content_description" // androidTestImplementation AAR
+    )
+
+    // Private resources are filtered out.
+    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+  }
+
+  fun testScoping() {
+    val unitTest = createFile(
+      project.baseDir,
+      "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
 
       public class RClassUnitTest {
           void useResources() {
-             int id = google.simpleapplication.test.${"R" highlightedAs ERROR}.string.localTestResource;
+             // Test R class is not in scope.
+             int id = com.example.projectwithappandlib.app.test.${"R" highlightedAs ERROR}.string.appTestResource;
+             // The test resource does not leak to the main R class.
+             int id2 = com.example.projectwithappandlib.app.test.${"appTestResource" highlightedAs ERROR};
           }
       }
       """.trimIndent()
@@ -858,14 +958,17 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
     val normalClass = createFile(
       project.baseDir,
-      "app/src/main/java/google/simpleapplication/NormalClass.java",
+      "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
       // language=java
       """
-      package google.simpleapplication;
+      package com.example.projectwithappandlib.app;
 
       public class NormalClass {
           void useResources() {
-             int id = google.simpleapplication.test.${"R" highlightedAs ERROR}.string.localTestResource;
+             // Test R class is not in scope.
+             int id = com.example.projectwithappandlib.app.test.${"R" highlightedAs ERROR}.string.appTestResource;
+             // The test resource does not leak to the main R class.
+             int id2 = com.example.projectwithappandlib.app.test.${"appTestResource" highlightedAs ERROR};
           }
       }
       """.trimIndent()

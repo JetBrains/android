@@ -134,8 +134,11 @@ public class AndroidManifestUtils {
       return testApplicationId;
     }
 
-    String applicationId = flavor.getApplicationId();
-    if (applicationId != null) {
+    // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
+    // there is no applicationId and the package name from the manifest is used with the suffix.
+    String applicationId = androidFacet.getConfiguration().isLibraryProject() ? getPackageName(androidFacet) : flavor.getApplicationId();
+
+    if (StringUtil.isNotEmpty(applicationId)) {
       return applicationId + ".test";
     }
 
