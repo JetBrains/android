@@ -318,20 +318,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
+   * Add an {@link NlModel} to DesignSurface and return the associated SceneManager.
+   * If it is added before then nothing happens.
    * @param model the added {@link NlModel}
    */
-  private void addModelImpl(@NotNull NlModel model) {
+  @NotNull
+  private SceneManager addModelImpl(@NotNull NlModel model) {
+    SceneManager manager = myModelToSceneManagers.get(model);
     // No need to add same model twice.
-    if (myModelToSceneManagers.containsKey(model)) {
-      return;
+    if (manager != null) {
+      return manager;
     }
 
     model.addListener(myModelListener);
     model.getConfiguration().addListener(myConfigurationListener);
-    SceneManager manager = createSceneManager(model);
-
+    manager = createSceneManager(model);
     myModelToSceneManagers.put(model, manager);
+    return manager;
   }
 
   /**
@@ -341,9 +344,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public void addModel(@NotNull NlModel model) {
     addModelImpl(model);
 
-    reactivateInteractionManager();
-    zoomToFit();
-    requestRender();
+    // We probably do not need to request a render for all models but it is currently the
+    // only point subclasses can override to disable the layoutlib render behaviour.
+    requestRender()
+      .whenCompleteAsync((result, ex) -> {
+        reactivateInteractionManager();
+        zoomToFit();
+
+        for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+          listener.modelChanged(this, model);
+        }
+      }, EdtExecutor.INSTANCE);
   }
 
   /**
@@ -403,22 +414,22 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (model != null) {
       addModelImpl(model);
+
+      requestRender()
+        .whenCompleteAsync((result, ex) -> {
+          reactivateInteractionManager();
+          zoomToFit();
+
+          // TODO: The listeners have the expectation of the call happening in the EDT. We need
+          //       to address that.
+          for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+            listener.modelChanged(this, model);
+          }
+        }, EdtExecutor.INSTANCE);
+      
       if (myIsActive) {
         model.activate(this);
       }
-    }
-
-    reactivateInteractionManager();
-    zoomToFit();
-    if (model != null) {
-      // Request a new render and notify the listeners after the render has completed
-      // TODO: The listeners have the expectation of the call happening in the EDT. We need
-      //       to address that.
-      requestRender().whenCompleteAsync((result, ex) -> {
-        for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-          listener.modelChanged(this, model);
-        }
-      }, EdtExecutor.INSTANCE);
     }
   }
 
