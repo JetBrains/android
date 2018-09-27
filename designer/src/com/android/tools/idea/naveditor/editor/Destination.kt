@@ -204,7 +204,7 @@ sealed class Destination : Comparable<Destination> {
 
       val tag = parent.tag.createChildTag("fragment", null, null, true)
       val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
-      newComponent.assignId()
+      newComponent.assignId("placeholder")
       if (parent.startDestinationId == null) {
         newComponent.setAsStartDestination()
       }
