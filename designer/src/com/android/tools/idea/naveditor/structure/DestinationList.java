@@ -86,7 +86,8 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     FRAGMENT, ColoredIconGenerator.INSTANCE.generateWhiteIcon(FRAGMENT),
     INCLUDE_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(INCLUDE_GRAPH),
     ACTIVITY, ColoredIconGenerator.INSTANCE.generateWhiteIcon(ACTIVITY),
-    NESTED_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(NESTED_GRAPH));
+    NESTED_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(NESTED_GRAPH),
+    PLACEHOLDER, ColoredIconGenerator.INSTANCE.generateWhiteIcon(PLACEHOLDER));
 
   DestinationList(@NotNull Disposable parentDisposable, @NotNull NavDesignSurface surface) {
     myDesignSurface = surface;
@@ -114,11 +115,14 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         if (NavComponentHelperKt.isInclude(component)) {
           icon = INCLUDE_GRAPH;
         }
-        else if (NavComponentHelperKt.isActivity(component)) {
-          icon = ACTIVITY;
-        }
         else if (NavComponentHelperKt.isNavigation(component)) {
           icon = NESTED_GRAPH;
+        }
+        else if (NavComponentHelperKt.getClassName(component) == null) {
+          icon = PLACEHOLDER;
+        }
+        else if (NavComponentHelperKt.isActivity(component)) {
+          icon = ACTIVITY;
         }
         if (isSelected && list.hasFocus()) {
           icon = WHITE_ICONS.get(icon);
