@@ -320,13 +320,29 @@ public class ResourceRepositoryManager implements Disposable {
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (TEST_APP_RESOURCES_LOCK) {
         if (myTestAppResources == null) {
-          // TODO(b/116692965): Include local and library dependencies.
-          myTestAppResources = ModuleResourceRepository.forTestResources(myFacet);
+          myTestAppResources = computeTestAppResources();
           Disposer.register(this, myTestAppResources);
         }
         return myTestAppResources;
       }
     });
+  }
+
+  @NotNull
+  private LocalResourceRepository computeTestAppResources() {
+    LocalResourceRepository moduleTestResources = ModuleResourceRepository.forTestResources(myFacet);
+    if (getNamespacing() == AaptOptions.Namespacing.REQUIRED) {
+      // TODO(namespaces): Confirm that's how test resources will work.
+      return moduleTestResources;
+    }
+
+    // TODO(b/116692965): Do it properly for other build systems.
+    AndroidModuleModel model = AndroidModuleModel.get(myFacet);
+    if (model == null) {
+      return moduleTestResources;
+    }
+
+    return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
   }
 
   /**
