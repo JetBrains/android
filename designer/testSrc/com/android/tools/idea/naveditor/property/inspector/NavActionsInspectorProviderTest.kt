@@ -30,11 +30,16 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import java.awt.Component
 import java.awt.Container
+import java.awt.event.FocusEvent
 import java.awt.event.MouseEvent
 
 class NavActionsInspectorProviderTest : NavTestCase() {
@@ -214,9 +219,14 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     val actionsList = flatten(panel).find { it.name == NAV_LIST_COMPONENT_NAME }!! as JBList<NlProperty>
     actionsList.addSelectionInterval(1, 1)
 
-    val highlightedTargets = model.surface.scene!!.getSceneComponent("f1")!!.targets!!.filter { it is ActionTarget && it.isHighlighted }
+    var highlightedTargets = model.surface.scene!!.getSceneComponent("f1")!!.targets!!.filter { it is ActionTarget && it.isHighlighted }
     assertEquals(1, highlightedTargets.size)
     assertEquals("a1", (highlightedTargets[0] as ActionTarget).id)
+
+    actionsList.focusListeners.forEach { it.focusLost(FocusEvent(actionsList, FocusEvent.FOCUS_LOST)) }
+
+    highlightedTargets = model.surface.scene!!.getSceneComponent("f1")!!.targets!!.filter { it is ActionTarget && it.isHighlighted }
+    assertEmpty(highlightedTargets)
   }
 
   fun testPlusContents() {
