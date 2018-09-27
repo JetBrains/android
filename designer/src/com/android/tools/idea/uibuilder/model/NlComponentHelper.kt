@@ -15,7 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ANDROID_VIEW_PKG
+import com.android.SdkConstants.ANDROID_WEBKIT_PKG
+import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_MOCKUP
+import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.SdkConstants.PreferenceTags
+import com.android.SdkConstants.REQUEST_FOCUS
+import com.android.SdkConstants.SPACE
+import com.android.SdkConstants.TAG_GROUP
+import com.android.SdkConstants.TAG_ITEM
+import com.android.SdkConstants.TAG_MENU
+import com.android.SdkConstants.TAG_SELECTOR
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.SdkConstants.VIEW
+import com.android.SdkConstants.VIEW_INCLUDE
+import com.android.SdkConstants.VIEW_MERGE
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
@@ -30,7 +51,11 @@ import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.api.*
+import com.android.tools.idea.uibuilder.api.DragHandler
+import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
@@ -266,7 +291,9 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
       viewClass = viewClass.superclass
     }
   }
-  return false
+
+  // We do not have viewInfo but we can still try to exactly match the tag name
+  return className == tagName
 }
 
 /**
