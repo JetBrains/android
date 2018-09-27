@@ -797,6 +797,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/116794726
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -999,6 +1000,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/111889561
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1110,6 +1112,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/115685973
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1151,6 +1154,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/116793860
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1171,6 +1175,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/116801839
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1231,6 +1236,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/115539594
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1251,6 +1257,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
+        "qa_unreliable",  # b/115567466
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
