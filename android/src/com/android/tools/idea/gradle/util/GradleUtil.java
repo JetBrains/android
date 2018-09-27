@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
+import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
@@ -86,6 +87,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -918,12 +920,12 @@ public final class GradleUtil {
       if (FileUtil.namesEqual(folder.getParentFile().getName(), FD_RES_CLASS)) {
         // Naming convention used in 3.1 and below.
         return filesEqual(folder.getParentFile().getParentFile(),
-                          new File(generatedFolder, "source"));
+                          new File(generatedFolder, FD_SOURCE_GEN));
       }
       else if (FileUtil.namesEqual(folder.getName(), FD_RES_CLASS)) {
         // Naming convention used in 3.2 and above.
         return filesEqual(folder.getParentFile().getParentFile().getParentFile(),
-                          new File(generatedFolder, "not_namespaced_r_class_sources"));
+                          new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
       }
       else {
         return false;
