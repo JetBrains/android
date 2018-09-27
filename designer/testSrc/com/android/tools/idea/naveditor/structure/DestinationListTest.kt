@@ -120,7 +120,7 @@ class DestinationListTest : NavTestCase() {
   }
 
   fun testModifyModel() {
-    /*lateinit*/ var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+    lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
     val modelBuilder = modelBuilder("nav.xml") {
       navigation("root") {
         fragment("fragment1")
@@ -136,7 +136,7 @@ class DestinationListTest : NavTestCase() {
     assertEquals(ImmutableList.of(model.find("fragment1")!!, model.find("fragment2")!!),
                  Collections.list(list.myUnderlyingModel.elements()))
 
-    root!!.fragment("fragment3")
+    root.fragment("fragment3")
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
 
@@ -175,9 +175,9 @@ class DestinationListTest : NavTestCase() {
   fun testRendering() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment2") {
-        fragment("fragment1", label = "fragmentLabel")
+        fragment("fragment1", label = "fragmentLabel", name = "myClass")
         fragment("fragment2")
-        activity("activity")
+        activity("activity", name = "myClass2")
         navigation("nav1", label = "navName")
         navigation("nav2")
         include("navigation")
@@ -195,11 +195,11 @@ class DestinationListTest : NavTestCase() {
     for (i in 0 until list.myList.itemsCount) {
       val component = renderer.getListCellRendererComponent(list.myList, list.myList.model.getElementAt(i), i, false, false)
           as ColoredListCellRenderer<*>
-      result.put(component.toString(), component.icon)
+      result[component.toString()] = component.icon
     }
 
     assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result["fragment1"])
-    assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result["fragment2 - Start"])
+    assertEquals(StudioIcons.NavEditor.Tree.PLACEHOLDER, result["fragment2 - Start"])
     assertEquals(StudioIcons.NavEditor.Tree.ACTIVITY, result["activity"])
     assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result["nav1"])
     assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result["nav2"])
