@@ -1015,18 +1015,39 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
+   * @see #addComponents(List, NlComponent, NlComponent, InsertType, DesignSurface, Runnable)
    */
   public void addComponents(@NotNull List<NlComponent> toAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface) {
+    addComponents(toAdd, receiver, before, insertType, surface, null);
+  }
+
+  /**
+   * Adds components to the specified receiver before the given sibling with callback
+   * If insertType is a move the components specified should be components from this model.
+   *
+   * @param callback Used to update the attribute. It will undo and redo with component adding action.
+   * @see #addComponents(List, NlComponent, NlComponent, InsertType, DesignSurface)
+   */
+  public void addComponents(@NotNull List<NlComponent> toAdd,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            @NotNull InsertType insertType,
+                            @Nullable DesignSurface surface,
+                            @Nullable Runnable callback) {
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
 
-    NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
-                             () -> handleAddition(toAdd, receiver, before, insertType, surface));
+    NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+      handleAddition(toAdd, receiver, before, insertType, surface);
+      if (callback != null) {
+        callback.run();
+      }
+    });
 
     notifyModified(ChangeType.ADD_COMPONENTS);
   }

@@ -199,8 +199,9 @@ class CommonDragTarget : BaseTarget() {
       val attributes = nlComponent.startAttributeTransaction()
       placeholder.updateAttribute(myComponent, attributes)
       if (commit) {
-        NlWriteCommandAction.run(componentsToAdd, "Drag ${nlComponent.tagName}") { attributes.commit() }
-        model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
+        model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface) {
+          attributes.commit()
+        }
       }
       else {
         attributes.apply()
