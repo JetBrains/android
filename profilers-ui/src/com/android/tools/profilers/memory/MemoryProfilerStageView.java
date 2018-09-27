@@ -522,16 +522,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setIconMapper(durationData -> {
             LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
               .getModeFromFrequency(durationData.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval());
-            switch (mode) {
-              // TODO(b/116430034): use real icons when they're done.
-              case FULL:
-                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
-              case SAMPLED:
-                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
-              case NONE:
-                return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
-            }
-            throw new AssertionError("Unhandled sampling mode: " + mode);
+            return getIconForSamplingMode(mode);
           })
         .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
                            StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f)
@@ -621,6 +612,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     layout.setRowSizing(1, "*"); // Give monitor as much space as possible
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
     return panel;
+  }
+
+  static Icon getIconForSamplingMode(LiveAllocationSamplingMode mode) {
+    // TODO(b/116430034): use real icons when they're done.
+    switch (mode) {
+      case FULL:
+        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+      case SAMPLED:
+        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+      case NONE:
+        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+    }
+    throw new AssertionError("Unhandled sampling mode: " + mode);
   }
 
   private void buildContextMenu() {
