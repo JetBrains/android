@@ -65,12 +65,12 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
 
   init {
     val connection = module.project.messageBus.connect()
-    connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before.Adapter() {
+    connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before {
       override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
         if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it) } == true) {
           for (editor in source.getAllEditors(file).filterIsInstance<NlEditor>()) {
             val layoutPositions = storage.state[file.name] ?: continue
-            editor.component.surface.model?.let { rectifyIds(it.components.flatMap { it.children }, layoutPositions) }
+            editor.component.surface.model?.let { rectifyIds(it.components.flatMap { c -> c.children }, layoutPositions) }
           }
         }
       }
@@ -101,9 +101,12 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     var positions = tagPositionMap[tag]
     if (positions == null) {
       reload(component.nlComponent.model.file, true)
-      positions = tagPositionMap[SmartPointerManager.createPointer(component.nlComponent.tag)] ?: return false
+      positions = tagPositionMap[SmartPointerManager.createPointer(component.nlComponent.tag)]
     }
-    val location = positions.myPosition ?: return false
+    if (positions == null) {
+      positions = tryToFindNewNestedGraphPosition(component)
+    }
+    val location = positions?.myPosition ?: return false
     component.setPosition(location.x, location.y)
     return true
   }
@@ -142,7 +145,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       return
     }
     val newPoint = Point(component.drawX, component.drawY)
-    val oldPoint = getPositions(component)?.myPosition
+    val oldPoint = getPositions(component).myPosition
     if (oldPoint != newPoint) {
       val model = component.nlComponent.model
       if (oldPoint != null) {
@@ -169,7 +172,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
         }
       }
       val newPositions = getPositions(component)
-      newPositions?.myPosition = newPoint
+      newPositions.myPosition = newPoint
       tagPositionMap.inverse().remove(newPositions)
       tagPositionMap[component.nlComponent.tagPointer] = newPositions
       val fileName = component.nlComponent.model.virtualFile.name
@@ -177,7 +180,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     }
   }
 
-  private fun getPositions(component: SceneComponent): LayoutPositions? {
+  private fun getPositions(component: SceneComponent): LayoutPositions {
     val tag = component.nlComponent.tagPointer
     var componentPositions = tagPositionMap[tag]
     if (componentPositions == null) {
@@ -186,7 +189,32 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       val path: List<String?> = nlComponent.idPath
       componentPositions = getPositionsFromPath(path)
     }
+    if (componentPositions.myPosition == null) {
+      componentPositions = tryToFindNewNestedGraphPosition(component) ?: componentPositions
+    }
     return componentPositions
+  }
+
+  private fun tryToFindNewNestedGraphPosition(component: SceneComponent): ManualLayoutAlgorithm.LayoutPositions? {
+    val nlComponent = component.nlComponent
+    if (!nlComponent.isNavigation) {
+      return null
+    }
+    val idPath = nlComponent.idPath
+    val pathPrefix: List<String?> = idPath.let { it.subList(0, it.size - 1) }
+    val averagePoint = Point()
+    val children = nlComponent.children
+    if (children.isEmpty()) {
+      return null
+    }
+    children.filter { it.isDestination }.forEach {
+      val oldChildPosition = maybeGetPositionsFromPath(pathPrefix.plus(it.id))?.myPosition ?: return null
+      averagePoint.x += oldChildPosition.x / children.size
+      averagePoint.y += oldChildPosition.y / children.size
+    }
+    return getPositionsFromPath(idPath).also {
+      it.myPosition = averagePoint
+    }
   }
 
   private fun getPositionsFromPath(pathWithNulls: List<String?>): LayoutPositions {
@@ -199,6 +227,15 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
         positions.put(parentId, newPositions)
       }
       positions = newPositions
+    }
+    return positions
+  }
+
+  private fun maybeGetPositionsFromPath(pathWithNulls: List<String?>): LayoutPositions? {
+    val path = pathWithNulls.map { it ?: "_null" }
+    var positions = storage.state
+    for (parentId in path) {
+      positions = positions[parentId] ?: return null
     }
     return positions
   }
