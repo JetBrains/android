@@ -85,7 +85,7 @@ public class CLionIntegrationTest {
     // Check code completion.
     editor.moveBetween("int kid_age = 3;", "").enterText("\nBUFFER");
     ideFrame.invokeMenuPath("Code", "Completion", "Basic");
-    Wait.seconds(5).expecting("")
+    Wait.seconds(20).expecting("")
       .until(() -> editor.getCurrentLine().contains("BUFFER_OFFSET"));
 
     // Complete the new statement.
