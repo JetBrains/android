@@ -41,16 +41,16 @@ typealias OutOfDateTester = (module: Module, fqcn: String, classFile: VirtualFil
 
 /**
  * Converts a selection of variants from an [com.android.projectmodel.AndroidModel] into an [AndroidModel].
- * Note that the [AndroidModel] interface was only intended to represent a single [AndroidProject],
- * but the [com.android.projectmodel.AndroidModel] type may contain multiple [AndroidProject] instances.
+ * Note that the [AndroidModel] interface was only intended to represent a single [AndroidSubmodule],
+ * but the [com.android.projectmodel.AndroidModel] type may contain multiple [AndroidSubmodule] instances.
  *
- * In the event that there is exactly one [Variant] selected from the [AndroidProject], the conversion
+ * In the event that there is exactly one [Variant] selected from the [AndroidSubmodule], the conversion
  * will be exact. If there is more than one selected [Variant], this adapter will use heuristics to
  * make the multiple projects appear to be a single model (it may aggregate the projects,
  * use data from the first project, etc.) but in such situations the conversion will be imperfect.
  *
- * The fix for such imperfect conversions is to remove the code that assumes a single [AndroidProject]
- * per [Module] and obtain information directly from the [AndroidProject] rather than from this adapter.
+ * The fix for such imperfect conversions is to remove the code that assumes a single [AndroidSubmodule]
+ * per [Module] and obtain information directly from the [AndroidSubmodule] rather than from this adapter.
  * Such fixes can't be made in the adapter itself due to the contradictory API contracts.
  *
  * Any number of variants can be selected simultaneously. For gradle projects, the normal case is for a
@@ -92,7 +92,7 @@ data class AndroidModelAdapter(
   private val generatedPaths = input.model.generatedPaths()
 
   /**
-   * Return a source provider containing the sources from all [AndroidProject] instances in the model
+   * Return a source provider containing the sources from all [AndroidSubmodule] instances in the model
    * that apply to all variants.
    */
   @Deprecated("")
@@ -149,7 +149,7 @@ data class AndroidModelAdapter(
   override fun getDataBindingMode(): DataBindingMode = dataBindingMode(input)
 
   override fun getNamespacing(): AaptOptions.Namespacing
-    = input.selectedVariants().firstOrNull()?.project?.namespacing?.toAaptOptionsNamespacing() ?: AaptOptions.Namespacing.DISABLED
+    = input.selectedVariants().firstOrNull()?.submodule?.namespacing?.toAaptOptionsNamespacing() ?: AaptOptions.Namespacing.DISABLED
 
   override fun getClassJarProvider(): ClassJarProvider = classJars
 
@@ -181,7 +181,7 @@ fun dataBindingMode(model: AndroidModelSubset): DataBindingMode {
  * Returns all generated paths for the given model. The keys and values are equal in the resulting map.
  */
 fun com.android.projectmodel.AndroidModel.generatedPaths(): PathMap<PathString>
-  = this.projects.flatMap { it.generatedPaths }.associateBy { it }.toPathTreeMap()
+  = this.submodules.flatMap { it.generatedPaths }.associateBy { it }.toPathTreeMap()
 
 /**
  * Returns the min SDK version for the selected variants within the given model.
@@ -191,7 +191,7 @@ fun getMinSdkVersion(input: AndroidModelSubset) : AndroidVersion? {
     artifactContext.artifact.resolved.manifestValues.compileSdkVersion?.let { minSdkVersion ->
       // If this version has a codename, try to find the most specific override without a codename
       if (minSdkVersion.codename != null) {
-        artifactContext.project.configTable
+        artifactContext.submodule.configTable
           .configsIntersecting(artifactContext.variant.configPath)
           .reversed().mapNotNull {
             it.manifestValues.compileSdkVersion
@@ -203,7 +203,7 @@ fun getMinSdkVersion(input: AndroidModelSubset) : AndroidVersion? {
 }
 
 fun getAllApplicationIds(model: com.android.projectmodel.AndroidModel): Set<String>
-  = model.projects.flatMap { it.variants }.flatMap { it.artifacts.mapNotNull {it.resolved.manifestValues.applicationId } }.toSet()
+  = model.submodules.flatMap { it.variants }.flatMap { it.artifacts.mapNotNull {it.resolved.manifestValues.applicationId } }.toSet()
 
 /**
  * Attempts to guess a representative application ID for the given model. If the model contains multiple application IDs, this returns the
@@ -220,5 +220,5 @@ fun guessApplicationIdFor(model: AndroidModelSubset): String {
  * Returns the set of [Config] for the given model which apply globally.
  */
 fun defaultConfigsFor(model:com.android.projectmodel.AndroidModel): List<Config> {
-  return model.projects.flatMap { it.configTable.filter { it.path.matchesEverything }.configs }
+  return model.submodules.flatMap { it.configTable.filter { it.path.matchesEverything }.configs }
 }

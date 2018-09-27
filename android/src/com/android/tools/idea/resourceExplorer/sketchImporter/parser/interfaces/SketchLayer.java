@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchExportOptions;
 import com.google.gson.annotations.SerializedName;
 import java.awt.Rectangle;
@@ -38,7 +39,7 @@ public abstract class SketchLayer {
 
   public static final int BOOLEAN_OPERATION_NONE = -1;
   public static final int BOOLEAN_OPERATION_UNION = 0;
-  public static final int BOOLEAN_OPERATION_SUBSTRACTION = 1;
+  public static final int BOOLEAN_OPERATION_SUBTRACTION = 1;
   public static final int BOOLEAN_OPERATION_INTERSECTION = 2;
   public static final int BOOLEAN_OPERATION_DIFFERENCE = 3;
   protected final boolean shouldBreakMaskChain;
@@ -58,6 +59,7 @@ public abstract class SketchLayer {
    * [0, 359] is sometimes equivalent to [0, 180] ∪ [-179, -1] with no apparent rule
    */
   private final int rotation;
+  private final ResizingConstraint resizingConstraint;
 
   public SketchLayer(@NotNull String classType,
                      @NotNull String objectId,
@@ -69,7 +71,8 @@ public abstract class SketchLayer {
                      boolean isVisible,
                      @NotNull String name,
                      int rotation,
-                     boolean shouldBreakMaskChain) {
+                     boolean shouldBreakMaskChain,
+                     @NotNull ResizingConstraint resizingConstraint) {
     this.classType = classType;
     this.objectId = objectId;
     this.booleanOperation = booleanOperation;
@@ -81,6 +84,7 @@ public abstract class SketchLayer {
     this.name = name;
     this.rotation = rotation;
     this.shouldBreakMaskChain = shouldBreakMaskChain;
+    this.resizingConstraint = resizingConstraint;
   }
 
   @NotNull
@@ -130,6 +134,11 @@ public abstract class SketchLayer {
 
   public boolean shouldBreakMaskChain() {
     return shouldBreakMaskChain;
+  }
+
+  @NotNull
+  public ResizingConstraint getResizingConstraint() {
+    return resizingConstraint;
   }
 }
 

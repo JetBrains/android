@@ -258,16 +258,16 @@ public class BottomUpNodeTest {
 
     BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals("A")).findAny().orElseThrow(AssertionError::new);
     nodeA.update(new Range(0, 100));
-    assertEquals(100, nodeA.getTotal(), EPS);
-    assertEquals(61, nodeA.getChildrenTotal(), EPS);
+    assertEquals(100, nodeA.getGlobalTotal(), EPS);
+    assertEquals(61, nodeA.getGlobalChildrenTotal(), EPS);
 
     nodeA.update(new Range(21, 40));
-    assertEquals(19, nodeA.getTotal(), EPS);
-    assertEquals(16, nodeA.getChildrenTotal(), EPS);
+    assertEquals(19, nodeA.getGlobalTotal(), EPS);
+    assertEquals(16, nodeA.getGlobalChildrenTotal(), EPS);
 
     nodeA.update(new Range(66, 71));
-    assertEquals(5, nodeA.getTotal(), EPS);
-    assertEquals(1, nodeA.getChildrenTotal(), EPS);
+    assertEquals(5, nodeA.getGlobalTotal(), EPS);
+    assertEquals(1, nodeA.getGlobalChildrenTotal(), EPS);
   }
 
   /**
@@ -358,8 +358,8 @@ public class BottomUpNodeTest {
     for (int i = 0; i < expected.size(); ++i) {
       BottomUpNode node = actual.get(i);
       assertEquals(expected.get(i).myId, node.getId());
-      assertEquals(expected.get(i).myTotal, node.getTotal(), EPS);
-      assertEquals(expected.get(i).myChildrenTotal, node.getChildrenTotal(), EPS);
+      assertEquals(expected.get(i).myTotal, node.getGlobalTotal(), EPS);
+      assertEquals(expected.get(i).myChildrenTotal, node.getGlobalChildrenTotal(), EPS);
       assertEquals(expected.get(i).myIsUnmatch, node.isUnmatched());
     }
   }

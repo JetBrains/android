@@ -62,7 +62,7 @@ class HostPanelTest : NavTestCase() {
     val model = model("nav.xml") { navigation() }
     val panel = HostPanel(model.surface as NavDesignSurface)
 
-    val references = panel.findReferences(model.file)
+    val references = findReferences(model.file)
     assertEquals(1, references.size)
     assertEquals("file1.xml", references[0].containingFile.name)
     assertEquals(174, references[0].textOffset)

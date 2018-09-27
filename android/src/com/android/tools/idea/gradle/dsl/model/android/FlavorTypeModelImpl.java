@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
+
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -28,16 +33,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 
 /**
  * Common base class for {@link BuildTypeModelImpl} and {@link ProductFlavorModelImpl}.
@@ -52,6 +51,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls private static final String MULTI_DEX_KEEP_FILE = "multiDexKeepFile";
   @NonNls private static final String MULTI_DEX_KEEP_PROGUARD = "multiDexKeepProguard";
   @NonNls private static final String PROGUARD_FILES = "proguardFiles";
+  @NonNls private static final String SET_PROGUARD_FILES = "setProguardFiles";
   @NonNls private static final String RES_VALUE = "resValue";
   @NonNls private static final String SIGNING_CONFIG = "signingConfig";
   @NonNls private static final String USE_JACK = "useJack";
@@ -151,7 +151,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel multiDexKeepProguard() {
     return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_PROGUARD).asMethod(true).addTransform(FILE_TRANSFORM)
-      .buildResolved();
+                                     .buildResolved();
   }
 
   @Override
@@ -309,7 +309,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer, @NotNull String elementName) {
     List<T> result = Lists.newArrayList();
-    for (GradleDslElement element :  myDslElement.getPropertyElementsByName(elementName)) {
+    for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
       if (element instanceof GradleDslExpressionList) {
         GradleDslExpressionList list = (GradleDslExpressionList)element;
         T value = producer.apply(list);

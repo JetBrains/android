@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
@@ -25,21 +27,18 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import org.intellij.lang.annotations.Language;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.assertEquals;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import org.intellij.lang.annotations.Language;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public final class TranslationsEditorTest {
   @Rule
@@ -95,7 +94,7 @@ public final class TranslationsEditorTest {
                              .map(TableColumn::getHeaderValue)
                              .collect(Collectors.toList());
 
-    assertEquals(Arrays.asList("Untranslatable", "Default Value", "Abkhazian (ab)", "Achinese (ace)"), values);
+    assertEquals(Arrays.asList("Abkhazian (ab)", "Achinese (ace)"), values);
   }
 
   @Test

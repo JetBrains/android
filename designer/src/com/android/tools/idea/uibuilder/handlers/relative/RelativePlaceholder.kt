@@ -17,24 +17,18 @@ package com.android.tools.idea.uibuilder.handlers.relative
 
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
-import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDropHandler
 import java.awt.Point
 
 class RelativePlaceholder(host: SceneComponent) : Placeholder(host) {
 
-  override val region = Region(host.drawX, host.drawY, host.drawX + host.drawWidth, host.drawY + host.drawHeight, host.depth)
+  private val delegator = ViewGroupPlaceholder(host)
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
-    // TODO: snap when auto-connection.
-    if (region.left <= left && region.top <= top && region.right >= right && region.bottom >= bottom) {
-      retPoint.x = left
-      retPoint.y = top
-      return true
-    }
-    return false
-  }
+  override val region = delegator.region
+
+  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point) = delegator.snap(left, top, right, bottom, retPoint)
 
   /**
    * TODO: implement the auto connection

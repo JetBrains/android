@@ -141,7 +141,7 @@ class CpuProfilerConfigModelTest {
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
     assertThat(customConfigs[1].profilerType).isEqualTo(CpuProfilerType.ATRACE)
     assertThat(customConfigs[1].name).isEqualTo("System Trace")
-    assertThat(customConfigs[1].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.M)
+    assertThat(customConfigs[1].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.O)
     assertThat(customConfigs[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
     assertThat(customConfigs[2].name).isEqualTo("Simpleperf")
     assertThat(customConfigs[2].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.O)

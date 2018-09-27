@@ -70,7 +70,7 @@ class CpuCaptureSessionArtifactTest {
       .build()
     myCpuService.addTraceInfo(artSampledTraceInfo)
     mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingConfiguration.ART_SAMPLED_NAME)
+    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
   }
 
   @Test
@@ -82,7 +82,7 @@ class CpuCaptureSessionArtifactTest {
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(artInstrumentedTraceInfo)
     mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED_NAME)
+    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED.getName())
   }
 
   @Test
@@ -94,7 +94,7 @@ class CpuCaptureSessionArtifactTest {
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(artImportedTraceInfo)
     mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingConfiguration.ART_UNSPECIFIED_NAME)
+    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED.getName())
   }
 
   @Test
@@ -103,7 +103,7 @@ class CpuCaptureSessionArtifactTest {
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(simpleperfTraceInfo)
     mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingConfiguration.SIMPLEPERF_NAME)
+    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
   }
 
   @Test
@@ -112,7 +112,7 @@ class CpuCaptureSessionArtifactTest {
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(atraceInfo)
     mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingConfiguration.ATRACE_NAME)
+    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ATRACE.getName())
   }
 
   @Test

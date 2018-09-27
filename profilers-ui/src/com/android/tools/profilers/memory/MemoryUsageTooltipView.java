@@ -48,6 +48,7 @@ class MemoryUsageTooltipView extends ProfilerTooltipView {
       legend.configure(legends.getOtherLegend(), new LegendConfig(IconType.BOX, ProfilerColors.MEMORY_OTHERS_CAPTURED));
       legend.configure(legends.getObjectsLegend(), new LegendConfig(IconType.DASHED_LINE, ProfilerColors.MEMORY_OBJECTS_CAPTURED));
       legend.configure(legends.getGcDurationLegend(), new LegendConfig(IconType.NONE, ProfilerColors.MEMORY_OBJECTS_CAPTURED));
+      legend.configure(legends.getSamplingRateDurationLegend(), new LegendConfig(IconType.NONE, ProfilerColors.MEMORY_OBJECTS_CAPTURED));
     }
     else {
       legend.configure(legends.getJavaLegend(), new LegendConfig(IconType.BOX, ProfilerColors.MEMORY_JAVA));

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
@@ -47,7 +48,8 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val tagName = getTagName(properties) ?: return
     if (tagName in TAG_EXCEPTIONS) return
-    val handler = viewHandlerManager.getHandler(tagName) ?: return
+    val firstComponent = getFirstComponent(properties) ?: return
+    val handler = viewHandlerManager.getHandler(firstComponent) ?: return
 
     val attributes = handler.inspectorProperties
     val custom = setupCustomPanel(tagName, properties)
@@ -69,28 +71,33 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
 
   private fun findProperty(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
     // TODO: Handle other namespaces
-    val property = findPropertyByName(StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX), properties)
+    val attrName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX)
+    val property = findPropertyByName(attrName, properties)
     val isDesignProperty = propertyName.startsWith(TOOLS_NS_NAME_PREFIX)
-    return if (isDesignProperty) property?.designProperty else property
+    return if (isDesignProperty) property?.designProperty ?: properties.getOrNull(TOOLS_URI, attrName) else property
   }
 
-  private fun findPropertyByName(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
-    if (propertyName == ATTR_SRC) {
+  private fun findPropertyByName(attrName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
+    if (attrName == ATTR_SRC) {
       val srcCompat = properties.getOrNull(AUTO_URI, ATTR_SRC_COMPAT)
       if (srcCompat != null) {
         return srcCompat
       }
     }
     // TODO: Handle other namespaces
-    return properties.getOrNull(ANDROID_URI, propertyName)
-           ?: properties.getOrNull(AUTO_URI, propertyName)
-           ?: properties.getOrNull("", propertyName)
+    return properties.getOrNull(ANDROID_URI, attrName)
+           ?: properties.getOrNull(AUTO_URI, attrName)
+           ?: properties.getOrNull("", attrName)
   }
 
   private fun getTagName(properties: PropertiesTable<NelePropertyItem>): String? {
     val property = properties.first ?: return null
     val tagName = property.components.firstOrNull()?.tagName ?: return null
     return if (property.components.any { it.tagName == tagName }) tagName else null
+  }
+
+  private fun getFirstComponent(properties: PropertiesTable<NelePropertyItem>): NlComponent? {
+    return properties.first?.components?.firstOrNull()
   }
 
   private fun setupCustomPanel(tagName: String, properties: PropertiesTable<NelePropertyItem>): JPanel? {

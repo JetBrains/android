@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
-import com.android.resources.ResourceType
 import com.android.tools.idea.common.scene.SceneManager
 
 /**

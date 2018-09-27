@@ -280,6 +280,48 @@ public class RenderTaskTest extends AndroidTestCase {
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 
+  public void testAnimatedVectorDrawable() throws Exception {
+    @Language("XML")
+    final String vector = "<animated-vector\n" +
+                           "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:aapt=\"http://schemas.android.com/aapt\">\n" +
+                           "    <aapt:attr name=\"android:drawable\">\n" +
+                           "        <vector\n" +
+                           "            android:width=\"24dp\"\n" +
+                           "            android:height=\"24dp\"\n" +
+                           "            android:viewportWidth=\"24\"\n" +
+                           "            android:viewportHeight=\"24\">\n" +
+                           "            <path\n" +
+                           "                android:name=\"outline\"\n" +
+                           "                android:fillAlpha=\"0.5\"\n" +
+                           "                android:fillColor=\"#f00\"\n" +
+                           "                android:pathData=\"@string/path\"\n" +
+                           "                android:strokeColor=\"#000\"\n" +
+                           "                android:strokeWidth=\"2\" />\n" +
+                           "        </vector>\n" +
+                           "    </aapt:attr>\n" +
+                           "</animated-vector>\n";
+    @Language("XML")
+    final String path = "<resources>\n" +
+                        "    <string name=\"path\">M 12.075 19.67 L 16 19.67 C 16 18.477 16 17.283 16 16.09 L 14.125 14.21 C 13.5 13.583 12.875 12.957 12.25 12.33 C 12.875 11.707 13.5 11.083 14.125 10.46 L 16 8.59 L 16 6.795 C 16 6.197 16 5.598 16 5 L 8 5 C 8 5.598 8 6.197 8 6.795 L 8 8.59 C 9.25 9.837 10.5 11.083 11.75 12.33 C 11.125 12.955 10.5 13.58 9.875 14.205 L 8 16.08 C 8 17.277 8 18.473 8 19.67 L 12.075 19.67</string>\n" +
+                        "</resources>\n";
+    VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
+                                                          vector).getVirtualFile();
+    myFixture.addFileToProject("res/values/strings.xml", path);
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, drawableFile, configuration, logger);
+    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+    BufferedImage result = task.renderDrawable(resourceValue).get();
+    assertNotNull(result);
+
+    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-golden.png"));
+    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, 0.1);
+
+    task.dispose().get(5, TimeUnit.SECONDS);
+  }
+
   public void testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
     @Language("XML")
     final String content= "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

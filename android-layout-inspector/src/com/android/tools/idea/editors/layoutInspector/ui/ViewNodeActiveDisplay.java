@@ -192,7 +192,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     float l =
       leftShift + (info.getLeft() + info.getTranslateX()) * scaleX + info.getWidth() * (scaleX - newScaleX) / 2;
     float t =
-      topShift + (info.getTop() + info.getTranslateX()) * scaleY + info.getHeight() * (scaleY - newScaleY) / 2;
+      topShift + (info.getTop() + info.getTranslateY()) * scaleY + info.getHeight() * (scaleY - newScaleY) / 2;
 
     node.getPreviewBox().setBounds(
       (int)(l * drawScale),

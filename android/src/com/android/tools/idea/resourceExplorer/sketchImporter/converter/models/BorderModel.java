@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.DEFAULT_OPACITY;
+import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.InheritedProperties.DEFAULT_OPACITY;
 
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Class that holds the intermediate model for the border of a ShapeModel. Needed for modifying its opacity
  * without affecting the SketchModel.
  */
-public class BorderModel implements TransparentModel{
+public class BorderModel implements TransparentModel {
   private int myWidth;
   @NotNull private Color myColor;
 

@@ -43,17 +43,15 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 import java.io.File
 import javax.xml.ws.Holder
 
 class DependencyManagerTest : AndroidTestCase() {
-  private var myPanel: PalettePanel? = null
-  private var myDisposable: Disposable? = null
-  private var myPalette: Palette? = null
-  private var myManager: DependencyManager? = null
+  private var panel: PalettePanel? = null
+  private var palette: Palette? = null
+  private var disposable: Disposable? = null
+  private var dependencyManager: DependencyManager? = null
+  private var dependencyUpdateCount = 0
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -61,27 +59,30 @@ class DependencyManagerTest : AndroidTestCase() {
     val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME, testProjectSystem,
                                                                      testRootDisposable)
+    panel = mock(PalettePanel::class.java)
+    palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT)
+    disposable = Disposer.newDisposable()
+    Disposer.register(testRootDisposable, disposable!!)
 
-    myPanel = mock(PalettePanel::class.java)
-    myDisposable = mock(Disposable::class.java)
-    myPalette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT)
-
-    myManager = DependencyManager(project)
-    myManager!!.registerDependencyUpdates(myPanel!!, myDisposable!!)
-    myManager!!.setPalette(myPalette!!, myModule)
+    dependencyManager = DependencyManager(project)
+    if (getTestName(true) != "noNotificationOnProjectSyncBeforeSetPalette") {
+      dependencyManager!!.setPalette(palette!!, myModule)
+    }
+    Disposer.register(disposable!!, dependencyManager!!)
+    dependencyManager!!.addDependencyChangeListener { dependencyUpdateCount++ }
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
     try {
-      Disposer.dispose(myDisposable!!)
       AndroidModuleInfo.setInstanceForTest(myFacet, null)
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
-      myPalette = null
-      myPanel = null
-      myManager = null
-      myDisposable = null
+      Disposer.dispose(disposable!!)
+      palette = null
+      panel = null
+      dependencyManager = null
+      disposable = null
     }
     finally {
       super.tearDown()
@@ -89,47 +90,47 @@ class DependencyManagerTest : AndroidTestCase() {
   }
 
   fun testNeedsLibraryLoad() {
-    assertThat(myManager!!.needsLibraryLoad(findItem(TEXT_VIEW))).isFalse()
-    assertThat(myManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON.defaultName()))).isTrue()
+    assertThat(dependencyManager!!.needsLibraryLoad(findItem(TEXT_VIEW))).isFalse()
+    assertThat(dependencyManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON.defaultName()))).isTrue()
   }
 
   fun testEnsureLibraryIsIncluded() {
     val (floatingActionButton, recyclerView, cardView) =
         listOf(FLOATING_ACTION_BUTTON.defaultName(), RECYCLER_VIEW.defaultName(), CARD_VIEW.defaultName()).map(this::findItem)
 
-    assertThat(myManager!!.needsLibraryLoad(floatingActionButton)).isTrue()
-    assertThat(myManager!!.needsLibraryLoad(recyclerView)).isTrue()
-    assertThat(myManager!!.needsLibraryLoad(cardView)).isTrue()
+    assertThat(dependencyManager!!.needsLibraryLoad(floatingActionButton)).isTrue()
+    assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
+    assertThat(dependencyManager!!.needsLibraryLoad(cardView)).isTrue()
 
-    myManager!!.ensureLibraryIsIncluded(floatingActionButton)
-    myManager!!.ensureLibraryIsIncluded(cardView)
+    dependencyManager!!.ensureLibraryIsIncluded(floatingActionButton)
+    dependencyManager!!.ensureLibraryIsIncluded(cardView)
     simulateProjectSync()
 
-    assertThat(myManager!!.needsLibraryLoad(floatingActionButton)).isFalse()
-    assertThat(myManager!!.needsLibraryLoad(recyclerView)).isTrue()
-    assertThat(myManager!!.needsLibraryLoad(cardView)).isFalse()
+    assertThat(dependencyManager!!.needsLibraryLoad(floatingActionButton)).isFalse()
+    assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
+    assertThat(dependencyManager!!.needsLibraryLoad(cardView)).isFalse()
   }
 
   fun testRegisterDependencyUpdates() {
     simulateProjectSync()
-    verify(myPanel, never())!!.onDependenciesUpdated()
+    assertEquals(0, dependencyUpdateCount)
 
-    myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
+    dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
-    verify(myPanel)!!.onDependenciesUpdated()
+    assertEquals(1, dependencyUpdateCount)
   }
 
   fun testDisposeStopsProjectSyncListening() {
-    Disposer.dispose(myDisposable!!)
+    Disposer.dispose(disposable!!)
 
-    myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
+    dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
-    verify(myPanel, never())!!.onDependenciesUpdated()
+    assertEquals(0, dependencyUpdateCount)
   }
 
   fun testAndroidxDependencies() {
     // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
-    assertTrue(myManager!!.useAndroidXDependencies())
+    assertTrue(dependencyManager!!.useAndroidXDependencies())
 
     val gradlePropertiesFile = ApplicationManager.getApplication().runWriteAction(Computable<VirtualFile> {
       val projectDir = VfsUtil.findFileByIoFile(File(project.basePath), true)!!
@@ -145,16 +146,22 @@ class DependencyManagerTest : AndroidTestCase() {
       PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
     simulateProjectSync()
-    assertFalse(myManager!!.useAndroidXDependencies())
-    verify(myPanel!!).onDependenciesUpdated()
+    assertFalse(dependencyManager!!.useAndroidXDependencies())
+    assertEquals(1, dependencyUpdateCount)
 
     ApplicationManager.getApplication().runWriteAction {
       propertiesDoc.setText("android.useAndroidX=true")
       PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
     simulateProjectSync()
-    assertTrue(myManager!!.useAndroidXDependencies())
-    verify(myPanel!!, times(2)).onDependenciesUpdated()
+    assertTrue(dependencyManager!!.useAndroidXDependencies())
+    assertEquals(2, dependencyUpdateCount)
+  }
+
+  fun testNoNotificationOnProjectSyncBeforeSetPalette() {
+    dependencyManager!!.setNotifyAlways(true)
+    simulateProjectSync()
+    assertEquals(0, dependencyUpdateCount)
   }
 
   private fun simulateProjectSync() {
@@ -163,7 +170,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
   private fun findItem(tagName: String): Palette.Item {
     val found = Holder<Palette.Item>()
-    myPalette!!.accept { item ->
+    palette!!.accept { item ->
       if (item.tagName == tagName) {
         found.value = item
       }

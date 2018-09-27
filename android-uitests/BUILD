@@ -1046,6 +1046,7 @@ java_test(
         "//prebuilts/studio/sdk:platforms/android-23",
         "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platforms/android-25",
+        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutLocalTest/**",
     ]),
@@ -1054,7 +1055,6 @@ java_test(
         "no_psq",
         "qa_fast",
         "no-remote",
-        "qa_unreliable",  # b/115685973
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1252,7 +1252,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",
-        "qa_unreliable",  # b/115539594
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

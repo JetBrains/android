@@ -16,7 +16,8 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandAction
@@ -27,6 +28,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
@@ -36,11 +38,13 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.jetbrains.annotations.TestOnly
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
-class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, true) {
-
-  constructor() : this(Listener, CustomComboBox())
+class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: CustomComboBox = CustomComboBox(),
+                             @TestOnly private val inProject: (PsiClass) -> Boolean
+                             = { psiClass -> ModuleUtilCore.findModuleForPsiElement(psiClass) != null })
+  : EnumEditor(listener, comboBox, null, true, true) {
 
   @VisibleForTesting
   object Listener: NlEditingListener {
@@ -72,16 +76,19 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
     return null
   }
 
-  override fun getEnumSupport(property: NlProperty): EnumSupport = SubclassEnumSupport(property)
+  override fun getEnumSupport(property: NlProperty): EnumSupport = SubclassEnumSupport(property, inProject)
 
-  private class SubclassEnumSupport(property: NlProperty) : EnumSupport(property) {
+  private class SubclassEnumSupport(property: NlProperty, private val inProject: (PsiClass) -> Boolean) : EnumSupport(property) {
     override fun getAllValues(): List<ValueWithDisplayString> {
       val component = myProperty.components[0]
       val module = component.model.module
       val schema = NavigationSchema.get(module)
 
       val classNames = mutableSetOf<String>()
-      val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
+      val projectClasses = mutableListOf<ValueWithDisplayString>()
+      val nonProjectClasses = mutableListOf<ValueWithDisplayString>()
+
+      val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
       for (inheritor in schema.getDestinationClassesForTag(component.tagName)) {
         for (child in ClassInheritorsSearch.search(inheritor, scope, true).plus(inheritor)) {
           val qName = child.qualifiedName
@@ -91,10 +98,16 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
             continue
           }
           classNames.add(qName)
+
+          val list = if (inProject(child)) projectClasses else nonProjectClasses
+          list.add(ValueWithDisplayString(displayString(qName), qName))
         }
       }
 
-      return classNames.map { ValueWithDisplayString(displayString(it), it) }.toMutableList().sortedBy { it.displayString }
+      projectClasses.sortBy { it.displayString }
+      nonProjectClasses.sortBy { it.displayString }
+
+      return projectClasses.plus(nonProjectClasses)
     }
 
     override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString {

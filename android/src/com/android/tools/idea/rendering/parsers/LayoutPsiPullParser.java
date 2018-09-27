@@ -892,7 +892,20 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     if (parentTag == null) {
       return root;
     }
-    return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", AttributeSnapshot.createAttributesForTag(rootTag), root.children);
+    List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(rootTag);
+    addAttributeIfMissing(rootTag, ATTR_LAYOUT_WIDTH, attributes);
+    addAttributeIfMissing(rootTag, ATTR_LAYOUT_HEIGHT, attributes);
+    return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", attributes, root.children);
+  }
+
+  private static void addAttributeIfMissing(@NotNull XmlTag tag, @NotNull String attrName, @NotNull List<AttributeSnapshot> attributes) {
+    String value = tag.getAttributeValue(attrName, ANDROID_URI);
+    if (value == null) {
+      value = tag.getAttributeValue(attrName, TOOLS_URI);
+    }
+    if (value == null) {
+      attributes.add(new AttributeSnapshot(ANDROID_URI, tag.getPrefixByNamespace(ANDROID_URI), attrName, VALUE_MATCH_PARENT));
+    }
   }
 
   @Nullable

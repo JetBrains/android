@@ -15,21 +15,37 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.IntUnaryOperator;
+import javax.swing.Action;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
+import javax.swing.RowSorter;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FrozenColumnTable {
   private TableModel myModel;
@@ -61,6 +77,9 @@ public class FrozenColumnTable {
     myFrozenTable = new SubTable(new SubTableModel(myModel, () -> 0, () -> myFrozenColumnCount), this);
     myFrozenTable.setName("frozenTable");
 
+    IntUnaryOperator converter = IntUnaryOperator.identity();
+    myFrozenTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener(converter));
+
     myFrozenTable.getSelectionModel().addListSelectionListener(event -> {
       myScrollableTable.setSelectedRow(myFrozenTable.getSelectedRow());
       fireSelectedCellChanged();
@@ -87,11 +106,16 @@ public class FrozenColumnTable {
         myScrollPane.revalidate();
       }
     });
+
+    myFrozenTable.addMouseListener(new CellPopupTriggerListener(converter));
   }
 
   private void initScrollableTable() {
     myScrollableTable = new SubTable(new SubTableModel(myModel, () -> myFrozenColumnCount, myModel::getColumnCount), this);
     myScrollableTable.setName("scrollableTable");
+
+    IntUnaryOperator converter = viewColumnIndex -> myFrozenTable.getColumnCount() + viewColumnIndex;
+    myScrollableTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener(converter));
 
     myScrollableTable.getSelectionModel().addListSelectionListener(event -> {
       myFrozenTable.setSelectedRow(myScrollableTable.getSelectedRow());
@@ -106,6 +130,46 @@ public class FrozenColumnTable {
       myFrozenTable.getColumnModel().getSelectionModel().clearSelection();
       fireSelectedCellChanged();
     });
+
+    myScrollableTable.addMouseListener(new CellPopupTriggerListener(converter));
+  }
+
+  private static final class HeaderPopupTriggerListener extends MouseAdapter {
+    private final IntUnaryOperator myConverter;
+
+    private HeaderPopupTriggerListener(@NotNull IntUnaryOperator converter) {
+      myConverter = converter;
+    }
+
+    @Override
+    public void mousePressed(@NotNull MouseEvent event) {
+      mousePressedOrReleased(event);
+    }
+
+    @Override
+    public void mouseReleased(@NotNull MouseEvent event) {
+      mousePressedOrReleased(event);
+    }
+
+    private void mousePressedOrReleased(@NotNull MouseEvent event) {
+      if (!event.isPopupTrigger()) {
+        return;
+      }
+
+      JTableHeader header = (JTableHeader)event.getSource();
+      Point point = event.getPoint();
+      int subTableIndex = header.columnAtPoint(point);
+
+      if (subTableIndex == -1) {
+        return;
+      }
+
+      FrozenColumnTable source = ((SubTable)header.getTable()).getFrozenColumnTable();
+      int frozenColumnTableIndex = myConverter.applyAsInt(subTableIndex);
+      FrozenColumnTableEvent frozenColumnTableEvent = new FrozenColumnTableEvent(source, -1, frozenColumnTableIndex, point, header);
+
+      source.getListeners().forEach(listener -> listener.headerPopupTriggered(frozenColumnTableEvent));
+    }
   }
 
   private void fireSelectedCellChanged() {
@@ -120,6 +184,39 @@ public class FrozenColumnTable {
     mySelectedColumn = selectedColumn;
 
     myListeners.forEach(listener -> listener.selectedCellChanged());
+  }
+
+  private static final class CellPopupTriggerListener extends MouseAdapter {
+    private final IntUnaryOperator myConverter;
+
+    private CellPopupTriggerListener(@NotNull IntUnaryOperator converter) {
+      myConverter = converter;
+    }
+
+    @Override
+    public void mousePressed(@NotNull MouseEvent event) {
+      mousePressedOrReleased(event);
+    }
+
+    @Override
+    public void mouseReleased(@NotNull MouseEvent event) {
+      mousePressedOrReleased(event);
+    }
+
+    private void mousePressedOrReleased(@NotNull MouseEvent event) {
+      if (!event.isPopupTrigger()) {
+        return;
+      }
+
+      SubTable subTable = (SubTable)event.getSource();
+      Point point = event.getPoint();
+      FrozenColumnTable source = subTable.getFrozenColumnTable();
+      int viewRowIndex = subTable.rowAtPoint(point);
+      int viewColumnIndex = myConverter.applyAsInt(subTable.columnAtPoint(point));
+      FrozenColumnTableEvent frozenColumnTableEvent = new FrozenColumnTableEvent(source, viewRowIndex, viewColumnIndex, point, subTable);
+
+      source.getListeners().forEach(listener -> listener.cellPopupTriggered(frozenColumnTableEvent));
+    }
   }
 
   private void initScrollPane() {
@@ -313,6 +410,51 @@ public class FrozenColumnTable {
     return false;
   }
 
+  final void paste(@NotNull Transferable transferable) {
+    if (getSelectedRowCount() != 1 || getSelectedColumnCount() != 1) {
+      return;
+    }
+
+    if (!transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+      return;
+    }
+
+    int row = getSelectedRow();
+    int rowCount = getRowCount();
+
+    int selectedColumn = getSelectedColumn();
+    int columnCount = getColumnCount();
+
+    for (String values : getTransferDataAsString(transferable).split("\n")) {
+      if (row >= rowCount) {
+        break;
+      }
+
+      int column = selectedColumn;
+
+      for (Object value : values.split("\t")) {
+        if (column >= columnCount) {
+          break;
+        }
+
+        setValueAt(value, row, column++);
+      }
+
+      row++;
+    }
+  }
+
+  @NotNull
+  private static String getTransferDataAsString(@NotNull Transferable transferable) {
+    try {
+      return (String)transferable.getTransferData(DataFlavor.stringFlavor);
+    }
+    catch (UnsupportedFlavorException | IOException exception) {
+      Logger.getInstance(FrozenColumnTable.class).warn(exception);
+      return "";
+    }
+  }
+
   final void createDefaultColumnsFromModel() {
     myFrozenTable.createDefaultColumnsFromModel();
     myScrollableTable.createDefaultColumnsFromModel();
@@ -438,30 +580,15 @@ public class FrozenColumnTable {
     return myScrollableTable.getValueAt(viewRowIndex, viewColumnIndex - count);
   }
 
-  public final int rowAtPoint(@NotNull Point point) {
-    int row = myFrozenTable.rowAtPoint(point);
+  private void setValueAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) {
+    int count = myFrozenTable.getColumnCount();
 
-    if (row != -1) {
-      return row;
+    if (viewColumnIndex < count) {
+      myFrozenTable.setValueAt(value, viewRowIndex, viewColumnIndex);
+      return;
     }
 
-    return myScrollableTable.rowAtPoint(point);
-  }
-
-  public final int columnAtPoint(@NotNull Point point) {
-    int column = myFrozenTable.columnAtPoint(point);
-
-    if (column != -1) {
-      return column;
-    }
-
-    column = myScrollableTable.columnAtPoint(point);
-
-    if (column == -1) {
-      return -1;
-    }
-
-    return myFrozenTable.getColumnCount() + column;
+    myScrollableTable.setValueAt(value, viewRowIndex, viewColumnIndex - count);
   }
 
   public final boolean editCellAt(int viewRowIndex, int viewColumnIndex) {

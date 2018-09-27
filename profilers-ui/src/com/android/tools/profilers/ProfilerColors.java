@@ -17,10 +17,10 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-
-import java.awt.*;
+import java.awt.Color;
 
 public class ProfilerColors {
 
@@ -132,6 +132,8 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
 
+  public static final Color CPU_CAPTURE_LINES = new JBColor(0x434343, 0xBCBCBC);
+
   public static final Color CPU_THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x434343, 0xBCBCBC);
@@ -166,7 +168,11 @@ public class ProfilerColors {
 
   public static final Color CPU_FLAMECHART_APP = new JBColor(0xFFE0B2, 0xFFE0B2);
 
+  public static final Color CPU_FLAMECHART_APP_IDLE = ColorUtil.darker(CPU_FLAMECHART_APP, 2);
+
   public static final Color CPU_FLAMECHART_APP_HOVER = new JBColor(0xFFECD1, 0xFFECD1);
+
+  public static final Color CPU_FLAMECHART_APP_HOVER_IDLE = ColorUtil.darker(CPU_FLAMECHART_APP_HOVER, 2);
 
   public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFF855E, 0xFF855E);
 

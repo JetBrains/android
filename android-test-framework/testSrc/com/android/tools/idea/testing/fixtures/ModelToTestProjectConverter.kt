@@ -17,7 +17,7 @@ package com.android.tools.idea.testing.fixtures
 
 import com.android.projectmodel.AndroidModel
 import com.android.projectmodel.AndroidPathType
-import com.android.projectmodel.AndroidProject
+import com.android.projectmodel.AndroidSubmodule
 import com.android.projectmodel.Artifact
 import com.android.projectmodel.ProjectLibrary
 import com.android.projectmodel.visitEach
@@ -98,10 +98,10 @@ object ModelToTestProjectConverter {
   private fun setUpProjectFromModel(
     model: AndroidModel,
     project: Project,
-    pickPath: (AndroidProject) -> String
+    pickPath: (AndroidSubmodule) -> String
   ) {
     val modules = mutableMapOf<String, Module>()
-    for (modelModule in model.projects) {
+    for (modelModule in model.submodules) {
       val ideaModule = project.modifyModules {
         val module = newModule(pickPath(modelModule), ModuleTypeId.JAVA_MODULE)
         val rootModel = ModuleRootManager.getInstance(module).modifiableModel
@@ -128,7 +128,7 @@ object ModelToTestProjectConverter {
 
     // Now set up dependencies:
     for (ideaModule in modules.values) {
-      val modelModule = model.getProject(ideaModule.name)!!
+      val modelModule = model.getSubmodule(ideaModule.name)!!
       modelModule.mainArtifact.compileDeps.visitEach().forEach { dependency ->
         val library = dependency.library
         when (library) {
@@ -142,7 +142,7 @@ object ModelToTestProjectConverter {
     }
   }
 
-  private val AndroidProject.mainArtifact: Artifact
+  private val AndroidSubmodule.mainArtifact: Artifact
     get() {
       return (variants.singleOrNull() ?: error("Only single-variant modules are supported")).mainArtifact
     }
@@ -158,7 +158,7 @@ object ModelToTestProjectConverter {
    */
   private data class ModelBasedProjectDescriptor(val model: AndroidModel) : LightProjectDescriptor() {
     init {
-      require(model.projects.size == 1) { "${Mode.REUSE_PROJECT} is only available for single-module projects." }
+      require(model.submodules.size == 1) { "${Mode.REUSE_PROJECT} is only available for single-module projects." }
     }
 
     override fun getSdk(): Sdk? {

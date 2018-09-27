@@ -22,7 +22,13 @@ import com.intellij.ui.RoundedLineBorder
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.*
+import java.awt.Dimension
+import javax.swing.AbstractListModel
+import javax.swing.Icon
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.ListModel
+import javax.swing.SwingConstants
 import javax.swing.border.Border
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -42,8 +48,8 @@ private fun setupArrowUI(button: JButton, newBorder: Border, icon: Icon): JButto
     isContentAreaFilled = false
     isFocusPainted = false
     isOpaque = false
-    minimumSize = JBUI.size(icon.iconWidth)
-    preferredSize = JBUI.size(icon.iconWidth)
+    minimumSize = Dimension(icon.iconWidth, icon.iconHeight)
+    preferredSize = Dimension(icon.iconWidth, icon.iconHeight)
     border = newBorder
   }
 

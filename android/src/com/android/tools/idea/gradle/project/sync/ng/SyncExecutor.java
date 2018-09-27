@@ -42,6 +42,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
@@ -228,7 +229,19 @@ class SyncExecutor {
                                                    .build().forTasks(emptyList());
 
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
-    executor.run();
+
+    // If new API is not available (Gradle 4.7-), fall back to non compound sync.
+    try {
+      executor.run();
+    }
+    catch (UnsupportedVersionException e) {
+      if (e.getMessage().contains("PhasedBuildActionExecuter API")) {
+        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback);
+      }
+      else {
+        throw e;
+      }
+    }
   }
 
   private static void executeVariantOnlySync(@NotNull ProjectConnection connection,
@@ -256,7 +269,19 @@ class SyncExecutor {
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
                                                    .build().forTasks(emptyList());
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
-    executor.run();
+
+    // If new API is not available (Gradle 4.7-), fall back to non compound sync.
+    try {
+      executor.run();
+    }
+    catch (UnsupportedVersionException e) {
+      if (e.getMessage().contains("PhasedBuildActionExecuter API")) {
+        executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
+      }
+      else {
+        throw e;
+      }
+    }
   }
 
   @VisibleForTesting

@@ -43,7 +43,7 @@ public class StudioExceptionReport extends BaseStudioReport {
       IndexOutOfBoundsException.class,
       NoPiiException.class);
 
-  static final String KEY_EXCEPTION_INFO = "exception_info";
+  public static final String KEY_EXCEPTION_INFO = "exception_info";
 
   @NonNull private final String exceptionInfo;
 

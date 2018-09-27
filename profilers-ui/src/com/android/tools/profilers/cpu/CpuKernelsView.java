@@ -145,7 +145,7 @@ public final class CpuKernelsView {
     kernelsPanel.setVisible(false);
 
     // Clear border set by default on the hideable panel.
-    kernelsPanel.setBorder(JBUI.Borders.empty());
+    kernelsPanel.setBorder(JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 2, 0, 0, 0));
     kernelsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     kernelsPanel.addStateChangedListener(
       (e) -> myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuKernelHideablePanel());

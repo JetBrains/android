@@ -20,8 +20,10 @@ import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.*
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -29,6 +31,7 @@ import com.google.common.truth.Truth.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 class CallChartDetailsViewTest {
   private val cpuService = FakeCpuService()
@@ -99,6 +102,24 @@ class CallChartDetailsViewTest {
 
     val chart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(chart.isVisible).isTrue()
+  }
+
+  @Test
+  fun callChartHasCpuTraceEventTooltipView() {
+    stage.apply {
+      val parser = CpuCaptureParser(FakeIdeProfilerServices())
+      val capture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
+                                 FakeCpuService.FAKE_TRACE_ID,
+                                 CpuProfilerTestUtils.traceFileToByteString(File(CPU_UI_TRACES_DIR + "atrace_processid_1.ctrace")),
+                                 CpuProfiler.CpuProfilerType.ATRACE)!!.get()
+      setAndSelectCapture(capture)
+      selectedThread = capture.mainThreadId
+      setCaptureDetails(CaptureDetails.Type.CALL_CHART)
+    }
+    val callChart = stage.captureDetails as CaptureDetails.CallChart
+    val callChartView = ChartDetailsView.CallChartDetailsView(stageView, callChart)
+    val treeChart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
+    assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
   }
 
   @Test

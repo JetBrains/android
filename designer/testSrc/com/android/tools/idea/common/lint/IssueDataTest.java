@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
@@ -29,6 +30,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 public class IssueDataTest {
@@ -44,9 +46,6 @@ public class IssueDataTest {
 
   @Mock
   PsiElement myPsi;
-
-  @Mock
-  Implementation myImplementation;
 
   @Before
   public void setUp() throws Exception {
@@ -80,8 +79,10 @@ public class IssueDataTest {
   }
 
   @NotNull
-  private Issue createIssue(int priority, Severity severity) {
-    return Issue.create("toto", "tata", "titi", Category.LINT, priority, severity, myImplementation);
+  private static Issue createIssue(int priority, Severity severity) {
+    Implementation implementation = Mockito.mock(Implementation.class);
+    Mockito.when(implementation.getScope()).thenReturn(Scope.RESOURCE_FILE_SCOPE);
+    return Issue.create("toto", "tata", "titi", Category.LINT, priority, severity, implementation);
   }
 
   void addIssue(LintAnnotationsModel model, HighlightDisplayLevel level, int priority, Severity severity) {

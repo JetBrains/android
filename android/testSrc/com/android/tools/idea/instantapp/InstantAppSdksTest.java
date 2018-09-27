@@ -25,7 +25,7 @@ import com.android.tools.analytics.AnalyticsSettingsData;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.util.BuildNumber;
@@ -39,7 +39,7 @@ import org.mockito.Spy;
 
 public class InstantAppSdksTest extends IdeaTestCase {
   private @Spy InstantAppSdks myInstantAppSdks;
-  private @Mock Sdk myMockLibSdk;
+  private @Mock ExtendedSdk myMockLibSdk;
   private @Mock ApplicationInfo myApplicationInfo;
 
   private TestUsageTracker myUsageTracker;
@@ -71,35 +71,45 @@ public class InstantAppSdksTest extends IdeaTestCase {
   public void testGetSdkLibraryWithObsoleteSdk() throws Exception {
     // In testing, rather than showing a dialog a RuntimeException with the dialog text is thrown
     installSdkWithoutLib();
-    assertThrows(RuntimeException.class, "Required Google Play Instant SDK must be updated to run this task. Do you want to update it now?",
-                 myInstantAppSdks::loadLibrary
-    );
+    assertThrows(RuntimeException.class, InstantAppSdks.UPGRADE_PROMPT_TEXT, myInstantAppSdks::loadLibrary);
   }
 
   public void testGetSdkLibraryWithObsoleteSdkAttemptUpgradesFalse() throws Exception {
     installSdkWithoutLib();
-    assertThrows(InstantAppSdks.LoadInstantAppSdkException.class, () -> myInstantAppSdks.loadLibrary(false));
+    assertThrows(InstantAppSdks.LoadInstantAppSdkException.class, InstantAppSdks.COULD_NOT_LOAD_NEW_SDK_EXCEPTION.getMessage(),
+                 () -> myInstantAppSdks.loadLibrary(false));
+  }
+
+  public void testGetSdkLibraryWithTooOldLibraryJar() throws Exception {
+    installLegacyFakeLib();
+    assertThrows(RuntimeException.class, InstantAppSdks.UPGRADE_PROMPT_TEXT, myInstantAppSdks::loadLibrary);
+  }
+
+  public void testGetSdkLibraryWithTooOldLibraryJarAttemptUpgradesFalse() throws Exception {
+    installLegacyFakeLib();
+    assertThrows(InstantAppSdks.LoadInstantAppSdkException.class, InstantAppSdks.COULD_NOT_LOAD_NEW_SDK_EXCEPTION.getMessage(),
+                 () -> myInstantAppSdks.loadLibrary(false));
   }
 
   public void testGetSdkLibraryWithNewSdk() {
-    installFakeLib();
-    Sdk loadedSdk = myInstantAppSdks.loadLibrary(true);
+    installExtendedFakeLib();
+    ExtendedSdk loadedSdk = myInstantAppSdks.loadLibrary(true);
     assertThat(loadedSdk).isNotNull();
     assertThat(loadedSdk.getLibraryVersion()).isEqualTo("THIS_IS_A_FAKE_LIBRARY");
   }
 
   public void testGetSdkLibraryPassThroughOptIn() {
     AnalyticsSettings.setOptedIn(true);
-    installFakeLib();
+    installExtendedFakeLib();
     AnalyticsSettings.setOptedIn(true);
-    Sdk loadedSdk = myInstantAppSdks.loadLibrary();
+    ExtendedSdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_IN);
   }
 
   public void testGetSdkLibraryPassThroughOptOut() {
-    installFakeLib();
+    installExtendedFakeLib();
     AnalyticsSettings.setOptedIn(false);
-    Sdk loadedSdk = myInstantAppSdks.loadLibrary();
+    ExtendedSdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_OUT);
   }
 
@@ -108,8 +118,14 @@ public class InstantAppSdksTest extends IdeaTestCase {
     doReturn(Files.createTempDirectory("empty").toFile()).when(myInstantAppSdks).getOrInstallInstantAppSdk();
   }
 
-  /** Points the SDK loader at a stub JAR implementing the Sdk SPI. */
-  private void installFakeLib() {
-    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
+  /** Points the SDK loader at a stub JAR implemeting only the old {@code Sdk} SPI. */
+  private void installLegacyFakeLib() {
+    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps/fake_1.3_sdk")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
+  }
+
+  /** Points the SDK loader at a stub JAR implementing the {@code ExtendedSdk} SPI. */
+  private void installExtendedFakeLib() {
+    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps/fake_extended_sdk")).when(myInstantAppSdks)
+                                                                                            .getOrInstallInstantAppSdk();
   }
 }

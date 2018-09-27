@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.Alarm;
 import icons.StudioIcons;
@@ -46,6 +47,7 @@ public final class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
   static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
+  static final JBColor NO_MATCHES_COLOR = new JBColor(new Color(0xffffcccc), new Color(0xff743a3a));
 
   private static final String REGEX = "Regex";
   private static final String MATCH_CASE = "Match Case";
@@ -57,6 +59,7 @@ public final class FilterComponent extends JPanel {
   private final SearchTextField mySearchField;
   private final Alarm myUpdateAlarm = new Alarm();
   private final int myDelayMs;
+  private final Color mySearchFieldDefaultBackground;
 
   public FilterComponent(@NotNull Filter filter, int textFieldWidth, int historySize, int delayMs) {
     super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-,20px,Fit-", "Fit-"));
@@ -136,6 +139,7 @@ public final class FilterComponent extends JPanel {
     mySearchField.setHistorySize(historySize);
 
     add(mySearchField, new TabularLayout.Constraint(0, 1));
+    mySearchFieldDefaultBackground = mySearchField.getTextEditor().getBackground();
 
     // Configure check boxes
     myMatchCaseCheckBox = new JCheckBox(MATCH_CASE, filter.isMatchCase());
@@ -164,11 +168,13 @@ public final class FilterComponent extends JPanel {
     add(myCountLabel, new TabularLayout.Constraint(0, 7));
 
     myModel.addMatchResultListener(result -> {
+      Color background = mySearchFieldDefaultBackground;
       String text = "";
       if (result.isFilterEnabled()) {
         int count = result.getMatchCount();
         if (count == 0) {
           text = "No matches";
+          background = NO_MATCHES_COLOR;
         }
         else if (count == 1) {
           text = "One match";
@@ -177,6 +183,7 @@ public final class FilterComponent extends JPanel {
           text = new DecimalFormat("#,###").format(count) + " matches";
         }
       }
+      mySearchField.getTextEditor().setBackground(background);
       myCountLabel.setText(text);
     });
   }

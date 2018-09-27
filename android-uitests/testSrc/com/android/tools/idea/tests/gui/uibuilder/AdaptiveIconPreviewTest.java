@@ -108,23 +108,19 @@ public class AdaptiveIconPreviewTest {
         .open("app/src/main/res/mipmap-anydpi-v26/ic_theme_adaptive.xml")
         .getLayoutPreview(true)
         .waitForRenderToFinish();
-    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.openThemeSelectionDialog()
       .selectTheme("Holo Light", "android:Theme.Holo.Light")
       .clickOk();
-    /* disabled due to failing assertion (b/64162841)
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
+    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ffe6e6e6");
-    */
     toolbar.openThemeSelectionDialog()
       .selectTheme("Material Dark", "android:Theme.Material")
       .clickOk();
-    /* disabled due to failing assertion (b/64162841)
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff212121");
-    */
   }
 }

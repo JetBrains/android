@@ -28,4 +28,10 @@ public class RawText {
   public String getText() {
     return myRawText;
   }
+
+  @Override
+  @NotNull
+  public String toString() {
+    return myRawText;
+  }
 }

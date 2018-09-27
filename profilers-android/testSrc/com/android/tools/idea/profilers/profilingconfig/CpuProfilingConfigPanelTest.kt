@@ -109,10 +109,22 @@ class CpuProfilingConfigPanelTest {
     val simpleperfButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
       it.text == CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName()
     }
+    val artSampledDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.ART_SAMPLED_DESCRIPTION
+    }
+    val artInstrumentedDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.ART_INSTRUMENTED_DESCRIPTION
+    }
+    val simpleperfDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.SIMPLEPERF_DESCRIPTION
+    }
 
     assertThat(artSampledButton.isEnabled).isFalse()
     assertThat(artInstrumentedButton.isEnabled).isFalse()
     assertThat(simpleperfButton.isEnabled).isFalse()
+    assertThat(artSampledDescription.isEnabled).isFalse()
+    assertThat(artInstrumentedDescription.isEnabled).isFalse()
+    assertThat(simpleperfDescription.isEnabled).isFalse()
 
     val fileSize = treeWalker.descendants().filterIsInstance<JSlider>().first()
     val fileSizeLimit = treeWalker.descendants().filterIsInstance<JLabel>().first {
@@ -121,10 +133,14 @@ class CpuProfilingConfigPanelTest {
     val fileSizeLimitText = treeWalker.descendants().filterIsInstance<JLabel>().first {
       it.text == CpuProfilingConfigPanel.FILE_SIZE_LIMIT
     }
+    val fileSizeLimitDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.FILE_SIZE_LIMIT_DESCRIPTION
+    }
 
     assertThat(fileSize.isEnabled).isFalse()
     assertThat(fileSizeLimit.isEnabled).isFalse()
     assertThat(fileSizeLimitText.isEnabled).isFalse()
+    assertThat(fileSizeLimitDescription.isEnabled).isFalse()
 
     val samplingInterval = treeWalker.descendants().filterIsInstance<JSpinner>().first()
     val samplingIntervalText = treeWalker.descendants().filterIsInstance<JLabel>().first {
@@ -139,12 +155,12 @@ class CpuProfilingConfigPanelTest {
     assertThat(samplingIntervalUnit.isEnabled).isFalse()
 
     val disableLiveAllocation = treeWalker.descendants().filterIsInstance<JCheckBox>().first()
-    val disableLiveAllocationText = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.DISABLE_LIVE_ALLOCATION
+    val disableLiveAllocationDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.DISABLE_LIVE_ALLOCATION_DESCRIPTION
     }
 
     assertThat(disableLiveAllocation.isEnabled).isFalse()
-    assertThat(disableLiveAllocationText.isEnabled).isFalse()
+    assertThat(disableLiveAllocationDescription.isEnabled).isFalse()
   }
 
   @Test

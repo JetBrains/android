@@ -26,7 +26,7 @@ import com.android.tools.datastore.DeviceId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark
-import com.android.tools.perflogger.MedianWindowDeviationAnalyzer
+import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeGrpcChannel
@@ -60,11 +60,9 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
-import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-@Ignore("b/115665506")
 class DataSeriesPerformanceTest {
   companion object {
     private val START_TIME = TimeUnit.SECONDS.toNanos(0)
@@ -77,8 +75,8 @@ class DataSeriesPerformanceTest {
   private lateinit var service: DataStoreService
   private lateinit var client: ProfilerClient
   private lateinit var session: Common.Session
-  private val benchmark = Benchmark.Builder("DataSeries Query Timings (Nanos)").setProject("Android Studio Profilers").build()
-
+  private val cpuBenchmark = Benchmark.Builder("DataSeries Query Timings (Nanos)").setProject("Android Studio Profilers").build()
+  private val memoryBenchmark = Benchmark.Builder("DataSeries Memory (kb)").setProject("Android Studio Profilers").build()
   @get:Rule
   var grpcChannel = FakeGrpcChannel("DataSeriesPerformanceTest", FakeCpuService(), FakeMemoryService())
 
@@ -136,6 +134,7 @@ class DataSeriesPerformanceTest {
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
+    logMemoryUsed("Before-Query-Memory-Used")
     for (i in START_TIME..END_TIME step queryStep) {
       for (name in dataSeriesToTest.keys) {
         if (!nameToMetrics.containsKey(name)) {
@@ -146,16 +145,26 @@ class DataSeriesPerformanceTest {
       }
     }
     nameToMetrics.values.forEach {
-      it.setAnalyzers(benchmark, setOf(MedianWindowDeviationAnalyzer.Builder().build()))
+      it.setAnalyzers(cpuBenchmark, setOf(WindowDeviationAnalyzer.Builder()
+                                         .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
+                                         .build()))
       it.commit()
     }
+    logMemoryUsed("After-Query-Memory-Used")
+  }
+
+  private fun logMemoryUsed(metricName: String) {
+    val rt = Runtime.getRuntime()
+    System.gc()
+    val usedKB = (rt.totalMemory() - rt.freeMemory()) / 1024
+    memoryBenchmark.log(metricName, usedKB)
   }
 
   private fun <T> collectAndReportAverageTimes(offset: Long, metric: Metric, series: DataSeries<T>, recordMetric: Boolean) {
     val startTime = System.nanoTime()
     series.getDataForXRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
     if (recordMetric) {
-      metric.addSamples(benchmark, Metric.MetricSample(Instant.now().toEpochMilli(), (System.nanoTime() - startTime)))
+      metric.addSamples(cpuBenchmark, Metric.MetricSample(Instant.now().toEpochMilli(), (System.nanoTime() - startTime)))
     }
   }
 

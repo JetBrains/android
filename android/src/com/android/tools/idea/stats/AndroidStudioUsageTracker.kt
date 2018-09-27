@@ -33,6 +33,7 @@ import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -53,6 +54,7 @@ object AndroidStudioUsageTracker {
         .setVersion(application.strictVersion)
         .setOsArchitecture(CommonMetricsData.osArchitecture)
         .setChannel(lifecycleChannelFromUpdateSettings())
+        .setTheme(currentIdeTheme())
         .build()
     }
 
@@ -107,6 +109,26 @@ object AndroidStudioUsageTracker {
   }
 
   /**
+   * Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings
+   */
+  private fun currentIdeTheme(): ProductDetails.IdeTheme {
+    return when {
+      UIUtil.isUnderDarcula() -> ProductDetails.IdeTheme.DARCULA
+      UIUtil.isUnderGTKLookAndFeel() -> ProductDetails.IdeTheme.GTK
+      UIUtil.isUnderIntelliJLaF() ->
+        // When the theme is IntelliJ, there are mac and window specific registries that govern whether the theme refers to the native
+        // themes, or the newer, platform-agnostic Light theme. UIUtil.isUnderWin10LookAndFeel() and UIUtil.isUnderDefaultMacTheme() take
+        // care of these checks for us.
+        when {
+          UIUtil.isUnderWin10LookAndFeel() -> ProductDetails.IdeTheme.LIGHT_WIN_NATIVE
+          UIUtil.isUnderDefaultMacTheme() -> ProductDetails.IdeTheme.LIGHT_MAC_NATIVE
+          else -> ProductDetails.IdeTheme.LIGHT
+        }
+      else -> ProductDetails.IdeTheme.UNKNOWN_THEME
+    }
+  }
+
+  /**
    * Creates a [DeviceInfo] from a [IDevice] instance
    * containing api level only.
    */
@@ -156,9 +178,7 @@ object AndroidStudioUsageTracker {
     // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
     override fun projectComponentsInitialized(project: Project) {
       val service = ToolWindowTrackerService.getInstance(project)
-      if (true) {
-        ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
-      }
+      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
     }
   }
 }

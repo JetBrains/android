@@ -914,4 +914,8 @@ public class Scene implements SelectionListener, Disposable {
       doGetPlaceholders(builder, child, requester);
     }
   }
+
+  public void setHitTarget(@Nullable Target hitTarget) {
+    myHitTarget = hitTarget;
+  }
 }

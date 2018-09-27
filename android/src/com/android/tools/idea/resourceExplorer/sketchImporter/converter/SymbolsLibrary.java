@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter;
 
-import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.DEFAULT_OPACITY;
 import static com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.createShapeModelsFromLayerable;
 
+import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.InheritedProperties;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.containers.hash.HashMap;
-import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class that holds a mapping between a {@link SketchSymbolMaster} and its symbolId
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link SymbolModel}
  */
 public class SymbolsLibrary {
-  HashMap<String, SketchSymbolMaster> mySymbolMasterHashMap = new HashMap<>();
+  private final HashMap<String, SketchSymbolMaster> mySymbolMasterHashMap = new HashMap<>();
 
   public void addSymbols(@NotNull ImmutableList<SketchSymbolMaster> symbolMasters) {
     for (SketchSymbolMaster symbolMaster : symbolMasters) {
@@ -41,10 +41,9 @@ public class SymbolsLibrary {
     }
   }
 
-  public SymbolModel getSymbolModel(@NotNull String symbolId) {
-    SketchSymbolMaster symbolMaster = mySymbolMasterHashMap.get(symbolId);
-    ImmutableList<ShapeModel> shapeModels = createShapeModelsFromLayerable(symbolMaster, new Point2D.Double(), DEFAULT_OPACITY, this);
-    return new SymbolModel(shapeModels, symbolMaster);
+  @Nullable
+  public SketchSymbolMaster getSymbol(@NotNull String objectId) {
+    return mySymbolMasterHashMap.get(objectId);
   }
 
   public boolean isEmpty() {

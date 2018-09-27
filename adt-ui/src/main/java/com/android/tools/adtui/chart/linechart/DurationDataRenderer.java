@@ -17,14 +17,22 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
@@ -33,8 +41,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
@@ -61,6 +75,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   @Nullable private final Color myDurationBgColor;
 
   @Nullable private Icon myIcon;
+  @Nullable private Function<E, Icon> myIconMapper;
   @Nullable private Stroke myStroke;
   @Nullable private Function<E, String> myLabelProvider;
   @Nullable private Consumer<E> myClickHandler;
@@ -72,6 +87,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   private float myLineStrokeOffset;
   private float myLabelXOffset;
   private float myLabelYOffset;
+  @NotNull private final Insets myHostInsets;
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset. Initial values are defaults.
    */
@@ -93,6 +109,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myColor = builder.myColor;
     myDurationBgColor = builder.myDurationBgColor;
     myIcon = builder.myIcon;
+    myIconMapper = builder.myIconMapper;
     myStroke = builder.myStroke;
     myLabelProvider = builder.myLabelProvider;
     myClickHandler = builder.myClickHandler;
@@ -103,6 +120,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myLabelTextColor = builder.myLabelTextColor;
     myLabelXOffset = builder.myLabelXOffset;
     myLabelYOffset = builder.myLabelYOffset;
+    myHostInsets = builder.myHostInsets;
     myClickRegionPaddingX = builder.myClickRegionPaddingX;
     myClickRegionPaddingY = builder.myClickRegionPaddingY;
     if (myStroke instanceof BasicStroke) {
@@ -192,9 +210,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
       double regionWidth = 0;
       double regionHeight = 0;
-      if (myIcon != null) {
-        regionWidth += myIcon.getIconWidth();
-        regionHeight += myIcon.getIconHeight();
+      Icon icon = getIcon(data.value);
+      if (icon != null) {
+        regionWidth += icon.getIconWidth();
+        regionHeight += icon.getIconHeight();
       }
 
       if (myLabelProvider != null) {
@@ -278,29 +297,13 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         g2d.setClip(originalClip);
       }
     }
-
-    // Draw the start/end lines if stroke has been set.
-    if (myStroke != null) {
-      g2d.setColor(myColor);
-      g2d.setStroke(myStroke);
-      Line2D eventLine = new Line2D.Float();
-      for (Rectangle2D.Float rect : myPathCache) {
-        double scaledXStart = rect.x * lineChart.getWidth();
-        double scaledXDuration = rect.width * lineChart.getWidth();
-        g2d.translate(scaledXStart, 0);
-        eventLine.setLine(0, 0, 0, lineChart.getHeight());
-        g2d.draw(eventLine);
-        eventLine.setLine(scaledXDuration, 0, scaledXDuration, lineChart.getHeight());
-        g2d.draw(eventLine);
-        g2d.translate(-scaledXStart, 0);
-      }
-    }
   }
 
   @VisibleForTesting Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
     float paddedHeight = rect.height + myClickRegionPaddingY * 2;
     float paddedWidth = rect.width + myClickRegionPaddingX * 2;
-    float scaledStartX = rect.x * componentWidth + myLabelXOffset + myLineStrokeOffset;
+    int totalXInsets = myHostInsets.left + myHostInsets.right;
+    float scaledStartX = myHostInsets.left + rect.x * (componentWidth - totalXInsets) + myLabelXOffset + myLineStrokeOffset;
     float scaledStartY = getClampedLabelY(rect.y, paddedHeight, componentHeight);
     return new Rectangle2D.Float(scaledStartX, scaledStartY, paddedWidth, paddedHeight);
   }
@@ -319,9 +322,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       rect.x += myClickRegionPaddingX;
       rect.y += myClickRegionPaddingY;
       g2d.translate(rect.x, rect.y);
-      if (myIcon != null) {
-        myIcon.paintIcon(host, g2d, 0, 0);
-        float shift = myIcon.getIconWidth();
+      Icon icon = getIcon(myDataCache.get(i).value);
+      if (icon != null) {
+        icon.paintIcon(host, g2d, 0, 0);
+        float shift = icon.getIconWidth();
         g2d.translate(shift, 0);
         rect.x += shift;  // keep track of the amount of shift to revert the translate at the end.
       }
@@ -334,11 +338,28 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     }
 
     myClick = false;
+
+    // Draw the start/end lines if stroke has been set.
+    if (myStroke != null) {
+      g2d.setColor(myColor);
+      g2d.setStroke(myStroke);
+      Line2D eventLine = new Line2D.Float();
+      for (Rectangle2D.Float rect : myPathCache) {
+        double scaledXStart = rect.x * host.getWidth();
+        double scaledXDuration = rect.width * host.getWidth();
+        g2d.translate(scaledXStart, 0);
+        eventLine.setLine(0, 0, 0, host.getHeight());
+        g2d.draw(eventLine);
+        eventLine.setLine(scaledXDuration, 0, scaledXDuration, host.getHeight());
+        g2d.draw(eventLine);
+        g2d.translate(-scaledXStart, 0);
+      }
+    }
   }
 
   private boolean isHoveringOverClickRegion(@NotNull Component overlayComponent, @NotNull MouseEvent event) {
-    for (int i = 0; i < myClickRegionCache.size(); ++i) {
-      Rectangle2D.Float rect = getScaledClickRegion(myClickRegionCache.get(i), overlayComponent.getWidth(), overlayComponent.getHeight());
+    for (Rectangle2D.Float clickRegionCache : myClickRegionCache) {
+      Rectangle2D.Float rect = getScaledClickRegion(clickRegionCache, overlayComponent.getWidth(), overlayComponent.getHeight());
       if (myMousePosition != null && rect.contains(myMousePosition)) {
         return true;
       }
@@ -417,9 +438,27 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
    * Clamp and return the y position (accounting for height + custom offsets) of the label so that it is always within bounds of the host.
    */
   private float getClampedLabelY(float normalizedY, float height, int hostHeight) {
-    float maxScaledY = hostHeight - height;
-    float scaledY = normalizedY * hostHeight - height + myLabelYOffset;
-    return Math.max(0, Math.min(scaledY, maxScaledY));
+    float totalYInsets = myHostInsets.top + myHostInsets.bottom;
+    float maxScaledY = hostHeight - myHostInsets.bottom - height;
+    float scaledY = myHostInsets.top + normalizedY * (hostHeight - totalYInsets) - height + myLabelYOffset;
+    return Math.max(myHostInsets.top, Math.min(scaledY, maxScaledY));
+  }
+
+  /**
+   * If an icon mapper is set, return the icon mapped from the given duration data.
+   * If an icon is set, return the icon.
+   * Otherwise return null.
+   */
+  @VisibleForTesting
+  @Nullable
+  Icon getIcon(E durationData) {
+    if (myIconMapper != null) {
+      return myIconMapper.apply(durationData);
+    }
+    if (myIcon != null) {
+      return myIcon;
+    }
+    return null;
   }
 
   public static class Builder<E extends DurationData> {
@@ -428,6 +467,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @NotNull private final Color myColor;
     @Nullable private Color myDurationBgColor;
     @Nullable private Icon myIcon = null;
+    @Nullable private Function<E, Icon> myIconMapper = null;
     @Nullable private Stroke myStroke = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
@@ -438,6 +478,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @Nullable private Color myLabelTextColor = null;
     private float myLabelXOffset;
     private float myLabelYOffset;
+    @NotNull private Insets myHostInsets = new Insets(0, 0, 0, 0);
     private int myClickRegionPaddingX = 4;
     private int myClickRegionPaddingY = 2;
 
@@ -456,6 +497,14 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
      */
     public Builder<E> setIcon(@NotNull Icon icon) {
       myIcon = icon;
+      return this;
+    }
+
+    /**
+     * Sets the icon mapper which maps a data point to an icon.
+     */
+    public Builder<E> setIconMapper(@Nullable Function<E, Icon> iconMapper) {
+      myIconMapper = iconMapper;
       return this;
     }
 
@@ -508,6 +557,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     public Builder<E> setLabelOffsets(float xOffset, float yOffset) {
       myLabelXOffset = xOffset;
       myLabelYOffset = yOffset;
+      return this;
+    }
+
+    public Builder<E> setHostInsets(@NotNull Insets insets) {
+      myHostInsets = insets;
       return this;
     }
 

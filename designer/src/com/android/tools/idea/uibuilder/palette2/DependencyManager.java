@@ -28,13 +28,16 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Keeps track of which of the dependencies for all the components on a palette are currently
@@ -46,23 +49,32 @@ import org.jetbrains.annotations.NotNull;
  * The set of missing dependencies is recomputed each time the project is synced (in case new dependencies have
  * been added to the palette's module) and each time the associated palette changes (see {@link #setPalette}).
  */
-public class DependencyManager {
+public class DependencyManager implements Disposable {
   private final Project myProject;
   private final Set<String> myMissingLibraries;
+  private final List<DependencyChangeListener> myListeners;
   private Module myModule;
   private Palette myPalette;
   private boolean myUseAndroidXDependencies;
+  private boolean myRegisteredForDependencyUpdates;
+  private boolean myNotifyAlways;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
     myMissingLibraries = new HashSet<>();
+    myListeners = new ArrayList<>(2);
     myPalette = Palette.EMPTY;
+  }
+
+  public void addDependencyChangeListener(@NotNull DependencyChangeListener listener) {
+    myListeners.add(listener);
   }
 
   public void setPalette(@NotNull Palette palette, @NotNull Module module) {
     myPalette = palette;
     myModule = module;
     checkForRelevantDependencyChanges();
+    registerDependencyUpdates();
   }
 
   public boolean useAndroidXDependencies() {
@@ -75,6 +87,15 @@ public class DependencyManager {
 
   public boolean dependsOn(@NotNull GoogleMavenArtifactId artifactId) {
     return DependencyManagementUtil.dependsOn(myModule, artifactId);
+  }
+
+  @TestOnly
+  public void setNotifyAlways(boolean notifyAlways) {
+    myNotifyAlways = notifyAlways;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   private boolean checkForRelevantDependencyChanges() {
@@ -113,10 +134,14 @@ public class DependencyManager {
     return true;
   }
 
-  public void registerDependencyUpdates(@NotNull PalettePanel paletteUI, @NotNull Disposable parentDisposable) {
-    myProject.getMessageBus().connect(parentDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) {
-        paletteUI.onDependenciesUpdated();
+  private void registerDependencyUpdates() {
+    if (myRegisteredForDependencyUpdates) {
+      return;
+    }
+    myRegisteredForDependencyUpdates = true;
+    myProject.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if ((result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) || myNotifyAlways) {
+        myListeners.forEach(listener -> listener.onDependenciesChanged());
       }
     });
   }
@@ -132,8 +157,8 @@ public class DependencyManager {
   }
 
   private boolean computeUseAndroidXDependencies() {
-    if (MigrateToAndroidxUtil.hasAndroidxProperty(myModule.getProject())) {
-      return MigrateToAndroidxUtil.isAndroidx(myModule.getProject());
+    if (MigrateToAndroidxUtil.hasAndroidxProperty(myProject)) {
+      return MigrateToAndroidxUtil.isAndroidx(myProject);
     }
 
     if (DependencyManagementUtil.dependsOnAndroidx(myModule)) {
@@ -143,5 +168,9 @@ public class DependencyManager {
 
     // It does not depend on androidx. Check default to using androidx unless the module already depends on android.support
     return !DependencyManagementUtil.dependsOnOldSupportLib(myModule) && StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
+  }
+
+  public interface DependencyChangeListener {
+    void onDependenciesChanged();
   }
 }

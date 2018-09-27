@@ -132,7 +132,11 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
         SdkConstants.ATTR_PARENT_TAG.equals(property.getName())) {
       // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
       // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
-      // then have all attributes from a <LinearLayout>. Force an update of all properties:
+      // then have all attributes from a <LinearLayout>. Force an update of all properties and reset
+      // cached components in the inspector providers.
+      if (myInspectorProviders != null) {
+        myInspectorProviders.resetCache();
+      }
       updateSelection();
       return;
     }

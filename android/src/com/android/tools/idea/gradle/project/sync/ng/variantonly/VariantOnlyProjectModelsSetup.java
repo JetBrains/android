@@ -72,8 +72,8 @@ public class VariantOnlyProjectModelsSetup extends ModuleSetup<VariantOnlyProjec
     for (VariantOnlyModuleModel moduleModel : projectModels.getModuleModels()) {
       Module module = moduleFinder.findModuleByModuleId(moduleModel.getModuleId());
       if (module != null) {
-        setUpAndroidModule(module, moduleModel, cache);
         setUpNdkModule(module, moduleModel, cache);
+        setUpAndroidModule(module, moduleModel, cache);
       }
     }
     // Update cache on disk.

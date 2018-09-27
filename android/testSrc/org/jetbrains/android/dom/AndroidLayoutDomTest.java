@@ -818,6 +818,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletion();
   }
 
+  public void testMerge3() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testFragmentHighlighting() throws Throwable {
     copyFileToProject("MyFragmentActivity.java", "src/p1/p2/MyFragmentActivity.java");
     doTestHighlighting(getTestName(true) + ".xml");

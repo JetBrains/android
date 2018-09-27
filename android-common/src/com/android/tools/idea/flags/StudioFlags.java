@@ -258,6 +258,16 @@ public final class StudioFlags {
     "New architecture for dragging widgets in Layout Editor",
     false);
 
+  public static final Flag<Boolean> NELE_RENDER_HIGH_QUALITY_SHADOW = Flag.create(
+    NELE, "high.quality.shadow", "Enable the high quality shadows",
+    "Enable the high quality shadow rendering in Layout Editor",
+    false);
+
+  public static final Flag<Boolean> NELE_ENABLE_SHADOW = Flag.create(
+    NELE, "enable.shadow", "Enable shadows",
+    "Enable the shadow rendering in Layout Editor",
+    false);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
@@ -382,7 +392,6 @@ public final class StudioFlags {
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
-  // To enable temporarily, use -Deditor.in.memory.r.classes=true
   public static final Flag<Boolean> IN_MEMORY_R_CLASSES = Flag.create(
     EDITOR,
     "in.memory.r.classes",
@@ -395,6 +404,13 @@ public final class StudioFlags {
     "Collapse the android namespace in XML code completion",
     "If enabled, XML code completion doesn't include resources from the android namespace. Instead a fake completion item " +
     "is used to offer just the namespace prefix.", true);
+
+  public static final Flag<Boolean> RESOLVE_USING_REPOS = Flag.create(
+    EDITOR,
+    "resolve.using.repos",
+    "Resolve references using resource repositories",
+    "Use ResourceRepository to resolve references, not ResourceManager.",
+    false);
 
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(

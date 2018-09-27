@@ -20,8 +20,10 @@ import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.*
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -30,6 +32,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 class FlameChartDetailsViewTest {
 
@@ -74,7 +77,23 @@ class FlameChartDetailsViewTest {
     }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
-
+  @Test
+  fun flameChartHasCpuTraceEventTooltipView() {
+    stage.apply {
+      val parser = CpuCaptureParser(FakeIdeProfilerServices())
+      val capture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
+                                 FakeCpuService.FAKE_TRACE_ID,
+                                 CpuProfilerTestUtils.traceFileToByteString(File(CPU_UI_TRACES_DIR + "atrace_processid_1.ctrace")),
+                                 CpuProfiler.CpuProfilerType.ATRACE)!!.get()
+      setAndSelectCapture(capture)
+      selectedThread = capture.mainThreadId
+      setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
+    }
+    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
+    val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
+    val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
+    assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
+  }
   @Test
   fun showsContentWhenNodeIsNotNull() {
     stage.apply {

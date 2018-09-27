@@ -21,11 +21,14 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.CpuProfilerToolbar;
 import com.android.tools.profilers.cpu.CpuProfilingConfigurationView;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -76,15 +79,21 @@ class RecordingInitiatorPane extends CapturePane {
     }
 
     // TODO(b/109661512): Remove |JBUI.scale(10)| once the issue is fixed.
-    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,*").setVGap(JBUI.scale(10)));
+    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,*").setVGap(JBUI.scale(10)));
 
     JLabel label = new JLabel("Select CPU Profiling mode");
     label.setFont(ProfilerFonts.H2_FONT);
     label.setForeground(StandardColors.TEXT_COLOR);
 
+    ProfilingConfiguration config = myStageView.getStage().getProfilerConfigModel().getProfilingConfiguration();
+    JLabel technologyDescription = new JLabel(ProfilingTechnology.fromConfig(config).getDescription());
+    technologyDescription.setFont(ProfilerFonts.STANDARD_FONT);
+    technologyDescription.setForeground(StandardColors.TEXT_COLOR);
+
     content.add(label, new TabularLayout.Constraint(1, 1));
     content.add(myConfigsView.getComponent(), new TabularLayout.Constraint(2, 1));
     content.add(myRecordButton, new TabularLayout.Constraint(2, 2));
+    content.add(technologyDescription, new TabularLayout.Constraint(3, 1, 3));
 
     panel.add(content, BorderLayout.CENTER);
   }

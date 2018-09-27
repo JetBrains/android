@@ -21,15 +21,14 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Dummy implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
@@ -259,11 +258,14 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         }
 
         CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
-          .setTraceId(myTraceId)
-          .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMin()))
-          .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMax()))
-          .addAllThreads(threads)
-          .build();
+                                                               .setTraceId(myTraceId)
+                                                               .setFromTimestamp(
+                                                                 TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMin()))
+                                                               .setToTimestamp(
+                                                                 TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMax()))
+                                                               .setProfilerType(myCapture.getType())
+                                                               .addAllThreads(threads)
+                                                               .build();
         response.addTraceInfo(traceInfo);
       }
     }

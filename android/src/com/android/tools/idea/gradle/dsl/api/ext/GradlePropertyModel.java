@@ -56,6 +56,7 @@ public interface GradlePropertyModel {
   TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<List<GradlePropertyModel>>() {};
   TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
   TypeReference<Object> OBJECT_TYPE = new TypeReference<Object>() {};
+  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<ReferenceTo>() {};
 
   /**
    * Represents the type of the value stored by this property, or when a type can't be found

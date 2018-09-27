@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
@@ -24,7 +27,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
 
   fun testAttributeWithoutDefaultValue() {
     val components = createComponents(component(TEXT_VIEW))
-    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val defaultProvider = NeleDefaultPropertyProvider(property.model.surface!!.currentSceneView!!.sceneManager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isNull()
@@ -32,7 +35,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
 
   fun testAttributeWithDefaultValue() {
     val components = createComponents(component(TEXT_VIEW))
-    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     val defaultProvider = NeleDefaultPropertyProvider(manager)
@@ -42,7 +45,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
 
   fun testMultipleComponentsWithDifferentDefaultValues() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
-    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     manager.putDefaultPropertyValue(components[1], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
@@ -53,7 +56,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
 
   fun testMultipleComponentsWithSomeMissingDefaultValues() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
-    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     val defaultProvider = NeleDefaultPropertyProvider(manager)
@@ -63,7 +66,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
 
   fun testMultipleComponentsWithIdenticalDefaultValues() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
-    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
     manager.putDefaultPropertyValue(components[1], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
@@ -74,7 +77,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
 
   fun testMultipleComponentsWithOneMissingSnapshot() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
-    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
     components[1].snapshot = null

@@ -15,6 +15,15 @@
  */
 package org.jetbrains.android.util;
 
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_NAVIGATION;
+import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
@@ -31,23 +40,17 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidResourceUtilTest extends AndroidTestCase {
   @Override
@@ -67,7 +70,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
   }
 
-  public void testCompareResourceFiles() throws Exception {
+  public void testCompareResourceFiles() {
     PsiFile f1 = myFixture.addFileToProject("res/values/filename.xml", "");
     PsiFile f2 = myFixture.addFileToProject("res/values-en/filename.xml", "");
     PsiFile f3 = myFixture.addFileToProject("res/values-en-rUS/filename.xml", "");
@@ -292,6 +295,15 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
                                          "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                                          "\n" +
                                          "</layout>");
+  }
+
+  public void testCreateMergeFileResource() throws Exception {
+    XmlFile file = AndroidResourceUtil.createFileResource("merge", getLayoutFolder(), VIEW_MERGE, ResourceType.LAYOUT.getName(), false);
+    assertThat(file.getName()).isEqualTo("merge.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                         "\n" +
+                                         "</merge>");
   }
 
   public void testCreateNavigationFileResource() throws Exception {

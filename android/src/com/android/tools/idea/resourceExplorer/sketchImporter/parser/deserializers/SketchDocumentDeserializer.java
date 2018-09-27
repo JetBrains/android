@@ -55,7 +55,7 @@ public class SketchDocumentDeserializer implements JsonDeserializer<SketchDocume
 
     final SketchAssetCollection assets = context.deserialize(jsonObject.get(ASSETS), SketchAssetCollection.class);
     JsonElement colorSpaceElement = jsonObject.get(COLOR_SPACE);
-    final short colorSpace = colorSpaceElement != null? colorSpaceElement.getAsShort() : DEFAULT_COLOR_SPACE;
+    final short colorSpace = colorSpaceElement != null ? colorSpaceElement.getAsShort() : DEFAULT_COLOR_SPACE;
     JsonElement currentPageIndexElement = jsonObject.get(CURRENT_PAGE_INDEX);
     final int currentPageIndex = currentPageIndexElement != null ? currentPageIndexElement.getAsInt() : DEFAULT_CURRENT_PAGE_INDEX;
 

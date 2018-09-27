@@ -23,12 +23,9 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StageView;
-import com.google.common.base.Joiner;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.util.ui.JBEmptyBorder;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,7 +35,7 @@ import org.jetbrains.annotations.TestOnly;
 
 public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
 
-  private static final int HOVER_OVER_WIDTH_PX = ActivityComponent.EVENT_LINE_WIDTH_PX;
+  private static final int HOVER_OVER_WIDTH_PX = ActivityComponent.EVENT_LINE_WIDTH_PX + ActivityComponent.EVENT_LINE_GAP_WIDTH_PX * 2;
 
   @NotNull
   private final LifecycleTooltip myLifecycleTooltip;
@@ -100,22 +97,20 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
     if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
       myFragmentsPanel.removeAll();
       double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
-      Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX, tooltipX);
+      Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
       List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
       List<JLabel> labels = new ArrayList<>();
       fragments.forEach(fragment -> {
-        JLabel label = new JLabel(fragment.getName());
+        String text = fragment.getName();
         boolean justAdded = fragment.getStartUs() > hoverRange.getMin() && fragment.getStartUs() <= hoverRange.getMax();
         boolean justRemoved = fragment.getEndUs() != 0 && fragment.getEndUs() > hoverRange.getMin() && fragment.getEndUs() <= hoverRange.getMax();
-
-        label.setFont(label.getFont().deriveFont(Font.PLAIN));
         if (justAdded) {
-          label.setFont(label.getFont().deriveFont(Font.BOLD));
+          text += " - Resumed";
         }
         else if (justRemoved) {
-          label.setFont(label.getFont().deriveFont(Font.ITALIC));
+          text += " - Paused";
         }
-        labels.add(label);
+        labels.add(new JLabel(text));
       });
       labels.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
       labels.forEach(label -> myFragmentsPanel.add(label));
@@ -157,6 +152,7 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
     myDurationLabel.setFont(myFont);
     panel.add(myDurationLabel);
     if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
+      myFragmentsPanel.setBorder(new JBEmptyBorder(8, 0, 0, 0));
       panel.add(myFragmentsPanel);
     }
     return panel;

@@ -205,8 +205,8 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       val xScale = dimensions.width.toDouble() / image.width
       val yScale = dimensions.height.toDouble() / image.height
       if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-        ImageUtils.scale(image, xScale * 2, yScale * 2)
-        scaledImage = ImageUtils.convertToRetina(image)
+        scaledImage = ImageUtils.scale(image, xScale * 2, yScale * 2)
+        scaledImage = ImageUtils.convertToRetina(scaledImage)
       }
       if (scaledImage == null) {
         scaledImage = ImageUtils.scale(image, xScale, yScale)

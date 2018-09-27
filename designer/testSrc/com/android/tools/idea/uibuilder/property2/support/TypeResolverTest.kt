@@ -41,6 +41,7 @@ class TypeResolverTest {
     assertThat(TypeResolver.resolveType(ATTR_STYLE, null)).isEqualTo(NelePropertyType.STYLE)
     assertThat(TypeResolver.resolveType(ATTR_CLASS, null)).isEqualTo(NelePropertyType.FRAGMENT)
     assertThat(TypeResolver.resolveType(ATTR_LAYOUT, null)).isEqualTo(NelePropertyType.LAYOUT)
+    assertThat(TypeResolver.resolveType(ATTR_SHOW_IN, null)).isEqualTo(NelePropertyType.LAYOUT)
   }
 
   @Test

@@ -17,12 +17,17 @@ package com.android.tools.idea.rendering.parsers;
 
 import com.android.ide.common.fonts.*;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.xml.XmlPrettyPrinter;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.util.FileExtensions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -36,6 +41,8 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -303,5 +310,24 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNull(LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily));
+  }
+
+  public void testNamespace() {
+    // Project XML:
+    VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout-land-v14/foo.xml");
+    VirtualFile menuFile = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
+    VirtualFile drawableFile = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
+
+    assertEquals(RES_AUTO, LayoutPullParsers.create(createRenderTask(layoutFile)).getLayoutNamespace());
+    assertEquals(RES_AUTO, LayoutPullParsers.create(createRenderTask(menuFile)).getLayoutNamespace());
+    assertEquals(RES_AUTO, LayoutPullParsers.create(createRenderTask(drawableFile)).getLayoutNamespace());
+
+    // Framework XML:
+    ResourceItem frameworkResourceItem =
+      Iterables.getOnlyElement(ResourceRepositoryManager.getOrCreateInstance(myFacet)
+                                                        .getFrameworkResources(false)
+                                                        .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon"));
+    VirtualFile frameworkFile = FileExtensions.toVirtualFile(frameworkResourceItem.getSource());
+    assertEquals(ANDROID, LayoutPullParsers.create(createRenderTask(frameworkFile)).getLayoutNamespace());
   }
 }

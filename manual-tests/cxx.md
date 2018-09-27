@@ -68,29 +68,28 @@ NOTE 2: The exact content of the sub-nodes depends on the version of the NDK ins
 1. Select `Native C++` from the wizard.
 1. Expect gradle sync to succeed without errors.
 
-### Pin and manually install version from SDK
+### Pin and use Quick Fix to install CMake from SDK
 1. Use SDK Manager (Main/Preferences/Android SDK) to uninstall all CMake versions from SDK Tools.
 1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.10.2"`.
 1. Click `Sync now`.
-1. Expect a gradle sync error with link: `Install CMake 3.10.2 and sync project`. Click on the link.
+1. Expect a gradle sync error with link: `Install CMake 3.10.2`. Click on the link.
 1. Expect installation to complete successfully. Click `Finish`.
 1. Expect gradle sync to automatically restart and succeed.
 
-Verify the same behavior using version "3.10.2-rc1" and "3.10.2+".
+Verify the same behavior using version "3.10.2-rc2" and "3.10.2+".
 
 ### Pin and auto-install fork version from SDK
 1. Use SDK Manager (Main/Preferences/Android SDK) to uninstall all CMake versions from SDK Tools.
 1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.6.0"`.
 1. Click `Sync now`.
-1. Expect a gradle sync error with link: `Install CMake 3.6.0 and sync project`. Click on the link.
-1. Expect installation to complete successfully. Click `Finish`.
+1. Expect CMake 3.6 to be auto-downloaded.
 1. Expect gradle sync to automatically restart and succeed.
 
 Verify the same behavior using version "3.6.0-rc2" and "3.6.0+".
 
 ### Pin to non-existing version
 1. Use SDK Manager (Main/Preferences/Android SDK) to uninstall all CMake versions from SDK Tools.
-1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.12"`.
+1. Edit the main module's `build.gradle` file and add `android.externalNativeBuild.cmake.version "3.12.0"`.
 1. Expect a banner to appear at the top: `Gradle files have changed since last project sync...`.
 1. Click `Sync now`.
 1. Expect a gradle sync error with the following message, and no link:
