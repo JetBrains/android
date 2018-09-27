@@ -34,14 +34,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 /**
  * An action to launch a wizard to create a component from a template.
@@ -56,6 +59,7 @@ public class NewAndroidComponentAction extends AnAction {
   private final String myTemplateName;
   private final int myMinSdkApi;
   private final int myMinBuildSdkApi;
+  private final boolean myAndroidXRequired;
   private boolean myShouldOpenFiles = true;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
@@ -63,12 +67,18 @@ public class NewAndroidComponentAction extends AnAction {
   }
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
+    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, false);
+  }
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
+                                   boolean androidXRequired) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
     myMinSdkApi = minSdkVersion;
     myMinBuildSdkApi = minBuildSdkApi;
+    myAndroidXRequired = androidXRequired;
   }
 
   public void setShouldOpenFiles(boolean shouldOpenFiles) {
@@ -99,6 +109,10 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else if (buildSdkVersion != null && myMinBuildSdkApi > buildSdkVersion.getFeatureLevel()) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
+      presentation.setEnabled(false);
+    }
+    else if (myAndroidXRequired && !useAndroidX(module)) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.androidx", myTemplateName));
       presentation.setEnabled(false);
     }
     else {
@@ -165,5 +179,15 @@ public class NewAndroidComponentAction extends AnAction {
       view.selectElement(createdElement);
     }
     */
+  }
+
+  private static boolean useAndroidX(@Nullable Module module) {
+    if (module != null) {
+      Project project = module.getProject();
+      if (MigrateToAndroidxUtil.hasAndroidxProperty(module.getProject())) {
+        return isAndroidx(project);
+      }
+    }
+    return false;
   }
 }

@@ -59,6 +59,7 @@ public class TemplateMetadata {
   public static final String ATTR_TARGET_API_STRING = "targetApiString";
   public static final String ATTR_MIN_API = "minApi";
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
+  public static final String ATTR_REQUIRES_ANDROID_X = "requireAndroidX";
   public static final String ATTR_BUILD_API = "buildApi";
   public static final String ATTR_BUILD_API_STRING = "buildApiString";
   public static final String ATTR_BUILD_API_REVISION = "buildApiRevision";
@@ -235,6 +236,8 @@ public class TemplateMetadata {
     return getInteger(ATTR_MIN_BUILD_API, 1);
   }
 
+  public boolean getAndroidXRequired() { return getBoolean(ATTR_REQUIRES_ANDROID_X, false); }
+
   public int getRevision() {
     return getInteger(ATTR_REVISION, 1);
   }
@@ -387,6 +390,15 @@ public class TemplateMetadata {
       // Templates aren't allowed to contain codenames, should always be an integer
       //LOG.warn(nfe);
       return defaultValue;
+    }
+    catch (RuntimeException e) {
+      return defaultValue;
+    }
+  }
+
+  private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
+    try {
+      return Boolean.parseBoolean(myDocument.getDocumentElement().getAttribute(attrName));
     }
     catch (RuntimeException e) {
       return defaultValue;
