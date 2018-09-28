@@ -35,6 +35,7 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
@@ -62,15 +63,26 @@ abstract class CpuUsageView extends JBPanel {
   @NotNull protected final SelectionComponent mySelectionComponent;
   @NotNull protected final OverlayComponent myOverlayComponent;
 
+  @SuppressWarnings("FieldCanBeLocal")
+  @NotNull
+  private final AspectObserver myObserver;
+
   private CpuUsageView(@NotNull CpuProfilerStage stage) {
     super(new TabularLayout("*", "*"));
     myStage = stage;
+    myObserver = new AspectObserver();
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
     mySelectionComponent =
       new SelectionComponent(myStage.getSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
     mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    // After a capture is set we update the selection to be the length of the capture. The selection we update is on the range
+    // instead of the selection model, or selection component. So here we listen to a selection capture event and give focus
+    // to the selection component.
+    // Note: The selection range is set in CpuProfilerStage::setAndSelectCapture.
+    stage.getAspect().addDependency(myObserver)
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, mySelectionComponent::requestFocus);
 
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
 
