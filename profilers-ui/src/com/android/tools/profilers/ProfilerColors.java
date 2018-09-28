@@ -206,12 +206,6 @@ public class ProfilerColors {
 
   public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
 
-  public static final Color NETWORK_RADIO_WIFI = new JBColor(0xD4DCE8, 0x535658);
-
-  public static final Color NETWORK_RADIO_LOW = new JBColor(0x99BFFF, 0x4B6690);
-
-  public static final Color NETWORK_RADIO_HIGH = new JBColor(0x335A9A, 0x669FFF);
-
   public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x565656);
 
   public static final Color MEMORY_TOTAL = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
