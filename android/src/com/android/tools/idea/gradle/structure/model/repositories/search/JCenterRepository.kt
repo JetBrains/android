@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.JsonParser
-import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.util.io.HttpRequests
 import java.io.Reader
 

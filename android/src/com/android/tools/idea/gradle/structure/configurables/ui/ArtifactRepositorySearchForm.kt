@@ -170,7 +170,6 @@ class ArtifactRepositorySearchForm(
     resultsTable.setPaintBusy(false)
     resultsTable.emptyText.text = NOTHING_TO_SHOW_EMPTY_TEXT
 
-    versionsPanel.clear()
     versionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT)
   }
 
