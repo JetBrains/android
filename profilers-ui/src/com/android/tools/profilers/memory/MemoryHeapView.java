@@ -16,10 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.ProfilerCombobox;
+import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapSet;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,7 @@ import java.util.Objects;
 public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private JComboBox<HeapSet> myComboBox = new ComboBox<>();
+  @NotNull private JComboBox<HeapSet> myComboBox = new ProfilerCombobox<>();
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -44,7 +44,7 @@ public class MemoryHeapView extends AspectObserver {
 
     myComboBox.addActionListener(e -> {
       Object item = myComboBox.getSelectedItem();
-      if (item != null && item instanceof HeapSet) {
+      if (item instanceof HeapSet) {
         myStage.selectHeapSet((HeapSet)item);
       }
     });
@@ -89,7 +89,8 @@ public class MemoryHeapView extends AspectObserver {
     }
   }
 
-  private static final class HeapListCellRenderer extends ColoredListCellRenderer<HeapSet> {
+  private static final class HeapListCellRenderer extends ProfilerComboboxCellRenderer<HeapSet> {
+
     @Override
     protected void customizeCellRenderer(@NotNull JList<? extends HeapSet> list,
                                          HeapSet value,

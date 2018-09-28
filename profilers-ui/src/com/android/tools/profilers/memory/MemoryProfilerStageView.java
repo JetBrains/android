@@ -42,7 +42,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleTextAttributes;
@@ -202,7 +201,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myAllocationSamplingRateLabel = new JLabel("Allocation Tracking");
     myAllocationSamplingRateLabel.setBorder(JBUI.Borders.empty(0, 8));
-    myAllocationSamplingRateDropDown = new ComboBox<LiveAllocationSamplingMode>();
+    myAllocationSamplingRateDropDown = new ProfilerCombobox();
 
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
@@ -851,7 +850,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   @VisibleForTesting
-  static class LiveAllocationSamplingModeRenderer extends ColoredListCellRenderer<LiveAllocationSamplingMode> {
+  static class LiveAllocationSamplingModeRenderer extends ProfilerComboboxCellRenderer<LiveAllocationSamplingMode> {
     @Override
     protected void customizeCellRenderer(@NotNull JList list,
                                          LiveAllocationSamplingMode value,
