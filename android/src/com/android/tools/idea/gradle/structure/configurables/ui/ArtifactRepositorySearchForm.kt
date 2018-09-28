@@ -20,7 +20,13 @@ import com.android.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.KnownValues
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
@@ -31,6 +37,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.table.TableView
 import com.intellij.util.text.nullize
@@ -67,12 +74,14 @@ class ArtifactRepositorySearchForm(
   var searchErrors: List<Exception> = listOf(); private set
 
   init {
-    myArtifactNameTextField.document.addDocumentListener(object : DocumentAdapter() {
+    val inputChangedListener = object : DocumentAdapter() {
       override fun textChanged(e: DocumentEvent) {
         clearResults()
         showSearchStopped()
       }
-    })
+    }
+    myArtifactNameTextField.document.addDocumentListener(inputChangedListener)
+    myGroupIdTextField.document.addDocumentListener(inputChangedListener)
 
     val actionListener = ActionListener {
       if (mySearchButton.isEnabled) {
@@ -84,11 +93,24 @@ class ArtifactRepositorySearchForm(
 
     myArtifactNameLabel.labelFor = myArtifactNameTextField
     myArtifactNameTextField.addActionListener(actionListener)
-    myArtifactNameTextField.emptyText.text = "Example: \"guava\""
+    myArtifactNameTextField.emptyText.apply {
+      clear()
+      appendText("Example: ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+      appendText("guava", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
+      appendText(" or ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+      // NOTE: While *guava* might also be supported by some search providers, it is not supported by mavenCentral().
+      appendText("guava*", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
+    }
 
     myGroupIdLabel.labelFor = myGroupIdTextField
     myGroupIdTextField.addActionListener(actionListener)
-    myGroupIdTextField.emptyText.text = "Example: \"com.google.guava\""
+    myGroupIdTextField.emptyText.apply {
+      clear()
+      appendText("Example: ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+      appendText("com.google.guava", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
+      appendText(" or ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+      appendText("com.google.*", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
+    }
 
     resultsTable = TableView(ResultsTableModel())
     resultsTable.preferredSize = Dimension(520, 320)
@@ -165,7 +187,7 @@ class ArtifactRepositorySearchForm(
   }
 
   private fun showSearchStopped() {
-    mySearchButton.isEnabled = artifactName.length >= 3
+    mySearchButton.isEnabled = artifactName.length + (groupId?.length ?: 0) >= 3
 
     resultsTable.setPaintBusy(false)
     resultsTable.emptyText.text = NOTHING_TO_SHOW_EMPTY_TEXT
