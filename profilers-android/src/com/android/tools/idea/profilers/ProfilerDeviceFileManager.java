@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
@@ -68,11 +69,12 @@ public final class ProfilerDeviceFileManager {
       .build();
   }
 
+  static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+
   private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
   private static final String DEVICE_SOCKET_NAME = "AndroidStudioProfiler";
   private static final String AGENT_CONFIG_FILE = "agent.config";
-  private static final String DEVICE_DIR = "/data/local/tmp/perfd/";
   private static final int DEVICE_PORT = 12389;
 
   @NotNull private final IDevice myDevice;
@@ -114,7 +116,8 @@ public final class ProfilerDeviceFileManager {
    * Copies a file from host (where Studio is running) to the device.
    * If executable, then the abi is taken into account.
    */
-  private void copyFileToDevice(@NotNull ProfilerHostFile hostFile)
+  @VisibleForTesting
+  void copyFileToDevice(@NotNull ProfilerHostFile hostFile)
     throws AdbCommandRejectedException, IOException {
 
     if (hostFile.isAbiDependent()) {
