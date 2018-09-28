@@ -16,10 +16,15 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BASELINE_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_BOTTOM;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_TOP;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_END;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_START;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_END;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_START;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_BOTTOM;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
+
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -728,21 +733,21 @@ public class ConstraintAnchorTarget extends AnchorTarget {
             list.set(1, component.getAuthoritativeNlComponent());
             switch (myType) {
               case LEFT:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_DES);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_END_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_TO_START);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_START_TO_END);
                 break;
               case RIGHT:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_START_DES);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_END_TO_START);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_TO_END);
                 break;
               case TOP:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_DES);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_BOTTOM_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_TO_TOP);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_TOP_TO_BOTTOM);
                 break;
               case BOTTOM:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_TOP_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_BOTTOM_TO_TOP);
                 addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToBottom, "Bottom ", " bottom",
-                               CONSTRAIN_BOTTOM_DES);
+                               CONSTRAIN_BOTTOM_TO_BOTTOM);
                 break;
               case BASELINE:
                 addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBaseLineToBaseLine, "Baseline ", " baseline",
