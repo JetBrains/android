@@ -151,7 +151,7 @@ fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand
   if (component.isDragging) {
     level = DrawCommand.TOP_LEVEL
   }
-  else if (component.flatten().anyMatch { it.isSelected }) {
+  else if (component.flatten().any { it.isSelected }) {
     level = DrawCommand.COMPONENT_SELECTED_LEVEL
   }
 
@@ -190,7 +190,7 @@ fun selfActionPoints(@SwingCoordinate start: Point2D.Float, @SwingCoordinate end
 
 fun convertToRoundRect(view: SceneView, @SwingCoordinate rectangle: Rectangle2D.Float, @NavCoordinate arcSize: Float)
   : RoundRectangle2D.Float {
-  var roundRect = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 0f, 0f)
+  val roundRect = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 0f, 0f)
 
   Coordinates.getSwingDimension(view, arcSize).let {
     roundRect.arcwidth = it
