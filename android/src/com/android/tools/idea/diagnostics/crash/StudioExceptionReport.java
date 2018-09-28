@@ -41,6 +41,7 @@ public class StudioExceptionReport extends BaseStudioReport {
       ClassCastException.class,
       ClassNotFoundException.class,
       IndexOutOfBoundsException.class,
+      NoClassDefFoundError.class,
       NoPiiException.class);
 
   public static final String KEY_EXCEPTION_INFO = "exception_info";
