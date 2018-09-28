@@ -20,7 +20,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import kotlinx.android.extensions.CacheImplementation
 import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
 import org.jetbrains.kotlin.android.model.isAndroidModule
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ANDROID_COMPILER_PLUGIN_ID
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.EXPERIMENTAL_OPTION
@@ -39,11 +38,9 @@ private fun Module.getOptionValueInFacet(option: CliOption): String? {
 
     val prefix = ANNOTATION_OPTION_PREFIX + option.name + "="
 
-    val optionValue = commonArgs.pluginOptions
+    return commonArgs.pluginOptions
             ?.firstOrNull { it.startsWith(prefix) }
             ?.substring(prefix.length)
-
-    return optionValue
 }
 
 private fun isTestMode(module: Module): Boolean {
@@ -67,8 +64,7 @@ internal val ModuleInfo.androidExtensionsIsExperimental: Boolean
 
 internal val Module.androidExtensionsIsExperimental: Boolean
     get() {
-        // Android Studio: running in tests should not enable experimental features that aren't enabled in production.
-        // if (isTestMode(this)) return true
+        if (isTestMode(this)) return true
         return getOptionValueInFacet(EXPERIMENTAL_OPTION) == "true"
     }
 
