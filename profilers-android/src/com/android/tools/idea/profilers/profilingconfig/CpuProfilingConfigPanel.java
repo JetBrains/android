@@ -78,8 +78,7 @@ public class CpuProfilingConfigPanel {
 
   @VisibleForTesting
   static final String FILE_SIZE_LIMIT_DESCRIPTION =
-    "<html>Maximum size of the output file from recording. On Android 8.0 (API level 26) and higher, " +
-    "there is no limit on the file size and the value is ignored.</html>";
+    "<html>Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.</html>";
 
   /**
    * Max size of the buffer file that contains the output of the recording.
