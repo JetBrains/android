@@ -1414,7 +1414,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                       StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL_PARENT_CONSTRAINT,
                       "Vertically in Parent"));
 
-  // ====================================== Connect menu ==================================================
+    // ====================================== Connect menu ==================================================
 
     private static class ConnectAction extends DirectViewAction implements EnabledAction {
       private final Scout.Connect myConnectType;
@@ -1497,10 +1497,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         presentation.setIcon(icon);
         if (mToParent) {
           presentation.setLabel(myToolTip);
-        }else {
+        }
+        else {
           String name = selectedChildren.get((mReverse) ? 0 : 1).getId();
           if (name == null) {
-            name = "("+selectedChildren.get((mReverse) ? 0 : 1).getTagName() + ")";
+            name = "(" + selectedChildren.get((mReverse) ? 0 : 1).getTagName() + ")";
           }
           presentation.setLabel(myToolTip + " of " + name);
         }
@@ -1547,10 +1548,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private static final ImmutableList<ViewAction> connectTopVertical(boolean reverse) {
       return ImmutableList.of(
         new ConnectAction(Scout.Connect.ConnectTopToTop,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP,
                           "top", reverse),
         new ConnectAction(Scout.Connect.ConnectTopToBottom,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_BOTTOM,
                           "bottom", reverse)
 
       );
@@ -1559,10 +1560,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private static final ImmutableList<ViewAction> connectStartHorizontal(boolean reverse) {
       return ImmutableList.of(
         new ConnectAction(Scout.Connect.ConnectStartToStart,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_START,
                           "start", reverse),
         new ConnectAction(Scout.Connect.ConnectStartToEnd,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_END,
                           "end", reverse)
       );
     }
@@ -1570,10 +1571,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private static final ImmutableList<ViewAction> connectBottomVertical(boolean reverse) {
       return ImmutableList.of(
         new ConnectAction(Scout.Connect.ConnectBottomToTop,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_TOP,
                           "top", reverse),
         new ConnectAction(Scout.Connect.ConnectBottomToBottom,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_BOTTOM,
                           "bottom", reverse)
 
       );
@@ -1582,40 +1583,43 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private static final ImmutableList<ViewAction> connectEndHorizontal(boolean reverse) {
       return ImmutableList.of(
         new ConnectAction(Scout.Connect.ConnectEndToStart,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_START,
                           "start", reverse),
         new ConnectAction(Scout.Connect.ConnectEndToEnd,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_DES,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_END,
                           "end", reverse)
       );
     }
 
     private static final ImmutableList<ViewAction> connectFrom(boolean reverse) {
       return ImmutableList.of(
-        new DisappearingActionMenu("top to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_SRC,
+        new DisappearingActionMenu("top to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_TOP,
                                    ConstraintViewActions.connectTopVertical(reverse)),
-        new DisappearingActionMenu("bottom to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_SRC,
+        new DisappearingActionMenu("bottom to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_BOTTOM,
                                    ConstraintViewActions.connectBottomVertical(reverse)),
-        new DisappearingActionMenu("start to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_SRC,
+        new DisappearingActionMenu("start to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_START,
                                    ConstraintViewActions.connectStartHorizontal(reverse)),
-        new DisappearingActionMenu("End to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_SRC,
-                                   ConstraintViewActions.connectEndHorizontal(reverse))
+        new DisappearingActionMenu("End to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_END,
+                                   ConstraintViewActions.connectEndHorizontal(reverse)),
+        new ConnectAction(Scout.Connect.ConnectBaseLineToBaseLine,
+                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BASELINE_DES,
+                          "to baseline", reverse)
       );
     }
 
     private static final ImmutableList<ViewAction> CONNECT_ACTIONS = ImmutableList.of(
 
       new ConnectAction(Scout.Connect.ConnectToParentTop,
-                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_PARENT,
+                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_TOP,
                         "parent top"),
       new ConnectAction(Scout.Connect.ConnectToParentBottom,
-                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_PARENT,
+                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_BOTTOM,
                         "parent bottom"),
       new ConnectAction(Scout.Connect.ConnectToParentStart,
-                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_PARENT,
+                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_START,
                         "parent start"),
       new ConnectAction(Scout.Connect.ConnectToParentEnd,
-                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_PARENT,
+                        StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_END,
                         "parent End"),
       new ConnectSource(0, null, connectFrom(false)),
       new ConnectSource(1, null, connectFrom(true))
