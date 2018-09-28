@@ -65,7 +65,6 @@ public class ProfilerColors {
   public static final Color CPU_KERNEL_APP_TEXT_HOVER = CPU_KERNEL_APP_TEXT_SELECTED;
   public static final Color CPU_KERNEL_APP_TEXT = new JBColor(0x4A877F, 0x56907D);
   public static final Color CPU_KERNEL_OTHER_TEXT = new JBColor(0x6E8C9A, 0x606D7E);
-  public static final Color CPU_KERNEL_OTHER_TEXT_SELECTED = new JBColor(0x232D31, 0xA9C7E9);
   public static final Color CPU_KERNEL_OTHER_TEXT_HOVER = new JBColor(0x232D31, 0xA9C7E9);
   public static final Color CPU_KERNEL_APP = new JBColor(0xC3E4E0, 0x33534C);
   public static final Color CPU_KERNEL_APP_SELECTED = CPU_USAGE_CAPTURED;
