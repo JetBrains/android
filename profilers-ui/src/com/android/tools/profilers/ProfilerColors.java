@@ -183,6 +183,10 @@ public class ProfilerColors {
 
   public static final Color CPU_DURATION_LABEL_BACKGROUND = new JBColor(new Color(0x70000000, true), new Color(0x70000000, true));
 
+  public static final Color COMBOBOX_BORDER = new JBColor(0xAAAAAA, 0xAAAAAA);
+
+  public static final Color COMBOBOX_SELECTED_CELL = new JBColor(0x3875D6, 0x3875D6);
+
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
 
   public static final Color DEFAULT_STAGE_BACKGROUND = new JBColor(0xFFFFFF, 0x2B2D2E);
