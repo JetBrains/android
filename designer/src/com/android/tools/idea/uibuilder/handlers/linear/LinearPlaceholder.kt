@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
 import java.awt.Point
 
-const val SIZE = 20
+const val SIZE = 8
 
 object LinearPlaceholderFactory {
 
