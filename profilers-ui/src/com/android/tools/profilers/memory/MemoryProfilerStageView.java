@@ -782,6 +782,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void captureObjectFinishedLoading() {
     myAllocationButton.setEnabled(true);
+    mySelectionComponent.requestFocus();
     myHeapDumpButton.setEnabled(true);
     if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
       return;
