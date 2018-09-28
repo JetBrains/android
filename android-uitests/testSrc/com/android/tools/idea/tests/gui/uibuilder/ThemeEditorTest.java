@@ -87,7 +87,7 @@ public class ThemeEditorTest {
 
     themeEditor.chooseTheme("Theme.AppCompat.NoActionBar")
       .chooseApiLevel("API 25", "25")
-      .chooseDevice("Nexus 5", "Nexus 5")
+      .chooseDevice("Nexus 5X", "Nexus 5X")
       .switchOrientation("Landscape")
       .switchOrientation("Portrait")
       .createNewTheme("NewTheme", "Theme.AppCompat.NoActionBar");
