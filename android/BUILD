@@ -144,7 +144,7 @@ iml_module(
         ":android-gradle-1.5.0_repo.zip",
         ":com.android.tools.build_gradle",
         ":test_deps.zip",
-        "//prebuilts/studio/jdk:jdk_runtime",
+        "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:data/res",
