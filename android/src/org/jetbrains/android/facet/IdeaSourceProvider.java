@@ -284,7 +284,9 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getAidlDirectories() {
       VirtualFile dir = getAidlGenDir(myFacet);
-      assert dir != null;
+      if (dir == null) {
+        return Collections.emptyList();
+      }
       return Collections.singleton(dir);
     }
 
@@ -292,7 +294,9 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getRenderscriptDirectories() {
       VirtualFile dir = getRenderscriptGenDir(myFacet);
-      assert dir != null;
+      if (dir == null) {
+        return Collections.emptyList();
+      }
       return Collections.singleton(dir);
     }
 
