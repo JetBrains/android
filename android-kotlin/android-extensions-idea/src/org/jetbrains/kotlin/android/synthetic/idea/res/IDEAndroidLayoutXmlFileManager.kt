@@ -22,7 +22,6 @@ import com.intellij.diagnostic.ThreadDumper
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiInvalidElementAccessException
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -32,7 +31,16 @@ import org.jetbrains.kotlin.android.synthetic.AndroidConst.SYNTHETIC_PACKAGE_PAT
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidXmlVisitor
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsExperimental
-import org.jetbrains.kotlin.android.synthetic.res.*
+import org.jetbrains.kotlin.android.synthetic.res.AndroidLayout
+import org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutGroup
+import org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutGroupData
+import org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager
+import org.jetbrains.kotlin.android.synthetic.res.AndroidModule
+import org.jetbrains.kotlin.android.synthetic.res.AndroidModuleData
+import org.jetbrains.kotlin.android.synthetic.res.AndroidResource
+import org.jetbrains.kotlin.android.synthetic.res.AndroidVariant
+import org.jetbrains.kotlin.android.synthetic.res.AndroidVariantData
+import org.jetbrains.kotlin.android.synthetic.res.cachedValue
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
@@ -140,18 +148,9 @@ class IDEAndroidLayoutXmlFileManager(val module: Module) : AndroidLayoutXmlFileM
 
     private fun getAndroidModuleInfoExperimental(androidFacet: AndroidModuleInfoProvider): AndroidModule? {
         val applicationPackage = androidFacet.getApplicationPackage() ?: return null
-        val appResourceDirectories = androidFacet.getApplicationResourceDirectories(true).mapNotNull { it.canonicalPath }
+        val variants = mutableListOf<AndroidVariant>()
 
-        val resDirectoriesForMainVariant = androidFacet.run {
-            val resDirsFromSourceProviders = androidFacet.getAllSourceProviders()
-                .filter { it.name != "main" }
-                .flatMap { it.resDirectories }
-                .map { it.canonicalPath }
-
-            appResourceDirectories - resDirsFromSourceProviders
-        }
-
-        val variants = mutableListOf(AndroidVariant("main", resDirectoriesForMainVariant))
+        androidFacet.getMainSourceProvider()?.toVariant()?.let { variants += it }
 
         androidFacet.getActiveSourceProviders()
             .filter { it.name != "main" }
