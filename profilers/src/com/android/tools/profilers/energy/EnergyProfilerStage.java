@@ -127,9 +127,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myEventMonitor.enter();
 
     getStudioProfilers().getUpdater().register(myDetailedUsage);
-    getStudioProfilers().getUpdater().register(myLegends);
-    getStudioProfilers().getUpdater().register(myUsageTooltipLegends);
-    getStudioProfilers().getUpdater().register(myEventTooltipLegends);
     getStudioProfilers().getUpdater().register(myUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
@@ -141,9 +138,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myEventMonitor.exit();
 
     getStudioProfilers().getUpdater().unregister(myDetailedUsage);
-    getStudioProfilers().getUpdater().unregister(myLegends);
-    getStudioProfilers().getUpdater().unregister(myUsageTooltipLegends);
-    getStudioProfilers().getUpdater().unregister(myEventTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
@@ -311,7 +305,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final SeriesLegend myLocationLegend;
 
     EnergyUsageLegends(DetailedEnergyUsage detailedUsage, Range range) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "CPU",
                                      Interpolatable.SegmentInterpolator);
       myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "Network",
@@ -350,7 +344,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       new SingleUnitAxisFormatter(1, 5, 5, "");
 
     EnergyEventLegends(@NotNull DetailedEnergyEventsCount eventCount, @NotNull Range range) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       myRange = range;
       myLocationLegend = createSeriesLegend(eventCount.getLocationCountSeries());
       myWakeLockLegend = createSeriesLegend(eventCount.getWakeLockCountSeries());
@@ -362,8 +356,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     private SeriesLegend createSeriesLegend(RangedContinuousSeries series) {
-      return new SeriesLegend(series, myFormatter, myRange,
-                              Interpolatable.SegmentInterpolator);
+      return new SeriesLegend(series, myFormatter, myRange, Interpolatable.SegmentInterpolator);
     }
 
     @NotNull

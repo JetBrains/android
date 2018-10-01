@@ -41,8 +41,8 @@ public class EnergyMonitor extends ProfilerMonitor {
     myUsage = new EnergyUsage(profilers);
     myAxis = new ClampedAxisComponentModel.Builder(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT)
       .setMarkerRange(AXIS_MARKER_RANGE).build();
-    myLegends = new Legends(myUsage, getTimeline().getDataRange(), false);
-    myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange(), true);
+    myLegends = new Legends(myUsage, getTimeline().getDataRange());
+    myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange());
     changed(Aspect.ENABLE);
   }
 
@@ -73,8 +73,6 @@ public class EnergyMonitor extends ProfilerMonitor {
     if (isEnabled()) {
       myProfilers.getUpdater().register(myUsage);
       myProfilers.getUpdater().register(myAxis);
-      myProfilers.getUpdater().register(myLegends);
-      myProfilers.getUpdater().register(myTooltipLegends);
     }
   }
 
@@ -83,8 +81,6 @@ public class EnergyMonitor extends ProfilerMonitor {
     if (isEnabled()) {
       myProfilers.getUpdater().unregister(myUsage);
       myProfilers.getUpdater().unregister(myAxis);
-      myProfilers.getUpdater().unregister(myLegends);
-      myProfilers.getUpdater().unregister(myTooltipLegends);
     }
   }
 
@@ -124,8 +120,8 @@ public class EnergyMonitor extends ProfilerMonitor {
     @NotNull
     private final SeriesLegend myUsageLegend;
 
-    public Legends(@NotNull EnergyUsage usage, @NotNull Range range, boolean highlight) {
-      super(highlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
+    public Legends(@NotNull EnergyUsage usage, @NotNull Range range) {
+      super(range);
       myUsageLegend = new SeriesLegend(usage.getUsageDataSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range);
       add(myUsageLegend);
     }
