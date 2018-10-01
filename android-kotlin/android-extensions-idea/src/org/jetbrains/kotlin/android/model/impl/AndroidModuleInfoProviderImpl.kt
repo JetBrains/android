@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.android.model.impl
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -33,15 +32,6 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
 
     override fun getMainSourceProvider(): AndroidModuleInfoProvider.SourceProviderMirror? {
         return androidFacet?.mainSourceProvider?.let(::SourceProviderMirrorImpl)
-    }
-
-    override fun getApplicationResourceDirectories(createIfNecessary: Boolean): Collection<VirtualFile> {
-        return ResourceRepositoryManager.getAppResources(module)?.resourceDirs ?: emptyList()
-    }
-
-    override fun getAllSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        val androidModuleModel = this.androidModuleModel ?: return emptyList()
-        return androidModuleModel.allSourceProviders.map(::SourceProviderMirrorImpl)
     }
 
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
