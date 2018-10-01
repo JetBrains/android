@@ -22,7 +22,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -34,14 +34,13 @@ public class StudioExceptionReport extends BaseStudioReport {
   /**
    * {@link Throwable} classes with messages expected to be useful for debugging and not to contain PII.
    */
-  private static final ImmutableSet<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES =
-    ImmutableSet.of(
-      AbstractMethodError.class,
+  private static final ImmutableList<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES =
+    ImmutableList.of(
+      LinkageError.class,
+      ReflectiveOperationException.class,
       ArrayIndexOutOfBoundsException.class,
       ClassCastException.class,
-      ClassNotFoundException.class,
       IndexOutOfBoundsException.class,
-      NoClassDefFoundError.class,
       NoPiiException.class);
 
   public static final String KEY_EXCEPTION_INFO = "exception_info";
@@ -108,7 +107,7 @@ public class StudioExceptionReport extends BaseStudioReport {
     }
   }
 
-  // Similar to ExceptionUntil.getRootCause, but attempts to avoid infinite recursion
+  // Similar to ExceptionUtil.getRootCause, but attempts to avoid infinite recursion
   @NonNull
   public static Throwable getRootCause(@NonNull Throwable t) {
     int depth = 0;
@@ -126,7 +125,7 @@ public class StudioExceptionReport extends BaseStudioReport {
    */
   @NonNull
   public static String getDescription(@NonNull Throwable t) {
-    if (THROWABLE_CLASSES_TO_TRACK_MESSAGES.contains(t.getClass())) {
+    if (THROWABLE_CLASSES_TO_TRACK_MESSAGES.stream().anyMatch(c -> c.isInstance(t))) {
       return Throwables.getStackTraceAsString(t);
     }
 
