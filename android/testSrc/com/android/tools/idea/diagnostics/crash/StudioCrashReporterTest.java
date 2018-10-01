@@ -73,7 +73,7 @@ public class StudioCrashReporterTest {
       UsageTracker.setWriterForTest(usageTracker);
       CrashReport report =
         new StudioExceptionReport.Builder()
-          .setThrowable(new RuntimeException("Test Exception Message"))
+          .setThrowable(new RuntimeException("Test Exception Message"), false)
           .build();
 
       String content = getSerializedContent(report);
@@ -109,6 +109,28 @@ public class StudioCrashReporterTest {
   }
 
   @Test
+  public void serializeUserReportedException() throws Exception {
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(ourException, true)
+        .build();
+
+    String request = getSerializedContent(report);
+    assertRequestContainsField(request, "exception_info", "java.lang.RuntimeException: This is a test exception message");
+  }
+
+  @Test
+  public void serializeNonUserReportedException() throws Exception {
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(ourException, false)
+        .build();
+
+    String request = getSerializedContent(report);
+    assertRequestContainsField(request, "exception_info", "java.lang.RuntimeException: <elided>");
+  }
+
+  @Test
   public void serializeKotlinException() throws Exception {
     final String exceptionWithKotlinString =
       "java.lang.RuntimeException: Kotlin message\n" +
@@ -118,7 +140,7 @@ public class StudioCrashReporterTest {
       "\tat kotlin.SynchronizedLazyImpl.getValue(Lazy.kt:131)\n";
     StudioExceptionReport report = spy(
       new StudioExceptionReport.Builder()
-        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null))
+        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null), false)
         .build());
 
     doReturn("1.2.3.4").when(report).getKotlinPluginVersionDescription();
@@ -178,7 +200,7 @@ public class StudioCrashReporterTest {
   public static void main(String[] args) {
     GoogleCrashReporter crash = new StudioCrashReporter();
 
-    submit(crash, new StudioExceptionReport.Builder().setThrowable(ourException).build());
+    submit(crash, new StudioExceptionReport.Builder().setThrowable(ourException, false).build());
     submit(
       crash,
       new StudioCrashReport.Builder()
