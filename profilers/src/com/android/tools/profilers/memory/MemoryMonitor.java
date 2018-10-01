@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
@@ -26,14 +26,9 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitor extends ProfilerMonitor {
-
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryMonitor.class);
-  }
 
   @NotNull
   private final ClampedAxisComponentModel myMemoryAxis;
@@ -48,8 +43,8 @@ public class MemoryMonitor extends ProfilerMonitor {
     myMemoryUsage = new MemoryUsage(profilers);
 
     myMemoryAxis = new ClampedAxisComponentModel.Builder(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER).build();
-    myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
-    myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange(), 0);
+    myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange());
+    myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange());
   }
 
   @Override
@@ -66,16 +61,12 @@ public class MemoryMonitor extends ProfilerMonitor {
   public void enter() {
     myProfilers.getUpdater().register(myMemoryUsage);
     myProfilers.getUpdater().register(myMemoryAxis);
-    myProfilers.getUpdater().register(myMemoryLegend);
-    myProfilers.getUpdater().register(myTooltipLegend);
   }
 
   @Override
   public void exit() {
     myProfilers.getUpdater().unregister(myMemoryUsage);
     myProfilers.getUpdater().unregister(myMemoryAxis);
-    myProfilers.getUpdater().unregister(myMemoryLegend);
-    myProfilers.getUpdater().unregister(myTooltipLegend);
     myProfilers.removeDependencies(this);
   }
 
@@ -106,8 +97,8 @@ public class MemoryMonitor extends ProfilerMonitor {
     @NotNull
     private final SeriesLegend myTotalLegend;
 
-    public MemoryLegend(@NotNull MemoryUsage usage, @NotNull Range range, int updateFrequencyMs) {
-      super(updateFrequencyMs);
+    public MemoryLegend(@NotNull MemoryUsage usage, @NotNull Range range) {
+      super(range);
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
       add(myTotalLegend);
     }

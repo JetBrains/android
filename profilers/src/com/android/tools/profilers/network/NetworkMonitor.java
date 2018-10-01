@@ -64,16 +64,12 @@ public class NetworkMonitor extends ProfilerMonitor {
   public void exit() {
     myProfilers.getUpdater().unregister(myNetworkUsage);
     myProfilers.getUpdater().unregister(myTrafficAxis);
-    myProfilers.getUpdater().unregister(myLegends);
-    myProfilers.getUpdater().unregister(myTooltipLegends);
   }
 
   @Override
   public void enter() {
     myProfilers.getUpdater().register(myNetworkUsage);
     myProfilers.getUpdater().register(myTrafficAxis);
-    myProfilers.getUpdater().register(myLegends);
-    myProfilers.getUpdater().register(myTooltipLegends);
   }
 
   @Override
@@ -103,7 +99,7 @@ public class NetworkMonitor extends ProfilerMonitor {
     @NotNull private final SeriesLegend myTxLegend;
 
     public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range, boolean hightlight) {
-      super(hightlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_SENT.getLabel(hightlight),
                                     Interpolatable.SegmentInterpolator);
       myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_RECEIVED.getLabel(hightlight),

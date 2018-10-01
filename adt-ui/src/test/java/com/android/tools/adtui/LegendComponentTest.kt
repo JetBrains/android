@@ -22,18 +22,19 @@ import com.android.tools.adtui.instructions.IconInstruction
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.RenderInstruction
 import com.android.tools.adtui.instructions.TextInstruction
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons
 import org.junit.Test
 import java.awt.Color
-import java.util.concurrent.TimeUnit
 
 class LegendComponentTest {
   @Test
   fun addingAndRemovingLegendsCreatesTextInstructions() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0) // Just a valid starting range, no special meaning to 0.0.
+    val model = LegendComponentModel(range)
     val legend1 = FakeLegend("Name1")
     val legend2 = FakeLegend("Name2")
     val legend3 = FakeLegend("Name3", "Value3")
@@ -45,36 +46,36 @@ class LegendComponentTest {
     assertThat(legendComponent.preferredSize.height).isEqualTo(0)
 
     model.add(legend1)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range) // Some valid range that is different from what it was before (0.0, 0.0).
 
     assertText(legendComponent, listOf())
     assertThat(legendComponent.preferredSize.width).isEqualTo(0)
     assertThat(legendComponent.preferredSize.height).isEqualTo(0)
 
     model.add(legend2)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertText(legendComponent, listOf())
 
     model.add(legend3)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.preferredSize.width).isGreaterThan(0)
     assertThat(legendComponent.preferredSize.height).isGreaterThan(0)
     assertText(legendComponent, listOf("Name3: ", "Value3"))
 
     legend1.setValue("Value1")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertText(legendComponent, listOf("Name1: ", "Value1", "Name3: ", "Value3"))
 
     model.remove(legend1)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertText(legendComponent, listOf("Name3: ", "Value3"))
 
     model.remove(legend3)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertText(legendComponent, listOf())
 
     model.remove(legend2)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.size).isEqualTo(0) // Empty legend
     assertText(legendComponent, listOf())
     assertThat(legendComponent.preferredSize.width).isEqualTo(0)
@@ -83,7 +84,8 @@ class LegendComponentTest {
 
   @Test
   fun addingLegendsWithIconsCreatesIconInstructions() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
     val legend1 = FakeLegend("Test1", "Value1")
     val legend2 = FakeLegend("Test2", "Value2")
     val legend3 = FakeLegend("Test3", "Value3")
@@ -103,25 +105,26 @@ class LegendComponentTest {
     assertIcons(legendComponent, listOf())
 
     model.add(legend1)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertIcons(legendComponent, listOf())
 
     model.add(legend2)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertIcons(legendComponent, listOf(LegendConfig.IconType.BOX))
 
     model.add(legend3)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertIcons(legendComponent, listOf(LegendConfig.IconType.BOX, LegendConfig.IconType.LINE))
 
     model.add(legend4)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.filterIsInstance<IconInstruction>().map { it.icon }).containsExactly(croppedIcon)
   }
 
   @Test
   fun verticalLegendsAddNewRowInstructions() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
     val legend1 = FakeLegend("Test1", "Value1")
     val legend2 = FakeLegend("Test2", "Value2")
     val legend3 = FakeLegend("Test3", "Value3")
@@ -131,21 +134,22 @@ class LegendComponentTest {
     assertThat(legendComponent.instructions.size).isEqualTo(0)
 
     model.add(legend1)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is NewRowInstruction }).isEqualTo(0)
 
     model.add(legend2)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is NewRowInstruction }).isEqualTo(1)
 
     model.add(legend3)
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is NewRowInstruction }).isEqualTo(2)
   }
 
   @Test
   fun paddingIsRespected() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
 
     val CRAZY_LARGE_X_PADDING = 123
     val CRAZY_LARGE_Y_PADDING = 321
@@ -160,7 +164,8 @@ class LegendComponentTest {
 
   @Test
   fun horizontalLegendsAddGapsToKeepLegendsAtTheirMaxSize() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
     val legend1 = FakeLegend("Test1", "0 b/s")
     val legend2 = FakeLegend("Test2", "0 b/s")
     model.add(legend1)
@@ -173,38 +178,39 @@ class LegendComponentTest {
 
     // Long text makes for a new max size
     legend1.setValue("12321 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline)
 
-    // Gap needed to mantain max size
+    // Gap needed to maintain max size
     legend1.setValue("0 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
-    // Gap still needed to mantain max size
+    // Gap still needed to maintain max size
     legend1.setValue("123 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Long text makes for a new max size (in legend 2)
     legend2.setValue("9001 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Now both legends have gaps
     legend2.setValue("0 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 2)
 
     // Gap no longer needed in legend 1
     legend1.setValue("123456789 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
   }
 
   @Test
   fun verticalLegendsDontAddGapsToKeepLegendsAtTheirMaxSize() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
     val legend = FakeLegend("Test1", "0 b/s")
     model.add(legend)
 
@@ -215,18 +221,19 @@ class LegendComponentTest {
 
     // Increase text to max size
     legend.setValue("12321 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(0)
 
     // Shrink text again. In vertical legends, text will be allowed to shrink (no gap added)
     legend.setValue("0 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(0)
   }
 
   @Test
   fun gapsInHorizontalLegendsKeepMaxSizeAsExpected() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
     val legend = FakeLegend("Test1", "0 b/s")
     model.add(legend)
 
@@ -236,7 +243,7 @@ class LegendComponentTest {
 
     // Increase max size
     legend.setValue("12321 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
 
     var currWidth = legendComponent.preferredSize.width
     assertThat(currWidth).isGreaterThan(initialWidth)
@@ -245,7 +252,7 @@ class LegendComponentTest {
 
     // Shrinking value text doesn't affect max size
     legend.setValue("0 b/s")
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
 
     currWidth = legendComponent.preferredSize.width
     assertThat(currWidth).isEqualTo(prevWidth)
@@ -253,7 +260,8 @@ class LegendComponentTest {
 
   @Test
   fun gapAndIconTotalWidthForVerticalLegendsKeepTheSame() {
-    val model = LegendComponentModel(0)
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
     val legendComponent = LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
     for (type in LegendConfig.IconType.values()) {
       if (type != LegendConfig.IconType.NONE) {
@@ -267,7 +275,7 @@ class LegendComponentTest {
         model.add(legend)
       }
     }
-    model.update(TimeUnit.SECONDS.toNanos(1))
+    modifyRange(range)
 
     val instructions = legendComponent.instructions
     val first = instructions.first { it is LegendIconInstruction }
@@ -275,6 +283,27 @@ class LegendComponentTest {
     instructions.filterIsInstance<LegendIconInstruction>().forEach {
       assertThat(it.size.width + getNext(it).size.width).isEqualTo(first.size.width + getNext(first).size.width)
     }
+  }
+
+  @Test
+  fun testSwitchingLegendComponentModelDoesNotResultInNA() {
+    val name = "test"
+    val value = "1 b/s"
+
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
+    model.add(FakeLegend("test", "1 b/s"))
+    var legendComponent = LegendComponent(model)
+    assertText(legendComponent, listOf("$name: ", value))
+
+    modifyRange(range)
+    assertText(legendComponent, listOf("$name: ", value))
+
+    legendComponent = LegendComponent(model)
+    assertText(legendComponent, listOf("$name: ", value))
+
+    modifyRange(range)
+    assertText(legendComponent, listOf("$name: ", value))
   }
 
   private fun assertText(legend: LegendComponent, text: List<String>) {
@@ -285,6 +314,11 @@ class LegendComponentTest {
   private fun assertIcons(legend: LegendComponent, icons: List<LegendConfig.IconType>) {
     assertThat(legend.instructions.filterIsInstance<LegendIconInstruction>().map { it.myType })
         .containsExactlyElementsIn(icons).inOrder()
+  }
+
+  // Modifies the Range such that it will change the Range.
+  private fun modifyRange(range: Range) {
+    range.set(range.min + 0.1, range.max + 0.1)
   }
 
   private class FakeLegend(name: String, value: String? = null) : Legend {

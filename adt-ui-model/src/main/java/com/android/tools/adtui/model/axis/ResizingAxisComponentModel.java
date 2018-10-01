@@ -40,6 +40,7 @@ public final class ResizingAxisComponentModel extends AxisComponentModel {
     // We only care about the global range min, so we fire the aspect only when that changes.
     assert myGlobalRange != null;
     if (Doubles.compare(myGlobalRangeMin, myGlobalRange.getMin()) != 0) {
+      myGlobalRangeMin = myGlobalRange.getMin();
       updateImmediately();
     }
   }
