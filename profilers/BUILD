@@ -5,7 +5,7 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
-    exclude = ["testSrc/com/android/tools/profilers/performance/**"],
+    exclude = ["testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt"],
     iml_files = ["intellij.android.profilers.iml"],
     tags = ["no_test_mac_psq"],  # b/113099009
     test_data = glob(["testData/**"]),
