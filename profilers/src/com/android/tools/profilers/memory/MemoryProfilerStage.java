@@ -239,8 +239,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myAllocationDurations);
     getStudioProfilers().getUpdater().register(myMemoryAxis);
     getStudioProfilers().getUpdater().register(myObjectsAxis);
-    getStudioProfilers().getUpdater().register(myLegends);
-    getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myGcStatsModel);
     getStudioProfilers().getUpdater().register(myAllocationSamplingRateDurations);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
@@ -275,8 +273,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myAllocationDurations);
     getStudioProfilers().getUpdater().unregister(myMemoryAxis);
     getStudioProfilers().getUpdater().unregister(myObjectsAxis);
-    getStudioProfilers().getUpdater().unregister(myLegends);
-    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStatsModel);
     getStudioProfilers().getUpdater().unregister(myAllocationSamplingRateDurations);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
@@ -790,7 +786,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final EventLegend<AllocationSamplingRateDurationData> mySamplingRateDurationLegend;
 
     public MemoryStageLegends(@NotNull MemoryProfilerStage memoryStage, @NotNull Range range, boolean isTooltip) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       DetailedMemoryUsage usage = memoryStage.getDetailedMemoryUsage();
       myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
       myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);

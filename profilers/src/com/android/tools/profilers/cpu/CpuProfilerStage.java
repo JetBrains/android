@@ -420,7 +420,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myRecentTraceDurations);
     getStudioProfilers().getUpdater().register(myCpuUsageAxis);
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
-    getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
 
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuApiTracingEnabled()) {
@@ -461,7 +460,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myInProgressTraceDuration);
     getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
-    getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
 
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuApiTracingEnabled()) {
@@ -1226,7 +1224,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     @NotNull private final SeriesLegend myThreadsLegend;
 
     public CpuStageLegends(@NotNull DetailedCpuUsage cpuUsage, @NotNull Range dataRange) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super(dataRange);
       myCpuLegend = new SeriesLegend(cpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
       myOthersLegend = new SeriesLegend(cpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
       myThreadsLegend = new SeriesLegend(cpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange,

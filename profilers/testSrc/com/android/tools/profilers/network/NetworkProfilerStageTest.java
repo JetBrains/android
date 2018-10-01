@@ -235,8 +235,8 @@ public class NetworkProfilerStageTest {
     assertThat(networkUsageUpdated[0]).isTrue();
     assertThat(trafficAxisUpdated[0]).isTrue();
     assertThat(connectionAxisUpdated[0]).isTrue();
-    assertThat(legendsUpdated[0]).isTrue();
-    assertThat(tooltipLegendsUpdated[0]).isTrue(); // Tooltip legend changed from null to "N/A"
+    assertThat(legendsUpdated[0]).isFalse();
+    assertThat(tooltipLegendsUpdated[0]).isFalse();
 
     myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2));
     assertThat(networkUsageUpdated[0]).isTrue();
@@ -245,8 +245,11 @@ public class NetworkProfilerStageTest {
     myStudioProfilers.getTimeline().getDataRange().setMax(TimeUnit.SECONDS.toMicros(101));
     myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(99), TimeUnit.SECONDS.toMicros(101));
     myTimer.tick(100);
+    assertThat(legendsUpdated[0]).isTrue();
     assertThat(trafficAxisUpdated[0]).isTrue();
     assertThat(connectionAxisUpdated[0]).isTrue();
+    myStudioProfilers.getTimeline().getTooltipRange().set(TimeUnit.SECONDS.toMicros(100), TimeUnit.SECONDS.toMicros(100));
+    assertThat(tooltipLegendsUpdated[0]).isTrue();
   }
 
   @Test

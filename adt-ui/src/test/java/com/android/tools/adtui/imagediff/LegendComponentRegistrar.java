@@ -60,6 +60,8 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int COMPONENT_WIDTH_PX = 275;
 
+    private Range myRange;
+
     private LegendComponent myLegend;
 
     private LegendComponentModel myLegendModel;
@@ -70,12 +72,12 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myLegendModel = new LegendComponentModel(100);
+      myRange = new Range();
+      myLegendModel = new LegendComponentModel(myRange);
       myLegend = new LegendComponent(myLegendModel);
       myLegend.setFont(ImageDiffUtil.getDefaultFont());
       myContentPane.add(myLegend, BorderLayout.CENTER);
       myContentPane.setSize(COMPONENT_WIDTH_PX, COMPONENT_HEIGHT_PX);
-      myComponents.add(myLegendModel);
     }
 
     @Override
