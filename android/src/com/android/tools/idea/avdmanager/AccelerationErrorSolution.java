@@ -137,7 +137,7 @@ public class AccelerationErrorSolution {
       case UPDATE_EMULATOR:
         return () -> {
           try {
-            showQuickFix(ImmutableList.of(SdkConstants.FD_TOOLS, SdkConstants.FD_PLATFORM_TOOLS));
+            showQuickFix(ImmutableList.of(SdkConstants.FD_EMULATOR));
           }
           finally {
             reportBack();
