@@ -42,7 +42,7 @@ public class NlSceneFrameFactory implements SceneFrameFactory {
     SceneComponent.DrawState mode = component.getDrawState();
     boolean paint = sceneContext.showOnlySelection() ? mode == SceneComponent.DrawState.SELECTED : true;
     if (paint) {
-      DrawNlComponentFrame.add(list, sceneContext, rect, mode.ordinal(), layout_width, layout_height); // add to the list
+      DrawNlComponentFrame.add(list, sceneContext, rect, mode, layout_width, layout_height); // add to the list
     }
   }
 
