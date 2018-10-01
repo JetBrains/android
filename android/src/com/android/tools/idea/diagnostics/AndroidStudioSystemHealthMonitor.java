@@ -70,6 +70,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
 import org.HdrHistogram.Histogram;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -118,6 +119,9 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   @NonNls private static final String STUDIO_EXCEPTION_COUNT_FILE = "studio.exc";
   @NonNls private static final String BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE = "studio.exb";
   @NonNls private static final String NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE = "studio.exp";
+
+  private static final int MAX_PERFORMANCE_REPORTS_COUNT =
+    Integer.getInteger("studio.diagnostic.performanceThreadDump.maxReports", 3);
 
   /**
    * Histogram of event timings, in milliseconds. Must be accessed from the EDT.
@@ -441,7 +445,12 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      reports.stream().filter(r -> r.getType().equals("PerformanceThreadDump")).limit(10).forEach(r -> {
+      // Due to large number of PerformanceThreadDump reports, limit the number of ones that are uploaded.
+      // Takes a random sample of reports.
+      List<DiagnosticReport> performanceThreadDumps = reports.stream().filter(r -> r.getType().equals("PerformanceThreadDump")).collect(
+        Collectors.toList());
+      Collections.shuffle(performanceThreadDumps);
+      performanceThreadDumps.stream().limit(MAX_PERFORMANCE_REPORTS_COUNT).forEach(r -> {
         PerformanceThreadDumpReport report = (PerformanceThreadDumpReport) r;
         Path threadDumpPath = report.getThreadDumpPath();
         if (threadDumpPath == null) {
