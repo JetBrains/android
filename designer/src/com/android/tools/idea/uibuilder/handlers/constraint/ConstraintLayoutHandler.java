@@ -22,6 +22,8 @@ import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_LAYOUT_CONSTRAINTSET;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_MAX_HEIGHT;
@@ -44,6 +46,7 @@ import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
 import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.TAG;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
@@ -510,6 +513,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new ConstraintDragHandler(editor, this, layout, components, type);
+  }
+
+  @Override
+  public void onChildRemoved(@NotNull ViewEditor editor,
+                             @NotNull NlComponent layout,
+                             @NotNull NlComponent newChild,
+                             @NotNull InsertType insertType) {
+    for (String attribute : ConstraintComponentUtilities.ourConstraintLayoutAttributesToClear) {
+      newChild.removeAttribute(SHERPA_URI, attribute);
+    }
+    newChild.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X);
+    newChild.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y);
   }
 
   /**
