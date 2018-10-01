@@ -81,7 +81,7 @@ public class NetworkMonitorTest {
   public void getTrafficAxis() {
     AxisComponentModel axis = myMonitor.getTrafficAxis();
     assertNotNull(axis);
-    assertEquals(myMonitor.getNetworkUsage().getTrafficRange(), axis.getRange());
+    assertSame(myMonitor.getNetworkUsage().getTrafficRange(), axis.getRange());
   }
 
   @Test
@@ -116,10 +116,12 @@ public class NetworkMonitorTest {
 
     myTimer.tick(1);
     assertTrue(usageUpdated[0]);
-    assertTrue(legendUpdated[0]);
+    assertFalse(legendUpdated[0]);
     assertTrue(trafficAxisUpdated[0]);
     myProfilers.getTimeline().getViewRange().set(1.0, 2.0);
     assertTrue(usageUpdated[0]);
+    myProfilers.getTimeline().getDataRange().set(1.0, 2.0);
+    assertTrue(legendUpdated[0]);
   }
 
   @Test
@@ -147,7 +149,7 @@ public class NetworkMonitorTest {
 
   @Test
   public void testExpand() {
-    assertEquals(myProfilers.getStage().getClass(), NullMonitorStage.class);
+    assertSame(myProfilers.getStage().getClass(), NullMonitorStage.class);
     myMonitor.expand();
     assertThat(myProfilers.getStage(), instanceOf(NetworkProfilerStage.class));
   }

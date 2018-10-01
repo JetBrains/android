@@ -34,7 +34,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -177,8 +176,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().register(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().register(myTrafficAxis);
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
-    getStudioProfilers().getUpdater().register(myLegends);
-    getStudioProfilers().getUpdater().register(myTooltipLegends);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -191,8 +188,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().unregister(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().unregister(myTrafficAxis);
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
-    getStudioProfilers().getUpdater().unregister(myLegends);
-    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
@@ -251,7 +246,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     private final SeriesLegend myConnectionLegend;
 
     public NetworkStageLegends(DetailedNetworkUsage usage, Range range, boolean tooltip) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range, BYTES_RECEIVED.getLabel(tooltip),
                                     Interpolatable.SegmentInterpolator);
 
