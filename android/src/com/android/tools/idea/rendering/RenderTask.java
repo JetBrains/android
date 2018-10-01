@@ -687,7 +687,7 @@ public class RenderTask {
    */
   private void reportException(@NotNull Throwable e) {
     // This in an unhandled layoutlib exception, pass it to the crash reporter
-    myCrashReporter.submit(new StudioExceptionReport.Builder().setThrowable(e).build());
+    myCrashReporter.submit(new StudioExceptionReport.Builder().setThrowable(e, false).build());
   }
 
   /**

@@ -162,7 +162,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
     if ("Exception".equals(type)) {
       ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
                                                                  "summary", (String)map.get("summary"));
-      StudioExceptionReport exceptionReport = new StudioExceptionReport.Builder().setThrowable(t).addProductData(productData).build();
+      StudioExceptionReport exceptionReport =
+        new StudioExceptionReport.Builder().setThrowable(t, false).addProductData(productData).build();
       StudioCrashReporter.getInstance().submit(exceptionReport);
     }
     else if ("ANR".equals(type)) {
