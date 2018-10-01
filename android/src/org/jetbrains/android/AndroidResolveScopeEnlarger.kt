@@ -21,6 +21,8 @@ import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -42,12 +44,29 @@ import org.jetbrains.android.facet.AndroidFacet
  * case the enlargers cannot be called.
  */
 class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
+
+  companion object {
+    val LOG = Logger.getInstance(AndroidResolveScopeEnlarger::class.java)!!
+  }
+
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
     if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return null
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null
-    val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-    if (module.androidFacet == null) return null
 
+    val lightClasses = findRelevantClasses(file, project)
+    LOG.debug { "Enlarging scope for $file with ${lightClasses.size} light Android classes." }
+
+    return if (lightClasses.isEmpty()) {
+      null
+    } else {
+      // Unfortunately LocalScope looks at containingFile.virtualFile, which is null for non-physical PSI.
+      GlobalSearchScope.filesWithoutLibrariesScope(project, lightClasses.map { it.containingFile.viewProvider.virtualFile })
+    }
+  }
+
+  private fun findRelevantClasses(file: VirtualFile, project: Project): Collection<PsiClass> {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return emptyList()
+    val module = ModuleUtil.findModuleForFile(file, project) ?: return emptyList()
+    if (module.androidFacet == null) return emptyList()
     val result = mutableListOf<PsiClass>()
 
     project.getProjectSystem()
@@ -60,7 +79,6 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
     result.addAll(AndroidManifestClassPsiElementFinder.getInstance(project).getManifestClassesAccessibleFromModule(module))
 
-    // Unfortunately LocalScope looks at containingFile.virtualFile, which is null for non-physical PSI.
-    return GlobalSearchScope.filesWithoutLibrariesScope(project, result.map { it.containingFile.viewProvider.virtualFile })
+    return result
   }
 }
