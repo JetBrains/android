@@ -815,10 +815,8 @@ public class ConfigurationMatcher {
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
   private static class PhoneConfigComparator implements Comparator<ConfigMatch> {
-    // Default phone. Not picking the Nexus 5 yet since it has much higher resolution
-    // (which will on a typical desktop rendering of the layout be scaled back down again anyway)
-    // so it's just extra work.
-    private static final String PREFERRED_ID = "Nexus 4";
+    // Default phone
+    private static final String PREFERRED_ID = "pixel";
 
     private final SparseIntArray mDensitySort = new SparseIntArray(4);
     private final Map<String, Integer> mIdRank;
