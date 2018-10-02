@@ -668,7 +668,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
+  public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
     if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
       return new GradleApplicationIdProvider(facet, myOutputProvider);
     }

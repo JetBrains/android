@@ -15,18 +15,47 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
+import static com.android.tools.idea.startup.Actions.hideAction;
+import static com.android.tools.idea.startup.Actions.moveAction;
+import static com.android.tools.idea.startup.Actions.replaceAction;
+import static com.intellij.openapi.actionSystem.Anchor.AFTER;
+import static com.intellij.openapi.actionSystem.Anchor.BEFORE;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
+
 import com.android.annotations.VisibleForTesting;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.actions.*;
+import com.android.tools.idea.actions.AndroidActionGroupRemover;
+import com.android.tools.idea.actions.AndroidImportModuleAction;
+import com.android.tools.idea.actions.AndroidImportProjectAction;
+import com.android.tools.idea.actions.AndroidNewModuleAction;
+import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
+import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.android.tools.idea.actions.AndroidOpenFileAction;
+import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ApplyChangesAction;
 import com.android.tools.idea.run.CodeSwapAction;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.editor.DeployTarget;
+import com.android.tools.idea.run.editor.DeployTargetProvider;
+import com.android.tools.idea.run.editor.DeployTargetState;
+import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -34,18 +63,34 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.lang.xml.XMLLanguage;
-import com.intellij.notification.*;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.Constraints;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -54,6 +99,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -61,19 +114,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
-import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static com.android.tools.idea.startup.Actions.*;
-import static com.intellij.openapi.actionSystem.Anchor.AFTER;
-import static com.intellij.openapi.actionSystem.Anchor.BEFORE;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -168,13 +208,14 @@ public class GradleSpecificInitializer implements Runnable {
     if (runnerActions instanceof DefaultActionGroup) {
       DefaultActionGroup ag =  ((DefaultActionGroup)runnerActions);
       if (StudioFlags.JVMTI_REFRESH.get()) {
-        AnAction codeswap = new CodeSwapAction();
+        AnAction codeswap = new CodeSwapAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
         actionManager.registerAction(CodeSwapAction.ID, codeswap);
         ag.add(codeswap, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-        AnAction applyChanges = new ApplyChangesAction();
+        AnAction applyChanges = new ApplyChangesAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
         String id = actionManager.getId(codeswap);
-        ag.add(applyChanges, new Constraints(BEFORE, CodeSwapAction.ID));
-      } else {
+        ag.add(applyChanges, new Constraints(BEFORE, id));
+      }
+      else {
         ag.add(new HotswapAction(), new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
       }
     }
@@ -414,5 +455,72 @@ public class GradleSpecificInitializer implements Runnable {
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
+  }
+
+  /**
+   * Determines if JVMTI code swapping should be enabled for the current project.
+   * @param project The project to test again.
+   * @return true if code swapping should be enabled, false otherwise.
+   */
+  public static boolean shouldEnableJvmtiCodeSwap(@NotNull Project project) {
+    RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
+    if (configSettings == null) {
+      return false; // No valid config settings available.
+    }
+    RunConfiguration config = configSettings.getConfiguration();
+    if (!(config instanceof AndroidRunConfigurationBase)) {
+      return false; // CodeSwap only works on Android.
+    }
+
+    AndroidRunConfigurationBase androidRunConfig = (AndroidRunConfigurationBase)config;
+    DeployTargetProvider currentTargetProvider = androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider();
+    if (!(currentTargetProvider instanceof ShowChooserTargetProvider)) {
+      // TODO(b/113614002) Need to handle potential new workflow for device dropdown.
+      return true; // Allow code swap if there's no device picker.
+    }
+
+    ShowChooserTargetProvider chooserTargetProvider = ((ShowChooserTargetProvider)currentTargetProvider);
+    Module module = androidRunConfig.getConfigurationModule().getModule();
+    if (module == null) {
+      return false; // We only support projects with Android facets, which needs to be in a module.
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return false; // Only support projects with Android facets.
+    }
+    DeployTarget deployTarget = chooserTargetProvider.getCachedDeployTarget(
+      DefaultRunExecutor.getRunExecutorInstance(),
+      facet,
+      androidRunConfig.getDeviceCount(true),
+      androidRunConfig.getDeployTargetContext().getDeployTargetStates(),
+      androidRunConfig.getUniqueID());
+    if (deployTarget == null) {
+      return true; // No default deploy target, so allow code swapping.
+    }
+    DeployTargetState deployTargetState = androidRunConfig.getDeployTargetContext().getDeployTargetState(currentTargetProvider);
+    DeviceFutures deviceFutures =
+      deployTarget.getDevices(deployTargetState, facet, androidRunConfig.getDeviceCount(true), true, androidRunConfig.getUniqueID());
+    if (deviceFutures == null) {
+      return true; // Since no devices are available, it means no debuggers are attached, which means we can enable code swap.
+    }
+    List<ListenableFuture<IDevice>> listenableFuturesList = deviceFutures.get();
+    ApplicationIdProvider idProvider = androidRunConfig.getApplicationIdProvider(facet);
+    for (ListenableFuture<IDevice> deviceFuture : listenableFuturesList) {
+      try {
+        IDevice device = deviceFuture.get(); // This should resolve immediately for ShowChooserTargetProvider
+        if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
+          return false; // We only support O MR1 or above.
+        }
+        Client client = device.getClient(idProvider.getPackageName());
+        if (client == null) {
+          return true; // The app doesn't have a Client associated with it, so it can't have a debugger attached.
+        }
+        return !client.isDebuggerAttached();
+      }
+      catch (InterruptedException | ExecutionException | ApkProvisionException e) {
+        // Do nothing, fall through, and we'll just enable code swap.
+      }
+    }
+    return true;
   }
 }
