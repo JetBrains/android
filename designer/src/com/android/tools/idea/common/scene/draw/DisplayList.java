@@ -509,7 +509,7 @@ public class DisplayList {
       System.out.println("<");
     }
     Graphics2D g = (Graphics2D)g2.create();
-    DrawCommand[] array = myCommands.toArray(new DrawCommand[myCommands.size()]);
+    DrawCommand[] array = myCommands.toArray(new DrawCommand[0]);
     CommandSet set = new CommandSet(array, 0, array.length - 1);
     set.sort();
     if (DEBUG) {

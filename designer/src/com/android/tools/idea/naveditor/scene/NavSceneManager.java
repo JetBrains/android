@@ -400,6 +400,7 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
+  @NotNull
   public CompletableFuture<Void> requestRender() {
     boolean wasEmpty = getScene().getRoot() == null || getScene().getRoot().getChildCount() == 0;
     update();
