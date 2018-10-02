@@ -32,7 +32,9 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
 
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
-    return new WelcomeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(FlatWelcomeFrame.class)));
+    WelcomeFrameFixture fixture = new WelcomeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(FlatWelcomeFrame.class)));
+    fixture.target().toFront();
+    return fixture;
   }
 
   @NotNull
