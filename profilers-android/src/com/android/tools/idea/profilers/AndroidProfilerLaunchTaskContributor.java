@@ -98,7 +98,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     pushNewAgentConfig(project, device);
     String agentArgs = getAttachAgentArgs(applicationId, profilerService, device, deviceId);
-    String startupProfilingResult = startStartupProfiling(applicationId, module, profilerService, device, deviceId);
+    String startupProfilingResult = startStartupProfiling(applicationId, project, profilerService, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
@@ -150,7 +150,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   @NotNull
   private static String startStartupProfiling(@NotNull String appPackageName,
-                                              @NotNull Module module,
+                                              @NotNull Project project,
                                               @NotNull ProfilerService profilerService,
                                               @NotNull IDevice device,
                                               long deviceId) {
@@ -158,22 +158,22 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(module.getProject());
+    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
     if (runConfig == null || !runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
       return "";
     }
 
     String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-    CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(module.getProject()).getConfigByName(configName);
+    CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
     if (startupConfig == null) {
       return "";
     }
 
     if (!isAtLeastO(device)) {
-      AndroidNotification.getInstance(module.getProject()).showBalloon("Startup CPU Profiling",
-                                                                       "Starting a method trace recording on startup is only " +
-                                                                       "supported on devices with API levels 26 and higher.",
-                                                                       NotificationType.WARNING);
+      AndroidNotification.getInstance(project).showBalloon("Startup CPU Profiling",
+                                                           "Starting a method trace recording on startup is only " +
+                                                           "supported on devices with API levels 26 and higher.",
+                                                           NotificationType.WARNING);
       return "";
     }
 
