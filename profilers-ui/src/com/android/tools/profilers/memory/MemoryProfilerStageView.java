@@ -523,8 +523,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
               .getModeFromFrequency(durationData.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval());
             return getIconForSamplingMode(mode);
           })
-        .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth() / 2f,
-                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight() / 2f)
+        .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth() / 2f,
+                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconHeight() / 2f)
         .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
         .setClickRegionPadding(0, 0)
         .setHoverHandler(getStage().getTooltipLegends().getSamplingRateDurationLegend()::setPickData)
@@ -617,11 +617,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // TODO(b/116430034): use real icons when they're done.
     switch (mode) {
       case FULL:
-        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_FULL;
       case SAMPLED:
-        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_SAMPLED;
       case NONE:
-        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE;
+        return StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE;
     }
     throw new AssertionError("Unhandled sampling mode: " + mode);
   }
