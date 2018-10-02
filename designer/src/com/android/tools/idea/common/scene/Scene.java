@@ -459,6 +459,7 @@ public class Scene implements SelectionListener, Disposable {
     }
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget();
+    String tooltip = null;
     if (myOverTarget != closestTarget) {
       if (myOverTarget != null) {
         myOverTarget.setMouseHovered(false);
@@ -467,12 +468,12 @@ public class Scene implements SelectionListener, Disposable {
       }
       if (closestTarget != null) {
         closestTarget.setMouseHovered(true);
-        transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
       }
     }
     if (closestTarget != null) {
+      tooltip = closestTarget.getToolTipText();
       Target snapTarget = myHoverListener.getFilteredTarget(closestTarget);
       if (snapTarget != mySnapTarget) {
         if (mySnapTarget != null) {
@@ -482,13 +483,15 @@ public class Scene implements SelectionListener, Disposable {
         }
         if (snapTarget != null) {
           snapTarget.setMouseHovered(true);
-          transform.setToolTip(closestTarget.getToolTipText());
           mySnapTarget = closestTarget;
           needsRebuildList();
         }
       }
     }
     SceneComponent closestComponent = myHoverListener.getClosestComponent();
+    if (closestComponent != null && tooltip == null) {
+      tooltip = closestComponent.getNlComponent().getTooltipText();
+    }
     if (myCurrentComponent != closestComponent) {
       if (myCurrentComponent != null) {
         myCurrentComponent.setDrawState(SceneComponent.DrawState.NORMAL);
@@ -500,7 +503,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       needsRebuildList();
     }
-
+    transform.setToolTip(tooltip);
     setCursor(transform, x, y);
   }
 

@@ -37,6 +37,8 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 /**
  * Tests for the nav editor Scene.
@@ -1373,6 +1375,37 @@ class NavSceneTest : NavTestCase() {
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
+  }
+
+  fun testTooltips() {
+    val model = model("nav.xml") {
+      navigation {
+        action("global", destination = "fragment1")
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+          action("self", destination = "fragment1")
+          action("exit", destination = "foo")
+        }
+        fragment("fragment2")
+      }
+    }
+
+    val surface = model.surface
+    val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 100, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    scene.layout(0, SceneContext.get())
+
+    val context = spy(SceneContext.get(model.surface.currentSceneView))
+
+    scene.mouseHover(context, 360, 148)
+    verify(context).setToolTip("a1")
+    scene.mouseHover(context, 282, 282)
+    verify(context).setToolTip("self")
+    scene.mouseHover(context, 83, 148)
+    verify(context).setToolTip("global")
+    scene.mouseHover(context, 260, 125)
+    verify(context).setToolTip("exit")
   }
 
   /**

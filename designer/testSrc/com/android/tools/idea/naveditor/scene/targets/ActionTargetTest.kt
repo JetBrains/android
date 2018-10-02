@@ -218,5 +218,23 @@ class ActionTargetTest : NavTestCase() {
       "UNClip\n", list.generateSortedDisplayList()
     )
   }
+
+  fun testTooltips() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action ("a1", destination = "f2")
+          action("self", destination = "f1")
+        }
+        fragment("f2")
+      }
+    }
+    val scene = model.surface.scene!!
+    val target1 = ActionTarget(scene.getSceneComponent("a1")!!, scene.getSceneComponent("f1")!!, scene.getSceneComponent("f2")!!)
+    assertEquals("a1", target1.toolTipText)
+    assertEquals("a1", target1.toolTipText)
+    val target2 = ActionTarget(scene.getSceneComponent("self")!!, scene.getSceneComponent("f1")!!, scene.getSceneComponent("f1")!!)
+    assertEquals("self", target2.toolTipText)
+  }
 }
 

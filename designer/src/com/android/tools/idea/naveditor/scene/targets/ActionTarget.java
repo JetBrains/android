@@ -111,5 +111,10 @@ public class ActionTarget extends BaseTarget {
 
     return end;
   }
+
+  @Override
+  public String getToolTipText() {
+    return getComponent().getId();
+  }
 }
 
