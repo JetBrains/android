@@ -23,21 +23,19 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction
 import com.intellij.icons.AllIcons
 
-class ToggleLiveRenderingAction(label: String = "Live Rendering") :
+class ToggleShowDecorationsAction(label: String = "Show Layout Decorations") :
   ToggleViewAction(null, AllIcons.Actions.Checked, label, label) {
   override fun isSelected(editor: ViewEditor,
                           handler: ViewHandler,
                           parent: NlComponent,
-                          selectedChildren: MutableList<NlComponent>): Boolean = editor.scene.isLiveRenderingEnabled
-
+                          selectedChildren: MutableList<NlComponent>): Boolean = RenderSettings.getProjectSettings(editor.model.project).showDecorations
   override fun setSelected(editor: ViewEditor,
                            handler: ViewHandler,
                            parent: NlComponent,
                            selectedChildren: MutableList<NlComponent>,
                            selected: Boolean) {
     // We also persist the settings to the RenderSettings
-    RenderSettings.getProjectSettings(editor.model.project).useLiveRendering = selected
-    editor.scene.isLiveRenderingEnabled = selected
+    RenderSettings.getProjectSettings(editor.model.project).showDecorations = selected
     RefreshRenderAction.clearCacheAndRefreshSurface(editor.scene.designSurface)
   }
 
