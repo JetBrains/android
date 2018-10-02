@@ -592,6 +592,7 @@ public class StudioIcons {
       public static final Icon DEBUG = load("/studio/icons/shell/toolbar/debug.png"); // 16x16
       public static final Icon DEVICE_MANAGER = load("/studio/icons/shell/toolbar/device-manager.png"); // 16x16
       public static final Icon GRADLE_SYNC = load("/studio/icons/shell/toolbar/gradle-sync.png"); // 16x16
+      public static final Icon INSTANT_RUN_CODE_SWAP = load("/studio/icons/shell/toolbar/instant-run-code-swap.png"); // 16x16
       public static final Icon INSTANT_RUN = load("/studio/icons/shell/toolbar/instant-run.png"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/toolbar/profiler.png"); // 16x16
       public static final Icon PROJECT_STRUCTURE = load("/studio/icons/shell/toolbar/project-structure.png"); // 16x16
