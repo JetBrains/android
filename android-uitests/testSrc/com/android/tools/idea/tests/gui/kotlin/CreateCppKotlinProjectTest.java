@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,13 +35,9 @@ import static com.google.common.truth.Truth.assertThat;
 public class CreateCppKotlinProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
-  private static final String APP_NAME = "app";
   private static final String KOTLIN_FILE = "MainActivity.kt";
   private static final String C_FILE = "native-lib.cpp";
-  private static final Pattern CONNECTED_TO_PROCESS_OUTPUT = Pattern.compile(
-    ".*Connected to process.*", Pattern.DOTALL);
 
   /**
    * Verifies that can creating a new project with Kotlin.
@@ -60,8 +53,7 @@ public class CreateCppKotlinProjectTest {
    *   3. Build and run project on an emulator, and verify step 3.
    *   Vefify:
    *   1. Check if build is successful.
-   *   2. C++ code is created, Mainactivity has .kt extension.
-   *   3. Ensure the app is deployed on the emulator.
+   *   2. C++ code is created, MainActivity has .kt extension.
    *   </pre>
    */
   @RunIn(TestGroup.QA_UNRELIABLE) // b/112051529
@@ -73,15 +65,5 @@ public class CreateCppKotlinProjectTest {
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
     ideFrameFixture.getEditor().open("app/src/main/cpp/" + C_FILE, EditorFixture.Tab.EDITOR);
     assertThat(C_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
-    ideFrameFixture.getEditor().close();
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-    ideFrameFixture.runApp(APP_NAME)
-                   .selectDevice(avdName)
-                   .clickOk();
-
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-                   .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
-    ideFrameFixture.stopApp();
   }
 }
