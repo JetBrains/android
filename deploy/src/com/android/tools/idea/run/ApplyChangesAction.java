@@ -43,7 +43,7 @@ public class ApplyChangesAction extends AnAction {
   private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
 
   public ApplyChangesAction() {
-    super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
+    super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP);
     setShortcutSet(SHORTCUT_SET);
   }
 
