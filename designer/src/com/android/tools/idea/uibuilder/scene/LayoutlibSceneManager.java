@@ -568,6 +568,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @Override
+  @NotNull
   public CompletableFuture<Void> requestRender() {
     return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
   }

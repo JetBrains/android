@@ -59,6 +59,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     myPicker.find(transform.getSwingXDip(x), transform.getSwingYDip(y));
   }
 
+  @SuppressWarnings("FloatingPointEquality")  // The values are directly assigned with no math, so this should be fine.
   @Override
   public void over(Object over, double dist) {
     if (over instanceof Target) {
