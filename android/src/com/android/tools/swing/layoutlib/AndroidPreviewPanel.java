@@ -239,9 +239,11 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
 
     // Update the size of the layout renderer. This is done here instead of a component listener because
     // this runs before the paintComponent saving an extra paint cycle.
+    // Because of rounding errors, we do not check that the size is exactly the same as before, but only approximately the same.
     Dimension currentSize = getSize();
     synchronized (myGraphicsLayoutRendererLock) {
-      if (myGraphicsLayoutRenderer != null && !currentSize.equals(previousSize)) {
+      if (myGraphicsLayoutRenderer != null &&
+          (Math.abs(currentSize.width - previousSize.width) > 5 || Math.abs(currentSize.height - previousSize.height) > 5)) {
         // Because we use GraphicsLayoutRender in vertical scroll mode, the height passed it's only a minimum.
         // If the actual rendering results in a bigger size, the GraphicsLayoutRenderer.getPreferredSize()
         // call will return the correct size.
