@@ -27,12 +27,10 @@ class ConstraintPlaceholderTest : SceneTest() {
   override fun setUp() {
     super.setUp()
     StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
-    StudioFlags.NELE_DEFAULT_LIVE_RENDER.override(false)
   }
 
   override fun tearDown() {
     StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
-    StudioFlags.NELE_DEFAULT_LIVE_RENDER.clearOverride()
     super.tearDown()
   }
 
