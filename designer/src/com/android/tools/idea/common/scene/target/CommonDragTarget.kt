@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -248,8 +249,10 @@ class CommonDragTarget : BaseTarget() {
       val attributes = nlComponent.startAttributeTransaction()
       placeholder.updateAttribute(myComponent, attributes)
       if (commit) {
-        NlWriteCommandAction.run(componentsToAdd, "Drag ${nlComponent.tagName}") { attributes.commit() }
-        model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
+        NlWriteCommandAction.run(componentsToAdd, "Drag ${nlComponent.tagName}") {
+          attributes.commit()
+          model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
+        }
       }
       else {
         attributes.apply()
