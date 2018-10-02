@@ -470,8 +470,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer = view.getAllocationSamplingRateRenderer();
     java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
     assertThat(renderedRegions.size()).isEqualTo(4);
-    int iconWidth = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconWidth();
-    int iconHeight = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_CHANGE.getIconHeight();
+    int iconWidth = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth();
+    int iconHeight = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconHeight();
     // Point should be attached due to start of FULL mode
     validateRegion(renderedRegions.get(0), 0.1f, 0.9f, iconWidth, iconHeight);
     // Point should be attached due to end of FULL mode
