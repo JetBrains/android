@@ -23,8 +23,11 @@ import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.openapi.extensions.PluginId;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 import java.util.Arrays;
@@ -46,12 +49,15 @@ public class StudioExceptionReport extends BaseStudioReport {
   public static final String KEY_EXCEPTION_INFO = "exception_info";
 
   @NonNull private final String exceptionInfo;
+  @Nullable private final PluginId pluginId;
 
   private StudioExceptionReport(@Nullable String version,
                                 @NonNull String exceptionInfo,
+                                @Nullable PluginId pluginId,
                                 @Nullable Map<String, String> productData) {
     super(version, productData, "Exception");
     this.exceptionInfo = exceptionInfo;
+    this.pluginId = pluginId;
   }
 
   @Override
@@ -62,6 +68,11 @@ public class StudioExceptionReport extends BaseStudioReport {
     // Capture kotlin version for kotlin exceptions.
     if (isKotlinOnStack()) {
       builder.addTextBody("kotlinVersion", getKotlinPluginVersionDescription());
+    }
+    IdeaPluginDescriptor plugin = PluginManager.getPlugin(pluginId);
+    if (plugin != null) {
+      builder.addTextBody("plugin.name", plugin.getName());
+      builder.addTextBody("plugin.version", plugin.getVersion());
     }
   }
 
@@ -89,6 +100,7 @@ public class StudioExceptionReport extends BaseStudioReport {
 
   public static class Builder extends BaseBuilder<StudioExceptionReport, Builder> {
     private String exceptionInfo;
+    private PluginId pluginId;
 
     @Override
     protected Builder getThis() {
@@ -97,13 +109,15 @@ public class StudioExceptionReport extends BaseStudioReport {
 
     @NonNull
     public Builder setThrowable(@NonNull Throwable throwable) {
-      this.exceptionInfo = getDescription(getRootCause(throwable));
+      Throwable cause = getRootCause(throwable);
+      this.exceptionInfo = getDescription(cause);
+      this.pluginId = IdeErrorsDialog.findPluginId(cause);
       return this;
     }
 
     @Override
     public StudioExceptionReport build() {
-      return new StudioExceptionReport(getVersion(), exceptionInfo, getProductData());
+      return new StudioExceptionReport(getVersion(), exceptionInfo, pluginId, getProductData());
     }
   }
 
