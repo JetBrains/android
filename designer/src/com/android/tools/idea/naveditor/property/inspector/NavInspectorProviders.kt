@@ -35,7 +35,6 @@ open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parent
     nullProvider = provider
     providers = listOf(provider,
                        NavActivityPropertiesInspectorProvider(),
-                       NavSetStartProvider(),
                        NavDestinationArgumentsInspectorProvider(),
                        NavActionTransitionInspectorProvider(),
                        NavArgumentDefaultValuesInspectorProvider(),

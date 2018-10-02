@@ -43,10 +43,6 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
     }
 
     propertiesByName[TYPE_EDITOR_PROPERTY_LABEL] = NavComponentTypeProperty(components)
-    if (components.any { it.destinationType != null }) {
-      propertiesByName[SET_START_DESTINATION_PROPERTY_NAME] = SetStartDestinationProperty(components)
-    }
-
     val schema = NavigationSchema.get(components[0].model.module)
 
     addProperties(components, schema, propertiesByName, NavActionElement::class.java, ::NavActionsProperty)
