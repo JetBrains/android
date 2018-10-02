@@ -23,6 +23,7 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
@@ -74,6 +75,10 @@ public class CpuProfilingConfigPanel {
 
   @VisibleForTesting
   static final String SIMPLEPERF_DESCRIPTION = "<html>Samples native code using simpleperf. " +
+                                               "Available for Android 8.0 (API level 26) and higher.</html>";
+
+  @VisibleForTesting
+  static final String ATRACE_DESCRIPTION = "<html>Traces Java and native code at the Android platform level. " +
                                                "Available for Android 8.0 (API level 26) and higher.</html>";
 
   @VisibleForTesting
@@ -134,9 +139,15 @@ public class CpuProfilingConfigPanel {
    */
   private JRadioButton mySimpleperfButton;
 
+  /**
+   * Radio button representing system trace (atrace) configuration.
+   */
+  private JRadioButton myATraceButton;
+
   private final JLabel myArtSampledDescriptionText = new JLabel(ART_SAMPLED_DESCRIPTION);
   private final JLabel myArtInstrumentedDescriptionText = new JLabel(ART_INSTRUMENTED_DESCRIPTION);
   private final JLabel mySimpleperfDescriptionText = new JLabel(SIMPLEPERF_DESCRIPTION);
+  private final JLabel myATraceDescriptionText = new JLabel(ATRACE_DESCRIPTION);
 
   /**
    * Current configuration that should receive the values set on the panel. Null if no configuration is currently selected.
@@ -192,10 +203,12 @@ public class CpuProfilingConfigPanel {
       myConfigName.setText(configuration.getName());
       myConfigName.setEnabled(true);
       myConfigName.selectAll();
-      setAndEnableRadioButtons(configuration);
-      myFileSize.setValue(configuration.getProfilingBufferSizeInMb());
-      // Starting from Android O, there is no limit on file size, so there is no need to set it.
+      setEnabledTraceTechnologyPanel(true);
+      setRadioButtons(configuration);
       setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
+      boolean isSamplingEnabled = configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
+      setEnabledSamplingIntervalPanel(isSamplingEnabled);
+      myFileSize.setValue(configuration.getProfilingBufferSizeInMb());
 
       mySamplingInterval.getModel().setValue(configuration.getProfilingSamplingIntervalUs());
 
@@ -208,16 +221,14 @@ public class CpuProfilingConfigPanel {
     }
   }
 
-  private void setAndEnableRadioButtons(@NotNull ProfilingConfiguration configuration) {
-    setEnabledTraceTechnologyPanel(true);
+  private void setRadioButtons(@NotNull ProfilingConfiguration configuration) {
+
     if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
       if (configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
         myArtSampledButton.setSelected(true);
-        setEnabledSamplingIntervalPanel(true);
       }
       else if (configuration.getMode() == CpuProfiler.CpuProfilerMode.INSTRUMENTED) {
         myArtInstrumentedButton.setSelected(true);
-        setEnabledSamplingIntervalPanel(false);
       }
       else {
         getLogger().warn("Invalid trace technology detected.");
@@ -226,7 +237,9 @@ public class CpuProfilingConfigPanel {
     else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
       assert configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
       mySimpleperfButton.setSelected(true);
-      setEnabledSamplingIntervalPanel(true);
+    }
+    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+      myATraceButton.setSelected(true);
     }
     else {
       getLogger().warn("Invalid trace technology detected.");
@@ -311,15 +324,20 @@ public class CpuProfilingConfigPanel {
 
     mySimpleperfButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName());
     createRadioButtonUi(mySimpleperfButton, mySimpleperfDescriptionText, TraceTechnology.SIMPLEPERF, profilersType);
+
+    myATraceButton = new JRadioButton(CpuProfilerConfig.Technology.ATRACE.getName());
+    createRadioButtonUi(myATraceButton, myATraceDescriptionText, TraceTechnology.ATRACE, profilersType);
   }
 
   private void setEnabledTraceTechnologyPanel(boolean isEnabled) {
     myArtSampledButton.setEnabled(isEnabled);
     myArtInstrumentedButton.setEnabled(isEnabled);
     mySimpleperfButton.setEnabled(isEnabled);
+    myATraceButton.setEnabled(isEnabled);
     myArtSampledDescriptionText.setEnabled(isEnabled);
     myArtInstrumentedDescriptionText.setEnabled(isEnabled);
     mySimpleperfDescriptionText.setEnabled(isEnabled);
+    myATraceDescriptionText.setEnabled(isEnabled);
   }
 
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {
@@ -340,6 +358,11 @@ public class CpuProfilingConfigPanel {
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
         myConfiguration.setMode(CpuProfiler.CpuProfilerMode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
+        break;
+      case ATRACE:
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+        setEnabledSamplingIntervalPanel(false);
     }
   }
 
@@ -449,6 +472,7 @@ public class CpuProfilingConfigPanel {
   private enum TraceTechnology {
     ART_SAMPLED,
     ART_INSTRUMENTED,
-    SIMPLEPERF
+    SIMPLEPERF,
+    ATRACE
   }
 }
