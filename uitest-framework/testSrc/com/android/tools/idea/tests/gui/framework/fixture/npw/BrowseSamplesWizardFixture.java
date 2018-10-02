@@ -34,7 +34,7 @@ public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamp
 
   @NotNull
   public static BrowseSamplesWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Import Sample"));
+    JDialog dialog = GuiTests.waitUntilShowing(robot, null, Matchers.byTitle(JDialog.class, "Import Sample"), 20);
     return new BrowseSamplesWizardFixture(dialog, robot);
   }
 
