@@ -128,6 +128,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/idea/.idea/libraries:HdrHistogram",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
