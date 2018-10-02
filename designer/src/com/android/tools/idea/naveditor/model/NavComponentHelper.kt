@@ -409,10 +409,7 @@ class NavComponentMixin(component: NlComponent)
     }
   }
 
-  override fun getTooltipText(): String? {
-    // TODO
-    return null
-  }
+  override fun getTooltipText() = if (component.isAction) component.id else null
 }
 
 object NavComponentHelper {
