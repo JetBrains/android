@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.testframework.sm.ServiceMessageBuilder;
@@ -30,6 +31,9 @@ import java.util.Map;
  * @author Eugene.Kudelevsky
  */
 public class AndroidTestListener implements ITestRunListener {
+
+  private static final String DISPLAY_PREFIX = "android.studio.display.";
+
   @NotNull private final LaunchStatus myLaunchStatus;
   @NotNull private final ConsolePrinter myPrinter;
 
@@ -52,6 +56,7 @@ public class AndroidTestListener implements ITestRunListener {
     if (myTestClassName != null) {
       testSuiteFinished();
     }
+    myPrinter.stdout("");
     myPrinter.stdout("Tests ran to completion.\n");
     myLaunchStatus.terminateLaunch("");
   }
@@ -127,6 +132,23 @@ public class AndroidTestListener implements ITestRunListener {
 
   @Override
   public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
+    if (StudioFlags.PRINT_INSTRUMENTATION_STATUS.get()) {
+      boolean customOutput = false;
+
+      for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
+        String key = entry.getKey();
+        if (key.startsWith(DISPLAY_PREFIX)) {
+          myPrinter.stdout(key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
+          customOutput = true;
+        }
+      }
+
+      if (customOutput) {
+        // Adding empty lines after per-method output improves rendering of the combined output for some reason.
+        myPrinter.stdout("");
+      }
+    }
+
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testFinished");
     builder.addAttribute("name", test.getTestName());
     builder.addAttribute("duration", Long.toString(System.currentTimeMillis() - myTestStartingTime));

@@ -442,6 +442,14 @@ public final class StudioFlags {
     true
   );
 
-  private StudioFlags() {
-  }
+  private static final FlagGroup TESTING = new FlagGroup(FLAGS, "testing", "Testing support");
+
+  public static final Flag<Boolean> PRINT_INSTRUMENTATION_STATUS = Flag.create(
+    TESTING, "print.instrumentation.status", "Print instrumentation status information when testing",
+    "If enabled, instrumentation output keys (from calling Instrumentation#sendStatus) that begin with 'android.studio.display.' "
+    + "will have their values printed after a test has finished running.",
+    false
+  );
+
+  private StudioFlags() {}
 }
