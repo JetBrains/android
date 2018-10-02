@@ -32,14 +32,19 @@ import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.editor.Document
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.uast.*
+import org.jetbrains.uast.UCallExpression
+import org.jetbrains.uast.UElement
+import org.jetbrains.uast.UQualifiedReferenceExpression
+import org.jetbrains.uast.UReferenceExpression
+import org.jetbrains.uast.USimpleNameReferenceExpression
+import org.jetbrains.uast.UastContext
+import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 import java.util.regex.Pattern
 
@@ -68,7 +73,8 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         }
 
         val element = SourceTreeToPsiMap.treeElementToPsi(node) ?: return null
-        val appResources = getAppResources(element) ?: return null
+        // We force creation of the app resources repository when necessary to keep things deterministic.
+        val appResources = ResourceRepositoryManager.getInstance(element)?.getAppResources(true) ?: return null
         val uastContext = ServiceManager.getService(element.project, UastContext::class.java) ?: return null
         return uastContext.convertElement(element, null, null)?.unwrapReferenceAndGetValue(appResources)
     }
@@ -253,9 +259,5 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         }
 
         return sb.toString()
-    }
-
-    private fun getAppResources(element: PsiElement): LocalResourceRepository? = ModuleUtilCore.findModuleForPsiElement(element)?.let {
-        ResourceRepositoryManager.getOrCreateInstance(it)?.getAppResources(false)
     }
 }
