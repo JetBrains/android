@@ -47,6 +47,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
+  @NotNull
   public CompletableFuture<Void> requestRender() {
     CompletableFuture<Void> result = new CompletableFuture<>();
     runAfterCommandIfNecessary(() -> {
