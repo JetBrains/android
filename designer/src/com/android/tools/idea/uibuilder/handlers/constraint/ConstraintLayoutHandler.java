@@ -50,6 +50,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
+import static com.android.tools.idea.uibuilder.api.actions.ActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_MENU;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
@@ -233,15 +234,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
-    // noinspection unchecked
-    actions.add(new NestedViewActionMenu("View Options", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
-      Lists.newArrayList(
-        new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
-        new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
-        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
-        new ToggleLiveRenderingAction()
-      )
-    )));
+    actions.add(getViewOptionsAction(ImmutableList.of(
+      new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
+      new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
+      new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
+      new ToggleLiveRenderingAction())));
     actions.add(new ToggleAutoConnectAction());
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
