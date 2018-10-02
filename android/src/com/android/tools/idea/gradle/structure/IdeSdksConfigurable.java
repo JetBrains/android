@@ -130,6 +130,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private History myHistory;
 
   private String mySelectedComponentId;
+  private boolean mySdkLoadingRequested = false;
 
   public IdeSdksConfigurable(@Nullable Configurable host, @Nullable Project project) {
     myHost = host;
@@ -147,27 +148,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
 
     adjustNdkQuickFixVisibility();
-
-    CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
-    layout.show(myNdkDownloadPanel, "loading");
-
-    ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
-    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
-    RepoManager.RepoLoadedCallback onComplete = packages ->
-      ApplicationManager.getApplication().invokeLater(() -> {
-        if (packages.getRemotePackages().get(FD_NDK) != null) {
-          layout.show(myNdkDownloadPanel, "link");
-        }
-        else {
-          myNdkDownloadPanel.setVisible(false);
-        }
-      }, ModalityState.any());
-    Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
-      () -> myNdkDownloadPanel.setVisible(false),
-      ModalityState.any());
-    repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
-                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
 
     FocusListener historyUpdater = new FocusAdapter() {
       @Override
@@ -207,6 +187,31 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     addHistoryUpdater("myNdkLocationTextField", myNdkLocationTextField.getTextField(), historyUpdater);
   }
 
+  private void maybeLoadSdks(@Nullable Project project) {
+    if (mySdkLoadingRequested) return;
+    mySdkLoadingRequested = true;
+    CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
+    layout.show(myNdkDownloadPanel, "loading");
+
+    ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+    RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (packages.getRemotePackages().get(FD_NDK) != null) {
+          layout.show(myNdkDownloadPanel, "link");
+        }
+        else {
+          myNdkDownloadPanel.setVisible(false);
+        }
+      }, ModalityState.any());
+    Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
+      () -> myNdkDownloadPanel.setVisible(false),
+      ModalityState.any());
+    repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
+                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
+  }
+
   private void addHistoryUpdater(@NotNull String id, @NotNull Component c, @NotNull FocusListener historyUpdater) {
     myComponentsById.put(id, c);
     c.addFocusListener(historyUpdater);
@@ -214,6 +219,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @Override
   public void disposeUIResources() {
+    mySdkLoadingRequested = false;
   }
 
   @Override
@@ -446,6 +452,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @Nullable
   @Override
   public JComponent createComponent() {
+    maybeLoadSdks(myProject);
     return myDetailsComponent.getComponent();
   }
 
