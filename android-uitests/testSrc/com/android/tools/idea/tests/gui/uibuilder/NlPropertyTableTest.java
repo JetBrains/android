@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.awt.event.KeyEvent.VK_DOWN;
+import static java.awt.event.KeyEvent.VK_END;
+import static java.awt.event.KeyEvent.VK_ENTER;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.VK_HOME;
+import static java.awt.event.KeyEvent.VK_PAGE_DOWN;
+import static java.awt.event.KeyEvent.VK_PAGE_UP;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -27,19 +34,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlProp
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.data.TableCellInSelectedRow;
-import org.fest.swing.fixture.AbstractComponentFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.swing.text.JTextComponent;
-import java.awt.*;
-
-import static com.google.common.truth.Truth.assertThat;
-import static java.awt.event.KeyEvent.*;
 
 /**
  * UI test for the layout preview window
@@ -63,7 +71,7 @@ public class NlPropertyTableTest {
   }
 
   @Test
-  public void testScrollInViewDuringKeyboardNavigation() throws Exception {
+  public void testScrollWhenNavigating() {
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
@@ -124,7 +132,7 @@ public class NlPropertyTableTest {
   }
 
   @Test
-  public void testSimpleKeyboardEditingInTable() throws Exception {
+  public void testEditing() throws Exception {
     // If this UI test should fail, this is the intention with the test.
     //
     // Test the following simple keyboard editing tasks in the property table:
@@ -160,7 +168,7 @@ public class NlPropertyTableTest {
   }
 
   @Test
-  public void testSelectCompletionFinishesEditingOfCell() throws Exception {
+  public void testCompletionFinishesEditing() throws Exception {
     // If this UI test should fail, this is the intention with the test.
     //
     // Test the following simple keyboard editing tasks in the property table:
@@ -224,8 +232,7 @@ public class NlPropertyTableTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/111614586
-  public void testSimpleKeyboardNavigationInTable() throws Exception {
+  public void testNavigation() {
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
