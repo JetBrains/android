@@ -50,7 +50,7 @@ public class CodeSwapAction extends AnAction {
     SystemInfo.isMac ? "control meta shift R" : "control alt F10");
 
   public CodeSwapAction() {
-    super("Code Swap", "Code Swap", StudioIcons.Shell.Toolbar.INSTANT_RUN);
+    super("Code Swap", "Code Swap", StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP);
     setShortcutSet(SHORTCUT_SET);
   }
 
