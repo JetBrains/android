@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.run.ApplyChangesAction.APPLY_CHANGES;
-
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
@@ -33,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,19 +48,28 @@ public class CodeSwapAction extends AnAction {
   private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(
     SystemInfo.isMac ? "control meta shift R" : "control alt F10");
 
-  public CodeSwapAction() {
+  @NotNull private final Function<Project, Boolean> myShouldEnableCodeSwapProvider;
+
+  public CodeSwapAction(@NotNull Function<Project, Boolean> shouldEnableCodeSwapProvider) {
     super("Code Swap", "Code Swap", StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP);
+    myShouldEnableCodeSwapProvider = shouldEnableCodeSwapProvider;
     setShortcutSet(SHORTCUT_SET);
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    // TODO: b/112309245 There will be some restrictions, but currently just enable it always.
     Presentation presentation = e.getPresentation();
-    presentation.setEnabled(true);
     if (e.isFromActionToolbar()) {
       presentation.setVisible(false);
+      presentation.setEnabled(false);
+      return;
     }
+
+    if (e.getProject() == null) {
+      presentation.setEnabled(false);
+      return;
+    }
+    presentation.setEnabled(myShouldEnableCodeSwapProvider.apply(e.getProject()));
   }
 
   @Override

@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,16 +43,23 @@ public class ApplyChangesAction extends AnAction {
 
   private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
 
-  public ApplyChangesAction() {
+  @NotNull private final Function<Project, Boolean> myShouldEnableApplyChangesProvider;
+
+  public ApplyChangesAction(@NotNull Function<Project, Boolean> shouldEnableApplyChangesProvider) {
     super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
+    myShouldEnableApplyChangesProvider = shouldEnableApplyChangesProvider;
     setShortcutSet(SHORTCUT_SET);
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    // TODO: b/112309245 There will be some restrictions, but currently just enable it always.
+    if (e.getProject() == null) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
     Presentation presentation = e.getPresentation();
-    presentation.setEnabled(true);
+    presentation.setEnabled(myShouldEnableApplyChangesProvider.apply(e.getProject()));
   }
 
   @Override
