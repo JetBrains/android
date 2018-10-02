@@ -110,6 +110,7 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:inputType="textMultiLine"
+              android:gravity="start|top"
               android:ems="10"
             />
           ]]>
