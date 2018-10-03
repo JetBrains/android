@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 
 /**
  * A project based component that stores a map from modules to sync issues. These are registered during sync (module setup) and are reported
@@ -30,6 +32,7 @@ class SyncIssueRegister {
 
   fun register(module: Module, syncIssues: Collection<SyncIssue>) {
     _syncIssueMap.computeIfAbsent(module) { ArrayList() }.addAll(syncIssues)
+    Disposer.register(module, Disposable { _syncIssueMap.remove(module) })
   }
 
   fun clear() {
