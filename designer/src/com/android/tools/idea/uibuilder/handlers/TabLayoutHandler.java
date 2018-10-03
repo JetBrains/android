@@ -15,21 +15,54 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.DragHandler;
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_TAB_BACKGROUND;
+import static com.android.SdkConstants.ATTR_TAB_CONTENT_START;
+import static com.android.SdkConstants.ATTR_TAB_GRAVITY;
+import static com.android.SdkConstants.ATTR_TAB_ICON_TINT;
+import static com.android.SdkConstants.ATTR_TAB_ICON_TINT_MODE;
+import static com.android.SdkConstants.ATTR_TAB_INDICATOR;
+import static com.android.SdkConstants.ATTR_TAB_INDICATOR_ANIMATION_DURATION;
+import static com.android.SdkConstants.ATTR_TAB_INDICATOR_COLOR;
+import static com.android.SdkConstants.ATTR_TAB_INDICATOR_FULL_WIDTH;
+import static com.android.SdkConstants.ATTR_TAB_INDICATOR_GRAVITY;
+import static com.android.SdkConstants.ATTR_TAB_INDICATOR_HEIGHT;
+import static com.android.SdkConstants.ATTR_TAB_INLINE_LABEL;
+import static com.android.SdkConstants.ATTR_TAB_MAX_WIDTH;
+import static com.android.SdkConstants.ATTR_TAB_MIN_WIDTH;
+import static com.android.SdkConstants.ATTR_TAB_MODE;
+import static com.android.SdkConstants.ATTR_TAB_PADDING;
+import static com.android.SdkConstants.ATTR_TAB_PADDING_BOTTOM;
+import static com.android.SdkConstants.ATTR_TAB_PADDING_END;
+import static com.android.SdkConstants.ATTR_TAB_PADDING_START;
+import static com.android.SdkConstants.ATTR_TAB_PADDING_TOP;
+import static com.android.SdkConstants.ATTR_TAB_RIPPLE_COLOR;
+import static com.android.SdkConstants.ATTR_TAB_SELECTED_TEXT_COLOR;
+import static com.android.SdkConstants.ATTR_TAB_TEXT_APPEARANCE;
+import static com.android.SdkConstants.ATTR_TAB_TEXT_COLOR;
+import static com.android.SdkConstants.ATTR_TAB_UNBOUNDED_RIPPLE;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_THEME;
+import static com.android.SdkConstants.TAB_ITEM;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
+import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @Override
@@ -67,23 +100,35 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
+  @NotNull
+  @Language("XML")
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    String tabItem = tagName.startsWith(ANDROIDX_PKG_PREFIX) ? TAB_ITEM.newName() : TAB_ITEM.oldName();
+    return new XmlBuilder()
+      .startTag(tagName)
+      .withSize(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT)
+      .wrapContent()
+      .startTag(tabItem)
+      .androidAttribute(ATTR_TEXT, "Monday")
+      .endTag(tabItem)
+      .startTag(tabItem)
+      .wrapContent()
+      .androidAttribute(ATTR_TEXT, "Tuesday")
+      .endTag(tabItem)
+      .startTag(tabItem)
+      .wrapContent()
+      .androidAttribute(ATTR_TEXT, "Wednesday")
+      .endTag(tabItem)
+      .endTag(tagName)
+      .toString();
+  }
+
+  @Override
   public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
-    if (insertType.isCreate()) {
-      String tabItemName = node.getTagName().startsWith(ANDROIDX_PKG_PREFIX) ? CLASS_TAB_ITEM.newName() : CLASS_TAB_ITEM.oldName();
-
-      // Insert a couple of TabItems:
-      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.PROGRAMMATIC);
-      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.PROGRAMMATIC);
-      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.PROGRAMMATIC);
-
-      tab1.setAndroidAttribute(ATTR_TEXT, "Left");
-      tab2.setAndroidAttribute(ATTR_TEXT, "Center");
-      tab3.setAndroidAttribute(ATTR_TEXT, "Right");
-    }
-
+    // Hide the implementation from HorizontalScrollViewHandler
     return true;
   }
 
@@ -109,6 +154,6 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new GenericLinearDragHandler(editor, layout, components, type, this, false);
+    return new FrameDragHandler(editor, this, layout, components, type);
   }
 }
