@@ -39,8 +39,10 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ui.components.JBList;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -52,6 +54,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -68,9 +72,14 @@ import org.jetbrains.annotations.Nullable;
 public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   // To have the sequence specified by design, we hardcode the sequence.
   private final String[] ORDERED_ACTIVITY_NAMES = {
-    "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fullscreen Activity", "Master/Detail Flow",
-    "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
+    "Basic Activity", "Empty Activity", BOTTOM_NAVIGATION_ACTIVITY, "Fullscreen Activity", "Master/Detail Flow",
+    NAVIGATION_DRAWER_ACTIVITY, "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
   };
+  private static final String NAVIGATION_DRAWER_ACTIVITY = "Navigation Drawer Activity";
+  private static final String BOTTOM_NAVIGATION_ACTIVITY = "Bottom Navigation Activity";
+  // This is a set of activities that should be hidden in the list of Activities.
+  // Once NPW_NAVIGATION_SUPPORT is set to true by default, they should be removed from ORDERED_ACTIVITY_NAMES.
+  private static final Set<String> EXCLUDE_ACTIVITIES_NAV_OPTION = ImmutableSet.of(NAVIGATION_DRAWER_ACTIVITY, BOTTOM_NAVIGATION_ACTIVITY);
 
   private final List<FormFactorInfo> myFormFactors = new ArrayList<>();
 
@@ -196,7 +205,13 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
     if (formFactor == FormFactor.MOBILE) {
       Map<String, TemplateHandle> entryMap = templateHandles.stream().collect(toMap(it -> it.getMetadata().getTitle(), it -> it));
-      return Arrays.stream(ORDERED_ACTIVITY_NAMES).map(it -> entryMap.get(it)).filter(Objects::nonNull).collect(toList());
+      Stream<String> activities;
+      if (StudioFlags.NPW_NAVIGATION_SUPPORT.get()) {
+        activities = Arrays.stream(ORDERED_ACTIVITY_NAMES).filter(it -> !EXCLUDE_ACTIVITIES_NAV_OPTION.contains(it));
+      } else {
+        activities = Arrays.stream(ORDERED_ACTIVITY_NAMES);
+      }
+      return activities.map(it -> entryMap.get(it)).filter(Objects::nonNull).collect(toList());
     }
 
     return templateHandles;
