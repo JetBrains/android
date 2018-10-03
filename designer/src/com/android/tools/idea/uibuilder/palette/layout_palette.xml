@@ -408,8 +408,6 @@
     <item tag="androidx.viewpager.widget.ViewPager"/>
     <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
     <item tag="androidx.cardview.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
-    <item tag="android.support.v4.view.ViewPager" id="Tabs" title="Tabs"/>
-    <item tag="androidx.viewpager.widget.ViewPager" id="Tabs2" title="Tabs"/>
     <item tag="android.support.design.widget.AppBarLayout" suggested="true" meta="material"/>
     <item tag="com.google.android.material.appbar.AppBarLayout" suggested="true" meta="material"/>
     <item tag="com.google.android.material.bottomappbar.BottomAppBar" suggested="true" meta="material" info="new-m2"/>
