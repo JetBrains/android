@@ -134,7 +134,17 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
       return myDeviceNameRenderer.getName(myDevice);
     }
 
-    return myAvdName == null ? getDeviceName() : myAvdName;
+    if (isVirtual()) {
+      if (myAvdName != null) {
+        return myAvdName;
+      }
+      else {
+        // if the avd name is not available, then include the serial number in order to differentiate
+        // between multiple emulators
+        return getDeviceName() + " [" + getSerial() + "]";
+      }
+    }
+    return getDeviceName();
   }
 
   @Override
