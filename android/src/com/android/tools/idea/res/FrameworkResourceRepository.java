@@ -136,7 +136,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private boolean myLoadedFromCache;
 
   private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
-    super(resFolder, ANDROID_NAMESPACE, "");
+    super(resFolder, ANDROID_NAMESPACE, null, "");
     myWithLocaleResources = withLocaleResources;
   }
 

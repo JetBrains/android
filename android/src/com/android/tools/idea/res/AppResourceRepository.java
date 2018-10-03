@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +108,10 @@ class AppResourceRepository extends MultiResourceRepository {
         int size = 0;
         for (AarResourceRepository library : libraryResources) {
           if (library instanceof AarSourceResourceRepository) {
-            size += ((AarSourceResourceRepository)library).getIdsFromRTxt().size();
+            Set<String> idsFromRTxt = ((AarSourceResourceRepository)library).getIdsFromRTxt();
+            if (idsFromRTxt != null) {
+              size += idsFromRTxt.size();
+            }
           }
         }
         myIds = ArrayListMultimap.create(size, 1);
@@ -117,8 +121,11 @@ class AppResourceRepository extends MultiResourceRepository {
       }
       for (AarResourceRepository library : libraryResources) {
         if (library instanceof AarSourceResourceRepository) {
-          for (String name : ((AarSourceResourceRepository)library).getIdsFromRTxt().keySet()) {
-            myIds.put(name, new IdResourceItem(name));
+          Set<String> idsFromRTxt = ((AarSourceResourceRepository)library).getIdsFromRTxt();
+          if (idsFromRTxt != null) {
+            for (String name : idsFromRTxt) {
+              myIds.put(name, new IdResourceItem(name));
+            }
           }
         }
       }

@@ -136,8 +136,6 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * Because currently we don't parse layouts inside AARs, this is used by [com.android.ide.common.resources.ResourceResolver] as a fallback
    * when it sees reference to an unknown [ResourceType.ID] resource. If this provider knows about the resource in question, the resolver
    * creates a new [com.android.ide.common.rendering.api.ResourceValue] on the fly.
-   *
-   * TODO(namespaces): parse layouts in AARs and remove this.
    */
   fun isIdDefinedInRTxt(resource: ResourceReference): Boolean {
     assert(resource.resourceType == ResourceType.ID)
@@ -146,8 +144,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
       .libraryResources
       .asSequence()
       .filterIsInstance(AarSourceResourceRepository::class.java)
-      .mapNotNull { it.idsFromRTxt[resource.name] }
-      .any()
+      .any { resource.name in it.idsFromRTxt.orEmpty() }
   }
 
   @Synchronized
