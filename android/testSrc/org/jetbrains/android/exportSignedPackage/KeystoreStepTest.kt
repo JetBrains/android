@@ -216,7 +216,7 @@ class KeystoreStepTest : IdeaTestCase() {
     keystoreStep.commitForNext()
 
     // Now check that the old-style password is erased
-    assertEquals(null, passwordSafe.getPassword(legacyRequestor, keyPasswordKey))
+    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor, keyPasswordKey)))
   }
 
   class PasswordSafeMock : PasswordSafe() {
@@ -236,8 +236,13 @@ class KeystoreStepTest : IdeaTestCase() {
       storedPasswords[requestor] = account
     }
 
-    override fun getPassword(requestor: Class<*>, accountName: String): String? {
-      return storedPasswords[requestor]?.get(accountName)
+    override fun getPassword(attributes: CredentialAttributes): String? {
+      if (attributes.requestor != null) {
+        return storedPasswords[attributes.requestor!!]?.get(attributes.userName)
+      }
+      else {
+        return super.getPassword(attributes)
+      }
     }
   }
 }
