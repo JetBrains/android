@@ -205,7 +205,8 @@ public class DragDropInteraction extends Interaction {
       viewgroup = viewgroup.getParent();
     }
 
-    if (handler != myCurrentHandler || myCurrentViewgroup != viewgroup) {
+    // No need to change Handler when using CommonDragHandler.
+    if (!(myDragHandler instanceof CommonDragHandler) && (handler != myCurrentHandler || myCurrentViewgroup != viewgroup)) {
       if (myCurrentViewgroup != null) {
         myCurrentViewgroup.setDrawState(SceneComponent.DrawState.NORMAL);
       }
@@ -267,7 +268,7 @@ public class DragDropInteraction extends Interaction {
       }
     }
 
-    if (myDragHandler != null && myCurrentHandler != null) {
+    if ((myDragHandler instanceof CommonDragHandler) || (myDragHandler != null && myCurrentHandler != null)) {
       String error = myDragHandler.update(Coordinates.pxToDp(mySceneView, ax), Coordinates.pxToDp(mySceneView, ay), modifiers);
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {

@@ -52,24 +52,19 @@ internal class CommonDragHandler(editor: ViewEditor,
   private val dragTarget: CommonDragTarget?
 
   init {
-    if (components.size == 1) {
-      val dragged = components[0]
-      val component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
-        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
-      }
-
-      dragTarget = CommonDragTarget(component, fromToolWindow = true)
-
-      component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
-      // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
-      // This weird implementation may be fixed in the future, but we just work around here.
-      component.setComponentProvider { _ -> components[0] }
-      layout.addChild(component)
-      component.drawState = SceneComponent.DrawState.DRAG
+    val dragged = components[0]
+    val component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
+      setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
     }
-    else {
-      dragTarget = null
-    }
+
+    dragTarget = CommonDragTarget(component, fromToolWindow = true)
+
+    component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
+    // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
+    // This weird implementation may be fixed in the future, but we just work around here.
+    component.setComponentProvider { _ -> components[0] }
+    layout.addChild(component)
+    component.drawState = SceneComponent.DrawState.DRAG
   }
 
   override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {
@@ -94,8 +89,6 @@ internal class CommonDragHandler(editor: ViewEditor,
     if (dragTarget == null) {
       return
     }
-    editor.insertChildren(layout.nlComponent, components, -1, insertType)
-    assert(components.size == 1)
     @AndroidDpCoordinate val dx = editor.pxToDp(x)
     @AndroidDpCoordinate val dy = editor.pxToDp(y)
     dragTarget.mouseRelease(dx, dy, emptyList())
