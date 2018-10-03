@@ -51,7 +51,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     super.setUp();
     myFixture.copyDirectoryToProject("navschematest", "src");
 
-    for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths()) {
+    for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths().keySet()) {
       File aar = new File(PathManager.getHomePath(), prebuiltPath);
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
