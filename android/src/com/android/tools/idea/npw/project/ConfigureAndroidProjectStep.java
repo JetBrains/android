@@ -34,6 +34,7 @@ import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
+import com.android.tools.idea.npw.platform.NavigationType;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -237,6 +238,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myInstallRequests.addAll(myFormFactorSdkControls.getSdkInstallPackageList());
     myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
+    if (!myNavigationControllerCheck.isSelected()) {
+      myProjectModel.navigationType().setValue(NavigationType.NONE);
+    }
   }
 
   @Override
