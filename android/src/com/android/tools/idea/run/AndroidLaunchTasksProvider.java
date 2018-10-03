@@ -144,7 +144,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       } else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
         type = UnifiedDeployTask.DeployType.CODE_SWAP;
       }
-      return ImmutableList.of(new UnifiedDeployTask(myApkProvider.getApks(device), type));
+      return ImmutableList.of(new UnifiedDeployTask(myProject, myApkProvider.getApks(device), type));
     }
 
     if (myInstantRunBuildAnalyzer != null) {
