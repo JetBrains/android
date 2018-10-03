@@ -344,17 +344,7 @@ UNClip
     )
 
     val expectedDrawCommand =
-      """DrawComponentBackground,0,0,500,500,1
-Clip,0,0,500,500
-DrawComponentBackground,225,225,50,50,1
-DrawProgressBar,225,225,50,50
-DrawComponentBackground,225,265,30,10,1
-DrawCheckbox,225,265,30,10,0,0,0.0,""
-DrawComponentBackground,245,225,30,10,1
-DrawSeekBar,245,225,30,10
-DrawComponentBackground,275,215,30,10,1
-DrawSwitch,275,215,30,10,0,0,false,false,2,2,14,1.0,"switch"
-DrawComponentBackground,195,275,30,10,3
+      """Clip,0,0,500,500
 DrawNlComponentFrame,195,275,30,10,3,20,20
 DrawResize,191,271,8,8,0
 DrawResize,191,281,8,8,0
