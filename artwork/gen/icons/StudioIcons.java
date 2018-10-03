@@ -402,7 +402,7 @@ public class StudioIcons {
     public static class ExistingDestinations {
       public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
       public static final Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.png"); // 146x188
-      public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 146x188
+      public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 106x156
       public static final Icon PLACEHOLDER = load("/studio/icons/nav-editor/existing-destinations/placeholder.png"); // 146x188
     }
 
