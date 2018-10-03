@@ -20,28 +20,44 @@ import org.jetbrains.annotations.NotNull;
 
 public enum ProfilingTechnology {
   ART_SAMPLED("Java Method Sample Recording",
-              "Samples Java code using Android Runtime"),
+              "Samples Java code using Android Runtime."),
 
   ART_INSTRUMENTED("Java Method Trace Recording",
-                   "Instruments Java code using Android Runtime"),
+                   "Instruments Java code using Android Runtime."),
 
   // This technology used by imported ART Trace configurations.
   // "Unspecified" because there is no way of telling if the trace was generated using sampling or instrumentations.
   ART_UNSPECIFIED("Java Method Recording",
-                  "Profiles Java code using Android Runtime"),
+                  "Profiles Java code using Android Runtime."),
 
   SIMPLEPERF("C/C++ Function Recording",
-             "Samples native code using simpleperf"),
+             "Samples native code using simpleperf.",
+             "Available for Android 8.0 (API level 26) and higher."),
 
   ATRACE("System Trace Recording",
-         "Traces Java and native code at the Android platform level");
+         "Traces Java and native code at the Android platform level.",
+         "Available for Android 8.0 (API level 26) and higher.");
 
   @NotNull private final String myName;
+
+  /**
+   * Description of the technology, e.g it is used in {@code RecordingInitiatorPane}.
+   */
   @NotNull private final String myDescription;
 
-  ProfilingTechnology(@NotNull String name, @NotNull String description) {
+  /**
+   * An extra context for the description of the technology, e.g it is used in {@code CpuProfilingConfigPane}.
+   */
+  @NotNull private final String myExtraDescription;
+
+  ProfilingTechnology(@NotNull String name, @NotNull String description, @NotNull String extraDescription) {
     myName = name;
     myDescription = description;
+    myExtraDescription = extraDescription;
+  }
+
+  ProfilingTechnology(@NotNull String name, @NotNull String description) {
+    this(name, description, "");
   }
 
   @NotNull
@@ -52,6 +68,11 @@ public enum ProfilingTechnology {
   @NotNull
   public String getDescription() {
     return myDescription;
+  }
+
+  @NotNull
+  public String getLongDescription() {
+    return String.format("<html>%s %s</html>", myDescription, myExtraDescription);
   }
 
   @NotNull

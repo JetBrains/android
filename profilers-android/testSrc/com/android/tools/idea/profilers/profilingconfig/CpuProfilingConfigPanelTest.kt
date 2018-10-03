@@ -21,6 +21,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -30,7 +31,7 @@ import javax.swing.*
 
 
 class CpuProfilingConfigPanelTest {
-  @get:Rule public val myRestoreFlagRule = RestoreFlagRule(StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS)
+  @get:Rule val myRestoreFlagRule = RestoreFlagRule(StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS)
 
   private lateinit var myConfigPanel: CpuProfilingConfigPanel
   private lateinit var myConfiguration: ProfilingConfiguration
@@ -110,13 +111,13 @@ class CpuProfilingConfigPanelTest {
       it.text == CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName()
     }
     val artSampledDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ART_SAMPLED_DESCRIPTION
+      it.text == ProfilingTechnology.ART_SAMPLED.longDescription
     }
     val artInstrumentedDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ART_INSTRUMENTED_DESCRIPTION
+      it.text == ProfilingTechnology.ART_INSTRUMENTED.longDescription
     }
     val simpleperfDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.SIMPLEPERF_DESCRIPTION
+      it.text == ProfilingTechnology.SIMPLEPERF.longDescription
     }
 
     assertThat(artSampledButton.isEnabled).isFalse()
