@@ -40,5 +40,5 @@ class StartDestinationAction(private val component: NlComponent) : AnAction("Set
   }
 
   private val isEnabled
-    get() = !component.isActivity && !component.isStartDestination
+    get() = !component.id.isNullOrEmpty() && !component.isActivity && !component.isStartDestination
 }
