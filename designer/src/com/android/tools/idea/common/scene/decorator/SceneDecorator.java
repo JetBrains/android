@@ -24,9 +24,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The generic Scene Decorator
@@ -58,6 +56,7 @@ public class SceneDecorator {
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     if (sceneContext.showOnlySelection()) {
       addFrame(list, sceneContext, component);
+      buildListTargets(list, time, sceneContext, component);
       buildListChildren(list, time, sceneContext, component);
       return;
     }
