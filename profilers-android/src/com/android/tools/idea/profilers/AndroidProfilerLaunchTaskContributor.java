@@ -184,7 +184,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
 
     if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      requestBuilder.setAbiCpuArch(getSimpleperfAbi(device));
+      requestBuilder.setAbiCpuArch(getSimpleperfAbiCpuArch(device));
     }
 
     CpuProfiler.StartupProfilingResponse response = profilerService
@@ -269,30 +269,32 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   @NotNull
   private static String getAbiDependentLibPerfaName(IDevice device) {
-    String abi = getBestAbi(device,
-                            "plugins/android/resources/perfa",
-                            "../../bazel-bin/tools/base/profiler/native/perfa/android",
-                            "libperfa.so");
+    String abi = getBestAbiCpuArch(device,
+                                   "plugins/android/resources/perfa",
+                                   "../../bazel-bin/tools/base/profiler/native/perfa/android",
+                                   "libperfa.so");
     return abi.isEmpty() ? "" : String.format("libperfa_%s.so", abi);
   }
 
   @NotNull
-  private static String getSimpleperfAbi(IDevice device) {
-    return getBestAbi(device,
-                      "plugins/android/resources/simpleperf",
-                      "../../prebuilts/tools/common/simpleperf",
-                      "simpleperf");
+  private static String getSimpleperfAbiCpuArch(IDevice device) {
+    return getBestAbiCpuArch(device,
+                             "plugins/android/resources/simpleperf",
+                             "../../prebuilts/tools/common/simpleperf",
+                             "simpleperf");
   }
 
   /**
-   * @return the most preferred ABI according to {@link IDevice#getAbis()} for which
-   * {@param fileName} exists in {@param releaseDir} or {@param devDir}
+   * @return the most preferred CPU arch according to {@link IDevice#getAbis()} for which
+   * {@param fileName} exists in {@param releaseDir} or {@param devDir}.
+   * For example, if the preferred Abi according to {@link IDevice#getAbis()} is {@link Abi#ARMEABI} or {@link Abi#ARMEABI_V7A} and
+   * the {@param fileName} exists under it then it returns "arm".
    */
   @NotNull
-  private static String getBestAbi(@NotNull IDevice device,
-                                   @NotNull String releaseDir,
-                                   @NotNull String devDir,
-                                   @NotNull String fileName) {
+  private static String getBestAbiCpuArch(@NotNull IDevice device,
+                                          @NotNull String releaseDir,
+                                          @NotNull String devDir,
+                                          @NotNull String fileName) {
     File dir = new File(PathManager.getHomePath(), releaseDir);
     if (!dir.exists()) {
       dir = new File(PathManager.getHomePath(), devDir);
