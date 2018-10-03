@@ -139,6 +139,10 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     StudioFlags.ENABLE_NAV_EDITOR.override(true);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
+      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager", "CardView",
+      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "TabLayout", "TabItem", "ViewStub",
+      "<include>", "<fragment>", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
     assertThat(getElementsAsStrings(myItemListModel)).contains("NavHostFragment");
     StudioFlags.ENABLE_NAV_EDITOR.override(false);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
