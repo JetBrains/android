@@ -45,7 +45,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.jetbrains.android.AndroidTestCase;
@@ -189,11 +188,11 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
         AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aar));
 
     Collection<String> idResources = appResources.getResources(RES_AUTO, ResourceType.ID).keySet();
-    Map<String, Integer> aarIds = aar.getIdsFromRTxt();
+    Set<String> aarIds = aar.getIdsFromRTxt();
     assertNotNull(aarIds);
     assertFalse(aarIds.isEmpty());
-    assertContainsElements(idResources, aarIds.keySet());
-    assertFalse(aarIds.keySet().contains("btn_title_refresh"));
+    assertContainsElements(idResources, aarIds);
+    assertFalse(aarIds.contains("btn_title_refresh"));
     assertContainsElements(idResources, "btn_title_refresh");
   }
 

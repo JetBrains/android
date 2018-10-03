@@ -25,7 +25,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.Set;
 import junit.framework.TestCase;
 
 /**
@@ -34,18 +33,32 @@ import junit.framework.TestCase;
 public class AarSourceResourceRepositoryTest extends TestCase {
 
   public void testGetAllDeclaredIds_hasRDotTxt() {
+    // R.txt contains these 3 ids which are actually not defined anywhere else. The layout file contains "id_from_layout" but it should not
+    // be parsed if R.txt is present.
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
-    assertThat(repository.getIdsFromRTxt()).containsExactly(
-      "id1", 0x7f0b0000,
-      "id2", 0x7f0b0001,
-      "id3", 0x7f0b0002);
+    assertThat(repository.getIdsFromRTxt()).containsExactly("id1", "id2", "id3");
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
   }
 
   public void testGetAllDeclaredIds_noRDotTxt() {
+    // There's no R.txt, so the layout file should be parsed and the two ids found.
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository("my_aar_lib_noRDotTxt");
+    assertThat(repository.getIdsFromRTxt()).isNull();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("id_from_layout");
+  }
 
-    Set<String> ids = repository.getResources(RES_AUTO, ResourceType.ID).keySet();
-    assertSameElements(ids, "id1", "id2");
+  public void testGetAllDeclaredIds_wrongRDotTxt() {
+    // IDs should come from R.txt, not parsing the layout.
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository("my_aar_lib_wrongRDotTxt");
+    assertThat(repository.getIdsFromRTxt()).containsExactly("id1", "id2", "id3");
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+  }
+
+  public void testGetAllDeclaredIds_brokenRDotTxt() {
+    // We can't parse R.txt, so we fall back to parsing layouts.
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository("my_aar_lib_brokenRDotTxt");
+    assertThat(repository.getIdsFromRTxt()).isNull();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("id_from_layout");
   }
 
   public void testMultipleValues() {
