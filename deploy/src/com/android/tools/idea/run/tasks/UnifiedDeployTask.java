@@ -118,7 +118,9 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    boolean error = false;
+    // If we return false from this method, studio will automatically display a failure bubble, covering any bubble we
+    // just displayed. We want control of our own notifications, and no tasks run after us, so we can safely return true
+    // here on a "safe" failure. Thus, note that all failure paths from this method return TRUE instead of FALSE.
     for (ApkInfo apk : myApks) {
       System.err.println("Processing application:" + apk.getApplicationId());
 
@@ -146,7 +148,7 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         NOTIFICATION_GROUP.createNotification("Error deploying APK", NotificationType.ERROR)
                           .setImportant(false).notify(myProject);
         LOG.error("Error deploying APK", e);
-        return false;
+        return true;
       }
 
       // TODO: shows the error somewhere other than System.err
@@ -154,7 +156,7 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         NOTIFICATION_GROUP.createNotification("Error during deployment: " + response.errorMessage, NotificationType.ERROR)
                           .setImportant(false).notify(myProject);
         System.err.println(response.errorMessage);
-        return error;
+        return true;
       }
 
       if (response.status == Deployer.RunResponse.Status.NOT_INSTALLED) {
