@@ -43,11 +43,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
                                                  private val fromToolWindow: Boolean = false)
   : BaseTarget() {
 
-  @AndroidDpCoordinate private var offsetX: Int = 0
-  @AndroidDpCoordinate private var offsetY: Int = 0
+  /**
+   * list of dragged components. The first entry is the one which user start dragging.
+   */
+  private val draggedComponents: List<SceneComponent>
 
-  @AndroidDpCoordinate private var firstMouseX: Int = 0
-  @AndroidDpCoordinate private var firstMouseY: Int = 0
+  /**
+   * Mouse position when start dragging.
+   */
+  @AndroidDpCoordinate private val firstMouse = Point(-1, -1)
+
+  /**
+   * Offsets of every selected components. Their units are AndroidDpCoordinate
+   */
+  private val offsets: Array<Point>
 
   /**
    * The collected placeholder.
@@ -64,6 +73,14 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   init {
     myComponent = sceneComponent
 
+    val scene = component.scene
+    val selection = scene.selection
+    val selectedSceneComponents = selection.mapNotNull { scene.getSceneComponent(it) }
+    // Make sure myComponent is the first one which is interacted with user.
+    // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
+    draggedComponents = sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
+    offsets = Array(draggedComponents.size) { Point(-1, -1) }
+
     placeholders = component.scene.getPlaceholders(component).filter { it.host != component }
     dominatePlaceholders = placeholders.filter { it.dominate }
     recessivePlaceholders = placeholders.filterNot { it.dominate }
@@ -74,8 +91,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     assert(myComponent == component)
     super.setComponent(component)
   }
-
-  override fun canChangeSelection() = true
 
   override fun layout(sceneTransform: SceneContext,
                       @AndroidDpCoordinate l: Int,
@@ -156,25 +171,39 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   override fun getPreferenceLevel() = Target.DRAG_LEVEL
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
-    firstMouseX = x
-    firstMouseY = y
+    firstMouse.x = x
+    firstMouse.y = y
 
     if (fromToolWindow) {
-      // If drag from Tool window, makes the dragged point is in the center of widget.
-      // We assign the offset here because the component is not really clicked.
-      offsetX = myComponent.drawWidth / 2
-      offsetY = myComponent.drawHeight / 2
+      if (!draggedComponents.isEmpty()) {
+        // When dragging from Tool window, makes the primary dragged point is in the center of widget.
+        // We assign the offset here because the component is not really clicked.
+        val primaryComponent = draggedComponents[0]
+        offsets[0].x = primaryComponent.drawWidth / 2
+        offsets[0].y = primaryComponent.drawHeight / 2
+
+        val primaryX = primaryComponent.getDrawX(System.currentTimeMillis())
+        val primaryY = primaryComponent.getDrawY(System.currentTimeMillis())
+
+        // Calculate distance between primary and other components.
+        for (i in 1 until draggedComponents.size) {
+          offsets[i].x = offsets[0].x + primaryX - draggedComponents[i].getDrawX(System.currentTimeMillis())
+          offsets[i].y = offsets[0].y + primaryY - draggedComponents[i].getDrawY(System.currentTimeMillis())
+        }
+      }
     }
     else {
       // Drag inside the component, leave the dragged point same as the clicked point.
-      offsetX = x - myComponent.getDrawX(System.currentTimeMillis())
-      offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
+      draggedComponents.forEachIndexed { index, sceneComponent ->
+        offsets[index].x = x - sceneComponent.getDrawX(System.currentTimeMillis())
+        offsets[index].y = y - sceneComponent.getDrawY(System.currentTimeMillis())
+      }
     }
     currentSnappedPlaceholder = null
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
-    myComponent.isDragging = true
+    draggedComponents.forEach { it.isDragging = true }
     val ph = snap(x, y)
     if (myComponent.scene.isLiveRenderingEnabled
         && ph?.host?.authoritativeNlComponent?.viewHandler is ConstraintLayoutHandler
@@ -196,8 +225,9 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    * When placeholder is overlapped, the higher [Region.level] get snapped.
    */
   private fun snap(@AndroidDpCoordinate mouseX: Int, @AndroidDpCoordinate mouseY: Int): Placeholder? {
-    val left = mouseX - offsetX
-    val top = mouseY - offsetY
+    // We use primary component to do snap
+    val left = mouseX - offsets[0].x
+    val top = mouseY - offsets[0].y
     val right = left + myComponent.drawWidth
     val bottom = top + myComponent.drawHeight
 
@@ -237,7 +267,12 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     }
 
     currentSnappedPlaceholder = targetPlaceholder
-    myComponent.setPosition(snappedX, snappedY)
+    if (currentSnappedPlaceholder?.dominate == true) {
+      draggedComponents.forEach { it.setPosition(snappedX, snappedY) }
+    }
+    else {
+      draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
+    }
     return targetPlaceholder
   }
 
@@ -246,14 +281,16 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       // Ignore double clicking case.
       return
     }
-    myComponent.isDragging = false
+    draggedComponents.forEach { it.isDragging = false }
     val ph = snap(x, y)
     if (ph != null) {
       applyPlaceholder(ph)
       myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     }
     else {
-      myComponent.setPosition(firstMouseX - offsetX, firstMouseY - offsetY)
+      draggedComponents.forEachIndexed { index, sceneComponent ->
+        sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
+      }
     }
   }
 
@@ -263,22 +300,25 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    */
   private fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true): Boolean {
     val parent = placeholder.host.authoritativeNlComponent
-    val nlComponent = myComponent.authoritativeNlComponent
-    val model = nlComponent.model
-    val componentsToAdd = listOf(nlComponent)
+    val primaryNlComponent = myComponent.authoritativeNlComponent
+    val model = primaryNlComponent.model
+    val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
     val anchor = placeholder.nextComponent?.nlComponent
 
     if (model.canAddComponents(componentsToAdd, parent, anchor)) {
-      val attributes = nlComponent.startAttributeTransaction()
-      placeholder.updateAttribute(myComponent, attributes)
+      val attributesTransactions = draggedComponents.map {
+        val transaction = it.authoritativeNlComponent.startAttributeTransaction()
+        placeholder.updateAttribute(it, transaction)
+        transaction
+      }
       if (commit) {
-        NlWriteCommandAction.run(componentsToAdd, "Drag ${nlComponent.tagName}") {
-          attributes.commit()
+        NlWriteCommandAction.run(componentsToAdd, "Drag ${primaryNlComponent.tagName}") {
+          attributesTransactions.forEach { it.commit() }
           model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
         }
       }
       else {
-        attributes.apply()
+        attributesTransactions.forEach { it.apply() }
       }
       return true
     }

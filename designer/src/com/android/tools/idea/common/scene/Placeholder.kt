@@ -40,8 +40,11 @@ abstract class Placeholder(val host: SceneComponent) {
 
   /**
    * Only dominate [Placeholder] would be rendered. Also, dominate [Placeholder]s has higher priority than recessive ones. Which means
-   * all dominated [Placeholder]s will be snapped first. If there is no dominated [Placeholder] is snapped, then recessive [Placeholder]s
-   * would be tried.
+   * all dominated [Placeholder]s will be snapped first. If it is impossible to snap to a dominating [Placeholder], then recessive
+   * [Placeholder]s would be tried.<br>
+   *
+   * When dragging multiple components, the dominate Placeholders change the position of all dragged components. The recessive Placeholder
+   * doesn't change the positions of them so they will keep the same related positions.
    */
   open val dominate = true
 

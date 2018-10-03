@@ -21,6 +21,8 @@ import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -326,6 +328,11 @@ public class SceneMouseInteraction {
       }
       repaint();
     }
+  }
+
+  public void select(SceneComponent... components) {
+    myScene.select(Arrays.stream(components).filter(it -> it != null).collect(Collectors.toList()));
+    repaint();
   }
 
   public void clickAction(@NotNull String componentId, @NotNull Predicate<Target> selector) {
