@@ -21,11 +21,11 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
-import com.google.common.base.Preconditions
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
 import org.jetbrains.android.AndroidTestBase
@@ -52,23 +52,16 @@ abstract class NavTestCase : AndroidTestCase() {
       myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/gen", "gen")
     }
 
-    val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
-    val classesDir = FileUtil.createTempDirectory("NavigationTestClasses", null)
-    for ((i, prebuilt) in navEditorAarPaths.withIndex()) {
+    for ((prebuilt, libName) in navEditorAarPaths.entries) {
+      val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
       val aar = File(PathManager.getHomePath(), prebuilt)
       ZipUtil.extract(aar, tempDir, null)
-      val classes = File(classesDir, "classes$i.jar")
-      Preconditions.checkState(File(tempDir, "classes.jar").renameTo(classes))
-      PsiTestUtil.addLibrary(myFixture.module, classes.path)
+      val unzippedClasses = FileUtil.createTempDirectory("unzipClasses", null)
+      ZipUtil.extract(File(tempDir, "classes.jar"), unzippedClasses, null)
 
-      myFixture.testDataPath = tempDir.path
+      PsiTestUtil.addProjectLibrary(myFixture.module, libName, VfsUtil.findFileByIoFile(unzippedClasses, true),
+                                    VfsUtil.findFileByIoFile(File(tempDir, "res"), true))
 
-      val values = File(tempDir, "res/values/values.xml")
-      if (values.exists()) {
-        Preconditions.checkState(values.renameTo(File(tempDir, "res/values/values$i.xml")))
-      }
-
-      myFixture.copyDirectoryToProject("res", "res")
       myFixture.testDataPath = testDataPath
     }
 

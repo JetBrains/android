@@ -27,21 +27,37 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point
-import java.awt.event.*
+import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_ENTER
-import javax.swing.*
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.KeyStroke
+import javax.swing.ListSelectionModel
 
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
 
