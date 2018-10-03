@@ -24,8 +24,8 @@ import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
-import com.intellij.util.Alarm;
 import icons.StudioIcons;
+import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -34,9 +34,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A modified version of IJ's FilterComponent that allows users to specify a custom delay between typing and
@@ -57,14 +55,18 @@ public final class FilterComponent extends JPanel {
   private JCheckBox myMatchCaseCheckBox;
   private JLabel myCountLabel;
   private final SearchTextField mySearchField;
-  private final Alarm myUpdateAlarm = new Alarm();
-  private final int myDelayMs;
+  private final Timer myTimer;
   private final Color mySearchFieldDefaultBackground;
+
+  /**
+   * For test code, we need to know when {@code myTimer} has finished firing, so we use a latch to detect this case.
+   * Whenever the timer is running, the latch will be set to 1; otherwise, 0.
+   */
+  private CountDownLatch myTimerRunningLatch = new CountDownLatch(0);
 
   public FilterComponent(@NotNull Filter filter, int textFieldWidth, int historySize, int delayMs) {
     super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-,20px,Fit-", "Fit-"));
 
-    myDelayMs = delayMs;
     myModel = new FilterModel();
     myModel.setFilter(filter);
 
@@ -114,6 +116,12 @@ public final class FilterComponent extends JPanel {
       }
     });
 
+    myTimer = new Timer(delayMs, e -> {
+      updateModel();
+      myTimerRunningLatch.countDown();
+    });
+    myTimer.setRepeats(false);
+
     mySearchField.addDocumentListener(new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
@@ -131,8 +139,8 @@ public final class FilterComponent extends JPanel {
       }
 
       private void onChanged() {
-        myUpdateAlarm.cancelAllRequests();
-        myUpdateAlarm.addRequest(() -> updateModel(), myDelayMs);
+        myTimerRunningLatch = new CountDownLatch(1);
+        myTimer.restart();
       }
     });
 
@@ -193,7 +201,6 @@ public final class FilterComponent extends JPanel {
   }
 
   public void setFilterText(final String filterText) {
-    myUpdateAlarm.cancelAllRequests();
     mySearchField.setText(filterText);
   }
 
@@ -225,16 +232,9 @@ public final class FilterComponent extends JPanel {
     return myCountLabel;
   }
 
-  /**
-   * For performance reasons, FilterComponent doesn't apply the filter immediately, but waits for
-   * a delay period (so a filter operation is only applied once even if a user types a long String,
-   * for example). In tests, however, it may be prudent to call this method after a call to
-   * {@link #setFilterText(String)} - otherwise, your test may finish and then the filter component's
-   * alarm may fire.
-   */
-  @VisibleForTesting
-  public void waitForFilterUpdated() throws InterruptedException, ExecutionException, TimeoutException {
-    myUpdateAlarm.waitForAllExecuted(Long.MAX_VALUE, TimeUnit.SECONDS);
+  @TestOnly
+  public void waitForFilterUpdated() throws InterruptedException {
+    myTimerRunningLatch.await();
   }
 
   private void updateModel() {
