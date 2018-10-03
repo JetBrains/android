@@ -208,12 +208,13 @@ public class GradleSpecificInitializer implements Runnable {
     if (runnerActions instanceof DefaultActionGroup) {
       DefaultActionGroup ag =  ((DefaultActionGroup)runnerActions);
       if (StudioFlags.JVMTI_REFRESH.get()) {
+        AnAction applyChanges = new ApplyChangesAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
+        ag.add(applyChanges, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+        actionManager.registerAction(ApplyChangesAction.ID, applyChanges);
+
         AnAction codeswap = new CodeSwapAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
         actionManager.registerAction(CodeSwapAction.ID, codeswap);
-        ag.add(codeswap, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-        AnAction applyChanges = new ApplyChangesAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
-        String id = actionManager.getId(codeswap);
-        ag.add(applyChanges, new Constraints(BEFORE, id));
+        ag.add(codeswap, new Constraints(AFTER, ApplyChangesAction.ID));
       }
       else {
         ag.add(new HotswapAction(), new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));

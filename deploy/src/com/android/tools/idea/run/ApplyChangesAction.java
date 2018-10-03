@@ -22,33 +22,48 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import java.util.function.Function;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ApplyChangesAction extends AnAction {
 
-  public static final Logger LOG = Logger.getInstance(ApplyChangesAction.class);
+  public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final Key<Boolean> APPLY_CHANGES = Key.create("android.apply.changes");
+  public static final Key<Boolean> APPLY_CHANGES = Key.create(ID);
 
-  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
+  private static final Logger LOG = Logger.getInstance(ApplyChangesAction.class);
+
+  private static final Shortcut SHORTCUT =
+    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
 
   @NotNull private final Function<Project, Boolean> myShouldEnableApplyChangesProvider;
 
   public ApplyChangesAction(@NotNull Function<Project, Boolean> shouldEnableApplyChangesProvider) {
     super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
     myShouldEnableApplyChangesProvider = shouldEnableApplyChangesProvider;
-    setShortcutSet(SHORTCUT_SET);
+
+    KeymapManager manager = KeymapManager.getInstance();
+    if (manager != null) {
+      final Keymap keymap = manager.getActiveKeymap();
+      if (keymap != null) {
+        keymap.addShortcut(ID, SHORTCUT);
+      }
+    }
   }
 
   @Override

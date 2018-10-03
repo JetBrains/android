@@ -24,36 +24,47 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import java.util.function.Function;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CodeSwapAction extends AnAction {
 
-  public static final Logger LOG = Logger.getInstance(CodeSwapAction.class);
+  public static final String ID = "android.deploy.CodeSwap";
 
-  public static final Key<Boolean> CODE_SWAP = Key.create("android.code.Swap");
+  public static final Key<Boolean> CODE_SWAP = Key.create(ID);
 
-  public static final String ID = "android.code.swap";
+  private static final Logger LOG = Logger.getInstance(CodeSwapAction.class);
 
   // TODO: Control Alt F10 is almost always going to get your xserver to send you to
   //       your 10th virtual console.....
-  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(
-    SystemInfo.isMac ? "control meta shift R" : "control alt F10");
+  private static final Shortcut SHORTCUT =
+    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift R" : "control alt F10"), null);
 
   @NotNull private final Function<Project, Boolean> myShouldEnableCodeSwapProvider;
 
   public CodeSwapAction(@NotNull Function<Project, Boolean> shouldEnableCodeSwapProvider) {
     super("Code Swap", "Code Swap", StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP);
     myShouldEnableCodeSwapProvider = shouldEnableCodeSwapProvider;
-    setShortcutSet(SHORTCUT_SET);
+
+    KeymapManager manager = KeymapManager.getInstance();
+    if (manager != null) {
+      final Keymap keymap = manager.getActiveKeymap();
+      if (keymap != null) {
+        keymap.addShortcut(ID, SHORTCUT);
+      }
+    }
   }
 
   @Override
