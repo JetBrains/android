@@ -33,7 +33,8 @@ class StartDestinationToolbarAction(surface: NavDesignSurface) :
     }
 
     val component = it[0]
-    return component.isDestination && component != surface.currentNavigation && !component.isActivity && !component.isStartDestination
+    return !component.id.isNullOrEmpty() && component.isDestination && component != surface.currentNavigation
+           && !component.isActivity && !component.isStartDestination
   }
 
   override fun actionPerformed(e: AnActionEvent?) {

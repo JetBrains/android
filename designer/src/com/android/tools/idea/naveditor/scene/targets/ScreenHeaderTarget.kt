@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene.targets
 import com.android.SdkConstants
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
@@ -26,6 +25,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.HEADER_HEIGHT
@@ -47,14 +47,6 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
   private val hasDeepLink: Boolean
     get() {
       return component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEP_LINK }
-    }
-
-  private val isStartDestination: Boolean
-    get() {
-      val parent = component.nlComponent.parent ?: return false
-
-      val startDestination = NlComponent.stripId(parent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION))
-      return startDestination.equals(component.id)
     }
 
   override fun getPreferenceLevel(): Int {
@@ -79,7 +71,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
     @SwingCoordinate val textPadding = Coordinates.getSwingDimension(view, HEADER_TEXT_PADDING)
     @SwingCoordinate val textHeight = Coordinates.getSwingDimension(view, HEADER_TEXT_HEIGHT)
 
-    if (isStartDestination) {
+    if (component.nlComponent.isStartDestination) {
       list.add(DrawIcon(Rectangle2D.Float(l, t, iconSize, iconSize), DrawIcon.IconType.START_DESTINATION))
       l += iconSize + textPadding
     }
