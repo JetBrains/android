@@ -17,44 +17,62 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.deploy.swapper.DexArchiveDatabase;
 import com.android.tools.deploy.swapper.SQLiteDexArchiveDatabase;
 import com.android.tools.deployer.AdbClient;
-import com.android.tools.deploy.swapper.DexArchiveDatabase;
-import com.android.tools.deploy.swapper.InMemoryDexArchiveDatabase;
 import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.PathManager;
-import java.nio.file.Paths;
-import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.diagnostic.Logger;
-
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
 
-  public static enum DeployType {
+  public enum DeployType {
     // When there is no previous APK Install.
-    INSTALL,
+    INSTALL("Install"),
 
     // Only update Java classes. No resource change, now activity restarts.
-    CODE_SWAP,
+    CODE_SWAP("Code swap"),
 
     // Everything, including resource changes.
-    FULL_SWAP
+    FULL_SWAP("Code and resource swap");
+
+    @NotNull
+    private final String myName;
+
+    DeployType(@NotNull String name) {
+      myName = name;
+    }
+
+    @NotNull
+    public String getName() {
+      return myName;
+    }
   }
 
   private static final String ID = "UNIFIED_DEPLOY";
 
-  private final Collection<ApkInfo> myApks;
+  private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN);
+
+  @NotNull private final Project myProject;
+
+  @NotNull private final Collection<ApkInfo> myApks;
 
   // TODO: Move this to an an application component.
   private static DexArchiveDatabase myDb = new SQLiteDexArchiveDatabase(
@@ -67,11 +85,13 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
   /**
    * Creates a task to deploy a list of apks.
    *
-   * @param apks the apks to deploy.
-   * @param swap whether to perform swap on a running app or to just install and restart.
+   * @param project         the project that this task is running within.
+   * @param apks            the apks to deploy.
+   * @param swap            whether to perform swap on a running app or to just install and restart.
    * @param activityRestart whether to restart activity upon swap.
    */
-  public UnifiedDeployTask(@NotNull Collection<ApkInfo> apks, DeployType type) {
+  public UnifiedDeployTask(@NotNull Project project, @NotNull Collection<ApkInfo> apks, DeployType type) {
+    myProject = project;
     myApks = apks;
     this.type = type;
   }
@@ -98,17 +118,15 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-
     boolean error = false;
     for (ApkInfo apk : myApks) {
       System.err.println("Processing application:" + apk.getApplicationId());
 
-      List<String> paths = apk.getFiles().stream().map(
-        apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
+      List<String> paths = apk.getFiles().stream().map(apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
       AdbClient adb = new AdbClient(device);
       Installer installer = new Installer(getLocalInstaller(), adb);
       Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, adb, myDb, installer);
-      Deployer.RunResponse response = null;
+      Deployer.RunResponse response;
       try {
         switch (type) {
           case INSTALL:
@@ -123,13 +141,18 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
           default:
             throw new UnsupportedOperationException("Not supported deployment type");
         }
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
+        NOTIFICATION_GROUP.createNotification("Error deploying APK", NotificationType.ERROR)
+                          .setImportant(false).notify(myProject);
         LOG.error("Error deploying APK", e);
         return false;
       }
 
       // TODO: shows the error somewhere other than System.err
       if (response.status == Deployer.RunResponse.Status.ERROR) {
+        NOTIFICATION_GROUP.createNotification("Error during deployment: " + response.errorMessage, NotificationType.ERROR)
+                          .setImportant(false).notify(myProject);
         System.err.println(response.errorMessage);
         return error;
       }
@@ -159,6 +182,9 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
                              " [" + statusEntry.getValue().toString().toLowerCase() + "]");
         }
       }
+
+      NOTIFICATION_GROUP.createNotification(type.getName() + " successful", NotificationType.INFORMATION)
+                        .setImportant(false).notify(myProject);
     }
 
     return true;
