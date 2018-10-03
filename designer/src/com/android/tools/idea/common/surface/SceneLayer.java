@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -59,7 +60,10 @@ public class SceneLayer extends Layer {
     if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
-    sceneContext.setShowOnlySelection(!myTemporaryShow && !myShowOnHover && myAlwaysShowSelection);
+    sceneContext.setShowOnlySelection(!myTemporaryShow &&
+                                      !myShowOnHover &&
+                                      myAlwaysShowSelection &&
+                                      StudioFlags.NELE_SHOW_ONLY_SELECTION.get());
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

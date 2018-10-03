@@ -226,6 +226,11 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
+  public static final Flag<Boolean> NELE_SHOW_ONLY_SELECTION = Flag.create(
+    NELE, "show.only.selection", "Show only selection boundaries when mouse is not hovered in layout",
+    "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
