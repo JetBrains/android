@@ -372,8 +372,11 @@ class MigrateToResourceNamespacesProcessor(
 
     for (facet in allFacets) {
       val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
-      // DO NOT SUBMIT
-      val rClasses = myProject.getProjectSystem().getLightResourceClassService().getLightRClassesAccessibleFromModule(facet.module, false)
+
+      // TODO(b/117202820): Handle test R classes as well.
+      val rClasses = myProject.getProjectSystem()
+        .getLightResourceClassService()
+        .getLightRClassesAccessibleFromModule(facet.module, false)
 
       // TODO(b/78765120): should we rewrite dependent modules as well?
       val scope = facet.module.moduleScope
