@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.ANDROID_THEME_PREFIX;
+import static com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION;
+import static com.android.SdkConstants.ATTR_INDETERMINATE;
+import static com.android.SdkConstants.ATTR_MAXIMUM;
+import static com.android.SdkConstants.ATTR_PROGRESS;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.PROGRESS_BAR;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TAG_STYLE;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.StudioIcons;
+import java.util.List;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <ProgressBar>} widget
@@ -69,18 +77,26 @@ public class ProgressBarHandler extends ViewHandler {
       return null;
     }
     if (style.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
-      int index = style.indexOf(DOT_PROGRESS_BAR_DOT);
-      return findProgressBarType(style.substring(index + DOT_PROGRESS_BAR_DOT.length()));
+      return findProgressBarType(style, DOT_PROGRESS_BAR_DOT);
     }
     if (style.startsWith(ANDROID_THEME_PREFIX)) {
-      int index = style.indexOf(PROGRESS_BAR_STYLE);
-      return findProgressBarType(style.substring(index + PROGRESS_BAR_STYLE.length()));
+      return findProgressBarType(style, PROGRESS_BAR_STYLE);
     }
     if (style.startsWith(STYLE_RESOURCE_PREFIX)) {
-      int index = style.indexOf(DOT_PROGRESS_BAR_DOT);
-      return findProgressBarType(style.substring(index + DOT_PROGRESS_BAR_DOT.length()));
+      return findProgressBarType(style, DOT_PROGRESS_BAR_DOT);
     }
     return null;
+  }
+
+
+  /**
+   * Find the type of the progress bar from the provided style once the given prefix has been removed.
+   * If the prefix is not found, the method returns null.
+   */
+  @Nullable
+  private static String findProgressBarType(@NotNull String style, @NotNull String prefix) {
+    int index = style.indexOf(prefix);
+    return index >= 0 ? findProgressBarType(style.substring(index + prefix.length())) : null;
   }
 
   @Nullable
