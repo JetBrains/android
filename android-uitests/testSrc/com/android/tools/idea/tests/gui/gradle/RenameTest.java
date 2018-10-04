@@ -45,6 +45,7 @@ public class RenameTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/117246373
   @Test
   public void sourceRoot() throws Exception {
     guiTest.importSimpleApplication();
