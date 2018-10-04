@@ -62,7 +62,6 @@ public class NewProjectTest {
     NPW_DYNAMIC_APPS.clearOverride();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/117246373
   @Test
   public void testNoWarningsInNewProjects() {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
@@ -142,7 +141,6 @@ public class NewProjectTest {
       });
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/117246373
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create(guiTest);
