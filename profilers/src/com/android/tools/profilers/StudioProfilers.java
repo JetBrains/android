@@ -124,7 +124,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Whether the profiler should auto-select a process to profile.
    */
-  private boolean myAutoProfilingEnabled = true;
+  private boolean myAutoProfilingEnabled;
 
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -241,12 +241,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                   @NotNull String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
     myPreferredDeviceName = deviceName;
-    myPreferredProcessName = processName;
+    setPreferredProcessName(processName);
     myPreferredProcessFilter = processFilter;
-    myAutoProfilingEnabled = true;
     // Checks whether we can switch immediately if the device is already there.
-    setDevice(findPreferredDevice());
-    setProcess(null);
+    setAutoProfilingEnabled(true);
+
+    changed(ProfilerAspect.PREFERRED_PROCESS);
+  }
+
+  public void setPreferredProcessName(@Nullable String processName) {
+    myPreferredProcessName = processName;
   }
 
   @Nullable
@@ -261,6 +265,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
+
     if (myAutoProfilingEnabled) {
       setDevice(findPreferredDevice());
       setProcess(null);
@@ -410,7 +415,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // The user wants to select a different process explicitly.
       // If the user intentionally selects something else, the profiler should not switch
       // back to the preferred process in any cases.
-      myAutoProfilingEnabled = false;
+      setAutoProfilingEnabled(false);
     }
 
     // Even if the process stays as null, the selected session could be changed.

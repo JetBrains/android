@@ -33,6 +33,21 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public static final long FAKE_DEVICE_ID = 1234;
   public static final String FAKE_DEVICE_NAME = "FakeDevice";
   public static final String FAKE_PROCESS_NAME = "FakeProcess";
+  public static final Common.Device FAKE_DEVICE = Common.Device.newBuilder()
+                                                               .setDeviceId(FAKE_DEVICE_ID)
+                                                               .setSerial(FAKE_DEVICE_NAME)
+                                                               .setApiLevel(AndroidVersion.VersionCodes.O)
+                                                               .setFeatureLevel(AndroidVersion.VersionCodes.O)
+                                                               .setModel(FAKE_DEVICE_NAME)
+                                                               .setState(Common.Device.State.ONLINE)
+                                                               .build();
+  //Setting PID to be 1 since there is a process with pid being 1 in test input atrace_processid_1
+  public static final Common.Process FAKE_PROCESS = Common.Process.newBuilder()
+                                                                  .setPid(1)
+                                                                  .setDeviceId(FAKE_DEVICE_ID)
+                                                                  .setState(Common.Process.State.ALIVE)
+                                                                  .setName(FAKE_PROCESS_NAME)
+                                                                  .build();
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
@@ -64,23 +79,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     mySessions = new HashMap<>();
     mySessionMetaDatas = new HashMap<>();
     if (connected) {
-      Common.Device device = Common.Device.newBuilder()
-        .setDeviceId(FAKE_DEVICE_ID)
-        .setSerial(FAKE_DEVICE_NAME)
-        .setApiLevel(AndroidVersion.VersionCodes.O)
-        .setFeatureLevel(AndroidVersion.VersionCodes.O)
-        .setModel(FAKE_DEVICE_NAME)
-        .setState(Common.Device.State.ONLINE)
-        .build();
-      Common.Process process = Common.Process.newBuilder()
-        //Setting PID to be 1 since there is a process with pid being 1 in test input atrace_processid_1
-        .setPid(1)
-        .setDeviceId(FAKE_DEVICE_ID)
-        .setState(Common.Process.State.ALIVE)
-        .setName(FAKE_PROCESS_NAME)
-        .build();
-      addDevice(device);
-      addProcess(device, process);
+      addDevice(FAKE_DEVICE);
+      addProcess(FAKE_DEVICE, FAKE_PROCESS);
     }
   }
 

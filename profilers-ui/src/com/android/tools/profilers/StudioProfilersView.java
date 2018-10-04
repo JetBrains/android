@@ -190,8 +190,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myProfiler.addDependency(this)
               .onChange(ProfilerAspect.STAGE, this::updateStageView)
-              .onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+              .onChange(ProfilerAspect.AGENT, this::toggleStageLayout)
+              .onChange(ProfilerAspect.PREFERRED_PROCESS, this::toggleStageLayout);
     updateStageView();
+    toggleStageLayout();
   }
 
   @Override
@@ -516,10 +518,13 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myCommonToolbar.setVisible(!topLevel && myStageView.navigationControllersEnabled());
   }
 
-  private void agentStatusChanged() {
+  private void toggleStageLayout() {
+    // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
+    boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
+                      !myProfiler.getSessionsManager().isSessionAlive();
     Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-    boolean waitForAgent = agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
-    if (waitForAgent) {
+    loading |= agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+    if (loading) {
       myStageLoadingPanel.startLoading();
       myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);
     }
@@ -549,6 +554,16 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @VisibleForTesting
   final JPanel getStageComponent() {
     return myStageComponent;
+  }
+
+  @VisibleForTesting
+  final JComponent getStageLoadingComponent() {
+    return myStageLoadingPanel.getComponent();
+  }
+
+  @VisibleForTesting
+  final JComponent getStageViewComponent() {
+    return myStageView.getComponent();
   }
 
   @VisibleForTesting
