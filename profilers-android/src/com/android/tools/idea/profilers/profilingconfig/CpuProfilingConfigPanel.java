@@ -183,53 +183,53 @@ public class CpuProfilingConfigPanel {
 
   void setConfiguration(@Nullable ProfilingConfiguration configuration, boolean isDefaultConfiguration) {
     myConfiguration = configuration;
-    if (configuration == null) {
-      clearFields();
-    }
-    else {
-      myConfigName.setText(configuration.getName());
-      myConfigName.setEnabled(true);
-      myConfigName.selectAll();
-      setEnabledTraceTechnologyPanel(true);
-      setRadioButtons(configuration);
-      setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
-      boolean isSamplingEnabled = configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
-      setEnabledSamplingIntervalPanel(isSamplingEnabled);
-      myFileSize.setValue(configuration.getProfilingBufferSizeInMb());
-
-      mySamplingInterval.getModel().setValue(configuration.getProfilingSamplingIntervalUs());
-
-      myDisableLiveAllocation.setSelected(configuration.isDisableLiveAllocation());
-      setEnabledDisableLiveAllocation(true);
-    }
+    updateFields();
     // Default configurations shouldn't be editable.
     if (isDefaultConfiguration) {
       disableFields();
     }
   }
 
-  private void setRadioButtons(@NotNull ProfilingConfiguration configuration) {
-
-    if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
-      if (configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
-        myArtSampledButton.setSelected(true);
-      }
-      else if (configuration.getMode() == CpuProfiler.CpuProfilerMode.INSTRUMENTED) {
-        myArtInstrumentedButton.setSelected(true);
-      }
-      else {
-        getLogger().warn("Invalid trace technology detected.");
-      }
-    }
-    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      assert configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
-      mySimpleperfButton.setSelected(true);
-    }
-    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
-      myATraceButton.setSelected(true);
+  private void updateFields() {
+    if (myConfiguration == null) {
+      clearFields();
     }
     else {
-      getLogger().warn("Invalid trace technology detected.");
+      myConfigName.setText(myConfiguration.getName());
+      myConfigName.setEnabled(true);
+      myConfigName.selectAll();
+      setEnabledTraceTechnologyPanel(true);
+      setRadioButtons(myConfiguration);
+      setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
+      boolean isSamplingEnabled = myConfiguration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
+      setEnabledSamplingIntervalPanel(isSamplingEnabled);
+      myFileSize.setValue(myConfiguration.getProfilingBufferSizeInMb());
+
+      mySamplingInterval.getModel().setValue(myConfiguration.getProfilingSamplingIntervalUs());
+
+      myDisableLiveAllocation.setSelected(myConfiguration.isDisableLiveAllocation());
+      setEnabledDisableLiveAllocation(true);
+    }
+
+  }
+
+  private void setRadioButtons(@NotNull ProfilingConfiguration configuration) {
+    switch (ProfilingTechnology.fromConfig(configuration)) {
+      case ART_SAMPLED:
+        myArtSampledButton.setSelected(true);
+        break;
+      case ART_INSTRUMENTED:
+        myArtInstrumentedButton.setSelected(true);
+        break;
+      case SIMPLEPERF:
+        mySimpleperfButton.setSelected(true);
+        break;
+      case ATRACE:
+        myATraceButton.setSelected(true);
+        break;
+      case ART_UNSPECIFIED:
+        getLogger().warn("Invalid trace technology detected.");
+        break;
     }
   }
 
@@ -325,20 +325,16 @@ public class CpuProfilingConfigPanel {
     myATraceDescriptionText.setEnabled(isEnabled);
   }
 
-  private void updateConfigurationProfilerAndMode(ProfilingTechnology technology) {
-    // This is only called when a radio button is selected, so myConfiguration should never be null.
-    assert myConfiguration != null;
-    myConfiguration.setProfilerType(technology.getType());
-    myConfiguration.setMode(technology.getMode());
-    setConfiguration(myConfiguration, false);
-  }
-
   private void createRadioButtonUi(JRadioButton button, JLabel descriptionLabel, ProfilingTechnology technology, ButtonGroup group) {
     button.addActionListener(e -> {
       if (e.getSource() == button) {
         JRadioButton bt = (JRadioButton)e.getSource();
         if (bt.isSelected()) {
-          updateConfigurationProfilerAndMode(technology);
+          // This is only called when a radio button is selected, so myConfiguration should never be null.
+          assert myConfiguration != null;
+          myConfiguration.setProfilerType(technology.getType());
+          myConfiguration.setMode(technology.getMode());
+          updateFields();
         }
       }
     });
