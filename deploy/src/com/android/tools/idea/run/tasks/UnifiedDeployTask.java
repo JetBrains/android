@@ -44,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
 
+  public static final int MIN_API_VERSION = 27;
+
   public enum DeployType {
     // When there is no previous APK Install.
     INSTALL("Install"),
