@@ -72,7 +72,8 @@ public class ConstraintLayoutTest {
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
-      .getLayoutEditor(false);
+      .getLayoutEditor(false)
+      .waitForRenderToFinish();
 
     Multimap<String, String> widgets = ArrayListMultimap.create();
     widgets.put("Buttons", "Button");
