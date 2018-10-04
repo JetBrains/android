@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.google.common.truth.Truth.assertThat
@@ -39,7 +40,7 @@ class CpuProfilingConfigPanelTest {
   @Before
   fun setUp() {
     myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.O)
-    myConfiguration = ProfilingConfiguration()
+    myConfiguration = ProfilingConfiguration("myConfig", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.SAMPLED)
     myConfigPanel.setConfiguration(myConfiguration, false)
   }
 

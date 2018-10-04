@@ -125,6 +125,8 @@ public class CpuProfilingConfigPanel {
    */
   private JRadioButton mySimpleperfButton;
 
+  private final ButtonGroup myTechnologiesGroup = new ButtonGroup();
+
   private final JLabel myArtSampledDescriptionText = new JLabel(ProfilingTechnology.ART_SAMPLED.getLongDescription());
   private final JLabel myArtInstrumentedDescriptionText = new JLabel(ProfilingTechnology.ART_INSTRUMENTED.getLongDescription());
   private final JLabel mySimpleperfDescriptionText = new JLabel(ProfilingTechnology.SIMPLEPERF.getLongDescription());
@@ -226,9 +228,7 @@ public class CpuProfilingConfigPanel {
 
   private void clearFields() {
     myConfigName.setText("");
-    myArtSampledButton.setSelected(false);
-    myArtInstrumentedButton.setSelected(false);
-    mySimpleperfButton.setSelected(false);
+    myTechnologiesGroup.clearSelection();
     mySamplingInterval.getModel().setValue(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US);
     myFileSize.setValue(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB);
     myFileSizeLimit.setText("");
@@ -293,15 +293,15 @@ public class CpuProfilingConfigPanel {
   }
 
   private void createTraceTechnologyPanel() {
-    ButtonGroup profilersType = new ButtonGroup();
     myArtSampledButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName());
-    createRadioButtonUi(myArtSampledButton, myArtSampledDescriptionText, ProfilingTechnology.ART_SAMPLED, profilersType);
+    createRadioButtonUi(myArtSampledButton, myArtSampledDescriptionText, ProfilingTechnology.ART_SAMPLED, myTechnologiesGroup);
 
     myArtInstrumentedButton = new JRadioButton(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName());
-    createRadioButtonUi(myArtInstrumentedButton, myArtInstrumentedDescriptionText, ProfilingTechnology.ART_INSTRUMENTED, profilersType);
+    createRadioButtonUi(myArtInstrumentedButton, myArtInstrumentedDescriptionText, ProfilingTechnology.ART_INSTRUMENTED,
+                        myTechnologiesGroup);
 
     mySimpleperfButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName());
-    createRadioButtonUi(mySimpleperfButton, mySimpleperfDescriptionText, ProfilingTechnology.SIMPLEPERF, profilersType);
+    createRadioButtonUi(mySimpleperfButton, mySimpleperfDescriptionText, ProfilingTechnology.SIMPLEPERF, myTechnologiesGroup);
   }
 
   private void setEnabledTraceTechnologyPanel(boolean isEnabled) {
