@@ -153,7 +153,8 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun testUsingDefaultConfiguration() {
-    myConfigPanel.setConfiguration(ProfilingConfiguration(), true)
+    val defaultConfig = ProfilingConfiguration("myConfig", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.SAMPLED)
+    myConfigPanel.setConfiguration(defaultConfig, true)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     assertThat(myConfigPanel.preferredFocusComponent.isEnabled).isFalse()
@@ -246,10 +247,11 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun testLoadingConfiguration() {
-    val configuration = ProfilingConfiguration()
-    configuration.profilingBufferSizeInMb = 1234
-    configuration.profilingSamplingIntervalUs = 56789
-    configuration.isDisableLiveAllocation = true
+    val configuration = ProfilingConfiguration("myConfig", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.SAMPLED).apply {
+      profilingBufferSizeInMb = 1234
+      profilingSamplingIntervalUs = 56789
+      isDisableLiveAllocation = true
+    }
 
     myConfigPanel.setConfiguration(configuration, false)
 
