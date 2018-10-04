@@ -23,6 +23,19 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
+import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Profiler.Event;
+import com.android.tools.profiler.proto.Profiler.EventGroup;
+import com.android.tools.profiler.proto.Profiler.GetDevicesRequest;
+import com.android.tools.profiler.proto.Profiler.GetDevicesResponse;
+import com.android.tools.profiler.proto.Profiler.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Profiler.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.Profiler.GetProcessesRequest;
+import com.android.tools.profiler.proto.Profiler.GetProcessesResponse;
+import com.android.tools.profiler.proto.Profiler.Stream;
+import com.android.tools.profiler.proto.Profiler.TimeRequest;
+import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.Profiler.*;
@@ -82,6 +95,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   private Map<Common.Device, List<Common.Process>> myProcesses;
 
+  /**
+   * A map of device to stream ids. This is needed to map devices to their perfd-host streams.
+   */
+  private Map<Common.Device, Long> myStreamIds;
+
   @NotNull private final SessionsManager mySessionsManager;
 
   @Nullable
@@ -139,6 +157,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage = new NullMonitorStage(this);
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
+    myStreamIds = new HashMap<>();
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -286,21 +305,58 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myRefreshDevices = 0;
 
     try {
-      GetDevicesResponse response = myClient.getProfilerClient().getDevices(GetDevicesRequest.getDefaultInstance());
-      Set<Common.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
-      for (Common.Device device : devices) {
-        GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
-        GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
+      if (myIdeServices.getFeatureConfig().isEventsPipelineEnabled()) {
+        // Get all streams of all types.
+        GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
+                                                             .setKind(Event.Kind.STREAM)
+                                                             .build();
+        GetEventGroupsResponse response = myClient.getProfilerClient().getEventGroups(request);
+        for (EventGroup group : response.getGroupsList()) {
+          // We only want about the last state of the stream.
+          Event event = group.getEvents(group.getEventsCount() - 1);
+          Stream stream = event.getStream();
+          // We only want streams of type device to get process information.
+          if (stream.getType() == Stream.Type.DEVICE) {
+            myStreamIds.computeIfAbsent(stream.getDevice(), (device) -> stream.getStreamId());
+            // Get all processes in device streams.
+            GetEventGroupsRequest processRequest = GetEventGroupsRequest.newBuilder()
+                                                                        .setStreamId(stream.getStreamId())
+                                                                        .setKind(Event.Kind.PROCESS)
+                                                                        .setEnd(Event.Type.PROCESS_ENDED)
+                                                                        .build();
+            GetEventGroupsResponse processResponse = myClient.getProfilerClient().getEventGroups(processRequest);
+            List<Common.Process> processList = new ArrayList<>();
+            int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
+            // A group is a collection of events that happened to a single process.
+            for (EventGroup groupProcess : processResponse.getGroupsList()) {
+              // We only care about the latest state of the process.
+              Event eventProcess = groupProcess.getEvents(groupProcess.getEventsCount() - 1);
+              Common.Process process = eventProcess.getProcess();
+              if (process.getState() == Common.Process.State.ALIVE || process.getPid() == lastProcessId) {
+                processList.add(process);
+              }
+              newProcesses.put(stream.getDevice(), processList);
+            }
+          }
+        }
+      }
+      else {
+        GetDevicesResponse response = myClient.getProfilerClient().getDevices(GetDevicesRequest.getDefaultInstance());
+        Set<Common.Device> devices = new HashSet<>(response.getDeviceList());
+        for (Common.Device device : devices) {
+          GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
+          GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
 
-        int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-        List<Common.Process> processList = processes.getProcessList()
-                                                    .stream()
-                                                    .filter(process -> process.getState() == Common.Process.State.ALIVE ||
-                                                                       process.getPid() == lastProcessId)
-                                                    .collect(Collectors.toList());
+          int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
+          List<Common.Process> processList = processes.getProcessList()
+                                                      .stream()
+                                                      .filter(process -> process.getState() == Common.Process.State.ALIVE ||
+                                                                         process.getPid() == lastProcessId)
+                                                      .collect(Collectors.toList());
 
-        newProcesses.put(device, processList);
+          newProcesses.put(device, processList);
+        }
       }
 
       if (!newProcesses.equals(myProcesses)) {
@@ -432,7 +488,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // In the case the device becomes null, keeps the previously stopped session.
       // This happens when the user explicitly stops an ongoing session or the profiler.
       if (myDevice != null) {
-        mySessionsManager.beginSession(myDevice, myProcess);
+        if (myIdeServices.getFeatureConfig().isEventsPipelineEnabled()) {
+          mySessionsManager.beginSession(myStreamIds.get(myDevice), myDevice, myProcess);
+        }
+        else {
+          mySessionsManager.beginSession(myDevice, myProcess);
+        }
       }
     }
   }
