@@ -20,7 +20,6 @@ import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.UnifiedEventsTable
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profiler.proto.ProfilerServiceGrpc
 import com.google.common.truth.Truth.assertThat
@@ -31,8 +30,10 @@ import io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 
-class UnifiedEventsDataPollerTest: DataStorePollerTest() {
+class UnifiedEventsDataPollerTest : DataStorePollerTest() {
 
   private lateinit var dataStore: DataStoreService
   private lateinit var profilerService: FakeProfilerService
@@ -56,32 +57,47 @@ class UnifiedEventsDataPollerTest: DataStorePollerTest() {
     val serviceStub = ProfilerServiceGrpc.newBlockingStub(managedChannel)
 
     poller = UnifiedEventsDataPoller(1, table, serviceStub)
-    // Stops the poller as that's dependent on system clock. We need to manually test the poll method.
-    poller.stop()
   }
 
   @After
   fun teardown() {
     server.shutdownNow()
     dataStore.shutdown()
+    poller.stop()
   }
 
   @Test
-  fun polledEventsTimeIsUpdated() {
-    poller.poll()
-    val request = Profiler.GetEventsRequest.newBuilder()
-      .setFromTimestamp(0)
-      .setToTimestamp(Long.MAX_VALUE)
-      .build()
-    val response = table.queryUnifiedEvents(request)
+  fun pollerIsStoppedWhenStopCalled() {
+    val thread = Thread(poller)
+    thread.start()
+    assertThat(thread.isAlive).isTrue()
+    poller.stop()
+    thread.join(TimeUnit.SECONDS.toMillis(1))
+    assertThat(thread.isAlive).isFalse()
+  }
+
+  @Test
+  fun pollerQueriesForEvents() {
+    // Due to the threaded nature of streaming rpcs we may need to try and query the data store multiple times for the events.
+    var retryAttempts = 5
+    val thread = Thread(poller)
+    thread.start()
+    profilerService.eventsLock.lock()
+    assertThat(profilerService.eventsPopulated.await(1, TimeUnit.SECONDS)).isTrue()
+    profilerService.eventsLock.unlock()
+    var response = table.queryUnifiedEvents()
+    while (response.size != FakeProfilerService.eventsList.size && retryAttempts-- >= 0) {
+      response = table.queryUnifiedEvents()
+      Thread.sleep(100)
+    }
     assertThat(response).containsExactlyElementsIn(FakeProfilerService.eventsList)
-    poller.poll()
-    assertThat(profilerService.lastQueryTime).isEqualTo(FakeProfilerService.eventsList.last().timestamp)
   }
 
 
   private class FakeProfilerService : ProfilerServiceGrpc.ProfilerServiceImplBase() {
-    var lastQueryTime = 0L
+
+    val eventsLock = ReentrantLock()
+    val eventsPopulated = eventsLock.newCondition()
 
     companion object {
       val eventsList = mutableListOf(Profiler.Event.newBuilder()
@@ -104,12 +120,12 @@ class UnifiedEventsDataPollerTest: DataStorePollerTest() {
                                        .build())
     }
 
-    override fun getEvents(request: Profiler.GetEventsRequest?, responseObserver: StreamObserver<Profiler.GetEventsResponse>?) {
-      lastQueryTime = request!!.fromTimestamp
-      responseObserver!!.onNext(Profiler.GetEventsResponse.newBuilder()
-                                .addAllEvents(if (lastQueryTime == 0L) eventsList else emptyList())
-                                .build())
+    override fun getEvents(request: Profiler.GetEventsRequest?, responseObserver: StreamObserver<Profiler.Event>) {
+      eventsList.forEach { responseObserver.onNext(it) }
       responseObserver.onCompleted()
+      eventsLock.lock()
+      eventsPopulated.signal()
+      eventsLock.unlock()
     }
   }
 }

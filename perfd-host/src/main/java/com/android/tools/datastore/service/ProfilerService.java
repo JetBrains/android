@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.service;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.LogService;
@@ -28,16 +29,17 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
-import java.util.concurrent.atomic.AtomicLong;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class hosts an EventService that will provide callers access to all cached EventData.
@@ -253,23 +255,23 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   private void streamConnected(Profiler.Stream stream, ProfilerServiceGrpc.ProfilerServiceBlockingStub stub) {
-    myUnifiedEventsTable.insertUnifiedEvents(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Lists.newArrayList(Event.newBuilder()
-                      .setKind(Event.Kind.STREAM)
-                      .setEventId(stream.getStreamId())
-                      .setType(Event.Type.STREAM_CONNECTED)
-                      .setTimestamp(System.nanoTime())
-                      .setStream(stream)
-                      .build()));
+    myUnifiedEventsTable.insertUnifiedEvent(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Event.newBuilder()
+                                                                                                .setKind(Event.Kind.STREAM)
+                                                                                                .setEventId(stream.getStreamId())
+                                                                                                .setType(Event.Type.STREAM_CONNECTED)
+                                                                                                .setTimestamp(System.nanoTime())
+                                                                                                .setStream(stream)
+                                                                                                .build());
   }
 
   private void streamDisconnected(Profiler.Stream stream) {
-    myUnifiedEventsTable.insertUnifiedEvents(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Lists.newArrayList(Event.newBuilder()
-                                                                               .setKind(Event.Kind.STREAM)
-                                                                               .setType(Event.Type.STREAM_DISCONNECTED)
-                                                                               .setEventId(stream.getStreamId())
-                                                                               .setStream(stream)
-                                                                               .setTimestamp(System.nanoTime())
-                                                                               .build()));
+    myUnifiedEventsTable.insertUnifiedEvent(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Event.newBuilder()
+                                                                                                .setKind(Event.Kind.STREAM)
+                                                                                                .setType(Event.Type.STREAM_DISCONNECTED)
+                                                                                                .setEventId(stream.getStreamId())
+                                                                                                .setStream(stream)
+                                                                                                .setTimestamp(System.nanoTime())
+                                                                                                .build());
   }
 
 
@@ -319,15 +321,6 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
       responseObserver.onNext(ExecuteResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
-  }
-
-  @Override
-  public void getEvents(GetEventsRequest request, StreamObserver<GetEventsResponse> responseObserver) {
-    GetEventsResponse.Builder response = GetEventsResponse.newBuilder();
-    Collection<Event> events = myUnifiedEventsTable.queryUnifiedEvents(request);
-    response.addAllEvents(events);
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
   }
 
   @Override

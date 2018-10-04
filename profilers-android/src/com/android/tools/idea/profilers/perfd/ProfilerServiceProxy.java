@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
+import static com.android.ddmlib.Client.CHANGE_NAME;
+
 import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
@@ -22,7 +24,9 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
@@ -33,16 +37,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.*;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
-
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-
-import static com.android.ddmlib.Client.CHANGE_NAME;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A proxy ProfilerService on host that intercepts grpc requests from perfd-host to device perfd.
@@ -62,7 +66,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
   @NotNull private final Common.Device myProfilerDevice;
   private final Map<Client, Common.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
   private final boolean myIsDeviceApiSupported;
-
+  private final EventQueue myEventQueue = new EventQueue();
+  private Thread myEventsListenerThread;
+  
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
     super(ProfilerServiceGrpc.getServiceDescriptor());
     myIsDeviceApiSupported = device.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
@@ -113,16 +119,16 @@ public class ProfilerServiceProxy extends PerfdProxyService
     }
 
     return builder.setDeviceId(device_id)
-      .setSerial(device.getSerialNumber())
-      .setModel(getDeviceModel(device))
-      .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-      .setCodename(StringUtil.notNullize(device.getVersion().getCodename()))
-      .setApiLevel(device.getVersion().getApiLevel())
-      .setFeatureLevel(device.getVersion().getFeatureLevel())
-      .setManufacturer(getDeviceManufacturer(device))
-      .setIsEmulator(device.isEmulator())
-      .setState(convertState(device.getState()))
-      .build();
+                  .setSerial(device.getSerialNumber())
+                  .setModel(getDeviceModel(device))
+                  .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
+                  .setCodename(StringUtil.notNullize(device.getVersion().getCodename()))
+                  .setApiLevel(device.getVersion().getApiLevel())
+                  .setFeatureLevel(device.getVersion().getFeatureLevel())
+                  .setManufacturer(getDeviceManufacturer(device))
+                  .setIsEmulator(device.isEmulator())
+                  .setState(convertState(device.getState()))
+                  .build();
   }
 
   @NotNull
@@ -160,6 +166,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
   public void disconnect() {
     AndroidDebugBridge.removeDeviceChangeListener(this);
     AndroidDebugBridge.removeClientChangeListener(this);
+    if (myEventsListenerThread != null) {
+      myEventsListenerThread.interrupt();
+    }
   }
 
   public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
@@ -168,17 +177,45 @@ public class ProfilerServiceProxy extends PerfdProxyService
     responseObserver.onCompleted();
   }
 
+  public void getEvents(GetEventsRequest request, StreamObserver<Event> responseObserver) {
+    // Create a thread to receive the stream of events from perfd.
+    // We push all events into an event queue, so any proxy generated events can also be added.
+    new Thread(() -> {
+      Iterator<Event> response = myServiceStub.getEvents(request);
+      while (response.hasNext()) {
+        // Blocking call to device. If the device is disconnected this call returns null.
+        Event event = response.next();
+        if (event != null) {
+          myEventQueue.enqueue(event);
+        }
+      }
+    }).start();
+
+    // This loop runs on a GRPC thread, it should not exit until the grpc is terminated killing the thread.
+    myEventsListenerThread = new Thread(() -> {
+      while (myEventsListenerThread.isAlive()) {
+        Event event = myEventQueue.waitForNextEvent();
+        if (event != null) {
+          responseObserver.onNext(event);
+        }
+        // Note: We never call on complete. For streamed rpc calls because
+        // it is expected to endlessly append new events.
+      }
+    });
+    myEventsListenerThread.start();
+  }
+
   public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
     TimeResponse response;
     if (myIsDeviceApiSupported) {
       // if device API is supported, use grpc to get the current time
       try {
         response = myServiceStub.getCurrentTime(request);
-      } catch (StatusRuntimeException e) {
+      }
+      catch (StatusRuntimeException e) {
         responseObserver.onError(e);
         return;
       }
-
     }
     else {
       // otherwise, return a default (any) instance of TimeResponse
@@ -216,7 +253,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
   @Override
   public void clientChanged(@NonNull Client client, int changeMask) {
     if ((changeMask & CHANGE_NAME) != 0 && client.getDevice() == myDevice && client.getClientData().getClientDescription() != null) {
-      updateProcesses(Collections.singletonList(client));
+      updateProcesses(Collections.singletonList(client), Collections.EMPTY_LIST);
     }
   }
 
@@ -234,6 +271,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
     overrides.put(ProfilerServiceGrpc.METHOD_GET_CURRENT_TIME,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getCurrentTime((TimeRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(ProfilerServiceGrpc.METHOD_GET_EVENTS,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    getEvents((GetEventsRequest)request, (StreamObserver)observer);
                   }));
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }
@@ -253,22 +294,16 @@ public class ProfilerServiceProxy extends PerfdProxyService
     ImmutableSet<Client> removedClients = Sets.difference(existingClients, updatedClients).immutableCopy();
     ImmutableSet<Client> addedClients = Sets.difference(updatedClients, existingClients).immutableCopy();
 
-    // Only request the time if we added processes, this is needed as:
+    // This is needed as:
     // 1) the service test calls this function without setting up a full profiler service, and
     // 2) this is potentially being called as the device is being shut down.
-    if (!addedClients.isEmpty()) {
-      updateProcesses(addedClients);
-    }
-
-    for (Client client : removedClients) {
-      myCachedProcesses.remove(client);
-    }
+    updateProcesses(addedClients, removedClients);
   }
 
   /**
    * Note: This method is called from the ddmlib thread.
    */
-  private void updateProcesses(@NotNull Collection<Client> clients) {
+  private void updateProcesses(@NotNull Collection<Client> addedClients, @NotNull Collection<Client> removedClients) {
     if (!myIsDeviceApiSupported) {
       return; // Device not supported. Do nothing.
     }
@@ -285,7 +320,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       return;
     }
 
-    for (Client client : clients) {
+    for (Client client : addedClients) {
       String description = client.getClientData().getClientDescription();
       if (description == null) {
         continue; // Process is still starting up and not ready yet
@@ -297,21 +332,46 @@ public class ProfilerServiceProxy extends PerfdProxyService
       String abi = client.getClientData().getAbi();
       String abiCpuArch;
       if (abi != null && abi.contains(")")) {
-        abiCpuArch = abi.substring(abi.indexOf("(") + 1, abi.indexOf(")"));
+        abiCpuArch = abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'));
       }
       else {
         abiCpuArch = Abi.getEnum(myDevice.getAbis().get(0)).getCpuArch();
       }
 
       // TODO: Set this to the applications actual start time.
-      myCachedProcesses.put(client, Common.Process.newBuilder()
-        .setName(client.getClientData().getClientDescription())
-        .setPid(client.getClientData().getPid())
-        .setDeviceId(myProfilerDevice.getDeviceId())
-        .setState(Common.Process.State.ALIVE)
-        .setStartTimestampNs(times.getTimestampNs())
-        .setAbiCpuArch(abiCpuArch)
-        .build());
+      Common.Process process = Common.Process.newBuilder()
+                                             .setName(client.getClientData().getClientDescription())
+                                             .setPid(client.getClientData().getPid())
+                                             .setDeviceId(myProfilerDevice.getDeviceId())
+                                             .setState(Common.Process.State.ALIVE)
+                                             .setStartTimestampNs(times.getTimestampNs())
+                                             .setAbiCpuArch(abiCpuArch)
+                                             .build();
+      myCachedProcesses.put(client, process);
+      // If we are using the new event pipeline we also want to create a process started entry
+      // for each process.
+      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
+        myEventQueue.enqueue(Profiler.Event.newBuilder()
+                                           .setEventId(process.getPid())
+                                           .setKind(Event.Kind.PROCESS)
+                                           .setType(Event.Type.PROCESS_STARTED)
+                                           .setProcess(process)
+                                           .setTimestamp(times.getTimestampNs())
+                                           .build());
+      }
+    }
+
+    for (Client client : removedClients) {
+      Common.Process process = myCachedProcesses.remove(client);
+      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
+        myEventQueue.enqueue(Profiler.Event.newBuilder()
+                                           .setEventId(process.getPid())
+                                           .setKind(Event.Kind.PROCESS)
+                                           .setType(Event.Type.PROCESS_ENDED)
+                                           .setProcess(process.toBuilder().setState(Common.Process.State.DEAD))
+                                           .setTimestamp(times.getTimestampNs())
+                                           .build());
+      }
     }
   }
 
@@ -319,5 +379,42 @@ public class ProfilerServiceProxy extends PerfdProxyService
   @NotNull
   Map<Client, Common.Process> getCachedProcesses() {
     return myCachedProcesses;
+  }
+
+  /**
+   * Helper class to manage writing events from one thread, and reading events from another.
+   */
+  private static class EventQueue {
+    private final ArrayDeque<Event> myEvents = new ArrayDeque<>();
+    private final Lock myEventsLock = new ReentrantLock();
+    private final Condition myEventsPopulated = myEventsLock.newCondition();
+
+    public void enqueue(@NotNull Event event) {
+      try {
+        myEventsLock.lock();
+        myEvents.add(event);
+        myEventsPopulated.signal();
+      }
+      finally {
+        myEventsLock.unlock();
+      }
+    }
+
+    public Event waitForNextEvent() {
+      try {
+        myEventsLock.lock();
+        while (myEvents.isEmpty()) {
+          myEventsPopulated.await();
+        }
+        return myEvents.removeFirst();
+      }
+      catch (InterruptedException ex) {
+        getLog().error(ex);
+      }
+      finally {
+        myEventsLock.unlock();
+      }
+      return null;
+    }
   }
 }

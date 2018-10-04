@@ -15,6 +15,11 @@
  */
 package com.android.tools.datastore.poller;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
@@ -28,6 +33,9 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.google.common.collect.ImmutableMap;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -296,7 +304,8 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void agentStatus() {
     getPollTicker().run();
     StreamObserver<AgentStatusResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
+    myProfilerService
+      .getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
     AgentStatusResponse response = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
     validateResponse(observer, response);
   }
@@ -304,7 +313,9 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void configureStartupAgent() {
     StreamObserver<ConfigureStartupAgentResponse> observer = mock(StreamObserver.class);
-    myProfilerService.configureStartupAgent(ConfigureStartupAgentRequest.newBuilder().setDeviceId(DEVICE_ID).setAgentLibFileName("TEST").build(), observer);
+    myProfilerService
+      .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder().setDeviceId(DEVICE_ID).setAgentLibFileName("TEST").build(),
+                             observer);
     ConfigureStartupAgentResponse response = ConfigureStartupAgentResponse.newBuilder().setAgentArgs("TEST").build();
     validateResponse(observer, response);
   }
@@ -317,45 +328,45 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     // Force the poller to tick.
     getPollTicker().run();
     // Get events from poller to validate we have a connection.
-    StreamObserver<GetEventsResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getEvents(GetEventsRequest.newBuilder().setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build(), observer);
-    GetEventsResponse.Builder expected = GetEventsResponse.newBuilder()
-                                                          .addEvents(Event.newBuilder()
-                                                                          .setEventId(2)
-                                                                          .setKind(Event.Kind.STREAM)
-                                                                          .setType(Event.Type.STREAM_CONNECTED)
-                                                                          .setStream(Stream.newBuilder()
-                                                                                           .setStreamId(2)
-                                                                                           .setType(Stream.Type.DEVICE)))
-                                                          .addEvents(Event.newBuilder()
-                                                                          .setKind(Event.Kind.PROCESS)
-                                                                          .setTimestamp(100)
-                                                                          .setSessionId(1));
+    StreamObserver<GetEventGroupsResponse> observer = mock(StreamObserver.class);
+    myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
+    EventGroup expectedGroup = EventGroup.newBuilder()
+                                         .setEventId(2)
+                                         .addEvents(Event.newBuilder()
+                                                         .setEventId(2)
+                                                         .setKind(Event.Kind.STREAM)
+                                                         .setType(Event.Type.STREAM_CONNECTED)
+                                                         .setStream(Stream.newBuilder()
+                                                                          .setStreamId(2)
+                                                                          .setType(Stream.Type.DEVICE))).build();
 
-    ArgumentCaptor<GetEventsResponse> response = ArgumentCaptor.forClass(GetEventsResponse.class);
+    ArgumentCaptor<GetEventGroupsResponse> response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
     verify(observer, times(1)).onNext(response.capture());
-    assertThat(response.getValue().getEventsCount()).isEqualTo(expected.getEventsCount());
-    for (int i = 0; i < expected.getEventsCount(); i++) {
-      validateEventNoTimestamp(expected.getEvents(i), response.getValue().getEvents(i));
-    }
+    assertThat(response.getValue().getGroupsCount()).isEqualTo(1);
+    EventGroup actualGroup = response.getValue().getGroups(0);
+    assertThat(actualGroup.getEventsCount()).isEqualTo(expectedGroup.getEventsCount());
+    validateEventNoTimestamp(expectedGroup.getEvents(0), actualGroup.getEvents(0));
 
     // Disconnect service.
     myProfilerService.stopMonitoring(eventsChannel);
     Mockito.reset(observer);
-    myProfilerService.getEvents(GetEventsRequest.newBuilder().setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build(), observer);
+    response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
+    myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
     verify(observer, times(1)).onNext(response.capture());
-    expected = expected.addEvents(Event.newBuilder()
-                                                       .setEventId(2)
-                                                       .setKind(Event.Kind.STREAM)
-                                                       .setType(Event.Type.STREAM_DISCONNECTED)
-                                                       .setTimestamp(100)
-                                                       .setStream(Stream.newBuilder()
-                                                                        .setStreamId(2)
-                                                                        .setType(Stream.Type.DEVICE)));
-    assertThat(response.getValue().getEventsCount()).isEqualTo(expected.getEventsCount());
-    for (int i = 0; i < expected.getEventsCount(); i++) {
-      validateEventNoTimestamp(expected.getEvents(i), response.getValue().getEvents(i));
-    }
+    expectedGroup = expectedGroup.toBuilder().addEvents(Event.newBuilder()
+                            .setEventId(2)
+                            .setKind(Event.Kind.STREAM)
+                            .setType(Event.Type.STREAM_DISCONNECTED)
+                            .setTimestamp(100)
+                            .setStream(Stream.newBuilder()
+                                             .setStreamId(2)
+                                             .setType(Stream.Type.DEVICE))).build();
+    assertThat(response.getValue().getGroupsCount()).isEqualTo(1);
+
+    actualGroup = response.getValue().getGroups(0);
+    assertThat(actualGroup.getEventsCount()).isEqualTo(expectedGroup.getEventsCount());
+    validateEventNoTimestamp(expectedGroup.getEvents(0), actualGroup.getEvents(0));
+    validateEventNoTimestamp(expectedGroup.getEvents(1), actualGroup.getEvents(1));
   }
 
   @Test
@@ -476,13 +487,12 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getEvents(GetEventsRequest request, StreamObserver<GetEventsResponse> responseObserver) {
-      responseObserver.onNext(GetEventsResponse.newBuilder().addEvents(Event.newBuilder()
-                                                                            .setKind(Event.Kind.PROCESS)
-                                                                            .setTimestamp(100)
-                                                                            .setSessionId(1)
-      )
-                                               .build());
+    public void getEvents(GetEventsRequest request, StreamObserver<Event> responseObserver) {
+      responseObserver.onNext(Event.newBuilder()
+                                   .setKind(Event.Kind.PROCESS)
+                                   .setTimestamp(100)
+                                   .setSessionId(1)
+                                   .build());
       responseObserver.onCompleted();
     }
 
