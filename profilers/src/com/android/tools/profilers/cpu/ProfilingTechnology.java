@@ -76,6 +76,40 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
+  public CpuProfiler.CpuProfilerType getType() {
+    switch (this) {
+      case ART_SAMPLED:
+        return CpuProfiler.CpuProfilerType.ART;
+      case ART_INSTRUMENTED:
+        return CpuProfiler.CpuProfilerType.ART;
+      case ART_UNSPECIFIED:
+        return CpuProfiler.CpuProfilerType.ART;
+      case SIMPLEPERF:
+        return CpuProfiler.CpuProfilerType.SIMPLEPERF;
+      case ATRACE:
+        return CpuProfiler.CpuProfilerType.ATRACE;
+    }
+    throw new IllegalArgumentException("Unreachable code");
+  }
+
+  @NotNull
+  public CpuProfiler.CpuProfilerMode getMode() {
+    switch (this) {
+      case ART_SAMPLED:
+        return CpuProfiler.CpuProfilerMode.SAMPLED;
+      case ART_INSTRUMENTED:
+        return CpuProfiler.CpuProfilerMode.INSTRUMENTED;
+      case ART_UNSPECIFIED:
+        return CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE;
+      case SIMPLEPERF:
+        return CpuProfiler.CpuProfilerMode.SAMPLED;
+      case ATRACE:
+        return CpuProfiler.CpuProfilerMode.INSTRUMENTED;
+    }
+    throw new IllegalArgumentException("Unreachable code");
+  }
+
+  @NotNull
   public static ProfilingTechnology fromTypeAndMode(@NotNull CpuProfiler.CpuProfilerType type,
                                                     @NotNull CpuProfiler.CpuProfilerMode mode) {
     switch (type) {

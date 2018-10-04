@@ -316,29 +316,9 @@ public class CpuProfilingConfigPanel {
   private void updateConfigurationProfilerAndMode(ProfilingTechnology technology) {
     // This is only called when a radio button is selected, so myConfiguration should never be null.
     assert myConfiguration != null;
-    switch (technology) {
-      case ART_SAMPLED:
-        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.SAMPLED);
-        setEnabledSamplingIntervalPanel(true);
-        break;
-      case ART_INSTRUMENTED:
-        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED);
-        setEnabledSamplingIntervalPanel(false);
-        break;
-      case SIMPLEPERF:
-        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.SAMPLED);
-        setEnabledSamplingIntervalPanel(true);
-        break;
-      case ATRACE:
-        //TODO(b/116815370): Support ATRACE.
-        break;
-      case ART_UNSPECIFIED:
-        throw new IllegalArgumentException("Unexpected profiling technology found: ART_UNSPECIFIED");
-
-    }
+    myConfiguration.setProfilerType(technology.getType());
+    myConfiguration.setMode(technology.getMode());
+    setEnabledSamplingIntervalPanel(technology.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED);
   }
 
   private void createRadioButtonUi(JRadioButton button, JLabel descriptionLabel, ProfilingTechnology technology, ButtonGroup group) {
