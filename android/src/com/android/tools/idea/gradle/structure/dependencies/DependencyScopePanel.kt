@@ -26,10 +26,10 @@ import com.intellij.ui.LanguageTextField
 import com.intellij.ui.TextFieldWithAutoCompletion
 import com.intellij.util.textCompletion.TextCompletionUtil
 
-class DependencyScopePanel(module: PsModule) : AbstractDependencyScopesPanel() {
+class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor?) : AbstractDependencyScopesPanel() {
 
   val configurations = module.getConfigurations().toSet()
-  val comboBox = createComboBox(module)
+  val comboBox = createComboBox(module, importantFor)
 
   init {
     setUpContents(comboBox, INSTRUCTIONS)
@@ -50,13 +50,17 @@ private const val INSTRUCTIONS =
     """Assign a scope to the new dependency by selecting the configurations below.<br/><a
       |href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>"""
 
-private fun createComboBox(module: PsModule): EditorComboBox {
+private fun createComboBox(
+  module: PsModule,
+  onlyImportant: PsModule.ImportantFor?
+)
+  : EditorComboBox {
   val completionProvider = object : TextFieldWithAutoCompletion.StringsCompletionProvider(module.getConfigurations(), null) {
     override fun createPrefixMatcher(prefix: String): PrefixMatcher = CamelHumpMatcher(prefix)
   }
   val documentCreator = TextCompletionUtil.DocumentWithCompletionCreator(completionProvider, true)
   val document = LanguageTextField.createDocument("", PlainTextLanguage.INSTANCE, module.parent.ideProject, documentCreator)
-  val importantConfigurations = module.getConfigurations(onlyImportant = true)
+  val importantConfigurations = module.getConfigurations(onlyImportant)
   val initialSelection = importantConfigurations.firstOrNull()
   return EditorComboBox(document, module.parent.ideProject, StdFileTypes.PLAIN_TEXT)
     .apply {

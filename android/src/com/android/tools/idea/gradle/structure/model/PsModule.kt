@@ -32,7 +32,7 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.Urls
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.io.File
-import java.util.*
+import java.util.EventListener
 import javax.swing.Icon
 
 abstract class PsModule protected constructor(
@@ -80,7 +80,8 @@ abstract class PsModule protected constructor(
 
   abstract val rootDir: File?
   abstract val projectType: PsModuleType
-  abstract fun getConfigurations(onlyImportant: Boolean = false): List<String>
+  enum class ImportantFor  { LIBRARY, MODULE }
+  abstract fun getConfigurations(onlyImportantFor: ImportantFor? = null): List<String>
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 

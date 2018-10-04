@@ -88,4 +88,10 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
     }
     return getScopesPanel().validateInput();
   }
+
+  @Override
+  @NotNull
+  protected AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module) {
+    return new DependencyScopePanel(module, PsModule.ImportantFor.MODULE);
+  }
 }

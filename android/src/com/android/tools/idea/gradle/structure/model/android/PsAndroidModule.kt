@@ -112,7 +112,7 @@ class PsAndroidModule(
   }
 
   // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.
-  override fun getConfigurations(onlyImportant: Boolean): List<String> {
+  override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> {
 
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
@@ -120,7 +120,7 @@ class PsAndroidModule(
       productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }
 
     fun buildFlavorCombinations() = when {
-      !onlyImportant && flavorDimensions.size > 1 -> flavorDimensions
+      flavorDimensions.size > 1 -> flavorDimensions
         .fold(listOf(listOf(""))) { acc, dimension ->
           flavorsByDimension(dimension.name).flatMap { flavor ->
             acc.map { prefix -> prefix + flavor }
@@ -131,17 +131,24 @@ class PsAndroidModule(
     }
 
     fun applicableProductFlavors() =
-      listOf("") + productFlavors.map { it.name } + buildFlavorCombinations()
+      listOf("") +
+      (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) productFlavors.map { it.name } else listOf()) +
+      (if (onlyImportantFor == null) buildFlavorCombinations() else listOf())
 
     fun applicableBuildTypes(artifact: String) =
     // TODO(solodkyy): Include product flavor combinations
       when (artifact) {
         "androidTest" -> listOf("")  // androidTest is built only for the configured buildType.
-        else -> listOf("") + buildTypes.map { it.name }
+        else -> listOf("") +
+                (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) buildTypes.map { it.name } else listOf())
       }
 
     // TODO(solodkyy): When explicitly requested return other advanced scopes (compileOnly, api).
-    fun applicableScopes() = listOf("implementation")
+    fun applicableScopes() = listOfNotNull(
+      "implementation",
+      "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
+      "compileOnly".takeIf { onlyImportantFor == null },
+      "annotationProcessor".takeIf { onlyImportantFor == null })
 
     val result = mutableListOf<String>()
     applicableArtifacts().forEach { artifact ->
