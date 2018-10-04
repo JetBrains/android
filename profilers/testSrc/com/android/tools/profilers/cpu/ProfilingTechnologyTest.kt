@@ -63,4 +63,24 @@ class ProfilingTechnologyTest {
                                                          CpuProfilerMode.SAMPLED)
     assertThat(ProfilingTechnology.fromConfig(unexpectedConfiguration)).isEqualTo("any config. it should fail before.")
   }
+
+  @Test
+  fun getType() {
+    assertThat(ProfilingTechnology.SIMPLEPERF.type).isEqualTo(CpuProfilerType.SIMPLEPERF)
+    assertThat(ProfilingTechnology.ATRACE.type).isEqualTo(CpuProfilerType.ATRACE)
+
+    assertThat(ProfilingTechnology.ART_INSTRUMENTED.type).isEqualTo(CpuProfilerType.ART)
+    assertThat(ProfilingTechnology.ART_SAMPLED.type).isEqualTo(CpuProfilerType.ART)
+    assertThat(ProfilingTechnology.ART_UNSPECIFIED.type).isEqualTo(CpuProfilerType.ART)
+  }
+
+  @Test
+  fun getMode() {
+    assertThat(ProfilingTechnology.SIMPLEPERF.mode).isEqualTo(CpuProfilerMode.SAMPLED)
+    assertThat(ProfilingTechnology.ATRACE.mode).isEqualTo(CpuProfilerMode.INSTRUMENTED)
+
+    assertThat(ProfilingTechnology.ART_INSTRUMENTED.mode).isEqualTo(CpuProfilerMode.INSTRUMENTED)
+    assertThat(ProfilingTechnology.ART_SAMPLED.mode).isEqualTo(CpuProfilerMode.SAMPLED)
+    assertThat(ProfilingTechnology.ART_UNSPECIFIED.mode).isEqualTo(CpuProfilerMode.UNSPECIFIED_MODE)
+  }
 }
