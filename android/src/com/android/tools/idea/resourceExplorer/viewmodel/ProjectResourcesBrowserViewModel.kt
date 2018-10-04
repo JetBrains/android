@@ -77,10 +77,10 @@ class ProjectResourcesBrowserViewModel(
   /**
    * Returns a preview of the [DesignAsset].
    */
-  fun getDrawablePreview(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
-    val resolveValue = designAssetSet.resolveValue() ?: return Futures.immediateFuture(null)
+  fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): ListenableFuture<out Image?> {
+    val resolveValue = designAsset.resolveValue() ?: return Futures.immediateFuture(null)
     val file = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
-               ?: designAssetSet.getHighestDensityAsset().file
+               ?: designAsset.file
     return DesignAssetRendererManager.getInstance().getViewer(file)
       .getImage(file, facet.module, dimension)
   }
@@ -116,8 +116,8 @@ class ProjectResourcesBrowserViewModel(
     )
   }
 
-  private fun DesignAssetSet.resolveValue(): ResourceValue? {
-    val resourceItem = this.getHighestDensityAsset().resourceItem
+  private fun DesignAsset.resolveValue(): ResourceValue? {
+    val resourceItem = this.resourceItem
     val resolvedValue = resourceResolver.resolveResValue(resourceItem.resourceValue)
     if (resolvedValue == null) {
       LOG.warn("${resourceItem.name} couldn't be resolved")

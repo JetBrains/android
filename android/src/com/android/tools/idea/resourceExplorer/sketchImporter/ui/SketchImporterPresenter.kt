@@ -165,8 +165,8 @@ abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
   protected abstract val colorsToColorAssets: Map<Pair<Color, String>, ColorAssetModel>
   private val rendererManager = DesignAssetRendererManager.getInstance()
 
-  fun fetchImage(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
-    val file = designAssetSet.designAssets.first().file
+  fun fetchImage(dimension: Dimension, designAsset: DesignAsset): ListenableFuture<out Image?> {
+    val file = designAsset.file
     return rendererManager.getViewer(file).getImage(file, facet.module, dimension)
   }
 
