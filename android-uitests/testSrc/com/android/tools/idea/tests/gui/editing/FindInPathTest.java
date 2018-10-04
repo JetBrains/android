@@ -25,21 +25,11 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)  // b/116536009
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class FindInPathTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Test
-  public void testResultsOnlyInGeneratedCode() throws Exception {
-    ImmutableList<String> usageGroupNames = guiTest.importSimpleLocalApplication()
-      .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
-      .setTextToFind("ActionBarDivider")
-      .clickFind()
-      .getUsageGroupNames();
-    assertThat(usageGroupNames).containsExactly("Usages in generated code");
-  }
 
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
@@ -48,6 +38,6 @@ public class FindInPathTest {
       .setTextToFind("DarkActionBar")
       .clickFind()
       .getUsageGroupNames();
-    assertThat(usageGroupNames).containsExactly("Usages in generated code", "Code usages");
+    assertThat(usageGroupNames).containsExactly("Code usages");
   }
 }
