@@ -51,7 +51,6 @@ public class GradleTasksTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/117246373
   @Test
   public void testNotFinishedImmediatelyAndOutputIsShown() throws IOException {
     // This test checks two things:
