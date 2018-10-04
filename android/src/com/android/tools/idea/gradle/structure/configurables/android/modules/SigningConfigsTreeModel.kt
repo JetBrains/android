@@ -16,16 +16,20 @@
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.Disposer
 
-class SigningConfigsConfigurable(val module: PsAndroidModule) : NamedContainerConfigurableBase<PsSigningConfig>("Signing Configs") {
+class SigningConfigsConfigurable(
+  val module: PsAndroidModule,
+  val context: PsContext
+) : NamedContainerConfigurableBase<PsSigningConfig>("Signing Configs") {
   override fun getChildrenModels(): Collection<PsSigningConfig> = module.signingConfigs
   override fun createChildConfigurable(model: PsSigningConfig): NamedConfigurable<PsSigningConfig> =
-    SigningConfigConfigurable(model).also { Disposer.register(this, it) }
+    SigningConfigConfigurable(model, context).also { Disposer.register(this, it) }
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.signingConfigs.onChange(disposable, listener)
   override fun dispose() = Unit
 }

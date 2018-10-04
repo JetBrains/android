@@ -209,7 +209,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     renderedComboBox.reloadValue(property.getValue())
   }
 
-  internal fun reloadIfNotChanged() {
+  override fun reloadIfNotChanged() {
     renderedComboBox.loadKnownValues()
     if (!renderedComboBox.isEditorChanged()) {  // Do not override a not applied invalid value.
       renderedComboBox.reloadValue(property.getValue())

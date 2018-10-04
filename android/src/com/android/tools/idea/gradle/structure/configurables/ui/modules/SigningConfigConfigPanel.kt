@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.modules
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.modules.signingConfigPropertiesModel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 
-class SigningConfigConfigPanel(signingConfig: PsSigningConfig) :
+class SigningConfigConfigPanel(signingConfig: PsSigningConfig, context: PsContext) :
   ConfigPanel<PsSigningConfig>(
+    context,
     signingConfig.parent,
     signingConfig,
     signingConfigPropertiesModel()

@@ -13,12 +13,14 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.productFlavorPropertiesModel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 
-class ProductFlavorConfigPanel(productFlavor: PsProductFlavor) :
+class ProductFlavorConfigPanel(productFlavor: PsProductFlavor, context: PsContext) :
   ConfigPanel<PsProductFlavor>(
+    context,
     productFlavor.parent,
     productFlavor,
     productFlavorPropertiesModel(productFlavor.parent.isLibrary)

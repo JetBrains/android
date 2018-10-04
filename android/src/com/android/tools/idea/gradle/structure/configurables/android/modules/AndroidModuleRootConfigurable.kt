@@ -29,7 +29,7 @@ class AndroidModuleRootConfigurable(
   context: PsContext, module: PsAndroidModule
 ) : AbstractModuleConfigurable<PsAndroidModule, ModulePanel>(context, module), Disposable {
 
-  private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module).also { Disposer.register(this, it) })
+  private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module, context).also { Disposer.register(this, it) })
 
   override fun getId() = "android.psd.modules." + displayName
   override fun createPanel() =
