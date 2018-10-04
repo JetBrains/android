@@ -129,6 +129,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCpuApiTracingEnabled = false;
 
   /**
+   * Whether the new pipeline is used or the old one for devices / processes / sessions.
+   */
+  private boolean myEventsPipelineEnabled = false;
+
+  /**
    * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
    */
   private boolean myCpuNewRecordingWorkflowEnabled = false;
@@ -297,6 +302,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
       }
+
+      @Override
+      public boolean isEventsPipelineEnabled() {
+        return myEventsPipelineEnabled;
+      }
     };
   }
 
@@ -440,6 +450,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableImportTrace(boolean enabled) {
     myImportCpuTraceEnabled = enabled;
+  }
+
+  public void enableEventsPipeline(boolean enabled) {
+    myEventsPipelineEnabled = enabled;
   }
 
   public void enableCpuNewRecordingWorkflow(boolean enabled) {
