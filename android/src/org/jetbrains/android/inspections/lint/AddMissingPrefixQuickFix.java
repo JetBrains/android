@@ -1,6 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -9,10 +10,9 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.XmlNamespaceHelper;
+import java.util.Collections;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 
 /**
  * @author Eugene.Kudelevsky
@@ -54,7 +54,10 @@ public class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
       extension.insertNamespaceDeclaration(xmlFile, null, Collections.singleton(SdkConstants.NS_RESOURCES), defaultPrefix, null);
       androidNsPrefix = defaultPrefix;
     }
-    attribute.setName(androidNsPrefix + ':' + attribute.getLocalName());
+    String finalAndroidNsPrefix = androidNsPrefix;
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      attribute.setName(finalAndroidNsPrefix + ':' + attribute.getLocalName());
+    });
   }
 
   @Override
