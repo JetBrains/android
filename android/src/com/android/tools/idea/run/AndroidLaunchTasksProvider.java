@@ -137,7 +137,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @NotNull
   @VisibleForTesting
   List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
-    if (StudioFlags.JVMTI_REFRESH.get()) {
+
+    if (StudioFlags.JVMTI_REFRESH.get() && device.getVersion().getApiLevel() >= UnifiedDeployTask.MIN_API_VERSION) {
       UnifiedDeployTask.DeployType type = UnifiedDeployTask.DeployType.INSTALL;
       if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES))) {
         type = UnifiedDeployTask.DeployType.FULL_SWAP;
