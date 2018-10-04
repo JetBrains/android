@@ -40,60 +40,56 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   override fun getTableQueryMethodsForVerification(): List<Consumer<UnifiedEventsTable>> {
     val events = mutableListOf(Profiler.Event.newBuilder().build())
     return mutableListOf(
-      (Consumer { it.insertUnifiedEvents(1, events) }),
+      (Consumer { it.insertUnifiedEvent(1, events[0]) }),
       (Consumer {
         it.queryUnifiedEventGroups(
           Profiler.GetEventGroupsRequest.newBuilder().setKind(Profiler.Event.Kind.SESSION).setSessionId(1).setToTimestamp(10).build())
       }),
-      (Consumer { it.queryUnifiedEvents(Profiler.GetEventsRequest.getDefaultInstance()) }))
+      (Consumer { it.queryUnifiedEvents() }))
   }
 
   private fun insertData(count: Int, incrementSession: Boolean, incrementEventId: Boolean): List<Profiler.Event> {
     val events = mutableListOf<Profiler.Event>()
     for (i in 0 until count) {
-      events.add(eventBuilder(Profiler.Event.Kind.SESSION,
-                              Profiler.Event.Type.SESSION_STARTED,
-                              if (!incrementSession) 1L else i + 1L,
-                              if (!incrementEventId) 1L else i + 1L,
-                              i + 1L))
+      val event = eventBuilder(Profiler.Event.Kind.SESSION,
+                               Profiler.Event.Type.SESSION_STARTED,
+                               if (!incrementSession) 1L else i + 1L,
+                               if (!incrementEventId) 1L else i + 1L,
+                               i + 1L)
+      events.add(event)
+      table.insertUnifiedEvent(1, event)
     }
-    table.insertUnifiedEvents(1, events)
     return events
   }
 
   @Test
   fun insertDuplicatedData() {
     // This validates that sql should not throw an exception
-    val events = mutableListOf(Profiler.Event.newBuilder().apply {
+    val event = Profiler.Event.newBuilder().apply {
       kind = Profiler.Event.Kind.SESSION
       type = Profiler.Event.Type.SESSION_STARTED
       sessionId = 1
       eventId = 1
       sessionStarted = Profiler.SessionStarted.newBuilder().setPid(1).build()
-    }.build())
-    table.insertUnifiedEvents(1, events)
+    }.build()
+    table.insertUnifiedEvent(1, event)
 
-    val updatedEvents = mutableListOf(events[0].toBuilder().apply {
+    val updatedEvent = event.toBuilder().apply {
       sessionStarted = Profiler.SessionStarted.newBuilder().setPid(2).build()
-    }.build())
-    table.insertUnifiedEvents(1, updatedEvents)
+    }.build()
+
+    table.insertUnifiedEvent(1, updatedEvent)
     // Validate that no data got updated.
-    var eventResult = table.queryUnifiedEvents(Profiler.GetEventsRequest.newBuilder().setFromTimestamp(0)
-                                                 .setToTimestamp(3).build())
-    assertThat(eventResult).containsExactlyElementsIn(events)
+    val eventResult = table.queryUnifiedEvents()
+    assertThat(eventResult).containsExactlyElementsIn(listOf(event))
   }
 
   @Test
   fun queryEvents() {
     val events = insertData(2, true, true)
     // Validate we have data inserted
-    var eventResult = table.queryUnifiedEvents(Profiler.GetEventsRequest.newBuilder().setFromTimestamp(0)
-                                                 .setToTimestamp(3).build())
+    val eventResult = table.queryUnifiedEvents()
     assertThat(eventResult).containsExactlyElementsIn(events)
-    // Validate request filters on timestamp.
-    eventResult = table.queryUnifiedEvents(Profiler.GetEventsRequest.newBuilder().setFromTimestamp(0)
-                                             .setToTimestamp(1).build())
-    assertThat(eventResult).containsExactly(events[0])
   }
 
   @Test
@@ -159,7 +155,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     val results = mutableListOf<List<Profiler.Event>>()
     for (eventGroup in events) {
       // Insert elements from our fixed list into the database.
-      table.insertUnifiedEvents(1, eventGroup)
+      eventGroup.forEach { table.insertUnifiedEvent(1, it) }
       val expected = mutableListOf<Profiler.Event>()
 
       // Filter our expected results to what we expect from the database.

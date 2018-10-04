@@ -78,53 +78,39 @@ pid: 1234
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsRequest">
-        <Message>to_timestamp: 9223372036854775807
-</Message>
+        <Message></Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
-        <message>to_timestamp: 9223372036854775807
-</message>
+        <message></message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsResponse">
-        <Message>events {
-  session_id: 1
-  kind: PROCESS
-  timestamp: 100
-}
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$Event">
+        <Message>session_id: 1
+kind: PROCESS
+timestamp: 100
 </Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsResponse</clazz>
+        <clazz>class com.android.tools.profiler.proto.Profiler$Event</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
-        <message>events {
-  session_id: 1
-  kind: PROCESS
-  timestamp: 100
-}
+        <message>session_id: 1
+kind: PROCESS
+timestamp: 100
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsRequest">
-        <Message>from_timestamp: 100
-to_timestamp: 9223372036854775807
-</Message>
+        <Message></Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
-        <message>from_timestamp: 100
-to_timestamp: 9223372036854775807
-</message>
+        <message></message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsResponse">
-        <Message>events {
-  session_id: 1
-  kind: PROCESS
-  timestamp: 100
-}
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$Event">
+        <Message>session_id: 1
+kind: PROCESS
+timestamp: 100
 </Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsResponse</clazz>
+        <clazz>class com.android.tools.profiler.proto.Profiler$Event</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
-        <message>events {
-  session_id: 1
-  kind: PROCESS
-  timestamp: 100
-}
+        <message>session_id: 1
+kind: PROCESS
+timestamp: 100
 </message>
     </GrpcCall>
 </GrpcList>

@@ -16,40 +16,43 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 
-public class UnifiedEventsDataPoller extends PollRunner {
+public class UnifiedEventsDataPoller implements Runnable {
 
-  private long myLastPollTimestamp;
-  @NotNull private final long myStreamId;
+  private final long myStreamId;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myEventPollingService;
+  private boolean myIsRunning;
 
   public UnifiedEventsDataPoller(long streamId,
-                         @NotNull UnifiedEventsTable unifiedEventsTable,
-                         @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub pollingService) {
-    super(POLLING_DELAY_NS);
+                                 @NotNull UnifiedEventsTable unifiedEventsTable,
+                                 @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub pollingService) {
     myEventPollingService = pollingService;
     myStreamId = streamId;
     myTable = unifiedEventsTable;
+    // Default to true, if stop is called before the thread is run we will stop the thread immediately.
+    myIsRunning = true;
+  }
+
+  public void stop() {
+    myIsRunning = false;
   }
 
   @Override
-  public void poll() throws StatusRuntimeException {
-    Profiler.GetEventsRequest request = Profiler.GetEventsRequest.newBuilder()
-                                                                 .setFromTimestamp(myLastPollTimestamp)
-                                                                 .setToTimestamp(Long.MAX_VALUE).build();
-    Profiler.GetEventsResponse response = myEventPollingService.getEvents(request);
-    if (response.getEventsCount() > 0) {
-      myTable.insertUnifiedEvents(myStreamId, response.getEventsList());
-      // If we got back any events, update our last polled event time to be the timestamp of the last event.
-      // This assumes the timestamps we get back are in chronological order. If not that is okay as,
-      // any duplicated data retrieved will update existing results.
-      myLastPollTimestamp = response.getEventsList().get(response.getEventsCount() - 1).getTimestamp();
+  public void run() throws StatusRuntimeException {
+    // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
+    Iterator<Profiler.Event> events = myEventPollingService.getEvents(Profiler.GetEventsRequest.getDefaultInstance());
+    while (myIsRunning && events.hasNext()) {
+      Profiler.Event event = events.next();
+      if (event != null) {
+        myTable.insertUnifiedEvent(myStreamId, event);
+      }
     }
+    myIsRunning = false;
   }
 }
