@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors
 
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.intellij.openapi.Disposable
@@ -21,11 +22,12 @@ import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.Disposer
 
 class ProductFlavorsConfigurable(
-  val module: PsAndroidModule
+  val module: PsAndroidModule,
+  val context: PsContext
 ) : NamedContainerConfigurableBase<PsFlavorDimension>("Flavor Dimensions") {
   override fun getChildrenModels(): Collection<PsFlavorDimension> = module.flavorDimensions
   override fun createChildConfigurable(model: PsFlavorDimension): NamedConfigurable<PsFlavorDimension> =
-    FlavorDimensionConfigurable(module, model).also { Disposer.register(this, it) }
+    FlavorDimensionConfigurable(module, model, context).also { Disposer.register(this, it) }
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.flavorDimensions.onChange(disposable, listener)
   override fun dispose() = Unit
 }

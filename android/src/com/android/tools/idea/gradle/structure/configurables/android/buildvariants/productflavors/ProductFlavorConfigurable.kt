@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors
 
 import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurable
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorConfigPanel
@@ -27,16 +28,20 @@ import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class ProductFlavorConfigurable(private val productFlavor: PsProductFlavor)
+class ProductFlavorConfigurable(
+  private val productFlavor: PsProductFlavor,
+  val context: PsContext
+)
   : ChildModelConfigurable<PsProductFlavor, ProductFlavorConfigPanel>(
   productFlavor) {
   override fun getBannerSlogan() = "Product Flavor '${productFlavor.name}'"
-  override fun createPanel(): ProductFlavorConfigPanel = ProductFlavorConfigPanel(productFlavor)
+  override fun createPanel(): ProductFlavorConfigPanel = ProductFlavorConfigPanel(productFlavor, context)
 }
 
 class FlavorDimensionConfigurable(
     private val module: PsAndroidModule,
-    val flavorDimension: PsFlavorDimension
+    val flavorDimension: PsFlavorDimension,
+    val context: PsContext
 ) : NamedConfigurable<PsFlavorDimension>(), ContainerConfigurable<PsProductFlavor> {
   override fun getEditableObject(): PsFlavorDimension = flavorDimension
   override fun getBannerSlogan(): String = "Dimension '$flavorDimension'"
@@ -47,7 +52,7 @@ class FlavorDimensionConfigurable(
   override fun getChildrenModels(): Collection<PsProductFlavor> =
     module.productFlavors.filter { it.dimension.maybeValue == flavorDimension.name }
   override fun createChildConfigurable(model: PsProductFlavor): NamedConfigurable<PsProductFlavor> =
-    ProductFlavorConfigurable(model).also { Disposer.register(this, it) }
+    ProductFlavorConfigurable(model, context).also { Disposer.register(this, it) }
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.productFlavors.onChange(disposable, listener)
   override fun dispose() = Unit
 

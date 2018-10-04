@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.modules
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.modules.defaultConfigPropertiesModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ModelPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
@@ -24,8 +25,9 @@ import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 
-class ModuleDefaultConfigConfigPanel(defaultConfig: PsAndroidModuleDefaultConfig) :
+class ModuleDefaultConfigConfigPanel(defaultConfig: PsAndroidModuleDefaultConfig, context: PsContext) :
   ConfigPanel<PsAndroidModuleDefaultConfig>(
+    context,
     defaultConfig.module,
     defaultConfig,
     defaultConfigPropertiesModel(defaultConfig.module.isLibrary)

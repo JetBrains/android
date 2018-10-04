@@ -13,12 +13,14 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.buildTypePropertiesModel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 
-class BuildTypeConfigPanel(buildType: PsBuildType) :
+class BuildTypeConfigPanel(buildType: PsBuildType, context: PsContext) :
   ConfigPanel<PsBuildType>(
+    context,
     buildType.parent,
     buildType,
     buildTypePropertiesModel(buildType.parent.isLibrary)

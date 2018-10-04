@@ -30,8 +30,8 @@ class AndroidModuleBuildVariantsConfigurable(
     module: PsAndroidModule
 ) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, module), Disposable {
 
-  private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module).also { Disposer.register(this, it) })
-  private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module).also { Disposer.register(this, it) })
+  private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module, context).also { Disposer.register(this, it) })
+  private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module, context).also { Disposer.register(this, it) })
 
   override fun getId() = "android.psd.build_variants." + displayName
   override fun createPanel() =

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningConfigConfigPanel
@@ -22,12 +23,12 @@ import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEd
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 
-class SigningConfigConfigurable(private val signingConfig: PsSigningConfig)
+class SigningConfigConfigurable(private val signingConfig: PsSigningConfig, val context: PsContext)
   : ChildModelConfigurable<PsSigningConfig, SigningConfigConfigPanel>(
   signingConfig) {
   override fun getBannerSlogan() = "Signing Config '${signingConfig.name}'"
 
-  override fun createPanel(): SigningConfigConfigPanel = SigningConfigConfigPanel(signingConfig)
+  override fun createPanel(): SigningConfigConfigPanel = SigningConfigConfigPanel(signingConfig, context)
 }
 
 fun signingConfigPropertiesModel() =

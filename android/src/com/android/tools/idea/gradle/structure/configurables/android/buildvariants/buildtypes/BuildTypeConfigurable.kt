@@ -13,15 +13,19 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypeConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 
-class BuildTypeConfigurable(private val buildType: PsBuildType) : ChildModelConfigurable<PsBuildType, BuildTypeConfigPanel>(buildType) {
+class BuildTypeConfigurable(
+  private val buildType: PsBuildType,
+  val context: PsContext
+) : ChildModelConfigurable<PsBuildType, BuildTypeConfigPanel>(buildType) {
   override fun getBannerSlogan() = "Build Type '${buildType.name}'"
 
-  override fun createPanel(): BuildTypeConfigPanel = BuildTypeConfigPanel(buildType)
+  override fun createPanel(): BuildTypeConfigPanel = BuildTypeConfigPanel(buildType, context)
 }
 
 fun buildTypePropertiesModel(isLibrary: Boolean) =

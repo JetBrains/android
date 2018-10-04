@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 
@@ -29,6 +32,7 @@ import javax.swing.JComponent
  * [propertiesModel] the UI model of the properties being edited
  */
 open class ConfigPanel<in ModelT>(
+  val context: PsContext,
   private val module: PsModule,
   private val model: ModelT,
   private val propertiesModel: PropertiesUiModel<ModelT>
@@ -53,6 +57,20 @@ open class ConfigPanel<in ModelT>(
       addPropertyComponents(editor.labelComponent, editor.component, editor.statusComponent)
       editors.add(editor)
     }
+
+    fun refresh() {
+      // Editors refresh themselves on activation.
+      if (uiComponent.isDisplayable) {
+        editors.forEach { it.reloadIfNotChanged() }
+      }
+    }
+
+    context.add(object : GradleSyncListener {
+      override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) = refresh()
+      override fun syncSucceeded(project: Project) = refresh()
+      override fun syncFailed(project: Project, errorMessage: String) = refresh()
+      override fun syncSkipped(project: Project) = refresh()
+    }, this)
   }
 
   override fun dispose() {

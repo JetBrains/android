@@ -59,6 +59,11 @@ interface ModelPropertyEditor<out ValueT : Any> : Disposable {
    */
   fun reload()
 
+  /**
+   * Reloads the editor from the bound property and keeps the value if it has been modified by the user.
+   */
+  fun reloadIfNotChanged() = reload()
+
   val property: ModelPropertyCore<out ValueT>
 }
 
