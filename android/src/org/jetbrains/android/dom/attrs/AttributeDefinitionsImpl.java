@@ -25,7 +25,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.xml.util.XmlUtil;
-import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,7 +170,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   private static void parseDocComment(XmlTag tag, AttributeDefinition def, @Nullable String styleable) {
-    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
+    PsiElement comment = XmlUtil.findPreviousComment(tag);
     if (comment != null) {
       String docValue = XmlUtil.getCommentText((XmlComment)comment);
       if (docValue != null && !StringUtil.isEmpty(docValue)) {
@@ -182,7 +181,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Nullable
   private static String getCommentBeforeEatComment(XmlTag tag) {
-    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
+    PsiElement comment = XmlUtil.findPreviousComment(tag);
     for (int i = 0; i < 5; ++i) {
       if (comment == null) {
         break;
@@ -196,7 +195,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       if (!StringUtil.isEmpty(value) && value.charAt(0) != '*' && value.charAt(0) != '=') {
         return value;
       }
-      comment = XmlDocumentationProvider.findPreviousComment(comment.getPrevSibling());
+      comment = XmlUtil.findPreviousComment(comment.getPrevSibling());
     }
     return null;
   }
@@ -227,7 +226,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       }
 
       def.addValue(valueName);
-      PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
+      PsiElement comment = XmlUtil.findPreviousComment(value);
       if (comment != null) {
         String docValue = XmlUtil.getCommentText((XmlComment)comment);
         if (!StringUtil.isEmpty(docValue)) {
