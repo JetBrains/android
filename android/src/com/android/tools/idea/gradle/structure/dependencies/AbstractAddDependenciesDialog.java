@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
@@ -54,9 +53,7 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   }
 
   @NotNull
-  private static AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module) {
-    return new DependencyScopePanel(module);
-  }
+  protected abstract AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module);
 
   @Override
   @Nullable

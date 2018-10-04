@@ -85,6 +85,9 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
     }
     else scopesPanel.validateInput()
   }
+
+  override fun createDependencyScopesPanel(module: PsModule): AbstractDependencyScopesPanel =
+    DependencyScopePanel(module, PsModule.ImportantFor.LIBRARY)
 }
 
 private fun getErrorMessage(error: Exception): String =
