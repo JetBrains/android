@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.logcat;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import javax.swing.ListModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-
-import static org.junit.Assert.assertEquals;
 
 public final class AndroidLogcatViewTest {
   @Rule
@@ -51,8 +50,14 @@ public final class AndroidLogcatViewTest {
 
     ListModel<AndroidLogcatFilter> model = myLogcatView.getEditFiltersComboBoxModel();
 
-    assertEquals(2, model.getSize());
-    assertEquals(AndroidLogcatView.NO_FILTERS_ITEM, model.getElementAt(0));
-    assertEquals(AndroidLogcatView.EDIT_FILTER_CONFIGURATION_ITEM, model.getElementAt(1));
+    assertEquals(3, model.getSize());
+
+    int index = 0;
+
+    assertEquals(AndroidLogcatView.FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER, model.getElementAt(index++));
+    assertEquals(AndroidLogcatView.NO_FILTERS_ITEM, model.getElementAt(index++));
+
+    // noinspection UnusedAssignment
+    assertEquals(AndroidLogcatView.EDIT_FILTER_CONFIGURATION_ITEM, model.getElementAt(index++));
   }
 }
