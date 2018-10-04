@@ -195,7 +195,10 @@ public class NlComponentFixture {
     Point bottomCenterPoint = getBottomCenterPoint();
     myDragAndDrop.drag(mySurface, bottomCenterPoint);
     SceneView sceneView = mySurface.getCurrentSceneView();
-    myDragAndDrop.drop(mySurface, new Point(bottomCenterPoint.x, mySurface.getCurrentSceneView().getY() + sceneView.getSize().height));
+    // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
+    // and not a component that would be sitting right on the edge
+    myDragAndDrop
+      .drop(mySurface, new Point(bottomCenterPoint.x, mySurface.getCurrentSceneView().getY() * 3 / 2 + sceneView.getSize().height));
     waitForWrite(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent");
     return this;
   }
@@ -204,7 +207,9 @@ public class NlComponentFixture {
   public NlComponentFixture createConstraintFromTopToTopOfLayout() {
     Point topCenterPoint = getTopCenterPoint();
     myDragAndDrop.drag(mySurface, topCenterPoint);
-    myDragAndDrop.drop(mySurface, new Point(topCenterPoint.x, mySurface.getCurrentSceneView().getY()));
+    // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
+    // and not a component that would be sitting right on the edge
+    myDragAndDrop.drop(mySurface, new Point(topCenterPoint.x, mySurface.getCurrentSceneView().getY() / 2));
     waitForWrite(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
     return this;
   }
@@ -213,7 +218,9 @@ public class NlComponentFixture {
   public NlComponentFixture createConstraintFromLeftToLeftOfLayout() {
     Point leftCenterPoint = getLeftCenterPoint();
     myDragAndDrop.drag(mySurface, leftCenterPoint);
-    myDragAndDrop.drop(mySurface, new Point(mySurface.getCurrentSceneView().getX(), leftCenterPoint.y));
+    // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
+    // and not a component that would be sitting right on the edge
+    myDragAndDrop.drop(mySurface, new Point(mySurface.getCurrentSceneView().getX() / 2, leftCenterPoint.y));
     waitForWrite(SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent");
     return this;
   }
@@ -223,7 +230,9 @@ public class NlComponentFixture {
     Point rightCenterPoint = getRightCenterPoint();
     myDragAndDrop.drag(mySurface, rightCenterPoint);
     SceneView sceneView = mySurface.getCurrentSceneView();
-    myDragAndDrop.drop(mySurface, new Point(sceneView.getX() + sceneView.getSize().width, rightCenterPoint.y));
+    // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
+    // and not a component that would be sitting right on the edge
+    myDragAndDrop.drop(mySurface, new Point(sceneView.getX() * 3/2 + sceneView.getSize().width, rightCenterPoint.y));
     waitForWrite(SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent");
     return this;
   }
