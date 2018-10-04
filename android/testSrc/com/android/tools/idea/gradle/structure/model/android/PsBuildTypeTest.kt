@@ -95,7 +95,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
 
       assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))

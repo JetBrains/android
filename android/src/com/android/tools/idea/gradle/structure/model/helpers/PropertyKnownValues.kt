@@ -55,7 +55,7 @@ fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageL
 ))
 
 fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
-  ValueDescriptor(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.${it.name}")))
+  ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.${it.name}")))
 })
 
 fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>> =
