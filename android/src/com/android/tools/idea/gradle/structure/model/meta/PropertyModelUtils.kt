@@ -65,12 +65,9 @@ fun ResolvedPropertyModel.asFile(): File? = when (valueType) {
 fun ResolvedPropertyModel.asLanguageLevel(): LanguageLevel? =
   getValue(GradlePropertyModel.STRING_TYPE)?.let { LanguageLevelUtil.parseFromGradleString(it) }
 
-/**
- * Returns [Unit] if the property is not null and returns [null] otherwise.
- */
 fun ResolvedPropertyModel.asUnit(): Unit? = when (valueType) {
   ValueType.NONE -> null
-  else -> Unit
+  else -> null
 }
 
 fun ResolvedPropertyModel.setLanguageLevel(value: LanguageLevel) =
