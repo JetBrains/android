@@ -66,6 +66,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.SmartList;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
@@ -360,24 +361,28 @@ public class PostSyncProjectSetup {
       // Fix existing JUnit Configurations.
       for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
         // Set the correct "Make step" in existing JUnit Configurations.
-        setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
+        setMakeStepInJUnitConfiguration(targetProvider, (AndroidJUnitConfiguration)runConfiguration);
       }
     }
   }
 
-  private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
+  private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull AndroidJUnitConfiguration runConfiguration) {
     // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
-    List<BeforeRunTask<?>> newBeforeRunTasks = new LinkedList<>(runConfiguration.getBeforeRunTasks());
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
-    for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
+    List<BeforeRunTask<?>> newBeforeRunTasks = new SmartList<>();
+    RunManagerImpl runManager = null;
+    for (BeforeRunTask beforeRunTask : runConfiguration.getBeforeRunTasks()) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
-          if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
-            BeforeRunTask task = targetProvider.createTask(runConfiguration);
-            if (task != null) {
-              task.setEnabled(true);
-              newBeforeRunTasks.add(task);
-            }
+        if (runManager == null) {
+          runManager = RunManagerImpl.getInstanceImpl(myProject);
+        }
+
+        if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
+          BeforeRunTask task = targetProvider.createTask(runConfiguration);
+          if (task != null) {
+            task.setEnabled(true);
+            newBeforeRunTasks.add(task);
           }
+        }
       }
       else {
         newBeforeRunTasks.add(beforeRunTask);
