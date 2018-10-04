@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
@@ -75,9 +76,11 @@ public class NewGradleSync implements GradleSync {
   }
 
   public static boolean isSingleVariantSync(@NotNull Project project) {
-    return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
-           (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
-            !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC));
+    // https://b.corp.google.com/issues/117246373
+    return !GuiTestingService.getInstance().isGuiTestingMode() && (
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
+      (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
+       !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
   }
 
   public static boolean isCompoundSync(@NotNull Project project) {
