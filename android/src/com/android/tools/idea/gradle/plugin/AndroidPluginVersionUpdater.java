@@ -94,7 +94,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    }, true);
+    }, false);
     return foundPlugin[0];
   }
 
@@ -218,7 +218,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    }, true /* process composite builds */);
+    }, false /* process composite builds */);
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
