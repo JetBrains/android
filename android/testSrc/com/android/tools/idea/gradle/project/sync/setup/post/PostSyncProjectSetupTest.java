@@ -104,15 +104,16 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator);
-    ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
+    ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance();
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
     myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
 
     List<RunConfiguration> junitRunConfigurations = myRunManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
-      assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
-      assertEquals(MakeBeforeRunTaskProvider.ID, myRunManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
+      List<BeforeRunTask<?>> beforeRunTasks = runConfiguration.getBeforeRunTasks();
+      assertSize(1, beforeRunTasks);
+      assertEquals(MakeBeforeRunTaskProvider.ID, beforeRunTasks.get(0).getProviderId());
     }
 
     RunConfiguration runConfiguration = junitRunConfigurations.get(0);
