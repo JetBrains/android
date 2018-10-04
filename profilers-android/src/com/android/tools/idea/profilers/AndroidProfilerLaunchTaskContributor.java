@@ -352,21 +352,24 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           if (window != null) {
             window.setShowStripeButton(true);
 
-            // Caching the device+process info in case auto-profiling should kick in at a later time.
             String deviceName = AndroidProfilerToolWindow.getDeviceDisplayName(device);
             String processName = AndroidProfilerToolWindow.getModuleName(myModule);
             AndroidProfilerToolWindow.PreferredProcessInfo preferredProcessInfo =
               new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, processName,
                                                                  p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
-            project.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
-
             // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
             // then we shouldn't start profiling the launched app.
+            boolean profileStarted = false;
             if (window.isVisible()) {
               AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
               if (profilerToolWindow != null) {
                 profilerToolWindow.profile(preferredProcessInfo);
+                profileStarted = true;
               }
+            }
+            // Caching the device+process info in case auto-profiling should kick in at a later time.
+            if (!profileStarted) {
+              project.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
             }
           }
         });
