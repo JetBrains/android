@@ -29,7 +29,6 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
@@ -141,7 +140,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
   }
 
   private static void disableTipOfTheDay() {
-    TipOfTheDayManager tips = Extensions.findExtension(StartupActivity.POST_STARTUP_ACTIVITY, TipOfTheDayManager.class);
+    TipOfTheDayManager tips = StartupActivity.POST_STARTUP_ACTIVITY.getExtension(TipOfTheDayManager.class);
     try {
       // This is obviously a horrible hack
       Field flag = TipOfTheDayManager.class.getDeclaredField("myVeryFirstProjectOpening");
