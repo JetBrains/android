@@ -22,6 +22,8 @@ public enum ProfilerAspect {
   PROCESSES,
   // The overall set of devices and/or processes seen by the datastore has changed.
   DEVICES,
+  // The profile's preferred process has changed.
+  PREFERRED_PROCESS,
   // The profiler desired mode has changed
   MODE,
   // The agent attach state has changed

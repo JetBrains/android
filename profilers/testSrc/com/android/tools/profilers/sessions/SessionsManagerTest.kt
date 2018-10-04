@@ -239,6 +239,7 @@ class SessionsManagerTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    myProfilers.autoProfilingEnabled = true
 
     // Create a finished session and a ongoing profiling session.
     myManager.beginSession(device, process1)

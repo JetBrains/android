@@ -47,6 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE;
+import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
 import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME;
 import static com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME;
 import static com.google.common.truth.Truth.assertThat;
@@ -515,6 +517,64 @@ public class StudioProfilersViewTest {
     assertThat(resetButton.isEnabled()).isFalse();
     assertThat(frameSelectionButton.isEnabled()).isFalse();
     assertThat(liveButton.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testLoadingPanelWhileWaitingForPreferredProcess() {
+    final String FAKE_PROCESS_2 = "FakeProcess2";
+    assertThat(myView.getStageViewComponent().isVisible()).isTrue();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+
+    // Sets a preferred process is set, the UI should wait and show the loading panel.
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_2, null);
+    assertThat(myProfilers.getAutoProfilingEnabled()).isTrue();
+    assertThat(myView.getStageViewComponent().isVisible()).isFalse();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
+
+    Common.Process process = Common.Process.newBuilder()
+                                           .setPid(2)
+                                           .setDeviceId(FAKE_DEVICE_ID)
+                                           .setState(Common.Process.State.ALIVE)
+                                           .setName(FAKE_PROCESS_2)
+                                           .build();
+    myService.addProcess(FAKE_DEVICE, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Preferred process is found, session begins and the loading stops.
+    assertThat(myView.getStageViewComponent().isVisible()).isTrue();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+  }
+
+  @Test
+  public void testLoadingPanelWhileWaitingForAgentAttach() {
+    final String FAKE_PROCESS_2 = "FakeProcess2";
+    assertThat(myView.getStageViewComponent().isVisible()).isTrue();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+
+    myService.setAgentStatus(
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).setIsAgentAttachable(true).build());
+    Common.Process process = Common.Process.newBuilder()
+                                           .setPid(2)
+                                           .setDeviceId(FAKE_DEVICE_ID)
+                                           .setState(Common.Process.State.ALIVE)
+                                           .setName(FAKE_PROCESS_2)
+                                           .build();
+    myService.addProcess(FAKE_DEVICE, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.setProcess(process);
+
+    // Agent is detached, the UI should wait and show the loading panel.
+    assertThat(myView.getStageViewComponent().isVisible()).isFalse();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
+
+    myService.setAgentStatus(
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).setIsAgentAttachable(true).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Attach status is detected, loading should stop.
+    assertThat(myView.getStageViewComponent().isVisible()).isTrue();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
   }
 
   public void transitionStage(Stage stage) throws Exception {
