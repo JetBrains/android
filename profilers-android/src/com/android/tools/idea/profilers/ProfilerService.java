@@ -76,18 +76,20 @@ public class ProfilerService implements Disposable {
   private final ProfilerClient myClient;
   @NotNull
   private final DataStoreService myDataStoreService;
+  @NotNull
+  private final NativeSymbolizer myNativeSymbolizer;
 
   private ProfilerService(@NotNull Project project) {
     String datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator;
 
-    NativeSymbolizer symbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
-    Disposer.register(this, () -> symbolizer.stop());
+    myNativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
+    Disposer.register(this, () -> myNativeSymbolizer.stop());
 
     String datastoreName = DATASTORE_NAME_PREFIX + project.getLocationHash();
     myDataStoreService = new DataStoreService(datastoreName, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
                                               new IntellijLogService());
     Disposer.register(this, () -> myDataStoreService.shutdown());
-    myDataStoreService.setNativeSymbolizer(symbolizer);
+    myDataStoreService.setNativeSymbolizer(myNativeSymbolizer);
 
     myManager = new StudioProfilerDeviceManager(myDataStoreService);
     Disposer.register(this, myManager);
@@ -117,5 +119,10 @@ public class ProfilerService implements Disposable {
   @NotNull
   public DataStoreService getDataStoreService() {
     return myDataStoreService;
+  }
+
+  @NotNull
+  public NativeSymbolizer getNativeSymbolizer() {
+    return myNativeSymbolizer;
   }
 }

@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.NdkVariant
 import com.android.utils.FileUtils
 import com.google.common.collect.Sets
 import com.intellij.openapi.module.Module
@@ -101,17 +102,19 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   val apkFacet = ApkFacet.getInstance(module)
   if (apkFacet != null) {
     val dirs = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
-      .map({ File(FileUtils.toSystemDependentPath(it)) })
+      .map { File(FileUtils.toSystemDependentPath(it)) }
     symDirs.addAll(dirs)
   }
 
-  // 2. libs built in studio by NDK and gradel
+  // 2. libs built in studio by NDK and gradle
   val ndkModuleModel = NdkModuleModel.get(module)
   if (ndkModuleModel != null) {
-    val dirs = ndkModuleModel.selectedVariant.artifacts
-      .filter { it.abi == abiName }
-      .map { it.outputFile.parentFile }
-    symDirs.addAll(dirs)
+    for (variant in ndkModuleModel.variants.filter { it.isDebugVariant() == ndkModuleModel.selectedVariant.isDebugVariant() }) {
+      val dirs = variant.artifacts
+        .filter { it.abi == abiName }
+        .map { it.outputFile.parentFile }
+      symDirs.addAll(dirs)
+    }
   }
 
   // 3. JNI libs as resources
@@ -130,4 +133,6 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   return symDirs
 }
 
-
+fun NdkVariant.isDebugVariant(): Boolean {
+  return this.name.contains("debug")
+}

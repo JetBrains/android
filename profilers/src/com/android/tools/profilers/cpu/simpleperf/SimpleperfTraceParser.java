@@ -468,6 +468,7 @@ public class SimpleperfTraceParser implements TraceParser {
     // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel. User's code symbols come from
     // files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
     boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
-    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten);
+    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten, symbolFile.getPath(),
+                                        callChainEntry.getVaddrInFile());
   }
 }
