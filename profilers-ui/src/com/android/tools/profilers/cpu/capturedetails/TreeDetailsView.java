@@ -206,6 +206,8 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
         .setMethodName(nativeFunction.getName())
         .setMethodParameters(nativeFunction.getParameters())
         .setNativeCode(true)
+        .setFileName(nativeFunction.getFileName())
+        .setNativeVAddress(nativeFunction.getVAddress())
         .build();
     }
     else if (model instanceof JavaMethodModel) {

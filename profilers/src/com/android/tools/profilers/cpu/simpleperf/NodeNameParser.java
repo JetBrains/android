@@ -20,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Responsible for parsing full method/function names (String) obtained from symbol tables collected when profiling using simpleperf.
@@ -40,15 +41,17 @@ public class NodeNameParser {
    * "ioctl" is parsed into a {@link SyscallModel}
    *
    * @param fullName      name to be parsed into a {@link CaptureNodeModel}.
-   * @param isUserWritten whether the symbol is part of the user-written code
+   * @param isUserWritten whether the symbol is part of the user-written code.
+   * @param fileName      name of the ELF file containing the instruction corresponding to the function. Null if it doesn't apply.
+   * @param vAddress      virtual address of the instruction in {@code fileName}.
    */
-  static CaptureNodeModel parseNodeName(String fullName, boolean isUserWritten) {
-    // C/C++ methods are represented as Namespace::Class::MethodName() in simpleperf. Check for the presence of "(".
+  static CaptureNodeModel parseNodeName(@NotNull String fullName, boolean isUserWritten, @Nullable String fileName, long vAddress) {
+    // C/C++ methods are represented as "Namespace::Class::MethodName()" in simpleperf. Check for the presence of "(".
     if (fullName.contains("(")) {
-      return createCppFunctionModel(fullName, isUserWritten);
+      return createCppFunctionModel(fullName, isUserWritten, fileName, vAddress);
     }
     else if (fullName.contains(".")) {
-      // Method is in the format java.package.Class.method. Parse it into a JavaMethodModel.
+      // Method is in the format "java.package.Class.method". Parse it into a JavaMethodModel.
       return createJavaMethodModel(fullName);
     }
     else {
@@ -57,13 +60,17 @@ public class NodeNameParser {
     }
   }
 
+  static CaptureNodeModel parseNodeName(@NotNull String fullName, boolean isUserWritten) {
+    return parseNodeName(fullName, isUserWritten, null, -1);
+  }
+
   /**
    * C++ function names are usually in the format namespace::Class::Fun(params). Sometimes, they also include
    * return type and template information, e.g. void namespace::Class::Fun<int>(params). We need to handle all the cases and parse
    * the function name into a {@link CppFunctionModel}.
    */
   @NotNull
-  public static CppFunctionModel createCppFunctionModel(String functionFullName, boolean isUserWritten) {
+  public static CppFunctionModel createCppFunctionModel(String functionFullName, boolean isUserWritten, String fileName, long vAddress) {
     // First, extract the function parameters, which should be between the matching '(' and  the last index of ')' parentheses.
     String parameters = "";
     int paramsEndIndex = functionFullName.lastIndexOf(')');
@@ -100,7 +107,14 @@ public class NodeNameParser {
       .setClassOrNamespace(removeTemplateInfo(classOrNamespace))
       .setIsUserCode(isUserWritten)
       .setParameters(removeTemplateInfo(parameters))
+      .setFileName(fileName)
+      .setVAddress(vAddress)
       .build();
+  }
+
+  @NotNull
+  public static CppFunctionModel createCppFunctionModel(String functionFullName, boolean isUserWritten) {
+    return createCppFunctionModel(functionFullName, isUserWritten, null, -1);
   }
 
   /**

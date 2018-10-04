@@ -135,6 +135,8 @@ abstract class ChartDetailsView extends CaptureDetailsView {
         .setMethodName(nativeFunction.getName())
         .setMethodParameters(nativeFunction.getParameters())
         .setNativeCode(true)
+        .setFileName(nativeFunction.getFileName())
+        .setNativeVAddress(nativeFunction.getVAddress())
         .build();
     }
     else if (model instanceof JavaMethodModel) {
@@ -156,7 +158,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     @NotNull private final HTreeChart<CaptureNode> myChart;
 
     /**
-     * The call chart details that needs to be rendered.
+     * The {@link CaptureDetails.CallChart} details that needs to be rendered.
      */
     @NotNull private final CaptureDetails.CallChart myCallChart;
 
@@ -234,7 +236,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     @NotNull private final HTreeChart<CaptureNode> myChart;
 
     /**
-     * The flame chart details that needs to be rendered.
+     * The {@link CaptureDetails.FlameChart} details that needs to be rendered.
      */
     @NotNull private final CaptureDetails.FlameChart myFlameChart;
 
@@ -245,10 +247,10 @@ abstract class ChartDetailsView extends CaptureDetailsView {
 
     FlameChartDetailsView(CpuProfilerStageView stageView, @NotNull CaptureDetails.FlameChart flameChart) {
       super(stageView, flameChart);
-      // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
-      // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
-      // Users can zoom-in and then view only part of the flame chart. Since a part of flame chart may not correspond to a continuous
-      // sub-range on timeline, the timeline selection should not be updated while users are interacting with flame chart UI. Therefore,
+      // FlameChart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
+      // navigate to other part within the capture by interacting with the FlameChart UI (they can do so only from timeline UI).
+      // Users can zoom-in and then view only part of the FlameChart. Since a part of FlameChart may not correspond to a continuous
+      // sub-range on timeline, the timeline selection should not be updated while users are interacting with FlameChart UI. Therefore,
       // we create new Range object (myMasterRange) to represent the range visible to the user. We cannot just pass flameChart.getRange().
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
