@@ -16,15 +16,14 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.google.common.util.concurrent.Futures
 import com.intellij.mock.MockVirtualFile
-import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
-import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -39,9 +38,7 @@ import kotlin.test.assertNotNull
 
 class DrawableResourceCellRendererTest {
 
-  @Rule
-  @JvmField
-  val rule = DisposableRule()
+  private val imageCache = ImageCache()
 
   @Test
   fun getListCellRendererComponent() {
@@ -57,7 +54,7 @@ class DrawableResourceCellRendererTest {
       }
     }
     val latch = CountDownLatch(1)
-    val renderer = DrawableResourceCellRenderer(rule.disposable, { _, _ -> Futures.immediateFuture(image) }) {
+    val renderer = DrawableResourceCellRenderer({ _, _ -> Futures.immediateFuture(image) }, imageCache) {
       jList.paintImmediately(jList.bounds)
       latch.countDown()
     }
@@ -84,7 +81,7 @@ class DrawableResourceCellRendererTest {
       }
     }
     val latch = CountDownLatch(1)
-    val renderer = DrawableResourceCellRenderer(rule.disposable, { _, _ -> Futures.immediateFuture(image) }) {
+    val renderer = DrawableResourceCellRenderer({ _, _ -> Futures.immediateFuture(image) }, imageCache) {
       jList.paintImmediately(jList.bounds)
       latch.countDown()
     }
@@ -104,7 +101,7 @@ class DrawableResourceCellRendererTest {
       fixedCellWidth = 100
     }
     val latch = CountDownLatch(1)
-    val renderer = DrawableResourceCellRenderer(rule.disposable, { _, _ -> Futures.immediateFuture(null) }) {
+    val renderer = DrawableResourceCellRenderer({ _, _ -> Futures.immediateFuture(null) }, imageCache) {
       jList.paintImmediately(jList.bounds)
       latch.countDown()
     }

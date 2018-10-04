@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.view.DesignAssetCellRenderer
 import com.android.tools.idea.resourceExplorer.view.DrawableResourceCellRenderer
@@ -71,6 +72,7 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
   lateinit var presenter: SketchImporterPresenter
   private val pageViews = mutableListOf<PageView>()
   private lateinit var documentView: DocumentView
+  private val renderHelper = ImageCache()
 
   private val resourcesPanel = JPanel(VerticalFlowLayout())
 
@@ -99,7 +101,7 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
    * Add a new [PageView] to the [SketchImporterView], associating it to the [pagePresenter].
    */
   fun createPageView(pagePresenter: PagePresenter) {
-    val pageView = PageView(DrawableResourceCellRenderer(this, pagePresenter::fetchImage) { resourcesPanel.repaint() },
+    val pageView = PageView(DrawableResourceCellRenderer(pagePresenter::fetchImage, renderHelper) { resourcesPanel.repaint() },
                             ColorAssetCellRenderer())
     pagePresenter.view = pageView
     pageViews.add(pageView)
@@ -107,7 +109,7 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
   }
 
   fun createDocumentView(documentPresenter: DocumentPresenter) {
-    documentView = DocumentView(DrawableResourceCellRenderer(this, documentPresenter::fetchImage) { resourcesPanel.repaint() },
+    documentView = DocumentView(DrawableResourceCellRenderer(documentPresenter::fetchImage, renderHelper) { resourcesPanel.repaint() },
                                 ColorAssetCellRenderer())
     documentPresenter.view = documentView
     resourcesPanel.add(documentView)

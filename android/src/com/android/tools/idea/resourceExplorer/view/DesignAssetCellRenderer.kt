@@ -20,21 +20,19 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.adtui.ImageUtils.lowQualityFastScale
 import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.res.resolveMultipleColors
+import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.editor.RESOURCE_DEBUG
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.transform
-import com.google.common.cache.CacheBuilder
+import com.android.tools.idea.resourceExplorer.toCompletableFuture
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.Update
-import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -42,6 +40,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Image
 import java.awt.image.BufferedImage
+import java.util.function.BiConsumer
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -51,7 +50,8 @@ import javax.swing.ListCellRenderer
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
-private val EMPTY_ICON = createIcon(if (RESOURCE_DEBUG) Color.GREEN else Color(0, 0, 0, 0))
+private val EMPTY_ICON = createIcon(if (RESOURCE_DEBUG) JBColor.GREEN else Color(0, 0, 0, 0))
+private val ERROR_ICON = if (RESOURCE_DEBUG) createIcon(JBColor.RED) else EMPTY_ICON
 
 private const val VERSION = "version"
 
@@ -158,21 +158,13 @@ class ColorResourceCellRenderer(
  * called once it's finished.
  */
 class DrawableResourceCellRenderer(
-  parentDisposable: Disposable,
-  private val imageProvider: (size: Dimension, designAssetSet: DesignAssetSet) -> ListenableFuture<out Image?>,
+  private val imageProvider: (size: Dimension, designAsset: DesignAsset) -> ListenableFuture<out Image?>,
+  private val imageCache: ImageCache,
   private val refreshListCallback: (index: Int) -> Unit
 ) : DesignAssetCellRenderer() {
 
   private val imageIcon = ImageIcon(EMPTY_ICON)
   private val contentRatio = 0.2
-  private val assetToImage = CacheBuilder.newBuilder()
-    .softValues()
-    .maximumSize(200)
-    .build<DesignAssetSet, Image>()
-
-  private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null,
-                                               parentDisposable, null, false)
-
   private val drawablePreview = JLabel(imageIcon).apply {
     border = JBUI.Borders.empty(18)
   }
@@ -184,22 +176,18 @@ class DrawableResourceCellRenderer(
     isSelected: Boolean,
     index: Int
   ): JComponent? {
-    var image = assetToImage.getIfPresent(designAssetSet)
+    val designAsset = designAssetSet.getHighestDensityAsset()
     val targetSize = (height * (1 - contentRatio * 2)).toInt()
     if (targetSize > 0) {
-      if (image == null) {
-        image = queueImageFetch(designAssetSet, index, targetSize)
-      }
-      else {
-        // If an image is cached but does not fit into the content (i.e the list cell size was changed)
-        // we do a fast rescaling in place and request a higher quality scaled image in the background
-        val imageHeight = image.getHeight(null)
-        val scale = getScale(targetSize, imageHeight)
-        if (image != EMPTY_ICON && shouldScale(scale)) {
-          val bufferedImage = ImageUtil.toBufferedImage(image)
-          image = lowQualityFastScale(bufferedImage, scale, scale)
-          queueImageFetch(designAssetSet, index, targetSize)
-        }
+      var image = fetchImage(designAsset, index, targetSize)
+      // If an image is cached but does not fit into the content (i.e the list cell size was changed)
+      // we do a fast rescaling in place and request a higher quality scaled image in the background
+      val imageHeight = image.getHeight(null)
+      val scale = getScale(targetSize, imageHeight)
+      if (image != EMPTY_ICON && image != ERROR_ICON && shouldScale(scale)) {
+        val bufferedImage = ImageUtil.toBufferedImage(image)
+        image = lowQualityFastScale(bufferedImage, scale, scale)
+        fetchImage(designAsset, index, targetSize, true)
       }
       imageIcon.image = image
     }
@@ -220,66 +208,27 @@ class DrawableResourceCellRenderer(
    */
   private fun getScale(target: Int, source: Int) = Math.round(target * 100 / source.toDouble()) / 100.0
 
-  /**
-   * Add a call to [fetchImage] into [updateQueue]
-   */
-  private fun queueImageFetch(
-    designAssetSet: DesignAssetSet,
-    index: Int,
-    targetSize: Int
-  ): Image {
-    updateQueue.queue(createUpdate(index) {
-      fetchImage(targetSize, designAssetSet, index)
-    })
-    return EMPTY_ICON
-  }
 
   /**
-   * Create a new [Update] object overriding [Update.canEat] such that the queue will only keep the last instance of
-   * all the [Update] having the same [identity].
-   */
-  private fun createUpdate(identity: Any, runnable: () -> Unit) = object : Update(identity) {
-    override fun canEat(update: Update?) = this == update
-    override fun run() = runnable()
-  }
-
-  /**
-   * Request a new image to the [imageProvider] that should fit inside [targetSize].
+   * Returns a rendering of [designAsset] if its already cached otherwise asynchronously render
+   * the [designAsset] at the given [targetSize] and returns [EMPTY_ICON]
    *
-   * Once the image is fetched, we check if it needs to be rescaled in a background Future
-   * then we cache the final result or [EMPTY_ICON] if the future was cancelled and refresh the list.
+   * @param index The index of the designAsset in the list used to refresh the correct cell
+   * @param forceImageRender if true, render the [designAsset] even if it's already cached.
+   * @return a placeholder image.
    */
-  private fun fetchImage(
-    targetSize: Int,
-    designAssetSet: DesignAssetSet,
-    index: Int
-  ) {
-    val previewFuture = imageProvider(JBUI.size(targetSize), designAssetSet)
-      .transform(PooledThreadExecutor.INSTANCE) { image ->
-        if (image == null) return@transform EMPTY_ICON
-        scaleToFitIfNeeded(image, targetSize)
-      }
+  private fun fetchImage(designAsset: DesignAsset,
+                         index: Int,
+                         targetSize: Int,
+                         forceImageRender: Boolean = false): Image {
 
-    previewFuture.addListener(Runnable { useImage(previewFuture, designAssetSet, index) }, EdtExecutor.INSTANCE)
-  }
-
-  /**
-   * Cache the image for the designAssetSet and refresh the list
-   */
-  private fun useImage(
-    previewFuture: ListenableFuture<Image>,
-    designAssetSet: DesignAssetSet,
-    index: Int
-  ) {
-    val finalImage = try {
-      if (previewFuture.isCancelled) EMPTY_ICON else previewFuture.get()
+    return imageCache.computeAndGet(designAsset, EMPTY_ICON, forceImageRender) {
+      imageProvider(JBUI.size(targetSize), designAsset).toCompletableFuture()
+        .thenApply { image -> image ?: ERROR_ICON }
+        .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
+        .exceptionally { throwable -> LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON }
+        .whenCompleteAsync(BiConsumer { _, _ -> refreshListCallback(index) }, EdtExecutor.INSTANCE)
     }
-    catch (e: Exception) {
-      LOG.error("${designAssetSet.name} couldn't be rendered", e)
-      EMPTY_ICON
-    }
-    assetToImage.put(designAssetSet, finalImage)
-    refreshListCallback(index)
   }
 
   /**

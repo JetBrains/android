@@ -25,7 +25,6 @@ import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
@@ -73,8 +72,7 @@ class ProjectResourcesBrowserViewModelTest {
   fun getDrawablePreview() {
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module)
-    val drawableFuture = viewModel.getDrawablePreview(Dimension(32, 32),
-                                                      DesignAssetSet("name", listOf(DesignAsset(pngDrawable))))
+    val drawableFuture = viewModel.getDrawablePreview(Dimension(32, 32), DesignAsset(pngDrawable))
     val image = drawableFuture.get(1, TimeUnit.SECONDS) as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
   }
