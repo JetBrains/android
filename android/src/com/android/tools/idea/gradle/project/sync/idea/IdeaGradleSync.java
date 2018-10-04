@@ -55,7 +55,6 @@ import java.util.Set;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.extensions.Extensions.findExtension;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
@@ -124,8 +123,7 @@ public class IdeaGradleSync implements GradleSync {
       GradleSettings gradleSettings = GradleSettings.getInstance(myProject);
       Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
       if (projectsSettings.isEmpty()) {
-        GradleProjectOpenProcessor projectOpenProcessor = findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME,
-                                                                        GradleProjectOpenProcessor.class);
+        GradleProjectOpenProcessor projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.getExtension(GradleProjectOpenProcessor.class);
         if (myProject.getBasePath() != null && projectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
           GradleProjectSettings projectSettings = new GradleProjectSettings();
           String externalProjectPath = toCanonicalPath(myProject.getBasePath());

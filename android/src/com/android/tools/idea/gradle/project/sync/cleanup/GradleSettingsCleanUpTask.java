@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -64,7 +63,7 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
       }
       if (rootProjectCandidate == null) {
         GradleJavaProjectOpenProcessor gradleProjectOpenProcessor =
-          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleJavaProjectOpenProcessor.class);
+          ProjectOpenProcessor.EXTENSION_POINT_NAME.getExtension(GradleJavaProjectOpenProcessor.class);
 
         VirtualFile projectRootFolder = project.getBaseDir();
         projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
