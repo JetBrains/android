@@ -49,10 +49,12 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public LoadingPanel createLoadingPanel(int delayMs) {
     return new LoadingPanel() {
+      private JPanel myPanel = new JPanel(new BorderLayout());
+
       @NotNull
       @Override
       public JComponent getComponent() {
-        return new JPanel(new BorderLayout());
+        return myPanel;
       }
 
       @Override
