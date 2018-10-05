@@ -186,6 +186,20 @@ effects.**
 
 ![CPU - Export Trace][cpu-trace-export]
 
+### Trace Selection
+
+1. In the "Android Profiler", perform a CPU recording
+1. Stop recording by clicking the Stop button in the bottom of profiler window (not the button next to profiling config dropdown menu)
+1. Ensure the recording is selected.
+1. Press 'Esc' the selection should clear.
+1. click the clock icon in the lower-left corner of a capture. The capture will be selected.
+1. Press 'Esc' twice
+1. click the clock icon in the lower-left corner of a capture. The capture will be selected.
+1. Press 'Esc' once
+1. **Validate the selection is cleared.**
+
+![CPU - Trace Selection][cpu-trace-selection]
+
 ---
 
 ![CPU - Import Trace][session-import]
@@ -281,6 +295,16 @@ effects.**
    exported.**
 
 ![Memory - Export Heap Dump][memory-heap-export]
+
+### Heap Selection
+
+1. In the “Android Profiler”, after you’ve performed at least one heap dump.
+1. Go to any other profiler (e.g. network)
+1. Use the sessions panel to navigate to the heap dump you've created (just click on it)
+1. Press 'Esc'
+1. **Validate the selection is cleared.**
+
+![Memory - Heap Selection][memory-heap-selection]
 
 ---
 
@@ -478,6 +502,7 @@ of whichever profiler you have selected.
 [cpu-automatic]: res/perf-tools/cpu-automatic.png
 [cpu-trace-export]: res/perf-tools/cpu-trace-export.png
 [cpu-trace-import]: res/perf-tools/cpu-trace-import.png
+[cpu-trace-selection]: res/perf-tools/cpu-trace-selection.png
 [memory-alloc-java]: res/perf-tools/memory-alloc-java.png
 [memory-alloc-native]: res/perf-tools/memory-alloc-native.png
 [memory-alloc-object]: res/perf-tools/memory-alloc-object.png
@@ -486,6 +511,7 @@ of whichever profiler you have selected.
 [memory-jni-app]: res/perf-tools/memory-jni-app.png
 [memory-jni-studio]: res/perf-tools/memory-jni-studio.png
 [memory-heap-export]: res/perf-tools/memory-heap-export.png
+[memory-heap-selection]: res/perf-tools/memory-alloc-java.png
 [network-httpurl]: res/perf-tools/network-httpurl.png
 [network-okhttp]: res/perf-tools/network-okhttp.png
 [energy-basic-cpu]: res/perf-tools/energy-basic-cpu.png
