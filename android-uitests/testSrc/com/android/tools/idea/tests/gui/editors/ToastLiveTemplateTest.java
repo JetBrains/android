@@ -56,7 +56,7 @@ public class ToastLiveTemplateTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   public void insertToastViaKeyboardShortcut() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);

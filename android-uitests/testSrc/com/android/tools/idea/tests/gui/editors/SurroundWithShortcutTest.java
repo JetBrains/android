@@ -81,7 +81,7 @@ public class SurroundWithShortcutTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   public void surroundWithShortcut() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 

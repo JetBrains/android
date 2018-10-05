@@ -57,7 +57,7 @@ public class CreateSettingsActivityTest {
    *      and tablet-sized screens is added to the project
    * </pre>
    */
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void activityTemplate() {
     NPW_DYNAMIC_APPS.override(true);

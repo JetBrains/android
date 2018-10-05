@@ -31,7 +31,7 @@ public enum TestGroup {
   SANITY_BAZEL,
   SANITY_NO_UI,
   FAST_BAZEL,
-  FAT,
+  FAT_BAZEL,
   UNRELIABLE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
   DEFAULT,
