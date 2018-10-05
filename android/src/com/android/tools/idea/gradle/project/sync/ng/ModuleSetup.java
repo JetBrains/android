@@ -17,7 +17,12 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
@@ -34,6 +39,8 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
@@ -85,6 +92,7 @@ public abstract class ModuleSetup<T> {
                                                  @NotNull IdeModifiableModelsProvider modelsProvider) {
       return new CachedProjectModelsSetup(project,
                                           modelsProvider,
+                                          ExtraGradleSyncModelsManager.getInstance(),
                                           new GradleModuleSetup(),
                                           new AndroidModuleSetup(),
                                           new NdkModuleSetup(),
@@ -109,5 +117,44 @@ public abstract class ModuleSetup<T> {
 
   protected static void notifyModuleConfigurationStarted(@NotNull ProgressIndicator indicator) {
     notifyProgress(indicator, "Configuring modules");
+  }
+
+  // Setup all modules in this order: GradleModuleModules, NdkModuleModel, AndroidModuleModel, JavaModuleModel.
+  // The later setup steps may require information that are setup previously. For example, Java modules get language level from AndroidModuleModel.
+  protected void setupModuleModels(@NotNull SetupContextByModuleModel setupContextByModuleModel,
+                                   @NotNull GradleModuleSetup gradleModuleSetup,
+                                   @NotNull NdkModuleSetup ndkModuleSetup,
+                                   @NotNull AndroidModuleSetup androidModuleSetup,
+                                   @NotNull JavaModuleSetup javaModuleSetup,
+                                   @NotNull ExtraGradleSyncModelsManager extraModelsManager,
+                                   boolean syncSkipped) {
+    // Setup GradleModuleModels.
+    for (Map.Entry<GradleModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.gradleSetupContexts.entrySet()) {
+      gradleModuleSetup.setUpModule(entry.getValue().getModule(), entry.getValue().getIdeModelsProvider(), entry.getKey());
+    }
+    // Setup NdkModuleModels.
+    for (Map.Entry<NdkModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.ndkSetupContexts.entrySet()) {
+      ndkModuleSetup.setUpModule(entry.getValue(), entry.getKey(), syncSkipped);
+    }
+    // Setup AndroidModuleModels.
+    for (Map.Entry<AndroidModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.androidSetupContexts.entrySet()) {
+      androidModuleSetup.setUpModule(entry.getValue(), entry.getKey(), syncSkipped);
+    }
+    // Setup JavaModuleModels.
+    for (Map.Entry<JavaModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.javaSetupContexts.entrySet()) {
+      ModuleSetupContext setupContext = entry.getValue();
+      javaModuleSetup.setUpModule(setupContext, entry.getKey(), syncSkipped);
+      GradleModuleModels gradleModels = setupContext.getGradleModels();
+      if (gradleModels != null) {
+        extraModelsManager.applyModelsToModule(gradleModels, setupContext.getModule(), myModelsProvider);
+      }
+    }
+  }
+
+  protected static class SetupContextByModuleModel {
+    final Map<AndroidModuleModel, ModuleSetupContext> androidSetupContexts = new HashMap<>();
+    final Map<NdkModuleModel, ModuleSetupContext> ndkSetupContexts = new HashMap<>();
+    final Map<JavaModuleModel, ModuleSetupContext> javaSetupContexts = new HashMap<>();
+    final Map<GradleModuleModel, ModuleSetupContext> gradleSetupContexts = new HashMap<>();
   }
 }
