@@ -156,9 +156,14 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
       moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
     }
 
+    SetupContextByModuleModel setupContextByModuleModel = new SetupContextByModuleModel();
+    // First, create all ModuleModels based on GradleModuleModels.
     for (ModuleSetupInfo moduleSetupInfo : moduleSetupInfos) {
-      setUpModule(moduleSetupInfo, moduleFinder);
+      createModuleModel(moduleSetupInfo, moduleFinder, setupContextByModuleModel);
     }
+    // Then, setup the ModuleModels based on the module types.
+    setupModuleModels(setupContextByModuleModel, myGradleModuleSetup, myNdkModuleSetup, myAndroidModuleSetup, myJavaModuleSetup,
+                      myExtraModelsManager, false /* not skipped */);
   }
 
   /**
@@ -182,7 +187,9 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     }
   }
 
-  private void setUpModule(@NotNull ModuleSetupInfo setupInfo, @NotNull ModuleFinder moduleFinder) {
+  private void createModuleModel(@NotNull ModuleSetupInfo setupInfo,
+                                 @NotNull ModuleFinder moduleFinder,
+                                 @NotNull SetupContextByModuleModel setupContextByModuleModel) {
     Module module = setupInfo.module;
     GradleModuleModels moduleModels = setupInfo.moduleModels;
     CachedModuleModels cachedModels = setupInfo.cachedModels;
@@ -197,6 +204,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
     if (androidProject != null) {
       AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(module, androidProject, moduleModels);
+      setupContextByModuleModel.androidSetupContexts.put(androidModel, context);
       if (androidModel != null) {
         // "Native" projects also both AndroidProject and AndroidNativeProject
         NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
@@ -208,14 +216,13 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
             ideNativeVariantAbi.addAll(nativeVariantAbi.stream().map(IdeNativeVariantAbi::new).collect(Collectors.toList()));
           }
           NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy, ideNativeVariantAbi);
-          myNdkModuleSetup.setUpModule(context, ndkModel, false /* sync not skipped */);
+          setupContextByModuleModel.ndkSetupContexts.put(ndkModel, context);
           cachedModels.addModel(ndkModel);
         }
         else {
           // Remove any NdkFacet created in previous sync operation.
           removeNdkFacetFrom(module);
         }
-        myAndroidModuleSetup.setUpModule(context, androidModel, false /* sync not skipped */);
         myAndroidModules.add(module);
         cachedModels.addModel(androidModel);
       }
@@ -227,7 +234,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
 
         Collection<SyncIssue> issues = androidProject.getSyncIssues();
         JavaModuleModel javaModel = myJavaModuleModelFactory.create(gradleProject, androidProject, issues);
-        myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
+        setupContextByModuleModel.javaSetupContexts.put(javaModel, context);
         cachedModels.addModel(javaModel);
       }
       return;
@@ -243,10 +250,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     if (gradleProject != null && javaProject != null) {
       JavaModuleModel javaModel = myJavaModuleModelFactory.create(moduleRootFolderPath, gradleProject,
                                                                   javaProject /* regular Java module */);
-      myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
+      setupContextByModuleModel.javaSetupContexts.put(javaModel, context);
       cachedModels.addModel(javaModel);
-
-      myExtraModelsManager.applyModelsToModule(moduleModels, module, myModelsProvider);
       myExtraModelsManager.addJavaModelsToCache(module, cachedModels);
       return;
     }
@@ -255,7 +260,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     ArtifactModel jarAarProject = moduleModels.findModel(ArtifactModel.class);
     if (gradleProject != null && jarAarProject != null) {
       JavaModuleModel javaModel = myJavaModuleModelFactory.create(moduleRootFolderPath, gradleProject, jarAarProject);
-      myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
+      setupContextByModuleModel.javaSetupContexts.put(javaModel, context);
       cachedModels.addModel(javaModel);
     }
   }
