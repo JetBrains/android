@@ -33,7 +33,7 @@ class SliceStreamTest {
           { slice ->
             assertThat(slice.name).isEqualTo("Test1")
             callBackTimes++
-            true
+            SliceStream.EnumerationResult.CONTINUE
           }
       )
     assertThat(callBackTimes).isEqualTo(1)
@@ -51,7 +51,7 @@ class SliceStreamTest {
             assertThat(slice.startTime).isWithin(DELTA).of(rangeList[rangeIndex].min)
             assertThat(slice.endTime).isWithin(DELTA).of(rangeList[rangeIndex].max)
             rangeIndex++
-            true
+            SliceStream.EnumerationResult.CONTINUE
           }
       )
     assertThat(rangeList).hasSize(rangeIndex)
@@ -64,10 +64,30 @@ class SliceStreamTest {
     SliceStream(sliceList).enumerate(
         { slice ->
           callBackTimes++
-          false
+          SliceStream.EnumerationResult.TERMINATE
         }
     )
     assertThat(callBackTimes).isEqualTo(1)
+  }
+
+  @Test
+  fun testEnumerationSkipsChildrenOnSkipChildren() {
+    val sliceList = mutableListOf<SliceGroup>()
+    for (i in 0..5) {
+      val list = mutableListOf<SliceGroupBuilder.MutableSliceGroup>()
+      for (j in 0..5) {
+        list.add(SliceGroupBuilder.MutableSliceGroup(j * 1.0, (j + 1.0), false, 0.0, "Test", mutableListOf()))
+      }
+      sliceList.add(SliceGroupBuilder.MutableSliceGroup(i * 1.0, (i + 1.0), false, 0.0, "Test", list))
+    }
+    var callBackTimes = 0;
+    SliceStream(sliceList).enumerate(
+      { slice ->
+        callBackTimes++
+        SliceStream.EnumerationResult.SKIP_CHILDREN
+      }
+    )
+    assertThat(callBackTimes).isEqualTo(sliceList.size)
   }
 
   @Test
