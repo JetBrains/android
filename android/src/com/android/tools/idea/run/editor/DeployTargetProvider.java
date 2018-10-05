@@ -15,32 +15,53 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.swing.JList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 public abstract class DeployTargetProvider<S extends DeployTargetState> {
-  private static ExtensionPointName<DeployTargetProvider> EP_NAME = ExtensionPointName.create("com.android.run.deployTargetProvider");
+  @VisibleForTesting
+  static final ExtensionPointName<DeployTargetProvider> EP_NAME = ExtensionPointName.create("com.android.run.deployTargetProvider");
+
   private static List<DeployTargetProvider> ourTargets;
 
   public static List<DeployTargetProvider> getProviders() {
     if (ourTargets == null) {
       ourTargets = Arrays.asList(EP_NAME.getExtensions());
     }
-    return ourTargets;
+
+    return filterOutDeviceAndSnapshotComboBoxProvider(ourTargets, StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static List<DeployTargetProvider> filterOutDeviceAndSnapshotComboBoxProvider(@NotNull List<DeployTargetProvider> providers,
+                                                                               boolean selectDeviceSnapshotComboBoxVisible) {
+    if (selectDeviceSnapshotComboBoxVisible) {
+      return providers;
+    }
+
+    Object deviceAndSnapshotComboBox = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name();
+
+    return providers.stream()
+                    .filter(provider -> !provider.getId().equals(deviceAndSnapshotComboBox))
+                    .collect(Collectors.toList());
   }
 
   @NotNull
