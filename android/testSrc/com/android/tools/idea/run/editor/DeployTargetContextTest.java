@@ -18,9 +18,11 @@ package com.android.tools.idea.run.editor;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -29,37 +31,48 @@ public final class DeployTargetContextTest {
   @Rule
   public final TestRule myRule = AndroidProjectRule.inMemory();
 
-  @Ignore("http://b/116011467")
+  private List<DeployTargetProvider> myProviders;
+
+  @Before
+  public void initProviders() {
+    myProviders = Arrays.asList(DeployTargetProvider.EP_NAME.getExtensions());
+  }
+
   @Test
   public void getCurrentDeployTargetProviderSelectDeviceSnapshotComboBoxIsVisible() {
-    DeployTargetContext context = new DeployTargetContext(() -> true);
-    assertEquals(getDeployTargetProvider(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX), context.getCurrentDeployTargetProvider());
+    DeployTargetContext context = new DeployTargetContext(() -> true, myProviders);
+
+    Object provider = context.getCurrentDeployTargetProvider();
+
+    assertEquals(DeployTargetProvider.EP_NAME.findExtension(DeviceAndSnapshotComboBoxTargetProvider.class), provider);
   }
 
   @Test
   public void getCurrentDeployTargetProviderTargetSelectionModeEqualsDeviceAndSnapshotComboBox() {
-    DeployTargetContext context = new DeployTargetContext(() -> false);
+    DeployTargetContext context = new DeployTargetContext(() -> false, myProviders);
     context.setTargetSelectionMode(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
 
-    assertEquals(getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG), context.getCurrentDeployTargetProvider());
+    Object provider = context.getCurrentDeployTargetProvider();
+
+    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
   }
 
   @Test
   public void getCurrentDeployTargetProviderProviderIsFound() {
-    DeployTargetContext context = new DeployTargetContext(() -> false);
-    assertEquals(getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG), context.getCurrentDeployTargetProvider());
+    DeployTargetContext context = new DeployTargetContext(() -> false, myProviders);
+
+    Object provider = context.getCurrentDeployTargetProvider();
+
+    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
   }
 
   @Test
   public void getCurrentDeployTargetProviderProviderIsNotFound() {
-    DeployTargetContext context = new DeployTargetContext(() -> false);
+    DeployTargetContext context = new DeployTargetContext(() -> false, myProviders);
     context.setTargetSelectionMode(TargetSelectionMode.FIREBASE_DEVICE_MATRIX);
 
-    assertEquals(getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG), context.getCurrentDeployTargetProvider());
-  }
+    Object provider = context.getCurrentDeployTargetProvider();
 
-  @NotNull
-  private static Object getDeployTargetProvider(@NotNull TargetSelectionMode mode) {
-    return DeployTargetContext.getDeployTargetProvider(DeployTargetProvider.getProviders(), mode.name()).orElseThrow(AssertionError::new);
+    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
   }
 }

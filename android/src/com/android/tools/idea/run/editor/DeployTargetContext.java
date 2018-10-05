@@ -42,13 +42,14 @@ public class DeployTargetContext implements JDOMExternalizable {
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public DeployTargetContext() {
-    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
+    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(), DeployTargetProvider.getProviders());
   }
 
   @VisibleForTesting
-  DeployTargetContext(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible) {
+  DeployTargetContext(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
+                      @NotNull List<DeployTargetProvider> deployTargetProviders) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
-    myDeployTargetProviders = DeployTargetProvider.getProviders();
+    myDeployTargetProviders = deployTargetProviders;
 
     ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
     for (DeployTargetProvider provider : myDeployTargetProviders) {
@@ -82,8 +83,8 @@ public class DeployTargetContext implements JDOMExternalizable {
   }
 
   @NotNull
-  @VisibleForTesting
-  static Optional<DeployTargetProvider> getDeployTargetProvider(@NotNull Collection<DeployTargetProvider> providers, @NotNull String id) {
+  private static Optional<DeployTargetProvider> getDeployTargetProvider(@NotNull Collection<DeployTargetProvider> providers,
+                                                                        @NotNull String id) {
     return providers.stream()
                     .filter(provider -> provider.getId().equals(id))
                     .findFirst();

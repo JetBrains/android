@@ -25,7 +25,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
+public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
   private DeviceAndSnapshotComboBoxTargetProvider() {
   }
 
