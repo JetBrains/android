@@ -140,7 +140,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
   }
 
   private static void disableTipOfTheDay() {
-    TipOfTheDayManager tips = StartupActivity.POST_STARTUP_ACTIVITY.getExtension(TipOfTheDayManager.class);
+    TipOfTheDayManager tips = StartupActivity.POST_STARTUP_ACTIVITY.findExtensionOrFail(TipOfTheDayManager.class);
     try {
       // This is obviously a horrible hack
       Field flag = TipOfTheDayManager.class.getDeclaredField("myVeryFirstProjectOpening");
