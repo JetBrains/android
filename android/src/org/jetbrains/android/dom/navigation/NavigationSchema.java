@@ -15,65 +15,35 @@
  */
 package org.jetbrains.android.dom.navigation;
 
-import static com.android.SdkConstants.TAG_DEEP_LINK;
-import static com.android.SdkConstants.TAG_INCLUDE;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.ACTIVITY;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
-
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassObjectAccessExpression;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiType;
-import com.intellij.psi.PsiTypeParameter;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import static com.android.SdkConstants.TAG_DEEP_LINK;
+import static com.android.SdkConstants.TAG_INCLUDE;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
 
 /**
  * NavigationSchema is structured around two mappings:
@@ -262,74 +232,6 @@ public class NavigationSchema implements Disposable {
     return result;
   }
 
-  private class NavigatorKeyInfo {
-    long myModificationCount;
-    @Nullable String myTagName;
-    @Nullable TypeRef myDestinationClassRef;
-
-    public NavigatorKeyInfo(PsiClass navigator, @Nullable String tag, @Nullable PsiClass destinationClass) {
-      Document document = PsiDocumentManager.getInstance(navigator.getProject()).getDocument(navigator.getContainingFile());
-      myModificationCount = document == null ? 0 : document.getModificationStamp();
-      myTagName = tag;
-      myDestinationClassRef = destinationClass == null ? NULL_TYPE : new TypeRef(destinationClass);
-    }
-
-    boolean matches(@NotNull TypeRef other, @NotNull NavigationSchema schema) {
-      PsiClass otherClass = other.dereference();
-      if (otherClass == null) {
-        return false;
-      }
-      Document otherDocument = PsiDocumentManager.getInstance(otherClass.getProject()).getDocument(otherClass.getContainingFile());
-      if ((otherDocument == null ? 0 : otherDocument.getModificationStamp()) == myModificationCount) {
-        return true;
-      }
-
-      String tag = getTagAnnotationValue(otherClass);
-      if (!Objects.equals(myTagName, tag)) {
-        return false;
-      }
-      PsiClass rootNavigator = schema.getClass(NAVIGATOR_CLASS_NAME);
-      if (rootNavigator == null) {
-        // shouldn't happen
-        return false;
-      }
-      PsiClass otherDestination = null;
-      // TODO: remove this once the corresponding annotations are in the library
-      PsiClass otherOrParent = otherClass;
-      while (otherDestination == null && otherOrParent != null && otherOrParent.isInheritor(rootNavigator, true)) {
-        if (ROOT_ACTIVITY_NAVIGATOR.equals(otherOrParent.getQualifiedName())) {
-          otherDestination = schema.getClass(SdkConstants.CLASS_ACTIVITY);
-        }
-        else if (ROOT_FRAGMENT_NAVIGATOR.equals(otherOrParent.getQualifiedName())) {
-          otherDestination = schema.getClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
-          if (otherDestination == null) {
-            otherDestination = schema.getClass(SdkConstants.CLASS_V4_FRAGMENT.newName());
-          }
-        }
-        else if (ROOT_NAV_GRAPH_NAVIGATOR.equals(otherOrParent.getQualifiedName())) {
-          otherDestination = schema.getClass(NAV_GRAPH_DESTINATION);
-        }
-        else {
-          // TODO: keep this
-          otherDestination = getDestinationClassAnnotationValue(otherOrParent, rootNavigator);
-        }
-        otherOrParent = otherOrParent.getSuperClass();
-      }
-      // end TODO
-      PsiClass destinationClass = myDestinationClassRef == null ? null : myDestinationClassRef.dereference();
-
-      String destinationName = (destinationClass == null) ? null : destinationClass.getQualifiedName();
-      String otherName = (otherDestination == null) ? null : otherDestination.getQualifiedName();
-
-      return Objects.equals(destinationName, otherName);
-    }
-  }
-
-  /**
-   * Map from Navigator class to class key information. Only used for cache invalidation.
-   */
-  private ImmutableMap<TypeRef, NavigatorKeyInfo> myNavigatorCacheKeys;
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Instance Data
@@ -395,7 +297,7 @@ public class NavigationSchema implements Disposable {
 
   @Override
   public void dispose() {
-    ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myModule, this));
+    ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myModule));
   }
 
   /**
@@ -450,16 +352,6 @@ public class NavigationSchema implements Disposable {
     // Build the type map, mostly based on hardcoded correspondences between type and destination class.
     myTypeToDestinationClass = buildDestinationTypeToDestinationMap();
     myTypeToRootTag = buildTypeToDefaultTag(navigatorToTag);
-    myNavigatorCacheKeys = buildCacheKeys(navigatorToTag, navigatorToDestinationClass);
-  }
-
-  private ImmutableMap<TypeRef, NavigatorKeyInfo> buildCacheKeys(Map<PsiClass, String> tagMap, Map<PsiClass, PsiClass> destinationTypeMap) {
-    ImmutableMap.Builder<TypeRef, NavigatorKeyInfo> result = new ImmutableMap.Builder<>();
-    for (PsiClass navigator : Sets.union(tagMap.keySet(), destinationTypeMap.keySet())) {
-      NavigatorKeyInfo key = new NavigatorKeyInfo(navigator, tagMap.get(navigator), destinationTypeMap.get(navigator));
-      result.put(new TypeRef(navigator), key);
-    }
-    return result.build();
   }
 
   /**
@@ -577,9 +469,10 @@ public class NavigationSchema implements Disposable {
   private static void collectDestinationsForNavigator(@NotNull PsiClass navigatorRoot,
                                                       @NotNull PsiClass navClass,
                                                       @NotNull Map<PsiClass, PsiClass> navigatorToDestinationClassCollector) {
+    PsiTypeParameter destinationTypeParam = navigatorRoot.getTypeParameters()[0];
     PsiClass resultDestination = navigatorToDestinationClassCollector.get(navClass);
     if (resultDestination == null) {
-      resultDestination = getDestinationClassAnnotationValue(navClass, navigatorRoot);
+      resultDestination = getDestinationClassAnnotationValue(navClass, navigatorRoot, destinationTypeParam);
     }
 
     // TODO: remove once the base classes are properly annotated
@@ -602,8 +495,8 @@ public class NavigationSchema implements Disposable {
    */
   @Nullable
   private static PsiClass getDestinationClassAnnotationValue(@NotNull PsiClass subNav,
-                                                             @NotNull PsiClass navigatorRoot) {
-    PsiTypeParameter destinationTypeParam = navigatorRoot.getTypeParameters()[0];
+                                                             @NotNull PsiClass navigatorRoot,
+                                                             PsiTypeParameter destinationTypeParam) {
     PsiType resolved =
       TypeConversionUtil.getSuperClassSubstitutor(navigatorRoot, PsiTypesUtil.getClassType(subNav)).substitute(destinationTypeParam);
     if (resolved == null) {
@@ -643,58 +536,6 @@ public class NavigationSchema implements Disposable {
     result.put(ACTIVITY, navigatorToTag.get(getClass(ROOT_ACTIVITY_NAVIGATOR)));
     result.put(NAVIGATION, navigatorToTag.get(getClass(ROOT_NAV_GRAPH_NAVIGATOR)));
     return result;
-  }
-
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region Cache Invalidation
-  /////////////////////////////////////////////////////////////////////////////
-
-  private CompletableFuture<NavigationSchema> myRebuildTask;
-  private final Object myTaskLock = new Object();
-
-  @Nullable
-  public CompletableFuture<NavigationSchema> getRebuildTask() {
-    return myRebuildTask;
-  }
-
-  public boolean quickValidate() {
-    synchronized (myTaskLock) {
-      if (myRebuildTask != null) {
-        return false;
-      }
-
-      WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
-      return myNavigatorCacheKeys.entrySet().stream().allMatch(entry -> entry.getValue().matches(entry.getKey(), this));
-    }
-  }
-
-  @NotNull
-  public CompletableFuture<NavigationSchema> rebuildSchema() {
-    synchronized (myTaskLock) {
-      if (myRebuildTask != null) {
-        return myRebuildTask;
-      }
-
-      myRebuildTask = new CompletableFuture<>();
-    }
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      NavigationSchema newVersion = new NavigationSchema(myModule);
-      try {
-        ReadAction.run(() -> newVersion.init());
-      }
-      catch (Throwable t) {
-        myRebuildTask.completeExceptionally(t);
-        synchronized (myTaskLock) {
-          myRebuildTask = null;
-        }
-      }
-      Disposer.register(myModule, newVersion);
-      ourSchemas.put(myModule, newVersion);
-      myRebuildTask.complete(newVersion);
-      Disposer.dispose(this);
-    });
-    return myRebuildTask;
   }
 
   //endregion
