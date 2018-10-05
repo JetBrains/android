@@ -50,9 +50,9 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
   @Mock private JavaModuleSetup myJavaModuleSetup;
   @Mock private CachedProjectModels myCachedProjectModels;
   @Mock private ModuleFinder.Factory myModulesFinderFactory;
-  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleFinder myModuleFinder;
   @Mock private CompositeBuildDataSetup myCompositeBuildDataSetup;
+  @Mock private ExtraGradleSyncModelsManager myExtraSyncModelsManager;
 
   private CachedProjectModelsSetup myModuleSetup;
 
@@ -64,8 +64,9 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
     when(myModulesFinderFactory.create(myProject)).thenReturn(myModuleFinder);
 
     myModuleSetup =
-      new CachedProjectModelsSetup(getProject(), myModelsProvider, myGradleModuleSetup, myAndroidModuleSetup, myNdkModuleSetup,
-                                   myJavaModuleSetup, myModuleSetupContextFactory, myModulesFinderFactory, myCompositeBuildDataSetup);
+      new CachedProjectModelsSetup(getProject(), myModelsProvider, myExtraSyncModelsManager, myGradleModuleSetup, myAndroidModuleSetup,
+                                   myNdkModuleSetup, myJavaModuleSetup, new ModuleSetupContext.Factory(), myModulesFinderFactory,
+                                   myCompositeBuildDataSetup);
   }
 
   public void testSetUpModulesFromCache() throws Exception {
@@ -105,18 +106,6 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
 
     EmptyProgressIndicator indicator = new EmptyProgressIndicator();
 
-    ModuleSetupContext appModuleContext = mock(ModuleSetupContext.class);
-    when(myModuleSetupContextFactory.create(appModule, myModelsProvider, myModuleFinder, cachedAppModels))
-      .thenReturn(appModuleContext);
-
-    ModuleSetupContext cppModuleContext = mock(ModuleSetupContext.class);
-    when(myModuleSetupContextFactory.create(cppModule, myModelsProvider, myModuleFinder, cachedCppModels))
-      .thenReturn(cppModuleContext);
-
-    ModuleSetupContext javaModuleContext = mock(ModuleSetupContext.class);
-    when(myModuleSetupContextFactory.create(javaModule, myModelsProvider, myModuleFinder, cachedJavaModels))
-      .thenReturn(javaModuleContext);
-
     // Invoke the method to test.
     myModuleSetup.setUpModules(myCachedProjectModels, indicator);
 
@@ -125,14 +114,14 @@ public class CachedProjectModelsSetupTest extends IdeaTestCase {
 
     // Verify that the modules were set up from the models in the cache.
     verify(myGradleModuleSetup).setUpModule(appModule, myModelsProvider, appGradleModel);
-    verify(myAndroidModuleSetup).setUpModule(appModuleContext, appAndroidModel, true);
+    verify(myAndroidModuleSetup).setUpModule(any(), eq(appAndroidModel), eq(true));
 
     verify(myGradleModuleSetup).setUpModule(cppModule, myModelsProvider, cppGradleModel);
-    verify(myAndroidModuleSetup).setUpModule(cppModuleContext, appAndroidModel, true);
-    verify(myNdkModuleSetup).setUpModule(cppModuleContext, cppNdkModel, true);
+    verify(myAndroidModuleSetup).setUpModule(any(), eq(appAndroidModel), eq(true));
+    verify(myNdkModuleSetup).setUpModule(any(), eq(cppNdkModel), eq(true));
 
     verify(myGradleModuleSetup).setUpModule(javaModule, myModelsProvider, javaGradleModel);
-    verify(myJavaModuleSetup).setUpModule(javaModuleContext, javaModel, true);
+    verify(myJavaModuleSetup).setUpModule(any(), eq(javaModel), eq(true));
   }
 
   private static void makeGradleModule(@NotNull Module module) {
