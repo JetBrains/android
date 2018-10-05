@@ -135,6 +135,15 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
    */
   private static boolean isLibraryValid(@NotNull Library library, @NotNull File[] binaryPaths) {
     VirtualFile[] cachedFiles = library.getRootProvider().getFiles(CLASSES);
+    String[] urls = library.getRootProvider().getUrls(CLASSES);
+    // Some of the urls present in the library no longer map to actual files, in this case treat the library as invalid and
+    // recreate it. If we don't recreate it none of the symbols will be resolved, a common example of this when upgrading the
+    // android gradle plugin the paths used to store the resulting library artifacts can change this means that no files are returned by
+    // library.getRootProvider().getFiles(CLASSES).
+    if (urls.length != cachedFiles.length) {
+      return false;
+    }
+
     if (cachedFiles.length == 0 || binaryPaths.length == 0) {
       return true;
     }
