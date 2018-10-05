@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.ExecutorIconProvider;
 import com.android.tools.idea.run.LaunchOptionsProvider;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.Executor;
@@ -27,9 +27,6 @@ import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
 import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
@@ -117,6 +114,6 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return AndroidUtils.hasAndroidFacets(project);
+    return IdeInfo.getInstance().isAndroidStudio() || AndroidUtils.hasAndroidFacets(project);
   }
 }
