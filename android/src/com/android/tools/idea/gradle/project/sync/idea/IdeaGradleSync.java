@@ -123,7 +123,7 @@ public class IdeaGradleSync implements GradleSync {
       GradleSettings gradleSettings = GradleSettings.getInstance(myProject);
       Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
       if (projectsSettings.isEmpty()) {
-        GradleProjectOpenProcessor projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.getExtension(GradleProjectOpenProcessor.class);
+        GradleProjectOpenProcessor projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleProjectOpenProcessor.class);
         if (myProject.getBasePath() != null && projectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
           GradleProjectSettings projectSettings = new GradleProjectSettings();
           String externalProjectPath = toCanonicalPath(myProject.getBasePath());

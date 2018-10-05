@@ -63,7 +63,7 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
       }
       if (rootProjectCandidate == null) {
         GradleJavaProjectOpenProcessor gradleProjectOpenProcessor =
-          ProjectOpenProcessor.EXTENSION_POINT_NAME.getExtension(GradleJavaProjectOpenProcessor.class);
+          ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleJavaProjectOpenProcessor.class);
 
         VirtualFile projectRootFolder = project.getBaseDir();
         projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
