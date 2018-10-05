@@ -249,6 +249,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
   public void dispose() {
   }
 
+  @TestOnly
   public WorkBench<DesignSurface> getWorkBench() {
     return myWorkBench;
   }

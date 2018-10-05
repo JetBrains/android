@@ -127,15 +127,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.setLoadingText(loadingText);
   }
 
-  public void showLoading(@NotNull String message) {
-    setLoadingText(message);
-    myLoadingPanel.startLoading();
-  }
-
-  public void hideLoading() {
-    myLoadingPanel.stopLoading();
-  }
-
   public void loadingStopped(@NotNull String message) {
     myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
   }
