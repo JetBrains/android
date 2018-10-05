@@ -149,7 +149,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
 
       CachedModuleModels cachedModels = cache.addModule(module);
 
-      if (!isRootModule(moduleModels)) {
+      if (!isWrapperRootModule(moduleModels)) {
         // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
         GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
         cachedModels.addModel(gradleModel);
@@ -170,8 +170,9 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
                       myExtraModelsManager, false /* not skipped */);
   }
 
-  // Returns true if the moduleModel is the one represents root project.
-  private static boolean isRootModule(GradleModuleModels moduleModels) {
+  // Returns true if the module is the one represents root project, and it is only a wrapper of projects, not an actual Java/Android module.
+  private static boolean isWrapperRootModule(GradleModuleModels moduleModels) {
+    // ArtifactModel is only queried if AndroidProject, and JavaProject are null.
     ArtifactModel artifactModel = moduleModels.findModel(ArtifactModel.class);
     return artifactModel != null && artifactModel.getArtifactsByConfiguration().isEmpty();
   }
