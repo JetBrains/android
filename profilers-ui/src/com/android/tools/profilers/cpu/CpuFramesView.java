@@ -64,6 +64,7 @@ public class CpuFramesView {
     myFrames.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     myRenderer = new CpuFramesCellRenderer(myStage.getStudioProfilers().getIdeServices().getFeatureConfig(), myFrames);
     myFrames.setCellRenderer(myRenderer);
+    myFrames.setVisibleRowCount(2);
     myStage.getFramesModel().addListDataListener(new ListDataListener() {
       @Override
       public void contentsChanged(ListDataEvent e) {
