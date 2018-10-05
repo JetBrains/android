@@ -258,6 +258,37 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  public void activate() {
+    super.activate();
+    NlModel model = getModel();
+    if (model != null) {
+      Module module = model.getModule();
+      try {
+        NavigationSchema.createIfNecessary(module);
+      }
+      catch (ClassNotFoundException e) {
+        // We don't have a schema at all, no need to try to update.
+        return;
+      }
+
+      NavigationSchema schema = NavigationSchema.get(module);
+      if (!schema.quickValidate()) {
+        myEditorPanel.getWorkBench().showLoading("Refreshing Navigators...");
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          try {
+            schema.rebuildSchema().get();
+            ApplicationManager.getApplication().invokeLater(() -> myEditorPanel.getWorkBench().hideLoading());
+          }
+          catch (Exception e) {
+            ApplicationManager.getApplication().invokeLater(
+              () -> myEditorPanel.getWorkBench().loadingStopped("Error refreshing Navigators"));
+          }
+        });
+      }
+    }
+  }
+
+  @Override
   protected void layoutContent() {
     requestRender();
   }
