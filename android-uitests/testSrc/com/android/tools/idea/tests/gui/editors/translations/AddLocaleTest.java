@@ -57,7 +57,7 @@ public class AddLocaleTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   public void addNewLocale() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 

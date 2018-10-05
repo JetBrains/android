@@ -56,7 +56,7 @@ public class CreateLoginActivityTest {
    *      an AsyncTask that asks users to login or register with their credentials is added to the project
    * </pre>
    */
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void activityTemplate() {
     // Create a new project with Login Activity.
