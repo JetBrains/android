@@ -16,7 +16,11 @@
 package com.android.tools.idea.naveditor.structure
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.idea.common.model.*
+import com.android.tools.idea.common.model.ModelListener
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.SelectionListener
+import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.structure.DestinationList.ROOT_NAME
@@ -76,13 +80,10 @@ class BackPanel(private val surface: NavDesignSurface, private val updateCallbac
   }
 
   private fun update() {
-    if (surface.model?.components?.contains(surface.currentNavigation) != false) {
-      isVisible = false
-    }
-    else {
+    isVisible = false
+    surface.currentNavigation.parent?.let {
+      label.text = if (it.parent == null) ROOT_NAME else it.uiName
       isVisible = true
-      val parent = surface.currentNavigation.parent
-      label.text = if (parent!!.parent == null) ROOT_NAME else parent.uiName
     }
   }
 }
