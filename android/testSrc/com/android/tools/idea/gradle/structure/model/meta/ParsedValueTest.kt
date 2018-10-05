@@ -85,9 +85,9 @@ class ParsedValueTest {
 
   @Test
   fun makeParsedValue_invalidReference() {
-    assertThat(makeAnnotatedParsedValue(null, DslText.Reference("var1"), ValueAnnotation.Error("Disregarded")),
+    assertThat(makeAnnotatedParsedValue(null, DslText.Reference("var1"), ValueAnnotation.Error("annotation")),
                equalTo<Annotated<ParsedValue<*>>>(
-                 ParsedValue.Set.Parsed(null, DslText.Reference("var1")).annotateWithError("Unresolved: 'var1'")))
+                 ParsedValue.Set.Parsed(null, DslText.Reference("var1")).annotateWithError("annotation")))
   }
 }
 
