@@ -29,6 +29,21 @@ import java.util.regex.Pattern;
  * This class assist with doing a depth first search enumeration of SliceGroups.
  */
 public final class SliceStream {
+
+  public enum EnumerationResult {
+    /**
+     * Continue enumerating depth first.
+     */
+    CONTINUE,
+    /**
+     * Stop enumerating.
+     */
+    TERMINATE,
+    /**
+     * Skip enumerating children of this slice.
+     */
+    SKIP_CHILDREN,
+  }
   @NotNull
   private final List<SliceGroup> mySlices;
   private Pattern myPattern = Pattern.compile(".*");
@@ -71,7 +86,7 @@ public final class SliceStream {
    * is fully exhausted or false is returned from the action.
    * @param action callback action to perform on each element.
    */
-  public void enumerate(@NotNull Function<SliceGroup, Boolean> action) {
+  public void enumerate(@NotNull Function<SliceGroup, EnumerationResult> action) {
     forEachMatchingSlice(mySlices, myPattern, myRange, action);
   }
 
@@ -82,37 +97,42 @@ public final class SliceStream {
     SliceGroup[] slices = new SliceGroup[1];
     forEachMatchingSlice(mySlices, myPattern, myRange, (sliceGroup) -> {
       slices[0] = sliceGroup;
-      return false;
+      return EnumerationResult.TERMINATE;
     });
     return slices[0];
   }
 
   /**
    * A helper function for enumerating slices by a filter. The function passed in receives each slice with a name matching the filter,
-   * and is expected to return true for the enumeration to continue or false to stop the enumeration.
+   * and is expected to return an {@link EnumerationResult} for the enumeration to continue, skip children, stop the enumeration.
    *
    * @param sliceGroups the group of slices to perform a depth first search on.
    * @param pattern     the regex filter restrict the action callback to.
    * @param range       the range to restrict the search to.
    * @param action      the action to perform on each slice matching the name criteria.
    */
-  private static boolean forEachMatchingSlice(@NotNull List<SliceGroup> sliceGroups,
-                                             @NotNull Pattern pattern,
-                                             @NotNull Range range,
-                                             Function<SliceGroup, Boolean> action) {
+  private static EnumerationResult forEachMatchingSlice(@NotNull List<SliceGroup> sliceGroups,
+                                                        @NotNull Pattern pattern,
+                                                        @NotNull Range range,
+                                                        Function<SliceGroup, EnumerationResult> action) {
     for (SliceGroup slice : sliceGroups) {
       if (slice.getStartTime() <= range.getMax() && slice.getEndTime() >= range.getMin()) {
+        boolean skipChildren = false;
         if (pattern.matcher(slice.getName()).matches()) {
-          if (!action.apply(slice)) {
-            return false;
+          EnumerationResult continueResult = action.apply(slice);
+          if (continueResult == EnumerationResult.TERMINATE) {
+            return continueResult;
           }
+          skipChildren = continueResult == EnumerationResult.SKIP_CHILDREN;
         }
-        boolean shouldContinue = forEachMatchingSlice(slice.getChildren(), pattern, range, action);
-        if (!shouldContinue) {
-          return shouldContinue;
+        if (!skipChildren) {
+          EnumerationResult result = forEachMatchingSlice(slice.getChildren(), pattern, range, action);
+          if (result == EnumerationResult.TERMINATE) {
+            return result;
+          }
         }
       }
     }
-    return true;
+    return EnumerationResult.CONTINUE;
   }
 }
