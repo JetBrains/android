@@ -108,7 +108,7 @@ public class AtraceFrameManager {
       double endTime = sliceGroup.getEndTime();
       frame.addSlice(sliceGroup, new Range(startTime, endTime));
       frames.add(frame);
-      return true;
+      return SliceStream.EnumerationResult.SKIP_CHILDREN;
     });
     return frames;
   }
