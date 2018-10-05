@@ -388,4 +388,100 @@ public class RenderTaskTest extends AndroidTestCase {
     ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
+
+  public void testAnimatedVectorDrawableWithNestedAaptAttr() throws Exception {
+    @Language("XML")
+    final String vector = "<animated-vector\n" +
+                          "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                          "    xmlns:aapt=\"http://schemas.android.com/aapt\">\n" +
+                          "    <aapt:attr name=\"android:drawable\">\n" +
+                          "        <vector\n" +
+                          "            android:width=\"24dp\"\n" +
+                          "            android:height=\"24dp\"\n" +
+                          "            android:viewportWidth=\"24\"\n" +
+                          "            android:viewportHeight=\"24\">\n" +
+                          "            <path\n" +
+                          "                android:name=\"outline\"\n" +
+                          "                android:fillColor=\"#ff0000\"\n" +
+                          "                android:pathData=\"M 11.925 18 L 21.17 18 C 21.63 18 22 17.65 22 17.25 L 22 14.57 C 20.912 14.181 20.182 13.155 20.17 12 C 20.17 10.82 20.93 9.82 22 9.43 L 22 9.43 L 22 6.75 C 22 6.35 21.63 6 21.17 6 L 2.83 6 C 2.37 6 2.01 6.35 2.01 6.75 L 2.01 9.43 C 3.07 9.83 3.83 10.82 3.83 12 C 3.83 13.18 3.07 14.18 2 14.57 L 2 17.25 C 2 17.65 2.37 18 2.83 18 L 11.925 18\"\n" +
+                          "                android:strokeColor=\"#FF0000\"\n" +
+                          "                android:strokeWidth=\"2\" />\n" +
+                          "            <group\n" +
+                          "                android:name=\"star_group\"\n" +
+                          "                android:pivotX=\"12\"\n" +
+                          "                android:pivotY=\"13\">\n" +
+                          "                <path\n" +
+                          "                    android:fillColor=\"#fff\"\n" +
+                          "                    android:pathData=\"M 15.1 16 L 14.16 12.46 L 17 10.13 L 13.34 9.91 L 12 6.5 L 10.65 9.9 L 6.99 10.12 L 9.83 12.45 L 8.91 16 L 12.01 14 L 15.1 16 Z\" />\n" +
+                          "            </group>\n" +
+                          "            <path\n" +
+                          "                android:name=\"progress\"\n" +
+                          "                android:pathData=\"M 12.075 19.67 L 16 19.67 C 16 18.477 16 17.283 16 16.09 L 14.125 14.21 C 13.5 13.583 12.875 12.957 12.25 12.33 C 12.875 11.707 13.5 11.083 14.125 10.46 L 16 8.59 L 16 6.795 C 16 6.197 16 5.598 16 5 L 8 5 C 8 5.598 8 6.197 8 6.795 L 8 8.59 C 9.25 9.837 10.5 11.083 11.75 12.33 C 11.125 12.955 10.5 13.58 9.875 14.205 L 8 16.08 C 8 17.277 8 18.473 8 19.67 L 12.075 19.67\"\n" +
+                          "                android:strokeAlpha=\"0\"\n" +
+                          "                android:strokeColor=\"#ffffff00\"\n" +
+                          "                android:strokeWidth=\"2\"\n" +
+                          "                android:trimPathEnd=\"0.03\"\n" +
+                          "                android:trimPathOffset=\"0\"\n" +
+                          "                android:trimPathStart=\"0\" />\n" +
+                          "        </vector>\n" +
+                          "    </aapt:attr>\n" +
+                          "    <target android:name=\"progress\">\n" +
+                          "        <aapt:attr name=\"android:animation\">\n" +
+                          "            <set>\n" +
+                          "                <objectAnimator\n" +
+                          "                    android:duration=\"1333\"\n" +
+                          "                    android:propertyName=\"trimPathStart\"\n" +
+                          "                    android:repeatCount=\"-1\"\n" +
+                          "                    android:valueFrom=\"0\"\n" +
+                          "                    android:valueTo=\"0.75\"\n" +
+                          "                    android:valueType=\"floatType\">\n" +
+                          "                    <aapt:attr name=\"android:interpolator\">\n" +
+                          "                        <pathInterpolator\n" +
+                          "                            android:pathData=\"L0.5,0 C 0.7,0 0.6,1 1,1\" />\n" +
+                          "                    </aapt:attr>\n" +
+                          "                </objectAnimator>\n" +
+                          "                <objectAnimator\n" +
+                          "                    android:duration=\"1333\"\n" +
+                          "                    android:propertyName=\"trimPathEnd\"\n" +
+                          "                    android:repeatCount=\"-1\"\n" +
+                          "                    android:valueFrom=\"0.03\"\n" +
+                          "                    android:valueTo=\"0.78\"\n" +
+                          "                    android:valueType=\"floatType\">\n" +
+                          "                    <aapt:attr name=\"android:interpolator\">\n" +
+                          "                        <pathInterpolator\n" +
+                          "                            android:pathData=\"C0.2,0 0.1,1 0.5,0.96 C 0.96666666666,0.96 0.99333333333,1 1,1\" />\n" +
+                          "                    </aapt:attr>\n" +
+                          "                </objectAnimator>\n" +
+                          "            </set>\n" +
+                          "        </aapt:attr>\n" +
+                          "    </target>\n" +
+                          "</animated-vector>\n";
+    @Language("XML")
+    final String content= "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                          "    android:layout_height=\"match_parent\"\n" +
+                          "    android:layout_width=\"match_parent\"\n" +
+                          "    android:background=\"#FFF\">\n" +
+                          "\n" +
+                          "    <ImageView\n" +
+                          "        android:layout_width=\"240dp\"\n" +
+                          "        android:layout_height=\"240dp\"\n" +
+                          "        android:src=\"@drawable/test\"/>\n" +
+                          "    \n" +
+                          "</FrameLayout>";
+    myFixture.addFileToProject("res/drawable/test.xml", vector);
+    // We render a full layout in this test instead of just the drawable as the problem is with parsing the animator, which happens
+    // only when rendering the animated vector drawable inside a layout.
+    VirtualFile layout = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layout);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, layout, configuration, logger);
+    BufferedImage result = task.render().get().getRenderedImage().getCopy();
+
+    //ImageIO.write(result, "png", new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
+    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
+    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, 0.1);
+
+    task.dispose().get(5, TimeUnit.SECONDS);
+  }
 }
