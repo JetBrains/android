@@ -122,12 +122,14 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     val titleHtmlBuilder = HtmlBuilder().openHtmlBody()
       if (devices.isNotEmpty()) {
         titleHtmlBuilder
-          .addHtml("<span style=\"color: ${UIUtils.getCssColor(
-            UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
+          .beginSpan("color: " + UIUtils.getCssColor(UIUtils.getSuccessColor()))
+          .add("Android Studio detected the following ${devices.size} USB device(s):")
+          .endSpan()
       } else {
         titleHtmlBuilder
-          .addHtml("<span style=\"color: ${UIUtils.getCssColor(
-            UIUtils.getFailureColor())};\">${AndroidBundle.message("connection.assistant.usb.no_devices.title")}</span>")
+          .beginSpan("color: " + UIUtils.getCssColor(UIUtils.getFailureColor()))
+          .add(AndroidBundle.message("connection.assistant.usb.no_devices.title"))
+          .endSpan()
       }
 
     val bodyHtmlBuilder = HtmlBuilder().openHtmlBody()
@@ -135,25 +137,34 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
       // Instead of displaying multiple devices of the same name, merge them into one and display the count
       devices.groupBy { usbDevice -> usbDevice.name }.forEach { _, deviceList ->
         val name = deviceList.first().name
-        var count = ""
-        if (deviceList.size > 1)
-          count = " (" + deviceList.size + "x)"
 
-        bodyHtmlBuilder.addHtml("<p>")
-          .addHtml("<b>$name</b>$count")
-          .newlineIfNecessary().addHtml("</p>")
+        bodyHtmlBuilder
+          .beginParagraph()
+          .addBold(name)
+
+        if (deviceList.size > 1) {
+          bodyHtmlBuilder.addNbsp().add("(${deviceList.size}x)")
+        }
+
+        bodyHtmlBuilder.newlineIfNecessary().endParagraph()
       }
     } else {
-      bodyHtmlBuilder.addHtml("<p>${AndroidBundle.message("connection.assistant.usb.no_devices.body")}</p>")
+      bodyHtmlBuilder
+        .beginParagraph()
+        .add(AndroidBundle.message("connection.assistant.usb.no_devices.body"))
+        .endParagraph()
         .newlineIfNecessary()
     }
 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) {
-      bodyHtmlBuilder.addHtml(
-        "<p><b>Install device drivers.</b> If you want to connect a device for testing, " +
-        "then you need to install the appropriate USB drivers. For more information, read the " +
-        "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.</p>"
-      )
+      bodyHtmlBuilder
+        .beginParagraph()
+        .addBold("Install device drivers.")
+        .add(" If you want to connect a device for testing, then you need to " +
+             "install the appropriate USB drivers. For more information, read the ")
+        .addLink("online documentation", "https://developer.android.com/studio/run/oem-usb.html")
+        .add(".")
+        .endParagraph()
     }
 
     return ButtonMessage(titleHtmlBuilder.closeHtmlBody().html, bodyHtmlBuilder.closeHtmlBody().html)
