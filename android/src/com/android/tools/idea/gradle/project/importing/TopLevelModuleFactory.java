@@ -72,6 +72,21 @@ class TopLevelModuleFactory {
         }
       }
       model.commit();
+
+      FacetManager facetManager = FacetManager.getInstance(module);
+      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+      try {
+        GradleFacet gradleFacet = GradleFacet.getInstance(module);
+        if (gradleFacet == null) {
+          // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
+          gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
+          facetModel.addFacet(gradleFacet);
+        }
+        gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR;
+      }
+      finally {
+        facetModel.commit();
+      }
     }
   }
 }
