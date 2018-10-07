@@ -262,6 +262,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
+        "no_psq",
         "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
