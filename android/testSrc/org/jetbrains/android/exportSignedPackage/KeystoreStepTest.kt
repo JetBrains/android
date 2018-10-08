@@ -17,12 +17,12 @@ package org.jetbrains.android.exportSignedPackage
 
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
-import com.intellij.credentialStore.Credentials
+import com.intellij.credentialStore.PasswordSafeSettings
+import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
+import com.intellij.ide.passwordSafe.impl.PasswordSafeImpl
 import com.intellij.testFramework.IdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
-import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -57,7 +57,9 @@ class KeystoreStepTest : IdeaTestCase() {
 
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
-    val passwordSafe = PasswordSafeMock()
+    val passwordSafeSettings = PasswordSafeSettings()
+    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
+    val passwordSafe = PasswordSafeImpl(passwordSafeSettings)
     ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -98,9 +100,11 @@ class KeystoreStepTest : IdeaTestCase() {
 
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
-    val passwordSafe = PasswordSafeMock()
+    val passwordSafeSettings = PasswordSafeSettings()
+    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
+    val passwordSafe = PasswordSafeImpl(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
-    passwordSafe.setPassword(legacyRequestor, keyPasswordKey, testLegacyKeyPassword)
+    passwordSafe.setPassword(CredentialAttributes(legacyRequestor, keyPasswordKey), testLegacyKeyPassword)
     ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -121,34 +125,5 @@ class KeystoreStepTest : IdeaTestCase() {
 
     // Now check that the old-style password is erased
     assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor, keyPasswordKey)))
-  }
-
-  class PasswordSafeMock : PasswordSafe() {
-    override var isRememberPasswordByDefault: Boolean
-      get() = false
-      set(_) {}
-    private val storedPasswords = HashMap<Class<*>, HashMap<String, String?>>()
-
-    override fun getAsync(attributes: CredentialAttributes): Promise<Credentials?> = resolvedPromise()
-    override val isMemoryOnly: Boolean = false
-    override fun isPasswordStoredOnlyInMemory(attributes: CredentialAttributes, credentials: Credentials): Boolean = false
-    override fun set(attributes: CredentialAttributes, credentials: Credentials?, memoryOnly: Boolean) {}
-    override fun set(attributes: CredentialAttributes, credentials: Credentials?) {}
-    override fun get(attributes: CredentialAttributes): Credentials? = null
-
-    override fun setPassword(requestor: Class<*>, accountName: String, value: String?) {
-      val account = storedPasswords.getOrDefault(requestor, HashMap())
-      account[accountName] = value
-      storedPasswords[requestor] = account
-    }
-
-    override fun getPassword(attributes: CredentialAttributes): String? {
-      if (attributes.requestor != null) {
-        return storedPasswords[attributes.requestor!!]?.get(attributes.userName)
-      }
-      else {
-        return super.getPassword(attributes)
-      }
-    }
   }
 }
