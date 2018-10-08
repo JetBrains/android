@@ -24,7 +24,8 @@ import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.model.startDestinationId
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
+import com.android.tools.idea.naveditor.scene.NavColorSet.THUMBNAIL_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
@@ -92,7 +93,7 @@ sealed class Destination : Comparable<Destination> {
                                              thumbnailDimension.height.toFloat(), THUMBNAIL_INNER_RADIUS, THUMBNAIL_INNER_RADIUS)
       val oldClip = graphics.clip
       graphics.clip = roundRect
-      graphics.color = NavColorSet.THUMBNAIL_BORDER_COLOR
+      graphics.color = THUMBNAIL_BORDER_COLOR
       graphics.setRenderingHints(HQ_RENDERING_HINTS)
       drawThumbnailContents(model, thumbnailDimension, graphics)
 
@@ -110,6 +111,12 @@ sealed class Destination : Comparable<Destination> {
     }
 
     abstract fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D)
+
+    protected fun drawBackground(thumbnailDimension: Dimension, graphics: Graphics2D) {
+      graphics.color = PLACEHOLDER_BACKGROUND_COLOR
+      graphics.fillRect(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(),
+                        thumbnailDimension.width, thumbnailDimension.height)
+    }
   }
 
   @VisibleForTesting
@@ -131,9 +138,11 @@ sealed class Destination : Comparable<Destination> {
         }
       }
       else {
+        drawBackground(thumbnailDimension, graphics)
         graphics.font = graphics.font.deriveFont(13).deriveFont(Font.BOLD)
         val unknownString = "?"
         val stringWidth = graphics.fontMetrics.charWidth('?')
+        graphics.color = THUMBNAIL_BORDER_COLOR
         graphics.drawString(unknownString, (thumbnailDimension.width - stringWidth) / 2 + THUMBNAIL_BORDER_THICKNESS,
                             (thumbnailDimension.height + graphics.fontMetrics.ascent) / 2 + THUMBNAIL_BORDER_THICKNESS)
       }
@@ -214,6 +223,8 @@ sealed class Destination : Comparable<Destination> {
     override val label = "placeholder"
 
     override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D) {
+      drawBackground(thumbnailDimension, graphics)
+      graphics.color = THUMBNAIL_BORDER_COLOR
       graphics.drawLine(0, 0, thumbnailDimension.width, thumbnailDimension.height)
       graphics.drawLine(thumbnailDimension.width, 0, 0, thumbnailDimension.height)
     }
