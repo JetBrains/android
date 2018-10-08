@@ -267,6 +267,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem.tests[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore[module, test]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
         "//tools/adt/idea/android/lib:instantapps-api-1.5",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
