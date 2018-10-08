@@ -87,10 +87,10 @@ class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
   }
 
   private fun drawText(text1: String, text2: String?, g: Graphics2D, sceneContext: SceneContext) {
-    g.color = NavColorSet.NO_PREVIEW_BACKGROUND_COLOR
+    g.color = NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
     g.fill(rectangle)
 
-    g.color = NavColorSet.NO_PREVIEW_TEXT_COLOR
+    g.color = NavColorSet.THUMBNAIL_BORDER_COLOR
     g.font = Font(FONT_NAME, Font.PLAIN, sceneContext.getSwingDimension(FONT_SIZE))
 
     var x = rectangle.x + (rectangle.width - g.fontMetrics.stringWidth(text1)) / 2
