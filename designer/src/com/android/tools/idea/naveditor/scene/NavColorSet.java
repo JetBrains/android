@@ -19,8 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * {@link ColorSet} for the navigation editor.
@@ -39,12 +38,11 @@ public class NavColorSet extends ColorSet {
   public static final JBColor ACTION_COLOR = new JBColor(new Color(0xb2a7a7a7, true), new Color(0xb2888888, true));
   public static final JBColor HIGHLIGHTED_ACTION_COLOR = new JBColor(0xa7a7a7, 0x888888);
   public static final JBColor SELECTED_ACTION_COLOR = new JBColor(0x1886f7, 0x9ccdff);
-  public static final JBColor NO_PREVIEW_BACKGROUND_COLOR = new JBColor(new Color(0xfdfdfd), new Color(0xfdfdfd));
-  public static final JBColor NO_PREVIEW_TEXT_COLOR = new JBColor(new Color(0xa7a7a7), new Color(0xa7a7a7));
   public static final JBColor ACTIVITY_BORDER_COLOR = new JBColor(0xa7a7a7, 0x2d2f31);
   // Note that this must match the highlight color of ActionButtonWithText
   public static final JBColor LIST_MOUSEOVER_COLOR = new JBColor(Gray.xDB, new Color(0x55595c));
   public static final JBColor THUMBNAIL_BORDER_COLOR = new JBColor(0xcccccc, 0x3f4244);
+  public static final JBColor PLACEHOLDER_BACKGROUND_COLOR = new JBColor(0xffffff, 0xffffff);
 
   private Color mActions;
   private Color mHighlightedActions;

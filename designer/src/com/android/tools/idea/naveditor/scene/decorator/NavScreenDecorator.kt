@@ -27,7 +27,8 @@ import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
+import com.android.tools.idea.naveditor.scene.NavColorSet.THUMBNAIL_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
@@ -61,25 +62,24 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
                            component: SceneComponent, @SwingCoordinate rectangle: Rectangle2D.Float) {
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     if (layout == null) {
-      drawPlaceholder(list, sceneContext, rectangle)
+      drawPlaceholder(list, rectangle)
     }
     else {
       drawImage(list, sceneContext, component, rectangle)
     }
   }
 
-  private fun drawPlaceholder(list: DisplayList, sceneContext: SceneContext, @SwingCoordinate rectangle: Rectangle2D.Float) {
-    list.add(DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, rectangle, NavColorSet.NO_PREVIEW_BACKGROUND_COLOR))
+  private fun drawPlaceholder(list: DisplayList, @SwingCoordinate rectangle: Rectangle2D.Float) {
+    list.add(DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, rectangle, PLACEHOLDER_BACKGROUND_COLOR))
 
-    val color = sceneContext.colorSet.highlightedFrames
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
     val p1 = Point2D.Float(rectangle.x, rectangle.y)
     val p2 = Point2D.Float(p1.x, p1.y + rectangle.height)
     val p3 = Point2D.Float(p1.x + rectangle.width, p1.y)
     val p4 = Point2D.Float(p3.x, p2.y)
 
-    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p1, p4, color, stroke))
-    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p2, p3, color, stroke))
+    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p1, p4, THUMBNAIL_BORDER_COLOR, stroke))
+    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p2, p3, THUMBNAIL_BORDER_COLOR, stroke))
   }
 
   private fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle2D.Float) {
