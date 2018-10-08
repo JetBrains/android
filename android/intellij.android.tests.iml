@@ -72,5 +72,6 @@
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="netty-codec-http" level="project" />
     <orderEntry type="library" scope="TEST" name="KotlinTest" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
   </component>
 </module>
