@@ -6,6 +6,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.intellij.credentialStore.CredentialAttributesKt;
+import com.intellij.credentialStore.Credentials;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.passwordSafe.PasswordSafe;
@@ -53,6 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 
 /**
@@ -282,9 +284,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private static void updateSavedPassword(@NotNull Class<?> primaryRequestor, @NotNull String key, @Nullable String value) {
     final PasswordSafe passwordSafe = PasswordSafe.getInstance();
-    passwordSafe.setPassword(primaryRequestor, key, value);
+    passwordSafe.set(CredentialAttributes(primaryRequestor, key), value == null ? null : new Credentials(key, value));
     // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
-    passwordSafe.setPassword(KeystoreStep.class, key, null);
+    passwordSafe.set(CredentialAttributes(KeystoreStep.class, key), null);
   }
 
   @VisibleForTesting
