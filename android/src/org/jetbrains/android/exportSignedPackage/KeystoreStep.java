@@ -4,6 +4,7 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.android.annotations.VisibleForTesting;
 import com.intellij.credentialStore.CredentialAttributesKt;
+import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,8 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+
+import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
 
 /**
  * @author Eugene.Kudelevsky
@@ -94,9 +97,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private static void updateSavedPassword(@NotNull Class<?> primaryRequestor, @NotNull String key, @Nullable String value) {
     final PasswordSafe passwordSafe = PasswordSafe.getInstance();
-    passwordSafe.setPassword(primaryRequestor, key, value);
+    passwordSafe.set(CredentialAttributes(primaryRequestor, key), value == null ? null : new Credentials(key, value));
     // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
-    passwordSafe.setPassword(KeystoreStep.class, key, null);
+    passwordSafe.set(CredentialAttributes(KeystoreStep.class, key), null == null ? null : new Credentials(key, (String)null));
   }
 
   @VisibleForTesting
