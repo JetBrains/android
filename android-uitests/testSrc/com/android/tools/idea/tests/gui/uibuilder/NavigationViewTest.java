@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -62,7 +60,6 @@ public final class NavigationViewTest {
   }
 
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/113364399
   @Test
   public void doubleClickMenu() {
     myLayoutEditor.getSurface().doubleClick(200, 600); //Android coordinates insitde the navigation drawer menu
