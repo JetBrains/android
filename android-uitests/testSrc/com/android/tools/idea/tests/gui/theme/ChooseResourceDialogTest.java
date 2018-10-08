@@ -435,6 +435,7 @@ public class ChooseResourceDialogTest {
     dialog.clickCancel();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/117353711
   @Test
   public void testArray() throws IOException {
     guiTest.importSimpleLocalApplication();
