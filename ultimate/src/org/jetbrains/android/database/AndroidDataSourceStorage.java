@@ -1,7 +1,7 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.database;
 
-import com.intellij.database.DatabaseFamilyId;
+import com.intellij.database.Dbms;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
@@ -53,7 +53,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
 
   public void addDataSource(AndroidDataSource dataSource) {
     dataSource.init();
-    dataSource.setDatabaseDriver(DbImplUtil.guessDatabaseDriver(DatabaseFamilyId.SQLITE));
+    dataSource.setDatabaseDriver(DbImplUtil.guessDatabaseDriver(Dbms.SQLITE));
     myDataSources.add(dataSource);
   }
 
