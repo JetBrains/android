@@ -73,13 +73,13 @@ public class CLionIntegrationTest {
 
     guiTest.waitForBackgroundTasks();
 
-    EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
-
     // Check unused header import and no errors.
     String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
     assertThat(inspectionResults).contains("Unused macro");
+
+    EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
     assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();
 
     // Check code completion.
