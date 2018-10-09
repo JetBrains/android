@@ -401,6 +401,7 @@ public class ChooseResourceDialogTest {
     dialog.clickCancel();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/117353711
   @Test
   public void testSearchExactMatch() throws IOException {
     guiTest.importSimpleLocalApplication();
