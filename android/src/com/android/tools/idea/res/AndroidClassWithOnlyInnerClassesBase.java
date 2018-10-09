@@ -25,6 +25,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import java.util.Collection;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NonNls;
@@ -54,7 +55,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
           LOG.debug("Recomputing inner classes of " + this.getClass());
         }
         PsiClass[] innerClasses = doGetInnerClasses();
-        return CachedValueProvider.Result.create(innerClasses, getInnerClassesDependencies());
+        return CachedValueProvider.Result.create(innerClasses, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
       });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(myManager.getProject());
@@ -67,13 +68,6 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
 
   @NotNull
   protected abstract PsiClass[] doGetInnerClasses();
-
-  /**
-   * Dependencies (as defined by {@link CachedValueProvider.Result#getDependencyItems()}) for the cached set of inner classes computed by
-   * {@link #doGetInnerClasses()}.
-   */
-  @NotNull
-  protected abstract Object[] getInnerClassesDependencies();
 
   @Nullable
   @Override
