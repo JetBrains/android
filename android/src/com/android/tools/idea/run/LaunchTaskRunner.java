@@ -130,8 +130,15 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         success = task.perform(device, launchStatus, consolePrinter);
         myStats.endLaunchTask(details, success);
         if (!success) {
-          myError = "Error " + task.getDescription();
-          launchStatus.terminateLaunch("Error while " + task.getDescription());
+          String failureReason = task.getFailureReason();
+          if (failureReason == null) {
+            myError = "Error " + task.getDescription();
+            launchStatus.terminateLaunch("Error while " + task.getDescription());
+          }
+          else {
+            myError = failureReason;
+            launchStatus.terminateLaunch(failureReason);
+          }
           break;
         }
 
