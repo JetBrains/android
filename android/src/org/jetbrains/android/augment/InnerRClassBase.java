@@ -8,11 +8,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -21,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import com.intellij.psi.util.PsiModificationTracker;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +117,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
+          return CachedValueProvider.Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
         });
     }
     return myFieldsCache.getValue();
@@ -128,13 +125,6 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
 
   @NotNull
   protected abstract PsiField[] doGetFields();
-
-  /**
-   * Dependencies (as defined by {@link CachedValueProvider.Result#getDependencyItems()}) for the cached set of inner classes computed by
-   * {@link #doGetFields()}.
-   */
-  @NotNull
-  protected abstract Object[] getFieldsDependencies();
 
   @NotNull
   public ResourceType getResourceType() {
