@@ -106,6 +106,13 @@ public class AndroidLibraryStub implements AndroidLibrary {
     return myJarFile;
   }
 
+  @Override
+  @NotNull
+  public File getApiJarFile() {
+    // Use the same jar file for now, we can use a different jar file later
+    return myJarFile;
+  }
+
   public void addLocalJar(@NotNull File localJar) {
     myLocalJars.add(localJar);
   }
