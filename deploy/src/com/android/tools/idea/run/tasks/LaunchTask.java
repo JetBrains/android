@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.Nullable;
 
 public interface LaunchTask {
   /**
@@ -33,6 +34,11 @@ public interface LaunchTask {
    */
   @NotNull
   String getDescription();
+
+  @Nullable
+  default String getFailureReason() {
+    return null;
+  }
 
   int getDuration();
 

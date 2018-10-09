@@ -470,7 +470,7 @@ public class GradleSpecificInitializer implements Runnable {
     }
     RunConfiguration config = configSettings.getConfiguration();
     if (!(config instanceof AndroidRunConfigurationBase)) {
-      return false; // CodeSwap only works on Android.
+      return true; // CodeSwap is enabled for non-Gradle-based Android, but isn't supported.
     }
 
     AndroidRunConfigurationBase androidRunConfig = (AndroidRunConfigurationBase)config;
@@ -496,27 +496,29 @@ public class GradleSpecificInitializer implements Runnable {
       androidRunConfig.getDeployTargetContext().getDeployTargetStates(),
       androidRunConfig.getUniqueID());
     if (deployTarget == null) {
-      return true; // No default deploy target, so allow code swapping.
+      return true; // No default deploy target, so allow code swapping (which allows the user to chose which device to code swap against).
     }
+
+    // We have a default deploy target, so test to see if the app is already running and if the debugger is attached.
     DeployTargetState deployTargetState = androidRunConfig.getDeployTargetContext().getDeployTargetState(currentTargetProvider);
     DeviceFutures deviceFutures =
       deployTarget.getDevices(deployTargetState, facet, androidRunConfig.getDeviceCount(true), true, androidRunConfig.getUniqueID());
     if (deviceFutures == null) {
-      return true; // Since no devices are available, it means no debuggers are attached, which means we can enable code swap.
+      return false; // Since no active devices are available, it means the app isn't already running, so user will have to Run/Debug first.
     }
     List<ListenableFuture<IDevice>> listenableFuturesList = deviceFutures.get();
     ApplicationIdProvider idProvider = androidRunConfig.getApplicationIdProvider(facet);
     for (ListenableFuture<IDevice> deviceFuture : listenableFuturesList) {
+      // We should only have one device.
       try {
         IDevice device = deviceFuture.get(); // This should resolve immediately for ShowChooserTargetProvider
         if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
           return false; // We only support O MR1 or above.
         }
         Client client = device.getClient(idProvider.getPackageName());
-        if (client == null) {
-          return true; // The app doesn't have a Client associated with it, so it can't have a debugger attached.
-        }
-        return !client.isDebuggerAttached();
+        // If the app doesn't have a Client associated with it, it's not running and should return false.
+        // Otherwise, we enable only when debugger isn't attached (swapping when debugger is attached isn't yet supported).
+        return client != null && !client.isDebuggerAttached();
       }
       catch (InterruptedException | ExecutionException | ApkProvisionException e) {
         // Do nothing, fall through, and we'll just enable code swap.

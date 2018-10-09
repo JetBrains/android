@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
 
@@ -77,6 +78,8 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   @NotNull private final Collection<ApkInfo> myApks;
 
+  @Nullable private String myFailureReason;
+
   // TODO: Move this to an an application component.
   private static DexArchiveDatabase myDb = new WorkQueueDexArchiveDatabase(new SQLiteDexArchiveDatabase(
     new File(Paths.get(PathManager.getSystemPath(), ".deploy.db").toString())));
@@ -105,6 +108,12 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
     return "Installing APK";
   }
 
+  @Nullable
+  @Override
+  public String getFailureReason() {
+    return myFailureReason;
+  }
+
   @Override
   public int getDuration() {
     return 20;
@@ -121,9 +130,6 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    // If we return false from this method, studio will automatically display a failure bubble, covering any bubble we
-    // just displayed. We want control of our own notifications, and no tasks run after us, so we can safely return true
-    // here on a "safe" failure. Thus, note that all failure paths from this method return TRUE instead of FALSE.
     for (ApkInfo apk : myApks) {
       System.err.println("Processing application:" + apk.getApplicationId());
 
@@ -148,18 +154,16 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         }
       }
       catch (IOException e) {
-        NOTIFICATION_GROUP.createNotification("Error deploying APK", NotificationType.ERROR)
-                          .setImportant(false).notify(myProject);
+        myFailureReason = "Error deploying APK";
         LOG.error("Error deploying APK", e);
-        return true;
+        return false;
       }
 
       // TODO: shows the error somewhere other than System.err
       if (response.status == Deployer.RunResponse.Status.ERROR) {
-        NOTIFICATION_GROUP.createNotification("Error during deployment: " + response.errorMessage, NotificationType.ERROR)
-                          .setImportant(false).notify(myProject);
+        myFailureReason = "Error during deployment \"" + response.errorMessage + "\"";
         System.err.println(response.errorMessage);
-        return true;
+        return false;
       }
 
       if (response.status == Deployer.RunResponse.Status.NOT_INSTALLED) {
