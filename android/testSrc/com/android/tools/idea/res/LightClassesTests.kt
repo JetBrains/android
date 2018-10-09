@@ -26,13 +26,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiField
 import com.intellij.psi.impl.light.LightElement
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -351,36 +348,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
       myFixture.checkHighlighting()
-    }
-
-    fun testResourceRename() {
-      val strings = myFixture.addFileToProject(
-        "/res/values/strings.xml",
-        // language=xml
-        """
-        <resources>
-          <string name="f${caret}oo">foo</string>
-        </resources>
-        """.trimIndent()
-      )
-
-      myFixture.configureFromExistingVirtualFile(strings.virtualFile)
-      assertThat(
-        myFixture.javaFacade
-          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
-          .fields
-          .map(PsiField::getName)
-      ).containsExactly("appString", "foo")
-
-      myFixture.renameElementAtCaretUsingHandler("bar")
-      UIUtil.dispatchAllInvocationEvents()
-
-      assertThat(
-        myFixture.javaFacade
-          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
-          .fields
-          .map(PsiField::getName)
-      ).containsExactly("appString", "bar")
     }
   }
 

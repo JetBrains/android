@@ -94,13 +94,6 @@ public class ModulePackageRClass extends AndroidPackageRClassBase {
     return result.toArray(PsiClass.EMPTY_ARRAY);
   }
 
-  @NotNull
-  @Override
-  protected Object[] getInnerClassesDependencies() {
-    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myModule);
-    return appResources == null ? ArrayUtil.EMPTY_OBJECT_ARRAY : new Object[]{appResources};
-  }
-
   /**
    * {@inheritDoc}
    *
