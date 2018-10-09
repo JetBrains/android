@@ -151,6 +151,7 @@ iml_module(
     iml_files = ["intellij.android.kotlin.tests.iml"],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     test_data = [
+        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
