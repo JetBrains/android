@@ -541,12 +541,4 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
     }
   }
-
-  public void testNoGradleFacetInTopLevelModule() throws Exception {
-    loadSimpleApplication();
-    Module topLevelModule = getModule(getProject().getName());
-    assertNotNull(topLevelModule);
-    // Verify that GradleFacet is not applied to top-level project.
-    assertNull(GradleFacet.getInstance(topLevelModule));
-  }
 }
