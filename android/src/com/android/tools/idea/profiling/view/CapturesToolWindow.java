@@ -79,7 +79,9 @@ public class CapturesToolWindow
     myComponent = ScrollPaneFactory.createScrollPane(myTree);
 
     myStructure = new CapturesTreeStructure(myProject);
-    myBuilder = new AbstractTreeBuilder(myTree, model, myStructure, null);
+    myBuilder = new AbstractTreeBuilder(myTree, model, myStructure, null) {
+      // unique class to simplify search through the logs
+    };
     Disposer.register(this, myBuilder);
     Disposer.register(project, this);
 
