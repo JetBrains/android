@@ -68,10 +68,4 @@ public class ModuleResourceTypeClass extends ResourceTypeClassBase {
   protected PsiField[] doGetFields() {
     return buildLocalResourceFields(myFacet, myResourceType, myNamespacing, this);
   }
-
-  @NotNull
-  @Override
-  protected Object[] getFieldsDependencies() {
-    return new Object[] {pickRepositoryAndNamespace(myNamespacing, myFacet).getFirst()};
-  }
 }
