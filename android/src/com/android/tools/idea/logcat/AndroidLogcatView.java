@@ -82,6 +82,7 @@ public class AndroidLogcatView implements Disposable {
 
   private volatile IDevice myDevice;
   private DefaultComboBoxModel<AndroidLogcatFilter> myFilterComboBoxModel;
+  private ActionToolbar myToolbar;
   private JPanel myPanel;
 
   /**
@@ -119,10 +120,20 @@ public class AndroidLogcatView implements Disposable {
     return myDeviceContext;
   }
 
+  @NotNull
+  AndroidLogFilterModel getLogFilterModel() {
+    return myLogFilterModel;
+  }
+
   @VisibleForTesting
   @NotNull
   ListModel<AndroidLogcatFilter> getEditFiltersComboBoxModel() {
     return myFilterComboBoxModel;
+  }
+
+  @NotNull
+  ActionToolbar getToolbar() {
+    return myToolbar;
   }
 
   /**
@@ -159,7 +170,7 @@ public class AndroidLogcatView implements Disposable {
     };
 
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, formatter, this);
-    myLogcatReceiver = new MyLogcatListener(formatter, myLogConsole, myLogFilterModel);
+    myLogcatReceiver = new ViewListener(formatter, this);
 
     DeviceContext.DeviceSelectionListener deviceSelectionListener =
       new DeviceContext.DeviceSelectionListener() {
@@ -198,47 +209,16 @@ public class AndroidLogcatView implements Disposable {
 
     final ConsoleView console = myLogConsole.getConsole();
     if (console != null) {
-      final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidLogcatView",
-                                                                                    myLogConsole.getOrCreateActions(), false);
-      toolbar.setTargetComponent(console.getComponent());
-      final JComponent tbComp1 = toolbar.getComponent();
-      myPanel.add(tbComp1, BorderLayout.WEST);
+      myToolbar = ActionManager.getInstance().createActionToolbar("AndroidLogcatView", myLogConsole.getOrCreateActions(), false);
+      myToolbar.setTargetComponent(console.getComponent());
+
+      myPanel.add(myToolbar.getComponent(), BorderLayout.WEST);
     }
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
     Disposer.register(this, myLogConsole);
 
     updateLogConsole();
-  }
-
-  private static final class MyLogcatListener extends FormattedLogcatReceiver {
-    private final AndroidLogConsole myConsole;
-    private final AndroidLogFilterModel myModel;
-
-    private MyLogcatListener(@NotNull AndroidLogcatFormatter formatter,
-                             @NotNull AndroidLogConsole console,
-                             @NotNull AndroidLogFilterModel model) {
-      super(formatter);
-
-      myConsole = console;
-      myModel = model;
-    }
-
-    @Override
-    protected void receiveFormattedLogLine(@NotNull String line) {
-      myConsole.addLogLine(line);
-    }
-
-    @Override
-    public void onCleared() {
-      myModel.beginRejectingOldMessages();
-
-      if (myConsole.getConsole() == null) {
-        return;
-      }
-
-      myConsole.clear();
-    }
   }
 
   @NotNull
