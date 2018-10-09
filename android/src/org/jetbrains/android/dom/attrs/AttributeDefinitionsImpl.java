@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.attrs;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlComment;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
@@ -170,10 +169,10 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   private static void parseDocComment(XmlTag tag, AttributeDefinition def, @Nullable String styleable) {
-    PsiElement comment = XmlUtil.findPreviousComment(tag);
+    XmlComment comment = XmlUtil.findPreviousComment(tag);
     if (comment != null) {
-      String docValue = XmlUtil.getCommentText((XmlComment)comment);
-      if (docValue != null && !StringUtil.isEmpty(docValue)) {
+      String docValue = comment.getCommentText();
+      if (!StringUtil.isEmpty(docValue)) {
         def.addDocValue(docValue, styleable);
       }
     }
@@ -181,12 +180,12 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Nullable
   private static String getCommentBeforeEatComment(XmlTag tag) {
-    PsiElement comment = XmlUtil.findPreviousComment(tag);
+    XmlComment comment = XmlUtil.findPreviousComment(tag);
     for (int i = 0; i < 5; ++i) {
       if (comment == null) {
         break;
       }
-      String value = StringUtil.trim(XmlUtil.getCommentText((XmlComment)comment));
+      String value = StringUtil.trim(comment.getCommentText());
 
       //  This check is there to ignore "formatting" comments like the first and third lines in
       //  <!-- ============== -->
@@ -226,9 +225,9 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       }
 
       def.addValue(valueName);
-      PsiElement comment = XmlUtil.findPreviousComment(value);
+      XmlComment comment = XmlUtil.findPreviousComment(value);
       if (comment != null) {
-        String docValue = XmlUtil.getCommentText((XmlComment)comment);
+        String docValue = comment.getCommentText();
         if (!StringUtil.isEmpty(docValue)) {
           def.addValueDoc(valueName, docValue);
         }
