@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
@@ -36,9 +37,13 @@ import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
+import com.intellij.openapi.util.text.StringUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
@@ -122,6 +128,10 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     myCompositeBuildDataSetup.setupCompositeBuildData(projectModels, cache, myProject);
     myDependenciesFactory.setUpGlobalLibraryMap(projectModels.getGlobalLibraryMap());
 
+    // By default, project name is the string entered in Name box when creating new project from wizard.
+    // This can be different from the name used by Gradle. For example, entered name is "My Application", Gradle name is "MyApplication10".
+    // Make the project use Gradle project name to be consistent with IDEA sync. With IDEA sync, the name was set by ProjectDataServiceImpl::renameProject.
+    renameProject(projectModels, myProject);
     createAndSetUpModules(projectModels, cache);
     myProjectDataNodeSetup.setupProjectDataNode(projectModels, myProject);
     myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
@@ -129,6 +139,22 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     myModuleDisposer.disposeObsoleteModules(indicator);
 
     cache.saveToDisk(myProject);
+  }
+
+  @VisibleForTesting
+  static void renameProject(@NotNull SyncProjectModels projectModels, @NotNull Project project) {
+    // Rename project if different from project name in Gradle.
+    String newName = projectModels.getProjectName();
+    if (!StringUtil.equals(newName, project.getName())) {
+      ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+        @Override
+        public void execute() {
+          String oldName = project.getName();
+          ((ProjectEx)project).setProjectName(newName);
+          ExternalSystemApiUtil.getSettings(project, GradleConstants.SYSTEM_ID).getPublisher().onProjectRenamed(oldName, newName);
+        }
+      });
+    }
   }
 
   // TODO(alruiz): reconcile with https://github.com/JetBrains/intellij-community/commit/6d425f7
