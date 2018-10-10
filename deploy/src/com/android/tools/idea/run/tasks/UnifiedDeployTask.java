@@ -24,6 +24,7 @@ import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack {
+public class UnifiedDeployTask implements LaunchTask {
 
   public static final int MIN_API_VERSION = 27;
 
@@ -131,12 +132,13 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     for (ApkInfo apk : myApks) {
-      System.err.println("Processing application:" + apk.getApplicationId());
+      LOG.info("Processing application:" + apk.getApplicationId());
 
       List<String> paths = apk.getFiles().stream().map(apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
-      AdbClient adb = new AdbClient(device);
-      Installer installer = new Installer(getLocalInstaller(), adb);
-      Deployer deployer = new Deployer(apk.getApplicationId(), paths, this, adb, myDb, installer);
+      LogWrapper logger = new LogWrapper(LOG);
+      AdbClient adb = new AdbClient(device, logger);
+      Installer installer = new Installer(getLocalInstaller(), adb, logger);
+      Deployer deployer = new Deployer(apk.getApplicationId(), paths, adb, myDb, installer, logger);
       Deployer.RunResponse response;
       try {
         switch (type) {
@@ -159,10 +161,9 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         return false;
       }
 
-      // TODO: shows the error somewhere other than System.err
       if (response.status == Deployer.RunResponse.Status.ERROR) {
         myFailureReason = "Error during deployment \"" + response.errorMessage + "\"";
-        System.err.println(response.errorMessage);
+        LOG.info(response.errorMessage);
         return false;
       }
 
@@ -171,8 +172,8 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         // Save localApk using localApkHash key.
         for (String apkAnalysisKey : response.result.keySet()) {
           Deployer.RunResponse.Analysis analysis = response.result.get(apkAnalysisKey);
-          System.err.println("Apk: " + apkAnalysisKey);
-          System.err.println("    local apk id: " + analysis.localApkHash);
+          LOG.info("Apk: " + apkAnalysisKey);
+          LOG.info("    local apk id: " + analysis.localApkHash);
         }
         continue;
       }
@@ -182,12 +183,12 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
         // TODO: Analysis diff, see if resource or code swap are needed. Use local and remote hash as key
         // to query the apk database.
         Deployer.RunResponse.Analysis analysis = response.result.get(apkAnalysisKey);
-        System.err.println("Apk: " + apkAnalysisKey);
-        System.err.println("    local apk id: " + analysis.localApkHash);
-        System.err.println("    remot apk id: " + analysis.remoteApkHash);
+        LOG.info("Apk: " + apkAnalysisKey);
+        LOG.info("    local apk id: " + analysis.localApkHash);
+        LOG.info("    remot apk id: " + analysis.remoteApkHash);
 
         for (Map.Entry<String, ApkDiffer.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
-          System.err.println("  " + statusEntry.getKey() +
+          LOG.info("  " + statusEntry.getKey() +
                              " [" + statusEntry.getValue().toString().toLowerCase() + "]");
         }
       }
@@ -203,10 +204,5 @@ public class UnifiedDeployTask implements LaunchTask, Deployer.InstallerCallBack
   @Override
   public String getId() {
     return ID;
-  }
-
-  @Override
-  public void onInstallationFinished(boolean status) {
-    System.err.println("Installation finished");
   }
 }

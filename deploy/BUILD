@@ -38,5 +38,6 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
