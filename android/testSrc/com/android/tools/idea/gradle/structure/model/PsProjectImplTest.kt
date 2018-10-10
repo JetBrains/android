@@ -34,19 +34,19 @@ class PsProjectImplTest : DependencyTestCase() {
 
     // settings.gradle does not list modules in the lexicographic order.
     assumeThat(project.parsedModel.projectSettingsModel?.modulePaths(), equalTo(listOf(
-      ":", ":app", ":lib", ":jav", ":nested1", ":nested2", ":nested1:deep", ":nested2:deep", ":nested2:trans:deep2")))
+      ":", ":app", ":lib", ":jav", ":nested1", ":nested2", ":nested1:deep", ":nested2:deep", ":nested2:trans:deep2", ":dyn_feature")))
 
     // Lexicographically ordered by gradlePath.
     val modulesBeforeGradleModelsResolved = project.modules.map { it.gradlePath }
     assertThat<List<String?>>(modulesBeforeGradleModelsResolved, equalTo(listOf(
-      ":app", ":jav", ":lib", ":nested1", ":nested1:deep", ":nested2", ":nested2:deep", ":nested2:trans:deep2")))
+      ":app", ":dyn_feature", ":jav", ":lib", ":nested1", ":nested1:deep", ":nested2", ":nested2:deep", ":nested2:trans:deep2")))
 
     project.testResolve()
 
     // Includes not declared module ":nested2:trans".
     val modulesAfterGradleModelsResolved = project.modules.map { it.gradlePath }
     assertThat<List<String?>>(modulesAfterGradleModelsResolved, equalTo(listOf(
-      ":app", ":jav", ":lib", ":nested1", ":nested1:deep", ":nested2", ":nested2:deep", ":nested2:trans", ":nested2:trans:deep2")))
+      ":app", ":dyn_feature", ":jav", ":lib", ":nested1", ":nested1:deep", ":nested2", ":nested2:deep", ":nested2:trans", ":nested2:trans:deep2")))
 
     assertThat(project.findModuleByGradlePath(":nested2:trans")?.isDeclared, equalTo(false))
   }

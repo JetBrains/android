@@ -56,7 +56,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   fun testNotSyncedModules() {
     loadProject(TestProjectPaths.PSD_SAMPLE) {
       it.findFileByRelativePath("settings.gradle")!!.let {
-        it.setBinaryContent("include ':app', ':lib' ".toByteArray(it.charset))
+        it.setBinaryContent("include ':app', ':lib', ':dyn_feature' ".toByteArray(it.charset))
       }
     }
 
