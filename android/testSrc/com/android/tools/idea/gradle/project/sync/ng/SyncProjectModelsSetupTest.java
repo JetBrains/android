@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.SyncProjectModelsSetup.renameProject;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -28,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -83,6 +87,19 @@ public class SyncProjectModelsSetupTest extends AndroidGradleTestCase {
     // Verify that NdkFacet and cpp folder doesn't exist.
     assertNull(NdkFacet.getInstance(appModule));
     assertFalse(cppFolderFoundInModule(appModule));
+  }
+
+  public void testRenameProject() {
+    SyncProjectModels projectModels = mock(SyncProjectModels.class);
+    when(projectModels.getProjectName()).thenReturn("newName");
+    Project project = getProject();
+
+    // Verify the default name is test method name.
+    assertEquals("testRenameProject", project.getName());
+    // Invoke method to test.
+    renameProject(projectModels, project);
+    // Verify that project name is updated to the name in SyncProjectModels.
+    assertEquals("newName", project.getName());
   }
 
   private static boolean cppFolderFoundInModule(@NotNull Module module) {
