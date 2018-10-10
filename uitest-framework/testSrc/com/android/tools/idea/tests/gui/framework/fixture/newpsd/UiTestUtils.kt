@@ -18,7 +18,7 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.util.ToolkitProvider
 import sun.awt.SunToolkit
 
-private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 10_000
+private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
