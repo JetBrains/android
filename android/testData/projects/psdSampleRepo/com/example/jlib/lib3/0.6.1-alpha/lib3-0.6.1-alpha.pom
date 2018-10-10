@@ -10,7 +10,7 @@
       <groupId>com.example.jlib</groupId>
       <artifactId>lib4</artifactId>
       <version>0.6.1-alpha</version>
-      <scope>runtime</scope>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>

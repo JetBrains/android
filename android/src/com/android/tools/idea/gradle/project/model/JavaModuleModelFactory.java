@@ -168,10 +168,16 @@ public class JavaModuleModelFactory {
     SourceSet mainSourceSet = sourceSets.getMainSourceSet();
     SourceSet testSourceSet = sourceSets.getTestSourceSet();
     if (mainSourceSet != null && testSourceSet != null) {
-      compilerOutput.setMainClassesDir(mainSourceSet.getClassesOutputDirectory());
+      Iterator<File> classesOutputIterator = mainSourceSet.getClassesOutputDirectories().iterator();
+      if (classesOutputIterator.hasNext()) {
+        compilerOutput.setMainClassesDir(classesOutputIterator.next());
+      }
       compilerOutput.setMainResourcesDir(mainSourceSet.getResourcesOutputDirectory());
 
-      compilerOutput.setTestClassesDir(testSourceSet.getClassesOutputDirectory());
+      Iterator<File> testClassesOutputIterator = testSourceSet.getClassesOutputDirectories().iterator();
+      if (testClassesOutputIterator.hasNext()) {
+        compilerOutput.setTestClassesDir(testClassesOutputIterator.next());
+      }
       compilerOutput.setTestResourcesDir(testSourceSet.getResourcesOutputDirectory());
     }
     return compilerOutput;

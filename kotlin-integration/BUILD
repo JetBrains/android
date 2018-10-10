@@ -82,8 +82,8 @@ maven_repo(
     artifacts = [
         "//prebuilts/tools/common/m2/repository/commons-logging/commons-logging/1.1.1:jar",
         "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.6.5:jar",
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.6.5:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.8.10:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.8.10:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
@@ -106,8 +106,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.2.71:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.71:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core/0.20:jar",
-        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/2.7.1:jar",
-        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.5:jar",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/2.19.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
     ],
 )

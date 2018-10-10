@@ -26,8 +26,8 @@ interface JavaSourceSet {
   val name: String
   val sourceDirectories: Collection<File>
   val resourcesDirectories: Collection<File>
-  val classesOutputDirectory: File
-  val resourcesOutputDirectory: File
+  val classesOutputDirectories: Collection<File>
+  val resourcesOutputDirectory: File?
   val libraryDependencies: Collection<JavaLibrary>
   val moduleDependencies: Collection<ModuleDependency>
 
@@ -35,8 +35,8 @@ interface JavaSourceSet {
     .setName(name)
     .addAllSourceDirectories(sourceDirectories.map { converter.fileToProto(it) })
     .addAllResourcesDirectories(resourcesDirectories.map { converter.fileToProto(it) })
-    .setClassesOutputDirectory(converter.fileToProto(classesOutputDirectory))
-    .setResourcesOutputDirectory(converter.fileToProto(resourcesOutputDirectory))
+    .addAllClassesOutputDirectories(classesOutputDirectories.map { converter.fileToProto(it) })
+    .setResourcesOutputDirectory(resourcesOutputDirectory?.let { converter.fileToProto(it)})
     .addAllLibraryDependencies(libraryDependencies.map { it.toProto(converter) })
     .addAllModuleDependencies(moduleDependencies.map { it.toProto() })
     .build()!!
