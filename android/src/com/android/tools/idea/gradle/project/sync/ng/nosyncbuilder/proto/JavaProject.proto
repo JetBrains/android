@@ -19,7 +19,7 @@ message JavaSourceSet {
     optional string name = 1; // required
     repeated File source_directories = 2;
     repeated File resources_directories = 3;
-    optional File classes_output_directory = 4; // required
+    repeated File classes_output_directories = 4; // required
     optional File resources_output_directory = 5; // required
     repeated JavaLibrary library_dependencies = 6;
     repeated ModuleDependency module_dependencies = 7;

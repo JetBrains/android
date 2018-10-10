@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 
 import java.util.List;
+import org.junit.Ignore;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -30,6 +31,8 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link Gradle4AndPlugin2Dot2ErrorHandler}.
  */
+// Disabled due to b/117515863
+@Ignore
 public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
 
@@ -38,6 +41,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
     super.setUp();
     mySyncMessagesStub = replaceSyncMessagesService(getProject());
   }
+
 
   public void testHandleError() throws Exception {
     loadSimpleApplication_pre3dot0();
