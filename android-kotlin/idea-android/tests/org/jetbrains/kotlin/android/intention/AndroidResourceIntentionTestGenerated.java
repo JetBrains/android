@@ -31,11 +31,13 @@ public class AndroidResourceIntentionTestGenerated extends AbstractAndroidResour
         doTest(fileName);
     }
 
+    /* TODO(b/117439849)
     @TestMetadata("createColorValueResource/simpleFunction/simpleFunction.test")
     public void testCreateColorValueResource_simpleFunction_SimpleFunction() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/resourceIntention/createColorValueResource/simpleFunction/simpleFunction.test");
         doTest(fileName);
     }
+    */
 
     @TestMetadata("createLayoutResourceFile/alreadyExists/alreadyExists.test")
     public void testCreateLayoutResourceFile_alreadyExists_AlreadyExists() throws Exception {
@@ -43,11 +45,13 @@ public class AndroidResourceIntentionTestGenerated extends AbstractAndroidResour
         doTest(fileName);
     }
 
+    /* TODO(b/117439849)
     @TestMetadata("createLayoutResourceFile/simpleFunction/simpleFunction.test")
     public void testCreateLayoutResourceFile_simpleFunction_SimpleFunction() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/resourceIntention/createLayoutResourceFile/simpleFunction/simpleFunction.test");
         doTest(fileName);
     }
+    */
 
     @TestMetadata("createStringValueResource/alreadyExists/alreadyExists.test")
     public void testCreateStringValueResource_alreadyExists_AlreadyExists() throws Exception {
@@ -55,11 +59,13 @@ public class AndroidResourceIntentionTestGenerated extends AbstractAndroidResour
         doTest(fileName);
     }
 
+    /* TODO(b/117439849)
     @TestMetadata("createStringValueResource/simpleFunction/simpleFunction.test")
     public void testCreateStringValueResource_simpleFunction_SimpleFunction() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/resourceIntention/createStringValueResource/simpleFunction/simpleFunction.test");
         doTest(fileName);
     }
+    */
 
     @TestMetadata("kotlinAndroidAddStringResource/activityExtension/activityExtension.test")
     public void testKotlinAndroidAddStringResource_activityExtension_ActivityExtension() throws Exception {
