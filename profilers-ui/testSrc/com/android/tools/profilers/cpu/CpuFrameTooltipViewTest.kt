@@ -81,22 +81,19 @@ class CpuFrameTooltipViewTest {
     assertThat(labels).hasSize(8)
     assertThat(labels[0].text).isEqualTo("00:00.000")
     assertThat(labels[1].text).contains("Total Time:")
-    assertThat(labels[2].text).contains("Main Thread:")
+    assertThat(labels[2].text).contains("Main Thread")
     assertThat(labels[3].text).contains("CPU Time:")
     assertThat(labels[4].text).contains("Wall Time:")
-    assertThat(labels[5].text).contains("Render Thread:")
+    assertThat(labels[5].text).contains("Render Thread")
     assertThat(labels[6].text).contains("CPU Time:")
     assertThat(labels[7].text).contains("Wall Time:")
 
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
-    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
     assertThat(panels).hasSize(4)
 
     assertThat(panels[1].isVisible).isTrue()
     assertThat(panels[2].isVisible).isTrue()
     assertThat(panels[3].isVisible).isTrue()
-
-    assertThat(separator.isVisible).isTrue()
   }
 
   @Test
@@ -105,14 +102,11 @@ class CpuFrameTooltipViewTest {
     val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
-    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
     assertThat(panels).hasSize(4)
 
     assertThat(panels[1].isVisible).isTrue()
     assertThat(panels[2].isVisible).isTrue()
     assertThat(panels[3].isVisible).isFalse()
-
-    assertThat(separator.isVisible).isFalse()
   }
 
   @Test
@@ -121,14 +115,11 @@ class CpuFrameTooltipViewTest {
     val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
-    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
     assertThat(panels).hasSize(4)
 
     assertThat(panels[1].isVisible).isTrue()
     assertThat(panels[2].isVisible).isFalse()
     assertThat(panels[3].isVisible).isTrue()
-
-    assertThat(separator.isVisible).isFalse()
   }
 
   @Test
@@ -137,14 +128,11 @@ class CpuFrameTooltipViewTest {
     val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
-    val separator = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JSeparator>().first()
     assertThat(panels).hasSize(4)
 
     assertThat(panels[1].isVisible).isFalse()
     assertThat(panels[2].isVisible).isFalse()
     assertThat(panels[3].isVisible).isFalse()
-
-    assertThat(separator.isVisible).isFalse()
   }
 
   private class FakeCpuFrameTooltipView(
