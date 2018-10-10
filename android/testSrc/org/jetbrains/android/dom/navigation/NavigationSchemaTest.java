@@ -22,13 +22,17 @@ import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -187,10 +191,15 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private void testQuickValidate(@NotNull @Language("JAVA") String initialContent, @NotNull @Language("JAVA") String newContent,
                                  boolean doesValidate) throws Exception {
     PsiClass navigator = addClass(initialContent);
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     NavigationSchema schema = NavigationSchema.get(myModule).rebuildSchema().get();
     assertTrue(schema.quickValidate());
 
     updateContent(navigator, newContent);
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+    DumbService dumbService = DumbService.getInstance(getProject());
+    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    dumbService.completeJustSubmittedTasks();
     assertEquals(doesValidate, schema.quickValidate());
   }
 
