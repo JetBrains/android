@@ -289,6 +289,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     assertThat(testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_TEST)
     assertThat(testRun.testKind).isEqualTo(TestRun.TestKind.UNIT_TEST)
     assertThat(testRun.numberOfTestsExecuted).isEqualTo(expectedTests.size)
-    assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.7.1")
+    assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.19.0")
   }
 }
