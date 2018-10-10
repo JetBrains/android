@@ -62,7 +62,7 @@ import javax.swing.ListSelectionModel
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
 
 abstract class NavListInspectorProvider<PropertyType : ListProperty>(
-    private val propertyType: Class<PropertyType>, val icon: Icon, val objectName: String)
+    private val propertyType: Class<PropertyType>, val icon: Icon, objectName: String)
   : InspectorProvider<NavPropertiesManager> {
 
   val tooltip = "Add $objectName"
@@ -187,11 +187,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           list.clearSelection()
         }
       })
-      list.emptyText.also {
-        it.text = "Click "
-        it.appendText("+", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
-        it.appendText(" to add ${objectName}s")
-      }
+      list.disableEmptyText()
 
       listOf(*attachListeners.toTypedArray()).forEach { it.invoke(list) }
 
