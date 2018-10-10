@@ -60,6 +60,9 @@ public interface AndroidModel extends GradleDslModel {
   DexOptionsModel dexOptions();
 
   @NotNull
+  ResolvedPropertyModel dynamicFeatures();
+
+  @NotNull
   ExternalNativeBuildModel externalNativeBuild();
 
   @NotNull
