@@ -77,13 +77,13 @@ abstract class StatusPane extends CapturePane {
     // entire panel area.
     JPanel mainPanel = new JPanel(new TabularLayout("*,300px,*", "*,150px,*"));
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    JPanel statusPanel = new JPanel(new TabularLayout("*,Fit,20px,Fit,*","*,Fit,Fit,Fit,Fit,*").setVGap(JBUI.scale(5)));
+    JPanel statusPanel = new JPanel(new TabularLayout("*,Fit,20px,Fit,*","28px,Fit,Fit,Fit,Fit,*").setVGap(JBUI.scale(5)));
     statusPanel.setBorder(new LineBorder(ProfilerColors.CPU_CAPTURE_STATUS, 1));
 
     JLabel status = createLabel("Status", true);
     JLabel actualStatus = createLabel(myStatus, false);
     JLabel duration = createLabel("Duration", true);
-    JLabel technology = createLabel("Technology", true);
+    JLabel technology = createLabel("Type", true);
     JLabel actualTechnology = createLabel(myTechnology, false);
 
     statusPanel.add(status, new TabularLayout.Constraint(1, 1));
@@ -94,7 +94,7 @@ abstract class StatusPane extends CapturePane {
     statusPanel.add(actualTechnology, new TabularLayout.Constraint(3, 3));
 
     // Adds the button centralized in the 3 middle columns (2nd to 4th).
-    statusPanel.add(createButtonPanel(new TabularLayout("*,Fit,*")), new TabularLayout.Constraint(4, 1, 3));
+    statusPanel.add(createButtonPanel(), new TabularLayout.Constraint(4, 3, 1));
 
     mainPanel.add(statusPanel, new TabularLayout.Constraint(1, 1));
     panel.add(mainPanel, BorderLayout.CENTER);
@@ -112,9 +112,9 @@ abstract class StatusPane extends CapturePane {
     return label;
   }
 
-  private JPanel createButtonPanel(TabularLayout layout) {
-    JPanel panel = new JPanel(layout);
-    panel.add(createAbortButton(), new TabularLayout.Constraint(0, 1));
+  private JPanel createButtonPanel() {
+    JPanel panel = new JPanel(new TabularLayout("Fit", "4px,*"));
+    panel.add(createAbortButton(), new TabularLayout.Constraint(1, 0));
     return panel;
   }
 
