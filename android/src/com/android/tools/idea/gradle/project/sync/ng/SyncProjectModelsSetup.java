@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.*;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
@@ -153,6 +154,9 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
         // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
         GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
         cachedModels.addModel(gradleModel);
+      }
+      else {
+        removeAllFacets(myModelsProvider.getModifiableFacetModel(module), GradleFacet.getFacetTypeId());
       }
       GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
       assert gradleProject != null;
