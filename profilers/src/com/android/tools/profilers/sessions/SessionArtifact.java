@@ -31,7 +31,7 @@ import java.io.OutputStream;
  */
 public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable {
 
-  @VisibleForTesting String CAPTURING_SUBTITLE = "Capturing...";
+  @VisibleForTesting String CAPTURING_SUBTITLE = "Recording...";
 
   /**
    * @return the {@link StudioProfilers} instance.
