@@ -36,11 +36,15 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -371,6 +375,22 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
             }
           }
         });
+
+      // When Studio detects that the process is terminated, remove the LAST_RUN_APP_INFO cache to prevent the profilers from waiting
+      // to auto-profiling a process that has already been killed.
+      if (launchStatus instanceof ProcessHandlerLaunchStatus) {
+        ProcessHandler processHandler = ((ProcessHandlerLaunchStatus)launchStatus).getProcessHandler();
+        ProcessAdapter adapter = new ProcessAdapter() {
+          @Override
+          public void processTerminated(@NotNull ProcessEvent event) {
+            myModule.getProject().putUserData(LAST_RUN_APP_INFO, null);
+            // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
+            processHandler.removeProcessListener(this);
+          }
+        };
+        processHandler.addProcessListener(adapter);
+      }
+
       return true;
     }
 
