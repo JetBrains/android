@@ -171,7 +171,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_CPU_NEW_RECORDING_WORKFLOW = Flag.create(
     PROFILER, "cpu.new.recording.workflow", "Enable new CPU recording workflow",
     "Shows recording options and status of the ongoing recording in the method trace pane.",
-    false
+    true
   );
 
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
