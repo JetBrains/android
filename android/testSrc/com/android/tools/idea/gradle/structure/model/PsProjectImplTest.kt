@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
@@ -65,6 +66,42 @@ class PsProjectImplTest : DependencyTestCase() {
 
     project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
     assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+  }
+
+  fun testRemoveDynamicFeatureModule() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
+    assumeThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, equalTo(true))
+    assumeThat(
+      project
+        .findModuleByGradlePath(":app")
+        ?.parsedModel
+        ?.android()
+        ?.dynamicFeatures()
+        ?.getListValue(":dyn_feature")
+        ?.getValue(STRING_TYPE),
+      equalTo(":dyn_feature"))
+
+    project.removeModule(gradlePath = ":dyn_feature")
+    assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, equalTo(false))
+
+    assertThat(project.findModuleByGradlePath(":app")?.isModified, equalTo(true))
+
+    project.applyChanges()  // applyChanges() discards resolved models.
+    assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, nullValue())
+    assertThat(
+      project
+        .findModuleByGradlePath(":app")
+        ?.parsedModel
+        ?.android()
+        ?.dynamicFeatures()
+        ?.getListValue(":dyn_feature")
+        ?.getValue(STRING_TYPE),
+      nullValue())
+
+    project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
+    assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, nullValue())
   }
 
   fun testRemoveMiddleModule() {

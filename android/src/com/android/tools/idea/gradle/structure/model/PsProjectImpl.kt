@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.openapi.application.Result
@@ -65,6 +68,12 @@ class PsProjectImpl(
   }
 
   override fun removeModule(gradlePath: String) {
+    for (module in moduleCollection) {
+      val dynamicFeatures = (module as? PsAndroidModule)?.parsedModel?.android()?.dynamicFeatures() ?: continue
+      val dynamicFeatureItem = dynamicFeatures.getListValue(gradlePath) ?: continue
+      dynamicFeatureItem.delete()
+      module.isModified = true
+    }
     parsedModel.projectSettingsModel?.removeModulePath(gradlePath)
     isModified = true
     moduleCollection.refresh()

@@ -91,6 +91,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
                     buildToolsVersion = "23.0.0"
                     compileSdkVersion = "android-23"
                     defaultPublishConfig = "debug"
+                    dynamicFeatures = [":f1", ":f2"]
                     generatePureSplits = true
                   }""".trimIndent()
 
@@ -101,6 +102,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
   }
@@ -110,6 +112,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val text = """android.buildToolsVersion "23.0.0"
                   android.compileSdkVersion 23
                   android.defaultPublishConfig "debug"
+                  android.dynamicFeatures = [":f1", ":f2"]
                   android.flavorDimensions "abi", "version"
                   android.generatePureSplits true
                   android.publishNonDefault false
@@ -123,6 +126,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -153,6 +157,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
                     buildToolsVersion = "23.0.0"
                     compileSdkVersion 23
                     defaultPublishConfig "debug"
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                     generatePureSplits = true
                     publishNonDefault false
@@ -161,6 +166,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
                   android.buildToolsVersion "21.0.0"
                   android.compileSdkVersion = "android-21"
                   android.defaultPublishConfig "release"
+                  android.dynamicFeatures = [":g1", ":g2"]
                   android.flavorDimensions "abi1", "version1"
                   android.generatePureSplits = false
                   android.publishNonDefault true
@@ -175,6 +181,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "21.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-21", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":g1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi1", "version1"), android.flavorDimensions())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
@@ -302,6 +309,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
                     buildToolsVersion "23.0.0"
                     compileSdkVersion "23"
                     defaultPublishConfig "debug"
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                     generatePureSplits true
                     publishNonDefault false
@@ -317,6 +325,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -325,6 +334,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
     android.defaultPublishConfig().delete()
+    android.dynamicFeatures().delete()
     android.flavorDimensions().delete()
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
@@ -333,6 +343,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
@@ -343,6 +354,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -466,6 +478,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testReplaceAndResetListElements() {
     val text = """android {
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                   }""".trimIndent()
 
@@ -475,12 +488,17 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
+    android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
+
     buildModel.resetState()
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
@@ -495,12 +513,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("xyz")
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
   }
 
@@ -528,6 +550,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testAddToAndResetListElementsWithMultipleArguments() {
     val text = """android {
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                   }""".trimIndent()
     writeToBuildFile(text)
@@ -536,18 +559,24 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
   @Test
   fun testRemoveFromAndResetListElements() {
     val text = """android {
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                   }""".trimIndent()
     writeToBuildFile(text)
@@ -556,12 +585,17 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().getListValue(":f1")!!.delete()
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
 
     android.flavorDimensions().getListValue("version")!!.delete()
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
@@ -699,6 +733,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
                     buildToolsVersion "23.0.0"
                     compileSdkVersion "23"
                     defaultPublishConfig "debug"
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                     generatePureSplits true
                     publishNonDefault false
@@ -714,6 +749,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -722,6 +758,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
     android.defaultPublishConfig().delete()
+    android.dynamicFeatures().delete()
     android.flavorDimensions().delete()
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
@@ -730,6 +767,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
@@ -739,6 +777,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
@@ -1464,6 +1503,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testReplaceAndApplyListElements() {
     val text = """android {
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                   }""".trimIndent()
 
@@ -1472,17 +1512,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
 
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
   }
 
@@ -1496,17 +1542,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
   }
 
@@ -1537,6 +1589,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testAddToAndApplyListElementsWithMultipleArguments() {
     val text = """android {
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                   }""".trimIndent()
 
@@ -1545,23 +1598,30 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
   }
 
   @Test
   fun testRemoveFromAndApplyListElements() {
     val text = """android {
+                    dynamicFeatures = [":f1", ":f2"]
                     flavorDimensions "abi", "version"
                   }""".trimIndent()
     writeToBuildFile(text)
@@ -1569,17 +1629,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().getListValue(":f1")!!.delete()
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
 
     android.flavorDimensions().getListValue("version")!!.delete()
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
   }
 }

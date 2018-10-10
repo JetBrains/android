@@ -48,6 +48,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NonNls private static final String COMPILE_SDK_VERSION = "compileSdkVersion";
   @NonNls public static final String DEFAULT_CONFIG = "defaultConfig";
   @NonNls private static final String DEFAULT_PUBLISH_CONFIG = "defaultPublishConfig";
+  @NonNls private static final String DYNAMIC_FEATURES = "dynamicFeatures";
   @NonNls private static final String FLAVOR_DIMENSIONS = "flavorDimensions";
   @NonNls private static final String GENERATE_PURE_SPLITS = "generatePureSplits";
   @NonNls private static final String PUBLISH_NON_DEFAULT = "publishNonDefault";
@@ -173,6 +174,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
       myDslElement.setNewElement(dexOptionsElement);
     }
     return new DexOptionsModelImpl(dexOptionsElement);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel dynamicFeatures() {
+    return getModelForProperty(DYNAMIC_FEATURES, false);
   }
 
   @NotNull
