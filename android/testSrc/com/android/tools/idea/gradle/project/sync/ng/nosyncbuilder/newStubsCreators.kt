@@ -178,7 +178,7 @@ fun createNewJavaSourceSet(name: String) = NewJavaSourceSet(
   name,
   listOf(File(buildPath, "${name}SourceDirectory")),
   listOf(File(buildPath, "${name}ResourceDirectory")),
-  File(buildPath, "${name}ClassesOutputDirectory"),
+  listOf(File(buildPath, "${name}ClassesOutputDirectory")),
   File(buildPath, "${name}ResourcesOutputDirectory"),
   createNewJavaLibraries(3).values.toList(),
   createNewModuleLibraries(2).values.toList()
