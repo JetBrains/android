@@ -172,7 +172,7 @@ iml_module(
         "android-extensions-idea/tests",
         "idea-android/tests",
     ],
-    test_tags = ["manual"],
+    test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
