@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
@@ -47,6 +47,7 @@ public class SyncProjectModels implements Serializable {
   @NotNull private final List<SyncModuleModels> myModuleModels = new ArrayList<>();
   @NotNull private final List<GlobalLibraryMap> myGlobalLibraryMaps = new ArrayList<>();
   private BuildIdentifier myRootBuildId;
+  private String myProjectName;
 
   public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes,
                            @NotNull Set<Class<?>> extraJavaModelTypes,
@@ -68,6 +69,8 @@ public class SyncProjectModels implements Serializable {
   public void populate(@NotNull BuildController controller) {
     GradleBuild rootBuild = controller.getBuildModel();
     myRootBuildId = rootBuild.getBuildIdentifier();
+    // set project name used by Gradle.
+    myProjectName = rootBuild.getRootProject().getName();
     List<GradleBuild> gradleBuilds = new ArrayList<>();
     // add the root builds.
     gradleBuilds.add(rootBuild);
@@ -181,6 +184,14 @@ public class SyncProjectModels implements Serializable {
   @NotNull
   public BuildIdentifier getRootBuildId() {
     return myRootBuildId;
+  }
+
+  /**
+   * @return the name of root project assigned by Gradle.
+   */
+  @NotNull
+  public String getProjectName() {
+    return myProjectName;
   }
 
   public static class Factory implements Serializable {
