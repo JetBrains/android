@@ -34,7 +34,7 @@ import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.convertToRoundRect
 import com.android.tools.idea.naveditor.scene.flatten
-import com.android.tools.idea.naveditor.scene.scaledFont
+import com.android.tools.idea.naveditor.scene.regularFont
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.util.ui.JBUI
 import java.awt.Font
@@ -63,7 +63,7 @@ object NavigationDecorator : NavBaseDecorator() {
 
     val text = component.nlComponent.includeFileName ?: "Nested Graph"
 
-    val font = scaledFont(sceneContext, Font.BOLD)
+    val font = regularFont(sceneContext, Font.BOLD)
     list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, drawRectangle,
                                textColor(sceneContext, component), font, true))
   }
