@@ -15,10 +15,22 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_BACKGROUND_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.INNER_RADIUS_LARGE;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.INNER_RADIUS_SMALL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIUS_LARGE;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIUS_SMALL;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.*;
+import com.android.tools.idea.common.scene.LerpFloat;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCircle;
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
@@ -32,14 +44,13 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.geom.Point2D;
 import java.util.List;
-
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
@@ -171,7 +182,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     @SwingCoordinate float initialRadius = Coordinates.getSwingDimension(view, myHandleState.myOuterRadius);
     @SwingCoordinate float finalRadius = Coordinates.getSwingDimension(view, newState.myOuterRadius);
-    int duration = (int)Math.abs(DURATION * (finalRadius - initialRadius) / OUTER_RADIUS_LARGE);
+    int duration = (int)Math.abs(DURATION * (myHandleState.myOuterRadius - newState.myOuterRadius) / OUTER_RADIUS_LARGE);
 
     ColorSet colorSet = sceneContext.getColorSet();
     list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, colorSet.getBackground(),
