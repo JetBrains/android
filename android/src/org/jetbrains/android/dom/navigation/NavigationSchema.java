@@ -664,7 +664,6 @@ public class NavigationSchema implements Disposable {
         return false;
       }
 
-      WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
       return myNavigatorCacheKeys.entrySet().stream().allMatch(entry -> entry.getValue().matches(entry.getKey(), this));
     }
   }
