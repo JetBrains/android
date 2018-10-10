@@ -113,7 +113,6 @@ class ArtifactRepositorySearchForm(
     }
 
     resultsTable = TableView(ResultsTableModel())
-    resultsTable.preferredSize = Dimension(520, 320)
 
     resultsTable.setSelectionMode(SINGLE_SELECTION)
     resultsTable.autoCreateRowSorter = true
