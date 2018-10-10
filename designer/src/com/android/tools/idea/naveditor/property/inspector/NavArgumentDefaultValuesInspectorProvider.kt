@@ -23,6 +23,7 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
@@ -104,7 +105,12 @@ class NavArgumentDefaultValuesInspectorProvider : InspectorProvider<NavPropertie
       table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.minimumSize = Dimension(0, 36)
-      table.emptyText.text = "No arguments on the destination"
+      table.emptyText.text = if (components.size == 1 && components[0].isNavigation) {
+        "No start destination arguments"
+      }
+      else {
+        "No arguments"
+      }
       table.isOpaque = false
 
       val nameCellRenderer = JBTextField()
