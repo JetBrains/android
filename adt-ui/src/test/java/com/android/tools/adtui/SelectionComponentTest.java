@@ -27,6 +27,10 @@ import javax.swing.*;
 import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class SelectionComponentTest {
 
@@ -374,7 +378,7 @@ public class SelectionComponentTest {
     SelectionComponent component = new SelectionComponent(new SelectionModel(selectionRange), viewRange);
     Dimension dimension = new Dimension(100, 100);
     component.setSize(dimension);
-    Graphics2D graphics = Mockito.mock(Graphics2D.class);
+    Graphics2D graphics = mock(Graphics2D.class);
     component.draw(graphics, dimension);
     Mockito.verifyZeroInteractions(graphics);
     selectionRange.set(10, 20);
@@ -383,6 +387,23 @@ public class SelectionComponentTest {
     selectionRange.set(0, -1);
     component.draw(graphics, dimension);
     Mockito.verifyZeroInteractions(graphics);
+  }
+
+  @Test
+  public void repaintIsCalledOnMouseMove() {
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    component.setOpaque(false);
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+    // Create an opaque parent for us to intercept the repaint call on.
+    JComponent parent = spy(new JPanel());
+    parent.add(component);
+    // Verify no repaint has been called to this point.
+    verify(parent, times(0)).repaint();
+    // Move and verify we get a repaint.
+    ui.mouse.moveTo(30, 0);
+    verify(parent, times(1)).repaint();
   }
 
   private void shiftAndValidateShift(FakeUi ui, SelectionModel model, FakeKeyboard.Key key, int min, int max) {
