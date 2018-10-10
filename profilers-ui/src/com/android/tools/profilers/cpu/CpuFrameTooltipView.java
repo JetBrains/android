@@ -43,18 +43,15 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
 
   @NotNull private final JLabel myTotalTimeText;
 
-  @NotNull private final JSeparator myFrameSeparator;
-  @NotNull private final JSeparator myTotalTimeSeparator;
-
   protected CpuFrameTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuFrameTooltip tooltip) {
     super(view.getTimeline());
     myTooltip = tooltip;
-    myContent = new JPanel(new TabularLayout("*"));
+    myContent = new JPanel(new TabularLayout("*").setVGap(12));
 
-    myMainFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
+    myMainFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(4)));
 
     JLabel mainThreadLabel = createTooltipLabel();
-    mainThreadLabel.setText("Main Thread:");
+    mainThreadLabel.setText("Main Thread");
     myMainFrameCpuText = createTooltipLabel();
     myMainFrameTotalTimeText = createTooltipLabel();
     myTotalTimeText = createTooltipLabel();
@@ -63,16 +60,10 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     myMainFramePanel.add(myMainFrameCpuText, new TabularLayout.Constraint(2, 0));
     myMainFramePanel.add(myMainFrameTotalTimeText, new TabularLayout.Constraint(4, 0));
 
-    myTotalTimeSeparator = new JSeparator(SwingConstants.HORIZONTAL);
-    myFrameSeparator = new JSeparator(SwingConstants.HORIZONTAL);
-    //TODO (b/77491599): Remove workaround after tabular layout no longer defaults to min size:
-    myFrameSeparator.setMinimumSize(myFrameSeparator.getPreferredSize());
-    myTotalTimeSeparator.setMinimumSize(myTotalTimeSeparator.getPreferredSize());
-
-    myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
+    myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(4)));
 
     JLabel renderThreadLabel = createTooltipLabel();
-    renderThreadLabel.setText("Render Thread:");
+    renderThreadLabel.setText("Render Thread");
     myRenderFrameCpuText = createTooltipLabel();
     myRenderTotalTimeText = createTooltipLabel();
 
@@ -81,10 +72,8 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     myRenderFramePanel.add(myRenderTotalTimeText, new TabularLayout.Constraint(4, 0));
 
     myContent.add(myTotalTimeText, new TabularLayout.Constraint(0, 0));
-    myContent.add(myTotalTimeSeparator, new TabularLayout.Constraint(1, 0));
-    myContent.add(myMainFramePanel, new TabularLayout.Constraint(2, 0));
-    myContent.add(myFrameSeparator, new TabularLayout.Constraint(3, 0));
-    myContent.add(myRenderFramePanel, new TabularLayout.Constraint(4, 0));
+    myContent.add(myMainFramePanel, new TabularLayout.Constraint(1, 0));
+    myContent.add(myRenderFramePanel, new TabularLayout.Constraint(2, 0));
 
     tooltip.addDependency(this).onChange(CpuFrameTooltip.Aspect.FRAME_CHANGED, this::timeChanged);
   }
@@ -99,9 +88,7 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     // hide everything then show the necessary fields later
     myContent.setVisible(false);
     myMainFramePanel.setVisible(false);
-    myFrameSeparator.setVisible(false);
     myRenderFramePanel.setVisible(false);
-    myTotalTimeSeparator.setVisible(false);
     myTotalTimeText.setVisible(false);
 
     AtraceFrame frame = myTooltip.getFrame();
@@ -113,7 +100,6 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
       myMainFramePanel.setVisible(true);
       setLabelText(frame, myMainFrameCpuText, myMainFrameTotalTimeText);
       if (frame.getAssociatedFrame() != null) {
-        myFrameSeparator.setVisible(true);
         myRenderFramePanel.setVisible(true);
         setLabelText(frame.getAssociatedFrame(), myRenderFrameCpuText, myRenderTotalTimeText);
       }
@@ -122,14 +108,12 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
       myRenderFramePanel.setVisible(true);
       setLabelText(frame, myRenderFrameCpuText, myRenderTotalTimeText);
       if (frame.getAssociatedFrame() != null) {
-        myFrameSeparator.setVisible(true);
         myMainFramePanel.setVisible(true);
         setLabelText(frame.getAssociatedFrame(), myMainFrameCpuText, myMainFrameTotalTimeText);
       }
     }
     if (frame.getAssociatedFrame() != null) {
       myTotalTimeText.setVisible(true);
-      myTotalTimeSeparator.setVisible(true);
       long associatedFrameLength = frame.getAssociatedFrame().getDurationUs();
       myTotalTimeText.setText("Total Time: " + TimeFormatter.getSingleUnitDurationString(frame.getDurationUs() + associatedFrameLength));
     }
