@@ -580,6 +580,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
         public String getTooltipFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
             Module module = (Module)((AndroidModuleConfigurable)value).getEditableObject();
+            if (module.isDisposed()) return null;
             return new File(module.getModuleFilePath()).getAbsolutePath();
           }
           return null;
