@@ -15,26 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.tools.idea.uibuilder.api.actions.ActionUtils.getViewOptionsAction;
+
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
-import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
+import com.android.tools.idea.uibuilder.actions.ToggleShowDecorationsAction;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.NestedViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewActionGroup;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.EnumSet;
 import java.util.List;
-
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A view handler is a tool handler for a given Android view class
@@ -139,6 +147,7 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
                                          StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL).setRank(startRank));
     actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
                                          StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL).setRank(startRank + 20));
+    actions.add(getViewOptionsAction());
     // TODO: Gravity, etc
   }
 
