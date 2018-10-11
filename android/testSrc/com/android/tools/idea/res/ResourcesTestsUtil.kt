@@ -19,6 +19,8 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.util.toPathString
+import com.android.projectmodel.SelectiveResourceFolder
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.res.aar.AarSourceResourceRepository
 import com.android.tools.idea.util.toVirtualFile
@@ -49,11 +51,18 @@ fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepositor
   return appResources
 }
 
-
 @JvmOverloads
 fun getTestAarRepository(libraryDirName: String = "my_aar_lib"): AarSourceResourceRepository {
-  return AarSourceResourceRepository.create(
+ return AarSourceResourceRepository.create(
     Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, libraryDirName, "res").toFile(),
+    AAR_LIBRARY_NAME
+  )
+}
+
+fun getTestAarRepositoryWithResourceFolders(libraryDirName: String, vararg resources: String): AarSourceResourceRepository {
+  val root = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, libraryDirName, "res").toPathString()
+  return AarSourceResourceRepository.create(
+    SelectiveResourceFolder(root, resources.map { resource -> root.resolve(resource) }),
     AAR_LIBRARY_NAME
   )
 }
