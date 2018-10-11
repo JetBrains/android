@@ -33,15 +33,15 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-public class AndroidGradlePluginWarningParserTest {
+public class AndroidGradlePluginOutputParserTest {
   @Mock private BuildOutputInstantReader myReader;
   @Mock private Consumer<MessageEvent> myConsumer;
-  @Nullable private AndroidGradlePluginWarningParser myParser;
+  @Nullable private AndroidGradlePluginOutputParser myParser;
 
   @Before
   public void setUp() {
     initMocks(this);
-    myParser = new AndroidGradlePluginWarningParser();
+    myParser = new AndroidGradlePluginOutputParser();
   }
 
   @Test
@@ -83,5 +83,19 @@ public class AndroidGradlePluginWarningParserTest {
     String line = "warning: string 'snowball' has no default translation.\n";
     when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
     assertTrue(myParser.parse(line, myReader, myConsumer));
+  }
+
+  @Test
+  public void testParseAGPError() {
+    String line = "ERROR: Something went wrong!\n";
+    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    assertTrue(myParser.parse(line, myReader, myConsumer));
+  }
+
+  @Test
+  public void testParseJavaError() {
+    String line = "MyClass.java:23 error: Something went REALLY wrong!\n";
+    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    assertFalse(myParser.parse(line, myReader, myConsumer));
   }
 }
