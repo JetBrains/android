@@ -32,8 +32,10 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
+import com.intellij.execution.actions.EditRunConfigurationsAction;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.ide.actions.TemplateProjectSettingsGroup;
+import com.intellij.ide.actions.TemplateProjectStructureAction;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.notification.*;
@@ -91,17 +93,12 @@ public class GradleSpecificInitializer implements Runnable {
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
     {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
 
-  // Id for TemplateProjectSettingsGroup
-  @NotNull public static final String  TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
-
   @Override
   public void run() {
     setUpNewProjectActions();
     setUpInstantRunActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
-    // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
-    replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
     setUpGradleViewToolbarActions();
     checkInstallPath();
 
@@ -207,16 +204,28 @@ public class GradleSpecificInitializer implements Runnable {
       getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
     }
 
-    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
+    AnAction configureIdeaAction = actionManager.getAction(IdeActions.GROUP_WELCOME_SCREEN_CONFIGURE);
     if (configureIdeaAction instanceof DefaultActionGroup) {
       DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
-      AnAction[] children = settingsGroup.getChildren(null);
-      if (children.length == 1) {
-        AnAction child = children[0];
-        if (child instanceof TemplateProjectSettingsGroup) {
-          settingsGroup.replaceAction(child, new AndroidTemplateProjectSettingsGroup());
+      for (AnAction child : settingsGroup.getChildren(null)) {
+        if (child instanceof TemplateProjectStructureAction) {
+          settingsGroup.replaceAction(child, new AndroidTemplateProjectStructureAction());
+        }
+        else if (child instanceof EditRunConfigurationsAction) {
+          settingsGroup.replaceAction(child, new AndroidEditRunConfigurationsAction());
+        }
+        else if (child instanceof EditRunConfigurationsAction) {
+          settingsGroup.replaceAction(child, new AndroidEditRunConfigurationsAction());
         }
       }
+    }
+  }
+
+  private static class AndroidEditRunConfigurationsAction extends EditRunConfigurationsAction {
+    AndroidEditRunConfigurationsAction() {
+      Presentation p = getTemplatePresentation();
+      p.setText("Run Configurations");
+      p.setIcon(AllIcons.ToolbarDecorator.Import);
     }
   }
 
