@@ -109,7 +109,7 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
    * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this method.
    *
    * @param resourceFolder location where the resource files located. It contains a resource directory and a resource list should be loaded.
-   *                      A null resource list indicates that all files contained in {@code resourceFolder#root} should be loaded
+   *                      A null or empty resource list indicates that all files contained in {@code resourceFolder#root} should be loaded
    * @param libraryName the name of the library
    * @return the created resource repository
    */
@@ -205,8 +205,8 @@ public class AarSourceResourceRepository extends LocalResourceRepository impleme
     }
 
     // resourceFileRelativePaths contains resource files to be parsed.
-    // If it's null, whole resource folder should be parsed
-    if (resourceFiles == null) {
+    // If it's null or empty, whole resource folder should be parsed
+    if (resourceFiles == null || resourceFiles.isEmpty()) {
       resourceSet.addSource(resFolder);
     }
     else {
