@@ -76,11 +76,9 @@ public class NewGradleSync implements GradleSync {
   }
 
   public static boolean isSingleVariantSync(@NotNull Project project) {
-    // https://b.corp.google.com/issues/117246373
-    return !GuiTestingService.getInstance().isGuiTestingMode() && (
-      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
-      (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
-       !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
+    return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
+           (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
+            !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC));
   }
 
   public static boolean isCompoundSync(@NotNull Project project) {
