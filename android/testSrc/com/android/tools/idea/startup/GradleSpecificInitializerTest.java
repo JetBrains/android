@@ -18,42 +18,28 @@ package com.android.tools.idea.startup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.actionSystem.*;
 
-import static com.android.tools.idea.startup.GradleSpecificInitializer.TEMPLATE_PROJECT_SETTINGS_GROUP_ID;
+import java.util.Arrays;
+
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link GradleSpecificInitializer}
  */
 public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
-
-  /**
-   * Verify {@link AndroidTemplateProjectSettingsGroup} is used in ActionManager and in Welcome dialog (b/37141013)
-   */
-  public void testAndroidTemplateProjectSettingsGroup() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction action = actionManager.getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
-    assertThat(action).isNotNull();
-    assertThat(action).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
-  }
-
   /**
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in Welcome dialog
    */
   public void testAndroidTemplateProjectSettingsGroupInWelcomeDialog() {
     ActionManager actionManager = ActionManager.getInstance();
-    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
-    assertThat(configureIdeaAction).isNotNull();
-    assertThat(configureIdeaAction).isInstanceOf(DefaultActionGroup.class);
-    DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
-    AnAction[] children = settingsGroup.getChildren(null);
-    assertThat(children).hasLength(1);
-    AnAction child = children[0];
-    assertThat(child).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
+    AnAction[] children = ((ActionGroup)actionManager.getAction(IdeActions.GROUP_WELCOME_SCREEN_CONFIGURE)).getChildren(null);
+    //noinspection OptionalGetWithoutIsPresent
+    AnAction anAction = Arrays.stream(children)
+      .filter(action -> action instanceof AndroidTemplateProjectSettingsGroup)
+      .findFirst()
+      .get();
+    assertThat(anAction).isNotNull();
   }
 
   public void testRefreshProjectsActionIsReplaced() {
