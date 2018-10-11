@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.Log.LogLevel;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
@@ -41,18 +40,23 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListModel;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A UI panel which wraps a console that prints output from Android's logging system.
@@ -60,40 +64,15 @@ import java.util.stream.IntStream;
 public class AndroidLogcatView implements Disposable {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
-  static final AndroidLogcatFilter NO_FILTERS_ITEM = new AndroidLogcatFilter() {
-    @NotNull
-    @Override
-    public String getName() {
-      return NO_FILTERS;
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull String message,
-                                @NotNull String tag,
-                                @NotNull String p,
-                                int processId,
-                                @NotNull LogLevel priority) {
-      return true;
-    }
-  };
-
-  // TODO Refactor all this filter combo box stuff to its own class
-  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new AndroidLogcatFilter() {
-    @NotNull
-    @Override
-    public String getName() {
-      return EDIT_FILTER_CONFIGURATION;
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull String message, @NotNull String tag, @NotNull String p, int pid, @NotNull LogLevel logLevel) {
-      return true;
-    }
-  };
-
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
   static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
+
+  static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(SELECTED_APP_FILTER);
+  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(NO_FILTERS);
+
+  // TODO Refactor all this filter combo box stuff to its own class
+  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(EDIT_FILTER_CONFIGURATION);
 
   private final Project myProject;
   private final FormattedLogcatReceiver myLogcatReceiver;
@@ -397,22 +376,15 @@ public class AndroidLogcatView implements Disposable {
       myFilterComboBoxModel.removeElementAt(0);
     }
 
+    AndroidLogcatFilter filter = client == null ? FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER : new SelectedProcessFilter(client.getPid());
     int insertIndex = 0;
 
-    if (client != null) {
-      AndroidLogcatFilter filter = new DefaultAndroidLogcatFilter.Builder(SELECTED_APP_FILTER)
-        .setPid(client.getPid())
-        .build();
-
-      myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
-    }
+    myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
 
     for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
-      AndroidLogcatFilter filter = filterProvider.getFilter(client);
-      myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
+      myFilterComboBoxModel.insertElementAt(filterProvider.getFilter(client), insertIndex++);
     }
   }
-
 
   /**
    * Update the list of filters which have been created by the user. These show up in the bottom

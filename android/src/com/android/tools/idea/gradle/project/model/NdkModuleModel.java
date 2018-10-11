@@ -107,7 +107,9 @@ public class NdkModuleModel implements ModuleModel {
     }
     if (myVariantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
-      myVariantsByName.put("-----", new NdkVariant("-----", myFeatures.isExportedHeadersSupported()));
+      String dummyVariantAbi = "-----";
+      myVariantsByName.put(dummyVariantAbi, new NdkVariant(dummyVariantAbi, myFeatures.isExportedHeadersSupported()));
+      myVariantNamesByVariantAndAbiName.put(dummyVariantAbi, new NdkVariantName("---", "--"));
     }
   }
 

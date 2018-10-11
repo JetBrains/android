@@ -73,6 +73,26 @@ class AtraceFrameTest {
     assertThat(frame.durationUs).isEqualTo((totalRange.length * SECONDS_TO_US).toLong())
   }
 
+  @Test
+  fun associatedFramesPerfClass() {
+    val bitmapsProcess = myModel.processes[TEST_PID]!!
+    val goodFrame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
+    val badFrame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
+    val goodFrameRange = Range(1.0, 1.01)
+    val badFrameRange = Range(1.0, 10.0)
+    goodFrame.addSlice(bitmapsProcess.threads[0].slices[0], goodFrameRange)
+    assertThat(goodFrame.perfClass).isEqualTo(AtraceFrame.PerfClass.GOOD)
+    badFrame.addSlice(bitmapsProcess.threads[0].slices[0], badFrameRange)
+    assertThat(badFrame.perfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
+
+    goodFrame.associatedFrame = badFrame
+    badFrame.associatedFrame = goodFrame
+    assertThat(goodFrame.totalPerfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
+    assertThat(badFrame.totalPerfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
+
+    assertThat(AtraceFrame.EMPTY.totalPerfClass).isEqualTo(AtraceFrame.PerfClass.NOT_SET)
+  }
+
   fun validateRange(expected: Range, actual: Range) {
     assertThat(expected.min).isWithin(DELTA).of(actual.min)
     assertThat(expected.max).isWithin(DELTA).of(actual.max)

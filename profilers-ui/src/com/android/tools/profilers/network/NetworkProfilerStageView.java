@@ -16,7 +16,6 @@
 package com.android.tools.profilers.network;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
@@ -62,7 +61,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -151,10 +149,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     connectionsPanel.add(infoPanel, CARD_INFO);
 
     JPanel toolbar = new JPanel(createToolbarLayout());
-    toolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-    
+
     JLabel selectionTimeLabel = getSelectionTimeLabel();
-    selectionTimeLabel.setBorder(new JBEmptyBorder(0, 0, 0, 8));
+    selectionTimeLabel.setBorder(JBUI.Borders.empty(8, 0, 0, 8));
     toolbar.add(selectionTimeLabel);
 
     myConnectionsPanel.add(toolbar, new TabularLayout.Constraint(0, 1));

@@ -67,6 +67,13 @@ class CpuFramesViewTest {
   }
 
   @Test
+  fun framesVisibileRowsIsTwo() {
+    val framesView = CpuFramesView(stage)
+    val frames = TreeWalker(framesView.component).descendants().filterIsInstance(JList::class.java).first()
+    assertThat(frames.visibleRowCount).isEqualTo(2)
+  }
+
+  @Test
   fun expandedOnAtrace() {
     val framesView = CpuFramesView(stage)
     val hideablePanel = TreeWalker(framesView.component).descendants().filterIsInstance<HideablePanel>().first()

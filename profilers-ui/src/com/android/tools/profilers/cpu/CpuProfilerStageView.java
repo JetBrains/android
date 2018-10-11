@@ -56,7 +56,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -168,7 +167,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
          .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myToolbar::update);
 
-    stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.MODE, this::onModeChanged);
+    stage.getStudioProfilers().addDependency(this)
+         .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
     getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
@@ -226,7 +226,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
       installProfilingInstructions(myUsageView);
     }
-    onModeChanged();
+    updateCaptureViewVisibility();
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
@@ -317,13 +317,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
 
-  private void onModeChanged() {
+  private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
       mySplitter.setSecondComponent(myCaptureView.getComponent());
-      // Give focus back to CpuProfilerStageView, so keyboard shortcuts (e.g. ESC to clear selection, SPACE to pause/resume timeline) can be
-      // consumed properly. Keyboard shortcuts will be consumed by details panel (e.g. closing the filter panel when pressing ESC) when it
-      // has the focus, which should happen when users explicitly interact with it.
-      SwingUtilities.invokeLater(() -> getComponent().requestFocusInWindow());
     }
   }
 

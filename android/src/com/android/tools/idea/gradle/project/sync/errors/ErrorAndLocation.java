@@ -19,6 +19,7 @@ import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +61,13 @@ class ErrorAndLocation {
       Throwable rootCause = error;
       String location = null;
       while (true) {
+        if (rootCause instanceof LocationAwareExternalSystemException) {
+          LocationAwareExternalSystemException ex = (LocationAwareExternalSystemException)rootCause;
+          VirtualFile errorFile = findFileByIoFile(new File(ex.getFilePath()), true);
+          if (errorFile != null) {
+            return new ErrorAndLocation(createErrorToReport(rootCause), new PositionInFile(errorFile, ex.getLine(), ex.getColumn()));
+          }
+        }
         if (location == null) {
           location = getLocationFrom(rootCause);
         }

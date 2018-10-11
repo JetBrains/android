@@ -25,6 +25,9 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -81,6 +84,8 @@ public class LegendComponent extends AnimatedComponent {
   @NotNull
   private final List<RenderInstruction> myInstructions = new ArrayList<>();
 
+  private final Map<Legend, String> myValuesCache = new HashMap<>();
+
   /**
    * Convenience method for creating a default, horizontal legend component based on a target
    * model. If you want to override defaults, use a {@link Builder} instead.
@@ -99,8 +104,7 @@ public class LegendComponent extends AnimatedComponent {
     myLeftPadding = builder.myLeftPadding;
     myRightPadding = builder.myRightPadding;
     myVerticalPadding = builder.myVerticalPadding;
-    myModel.addDependency(myAspectObserver)
-      .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
     setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(builder.myTextSize));
     modelChanged();
   }
@@ -156,6 +160,28 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private void modelChanged() {
+    boolean valuesChanged = false;
+    // Check for new/modified legends.
+    for (Legend legend : myModel.getLegends()) {
+      boolean isValueCached = myValuesCache.containsKey(legend);
+
+      String value = legend.getValue();
+      String oldValue = myValuesCache.put(legend, value);
+
+      if (!isValueCached || !Objects.equals(value, oldValue)) {
+        valuesChanged = true;
+      }
+    }
+    // Check for stale cached legend values whose Legends are no longer in the model.
+    int cacheSize = myValuesCache.size();
+    myValuesCache.keySet().retainAll(myModel.getLegends());
+    if (myValuesCache.size() != cacheSize) {
+      valuesChanged = true;
+    }
+    if (!valuesChanged) {
+      return;
+    }
+
     Dimension prevSize = getPreferredSize();
 
     myInstructions.clear();

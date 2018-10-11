@@ -52,9 +52,11 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
   @NotNull private final JavaModuleSetup myJavaModuleSetup;
   @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
   @NotNull private final CompositeBuildDataSetup myCompositeBuildDataSetup;
+  @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
 
   CachedProjectModelsSetup(@NotNull Project project,
                            @NotNull IdeModifiableModelsProvider modelsProvider,
+                           @NotNull ExtraGradleSyncModelsManager extraGradleSyncModelsManager,
                            @NotNull GradleModuleSetup gradleModuleSetup,
                            @NotNull AndroidModuleSetup androidModuleSetup,
                            @NotNull NdkModuleSetup ndkModuleSetup,
@@ -63,6 +65,7 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
                            @NotNull ModuleFinder.Factory moduleFinderFactory,
                            @NotNull CompositeBuildDataSetup compositeBuildDataSetup) {
     super(project, modelsProvider, moduleSetupFactory);
+    myExtraModelsManager = extraGradleSyncModelsManager;
     myGradleModuleSetup = gradleModuleSetup;
     myAndroidModuleSetup = androidModuleSetup;
     myNdkModuleSetup = ndkModuleSetup;
@@ -88,6 +91,7 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
 
     ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
 
+    //noinspection deprecation
     JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true /* fail fast */, module -> {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
@@ -100,18 +104,23 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
       return true;
     });
 
+    SetupContextByModuleModel setupContextByModuleModel = new SetupContextByModuleModel();
+
     for (GradleFacet gradleFacet : gradleFacets) {
       String moduleName = gradleFacet.getModule().getName();
       CachedModuleModels moduleModelsCache = projectModels.findCacheForModule(moduleName);
       if (moduleModelsCache != null) {
-        setUpModule(gradleFacet, moduleModelsCache, moduleFinder);
+        getModuleModelFromCache(gradleFacet, moduleModelsCache, moduleFinder, setupContextByModuleModel);
       }
     }
+    setupModuleModels(setupContextByModuleModel, myGradleModuleSetup, myNdkModuleSetup, myAndroidModuleSetup, myJavaModuleSetup,
+                      myExtraModelsManager, true /* sync skipped*/);
   }
 
-  private void setUpModule(@NotNull GradleFacet gradleFacet,
-                           @NotNull CachedModuleModels cache,
-                           @NotNull ModuleFinder moduleFinder) throws ModelNotFoundInCacheException {
+  private void getModuleModelFromCache(@NotNull GradleFacet gradleFacet,
+                                       @NotNull CachedModuleModels cache,
+                                       @NotNull ModuleFinder moduleFinder,
+                                       @NotNull SetupContextByModuleModel setupContexts) throws ModelNotFoundInCacheException {
     Application application = ApplicationManager.getApplication();
     if (!application.isUnitTestMode()) {
       // Tests always run in EDT
@@ -123,23 +132,22 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
     if (gradleModel == null) {
       throw new ModelNotFoundInCacheException(GradleModuleModel.class);
     }
-    myGradleModuleSetup.setUpModule(module, myModelsProvider, gradleModel);
-
     ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, moduleFinder, cache);
+    setupContexts.gradleSetupContexts.put(gradleModel, context);
 
     AndroidModuleModel androidModel = cache.findModel(AndroidModuleModel.class);
     if (androidModel != null) {
-      myAndroidModuleSetup.setUpModule(context, androidModel, true /* sync skipped */);
+      setupContexts.androidSetupContexts.put(androidModel, context);
       NdkModuleModel ndkModel = cache.findModel(NdkModuleModel.class);
       if (ndkModel != null) {
-        myNdkModuleSetup.setUpModule(context, ndkModel, true /* sync skipped */);
+        setupContexts.ndkSetupContexts.put(ndkModel, context);
       }
       return;
     }
 
     JavaModuleModel javaModel = cache.findModel(JavaModuleModel.class);
     if (javaModel != null) {
-      myJavaModuleSetup.setUpModule(context, javaModel, true /* sync skipped */);
+      setupContexts.javaSetupContexts.put(javaModel, context);
     }
   }
 }

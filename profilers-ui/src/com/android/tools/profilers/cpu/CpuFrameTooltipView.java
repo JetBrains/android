@@ -41,7 +41,10 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel myRenderFrameCpuText;
   @NotNull private final JLabel myRenderTotalTimeText;
 
-  @NotNull private final JSeparator mySeparator;
+  @NotNull private final JLabel myTotalTimeText;
+
+  @NotNull private final JSeparator myFrameSeparator;
+  @NotNull private final JSeparator myTotalTimeSeparator;
 
   protected CpuFrameTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuFrameTooltip tooltip) {
     super(view.getTimeline());
@@ -54,14 +57,17 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     mainThreadLabel.setText("Main Thread:");
     myMainFrameCpuText = createTooltipLabel();
     myMainFrameTotalTimeText = createTooltipLabel();
+    myTotalTimeText = createTooltipLabel();
 
     myMainFramePanel.add(mainThreadLabel, new TabularLayout.Constraint(0, 0));
     myMainFramePanel.add(myMainFrameCpuText, new TabularLayout.Constraint(2, 0));
     myMainFramePanel.add(myMainFrameTotalTimeText, new TabularLayout.Constraint(4, 0));
 
-    mySeparator = new JSeparator(SwingConstants.HORIZONTAL);
+    myTotalTimeSeparator = new JSeparator(SwingConstants.HORIZONTAL);
+    myFrameSeparator = new JSeparator(SwingConstants.HORIZONTAL);
     //TODO (b/77491599): Remove workaround after tabular layout no longer defaults to min size:
-    mySeparator.setMinimumSize(mySeparator.getPreferredSize());
+    myFrameSeparator.setMinimumSize(myFrameSeparator.getPreferredSize());
+    myTotalTimeSeparator.setMinimumSize(myTotalTimeSeparator.getPreferredSize());
 
     myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
 
@@ -74,9 +80,11 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     myRenderFramePanel.add(myRenderFrameCpuText, new TabularLayout.Constraint(2, 0));
     myRenderFramePanel.add(myRenderTotalTimeText, new TabularLayout.Constraint(4, 0));
 
-    myContent.add(myMainFramePanel, new TabularLayout.Constraint(0, 0));
-    myContent.add(mySeparator, new TabularLayout.Constraint(1, 0));
-    myContent.add(myRenderFramePanel, new TabularLayout.Constraint(2, 0));
+    myContent.add(myTotalTimeText, new TabularLayout.Constraint(0, 0));
+    myContent.add(myTotalTimeSeparator, new TabularLayout.Constraint(1, 0));
+    myContent.add(myMainFramePanel, new TabularLayout.Constraint(2, 0));
+    myContent.add(myFrameSeparator, new TabularLayout.Constraint(3, 0));
+    myContent.add(myRenderFramePanel, new TabularLayout.Constraint(4, 0));
 
     tooltip.addDependency(this).onChange(CpuFrameTooltip.Aspect.FRAME_CHANGED, this::timeChanged);
   }
@@ -84,27 +92,28 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
   private static void setLabelText(AtraceFrame frame, JLabel cpuText, JLabel totalTimeText) {
     cpuText.setText(String.format("CPU Time: %s", TimeFormatter
       .getSingleUnitDurationString((long)(TimeUnit.SECONDS.toMicros(1) * frame.getCpuTimeSeconds()))));
-    totalTimeText.setText(String.format("Total Time: %s", TimeFormatter.getSingleUnitDurationString(frame.getDurationUs())));
+    totalTimeText.setText(String.format("Wall Time: %s", TimeFormatter.getSingleUnitDurationString(frame.getDurationUs())));
   }
 
   protected void timeChanged() {
     // hide everything then show the necessary fields later
     myContent.setVisible(false);
     myMainFramePanel.setVisible(false);
-    mySeparator.setVisible(false);
+    myFrameSeparator.setVisible(false);
     myRenderFramePanel.setVisible(false);
+    myTotalTimeSeparator.setVisible(false);
+    myTotalTimeText.setVisible(false);
 
     AtraceFrame frame = myTooltip.getFrame();
     if (frame == null || frame == AtraceFrame.EMPTY) {
       return;
     }
     myContent.setVisible(true);
-    
     if (frame.getThread() == AtraceFrame.FrameThread.MAIN) {
       myMainFramePanel.setVisible(true);
       setLabelText(frame, myMainFrameCpuText, myMainFrameTotalTimeText);
       if (frame.getAssociatedFrame() != null) {
-        mySeparator.setVisible(true);
+        myFrameSeparator.setVisible(true);
         myRenderFramePanel.setVisible(true);
         setLabelText(frame.getAssociatedFrame(), myRenderFrameCpuText, myRenderTotalTimeText);
       }
@@ -113,10 +122,16 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
       myRenderFramePanel.setVisible(true);
       setLabelText(frame, myRenderFrameCpuText, myRenderTotalTimeText);
       if (frame.getAssociatedFrame() != null) {
-        mySeparator.setVisible(true);
+        myFrameSeparator.setVisible(true);
         myMainFramePanel.setVisible(true);
         setLabelText(frame.getAssociatedFrame(), myMainFrameCpuText, myMainFrameTotalTimeText);
       }
+    }
+    if (frame.getAssociatedFrame() != null) {
+      myTotalTimeText.setVisible(true);
+      myTotalTimeSeparator.setVisible(true);
+      long associatedFrameLength = frame.getAssociatedFrame().getDurationUs();
+      myTotalTimeText.setText("Total Time: " + TimeFormatter.getSingleUnitDurationString(frame.getDurationUs() + associatedFrameLength));
     }
   }
 

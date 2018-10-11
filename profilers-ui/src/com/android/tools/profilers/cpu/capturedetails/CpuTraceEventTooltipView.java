@@ -21,6 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDurationData;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.model.legend.EventLegend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -85,7 +86,7 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
     @NotNull private final EventLegend<DefaultDurationData> myIdleDurationLegend;
 
     public TraceEventTooltipLegends() {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super();
       myRunningDurationLegend = new EventLegend<>("Running", e -> TimeFormatter.getSingleUnitDurationString(e.getDurationUs()));
       myIdleDurationLegend = new EventLegend<>("Idle", e -> TimeFormatter.getSingleUnitDurationString(e.getDurationUs()));
 

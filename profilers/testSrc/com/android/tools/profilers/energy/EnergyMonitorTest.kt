@@ -142,13 +142,17 @@ class EnergyMonitorTest {
     monitor.enter()
     timer.tick(1)
     assertThat(usageUpdated).isTrue() // LineChartModel always updates on first update.
-    assertThat(legendUpdated).isTrue()
-    assertThat(tooltipLegendUpated).isTrue() // Tooltip legend changed from null to "N/A"
+    assertThat(legendUpdated).isFalse()
+    assertThat(tooltipLegendUpated).isFalse()
     assertThat(axisUpdated).isTrue() // This would change since it's first update.
     usageUpdated = false
 
     profilers.timeline.viewRange.set(1.0, 2.0)
     assertThat(usageUpdated).isTrue() // This should trigger a LINE_CHART aspect since the view range changed.
+    profilers.timeline.dataRange.set(1.0, 2.0)
+    assertThat(legendUpdated).isTrue()
+    profilers.timeline.tooltipRange.set(1.0, 1.0)
+    assertThat(tooltipLegendUpated).isTrue()
   }
 
   @Test
@@ -157,12 +161,6 @@ class EnergyMonitorTest {
     var usageUpdated = false
     monitor.usage.addDependency(observer).onChange(
         LineChartModel.Aspect.LINE_CHART, { usageUpdated = true })
-    var legendUpdated = false
-    monitor.legends.addDependency(observer).onChange(
-        LegendComponentModel.Aspect.LEGEND, { legendUpdated = true })
-    var tooltipLegendUpated = false
-    monitor.tooltipLegends.addDependency(observer).onChange(
-        LegendComponentModel.Aspect.LEGEND, { tooltipLegendUpated = true})
     var axisUpdated = false
     monitor.axis.addDependency(observer).onChange(
       AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
@@ -170,8 +168,6 @@ class EnergyMonitorTest {
     monitor.exit()
     timer.tick(1)
     assertThat(usageUpdated).isFalse()
-    assertThat(legendUpdated).isFalse()
-    assertThat(tooltipLegendUpated).isFalse()
     assertThat(axisUpdated).isFalse()
   }
 }

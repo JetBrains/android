@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static java.util.Arrays.asList;
 
 /**
  * Factory class to create JavaModuleModel instance from JavaProject returned by Java Library plugin.
@@ -65,17 +66,24 @@ public class JavaModuleModelFactory {
 
   @NotNull
   private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject) {
-    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
-    // Manually add build directory.
-    Collection<File> excludeFolderPaths = Collections.singletonList(gradleProject.getBuildDirectory());
     JavaModuleContentRoot contentRoot = new JavaModuleContentRoot(moduleFolderPath,
                                                                   Collections.emptyList() /* source folders */,
                                                                   Collections.emptyList() /* generated source folders */,
                                                                   Collections.emptyList() /* resource folders */,
                                                                   Collections.emptyList() /* test folders */,
                                                                   Collections.emptyList() /* generated test folders */,
-                                                                  Collections.emptyList() /* test resource folders */, excludeFolderPaths);
+                                                                  Collections.emptyList() /* test resource folders */,
+                                                                  getExcludedFolders(gradleProject));
     return Collections.singleton(contentRoot);
+  }
+
+  @NotNull
+  private static Collection<File> getExcludedFolders(@NotNull GradleProject gradleProject) {
+    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
+    // Add build directory, and .build directory, which are the default excluded directories by idea plugin, see
+    // https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:excludeDirs
+    return asList(gradleProject.getBuildDirectory(),
+                  new File(gradleProject.getProjectDirectory(), ".gradle"));
   }
 
   @NotNull
@@ -190,17 +198,13 @@ public class JavaModuleModelFactory {
       }
     }
 
-    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
-    // Manually add build directory.
-    Collection<File> excludeFolderPaths = new ArrayList<>();
-    excludeFolderPaths.add(gradleProject.getBuildDirectory());
-
     // Generated sources and generated test sources come from idea plugin, leave them empty for now.
     JavaModuleContentRoot contentRoot = new JavaModuleContentRoot(moduleFolderPath, sourceFolderPaths,
                                                                   Collections.emptyList() /* generated source folders */,
                                                                   resourceFolderPaths, testFolderPaths,
                                                                   Collections.emptyList() /* test generated source folders */,
-                                                                  testResourceFolderPaths, excludeFolderPaths);
+                                                                  testResourceFolderPaths,
+                                                                  getExcludedFolders(gradleProject));
     return Collections.singleton(contentRoot);
   }
 

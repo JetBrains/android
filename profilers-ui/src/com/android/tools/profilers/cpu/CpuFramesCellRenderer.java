@@ -134,7 +134,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
                                                             public Color getColor(boolean isMouseOver,
                                                                                   @NotNull AtraceFrame value) {
                                                               boolean isHighlighted = isFrameHighlighted(value);
-                                                              switch (value.getPerfClass()) {
+                                                              switch (value.getTotalPerfClass()) {
                                                                 case BAD:
                                                                   return isHighlighted
                                                                          ? ProfilerColors.SLOW_FRAME_COLOR_HIGHLIGHTED
@@ -152,7 +152,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
       @Override
       public String convertToString(@NotNull AtraceFrame value) {
         // Show timings on bad frames.
-        if (value.getPerfClass() == AtraceFrame.PerfClass.BAD) {
+        if (value.getTotalPerfClass() == AtraceFrame.PerfClass.BAD) {
           return TimeFormatter.getSingleUnitDurationString(value.getDurationUs());
         }
         return "";

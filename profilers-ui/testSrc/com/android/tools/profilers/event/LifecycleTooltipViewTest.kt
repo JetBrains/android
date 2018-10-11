@@ -82,7 +82,7 @@ class LifecycleTooltipViewTest {
     assertThat(myActivityTooltipView.headingText).isEqualTo("00:01.001")
     assertThat(myActivityTooltipView.activityNameText).isEqualTo(ACTIVITY_NAME)
 
-    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - Resumed", "TestFragment2 - Resumed"))
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - resumed", "TestFragment2 - resumed"))
     assertThat(myActivityTooltipView.durationText).isEqualTo("00:01.000 - 00:04.000")
 
     // Check text when hovering over activity bar.
@@ -99,7 +99,7 @@ class LifecycleTooltipViewTest {
     myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
     assertThat(myActivityTooltipView.headingText).isEqualTo("00:05.000")
     assertThat(myActivityTooltipView.activityNameText).isEqualTo("")
-    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - Paused", "TestFragment2 - Paused"))
+    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - paused", "TestFragment2 - paused"))
     assertThat(myActivityTooltipView.durationText).isEqualTo("")
   }
 

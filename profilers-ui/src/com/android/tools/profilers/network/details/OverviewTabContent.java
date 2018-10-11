@@ -28,7 +28,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.dataviewer.ImageDataViewer;
@@ -221,7 +220,7 @@ final class OverviewTabContent extends TabContent {
 
     Legend sentLegend = new FixedLegend("Sent", TIME_FORMATTER.apply(sentTime));
     Legend receivedLegend = new FixedLegend("Received", TIME_FORMATTER.apply(receivedTime));
-    LegendComponentModel legendModel = new LegendComponentModel(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+    LegendComponentModel legendModel = new LegendComponentModel();
     legendModel.add(sentLegend);
     legendModel.add(receivedLegend);
 
@@ -232,7 +231,6 @@ final class OverviewTabContent extends TabContent {
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));
     legend.configure(receivedLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.RECEIVING)));
-    legendModel.update(1);
     panel.add(legend);
 
     return panel;

@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -94,38 +95,98 @@ class CpuProfilingConfigPanelTest {
   }
 
   @Test
+  fun fieldsAreDisabledWithAtraceSet() {
+    myConfigPanel.setConfiguration(
+      ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.ATRACE, CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE), false)
+
+    val treeWalker = TreeWalker(myConfigPanel.component)
+    // All elements are enabled in non-default config.
+    radioButtonsValidation(treeWalker, true, true, true, true)
+    // Atrace has file size disabled by default.
+    fileSizeButtonValidation(treeWalker, false)
+    sampleSizeValidation(treeWalker, false)
+    liveAllocationValidation(treeWalker, true)
+  }
+
+  @Test
+  fun fieldsAreEnabledWithArtSampled() {
+    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.SAMPLED),
+                                   false)
+
+    val treeWalker = TreeWalker(myConfigPanel.component)
+    // All elements are enabled in non-default config.
+    radioButtonsValidation(treeWalker, true, true, true, true)
+    // Atrace has file size disabled by default.
+    fileSizeButtonValidation(treeWalker, false)
+    sampleSizeValidation(treeWalker, true)
+    liveAllocationValidation(treeWalker, true)
+  }
+
+  @Test
+  fun fieldsAreEnabledWithArtInstrumented() {
+    myConfigPanel.setConfiguration(
+      ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.INSTRUMENTED), false)
+
+    val treeWalker = TreeWalker(myConfigPanel.component)
+    // All elements are enabled in non-default config.
+    radioButtonsValidation(treeWalker, true, true, true, true)
+    // Atrace has file size disabled by default.
+    fileSizeButtonValidation(treeWalker, false)
+    sampleSizeValidation(treeWalker, false)
+    liveAllocationValidation(treeWalker, true)
+  }
+
+  @Test
+  fun fieldsAreEnabledWithSimplePerf() {
+    myConfigPanel.setConfiguration(
+      ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED), false)
+
+    val treeWalker = TreeWalker(myConfigPanel.component)
+    // All elements are enabled in non-default config.
+    radioButtonsValidation(treeWalker, true, true, true, true)
+    // Atrace has file size disabled by default.
+    fileSizeButtonValidation(treeWalker, false)
+    sampleSizeValidation(treeWalker, true)
+    liveAllocationValidation(treeWalker, true)
+  }
+
+  @Test
   fun testUsingDefaultConfiguration() {
     myConfigPanel.setConfiguration(ProfilingConfiguration(), true)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     assertThat(myConfigPanel.preferredFocusComponent.isEnabled).isFalse()
+    radioButtonsValidation(treeWalker, false, false, false, false)
+    fileSizeButtonValidation(treeWalker, false)
+    sampleSizeValidation(treeWalker, false)
+    liveAllocationValidation(treeWalker, false)
+  }
 
-    val artSampledButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
-      it.text == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName()
-    }
-    val artInstrumentedButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
-      it.text == CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName()
-    }
-    val simpleperfButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
-      it.text == CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName()
-    }
-    val artSampledDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ART_SAMPLED_DESCRIPTION
-    }
-    val artInstrumentedDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ART_INSTRUMENTED_DESCRIPTION
-    }
-    val simpleperfDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.SIMPLEPERF_DESCRIPTION
+  fun liveAllocationValidation(treeWalker: TreeWalker, enabled: Boolean) {
+    val disableLiveAllocation = treeWalker.descendants().filterIsInstance<JCheckBox>().first()
+    val disableLiveAllocationDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.DISABLE_LIVE_ALLOCATION_DESCRIPTION
     }
 
-    assertThat(artSampledButton.isEnabled).isFalse()
-    assertThat(artInstrumentedButton.isEnabled).isFalse()
-    assertThat(simpleperfButton.isEnabled).isFalse()
-    assertThat(artSampledDescription.isEnabled).isFalse()
-    assertThat(artInstrumentedDescription.isEnabled).isFalse()
-    assertThat(simpleperfDescription.isEnabled).isFalse()
+    assertThat(disableLiveAllocation.isEnabled).isSameAs(enabled)
+    assertThat(disableLiveAllocationDescription.isEnabled).isSameAs(enabled)
+  }
 
+  fun sampleSizeValidation(treeWalker: TreeWalker, enabled: Boolean) {
+    val samplingInterval = treeWalker.descendants().filterIsInstance<JSpinner>().first()
+    val samplingIntervalText = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.SAMPLING_INTERVAL
+    }
+    val samplingIntervalUnit = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.SAMPLING_INTERVAL_UNIT
+    }
+
+    assertThat(samplingInterval.isEnabled).isSameAs(enabled)
+    assertThat(samplingIntervalText.isEnabled).isSameAs(enabled)
+    assertThat(samplingIntervalUnit.isEnabled).isSameAs(enabled)
+  }
+
+  fun fileSizeButtonValidation(treeWalker: TreeWalker, enabled: Boolean) {
     val fileSize = treeWalker.descendants().filterIsInstance<JSlider>().first()
     val fileSizeLimit = treeWalker.descendants().filterIsInstance<JLabel>().first {
       it.text == String.format("%d MB", ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB)
@@ -137,30 +198,49 @@ class CpuProfilingConfigPanelTest {
       it.text == CpuProfilingConfigPanel.FILE_SIZE_LIMIT_DESCRIPTION
     }
 
-    assertThat(fileSize.isEnabled).isFalse()
-    assertThat(fileSizeLimit.isEnabled).isFalse()
-    assertThat(fileSizeLimitText.isEnabled).isFalse()
-    assertThat(fileSizeLimitDescription.isEnabled).isFalse()
+    assertThat(fileSize.isEnabled).isSameAs(enabled)
+    assertThat(fileSizeLimit.isEnabled).isSameAs(enabled)
+    assertThat(fileSizeLimitText.isEnabled).isSameAs(enabled)
+    assertThat(fileSizeLimitDescription.isEnabled).isSameAs(enabled)
+  }
 
-    val samplingInterval = treeWalker.descendants().filterIsInstance<JSpinner>().first()
-    val samplingIntervalText = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.SAMPLING_INTERVAL
+  fun radioButtonsValidation(treeWalker: TreeWalker,
+                             artEnabled: Boolean,
+                             simplePerfEnabled: Boolean,
+                             artInstEnabled: Boolean,
+                             aTraceEnabled: Boolean) {
+    val artSampledButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
+      it.text == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName()
     }
-    val samplingIntervalUnit = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.SAMPLING_INTERVAL_UNIT
+    val artInstrumentedButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
+      it.text == CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName()
     }
-
-    assertThat(samplingInterval.isEnabled).isFalse()
-    assertThat(samplingIntervalText.isEnabled).isFalse()
-    assertThat(samplingIntervalUnit.isEnabled).isFalse()
-
-    val disableLiveAllocation = treeWalker.descendants().filterIsInstance<JCheckBox>().first()
-    val disableLiveAllocationDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.DISABLE_LIVE_ALLOCATION_DESCRIPTION
+    val simpleperfButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
+      it.text == CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName()
     }
-
-    assertThat(disableLiveAllocation.isEnabled).isFalse()
-    assertThat(disableLiveAllocationDescription.isEnabled).isFalse()
+    val atraceButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
+      it.text == CpuProfilerConfig.Technology.ATRACE.getName()
+    }
+    val artSampledDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.ART_SAMPLED_DESCRIPTION
+    }
+    val artInstrumentedDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.ART_INSTRUMENTED_DESCRIPTION
+    }
+    val simpleperfDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.SIMPLEPERF_DESCRIPTION
+    }
+    val aTraceDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == CpuProfilingConfigPanel.ATRACE_DESCRIPTION
+    }
+    assertThat(artSampledButton.isEnabled).isSameAs(artEnabled)
+    assertThat(artInstrumentedButton.isEnabled).isSameAs(artInstEnabled)
+    assertThat(simpleperfButton.isEnabled).isSameAs(simplePerfEnabled)
+    assertThat(atraceButton.isEnabled).isSameAs(aTraceEnabled)
+    assertThat(artSampledDescription.isEnabled).isSameAs(artEnabled)
+    assertThat(artInstrumentedDescription.isEnabled).isSameAs(artInstEnabled)
+    assertThat(simpleperfDescription.isEnabled).isSameAs(simplePerfEnabled)
+    assertThat(aTraceDescription.isEnabled).isSameAs(aTraceEnabled)
   }
 
   @Test

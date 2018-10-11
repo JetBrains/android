@@ -151,7 +151,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     mLineChartModel.addAll(mRangedData);
 
-    mLegendComponentModel = new LegendComponentModel(100);
+    mLegendComponentModel = new LegendComponentModel(mTimeViewRangeUs);
     SeriesLegend legend = new SeriesLegend(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs);
     mLegendComponentModel.add(legend);
     mLegendComponent = new LegendComponent(mLegendComponentModel);
@@ -166,8 +166,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     // The comment on each line highlights why the component needs to be in that position.
     return Arrays.asList(mAnimatedTimeRange, // Update global time range immediate.
                          mLineChartModel, // Set y's interpolation values.
-                         mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
-                         mLegendComponentModel); // Reset flags.
+                         mMemoryAxisModel2); // Sync with mMemoryAxis1 if enabled.
   }
 
   @Override
