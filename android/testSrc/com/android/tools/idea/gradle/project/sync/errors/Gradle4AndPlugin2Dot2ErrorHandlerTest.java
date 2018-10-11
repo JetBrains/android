@@ -21,7 +21,10 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -32,6 +35,15 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+
+  @Override
+  @NotNull
+  protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
+    File file = super.prepareProjectForImport(srcRoot, projectRoot);
+    // Force test to use Gradle 4.10.1.
+    createGradleWrapper(projectRoot, "4.10.1");
+    return file;
+  }
 
   @Override
   public void setUp() throws Exception {
