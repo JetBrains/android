@@ -21,7 +21,6 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -30,6 +29,7 @@ import com.android.tools.profilers.cpu.CpuProfilingConfigurationView;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -48,6 +48,11 @@ import sun.swing.SwingUtilities2;
 class RecordingInitiatorPane extends CapturePane {
   @VisibleForTesting
   static final String HELP_TIP_TITLE = "Thread details unavailable";
+
+  @VisibleForTesting
+  static final String LEARN_MORE_MESSAGE = "Learn more";
+
+  private static final String CONFIGURATIONS_URL = "https://d.android.com/r/studio-ui/profiler/cpu-recording-mode";
 
   @NotNull private final CpuProfilingConfigurationView myConfigsView;
   @NotNull private final JButton myRecordButton;
@@ -79,21 +84,28 @@ class RecordingInitiatorPane extends CapturePane {
     }
 
     // TODO(b/109661512): Remove |JBUI.scale(10)| once the issue is fixed.
-    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,*").setVGap(JBUI.scale(10)));
+    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,Fit,*").setVGap(JBUI.scale(10)));
 
     JLabel label = new JLabel("Select CPU Profiling mode");
     label.setFont(ProfilerFonts.H2_FONT);
     label.setForeground(StandardColors.TEXT_COLOR);
 
+    // We're using |HyperlinkLabel| instead of |JLabel|, otherwise it will not be aligned with "learn more"
+    // and will have a different style, unfortunately |HyperlinkLabel| doesn't allow a custom font size.
+    HyperlinkLabel technologyDescription = new HyperlinkLabel();
     ProfilingConfiguration config = myStageView.getStage().getProfilerConfigModel().getProfilingConfiguration();
-    JLabel technologyDescription = new JLabel(ProfilingTechnology.fromConfig(config).getDescription());
-    technologyDescription.setFont(ProfilerFonts.STANDARD_FONT);
+    technologyDescription.setHyperlinkText(ProfilingTechnology.fromConfig(config).getDescription(), "", "");
     technologyDescription.setForeground(StandardColors.TEXT_COLOR);
+
+    HyperlinkLabel learnMore = new HyperlinkLabel();
+    learnMore.setHyperlinkText(LEARN_MORE_MESSAGE);
+    learnMore.setHyperlinkTarget(CONFIGURATIONS_URL);
 
     content.add(label, new TabularLayout.Constraint(1, 1));
     content.add(myConfigsView.getComponent(), new TabularLayout.Constraint(2, 1));
     content.add(myRecordButton, new TabularLayout.Constraint(2, 2));
     content.add(technologyDescription, new TabularLayout.Constraint(3, 1, 3));
+    content.add(learnMore, new TabularLayout.Constraint(4, 1));
 
     panel.add(content, BorderLayout.CENTER);
   }
