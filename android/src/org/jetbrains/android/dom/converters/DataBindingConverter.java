@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+
 import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
@@ -25,10 +27,23 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.ElementManipulator;
+import com.intellij.psi.ElementManipulators;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.impl.PsiJavaParserFacadeImpl;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -36,16 +51,14 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+import org.jetbrains.android.AndroidResolveScopeEnlarger;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The converter for "type" attribute of "import" element in databinding layouts.
@@ -83,7 +96,10 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     String qualifiedName = DataBindingUtil.resolveImport(type, dataBindingInfo);
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+    GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
+                                           project,
+                                           context.getFile());
+
     if (!qualifiedName.isEmpty() && qualifiedName.indexOf('.') < 0) {
       if (Character.isLowerCase(qualifiedName.charAt(0))) {
         PsiPrimitiveType primitiveType = PsiJavaParserFacadeImpl.getPrimitiveType(qualifiedName);
@@ -272,9 +288,14 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
         return aPackage;
       }
 
-      PsiClass aClass = facade.findClass(myReferenceTo, myModule != null
-                                                        ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
-                                                        : myElement.getResolveScope());
+      Module module = myModule;
+      GlobalSearchScope scope = module != null
+                                ? module.getModuleWithDependenciesAndLibrariesScope(false)
+                                : myElement.getResolveScope();
+
+      scope = enlargeScope(scope, myElement.getProject(), myElement.getContainingFile());
+
+      PsiClass aClass = facade.findClass(myReferenceTo, scope);
       if (aClass != null) {
         return aClass;
       }
@@ -309,6 +330,26 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       }
       return super.bindToElement(element);
     }
+  }
+
+  /**
+   * Returns a new {@link GlobalSearchScope} enlarged with the right light classes (see {@link AndroidResolveScopeEnlarger}).
+   *
+   * <p>Usually this happens automatically, as the resolution process calls {@link PsiElement#getResolveScope()} of the {@link PsiReference}
+   * element which in turn calls into {@link com.intellij.psi.impl.ResolveScopeManager} which uses the
+   * {@link com.intellij.psi.ResolveScopeEnlarger} extension. Unfortunately this doesn't work in XML, because
+   * {@link com.intellij.psi.xml.XmlFile} implements {@link com.intellij.psi.FileResolveScopeProvider} by returning the "all scope" and that
+   * doesn't work with light R classes (because their virtual files are made up and don't belong to the project).
+   *
+   * @see AndroidResolveScopeEnlarger
+   * @see com.intellij.psi.impl.ResolveScopeManager
+   */
+  private static GlobalSearchScope enlargeScope(GlobalSearchScope scope, Project project, PsiFile psiFile) {
+    SearchScope lightClassesScope = new AndroidResolveScopeEnlarger().getAdditionalResolveScope(psiFile.getVirtualFile(), project);
+    if (lightClassesScope != null) {
+      scope = scope.union(lightClassesScope);
+    }
+    return scope;
   }
 
   private static class ClassReference extends PsiReferenceBase<PsiElement> {
