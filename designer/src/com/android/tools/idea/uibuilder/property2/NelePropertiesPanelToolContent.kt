@@ -27,6 +27,8 @@ import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvide
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.event.KeyAdapter
@@ -40,7 +42,8 @@ private const val ADVANCED_PAGE = "Advanced"
 /**
  * Create the models and views for the properties tool content.
  */
-class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout()), ToolContent<DesignSurface> {
+class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
+  : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val componentModel = NelePropertiesModel(this, facet)
   private val componentView = PropertiesView(VIEW_NAME, componentModel)
   private val motionModel = MotionLayoutAttributesModel(this)
@@ -57,6 +60,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
 
   init {
+    Disposer.register(parentDisposable, this)
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)

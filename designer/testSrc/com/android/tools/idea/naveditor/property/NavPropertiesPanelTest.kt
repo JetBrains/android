@@ -21,10 +21,11 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.HashBasedTable
-import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class NavPropertiesPanelTest : NavTestCase() {
   @Suppress("UNCHECKED_CAST")
@@ -35,14 +36,13 @@ class NavPropertiesPanelTest : NavTestCase() {
       }
     }
 
-    val navPropertiesManager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(myRootDisposable, navPropertiesManager)
+    val navPropertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
     val inspectorProviders = mock(NavInspectorProviders::class.java)
     val inspector1 = mock(InspectorComponent::class.java) as InspectorComponent<NavPropertiesManager>
     val inspector2 = mock(InspectorComponent::class.java) as InspectorComponent<NavPropertiesManager>
     `when`(inspectorProviders.createInspectorComponents(any(), any(), any())).thenReturn(listOf(inspector1, inspector2))
     val selectedItems = listOf(model.find("f1")!!)
-    navPropertiesManager.myProviders = inspectorProviders;
+    navPropertiesManager.myProviders = inspectorProviders
     navPropertiesManager.propertiesPanel.setItems(selectedItems, HashBasedTable.create())
 
     model.resourcesChanged(setOf(ResourceNotificationManager.Reason.EDIT))

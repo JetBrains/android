@@ -28,4 +28,4 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class NelePropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
   ToolWindowDefinition<DesignSurface>("Attributes", StudioIcons.Shell.ToolWindows.ATTRIBUTES, "PROPERTIES", side, split, autoHide,
-    { NelePropertiesPanelToolContent(facet) })
+    { NelePropertiesPanelToolContent(facet, it) })

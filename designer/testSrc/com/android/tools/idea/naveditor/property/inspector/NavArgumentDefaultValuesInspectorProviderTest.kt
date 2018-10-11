@@ -26,7 +26,6 @@ import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.table.JBTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import org.mockito.Mockito.mock
@@ -49,7 +48,7 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
       }
     }
     val provider = NavArgumentDefaultValuesInspectorProvider()
-    val manager = NavPropertiesManager(myFacet, model.surface)
+    val manager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
     val component1 = model.find("component1")!!
     val component2 = model.find("component2")!!
     val popAction = model.find("pop")!!
@@ -73,8 +72,6 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
     assertFalse(
       provider.isApplicable(listOf(popAction), mapOf("Arguments" to NavArgumentDefaultValuesProperty(listOf(component1), manager)),
                             manager))
-
-    Disposer.dispose(manager)
   }
 
   fun testListContent() {
@@ -95,7 +92,7 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
     }
 
     val panel = NavInspectorPanel(myRootDisposable)
-    val navPropertiesManager = NavPropertiesManager(myFacet, model.surface)
+    val navPropertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
     panel.setComponent(listOf(model.find("a1")!!), HashBasedTable.create<String, String, NlProperty>(),
                        navPropertiesManager)
 
@@ -132,7 +129,6 @@ class NavArgumentDefaultValuesInspectorProviderTest : NavTestCase() {
     assertEquals(null, (argumentsTable.getValueAt(0, 2) as NlProperty).value)
     assertEquals("arg2", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
     assertEquals("foo", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
-    Disposer.dispose(navPropertiesManager)
   }
 
   private fun setValue(value: String, row: Int, column: Int, argumentsTable: JBTable) {

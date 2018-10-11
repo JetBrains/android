@@ -16,7 +16,10 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LABEL
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -27,9 +30,11 @@ import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.naveditor.property.editors.ChildDestinationsEditor
 import com.android.tools.idea.naveditor.property.editors.SourceGraphEditor
 import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEditor
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ACTION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA_PATTERN
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 
 class NavPropertiesInspectorProvidersTest : NavTestCase() {
 
@@ -52,12 +57,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
       }
     }
 
-    propertiesManager = NavPropertiesManager(myFacet, model.surface)
-  }
-
-  override fun tearDown() {
-    Disposer.dispose(propertiesManager)
-    super.tearDown()
+    propertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
   }
 
   fun testFragmentInspector() {

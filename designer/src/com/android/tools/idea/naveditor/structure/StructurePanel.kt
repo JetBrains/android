@@ -25,8 +25,8 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.Factory
 import com.intellij.ui.JBColor
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.JBUI
@@ -34,7 +34,11 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class StructurePanel : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurface> {
+class StructurePanel(parentDisposable: Disposable) : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurface> {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   private var backPanel: BackPanel? = null
   private var destinationList: DestinationList? = null
@@ -98,6 +102,6 @@ class StructurePanel : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurf
 
   class StructurePanelDefinition : ToolWindowDefinition<DesignSurface>("Destinations", AllIcons.Toolwindows.ToolWindowHierarchy,
                                                                        "structure", Side.LEFT, Split.TOP, AutoHide.DOCKED,
-                                                                       Factory<ToolContent<DesignSurface>> { StructurePanel() })
+                                                                       { StructurePanel(it) })
 
 }

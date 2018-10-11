@@ -43,9 +43,8 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
   fun testIsApplicable() {
     val provider = NavDeeplinkInspectorProvider()
     val surface = Mockito.mock(NavDesignSurface::class.java)
-    Disposer.register(project, surface)
-    val manager = NavPropertiesManager(myFacet, surface)
-    Disposer.register(project, manager)
+    Disposer.register(myRootDisposable, surface)
+    val manager = NavPropertiesManager(myFacet, surface, myRootDisposable)
     val component1 = Mockito.mock(NlComponent::class.java)
     val component2 = Mockito.mock(NlComponent::class.java)
     // Simple case: one component, deeplink property
@@ -174,8 +173,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     }
     val model = modelBuilder.build()
 
-    val realManager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(project, realManager)
+    val realManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
     val manager = spy(realManager)
     val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDeeplinkInspectorProvider()))

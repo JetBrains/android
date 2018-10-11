@@ -30,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
 public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager> {
   @VisibleForTesting NavInspectorProviders myProviders;
 
-  public NavPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
-    super(facet, designSurface, NavPropertyEditors.Factory.getInstance(facet.getModule().getProject()));
+  public NavPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull Disposable parentDisposable) {
+    super(facet, designSurface, NavPropertyEditors.Factory.getInstance(facet.getModule().getProject()), parentDisposable);
   }
 
   @NotNull

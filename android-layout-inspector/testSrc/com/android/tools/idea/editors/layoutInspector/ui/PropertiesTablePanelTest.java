@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.layoutinspector.model.ViewNode;
-import com.android.layoutinspector.model.ViewProperty;
 import com.android.layoutinspector.parser.ViewNodeParser;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -26,25 +30,18 @@ import com.android.tools.idea.editors.layoutInspector.EditHandler;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITTableCellEditorProvider;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
+import java.io.IOException;
+import javax.swing.RowSorter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.swing.*;
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
-
 public class PropertiesTablePanelTest {
   private PropertiesTablePanel myPanel;
+  private Disposable myDisposable;
 
   @Before
   public void setUp() throws IOException {
@@ -56,7 +53,8 @@ public class PropertiesTablePanelTest {
     PTable table = new PTable(model, mockManager);
     table.setRendererProvider(LITableRendererProvider.getInstance());
     table.setEditorProvider(LITTableCellEditorProvider.INSTANCE);
-    myPanel = new PropertiesTablePanel();
+    myDisposable = Disposer.newDisposable();
+    myPanel = new PropertiesTablePanel(myDisposable);
     LayoutInspectorContext context = mock(LayoutInspectorContext.class);
     when(context.getPropertiesTable()).thenReturn(table);
     when(context.getTableModel()).thenReturn(model);
@@ -75,7 +73,7 @@ public class PropertiesTablePanelTest {
 
   @After
   public void tearDown() {
-    Disposer.dispose(myPanel);
+    Disposer.dispose(myDisposable);
   }
 
   @Test

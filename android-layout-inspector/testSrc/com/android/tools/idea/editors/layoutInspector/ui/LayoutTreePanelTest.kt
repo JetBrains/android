@@ -20,7 +20,6 @@ import com.android.layoutinspector.parser.LayoutFileDataParser
 import com.android.tools.idea.editors.layoutInspector.getTestFile
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
-import kotlin.test.assertFalse
 
 
 /**
@@ -38,7 +37,7 @@ class LayoutTreePanelTest : AndroidTestCase() {
     myTestData = LayoutFileDataParser.parseFromFile(file)
 
     myContext = com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext(myTestData, project)
-    myPanel = com.android.tools.idea.editors.layoutInspector.ui.LayoutTreePanel()
+    myPanel = com.android.tools.idea.editors.layoutInspector.ui.LayoutTreePanel(project)
     myPanel.setSize(800, 800)
     myPanel.setToolContext(myContext)
   }
@@ -53,7 +52,7 @@ class LayoutTreePanelTest : AndroidTestCase() {
   // then back to invisible after it is removed.
   @Test
   fun testBackPanelVisible() {
-    val subViewRoot = myContext.root!!.children[0]
+    val subViewRoot = myContext.root.children[0]
     myContext.subviewList.add(subViewRoot)
 
     assertTrue(myPanel.backPanel!!.isVisible)

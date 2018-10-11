@@ -47,7 +47,8 @@ class NavActionsInspectorProviderTest : NavTestCase() {
   fun testIsApplicable() {
     val provider = NavActionsInspectorProvider()
     val surface = mock(NavDesignSurface::class.java)
-    val manager = NavPropertiesManager(myFacet, surface)
+    Disposer.register(myRootDisposable, surface)
+    val manager = NavPropertiesManager(myFacet, surface, myRootDisposable)
     val component1 = mock(NlComponent::class.java)
     val component2 = mock(NlComponent::class.java)
     // Simple case: one component, actions property

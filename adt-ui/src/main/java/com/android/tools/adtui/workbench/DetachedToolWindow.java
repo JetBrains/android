@@ -15,24 +15,22 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.DETACHED;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.DETACHED;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a detached tool window which is essentially an Intellij {@link ToolWindowEx}.
@@ -54,9 +52,8 @@ class DetachedToolWindow<T> implements Disposable {
 
   public DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                             @NotNull ToolWindowManager toolWindowManager) {
-    myContent = definition.getFactory().create();
+    myContent = definition.getFactory().apply(this);
     myToolWindow = createToolWindow(toolWindowManager, definition);
-    Disposer.register(this, myContent);
   }
 
   public void show(@NotNull AttachedToolWindow<T> correspondingWindow) {

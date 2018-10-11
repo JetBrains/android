@@ -19,15 +19,22 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.property.*
+import com.android.tools.idea.naveditor.property.NavActionsProperty
+import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
+import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
+import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 class NavInspectorPanelTest : NavTestCase() {
   private lateinit var model: SyncNlModel
@@ -51,9 +58,8 @@ class NavInspectorPanelTest : NavTestCase() {
       }
     }
     panel = NavInspectorPanel(testRootDisposable)
-    val realPropertiesManager = NavPropertiesManager(myFacet, model.surface)
+    val realPropertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
     manager = spy(realPropertiesManager)
-    Disposer.register(myRootDisposable, realPropertiesManager)
     inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
 

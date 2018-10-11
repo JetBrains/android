@@ -100,6 +100,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     addFiles();
     setUpManifest();
     myModel = createModel();
+    Disposer.register(getProject(), myModel);
     myComponentMap = createComponentMap();
     myTextView = myComponentMap.get("textView");
     myProgressBar = myComponentMap.get("progress");
@@ -123,9 +124,10 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = (NlDesignSurface)myModel.getSurface();
+    Disposer.register(getProject(), myDesignSurface);
     ScreenView view = new ScreenView(myDesignSurface, myDesignSurface.getSceneManager());
     when(myDesignSurface.getCurrentSceneView()).thenReturn(view);
-    myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
+    myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface, getProject());
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
     myUsageTracker = mockNlUsageTracker(myDesignSurface);
@@ -136,9 +138,6 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   public void tearDown() throws Exception {
     try {
       cleanUsageTrackerAfterTesting(myDesignSurface);
-      Disposer.dispose(myModel);
-      Disposer.dispose(myPropertiesManager);
-      Disposer.dispose(myDesignSurface);
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myTextView = null;
