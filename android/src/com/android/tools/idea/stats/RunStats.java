@@ -17,6 +17,7 @@ package com.android.tools.idea.stats;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.deployer.Trace;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -56,6 +57,7 @@ public class RunStats {
   }
 
   private void commit(RunEvent.Status status) {
+    Trace.end();
     if (!myLogged) {
       myEvent.getRunEventBuilder()
              .setStatus(status)
@@ -66,6 +68,7 @@ public class RunStats {
   }
 
   public void start() {
+    Trace.begin("start");
     myEvent.getRunEventBuilder().setBeginTimestampMs(System.currentTimeMillis());
   }
 
@@ -73,6 +76,7 @@ public class RunStats {
   }
 
   public LaunchTaskDetail.Builder beginLaunchTask(LaunchTask task) {
+    Trace.begin("begingLaunchtask" + task.getId());
     LaunchTaskDetail.Builder details = LaunchTaskDetail.newBuilder()
                                                        .setId(task.getId())
                                                        .setStartTimestampMs(System.currentTimeMillis());
@@ -85,23 +89,28 @@ public class RunStats {
   }
 
   public void endLaunchTask(LaunchTaskDetail.Builder detail, boolean success) {
+    Trace.end();
     detail.setEndTimestampMs(System.currentTimeMillis());
     myEvent.getRunEventBuilder().addLaunchTaskDetail(detail);
   }
 
   public void beginBeforeRunTasks() {
+    Trace.begin("beforeRunktask.");
     myEvent.getRunEventBuilder().setBeginBeforeRunTasksTimestampMs(System.currentTimeMillis());
   }
 
   public void endBeforeRunTasks() {
+    Trace.end();
     myEvent.getRunEventBuilder().setEndBeforeRunTasksTimestampMs(System.currentTimeMillis());
   }
 
   public void beginWaitForDevice() {
+    Trace.begin("WaitForDevice.");
     myEvent.getRunEventBuilder().setBeginWaitForDeviceTimestampMs(System.currentTimeMillis());
   }
 
   public void endWaitForDevice(@Nullable IDevice device) {
+    Trace.end();
     myEvent.getRunEventBuilder().setEndWaitForDeviceTimestampMs(System.currentTimeMillis());
     if (device == null) {
       return;
@@ -135,10 +144,12 @@ public class RunStats {
   }
 
   public void beginLaunchTasks() {
+    Trace.begin("beginLaunchTasks");
     myEvent.getRunEventBuilder().setBeginLaunchTasksTimestampMs(System.currentTimeMillis());
   }
 
   public void endLaunchTasks() {
+    Trace.end();
     myEvent.getRunEventBuilder().setEndLaunchTasksTimestampMs(System.currentTimeMillis());
   }
 

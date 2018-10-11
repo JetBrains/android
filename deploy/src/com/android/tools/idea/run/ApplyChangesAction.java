@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.deployer.Trace;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
@@ -22,7 +23,6 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -106,6 +106,8 @@ public class ApplyChangesAction extends AnAction {
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
     env.putCopyableUserData(APPLY_CHANGES, true);
+    Trace.reset();
+    Trace.begin("PostApplyChange Clicked");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 
