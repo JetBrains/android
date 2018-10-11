@@ -61,8 +61,14 @@ public class AarSourceResourceRepositoryTest extends TestCase {
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("id_from_layout");
   }
 
-  public void testMultipleValues() {
-    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+  public void testMultipleValues_wholeResourceDirectory() {
+    // when resourceFiles is null
+    assertResourceValues(ResourcesTestsUtil.getTestAarRepository());
+    // when resourceFiles is empty
+    assertResourceValues(ResourcesTestsUtil.getTestAarRepositoryWithResourceFolders("my_aar_lib"));
+  }
+
+  private void assertResourceValues(AarSourceResourceRepository repository) {
     List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(
@@ -73,6 +79,21 @@ public class AarSourceResourceRepositoryTest extends TestCase {
         return value.getValue();
       });
     assertSameElements(helloVariants, "bonjour", "hello", "hola");
+  }
+
+  public void testMultipleValues_partOfResourceDirectories() {
+    AarSourceResourceRepository repository =
+      ResourcesTestsUtil.getTestAarRepositoryWithResourceFolders("my_aar_lib", "values/strings.xml", "values-fr/strings.xml");
+    List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "hello");
+    assertNotNull(items);
+    List<String> helloVariants = ContainerUtil.map(
+      items,
+      resourceItem -> {
+        ResourceValue value = resourceItem.getResourceValue();
+        assertNotNull(value);
+        return value.getValue();
+      });
+    assertSameElements(helloVariants, "bonjour", "hello");
   }
 
   public void testLibraryNameIsMaintained() {
