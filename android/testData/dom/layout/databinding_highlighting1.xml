@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     >
     <data>
+        <import type="p1.p2.R"/>
         <import type="java.util.List"/>
         <import type="java.util.Map" alias="MyMap"/>
         <variable name="user" type="p1.p2.DataBindingHighlighting1"/>
