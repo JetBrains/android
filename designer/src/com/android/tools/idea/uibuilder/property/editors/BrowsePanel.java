@@ -271,7 +271,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
     EnumSet<ResourceType> types = EnumSet.noneOf(ResourceType.class);
     for (AttributeFormat format : formats) {
       if (format == AttributeFormat.REFERENCE) {
-        // TODO: Not sure is this reduced list of referenceable resource types in on purpose or not.
+        // TODO: Not sure if this reduced list of referenceable resource types is on purpose or not. See also http://b/117083114.
         types.add(ResourceType.COLOR);
         types.add(ResourceType.DRAWABLE);
         types.add(ResourceType.MIPMAP);
