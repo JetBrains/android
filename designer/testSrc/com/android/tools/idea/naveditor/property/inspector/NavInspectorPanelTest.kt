@@ -53,7 +53,7 @@ class NavInspectorPanelTest : NavTestCase() {
     panel = NavInspectorPanel(testRootDisposable)
     val realPropertiesManager = NavPropertiesManager(myFacet, model.surface)
     manager = spy(realPropertiesManager)
-    Disposer.register(myRootDisposable, realPropertiesManager)
+    Disposer.register(project, realPropertiesManager)
     inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
 
