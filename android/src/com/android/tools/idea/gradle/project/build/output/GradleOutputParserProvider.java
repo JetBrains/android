@@ -32,6 +32,6 @@ public class GradleOutputParserProvider implements ExternalSystemOutputParserPro
 
   @Override
   public List<BuildOutputParser> getBuildOutputParsers(ExternalSystemTask task) {
-    return ImmutableList.of(new AndroidGradlePluginWarningParser(), new GradleBuildOutputParser());
+    return ImmutableList.of(new AndroidGradlePluginOutputParser(), new GradleBuildOutputParser());
   }
 }
