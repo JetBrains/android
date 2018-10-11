@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -36,6 +37,8 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -82,6 +85,7 @@ import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static java.util.Collections.singletonList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.*;
 
@@ -100,7 +104,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
-    GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+    GradleSettings.getInstance(project).setLinkedProjectsSettings(singletonList(projectSettings));
   }
 
   @Override
@@ -548,5 +552,19 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertNotNull(topLevelModule);
     // Verify that GradleFacet is not applied to top-level project.
     assertNull(GradleFacet.getInstance(topLevelModule));
+  }
+
+  // Verify that execute task.
+  public void testExecuteGradleTask() throws Exception {
+    loadSimpleApplication();
+
+    Project project = getProject();
+    ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
+    when(taskId.findProject()).thenReturn(project);
+
+    // Verify that the task "help" can be found and executed.
+    assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
+                                                           new ExternalSystemTaskNotificationListenerAdapter() {
+                                                           }));
   }
 }
