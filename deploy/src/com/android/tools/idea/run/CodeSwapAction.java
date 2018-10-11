@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.deployer.Trace;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
@@ -112,6 +113,8 @@ public class CodeSwapAction extends AnAction {
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
     env.putCopyableUserData(CODE_SWAP, true);
+    Trace.reset();
+    Trace.begin("PostCodeSwap Clicked");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 

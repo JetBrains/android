@@ -23,7 +23,9 @@ import com.android.tools.deploy.swapper.WorkQueueDexArchiveDatabase;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.Trace;
 import com.android.tools.deployer.Installer;
+import com.android.tools.deployer.SystraceConsumer;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -36,6 +38,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -131,11 +134,12 @@ public class UnifiedDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    LogWrapper logger = new LogWrapper(LOG);
+    Trace.begin("UnifiedDeployeTask.perform()");
     for (ApkInfo apk : myApks) {
       LOG.info("Processing application:" + apk.getApplicationId());
 
       List<String> paths = apk.getFiles().stream().map(apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
-      LogWrapper logger = new LogWrapper(LOG);
       AdbClient adb = new AdbClient(device, logger);
       Installer installer = new Installer(getLocalInstaller(), adb, logger);
       Deployer deployer = new Deployer(apk.getApplicationId(), paths, adb, myDb, installer, logger);
@@ -143,13 +147,19 @@ public class UnifiedDeployTask implements LaunchTask {
       try {
         switch (type) {
           case INSTALL:
+            Trace.begin("Unified.install");
             response = deployer.install();
+            Trace.end();
             break;
           case CODE_SWAP:
+            Trace.begin("Unified.codeSwap");
             response = deployer.codeSwap();
+            Trace.end();
             break;
           case FULL_SWAP:
+            Trace.begin("Unified.fullSwap");
             response = deployer.fullSwap();
+            Trace.end();
             break;
           default:
             throw new UnsupportedOperationException("Not supported deployment type");
@@ -197,6 +207,9 @@ public class UnifiedDeployTask implements LaunchTask {
                         .setImportant(false).notify(myProject);
     }
 
+    Path jsonPath = Paths.get(PathManager.getSystemPath(), "systrace.json");
+    SystraceConsumer consumer = new SystraceConsumer(jsonPath.toString(), logger);
+    Trace.consume(consumer);
     return true;
   }
 
