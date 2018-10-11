@@ -415,8 +415,8 @@ public class StudioIcons {
     }
 
     public static class Surface {
-      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.png"); // 14x14
-      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.png"); // 14x14
+      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.png"); // 56x56
+      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.png"); // 56x56
     }
 
     public static class Toolbar {
