@@ -36,7 +36,7 @@ class NavPropertiesPanelTest : NavTestCase() {
     }
 
     val navPropertiesManager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(myRootDisposable, navPropertiesManager)
+    Disposer.register(project, navPropertiesManager)
     val inspectorProviders = mock(NavInspectorProviders::class.java)
     val inspector1 = mock(InspectorComponent::class.java) as InspectorComponent<NavPropertiesManager>
     val inspector2 = mock(InspectorComponent::class.java) as InspectorComponent<NavPropertiesManager>

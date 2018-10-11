@@ -75,12 +75,12 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
       }
     }
     val manager = Mockito.mock(NavPropertiesManager::class.java)
-    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
+    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, project))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDeeplinkInspectorProvider()))
     Mockito.`when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     Mockito.`when`(manager.facet).thenReturn(myFacet)
 
-    val panel = NavInspectorPanel(myRootDisposable)
+    val panel = NavInspectorPanel(project)
     panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     val deeplinkList = flatten(panel).filterIsInstance<JBList<NlProperty>>().find { it.name == NAV_LIST_COMPONENT_NAME }!!
@@ -177,7 +177,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     val realManager = NavPropertiesManager(myFacet, model.surface)
     Disposer.register(project, realManager)
     val manager = spy(realManager)
-    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
+    val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, project))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDeeplinkInspectorProvider()))
     doReturn(navInspectorProviders).`when`(manager).getInspectorProviders(any())
 
