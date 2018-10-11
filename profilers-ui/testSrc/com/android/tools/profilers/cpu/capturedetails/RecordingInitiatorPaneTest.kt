@@ -34,11 +34,11 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.HyperlinkLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
-import javax.swing.JLabel
 
 class RecordingInitiatorPaneTest {
   @JvmField
@@ -107,11 +107,9 @@ class RecordingInitiatorPaneTest {
                                                                                         CpuProfiler.CpuProfilerMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.ART_SAMPLED.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
   }
 
   @Test
@@ -123,11 +121,9 @@ class RecordingInitiatorPaneTest {
                                                                                         CpuProfiler.CpuProfilerMode.INSTRUMENTED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.ART_INSTRUMENTED.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
   }
 
   @Test
@@ -139,11 +135,9 @@ class RecordingInitiatorPaneTest {
                                                                                         CpuProfiler.CpuProfilerMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.SIMPLEPERF.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
   }
 
   @Test
@@ -155,10 +149,19 @@ class RecordingInitiatorPaneTest {
                                                                                         CpuProfiler.CpuProfilerMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.ATRACE.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
+  }
+
+  @Test
+  fun learnMoreHyperlinkIsPresent() {
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+
+    TreeWalker(RecordingInitiatorPane(stageView))
+      .descendants()
+      .filterIsInstance<HyperlinkLabel>()
+      .any { it.text == RecordingInitiatorPane.LEARN_MORE_MESSAGE }
+      .let { assertThat(it).isTrue() }
   }
 }
