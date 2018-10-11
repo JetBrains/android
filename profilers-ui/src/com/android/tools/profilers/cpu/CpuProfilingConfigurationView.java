@@ -146,9 +146,6 @@ public class CpuProfilingConfigurationView {
       new JComboBoxView<>(myComboBox, myStage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
                           this::getProfilingConfigurations, this::getProfilingConfiguration, this::setProfilingConfiguration);
     profilingConfiguration.bind();
-
-    // This disables firing actions like setSelectedItem when the user is using keyboard to navigate through the combobox menu
-    myComboBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
     SwingUtil.doNotSelectItems(myComboBox, e -> e == CONFIG_SEPARATOR_ENTRY);
     myComboBox.setRenderer(new ProfilingConfigurationRenderer());
   }
