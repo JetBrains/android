@@ -77,12 +77,14 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   private JBSplitter mySplitter;
   private Runnable myStopFilteringCallback;
 
-  public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors) {
+  public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors,
+                           @NotNull Disposable parentDisposable) {
     myProject = facet.getModule().getProject();
     myFacet = facet;
     mySurface = designSurface;
     myEditors = editors;
     setToolContextWithoutCheck(designSurface);
+    Disposer.register(parentDisposable, this);
   }
 
   @Override

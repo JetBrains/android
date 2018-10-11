@@ -95,13 +95,14 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private Runnable myStopFilteringCallback;
   private Palette.Group myLastSelectedGroup;
 
-  public PalettePanel(@NotNull Project project) {
-    this(project, new DependencyManager(project));
+  public PalettePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    this(project, new DependencyManager(project), parentDisposable);
   }
 
   @VisibleForTesting
-  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
+  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
+    Disposer.register(parentDisposable, this);
     myProject = project;
     myDependencyManager = dependencyManager;
     myDataModel = new DataModel(myDependencyManager);

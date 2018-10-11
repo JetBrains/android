@@ -96,13 +96,12 @@ public class PalettePanelTest extends LayoutTestCase {
     registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
-    myPanel = new PalettePanel(getProject(), myDependencyManager);
+    myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      Disposer.dispose(myPanel);
       if (myModel != null) {
         Disposer.dispose(myModel);
       }

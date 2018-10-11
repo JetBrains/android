@@ -100,7 +100,6 @@ class AttachedToolWindow<T> implements Disposable {
   @Override
   public void dispose() {
     if (myContent != null) {
-      Disposer.dispose(myContent);
       myContent = null;
       myDragListener = null;
       myPanel.removeAll();
@@ -272,7 +271,7 @@ class AttachedToolWindow<T> implements Disposable {
       myContent = null;
     }
     else if (!isDetached() && myContent == null) {
-      myContent = myDefinition.getFactory().create();
+      myContent = myDefinition.getFactory().apply(this);
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
       myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);

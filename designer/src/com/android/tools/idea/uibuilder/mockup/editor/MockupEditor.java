@@ -30,9 +30,11 @@ import com.android.tools.idea.uibuilder.mockup.editor.tools.SelectionEditors;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -93,8 +95,9 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
    * If a model is available at creation time, it can be provided as a parameter, otherwise
    * the design surface will notify the {@link MockupEditor} when the model is changed. ({@link DesignSurfaceListener}).
    */
-  public MockupEditor() {
+  public MockupEditor(@NotNull Disposable parentDisposable) {
     super(new BorderLayout());
+    Disposer.register(parentDisposable, this);
     JLabel addMockupIcon = createNoMockupIcon(createAddMockupMouseAdapter());
     myMockupListener = (mockup, changedFlags) -> notifyListeners(mockup);
     myBottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

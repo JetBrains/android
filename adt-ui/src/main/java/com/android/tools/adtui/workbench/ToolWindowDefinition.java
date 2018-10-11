@@ -15,15 +15,14 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.intellij.openapi.util.Factory;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import java.awt.*;
-
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
+
+import com.intellij.openapi.Disposable;
+import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.util.function.Function;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A definition of an {@link AttachedToolWindow} that can be attached on the side
@@ -43,7 +42,7 @@ public class ToolWindowDefinition<T> {
   private final AutoHide myAutoHide;
   private final int myMinimumSize;
   private final Dimension myButtonSize;
-  private final Factory<ToolContent<T>> myFactory;
+  private final Function<Disposable, ToolContent<T>> myFactory;
 
   public ToolWindowDefinition(@NotNull String title,
                               @NotNull Icon icon,
@@ -51,7 +50,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull Side side,
                               @NotNull Split split,
                               @NotNull AutoHide autoHide,
-                              @NotNull Factory<ToolContent<T>> factory) {
+                              @NotNull Function<Disposable, ToolContent<T>> factory) {
     this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, factory);
   }
 
@@ -63,7 +62,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull AutoHide autoHide,
                               int minimumSize,
                               @NotNull Dimension buttonSize,
-                              @NotNull Factory<ToolContent<T>> factory) {
+                              @NotNull Function<Disposable, ToolContent<T>> factory) {
     myTitle = title;
     myIcon = icon;
     myName = name;
@@ -107,7 +106,7 @@ public class ToolWindowDefinition<T> {
    * @return a factory for creating the component with the content for this tool window
    */
   @NotNull
-  public Factory<ToolContent<T>> getFactory() {
+  public Function<Disposable, ToolContent<T>> getFactory() {
     return myFactory;
   }
 

@@ -18,8 +18,10 @@ package com.android.tools.adtui.workbench;
 import com.android.annotations.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -48,7 +50,8 @@ class PalettePanelToolContent implements ToolContent<String> {
   private boolean myAdditionalActionPerformed;
   private String myFilter;
 
-  public PalettePanelToolContent() {
+  public PalettePanelToolContent(@NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myComponent = new JPanel();
     myFocusComponent = new JLabel();
     myGearAction = new AnAction("GearAction") {

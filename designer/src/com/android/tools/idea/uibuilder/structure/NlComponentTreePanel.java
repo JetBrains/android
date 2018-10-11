@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -41,8 +42,9 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   private final NlComponentTree myTree;
   private final BackNavigationComponent myNavigationComponent;
 
-  public NlComponentTreePanel(@NotNull Project project) {
+  public NlComponentTreePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
+    Disposer.register(parentDisposable, this);
     myTree = new NlComponentTree(project, null);
     JScrollPane pane =
       ScrollPaneFactory.createScrollPane(myTree,

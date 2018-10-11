@@ -15,12 +15,20 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.NlProperties
-import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 
 class NavNlPropertiesTest : NavTestCase() {
 
@@ -33,8 +41,7 @@ class NavNlPropertiesTest : NavTestCase() {
         }
       }
     }
-    val propertiesManager = NavPropertiesManager(myFacet, model.surface)
-    Disposer.register(project, propertiesManager)
+    val propertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
 
     val properties = NlProperties.getInstance().getProperties(myFacet, propertiesManager, listOf(model.find("a1")))
     assertContainsElements(properties.row(AUTO_URI).keys, ATTR_DESTINATION, ATTR_ENTER_ANIM, ATTR_EXIT_ANIM,

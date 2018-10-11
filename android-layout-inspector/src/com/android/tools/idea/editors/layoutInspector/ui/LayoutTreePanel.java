@@ -22,6 +22,8 @@ import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ObservableValue;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import icons.StudioIcons;
@@ -41,8 +43,9 @@ public class LayoutTreePanel extends JPanel implements ToolContent<LayoutInspect
   @Nullable private JLabel myBackLabel;
   @Nullable private LayoutInspectorContext myContext;
 
-  public LayoutTreePanel() {
+  public LayoutTreePanel(@NotNull Disposable parentDisposable) {
     setLayout(new BorderLayout());
+    Disposer.register(parentDisposable, this);
     myTreePanel = new JBScrollPane();
     myTreePanel.setBackground(JBColor.WHITE);
     add(myTreePanel, BorderLayout.CENTER);

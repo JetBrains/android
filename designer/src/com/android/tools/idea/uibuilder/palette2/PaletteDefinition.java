@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette2;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,13 +28,14 @@ import org.jetbrains.annotations.NotNull;
 public class PaletteDefinition extends ToolWindowDefinition<DesignSurface> {
 
   public PaletteDefinition(@NotNull Project project, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
-    super("Palette ", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", side, split, autoHide, () -> createPalettePanel(project));
+    super("Palette ", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", side, split, autoHide,
+          (disposable) -> createPalettePanel(project, disposable));
   }
 
-  private static ToolContent<DesignSurface> createPalettePanel(@NotNull Project project) {
+  private static ToolContent<DesignSurface> createPalettePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
     if (project.isDisposed()) {
       return null;
     }
-    return new PalettePanel(project);
+    return new PalettePanel(project, parentDisposable);
   }
 }
