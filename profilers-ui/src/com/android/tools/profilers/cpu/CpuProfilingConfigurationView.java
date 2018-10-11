@@ -22,13 +22,9 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
-import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerCombobox;
+import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.util.ui.JBInsets;
-import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,7 +37,7 @@ public class CpuProfilingConfigurationView {
   /**
    * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
    */
-  static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration("Edit Configuration Entry",
+  static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration("Edit Configurations...",
                                                                                              CpuProfilerType.UNSPECIFIED_PROFILER,
                                                                                              CpuProfilerMode.UNSPECIFIED_MODE);
 
@@ -66,7 +62,7 @@ public class CpuProfilingConfigurationView {
   public CpuProfilingConfigurationView(@NotNull CpuProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
-    myComboBox = new ComboBox<>(new DefaultComboBoxModel<ProfilingConfiguration>() {
+    myComboBox = new ProfilerCombobox<>(new DefaultComboBoxModel<ProfilingConfiguration>() {
       @Override
       public void setSelectedItem(Object item) {
         if (item == CONFIG_SEPARATOR_ENTRY) {
@@ -157,11 +153,7 @@ public class CpuProfilingConfigurationView {
     myComboBox.setRenderer(new ProfilingConfigurationRenderer());
   }
 
-  private static class ProfilingConfigurationRenderer extends ColoredListCellRenderer<ProfilingConfiguration> {
-    ProfilingConfigurationRenderer() {
-      super();
-      setIpad(new JBInsets(0, UIUtil.isUnderNativeMacLookAndFeel() ? 5 : UIUtil.getListCellHPadding(), 0, 0));
-    }
+  private static class ProfilingConfigurationRenderer extends ProfilerComboboxCellRenderer<ProfilingConfiguration> {
 
     @Override
     public Component getListCellRendererComponent(JList<? extends ProfilingConfiguration> list,
@@ -174,10 +166,7 @@ public class CpuProfilingConfigurationView {
         separator.setUI(new CommonSeparatorUI());
         return separator;
       }
-      Component listCellRendererComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus);
-      listCellRendererComponent
-        .setBackground(selected ? ProfilerColors.CPU_PROFILING_CONFIGURATIONS_SELECTED : ProfilerColors.DEFAULT_BACKGROUND);
-      return listCellRendererComponent;
+      return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
     }
 
     @Override
@@ -186,13 +175,7 @@ public class CpuProfilingConfigurationView {
                                          int index,
                                          boolean selected,
                                          boolean hasFocus) {
-      if (value == EDIT_CONFIGURATIONS_ENTRY) {
-        setIcon(StudioIcons.Common.EDIT);
-        append("Edit Configurations...");
-      }
-      else {
-        append(value.getName());
-      }
+      append(value.getName());
     }
   }
 }

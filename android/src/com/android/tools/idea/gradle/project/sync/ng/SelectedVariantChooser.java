@@ -19,6 +19,7 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.sync.ng.AndroidModule.ModuleDependency;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -162,7 +163,13 @@ public class SelectedVariantChooser implements Serializable {
                                                    @Nullable String abi) {
     NativeAndroidProject nativeAndroidProject = androidModule.getNativeAndroidProject();
     if (nativeAndroidProject != null) {
-      Collection<String> abiNames = nativeAndroidProject.getVariantInfos().get(variant).getAbiNames();
+      Collection<String> abiNames;
+      try {
+        abiNames = nativeAndroidProject.getVariantInfos().get(variant).getAbiNames();
+      }
+      catch (UnsupportedMethodException e) {
+        return null;
+      }
       if (abi == null || !abiNames.contains(abi)) {
         abi = getDefaultOrFirstItem(abiNames, "x86");
       }

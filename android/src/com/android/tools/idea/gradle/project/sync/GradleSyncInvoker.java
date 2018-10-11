@@ -242,7 +242,7 @@ public class GradleSyncInvoker {
     }
 
     boolean useNewGradleSync = NewGradleSync.isEnabled(project);
-    if (!useNewGradleSync) {
+    if (request.variantOnlySyncOptions == null) {
       removeAndroidModels(project);
     }
 
@@ -340,7 +340,8 @@ public class GradleSyncInvoker {
 
     @Override
     public int hashCode() {
-      return Objects.hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, skipAndroidPluginUpgrade, trigger, variantOnlySyncOptions);
+      return Objects.hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, skipAndroidPluginUpgrade, trigger,
+                          variantOnlySyncOptions);
     }
 
     @Override

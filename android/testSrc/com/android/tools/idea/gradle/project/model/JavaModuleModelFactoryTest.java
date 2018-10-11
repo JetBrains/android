@@ -20,6 +20,7 @@ import com.android.java.model.JavaProject;
 import com.android.java.model.LibraryVersion;
 import com.android.java.model.SourceSet;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
+import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Iterables;
 import org.gradle.tooling.model.GradleModuleVersion;
@@ -67,6 +68,7 @@ public class JavaModuleModelFactoryTest {
     when(myJavaProject.getJavaLanguageLevel()).thenReturn(myJavaLanguageLevel);
 
     when(myGradleProject.getBuildDirectory()).thenReturn(myBuildFolderPath);
+    when(myGradleProject.getProjectDirectory()).thenReturn(myProjectFolderPath);
     doReturn(ImmutableDomainObjectSet.of(Collections.emptyList())).when(myGradleProject).getTasks();
 
     myJavaModuleModelFactory = new JavaModuleModelFactory();
@@ -82,6 +84,9 @@ public class JavaModuleModelFactoryTest {
     //noinspection deprecation
     assertEquals(myJavaLanguageLevel, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
+    // Verify that build directory and .gradle are excluded.
+    JavaModuleContentRoot contentRoot = javaModuleModel.getContentRoots().iterator().next();
+    assertThat(contentRoot.getExcludeDirPaths()).containsExactly(myBuildFolderPath, new File(myProjectFolderPath, ".gradle"));
   }
 
   @Test

@@ -459,7 +459,9 @@ public class StudioIcons {
 
   public static class Profiler {
     public static class Events {
-      public static final Icon ALLOCATION_TRACKING_CHANGE = load("/studio/icons/profiler/events/allocation-tracking-change.png"); // 22x22
+      public static final Icon ALLOCATION_TRACKING_FULL = load("/studio/icons/profiler/events/allocation-tracking-full.png"); // 22x22
+      public static final Icon ALLOCATION_TRACKING_NONE = load("/studio/icons/profiler/events/allocation-tracking-none.png"); // 22x22
+      public static final Icon ALLOCATION_TRACKING_SAMPLED = load("/studio/icons/profiler/events/allocation-tracking-sampled.png"); // 22x22
       public static final Icon BACK_BUTTON = load("/studio/icons/profiler/events/back-button.png"); // 22x22
       public static final Icon GARBAGE_EVENT = load("/studio/icons/profiler/events/garbage-event.png"); // 22x22
       public static final Icon GPS = load("/studio/icons/profiler/events/gps.png"); // 22x22

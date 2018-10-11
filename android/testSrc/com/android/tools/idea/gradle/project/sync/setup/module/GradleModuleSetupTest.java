@@ -30,8 +30,8 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -39,8 +39,10 @@ import java.io.File;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -50,7 +52,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class GradleModuleSetupTest extends IdeaTestCase {
   @Mock private GradleModuleModels myModuleModels;
-  @Mock private BuildScriptClasspathModel myClasspathModel;
   @Mock private GradleSyncState mySyncState;
 
   private Module myModule;
@@ -83,12 +84,12 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     myModuleSetup = new GradleModuleSetup();
   }
 
-  public void testSetUpModule() {
+  public void testSetUpModule() throws IOException {
     when(myModuleModels.findModel(GradleProject.class)).thenReturn(myGradleProject);
-    when(myModuleModels.findModel(BuildScriptClasspathModel.class)).thenReturn(myClasspathModel);
-
+    File propertiesFilePath = getDefaultPropertiesFilePath(new File(myProject.getBasePath()));
     String gradleVersion = "2.14.1";
-    when(myClasspathModel.getGradleVersion()).thenReturn(gradleVersion);
+    writeToFile(propertiesFilePath,
+                String.format("distributionUrl=https\\://services.gradle.org/distributions/gradle-%s-all.zip", gradleVersion));
 
     myModuleSetup.setUpModule(myModule, myModelsProvider, myModuleModels);
 

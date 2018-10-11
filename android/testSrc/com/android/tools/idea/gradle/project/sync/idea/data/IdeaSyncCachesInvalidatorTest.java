@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.File;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
@@ -34,19 +36,26 @@ public class IdeaSyncCachesInvalidatorTest extends AndroidGradleTestCase {
   }
 
   public void testCacheIsInvalidated() throws Exception {
-    loadSimpleApplication();
-    DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(getProject());
+    boolean originalUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
+    try {
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
+      loadSimpleApplication();
+      DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(getProject());
 
-    // All models are in cache
-    assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
+      // All models are in cache
+      assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
 
-    // After invalidating cache, models are not in the cache anymore
-    myInvalidator.invalidateCaches();
-    assertTrue(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
+      // After invalidating cache, models are not in the cache anymore
+      myInvalidator.invalidateCaches();
+      assertTrue(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
 
-    // Sync and check if models are replaced
-    requestSyncAndWait();
-    assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
+      // Sync and check if models are replaced
+      requestSyncAndWait();
+      assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
+    }
+    finally {
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = originalUseSingleVariantSync;
+    }
   }
 
   public void testLibrariesFolderIsDeleted() throws Exception {

@@ -222,6 +222,9 @@ public final class SelectionComponent extends AnimatedComponent {
         myMode = getModeAtCurrentPosition(e.getX(), e.getY());
         updateCursor(myMode, e.getX());
         myMouseMovedX = e.getX();
+        // Need to force a repaint when mouse is moving over the selection component to have the grab bar paint properly. If we don't
+        // do this the grab bar will only refresh under the tooltip and not along the entire capture area.
+        opaqueRepaint();
       }
     });
     addKeyListener(new KeyAdapter() {

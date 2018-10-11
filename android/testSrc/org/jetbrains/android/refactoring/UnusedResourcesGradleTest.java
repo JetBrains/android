@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 
@@ -29,6 +30,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
 public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
 
   public void test() throws Exception {
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
     loadProject(UNUSED_RESOURCES);
 
     UnusedResourcesHandler.invoke(getProject(), null, null, true, true);

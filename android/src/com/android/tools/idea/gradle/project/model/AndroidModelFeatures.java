@@ -61,7 +61,7 @@ public class AndroidModelFeatures {
     // which causes "unresolved symbol" problem. Refresh file system to make IDE pick up exploded AARs.
     // It is not needed with AGP 3.0+, because AARs are exploded DURING Gradle Sync with 3.0+.
     myVfsRefreshRequired = isPre3dot0Version;
-    mySingleVariantSyncSupported = modelVersionIsAtLeast("3.2.0");
+    mySingleVariantSyncSupported = modelVersionIsAtLeast("3.3.0");
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {

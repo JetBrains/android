@@ -16,10 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.ProfilerCombobox;
+import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,16 +32,20 @@ public class MemoryClassGrouping extends AspectObserver {
     myStage = stage;
 
     myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CLASS_GROUPING, this::groupingChanged);
-    myComboBox = new ComboBox<>(new EnumComboBoxModel<>(ClassGrouping.class));
-    myComboBox.setRenderer(new ListCellRendererWrapper<ClassGrouping>() {
+    myComboBox = new ProfilerCombobox<>(new EnumComboBoxModel<>(ClassGrouping.class));
+    myComboBox.setRenderer(new ProfilerComboboxCellRenderer<ClassGrouping>() {
       @Override
-      public void customize(JList list, ClassGrouping value, int index, boolean selected, boolean hasFocus) {
-        setText(value.myLabel);
+      protected void customizeCellRenderer(@NotNull JList<? extends ClassGrouping> list,
+                                           ClassGrouping value,
+                                           int index,
+                                           boolean selected,
+                                           boolean hasFocus) {
+        append(value.myLabel);
       }
     });
     myComboBox.addActionListener(e -> {
       Object item = myComboBox.getSelectedItem();
-      if (item != null && item instanceof ClassGrouping) {
+      if (item instanceof ClassGrouping) {
         myStage.getConfiguration().setClassGrouping((ClassGrouping)item);
       }
     });

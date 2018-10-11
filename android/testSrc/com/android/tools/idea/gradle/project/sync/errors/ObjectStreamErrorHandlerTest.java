@@ -47,7 +47,7 @@ public class ObjectStreamErrorHandlerTest extends AndroidGradleTestCase {
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).contains(
       "An unexpected I/O error occurred.\n" +
-      "The error, \"unexpected end of block data\" usually happens on Linux when Build-tools or an Android platform being used in a project is not installed.\n");
+      "The error, \"Cause: unexpected end of block data\" usually happens on Linux when Build-tools or an Android platform being used in a project is not installed.\n");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();

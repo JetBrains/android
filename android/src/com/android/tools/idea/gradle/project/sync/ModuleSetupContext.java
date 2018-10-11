@@ -100,6 +100,11 @@ public class ModuleSetupContext {
     return myIdeModelsProvider.getModifiableRootModel(myModule);
   }
 
+  @Nullable
+  public GradleModuleModels getGradleModels() {
+    return myGradleModels;
+  }
+
   public static class Factory {
     @NotNull
     public ModuleSetupContext create(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {

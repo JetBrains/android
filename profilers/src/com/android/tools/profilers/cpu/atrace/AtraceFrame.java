@@ -127,6 +127,17 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
     return myPerfClass;
   }
 
+  public PerfClass getTotalPerfClass() {
+    if (myPerfClass == PerfClass.NOT_SET) {
+      return PerfClass.NOT_SET;
+    }
+    double associatedFrameLength = myAssociatedFrame == null ? 0.0 : myAssociatedFrame.getTotalRangeSeconds().getLength();
+    if (SECONDS_TO_US * (associatedFrameLength + myTotalRangeSeconds.getLength()) > myLongFrameTimeUs) {
+      return PerfClass.BAD;
+    }
+    return PerfClass.GOOD;
+  }
+
   /**
    * @return absolute time of this frame in micro seconds.
    */

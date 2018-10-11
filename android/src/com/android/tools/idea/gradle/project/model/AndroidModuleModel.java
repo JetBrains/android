@@ -15,15 +15,50 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
+import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
+import static com.android.SdkConstants.FD_RES_CLASS;
+import static com.android.SdkConstants.FD_SOURCE_GEN;
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.builder.model.AndroidProject.FD_GENERATED;
+import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
+import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.util.ArrayUtil.contains;
+
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.*;
+import com.android.builder.model.AaptOptions;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.ApiVersion;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.JavaCompileOptions;
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.SourceProviderContainer;
+import com.android.builder.model.SyncIssue;
+import com.android.builder.model.TestOptions;
+import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.GradleModelConverterUtil;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
@@ -45,26 +80,22 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.*;
-
-import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
-import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.util.ArrayUtil.contains;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -705,6 +736,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
           }
           excludedFolderPaths.add(folderPath);
         }
+      }
+
+      if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+        // Exclude the location of R.java files, to speed up indexing. The location changed in 3.2, so we exclude both.
+        File generatedFolder = new File(buildFolderPath, FD_GENERATED);
+        excludedFolderPaths.add(new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
+        excludedFolderPaths.add(new File(generatedFolder, FD_SOURCE_GEN + File.separator + FD_RES_CLASS));
       }
     }
     else {

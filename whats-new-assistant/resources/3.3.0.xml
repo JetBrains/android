@@ -57,26 +57,6 @@
           </section>
         </stepElement>
       </step>
-      <step label="Updated Project Structure Dialog">
-        <stepElement>
-          <section>
-            <![CDATA[
-           <br>
-           <img src="https://d.android.com/studio/releases/assistant/3.3.0/new-psd.gif"
-           width="428"
-           height="296"
-           alt="">
-
-           <br><br>
-           Click <b>File &gt; Project Structure</b> to use the improved Project Structure dialog, which now allows you to better manage
-           build variants and their properties; visualize the dependency graph of each module; verify that dependencies are up-to-date; and
-           more.
-           <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
-           Learn more</a></li>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
       <step label="Instant apps in app bundles">
         <stepElement>
           <section>
