@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceDataManagerKt;
 import com.intellij.ide.dnd.TransferableList;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -38,12 +39,12 @@ public class DnDTransferItemTest {
 
       @Override
       public DataFlavor[] getTransferDataFlavors() {
-        return new DataFlavor[]{ResourceDragHandlerKt.RESOURCE_URL_FLAVOR};
+        return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
       }
 
       @Override
       public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor == ResourceDragHandlerKt.RESOURCE_URL_FLAVOR;
+        return flavor == ResourceDataManagerKt.RESOURCE_URL_FLAVOR;
       }
 
       @NotNull

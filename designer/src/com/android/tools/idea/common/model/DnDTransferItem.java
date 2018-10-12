@@ -18,7 +18,7 @@ package com.android.tools.idea.common.model;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceDataManagerKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -64,8 +64,8 @@ public class DnDTransferItem {
         return (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
       }
 
-      if (transferable.isDataFlavorSupported(ResourceDragHandlerKt.RESOURCE_URL_FLAVOR)) {
-        ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDragHandlerKt.RESOURCE_URL_FLAVOR);
+      if (transferable.isDataFlavorSupported(ResourceDataManagerKt.RESOURCE_URL_FLAVOR)) {
+        ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDataManagerKt.RESOURCE_URL_FLAVOR);
         DnDTransferItem item = fromResourceUrl(url);
         if (item != null) {
           return item;
