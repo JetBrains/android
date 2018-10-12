@@ -42,4 +42,17 @@
                 factoryClass="com.android.tools.idea.resourceExplorer.ResourceExplorerToolFactory"
                 conditionClass="com.android.tools.idea.resourceExplorer.ResourceExplorerToolFactory"/>
   </extensions>
+
+  <actions>
+    <group id="ResourceExplorer">
+      <reference ref="Move"/>
+      <reference ref="$Copy"/>
+      <reference ref="RenameElement"/>
+      <reference ref="SafeDelete"/>
+      <separator/>
+      <reference ref="FindUsages"/>
+      <reference ref="SelectIn"/>
+      <reference ref="RevealIn"/>
+    </group>
+  </actions>
 </idea-plugin>

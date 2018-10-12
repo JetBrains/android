@@ -17,7 +17,7 @@ package com.android.tools.idea.resourceExplorer
 
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.resourceExplorer.view.RESOURCE_URL_FLAVOR
+import com.android.tools.idea.resourceExplorer.viewmodel.RESOURCE_URL_FLAVOR
 import com.google.common.truth.Truth
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys

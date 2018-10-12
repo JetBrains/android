@@ -18,7 +18,7 @@ package com.android.tools.idea.resourceExplorer
 import com.android.SdkConstants
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.resourceExplorer.view.RESOURCE_URL_FLAVOR
+import com.android.tools.idea.resourceExplorer.viewmodel.RESOURCE_URL_FLAVOR
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider

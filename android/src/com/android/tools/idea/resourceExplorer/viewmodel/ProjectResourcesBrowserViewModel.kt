@@ -58,8 +58,12 @@ class ProjectResourcesBrowserViewModel(
    */
   var updateCallback: (() -> Unit)? = null
 
-  var facet by Delegates.observable(facet) { _, _, _ -> updateCallback?.invoke() }
+  var facet by Delegates.observable(facet) { _, _, newFacet ->
+    updateCallback?.invoke()
+    dataManager.facet = newFacet
+  }
   val resourceResolver = createResourceResolver(facet)
+  private val dataManager = ResourceDataManager(facet)
 
   /**
    * The index in [resourceTypes] of the resource type being used.
@@ -127,11 +131,11 @@ class ProjectResourcesBrowserViewModel(
 
   fun getResourcesLists(): List<ResourceSection> {
     val resourceType = resourceTypes[resourceTypeIndex]
-      val moduleResources = createResourceSection(resourceType, facet.module.name, getModuleResources(resourceType))
-      val librariesResources = getLibraryResources(resourceType)
-        .map { (libName, resourceItems) ->
-          createResourceSection(resourceType, libName, resourceItems)
-        }
+    val moduleResources = createResourceSection(resourceType, facet.module.name, getModuleResources(resourceType))
+    val librariesResources = getLibraryResources(resourceType)
+      .map { (libName, resourceItems) ->
+        createResourceSection(resourceType, libName, resourceItems)
+      }
     return listOf(moduleResources) + librariesResources
   }
 
@@ -144,6 +148,10 @@ class ProjectResourcesBrowserViewModel(
 
         }
       })
+  }
+
+  fun getData(dataId: String?, selectedAssets: List<DesignAssetSet>): Any? {
+    return dataManager.getData(dataId, selectedAssets)
   }
 }
 

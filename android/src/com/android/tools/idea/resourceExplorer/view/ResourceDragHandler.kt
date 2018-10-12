@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.resources.ResourceUrl
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.viewmodel.createTransferable
 import java.awt.GraphicsEnvironment
 import java.awt.Point
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.Transferable
-import java.awt.dnd.*
+import java.awt.dnd.DnDConstants
+import java.awt.dnd.DragGestureEvent
+import java.awt.dnd.DragGestureListener
+import java.awt.dnd.DragSource
+import java.awt.dnd.DragSourceAdapter
 import java.awt.image.BufferedImage
 import javax.swing.JList
-
-/**
- * [DataFlavor] for [ResourceUrl]
- */
-@JvmField
-val RESOURCE_URL_FLAVOR = DataFlavor(ResourceUrl::class.java, "Resource Url")
-
-private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.stringFlavor)
 
 /**
  * Create a new [ResourceDragHandler]
@@ -109,19 +103,3 @@ private class ResourceDragGestureListener : DragGestureListener {
   }
 }
 
-private fun createTransferable(assetSet: DesignAssetSet): Transferable {
-  return object : Transferable {
-    override fun getTransferData(flavor: DataFlavor?): Any? = when (flavor) {
-      RESOURCE_URL_FLAVOR -> getResourceUrl(assetSet)
-      DataFlavor.stringFlavor -> getResourceUrl(assetSet).toString()
-      else -> null
-    }
-
-    override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor in SUPPORTED_DATA_FLAVORS
-
-    override fun getTransferDataFlavors(): Array<DataFlavor> = SUPPORTED_DATA_FLAVORS
-  }
-}
-
-private fun getResourceUrl(assetSet: DesignAssetSet) =
-  assetSet.getHighestDensityAsset().resourceItem.referenceToSelf.resourceUrl
