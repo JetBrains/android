@@ -168,6 +168,7 @@ iml_module(
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
+    test_shard_count = 5,
     test_srcs = [
         "android-extensions-idea/tests",
         "idea-android/tests",
