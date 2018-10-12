@@ -172,7 +172,16 @@ public class AndroidVersionsInfo {
   /**
    * Get the list of versions, notably by populating the available values from local, remote, and statically-defined sources.
    */
-  public void loadTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, ItemsLoaded itemsLoadedCallback) {
+  public void loadTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, @NotNull ItemsLoaded itemsLoadedCallback) {
+    List<VersionItem> versionItemList = getTargetVersions(formFactor, minSdkLevel);
+    loadRemoteTargets(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
+  }
+
+  /**
+   * Gets the list of local populated versions
+   */
+  @NotNull
+  public List<VersionItem> getTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel) {
     List<VersionItem> versionItemList = new ArrayList<>();
 
     for (VersionItem target : myTargetVersions) {
@@ -182,7 +191,7 @@ public class AndroidVersionsInfo {
       }
     }
 
-    loadRemoteTargets(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
+    return versionItemList;
   }
 
   /**
