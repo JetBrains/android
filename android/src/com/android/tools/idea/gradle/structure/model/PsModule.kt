@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.structure.model.repositories.search.GoogleRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.LocalMavenRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository
@@ -238,7 +239,7 @@ abstract class PsModule protected constructor(
           RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository
           RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository
           RepositoryModel.RepositoryType.MAVEN -> maybeCreateLocalMavenRepository(repositoryModel as MavenRepositoryModel)
-          RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> null
+          RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> GoogleRepository
           RepositoryModel.RepositoryType.FLAT_DIR -> null
         }
       })
