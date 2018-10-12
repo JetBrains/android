@@ -101,7 +101,15 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (!shouldDeployAsInstant()) {
+      boolean launchApp = true;
+      if (StudioFlags.JVMTI_REFRESH.get()) {
+        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES)) ||
+            Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
+          launchApp = false;
+        }
+      }
+
+      if (launchApp && !shouldDeployAsInstant()) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
