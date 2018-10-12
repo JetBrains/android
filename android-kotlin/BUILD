@@ -60,6 +60,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/android-kotlin:lib/dx",
+        "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
     ],
 )
 
