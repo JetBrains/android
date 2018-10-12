@@ -185,7 +185,7 @@ public class NewGradleSync implements GradleSync {
       callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
     }
 
-    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions, isCompoundSync);
+    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions, syncListener, request, isCompoundSync);
 
     if (isCompoundSync) {
       myResultHandler.onCompoundSyncFinished(syncListener);
