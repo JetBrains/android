@@ -163,13 +163,10 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
   @Override
   protected void onEntering() {
-    // TODO: 1 - In the old version, the combo box was initially populated with local data, and then later (asynchronously) with remote data
-    // now, the init is only called when all data is loaded, so the combo box stays empty for longer
-    // 2 - The old version only loaded the list of version once, and kept everything on a static field
+    // TODO: The old version only loaded the list of version once, and kept everything on a static field
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
-    // Add a new method to androidVersionsInfo.ItemsLoaded interface: onDataLoadedStarted(List<VersionItem> items) that provides the already
-    // loaded Local Store items?
     myAndroidVersionsInfo.load();
+    mySdkControls.init(myFormFactor, myAndroidVersionsInfo.getTargetVersions(myFormFactor, myMinSdkLevel)); // Pre-populate
     myAndroidVersionsInfo.loadTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
   }
 
