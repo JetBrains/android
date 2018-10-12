@@ -20,7 +20,7 @@ import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
-import com.intellij.ide.passwordSafe.impl.PasswordSafeImpl
+import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.testFramework.IdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.junit.Assert.assertArrayEquals
@@ -59,7 +59,7 @@ class KeystoreStepTest : IdeaTestCase() {
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = PasswordSafeImpl(passwordSafeSettings)
+    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
     ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -102,7 +102,7 @@ class KeystoreStepTest : IdeaTestCase() {
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = PasswordSafeImpl(passwordSafeSettings)
+    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
     passwordSafe.setPassword(CredentialAttributes(legacyRequestor, keyPasswordKey), testLegacyKeyPassword)
     ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
