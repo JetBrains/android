@@ -43,7 +43,8 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 
           if (!mavenMetadataFile.isFile) return CONTINUE
 
-          val match = isMatch(mavenMetadataFile, request)
+          val match = isMatch(mavenMetadataFile, request.groupId?.toWildcardMatchingPredicate() ?: { true },
+                              request.artifactName.toWildcardMatchingPredicate())
           if (match != null) {
             val versions = parent.listFiles()?.filter { it.isDirectory}?.mapNotNull { GradleVersion.tryParse(it.name) } ?: listOf()
             foundArtifacts.add(FoundArtifact(name, match.groupId, match.artifactName, versions))
@@ -57,25 +58,26 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
       Logger.getInstance(LocalMavenRepository::class.java).warn(msg, e)
     }
 
-    return SearchResult(foundArtifacts)
+    return SearchResult(foundArtifacts.sortedWith(compareBy<FoundArtifact> { it.groupId }.thenBy { it.name }))
   }
 
-  private fun isMatch(mavenMetadataFile: File, request: SearchRequest): Match? {
-    val groupId = request.groupId
-    val artifactName = request.artifactName
+  private fun isMatch(
+    mavenMetadataFile: File,
+    groupIdPredicate: ((String) -> Boolean),
+    artifactNamePredicate: (String) -> Boolean
+  ): Match? {
 
     try {
       val document = loadDocument(mavenMetadataFile)
       val rootElement = document.rootElement
       if (rootElement != null) {
         val groupIdElement = rootElement.getChild("groupId")
-        if (groupId != null && groupIdElement == null) return null
-        val currentGroupId = groupIdElement.value.orEmpty()
-        if (!currentGroupId.contains(groupId.orEmpty())) return null
+        val currentGroupId = groupIdElement?.value.orEmpty()
+        if (!groupIdPredicate(currentGroupId)) return null
 
         val artifactIdElement = rootElement.getChild("artifactId") ?: return null
         val currentArtifactName = artifactIdElement.value
-        if (currentArtifactName.contains(artifactName)) {
+        if (artifactNamePredicate(currentArtifactName)) {
           return Match(currentArtifactName, nullToEmpty(currentGroupId))
         }
       }
@@ -90,3 +92,11 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 
   private data class Match internal constructor(internal val artifactName: String, internal val groupId: String)
 }
+
+private fun String.toWildcardMatchingPredicate() : (String) -> Boolean =
+  if (isEmpty()) {
+    { true }
+  }
+  else {
+    Regex(replace("*", ".*")).let { { probe: String -> it.matches(probe) } }
+  }
