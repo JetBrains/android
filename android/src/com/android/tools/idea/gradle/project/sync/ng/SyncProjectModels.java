@@ -77,8 +77,10 @@ public class SyncProjectModels implements Serializable {
     // add the included builds.
     gradleBuilds.addAll(rootBuild.getIncludedBuilds());
 
+    // fail early if Kotlin plugin is applied to any of the sub-projects.
     for (GradleBuild gradleBuild : gradleBuilds) {
-      failIfKotlinPluginApplied(gradleBuild, controller);
+      GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
+      failIfKotlinPluginApplied(controller, gradleProject);
     }
 
     for (GradleBuild gradleBuild : gradleBuilds) {
@@ -97,13 +99,17 @@ public class SyncProjectModels implements Serializable {
     populateGlobalLibraryMap(controller);
   }
 
-  private static void failIfKotlinPluginApplied(@NotNull GradleBuild gradleBuild, @NotNull BuildController controller) {
-    GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
-    GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
-    if (pluginModel != null && pluginModel.getGraldePluginList()
-                                          .stream()
-                                          .anyMatch(p -> p.startsWith("org.jetbrains.kotlin"))) {
-      throw new NewGradleSyncNotSupportedException("containing Kotlin modules");
+  private static void failIfKotlinPluginApplied(@NotNull BuildController controller, @Nullable GradleProject gradleProject) {
+    if (gradleProject != null) {
+      GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
+      if (pluginModel != null && pluginModel.getGraldePluginList()
+                                            .stream()
+                                            .anyMatch(p -> p.startsWith("org.jetbrains.kotlin"))) {
+        throw new NewGradleSyncNotSupportedException("containing Kotlin modules");
+      }
+      for (GradleProject child : gradleProject.getChildren()) {
+        failIfKotlinPluginApplied(controller, child);
+      }
     }
   }
 
