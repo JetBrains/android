@@ -36,7 +36,7 @@ class GradleSyncStateLoggingTest : AndroidGradleTestCase() {
 
     val proto = tracker.usages
       .map { it.studioEvent }
-      .single { it.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }
+      .last { it.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }
       .kotlinSupport
 
     assertEquals(TestUtils.getKotlinVersionForTests(), proto.kotlinSupportVersion)
