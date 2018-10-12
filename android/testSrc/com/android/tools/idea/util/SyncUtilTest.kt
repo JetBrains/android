@@ -168,6 +168,7 @@ class SyncUtilTest {
 
     // The next callback won't execute immediately but it will be scheduled to run on the EDT later
     val latch = CountDownLatch(1)
+    val startThreadLatch = CountDownLatch(1)
     executeOnPooledThread {
       project.runWhenSmartAndSyncedOnEdt(
         callback = Consumer {
@@ -176,7 +177,10 @@ class SyncUtilTest {
           callCount.incrementAndGet()
         },
         syncManager = syncManager)
+      startThreadLatch.countDown()
     }
+    // Wait for the thread to start
+    startThreadLatch.await(1, TimeUnit.SECONDS)
     assertEquals(0, callCount.get())
     latch.countDown()
     invokeAndWaitIfNeed { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
