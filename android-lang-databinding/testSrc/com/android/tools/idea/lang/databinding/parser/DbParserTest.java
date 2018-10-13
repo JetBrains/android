@@ -17,8 +17,8 @@ package com.android.tools.idea.lang.databinding.parser;
 
 import com.android.tools.idea.lang.databinding.DbFileType;
 import com.android.tools.idea.lang.databinding.DbParserDefinition;
+import com.android.tools.idea.lang.databinding.LangDataBindingTestDataKt;
 import com.intellij.testFramework.ParsingTestCase;
-import org.jetbrains.android.AndroidTestBase;
 
 public class DbParserTest extends ParsingTestCase {
   public DbParserTest() {
@@ -27,7 +27,7 @@ public class DbParserTest extends ParsingTestCase {
 
   @Override
   protected String getTestDataPath() {
-    return AndroidTestBase.getTestDataPath();
+    return LangDataBindingTestDataKt.getTestDataPath();
   }
 
   @Override
