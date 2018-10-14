@@ -376,14 +376,14 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
   private void warnIfOpenJDK() {
     if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
-        !SystemInfo.isJetbrainsJvm && !SystemInfo.isStudioJvm) {
+        !SystemInfo.isJetBrainsJvm && !SystemInfo.isStudioJvm) {
       showNotification("unsupported.jvm.openjdk.message", null);
     }
   }
 
   private void warnIfMacDragNDropJDKBug() {
     if (SystemInfoRt.isMac &&
-        !SystemInfo.isJetbrainsJvm &&
+        !SystemInfo.isJetBrainsJvm &&
         !SystemInfo.isStudioJvm &&
         SystemInfo.isJavaVersionAtLeast("1.8.0_60") &&
         !SystemInfo.isJavaVersionAtLeast("1.8.0_76")) {
