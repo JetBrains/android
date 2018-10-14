@@ -266,7 +266,7 @@ public class OrientationMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, myFile, -1);
       FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
     }
@@ -284,7 +284,7 @@ public class OrientationMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true);
     }
   }

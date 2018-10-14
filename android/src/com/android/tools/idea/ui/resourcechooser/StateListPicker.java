@@ -215,7 +215,7 @@ public class StateListPicker extends JPanel {
      * @see AlphaActionListener#documentChanged(DocumentEvent)
      */
     @Override
-    public void documentChanged(DocumentEvent e) {
+    public void documentChanged(@NotNull DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.
@@ -291,7 +291,7 @@ public class StateListPicker extends JPanel {
      * @see ValueActionListener#documentChanged(DocumentEvent)
      */
     @Override
-    public void documentChanged(DocumentEvent e) {
+    public void documentChanged(@NotNull DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.

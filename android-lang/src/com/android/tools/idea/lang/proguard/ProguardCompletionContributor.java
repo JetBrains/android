@@ -93,7 +93,7 @@ public class ProguardCompletionContributor extends CompletionContributor {
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext processingContext,
+                                           @NotNull ProcessingContext processingContext,
                                            @NotNull CompletionResultSet resultSet) {
                for (String flag : VALID_FLAGS) {
                  resultSet.addElement(LookupElementBuilder.create(flag));

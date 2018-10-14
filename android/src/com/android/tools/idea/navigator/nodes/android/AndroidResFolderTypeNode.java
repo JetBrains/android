@@ -108,7 +108,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.addText(myFolderType.getName(), REGULAR_ATTRIBUTES);
     presentation.setIcon(PlatformIcons.PACKAGE_ICON);
     presentation.setPresentableText(myFolderType.getName());

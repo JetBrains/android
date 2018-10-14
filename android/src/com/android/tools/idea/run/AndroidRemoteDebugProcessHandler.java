@@ -20,6 +20,7 @@ import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessListener;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStream;
 
@@ -48,7 +49,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
     final DebugProcess debugProcess = DebuggerManager.getInstance(myProject).getDebugProcess(this);
     final DebugProcessListener listener = new DebugProcessListener() {
       @Override
-      public void processDetached(DebugProcess process, boolean closedByUser) {
+      public void processDetached(@NotNull DebugProcess process, boolean closedByUser) {
         debugProcess.removeDebugProcessListener(this);
         if (myDetachWhenDoneMonitoring) {
           notifyProcessDetached();

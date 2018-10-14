@@ -308,7 +308,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
         //otherwise, any root change event would wipe out the expandedDescendants list before we have a chance to read it
         treeModel.addTreeModelListener(new TreeModelAdapter() {
           @Override
-          protected void process(TreeModelEvent event, EventType type) {
+          protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
             Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
             if (expanded == null) {
               return;
@@ -506,12 +506,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myDexViewFilters.isShowFields();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myDexViewFilters.setShowFields(state);
       ((DefaultTreeModel)myTree.getModel()).reload();
     }
@@ -528,12 +528,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myDexViewFilters.isShowMethods();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myDexViewFilters.setShowMethods(state);
       ((DefaultTreeModel)myTree.getModel()).reload();
     }
@@ -558,12 +558,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myDexViewFilters.isShowReferencedNodes();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myDexViewFilters.setShowReferencedNodes(state);
       ((DefaultTreeModel)myTree.getModel()).reload();
     }
@@ -580,12 +580,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myDexViewFilters.isShowRemovedNodes();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myDexViewFilters.setShowRemovedNodes(state);
       ((DefaultTreeModel)myTree.getModel()).reload();
     }
@@ -603,12 +603,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myDeobfuscateNames;
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myDeobfuscateNames = state;
       initDex();
     }
@@ -627,7 +627,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       selectProguardMapping();
     }
 
@@ -637,7 +637,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       super.update(e);
       if (myProguardMappings != null) {
         e.getPresentation().setText("Change Proguard mappings...");

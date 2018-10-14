@@ -16,18 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.annotations.VisibleForTesting;
-import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.JDOMUtil;
-import com.intellij.openapi.util.Ref;
 import com.intellij.util.io.HttpRequests;
-import org.jdom.Document;
-import org.jdom.JDOMException;
+import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,9 +74,9 @@ public class CompatibilityChecksMetadataUpdater {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       String url = "https://dl.google.com/android/studio/metadata/android-component-compatibility.xml";
       try {
-        Document metadata = HttpRequests.request(url).connect(request -> {
+        Element metadata = HttpRequests.request(url).connect(request -> {
           try {
-            return JDOMUtil.loadDocument(request.getInputStream());
+            return JDOMUtil.load(request.getInputStream());
           }
           catch (Throwable e) {
             // Some other unexpected error related to JRE setup, e.g.

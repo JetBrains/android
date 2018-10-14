@@ -542,7 +542,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     private boolean myUserAcceptedCancel;
 
     @Override
-    public void projectOpened(Project project) {
+    public void projectOpened(@NotNull Project project) {
     }
 
     @Override
@@ -562,7 +562,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
 
     @Override
-    public void projectClosing(Project project) {
+    public void projectClosing(@NotNull Project project) {
       if (project.equals(myProject)) {
         myIsApplicationExitingOrProjectClosing = true;
       }

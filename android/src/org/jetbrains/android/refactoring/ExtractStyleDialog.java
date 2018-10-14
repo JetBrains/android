@@ -160,7 +160,7 @@ class ExtractStyleDialog extends DialogWrapper {
 
     AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(true);
       }
     };
@@ -168,7 +168,7 @@ class ExtractStyleDialog extends DialogWrapper {
 
     AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(false);
       }
     };

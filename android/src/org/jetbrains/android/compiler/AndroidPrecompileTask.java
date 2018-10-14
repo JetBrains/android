@@ -395,7 +395,7 @@ public class AndroidPrecompileTask implements CompileTask {
     }
 
     @Override
-    public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
+    public void compilationFinished(boolean aborted, int errors, int warnings, @NotNull CompileContext compileContext) {
       ExcludesConfiguration configuration = CompilerConfiguration.getInstance(myProject).getExcludedEntriesConfiguration();
       ExcludeEntryDescription[] descriptions = configuration.getExcludeEntryDescriptions();
 

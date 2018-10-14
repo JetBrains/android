@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbBinaryXorExprImpl extends PsiDbExprImpl implements PsiDbBinaryXorExpr {
 
-  public PsiDbBinaryXorExprImpl(ASTNode node) {
+  public PsiDbBinaryXorExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

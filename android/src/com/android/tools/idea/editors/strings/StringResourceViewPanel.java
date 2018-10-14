@@ -86,7 +86,7 @@ public final class StringResourceViewPanel implements Disposable {
   }
 
   public void removeSelectedKeys() {
-    myRemoveKeysAction.actionPerformed(null);
+    myRemoveKeysAction.perform();
   }
 
   void addDocumentListener(@NotNull DocumentListener listener) {

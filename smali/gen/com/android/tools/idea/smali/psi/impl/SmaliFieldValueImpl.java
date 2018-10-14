@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliFieldValueImpl extends ASTWrapperPsiElement implements SmaliFieldValue {
 
-  public SmaliFieldValueImpl(ASTNode node) {
+  public SmaliFieldValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

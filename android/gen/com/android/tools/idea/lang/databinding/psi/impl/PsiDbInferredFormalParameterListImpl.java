@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbInferredFormalParameterListImpl extends DataBindingPsiElement implements PsiDbInferredFormalParameterList {
 
-  public PsiDbInferredFormalParameterListImpl(ASTNode node) {
+  public PsiDbInferredFormalParameterListImpl(@NotNull ASTNode node) {
     super(node);
   }
 

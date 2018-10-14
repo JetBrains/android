@@ -164,7 +164,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     AnAction addDependencyAction = new DumbAwareAction("Add Dependency", "", IconUtil.getAddIcon()) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, getPopupActions()) {
           @Override
           public Icon getIconFor(AbstractPopupAction action) {

@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlBodyImpl extends AidlPsiCompositeElementImpl implements AidlBody {
 
-  public AidlBodyImpl(ASTNode node) {
+  public AidlBodyImpl(@NotNull ASTNode node) {
     super(node);
   }
 

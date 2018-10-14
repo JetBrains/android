@@ -74,7 +74,7 @@ public class NdkFacet extends Facet<NdkFacetConfiguration> {
     MessageBusConnection connection = getModule().getMessageBus().connect(this);
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {
           if (!isDisposed()) {
             PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();

@@ -137,7 +137,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     });
     decorator.setRemoveActionUpdater(new AnActionButtonUpdater() {
       @Override
-      public boolean isEnabled(AnActionEvent e) {
+      public boolean isEnabled(@NotNull AnActionEvent e) {
         NamedObject selectedObject = getSelectedObject();
         return selectedObject != null && !(selectedObject instanceof UndeletableNamedObject);
       }

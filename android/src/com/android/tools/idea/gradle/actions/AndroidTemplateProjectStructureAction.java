@@ -38,7 +38,7 @@ public class AndroidTemplateProjectStructureAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(final AnActionEvent e) {
+  public void actionPerformed(@NotNull final AnActionEvent e) {
     Project project = ProjectManagerEx.getInstanceEx().getDefaultProject();
     AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(project);
 

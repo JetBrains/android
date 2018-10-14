@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlPackageStatementImpl extends AidlPsiCompositeElementImpl implements AidlPackageStatement {
 
-  public AidlPackageStatementImpl(ASTNode node) {
+  public AidlPackageStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 

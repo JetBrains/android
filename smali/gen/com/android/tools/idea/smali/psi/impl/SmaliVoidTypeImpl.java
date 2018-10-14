@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliVoidTypeImpl extends ASTWrapperPsiElement implements SmaliVoidType {
 
-  public SmaliVoidTypeImpl(ASTNode node) {
+  public SmaliVoidTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 

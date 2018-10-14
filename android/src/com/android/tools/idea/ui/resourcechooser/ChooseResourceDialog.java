@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -81,6 +67,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.speedSearch.FilteringTableModel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -698,7 +685,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceValueAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourceType type = (ResourceType)getTemplatePresentation().getClientProperty(TYPE_KEY);
         createNewResourceValue(type);
       }
@@ -709,7 +696,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceFileAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourceFolderType type = (ResourceFolderType)getTemplatePresentation().getClientProperty(FOLDER_TYPE_KEY);
         createNewResourceFile(type);
       }
@@ -732,7 +719,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createExtractStyleAction() {
     return new AnAction("Extract Style...") {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         extractStyle();
       }
     };
@@ -742,7 +729,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceReferenceAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourcePanel panel = getSelectedPanel();
         panel.showNewResource(panel.myReferencePanel);
       }
@@ -770,7 +757,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     searchField.setMaximumSize(new Dimension(JBUI.scale(300), searchField.getMaximumSize().height));
     searchField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         updateFilter();
       }
     });
@@ -1616,7 +1603,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         // Without this, selecting different tables (e.g. keep arrow down pressed) causes the splitter
         // to keep recomputing the allocations based on the preferred sizes of the children instead
         // of sticking with the current proportion
-        myComponent.skipNextLayouting();
+        myComponent.skipNextLayout();
       }
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
       myTablePanel.select(item);
@@ -1662,7 +1649,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         });
         myReferenceComponent.addTextDocumentListener(new DocumentListener() {
           @Override
-          public void documentChanged(com.intellij.openapi.editor.event.DocumentEvent e) {
+          public void documentChanged(@NotNull com.intellij.openapi.editor.event.DocumentEvent e) {
             // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
             // To prevent a potential deadlock, we call updateIcon in another thread.
             ApplicationManager.getApplication().invokeLater(() -> {
@@ -2353,12 +2340,12 @@ public class ChooseResourceDialog extends DialogWrapper {
       for (final Action action : actions) {
         final AnAction anAction = new AnAction() {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             action.actionPerformed(new ActionEvent(source, 0, ""));
           }
 
           @Override
-          public void update(AnActionEvent e) {
+          public void update(@NotNull AnActionEvent e) {
             Presentation presentation = e.getPresentation();
             String name = (String)action.getValue(Action.NAME);
             if (name != null) {

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbLambdaParametersImpl extends DataBindingPsiElement implements PsiDbLambdaParameters {
 
-  public PsiDbLambdaParametersImpl(ASTNode node) {
+  public PsiDbLambdaParametersImpl(@NotNull ASTNode node) {
     super(node);
   }
 

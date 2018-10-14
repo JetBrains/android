@@ -86,7 +86,7 @@ public class ToolWindowHeader extends Header implements Disposable {
       Icon minimizeIcon = myAnchor == LEFT ? HideLeft : HideRight; // We don't support TOP or BOTTOM
       myMinimizeAction = new DumbAwareAction("Hide", "", minimizeIcon) {
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           myEventDispatcher.getMulticaster().minimized();
         }
       };

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbConstantValueImpl extends DataBindingPsiElement implements PsiDbConstantValue {
 
-  public PsiDbConstantValueImpl(ASTNode node) {
+  public PsiDbConstantValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -166,12 +166,12 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
   protected abstract boolean isMyFile(PsiFile file);
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     final DataContext context = e.getDataContext();
 
     final DataContext patchedContext = new DataContext() {
       @Override
-      public Object getData(@NonNls String dataId) {
+      public Object getData(@NotNull @NonNls String dataId) {
         final Object data = context.getData(dataId);
         if (data != null) {
           return data;

@@ -50,7 +50,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   @Nullable private Object myBuildId;
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<MessageEvent> messageConsumer) {
+  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super MessageEvent> messageConsumer) {
     // Clear lines if build id changed
     if (reader.getBuildId() != myBuildId) {
       myBufferedLines.clear();

@@ -34,13 +34,13 @@ public final class ToggleBoundsVisibility extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent event) {
+  public void update(@NotNull AnActionEvent event) {
     boolean visible = myProperties.getBoolean(BOUNDS_VISIBLE_PROPERTY);
     event.getPresentation().setText(visible ? "Hide Bounds in Component Tree" : "Show Bounds in Component Tree");
   }
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     myProperties.setValue(BOUNDS_VISIBLE_PROPERTY, !myProperties.getBoolean(BOUNDS_VISIBLE_PROPERTY));
     myComponentTree.repaint();
   }

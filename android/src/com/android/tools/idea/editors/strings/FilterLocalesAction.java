@@ -62,7 +62,7 @@ class FilterLocalesAction extends ComboBoxAction {
 
     group.add(new AnAction(NO_FILTER_TITLE) {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setColumnFilter(null);
       }
     });
@@ -83,7 +83,7 @@ class FilterLocalesAction extends ComboBoxAction {
 
     return new AnAction(text, null, locale.getFlagImage()) {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setColumnFilter(new LocaleColumnFilter(locale));
       }
     };

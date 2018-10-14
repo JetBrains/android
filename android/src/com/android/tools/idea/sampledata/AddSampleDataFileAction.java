@@ -50,14 +50,14 @@ public class AddSampleDataFileAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
     e.getPresentation().setEnabledAndVisible(getFacetFromAction(e) != null);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     AndroidFacet facet = getFacetFromAction(e);
     if (facet == null) {
       return;

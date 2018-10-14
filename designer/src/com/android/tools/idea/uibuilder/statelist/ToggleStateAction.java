@@ -44,13 +44,13 @@ final class ToggleStateAction extends ToggleAction {
   }
 
   @Override
-  public boolean isSelected(@Nullable AnActionEvent event) {
+  public boolean isSelected(@NotNull AnActionEvent event) {
     View image = getImageView();
     return image != null && Ints.contains(image.getDrawableState(), myState.getIntValue());
   }
 
   @Override
-  public void setSelected(@Nullable AnActionEvent event, boolean selected) {
+  public void setSelected(@NotNull AnActionEvent event, boolean selected) {
     ImageView image = getImageView();
 
     if (image == null) {

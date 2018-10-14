@@ -49,7 +49,7 @@ class SigningConfigsPanel(
         e?.presentation?.isEnabled = selectedConfigurable != null
       }
 
-      override fun actionPerformed(e: AnActionEvent?) {
+      override fun actionPerformed(e: AnActionEvent) {
         if (Messages.showYesNoDialog(
             e?.project,
             "Remove signing config '${selectedConfigurable?.displayName}' from the module?",
@@ -67,14 +67,14 @@ class SigningConfigsPanel(
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
         object : DumbAwareAction("Add Signing Config", "", IconUtil.getAddIcon()) {
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
-                    e?.project,
-                    "Enter a new signing config name:",
-                    "Create New Signing Config",
-                    null,
-                    "", object : InputValidator {
+                  e.project,
+                  "Enter a new signing config name:",
+                  "Create New Signing Config",
+                  null,
+                  "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
                   override fun canClose(inputString: String?): Boolean =
                     validateAndShow { module.validateSigningConfigName(inputString.orEmpty()) }

@@ -20,6 +20,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Builds a module belonging to an IDEA project that is not an Android-model-based project.
@@ -30,7 +31,7 @@ public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       // Projects that require a Android model have their own action to build modules and projects.

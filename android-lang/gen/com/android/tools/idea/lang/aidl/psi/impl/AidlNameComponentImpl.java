@@ -30,7 +30,7 @@ import com.intellij.psi.PsiReference;
 
 public class AidlNameComponentImpl extends AidlNamedElementImpl implements AidlNameComponent {
 
-  public AidlNameComponentImpl(ASTNode node) {
+  public AidlNameComponentImpl(@NotNull ASTNode node) {
     super(node);
   }
 

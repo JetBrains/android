@@ -68,7 +68,7 @@ public class GradleFileEditor extends UserDataHolderBase implements FileEditor {
     else {
       myDocument.addDocumentListener(myDocumentListener = new DocumentListener() {
         @Override
-        public void documentChanged(DocumentEvent e) {
+        public void documentChanged(@NotNull DocumentEvent e) {
           Document document = e.getDocument();
           if (document instanceof DocumentEx && ((DocumentEx)document).isInBulkUpdate()) {
             return;

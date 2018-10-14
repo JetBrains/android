@@ -28,7 +28,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliClassNameImpl extends JavaClassRefImpl implements SmaliClassName {
 
-  public SmaliClassNameImpl(ASTNode node) {
+  public SmaliClassNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

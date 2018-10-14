@@ -21,6 +21,8 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +38,7 @@ public final class ToggleStateActionTest {
   @Test
   public void isSelectedImageIsNull() {
     ToggleAction action = new ToggleStateAction(State.PRESSED, mockSurface(null));
-    assertFalse(action.isSelected(null));
+    assertFalse(action.isSelected(new AnActionEvent(null, dataId -> null, "sdsd", action.getTemplatePresentation(), ActionManager.getInstance(), -1)));
   }
 
   @Test
@@ -44,7 +46,7 @@ public final class ToggleStateActionTest {
     ImageView image = mockImage(new int[0]);
     ToggleAction action = new ToggleStateAction(State.PRESSED, mockSurface(image));
 
-    assertFalse(action.isSelected(null));
+    assertFalse(action.isSelected(new AnActionEvent(null, dataId -> null, "sdsd", action.getTemplatePresentation(), ActionManager.getInstance(), -1)));
   }
 
   @Test
@@ -52,7 +54,7 @@ public final class ToggleStateActionTest {
     ImageView image = mockImage(new int[]{State.PRESSED.getIntValue()});
     ToggleAction action = new ToggleStateAction(State.PRESSED, mockSurface(image));
 
-    assertTrue(action.isSelected(null));
+    assertTrue(action.isSelected(new AnActionEvent(null, dataId -> null, "sdsd", action.getTemplatePresentation(), ActionManager.getInstance(), -1)));
   }
 
   @Test
@@ -60,7 +62,7 @@ public final class ToggleStateActionTest {
     ImageView image = mockImage(new int[]{State.PRESSED.getIntValue()});
     ToggleAction action = new ToggleStateAction(State.PRESSED, mockSurface(image));
 
-    action.setSelected(null, false);
+    action.setSelected(new AnActionEvent(null, dataId -> null, "sdsd", action.getTemplatePresentation(), ActionManager.getInstance(), -1), false);
     Mockito.verify(image).setImageState(new int[0], false);
   }
 
@@ -69,7 +71,7 @@ public final class ToggleStateActionTest {
     ImageView image = mockImage(new int[0]);
     ToggleAction action = new ToggleStateAction(State.PRESSED, mockSurface(image));
 
-    action.setSelected(null, true);
+    action.setSelected(new AnActionEvent(null, dataId -> null, "sdsd", action.getTemplatePresentation(), ActionManager.getInstance(), -1), true);
     Mockito.verify(image).setImageState(new int[]{State.PRESSED.getIntValue()}, false);
   }
 

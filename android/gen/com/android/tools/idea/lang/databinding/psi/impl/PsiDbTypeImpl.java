@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbTypeImpl extends DataBindingPsiElement implements PsiDbType {
 
-  public PsiDbTypeImpl(ASTNode node) {
+  public PsiDbTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 

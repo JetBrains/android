@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class AndroidTestRunConfigurationType implements ConfigurationType {
+public final class AndroidTestRunConfigurationType implements ConfigurationType {
   private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = new NotNullLazyValue<Icon>() {
     @NotNull
     @Override
@@ -56,6 +56,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
     return ConfigurationTypeUtil.findConfigurationType(AndroidTestRunConfigurationType.class);
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return AndroidBundle.message("android.test.run.configuration.type.name");

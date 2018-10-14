@@ -63,7 +63,7 @@ public class ShowReferencesAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
 
     DexElementNode node = getSelectedNode();
@@ -76,7 +76,7 @@ public class ShowReferencesAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     DexElementNode node = getSelectedNode();
     assert node != null; // action should've been disabled in this case
     Project project = getEventProject(e);

@@ -30,6 +30,7 @@ import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     final Module module = e.getData(DataKeys.MODULE);
     final Project project = e.getData(DataKeys.PROJECT);
     boolean visible = project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty();
@@ -78,7 +79,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getData(DataKeys.PROJECT);
     Module module = e.getData(DataKeys.MODULE);
     if (module != null) {

@@ -165,7 +165,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent event) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
       if (myContext == null) {
         return;
       }
@@ -314,7 +314,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
   private AnAction createDesignAction() {
     return new AnAction() {
       @Override
-      public void update(AnActionEvent event) {
+      public void update(@NotNull AnActionEvent event) {
         Presentation presentation = event.getPresentation();
         switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
@@ -339,7 +339,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
       }
 
       @Override
-      public void actionPerformed(AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         if (myContext == null) {
           return;
         }

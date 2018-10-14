@@ -370,11 +370,5 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     private PsiElement resolveInner() {
       return myResolveTo;
     }
-
-    @Override
-    @NotNull
-    public Object[] getVariants() {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    }
   }
 }

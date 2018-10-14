@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlClassOrInterfaceTypeImpl extends AidlTypeImpl implements AidlClassOrInterfaceType {
 
-  public AidlClassOrInterfaceTypeImpl(ASTNode node) {
+  public AidlClassOrInterfaceTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 

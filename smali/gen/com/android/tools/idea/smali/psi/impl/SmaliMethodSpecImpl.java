@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliMethodSpecImpl extends ASTWrapperPsiElement implements SmaliMethodSpec {
 
-  public SmaliMethodSpecImpl(ASTNode node) {
+  public SmaliMethodSpecImpl(@NotNull ASTNode node) {
     super(node);
   }
 

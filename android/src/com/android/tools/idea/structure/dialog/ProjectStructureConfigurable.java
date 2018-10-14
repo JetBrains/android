@@ -534,7 +534,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
     @Override
     @Nullable
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       if (KEY.is(dataId)) {
         return ProjectStructureConfigurable.this;
       }

@@ -61,12 +61,12 @@ public class MockupToggleAction extends ToggleAction {
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
+  public boolean isSelected(@NotNull AnActionEvent e) {
     return mySurface.isMockupVisible();
   }
 
   @Override
-  public void setSelected(AnActionEvent e, boolean state) {
+  public void setSelected(@NotNull AnActionEvent e, boolean state) {
     getTemplatePresentation().setEnabled(state);
     mySurface.setMockupVisible(state);
     final MockupEditor mockupEditor = mySurface.getMockupEditor();

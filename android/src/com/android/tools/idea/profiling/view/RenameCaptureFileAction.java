@@ -45,7 +45,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
     DialogWrapper dialog = new RenameDialog(project, virtualFile);
@@ -86,7 +86,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
 
       myInput.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
-        public void textChanged(DocumentEvent documentEvent) {
+        public void textChanged(@NotNull DocumentEvent documentEvent) {
           boolean isValid = StandardFileSystems.local().isValidName(myInput.getText().trim());
           setErrorText(isValid ? null : String.format("'%1$s' is not valid", myInput.getText()));
           myOKAction.setEnabled(isValid);

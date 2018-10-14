@@ -67,7 +67,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
   }
 
   @Override
-  protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<List<String>> value) {
+  protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<? extends List<String>> value) {
     List<String> variants = new ArrayList<>(myValues);
     filterVariants(variants, value);
     return ArrayUtil.toStringArray(variants);

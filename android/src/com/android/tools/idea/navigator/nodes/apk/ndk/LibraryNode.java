@@ -121,7 +121,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(LIBRARY_MODULE);
     presentation.addText(myLibraryName, REGULAR_ATTRIBUTES);
 

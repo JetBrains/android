@@ -136,7 +136,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       boolean enabled = e.getData(LangDataKeys.CONSOLE_VIEW) != null;
       Editor editor = e.getData(CommonDataKeys.EDITOR);
       if (editor != null && editor.getDocument().getTextLength() == 0) {
@@ -146,7 +146,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myConsole.clearLogcat();
     }
   }

@@ -49,10 +49,10 @@ import org.jetbrains.annotations.Nullable;
  * Tests for {@link LauncherIconGenerator}.
  */
 public class LauncherIconGeneratorTest extends AndroidTestCase {
-  private List<String> myWarnings = new ArrayList<>();
+  private final List<String> myWarnings = new ArrayList<>();
   private LauncherIconGenerator myIconGenerator;
 
-  private AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
+  private final AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
     @Override
     @Nullable
     public File getModuleRoot() {

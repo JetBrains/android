@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes;
 
 import java.util.List;
 import java.util.Map;
@@ -177,8 +178,10 @@ public class GradleFileSimpleMerger {
       if (myType == GroovyTokenTypes.mASSIGN) {
         return parseValueList();
       }
-      else if (myType == GroovyTokenTypes.mSTRING_LITERAL ||
-               myType == GroovyTokenTypes.mGSTRING_LITERAL ||
+      else if (myType == GroovyElementTypes.STRING_SQ ||
+               myType == GroovyElementTypes.STRING_TSQ ||
+               myType == GroovyElementTypes.STRING_DQ ||
+               myType == GroovyElementTypes.STRING_TDQ ||
                myType == GroovyTokenTypes.mNUM_INT ||
                myType == GroovyTokenTypes.mNUM_BIG_INT ||
                myType == GroovyTokenTypes.mNUM_BIG_DECIMAL ||
@@ -221,7 +224,7 @@ public class GradleFileSimpleMerger {
     }
 
     private boolean findStringLiteral(List<String> literals) {
-      if (myType != GroovyTokenTypes.mSTRING_LITERAL) {
+      if (myType != GroovyElementTypes.STRING_SQ && myType != GroovyElementTypes.STRING_TSQ) {
         return false;
       }
       literals.add(myLexer.getTokenText());
