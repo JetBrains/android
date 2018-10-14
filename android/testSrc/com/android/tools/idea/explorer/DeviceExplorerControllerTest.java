@@ -1554,7 +1554,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     SettableFuture<TreePath> isNodeExpandedFuture = SettableFuture.create();
     TreeModelAdapter treeModelAdapter = new TreeModelAdapter() {
       @Override
-      protected void process(TreeModelEvent event, EventType type) {
+      protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
         if (isNodeFullyUpdated(event)) {
           isNodeExpandedFuture.set(event.getTreePath());
         }

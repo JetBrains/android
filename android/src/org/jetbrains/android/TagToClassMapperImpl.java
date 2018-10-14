@@ -58,7 +58,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
 
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         // Clear the class inheritance map to make sure new dependencies from libraries are picked up
         clear();
       }

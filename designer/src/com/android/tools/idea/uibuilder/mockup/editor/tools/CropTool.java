@@ -138,12 +138,12 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myActive;
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       //Enable or disable itself in the mockup editor
       if (state) {
         myMockupEditor.enableTool(CropTool.this);
@@ -173,12 +173,12 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myActive && myMockupViewPanel != null && myMockupViewPanel.getSelectionLayer().isFixedRatio();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       if (myMockup == null) {
         return;
       }

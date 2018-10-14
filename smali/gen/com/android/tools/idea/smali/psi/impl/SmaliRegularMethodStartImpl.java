@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliRegularMethodStartImpl extends ASTWrapperPsiElement implements SmaliRegularMethodStart {
 
-  public SmaliRegularMethodStartImpl(ASTNode node) {
+  public SmaliRegularMethodStartImpl(@NotNull ASTNode node) {
     super(node);
   }
 

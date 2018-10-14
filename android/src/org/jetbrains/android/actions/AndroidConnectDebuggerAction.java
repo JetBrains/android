@@ -34,7 +34,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
   private final boolean isAndroidStudio = IdeInfo.getInstance().isAndroidStudio();
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
     assert project != null;
 
@@ -51,7 +51,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     final Project project = e.getProject();
     boolean isVisible = isAndroidStudio ||

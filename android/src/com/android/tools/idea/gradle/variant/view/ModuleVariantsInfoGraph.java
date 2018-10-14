@@ -266,7 +266,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setText(mySelectedVariant.getName());
     }
 
@@ -290,7 +290,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       mySelectedVariant = myVariant;
       myGraph.render(myModule, myAndroidModel, mySelectedVariant);
       myGraphComponent.refresh();
@@ -309,12 +309,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       return myGraphComponent != null && myGraphComponent.isGridVisible();
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       if (myGraphComponent != null) {
         myGraphComponent.setGridVisible(state);
         myGraphComponent.refresh();
@@ -328,12 +328,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraph != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraph != null) {
         myGraph.resetLayout();
       }
@@ -346,12 +346,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraphComponent != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraphComponent != null) {
         myGraphComponent.zoomIn();
       }
@@ -364,12 +364,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraphComponent != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraphComponent != null) {
         myGraphComponent.zoomOut();
       }
@@ -382,12 +382,12 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setEnabled(myGraphComponent != null);
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       if (myGraphComponent != null) {
         myGraphComponent.zoomActual();
       }

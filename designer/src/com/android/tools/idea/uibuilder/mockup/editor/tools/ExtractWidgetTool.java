@@ -208,7 +208,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     return new AnAction(creatorAction.myTitle, creatorAction.myTitle, creatorAction.myIcon) {
 
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
         Mockup mockup = myMockupEditor.getMockup();
         if (viewGroupOnly && (mockup == null || !canAddChild(creatorAction, mockup.getComponent()))) {
           e.getPresentation().setEnabledAndVisible(false);
@@ -219,7 +219,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
       }
 
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         Mockup mockup = myMockupEditor.getMockup();
         SceneView currentScreenView = mySurface.getCurrentSceneView();
         if (mockup == null) {

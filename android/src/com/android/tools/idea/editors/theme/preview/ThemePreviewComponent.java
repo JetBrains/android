@@ -93,7 +93,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     mySearchUpdateScheduler = Executors.newSingleThreadScheduledExecutor(ConcurrencyUtil.newNamedThreadFactory("Theme Editor Searcher"));
     myTextField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         if (myScheduledSearch != null) {
           myScheduledSearch.cancel(false);
         }

@@ -56,9 +56,9 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
   private final MyArrayMapSizeEvaluator mySizeEvaluator = new MyArrayMapSizeEvaluator();
 
   public ArrayMapRendererBase(@NotNull String mapFqn) {
-    myProperties.setEnabled(true);
-    myProperties.setName(mapFqn);
+    super(DEFAULT_NAME, true);
 
+    myProperties.setName(mapFqn);
     myFqn = mapFqn;
   }
 

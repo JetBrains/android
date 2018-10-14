@@ -402,7 +402,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
 
       @Override
-      public void beforeTemplateFinished(TemplateState state, Template template) {
+      public void beforeTemplateFinished(@NotNull TemplateState state, Template template) {
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(file, marker.getStartOffset(), marker.getEndOffset());
       }
     });

@@ -422,7 +422,7 @@ public class AndroidLogcatView implements Disposable {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myView.notifyDeviceUpdated(true);
     }
   }
@@ -438,7 +438,7 @@ public class AndroidLogcatView implements Disposable {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       Project project = myView.myProject;
       AndroidLogcatPreferences preferences = AndroidLogcatPreferences.getInstance(project);
       ConfigureLogcatHeaderDialog dialog = new ConfigureLogcatHeaderDialog(project, preferences, ZoneId.systemDefault());

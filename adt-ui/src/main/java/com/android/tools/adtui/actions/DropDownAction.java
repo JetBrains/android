@@ -122,14 +122,14 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     popupMenu = popupFactory.createComponentPopupBuilder(content, content).createPopup();
     popupMenu.addListener(new JBPopupAdapter() {
       @Override
-      public void beforeShown(LightweightWindowEvent event) {
+      public void beforeShown(@NotNull LightweightWindowEvent event) {
         super.beforeShown(event);
         DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
         button.setSelected(true);
       }
 
       @Override
-      public void onClosed(LightweightWindowEvent event) {
+      public void onClosed(@NotNull LightweightWindowEvent event) {
         super.onClosed(event);
         DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
         button.setSelected(false);
@@ -163,7 +163,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   }
 
   @Override
-  public boolean canBePerformed(@Nullable DataContext context) {
+  public boolean canBePerformed(@NotNull DataContext context) {
     return true;
   }
 

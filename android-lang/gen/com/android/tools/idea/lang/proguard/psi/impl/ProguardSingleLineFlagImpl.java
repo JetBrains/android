@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.proguard.psi.*;
 
 public class ProguardSingleLineFlagImpl extends ASTWrapperPsiElement implements ProguardSingleLineFlag {
 
-  public ProguardSingleLineFlagImpl(ASTNode node) {
+  public ProguardSingleLineFlagImpl(@NotNull ASTNode node) {
     super(node);
   }
 

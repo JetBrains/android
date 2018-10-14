@@ -527,7 +527,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   // ---- Implements CaretListener ----
 
   @Override
-  public void caretPositionChanged(CaretEvent e) {
+  public void caretPositionChanged(@NotNull CaretEvent e) {
     if (!myIgnoreListener) {
       updateCaret();
       // TODO: implement

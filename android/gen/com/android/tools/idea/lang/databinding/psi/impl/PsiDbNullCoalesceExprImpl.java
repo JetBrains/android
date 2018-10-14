@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbNullCoalesceExprImpl extends PsiDbExprImpl implements PsiDbNullCoalesceExpr {
 
-  public PsiDbNullCoalesceExprImpl(ASTNode node) {
+  public PsiDbNullCoalesceExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.proguard.psi.*;
 
 public class ProguardJavaSectionImpl extends ASTWrapperPsiElement implements ProguardJavaSection {
 
-  public ProguardJavaSectionImpl(ASTNode node) {
+  public ProguardJavaSectionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -54,7 +54,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
   @Nls(capitalization = Nls.Capitalization.Title) public static final String TITLE = "Convert from WebP to PNG";
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
       return;
@@ -74,7 +74,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     VirtualFile[] files = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
     if (files != null && e.getProject() != null) {
       for (VirtualFile file : files) {

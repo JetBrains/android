@@ -60,7 +60,7 @@ public class PsCheckBoxList<T> extends CheckBoxList<T> {
   public AnAction createSelectAllAction() {
     return new AnAction("Select All", "", AllIcons.Actions.Selectall) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         setItemsSelected(true);
       }
     };
@@ -70,7 +70,7 @@ public class PsCheckBoxList<T> extends CheckBoxList<T> {
   public AnAction createUnselectAllAction() {
     return new AnAction("Unselect All", "", AllIcons.Actions.Unselectall) {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         setItemsSelected(false);
       }
     };

@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlParcelableDeclarationImpl extends AbstractAidlDeclarationImpl implements AidlParcelableDeclaration {
 
-  public AidlParcelableDeclarationImpl(ASTNode node) {
+  public AidlParcelableDeclarationImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -34,13 +34,13 @@ public class AndroidUploadDatabaseAction extends AnAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidUploadDatabaseAction");
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
     e.getPresentation().setVisible(project != null && !getSelectedAndroidDataSources(e).isEmpty());
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
     assert project != null;
     final List<AndroidDataSource> dataSources = getSelectedAndroidDataSources(e);

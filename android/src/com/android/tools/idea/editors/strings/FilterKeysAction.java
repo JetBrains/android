@@ -60,28 +60,28 @@ final class FilterKeysAction extends ComboBoxAction {
 
     group.add(new AnAction("Show All Keys") {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setRowFilter(null);
       }
     });
 
     group.add(new AnAction("Show Translatable Keys") {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setRowFilter(new TranslatableRowFilter());
       }
     });
 
     group.add(new AnAction("Show Keys Needing Translations") {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setRowFilter(new NeedsTranslationsRowFilter());
       }
     });
 
     group.add(new AnAction("Filter by Text", "Filter the translations editor table keys by text", AllIcons.General.Filter) {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         JTextField textField = new JTextField();
         DialogBuilder builder = new DialogBuilder();
         builder.setTitle("Filter by Text");
@@ -112,7 +112,7 @@ final class FilterKeysAction extends ComboBoxAction {
 
     return new AnAction(text, null, locale.getFlagImage()) {
       @Override
-      public void actionPerformed(@Nullable AnActionEvent event) {
+      public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setRowFilter(new NeedsTranslationForLocaleRowFilter(locale));
       }
     };

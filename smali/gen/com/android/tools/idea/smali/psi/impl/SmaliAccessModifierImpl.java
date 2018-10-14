@@ -29,7 +29,7 @@ import com.android.tools.idea.smali.psi.*;
 
 public class SmaliAccessModifierImpl extends ASTWrapperPsiElement implements SmaliAccessModifier {
 
-  public SmaliAccessModifierImpl(ASTNode node) {
+  public SmaliAccessModifierImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -231,7 +231,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
             shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(VK_ENTER, 0))
           }
 
-          override fun actionPerformed(e: AnActionEvent?) {
+          override fun actionPerformed(e: AnActionEvent) {
             addItem(items[0], components, surface)
           }
         })
@@ -242,7 +242,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(VK_BACK_SPACE, 0))
         }
 
-        override fun actionPerformed(e: AnActionEvent?) {
+        override fun actionPerformed(e: AnActionEvent) {
           items[0].model.delete(items)
           refresh()
         }

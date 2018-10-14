@@ -29,6 +29,7 @@ import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.util.EventDispatcher;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,13 +37,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.intellij.ide.ui.UISettings.setupAntialiasing;
 import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
 import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
-import static com.intellij.ui.tabs.TabsUtil.TABS_BORDER;
 import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
 import static com.intellij.util.ui.UIUtil.*;
 
@@ -83,7 +83,7 @@ public class Header extends JPanel {
     myButtonPanel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
 
     add(myButtonPanel, BorderLayout.EAST);
-    setBorder(BorderFactory.createEmptyBorder(TABS_BORDER, 1, TABS_BORDER, 1));
+    setBorder(JBUI.CurrentTheme.ToolWindow.tabBorder());
   }
 
   @NotNull
@@ -145,13 +145,13 @@ public class Header extends JPanel {
   @Override
   public Dimension getPreferredSize() {
     Dimension size = super.getPreferredSize();
-    return new Dimension(size.width, getTabsHeight());
+    return new Dimension(size.width, getTabsHeight(size.height));
   }
 
   @Override
   public Dimension getMinimumSize() {
     Dimension size = super.getMinimumSize();
-    return new Dimension(size.width, getTabsHeight());
+    return new Dimension(size.width, getTabsHeight(size.height));
   }
 
   public void setAdditionalActions(@NotNull List<AnAction> actions) {

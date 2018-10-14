@@ -86,7 +86,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   }
 
   @Override
-  public boolean isReferenceTo(PsiElement element) {
+  public boolean isReferenceTo(@NotNull PsiElement element) {
     if (element instanceof LazyValueResourceElementWrapper) {
       element = ((LazyValueResourceElementWrapper)element).computeElement();
 
@@ -119,11 +119,5 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       }
     }
     return false;
-  }
-
-  @NotNull
-  @Override
-  public Object[] getVariants() {
-    return EMPTY_ARRAY;
   }
 }

@@ -69,13 +69,13 @@ public class CreateSampleDataDirectory extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Module module = getModuleFromSelection(e.getDataContext());
     e.getPresentation().setEnabledAndVisible(isActionVisibleForModule(module));
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Module module = getModuleFromSelection(e.getDataContext());
     assert module != null; // Needs to exist or the action wouldn't be visible
 

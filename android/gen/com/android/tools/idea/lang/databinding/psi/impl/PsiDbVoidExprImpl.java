@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbVoidExprImpl extends PsiDbExprImpl implements PsiDbVoidExpr {
 
-  public PsiDbVoidExprImpl(ASTNode node) {
+  public PsiDbVoidExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

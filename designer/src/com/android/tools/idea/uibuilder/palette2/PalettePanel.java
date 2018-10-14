@@ -393,7 +393,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     return PlatformDataKeys.COPY_PROVIDER.is(dataId) ? myCopyProvider : null;
   }
 

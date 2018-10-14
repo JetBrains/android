@@ -21,6 +21,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class TerminateAdbAction extends AnAction {
   public TerminateAdbAction() {
@@ -28,7 +29,7 @@ public class TerminateAdbAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Notifications.Bus.notify(new Notification("Android", "ADB", "ADB terminated", NotificationType.INFORMATION));
     AdbService.getInstance().terminateDdmlib();
   }

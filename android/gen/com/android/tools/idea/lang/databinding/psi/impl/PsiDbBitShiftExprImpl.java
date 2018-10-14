@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbBitShiftExprImpl extends PsiDbExprImpl implements PsiDbBitShiftExpr {
 
-  public PsiDbBitShiftExprImpl(ASTNode node) {
+  public PsiDbBitShiftExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

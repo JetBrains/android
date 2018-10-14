@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public abstract class PsiDbExprImpl extends DataBindingPsiElement implements PsiDbExpr {
 
-  public PsiDbExprImpl(ASTNode node) {
+  public PsiDbExprImpl(@NotNull ASTNode node) {
     super(node);
   }
 

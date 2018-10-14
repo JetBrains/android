@@ -38,7 +38,7 @@ public class SetZoomAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     // track user triggered change
     switch (myType) {
       case ACTUAL:

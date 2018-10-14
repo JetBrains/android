@@ -91,7 +91,7 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
     MessageBusConnection connection = getModule().getMessageBus().connect(this);
     connection.subscribe(PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(ModuleRootEvent event) {
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {
           if (!isDisposed()) {
             Project project = getModule().getProject();

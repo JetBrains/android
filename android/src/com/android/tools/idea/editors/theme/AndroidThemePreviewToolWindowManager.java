@@ -181,12 +181,6 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     });
   }
 
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return AndroidThemePreviewToolWindowManager.class.getSimpleName();
-  }
-
   @Nullable/*if there is no available configuration that would select the passed file*/
   private static Configuration getBestConfiguration(@Nullable PsiFile psiFile) {
     Module module = psiFile != null ? ModuleUtilCore.findModuleForPsiElement(psiFile) : null;
@@ -403,7 +397,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
    */
   private class MyCaretListener implements CaretListener {
     @Override
-    public void caretPositionChanged(CaretEvent e) {
+    public void caretPositionChanged(@NotNull CaretEvent e) {
       if (e == null || e.getCaret() == null) {
         myToolWindow.setAvailable(false, null);
         return;
@@ -431,7 +425,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
    */
   private class MyDocumentListener implements DocumentListener {
     @Override
-    public void documentChanged(DocumentEvent event) {
+    public void documentChanged(@NotNull DocumentEvent event) {
       updatePreview();
     }
   }

@@ -48,7 +48,7 @@ public class FixAndroidRunConfigurationsAction extends DumbAwareAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     e.getPresentation().setEnabled(StudioFlags.FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED.get());
     e.getPresentation().setVisible(false);
@@ -63,7 +63,7 @@ public class FixAndroidRunConfigurationsAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null || project.isDisposed()) {
       return;

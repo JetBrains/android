@@ -41,7 +41,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     presentation.setIcon(ANDROID_MODULE);
     presentation.setText(myBasePerspective.getSelectedModuleName());
@@ -69,7 +69,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myBasePerspective.selectModule(myModuleName);
     }
   }

@@ -84,7 +84,7 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(SourceRoot);
     presentation.addText(getSourceType().getName(), REGULAR_ATTRIBUTES);
     presentation.addText(" (lib)", GRAY_ATTRIBUTES);

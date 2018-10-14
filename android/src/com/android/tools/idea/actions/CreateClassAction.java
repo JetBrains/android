@@ -56,7 +56,7 @@ public final class CreateClassAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     DataContext context = event.getDataContext();
     IdeView view = LangDataKeys.IDE_VIEW.getData(context);
 

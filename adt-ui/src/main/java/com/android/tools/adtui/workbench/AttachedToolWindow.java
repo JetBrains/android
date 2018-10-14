@@ -641,7 +641,7 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent event) {
+    public boolean isSelected(@NotNull AnActionEvent event) {
       return getProperty(myProperty);
     }
 
@@ -661,7 +661,7 @@ class AttachedToolWindow<T> implements Disposable {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent event) {
+    public boolean isSelected(@NotNull AnActionEvent event) {
       return !super.isSelected(event);
     }
 
@@ -691,7 +691,7 @@ class AttachedToolWindow<T> implements Disposable {
       addKeyboardListener(this);
       addDocumentListener(new DocumentAdapter() {
         @Override
-        protected void textChanged(DocumentEvent e) {
+        protected void textChanged(@NotNull DocumentEvent e) {
           if (myContent != null) {
             myContent.setFilter(getText().trim());
           }

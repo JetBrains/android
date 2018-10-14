@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.proguard.psi.*;
 
 public class ProguardFlagImpl extends ASTWrapperPsiElement implements ProguardFlag {
 
-  public ProguardFlagImpl(ASTNode node) {
+  public ProguardFlagImpl(@NotNull ASTNode node) {
     super(node);
   }
 

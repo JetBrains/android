@@ -1,12 +1,12 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.builders.storage.StorageProvider;
+import org.jetbrains.jps.incremental.FSOperations;
 import org.jetbrains.jps.incremental.storage.StorageOwner;
 
 import java.io.*;
@@ -94,12 +94,12 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
     private final boolean myToMerge;
 
     public MyState(@NotNull File manifestFile, @NotNull Collection<File> libManifestFiles, boolean toMerge) {
-      myManifestFileTimestamp = FileSystemUtil.lastModified(manifestFile);
+      myManifestFileTimestamp = FSOperations.lastModified(manifestFile);
       myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestFiles.size());
 
       for (File libManifestFile : libManifestFiles) {
         myLibManifestsTimestamps.put(FileUtil.toCanonicalPath(libManifestFile.getPath()),
-                                     FileSystemUtil.lastModified(libManifestFile));
+                                     FSOperations.lastModified(libManifestFile));
       }
       myToMerge = toMerge;
     }

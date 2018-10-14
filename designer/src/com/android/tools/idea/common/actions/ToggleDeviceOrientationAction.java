@@ -32,7 +32,7 @@ public class ToggleDeviceOrientationAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     Configuration configuration = mySurface.getConfiguration();
     if (configuration != null) {
       configuration.getDeviceState();

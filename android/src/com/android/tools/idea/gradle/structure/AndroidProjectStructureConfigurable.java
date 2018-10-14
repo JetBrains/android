@@ -541,7 +541,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
 
     @Override
     @Nullable
-    public Object getData(@NonNls final String dataId) {
+    public Object getData(@NotNull @NonNls final String dataId) {
       if (KEY.is(dataId)) {
         return AndroidProjectStructureConfigurable.this;
       }
@@ -745,7 +745,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       Object selectedValue = mySidePanel.myList.getSelectedValue();
       if (!(selectedValue instanceof AndroidModuleConfigurable)) {
         throw new IllegalStateException("The current selection does not represent a module");
@@ -826,7 +826,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
       Project project = e.getProject();
       Object selectedValue = mySidePanel.myList.getSelectedValue();
       e.getPresentation()

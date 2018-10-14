@@ -90,7 +90,7 @@ public class NewAndroidComponentAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     DataContext dataContext = e.getDataContext();
     Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module == null) {
@@ -123,7 +123,7 @@ public class NewAndroidComponentAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     DataContext dataContext = e.getDataContext();
 
     Module module = LangDataKeys.MODULE.getData(dataContext);

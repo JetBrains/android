@@ -59,7 +59,7 @@ public abstract class InspectorProviders<PropMgr extends PropertiesManager<PropM
   }
 
   @Override
-  public void lookAndFeelChanged(LafManager source) {
+  public void lookAndFeelChanged(@NotNull LafManager source) {
     resetCache();
 
     // Force a recreate of all UI elements by causing a new selection notification:

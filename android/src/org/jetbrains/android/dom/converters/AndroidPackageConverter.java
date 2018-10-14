@@ -104,7 +104,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
     }
 
     @Override
-    public boolean isReferenceTo(PsiElement element) {
+    public boolean isReferenceTo(@NotNull PsiElement element) {
       final ResolveResult[] results = doMultiResolve();
       for (ResolveResult result : results) {
         if (getElement().getManager().areElementsEquivalent(result.getElement(), element)) {
@@ -115,7 +115,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
     }
 
     @Override
-    public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
       return myElement;
     }
 

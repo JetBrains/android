@@ -203,7 +203,7 @@ public class GradleEditorEntityTable extends JBTable implements DataProvider {
 
   @Nullable
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     if (GradleEditorUiConstants.ACTIVE_ENTITY_KEY.is(dataId)) {
       if (isEditing()) {
         int row = getEditingRow();

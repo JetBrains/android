@@ -272,7 +272,7 @@ public final class IconPickerDialog extends DialogWrapper {
     mySearchField = new SearchTextField(false);
     mySearchField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         updateFilter();
       }
     });

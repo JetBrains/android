@@ -594,7 +594,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   // ---- Implements DataProvider ----
   @Override
-  public Object getData(@NonNls String dataId) {
+  public Object getData(@NotNull @NonNls String dataId) {
     TreePath path = getSelectionPath();
     if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
       if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {

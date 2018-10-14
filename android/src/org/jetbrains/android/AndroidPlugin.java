@@ -66,8 +66,4 @@ public class AndroidPlugin implements BaseComponent {
       }
     }
   }
-
-  @Override
-  public void disposeComponent() {
-  }
 }

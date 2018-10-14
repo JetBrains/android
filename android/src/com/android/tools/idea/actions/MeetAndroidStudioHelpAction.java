@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import org.jetbrains.annotations.NotNull;
 
 public class MeetAndroidStudioHelpAction extends AnAction {
 
@@ -29,7 +30,7 @@ public class MeetAndroidStudioHelpAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     if (e.getPlace().equals(ActionPlaces.MAIN_MENU)) {
       // Remove the toolbar icon from the menu to keep all the menu items left aligned:
       Presentation presentation = e.getPresentation();
@@ -38,7 +39,7 @@ public class MeetAndroidStudioHelpAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     BrowserUtil.browse("http://developer.android.com/r/studio-ui/menu-help.html");
   }
 }

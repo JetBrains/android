@@ -55,12 +55,12 @@ public class Header extends JPanel {
   @Override
   public Dimension getPreferredSize() {
     Dimension size = super.getPreferredSize();
-    return new Dimension(size.width, getTabsHeight());
+    return new Dimension(size.width, getTabsHeight(size.height));
   }
 
   @Override
   public Dimension getMinimumSize() {
     Dimension size = super.getMinimumSize();
-    return new Dimension(size.width, getTabsHeight());
+    return new Dimension(size.width, getTabsHeight(size.height));
   }
 }

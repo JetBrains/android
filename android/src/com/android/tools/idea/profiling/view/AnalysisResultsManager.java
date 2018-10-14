@@ -93,13 +93,13 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
                                            AndroidBundle.message("android.captures.analysis.results.manager.run.description"),
                                            AllIcons.Toolwindows.ToolWindowRun) {
       @Override
-      public boolean isSelected(AnActionEvent e) {
+      public boolean isSelected(@NotNull AnActionEvent e) {
         AnalysisResultsContent analysisResultsContent = getContentFromDesigner();
         return analysisResultsContent != null && !analysisResultsContent.canRunAnalysis();
       }
 
       @Override
-      public void setSelected(AnActionEvent e, boolean state) {
+      public void setSelected(@NotNull AnActionEvent e, boolean state) {
         if (state) {
           AnalysisResultsContent analysisResultsContent = getContentFromDesigner();
           if (analysisResultsContent != null && analysisResultsContent.canRunAnalysis()) {

@@ -39,7 +39,7 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
   }
 
   @Override
-  public void update(AnActionEvent anActionEvent) {
+  public void update(@NotNull AnActionEvent anActionEvent) {
     final Project project = anActionEvent.getData(CommonDataKeys.PROJECT);
     anActionEvent.getPresentation().setEnabledAndVisible(isEnabled(project));
   }

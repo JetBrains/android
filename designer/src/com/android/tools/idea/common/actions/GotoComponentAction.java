@@ -43,7 +43,7 @@ public class GotoComponentAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     if (e.getInputEvent().getModifiers() == (InputEvent.BUTTON1_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
       // We don't want to navigation on ctrl-click
       return;

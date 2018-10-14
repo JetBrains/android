@@ -39,7 +39,7 @@ public class MockupDeleteAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     NlWriteCommandAction.run(myNlComponent, "Delete mockup attributes", () -> {
       myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP);
       myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_CROP);

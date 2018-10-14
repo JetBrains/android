@@ -112,6 +112,7 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
     myPresentation.setText(text);
   }
 
+  @NotNull
   @Override
   public String getText() {
     return myPresentation.getText();

@@ -34,8 +34,8 @@ import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithA
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.AutoPopupController;
-import com.intellij.codeInsight.lookup.LookupAdapter;
 import com.intellij.codeInsight.lookup.LookupEvent;
+import com.intellij.codeInsight.lookup.LookupListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
@@ -163,7 +163,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
       myPanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_SPACING));
     }
 
-    myTextEditorWithAutoCompletion.addLookupListener(new LookupAdapter() {
+    myTextEditorWithAutoCompletion.addLookupListener(new LookupListener() {
       @Override
       public void itemSelected(@NotNull LookupEvent event) {
         stopEditing(getText());

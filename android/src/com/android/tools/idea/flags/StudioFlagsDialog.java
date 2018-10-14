@@ -86,7 +86,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
     mySearchTextField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         searchTextChanged(getText(e));
       }
 

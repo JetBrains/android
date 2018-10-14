@@ -79,7 +79,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   private void addProjectPropertiesUpdatingListener() {
     myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
-      public void rootsChanged(final ModuleRootEvent event) {
+      public void rootsChanged(@NotNull final ModuleRootEvent event) {
         StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
       }
     });

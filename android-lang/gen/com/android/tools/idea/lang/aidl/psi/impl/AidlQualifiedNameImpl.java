@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.aidl.psi.*;
 
 public class AidlQualifiedNameImpl extends AidlPsiCompositeElementImpl implements AidlQualifiedName {
 
-  public AidlQualifiedNameImpl(ASTNode node) {
+  public AidlQualifiedNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 

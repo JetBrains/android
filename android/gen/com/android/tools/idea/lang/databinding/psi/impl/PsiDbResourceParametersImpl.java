@@ -30,7 +30,7 @@ import com.android.tools.idea.lang.databinding.psi.*;
 
 public class PsiDbResourceParametersImpl extends DataBindingPsiElement implements PsiDbResourceParameters {
 
-  public PsiDbResourceParametersImpl(ASTNode node) {
+  public PsiDbResourceParametersImpl(@NotNull ASTNode node) {
     super(node);
   }
 
