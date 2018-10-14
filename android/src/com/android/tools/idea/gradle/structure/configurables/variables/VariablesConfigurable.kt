@@ -67,7 +67,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
         return doFinalStep { selectedValue?.type?.let { table.addVariable(it) } }
       }
     })
-    popup.show(button.preferredPopupPoint)
+    popup.show(button.preferredPopupPoint!!)
   }
 
   override fun apply() {
