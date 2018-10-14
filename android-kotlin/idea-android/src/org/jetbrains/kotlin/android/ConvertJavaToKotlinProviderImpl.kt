@@ -29,8 +29,10 @@ import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 class ConvertJavaToKotlinProviderImpl : ConvertJavaToKotlinProvider {
     override fun configureKotlin(project: Project) {
         val configurator = KotlinProjectConfigurator.EP_NAME.findExtension(KotlinAndroidGradleModuleConfigurator::class.java)
+/* TODO(b/117711287): does not compile after IDEA 183.2153.8 merge
         val nonConfiguredModules = getCanBeConfiguredModules(project, configurator)
         configurator.configureSilently(project, nonConfiguredModules, bundledRuntimeVersion())
+TODO(b/117711287): does not compile after IDEA 183.2153.8 merge */
     }
 
     override fun getKotlinVersion(): String {
