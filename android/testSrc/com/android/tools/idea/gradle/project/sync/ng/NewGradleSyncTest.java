@@ -104,7 +104,8 @@ public class NewGradleSyncTest extends IdeaTestCase {
         throw new ModelNotFoundInCacheException(GradleModuleModel.class);
       }
     };
-    doAnswer(getTaskIdAndTrowError).when(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
+    doAnswer(getTaskIdAndTrowError).when(myResultHandler)
+                                   .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
 
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
@@ -268,11 +269,11 @@ public class NewGradleSyncTest extends IdeaTestCase {
       doAnswer(invocation -> {
         myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
         return null;
-      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), eq(true));
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), any(), any(), eq(true));
 
       myGradleSync.sync(request, mySyncListener);
 
-      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), eq(true));
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), any(), any(), eq(true));
 
       verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false));
       verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
@@ -298,11 +299,11 @@ public class NewGradleSyncTest extends IdeaTestCase {
       doAnswer(invocation -> {
         myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
         return null;
-      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), anyBoolean());
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
 
       myGradleSync.sync(request, mySyncListener);
 
-      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), anyBoolean());
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
 
       verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true));
       verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));

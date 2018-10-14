@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.internal.InternalExternalProjectInfo;
@@ -23,15 +25,18 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.MODULES_BY_GRADLE_PATH_KEY;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.TASK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
@@ -53,7 +58,7 @@ public class ProjectDataNodeSetup {
     ProjectData projectData = new ProjectData(SYSTEM_ID, project.getName(), projectFolder, projectFolder);
     DataNode<ProjectData> projectDataNode = new DataNode<>(ProjectKeys.PROJECT, projectData, null);
     for (GradleModuleModels moduleModels : projectModels.getModuleModels()) {
-      DataNode<ModuleData> moduleData = createModuleDataNode(moduleModels, projectDataNode);
+      DataNode<ModuleData> moduleData = createModuleDataNode(moduleModels, projectDataNode, project);
       createTaskDataNode(moduleModels, moduleData);
     }
     // Link to external project.
@@ -64,7 +69,8 @@ public class ProjectDataNodeSetup {
 
   @NotNull
   private static DataNode<ModuleData> createModuleDataNode(@NotNull GradleModuleModels moduleModels,
-                                                           @NotNull DataNode<ProjectData> projectDataNode) {
+                                                           @NotNull DataNode<ProjectData> projectDataNode,
+                                                           @NotNull Project project) {
     GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
     assert gradleProject != null;
 
@@ -82,7 +88,21 @@ public class ProjectDataNodeSetup {
     String typeId = StdModuleTypes.JAVA.getId();
     ModuleData moduleData = new ModuleData(moduleId, SYSTEM_ID, typeId, moduleName, moduleConfigPath, moduleConfigPath);
     moduleData.setDescription(gradleProject.getDescription());
+    Module module = findModule(project, gradleProject);
+    if (module != null) {
+      ExternalSystemModulePropertyManager.getInstance(module)
+                                         .setExternalOptions(moduleData.getOwner(), moduleData, projectDataNode.getData());
+    }
     return projectDataNode.createChild(MODULE, moduleData);
+  }
+
+  @Nullable
+  private static Module findModule(@NotNull Project project, @NotNull GradleProject gradleProject) {
+    ModuleFinder finder = project.getUserData(MODULES_BY_GRADLE_PATH_KEY);
+    if (finder != null) {
+      return finder.findModuleByModuleId(createUniqueModuleId(gradleProject));
+    }
+    return null;
   }
 
   private static void createTaskDataNode(@NotNull GradleModuleModels moduleModels,
@@ -101,7 +121,7 @@ public class ProjectDataNodeSetup {
       if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName, taskGroup)) {
         continue;
       }
-      TaskData taskData = new TaskData(SYSTEM_ID, taskName, gradleProject.getPath(), task.getDescription());
+      TaskData taskData = new TaskData(SYSTEM_ID, taskName, moduleData.getData().getLinkedExternalProjectPath(), task.getDescription());
       taskData.setGroup(taskGroup);
       moduleData.createChild(TASK, taskData);
     }

@@ -311,7 +311,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     tag.attributes.stream()
       .filter(attr -> attr instanceof AaptAttrAttributeSnapshot)
       .map(attr -> (AaptAttrAttributeSnapshot)attr)
-      .forEach(attr -> builder.put(attr.getId(), attr.getBundledTag()));
+      .forEach(attr -> {
+        TagSnapshot bundledTag = attr.getBundledTag();
+        builder.put(attr.getId(), bundledTag);
+        for (TagSnapshot child : bundledTag.children) {
+          builder.putAll(findDeclaredAaptAttrs(child));
+        }
+      });
     for (TagSnapshot child : tag.children) {
       builder.putAll(findDeclaredAaptAttrs(child));
     }
