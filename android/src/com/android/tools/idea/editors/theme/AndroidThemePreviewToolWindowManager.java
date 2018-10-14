@@ -370,17 +370,17 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
     @Override
-    public void fileOpened(@NotNull @NonNull FileEditorManager source, @NotNull @NonNull VirtualFile file) {
+    public void fileOpened(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
       processFileEditorChange();
     }
 
     @Override
-    public void fileClosed(@NotNull @NonNull FileEditorManager source, @NotNull @NonNull VirtualFile file) {
+    public void fileClosed(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
       ApplicationManager.getApplication().invokeLater(AndroidThemePreviewToolWindowManager.this::processFileEditorChange, myProject.getDisposed());
     }
 
     @Override
-    public void selectionChanged(@NotNull @NonNull FileEditorManagerEvent event) {
+    public void selectionChanged(@NonNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor applicableTextEditor = null;
       if (newEditor instanceof TextEditor) {
@@ -399,7 +399,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   private class MyCaretListener implements CaretListener {
     @Override
     public void caretPositionChanged(@NotNull CaretEvent e) {
-      if (e == null || e.getCaret() == null) {
+      if (e.getCaret() == null) {
         myToolWindow.setAvailable(false, null);
         return;
       }
