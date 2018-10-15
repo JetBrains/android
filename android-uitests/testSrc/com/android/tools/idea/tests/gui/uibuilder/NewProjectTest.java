@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_NAV_EDITOR;
 import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.verifyOnlyExpectedWarnings;
@@ -60,6 +61,7 @@ public class NewProjectTest {
   @After
   public void tearDown() {
     NPW_DYNAMIC_APPS.clearOverride();
+    ENABLE_NAV_EDITOR.clearOverride();
   }
 
   @Test
@@ -295,6 +297,7 @@ public class NewProjectTest {
 
   private IdeFrameFixture newProject(String language, boolean includeNavController) {
     NPW_DYNAMIC_APPS.override(true);
+    ENABLE_NAV_EDITOR.override(true);
 
     guiTest
       .welcomeFrame()
