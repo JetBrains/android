@@ -17,7 +17,14 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -25,15 +32,17 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import icons.StudioIcons;
+import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+import javax.swing.JComponent;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.function.Supplier;
 
 final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
@@ -78,7 +87,6 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
-  @VisibleForTesting
   Device getSelectedDevice() {
     return mySelectedDevice;
   }

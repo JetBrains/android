@@ -22,14 +22,18 @@ import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.util.*;
-import java.util.function.Supplier;
-
 class AsyncDevicesGetter {
-  private final Worker<Map<VirtualDevice, AvdInfo>> myVirtualDevicesWorker;
+  private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
   private final Worker<Collection<IDevice>> myConnectedDevicesWorker;
   private final DeviceNamePropertiesProvider myDevicePropertiesProvider;
 
@@ -41,20 +45,19 @@ class AsyncDevicesGetter {
 
   @NotNull
   List<Device> get(@NotNull Project project) {
-    Map<VirtualDevice, AvdInfo> virtualDevices = myVirtualDevicesWorker.get(VirtualDevicesWorkerDelegate::new, Collections.emptyMap());
+    Collection<VirtualDevice> virtualDevices = myVirtualDevicesWorker.get(VirtualDevicesWorkerDelegate::new, Collections.emptyList());
 
     Supplier<SwingWorker<Collection<IDevice>, Void>> supplier = () -> new ConnectedDevicesWorkerDelegate(project);
     Collection<IDevice> connectedDevices = new ArrayList<>(myConnectedDevicesWorker.get(supplier, Collections.emptyList()));
 
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
 
-    virtualDevices.keySet().stream()
-                  .map(device -> newVirtualDeviceIfItsConnected(device, virtualDevices, connectedDevices))
+    virtualDevices.stream()
+                  .map(device -> newVirtualDeviceIfItsConnected(device, connectedDevices))
                   .forEach(devices::add);
 
     connectedDevices.stream()
-                    .map(connectedDevice -> myDevicePropertiesProvider.get(connectedDevice))
-                    .map(PhysicalDevice::new)
+                    .map(connectedDevice -> new PhysicalDevice(myDevicePropertiesProvider.get(connectedDevice), connectedDevice))
                     .forEach(devices::add);
 
     return devices;
@@ -62,16 +65,18 @@ class AsyncDevicesGetter {
 
   @NotNull
   @VisibleForTesting
-  static Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice,
-                                               @NotNull Map<VirtualDevice, AvdInfo> virtualDevices,
-                                               @NotNull Iterable<IDevice> connectedDevices) {
-    Object name = virtualDevices.get(virtualDevice).getName();
+  static Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice, @NotNull Iterable<IDevice> connectedDevices) {
+    AvdInfo info = virtualDevice.getAvdInfo();
+    assert info != null;
+
+    Object name = info.getName();
 
     for (Iterator<IDevice> i = connectedDevices.iterator(); i.hasNext(); ) {
-      if (Objects.equals(i.next().getAvdName(), name)) {
-        i.remove();
+      IDevice device = i.next();
 
-        return new VirtualDevice(true, virtualDevice.getName(), virtualDevice.getSnapshots());
+      if (Objects.equals(device.getAvdName(), name)) {
+        i.remove();
+        return new VirtualDevice(virtualDevice, device);
       }
     }
 

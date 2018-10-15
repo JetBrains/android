@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableCollection;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import org.jetbrains.annotations.Nullable;
 
 abstract class Device {
   private final String myName;
+  private final IDevice myDdmlibDevice;
 
-  Device(@NotNull String name) {
+  Device(@NotNull String name, @Nullable IDevice ddmlibDevice) {
     myName = name;
+    myDdmlibDevice = ddmlibDevice;
   }
 
   @NotNull
@@ -37,6 +41,14 @@ abstract class Device {
 
   @NotNull
   abstract ImmutableCollection<String> getSnapshots();
+
+  @Nullable
+  final IDevice getDdmlibDevice() {
+    return myDdmlibDevice;
+  }
+
+  @NotNull
+  abstract AndroidDevice toAndroidDevice();
 
   @NotNull
   @Override

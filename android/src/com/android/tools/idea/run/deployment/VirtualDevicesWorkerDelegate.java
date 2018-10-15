@@ -15,69 +15,18 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.emulator.SnapshotProtoException;
-import com.android.emulator.SnapshotProtoParser;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.Collection;
 import java.util.stream.Collectors;
+import javax.swing.SwingWorker;
+import org.jetbrains.annotations.NotNull;
 
-final class VirtualDevicesWorkerDelegate extends SwingWorker<Map<VirtualDevice, AvdInfo>, Void> {
+final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<VirtualDevice>, Void> {
   @NotNull
   @Override
-  protected Map<VirtualDevice, AvdInfo> doInBackground() {
+  protected Collection<VirtualDevice> doInBackground() {
     return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true).stream()
-                               .collect(Collectors.toMap(VirtualDevicesWorkerDelegate::newVirtualDevice, Function.identity()));
-  }
-
-  @NotNull
-  private static VirtualDevice newVirtualDevice(@NotNull AvdInfo device) {
-    return new VirtualDevice(false, AvdManagerConnection.getAvdDisplayName(device), getSnapshots(device));
-  }
-
-  @NotNull
-  private static ImmutableCollection<String> getSnapshots(@NotNull AvdInfo device) {
-    Path snapshots = Paths.get(device.getDataFolderPath(), "snapshots");
-
-    if (!Files.isDirectory(snapshots)) {
-      return ImmutableList.of();
-    }
-
-    try {
-      return Files.list(snapshots)
-                  .filter(Files::isDirectory)
-                  .map(VirtualDevicesWorkerDelegate::getName)
-                  .filter(Objects::nonNull)
-                  .sorted()
-                  .collect(ImmutableList.toImmutableList());
-    }
-    catch (IOException exception) {
-      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(exception);
-      return ImmutableList.of();
-    }
-  }
-
-  @Nullable
-  private static String getName(@NotNull Path snapshot) {
-    try {
-      return new SnapshotProtoParser(snapshot.resolve("snapshot.pb").toFile(), snapshot.getFileName().toString()).getLogicalName();
-    }
-    catch (SnapshotProtoException exception) {
-      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(exception);
-      return null;
-    }
+                               .map(VirtualDevice::new)
+                               .collect(Collectors.toList());
   }
 }

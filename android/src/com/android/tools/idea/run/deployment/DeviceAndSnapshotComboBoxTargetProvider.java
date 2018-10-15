@@ -59,6 +59,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Override
   public DeployTarget getDeployTarget() {
-    throw new UnsupportedOperationException();
+    return new DeviceAndSnapshotComboBoxTarget();
   }
 }
