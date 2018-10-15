@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -994,16 +995,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return false;
     }
 
-    for (NlComponent component : toAdd) {
-      // If the receiver is a (possibly indirect) child of any of the dragged components, then reject the operation
-      NlComponent same = receiver;
-      while (same != null) {
-        if (same == component) {
-          return false;
-        }
-        same = same.getParent();
-      }
+    // If the receiver is a (possibly indirect) child of any of the dragged components, then reject the operation
+    if (isDescendant(receiver, toAdd)) {
+      return false;
     }
+
     return ignoreMissingDependencies || checkIfUserWantsToAddDependencies(toAdd);
   }
 
