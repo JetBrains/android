@@ -49,6 +49,7 @@ import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED
 
 public class HotswapAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
 
+  public static final String ID = "android.fd.HotswapAction";
   private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
 
   public HotswapAction() {
