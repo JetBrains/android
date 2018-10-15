@@ -16,14 +16,29 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ddmlib.IDevice;
+import com.android.emulator.SnapshotProtoException;
+import com.android.emulator.SnapshotProtoParser;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import icons.AndroidIcons;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.stream.Collector;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 final class VirtualDevice extends Device {
   static final String DEFAULT_SNAPSHOT = "default_boot";
@@ -36,18 +51,75 @@ final class VirtualDevice extends Device {
   /**
    * Snapshot directory names displayed to the developer.
    */
-  private final ImmutableCollection<String> mySnapshots;
+  private ImmutableCollection<String> mySnapshots;
+
+  private final AvdInfo myAvdInfo;
+
+  VirtualDevice(@NotNull AvdInfo avdInfo) {
+    super(AvdManagerConnection.getAvdDisplayName(avdInfo), null);
+
+    myConnected = false;
+    myAvdInfo = avdInfo;
+
+    initSnapshots();
+  }
+
+  private void initSnapshots() {
+    Path snapshots = Paths.get(myAvdInfo.getDataFolderPath(), "snapshots");
+
+    if (!Files.isDirectory(snapshots)) {
+      mySnapshots = ImmutableList.of();
+      return;
+    }
+
+    try {
+      @SuppressWarnings("UnstableApiUsage")
+      Collector<String, ?, ImmutableList<String>> collector = ImmutableList.toImmutableList();
+
+      mySnapshots = Files.list(snapshots)
+        .filter(Files::isDirectory)
+        .map(VirtualDevice::getName)
+        .filter(Objects::nonNull)
+        .sorted()
+        .collect(collector);
+    }
+    catch (IOException exception) {
+      Logger.getInstance(VirtualDevice.class).warn(snapshots.toString(), exception);
+      mySnapshots = ImmutableList.of();
+    }
+  }
+
+  @Nullable
+  private static String getName(@NotNull Path snapshot) {
+    try {
+      return new SnapshotProtoParser(snapshot.resolve("snapshot.pb").toFile(), snapshot.getFileName().toString()).getLogicalName();
+    }
+    catch (SnapshotProtoException exception) {
+      Logger.getInstance(VirtualDevice.class).warn(snapshot.toString(), exception);
+      return null;
+    }
+  }
+
+  VirtualDevice(@NotNull VirtualDevice virtualDevice, @NotNull IDevice ddmlibDevice) {
+    super(virtualDevice.getName(), ddmlibDevice);
+
+    myConnected = true;
+    mySnapshots = virtualDevice.mySnapshots;
+    myAvdInfo = virtualDevice.myAvdInfo;
+  }
 
   @VisibleForTesting
   VirtualDevice(boolean connected, @NotNull String name) {
     this(connected, name, ImmutableList.of());
   }
 
+  @VisibleForTesting
   VirtualDevice(boolean connected, @NotNull String name, @NotNull ImmutableCollection<String> snapshots) {
-    super(name);
+    super(name, null);
 
     myConnected = connected;
     mySnapshots = snapshots;
+    myAvdInfo = null;
   }
 
   boolean isConnected() {
@@ -66,6 +138,24 @@ final class VirtualDevice extends Device {
     return mySnapshots;
   }
 
+  @Nullable
+  AvdInfo getAvdInfo() {
+    return myAvdInfo;
+  }
+
+  @NotNull
+  @Override
+  AndroidDevice toAndroidDevice() {
+    if (myConnected) {
+      IDevice device = getDdmlibDevice();
+      assert device != null;
+
+      return new ConnectedAndroidDevice(device, Collections.singletonList(myAvdInfo));
+    }
+
+    return new LaunchableAndroidDevice(myAvdInfo);
+  }
+
   @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof VirtualDevice)) {
@@ -73,7 +163,12 @@ final class VirtualDevice extends Device {
     }
 
     VirtualDevice device = (VirtualDevice)object;
-    return myConnected == device.myConnected && getName().equals(device.getName()) && mySnapshots.equals(device.mySnapshots);
+
+    return myConnected == device.myConnected &&
+           getName().equals(device.getName()) &&
+           mySnapshots.equals(device.mySnapshots) &&
+           Objects.equals(myAvdInfo, device.myAvdInfo) &&
+           Objects.equals(getDdmlibDevice(), device.getDdmlibDevice());
   }
 
   @Override
@@ -82,6 +177,8 @@ final class VirtualDevice extends Device {
 
     hashCode = 31 * hashCode + getName().hashCode();
     hashCode = 31 * hashCode + mySnapshots.hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(myAvdInfo);
+    hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
 
     return hashCode;
   }

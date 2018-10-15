@@ -15,32 +15,29 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 public final class AsyncDevicesGetterTest {
-  private static final VirtualDevice VIRTUAL_DEVICE = new VirtualDevice(false, "Pixel 2 XL API 27");
+  private VirtualDevice myVirtualDevice;
 
-  private Map<VirtualDevice, AvdInfo> myVirtualDevices;
   private IDevice myConnectedDevice;
   private Collection<IDevice> myConnectedDevices;
 
   @Before
-  public void newVirtualDevices() {
-    myVirtualDevices = Collections.singletonMap(VIRTUAL_DEVICE, new AvdInfo(
+  public void newVirtualDevice() {
+    myVirtualDevice = new VirtualDevice(new AvdInfo(
       "Pixel_2_XL_API_27",
       new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.ini"),
       "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.avd",
@@ -60,8 +57,8 @@ public final class AsyncDevicesGetterTest {
   public void newVirtualDeviceIfItsConnectedAvdNamesAreEqual() {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
 
-    Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(VIRTUAL_DEVICE, myVirtualDevices, myConnectedDevices);
-    assertEquals(new VirtualDevice(true, "Pixel 2 XL API 27"), device);
+    Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
+    assertEquals(new VirtualDevice(myVirtualDevice, myConnectedDevice), device);
 
     assertEquals(Collections.emptyList(), myConnectedDevices);
   }
@@ -70,7 +67,7 @@ public final class AsyncDevicesGetterTest {
   public void newVirtualDeviceIfItsConnected() {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_28");
 
-    assertSame(VIRTUAL_DEVICE, AsyncDevicesGetter.newVirtualDeviceIfItsConnected(VIRTUAL_DEVICE, myVirtualDevices, myConnectedDevices));
+    assertSame(myVirtualDevice, AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices));
     assertEquals(Collections.singletonList(myConnectedDevice), myConnectedDevices);
   }
 }
