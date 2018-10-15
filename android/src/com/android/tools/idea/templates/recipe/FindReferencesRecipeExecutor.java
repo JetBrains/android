@@ -59,11 +59,6 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
-  public void addGlobalVariable(@NotNull String id, @NotNull Object value) {
-    myContext.getParamMap().put(id, value);
-  }
-
-  @Override
   public void mkDir(@NotNull File at) {
   }
 
