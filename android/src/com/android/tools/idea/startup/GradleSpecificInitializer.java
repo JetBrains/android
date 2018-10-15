@@ -90,6 +90,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -207,17 +208,20 @@ public class GradleSpecificInitializer implements Runnable {
     AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
     if (runnerActions instanceof DefaultActionGroup) {
       DefaultActionGroup ag =  ((DefaultActionGroup)runnerActions);
+      PluginId androidPluginId = PluginId.findId("org.jetbrains.android");
       if (StudioFlags.JVMTI_REFRESH.get()) {
         AnAction applyChanges = new ApplyChangesAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
         ag.add(applyChanges, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-        actionManager.registerAction(ApplyChangesAction.ID, applyChanges);
+        actionManager.registerAction(ApplyChangesAction.ID, applyChanges, androidPluginId);
 
         AnAction codeswap = new CodeSwapAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
-        actionManager.registerAction(CodeSwapAction.ID, codeswap);
+        actionManager.registerAction(CodeSwapAction.ID, codeswap, androidPluginId);
         ag.add(codeswap, new Constraints(AFTER, ApplyChangesAction.ID));
       }
       else {
-        ag.add(new HotswapAction(), new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+        HotswapAction hotswapAction = new HotswapAction();
+        ag.add(hotswapAction, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+        actionManager.registerAction(HotswapAction.ID, hotswapAction, androidPluginId);
       }
     }
   }
