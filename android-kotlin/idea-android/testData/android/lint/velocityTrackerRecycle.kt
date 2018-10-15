@@ -11,7 +11,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        VelocityTracker.obtain()
+        VelocityTracker.<warning descr="This `VelocityTracker` should be recycled after use with `#recycle()`">obtain</warning>()
 
         VelocityTracker.obtain().recycle()
 

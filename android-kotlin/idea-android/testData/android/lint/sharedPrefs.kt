@@ -69,6 +69,6 @@ class SharedPrefsText(context: Context) : Activity() {
 
     fun testResultOfCommit() {
         val r1 = PreferenceManager.getDefaultSharedPreferences(this).edit().putString("wat", "wat").commit()
-        val r2 = <warning descr="`SharedPreferences.edit()` without a corresponding `commit()` or `apply()` call">PreferenceManager.getDefaultSharedPreferences(this).edit()</warning>.putString("wat", "wat").commit().toString()
+        val r2 = PreferenceManager.getDefaultSharedPreferences(this).edit().putString("wat", "wat").commit().toString()
     }
 }

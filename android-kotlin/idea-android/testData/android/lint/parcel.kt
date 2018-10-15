@@ -64,7 +64,7 @@ class RecyclerViewScrollPositionWithoutJvmF(val position: Int, val topOffset: In
     }
 
     companion object {
-        val CREATOR = object : Parcelable.Creator<RecyclerViewScrollPosition> {
+        val <error descr="Field should be annotated with `@JvmField`">CREATOR</error> = object : Parcelable.Creator<RecyclerViewScrollPosition> {
             override fun createFromParcel(parcel: Parcel): RecyclerViewScrollPosition {
                 val position = parcel.readInt()
                 val topOffset = parcel.readInt()
