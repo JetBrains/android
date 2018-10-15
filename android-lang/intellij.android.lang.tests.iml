@@ -18,5 +18,7 @@
     <orderEntry type="module" module-name="intellij.java.uast" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
   </component>
 </module>
