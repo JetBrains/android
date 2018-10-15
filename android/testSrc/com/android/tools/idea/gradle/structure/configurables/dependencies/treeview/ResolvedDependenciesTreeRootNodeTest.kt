@@ -54,80 +54,80 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
     app
         freeDebug
             mainModule
-                lib1:1.0
-                    lib2:1.0
-                        lib3:1.0
-                            lib4:1.0
-                lib3:0.6→1.0
-                    lib4:1.0
+                lib1:1.0 (com.example.libs)
+                    lib2:1.0 (com.example.libs)
+                        lib3:1.0 (com.example.jlib)
+                            lib4:1.0 (com.example.jlib)
+                lib3:0.6→1.0 (com.example.jlib)
+                    lib4:1.0 (com.example.jlib)
         freeDebugAndroidTest
             freeDebug
                 mainModule
-                    lib1:1.0
-                        lib2:1.0
-                            lib3:1.0
-                                lib4:1.0
-                    lib3:0.6→1.0
-                        lib4:1.0
+                    lib1:1.0 (com.example.libs)
+                        lib2:1.0 (com.example.libs)
+                            lib3:1.0 (com.example.jlib)
+                                lib4:1.0 (com.example.jlib)
+                    lib3:0.6→1.0 (com.example.jlib)
+                        lib4:1.0 (com.example.jlib)
         freeDebugUnitTest
             freeDebug
                 mainModule
-                    lib1:1.0
-                        lib2:1.0
-                            lib3:1.0
-                                lib4:1.0
-                    lib3:0.6→1.0
-                        lib4:1.0
+                    lib1:1.0 (com.example.libs)
+                        lib2:1.0 (com.example.libs)
+                            lib3:1.0 (com.example.jlib)
+                                lib4:1.0 (com.example.jlib)
+                    lib3:0.6→1.0 (com.example.jlib)
+                        lib4:1.0 (com.example.jlib)
         freeRelease
             mainModule
-                lib1:1.0,0.9.1→1.0
-                    lib2:1.0
-                        lib3:1.0
-                            lib4:1.0
-                lib3:0.6→1.0
-                    lib4:1.0
+                lib1:1.0,0.9.1→1.0 (com.example.libs)
+                    lib2:1.0 (com.example.libs)
+                        lib3:1.0 (com.example.jlib)
+                            lib4:1.0 (com.example.jlib)
+                lib3:0.6→1.0 (com.example.jlib)
+                    lib4:1.0 (com.example.jlib)
         freeReleaseUnitTest
             freeRelease
                 mainModule
-                    lib1:1.0,0.9.1→1.0
-                        lib2:1.0
-                            lib3:1.0
-                                lib4:1.0
-                    lib3:0.6→1.0
-                        lib4:1.0
+                    lib1:1.0,0.9.1→1.0 (com.example.libs)
+                        lib2:1.0 (com.example.libs)
+                            lib3:1.0 (com.example.jlib)
+                                lib4:1.0 (com.example.jlib)
+                    lib3:0.6→1.0 (com.example.jlib)
+                        lib4:1.0 (com.example.jlib)
         paidDebug
             mainModule
-                lib1:1.0
-                    lib2:1.0
-                        lib3:1.0
-                            lib4:1.0
+                lib1:1.0 (com.example.libs)
+                    lib2:1.0 (com.example.libs)
+                        lib3:1.0 (com.example.jlib)
+                            lib4:1.0 (com.example.jlib)
         paidDebugAndroidTest
             paidDebug
                 mainModule
-                    lib1:1.0
-                        lib2:1.0
-                            lib3:1.0
-                                lib4:1.0
+                    lib1:1.0 (com.example.libs)
+                        lib2:1.0 (com.example.libs)
+                            lib3:1.0 (com.example.jlib)
+                                lib4:1.0 (com.example.jlib)
         paidDebugUnitTest
             paidDebug
                 mainModule
-                    lib1:1.0
-                        lib2:1.0
-                            lib3:1.0
-                                lib4:1.0
+                    lib1:1.0 (com.example.libs)
+                        lib2:1.0 (com.example.libs)
+                            lib3:1.0 (com.example.jlib)
+                                lib4:1.0 (com.example.jlib)
         paidRelease
             mainModule
-                lib1:1.0,0.9.1→1.0
-                    lib2:1.0
-                        lib3:1.0
-                            lib4:1.0
+                lib1:1.0,0.9.1→1.0 (com.example.libs)
+                    lib2:1.0 (com.example.libs)
+                        lib3:1.0 (com.example.jlib)
+                            lib4:1.0 (com.example.jlib)
         paidReleaseUnitTest
             paidRelease
                 mainModule
-                    lib1:1.0,0.9.1→1.0
-                        lib2:1.0
-                            lib3:1.0
-                                lib4:1.0""".trimIndent()
+                    lib1:1.0,0.9.1→1.0 (com.example.libs)
+                        lib2:1.0 (com.example.libs)
+                            lib3:1.0 (com.example.jlib)
+                                lib4:1.0 (com.example.jlib)""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
@@ -139,21 +139,21 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
 
     // Note: indentation matters!
     val expectedProjectStructure = """
-jModuleZ
-    testTreeStructure_javaModulejModuleZ
-        lib4:0.6
-        jModuleK
-            lib3:0.9.1
-                lib4:0.9.1
-            lib4:0.9.1
+    jModuleZ
+        testTreeStructure_javaModulejModuleZ
+            lib4:0.6 (com.example.jlib)
+            jModuleK
+                lib3:0.9.1 (com.example.jlib)
+                    lib4:0.9.1 (com.example.jlib)
+                lib4:0.9.1 (com.example.jlib)
+                jModuleL
+                    lib3:1.0 (com.example.jlib)
+                        lib4:1.0 (com.example.jlib)
             jModuleL
-                lib3:1.0
-                    lib4:1.0
-        jModuleL
-            lib3:1.0
-                lib4:1.0
-        nestedZ
-            lib4:0.6""".trimIndent()
+                lib3:1.0 (com.example.jlib)
+                    lib4:1.0 (com.example.jlib)
+            nestedZ
+                lib4:0.6 (com.example.jlib)""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
@@ -167,30 +167,30 @@ jModuleZ
 
     // Note: indentation matters!
     val expectedProjectStructure = """
-        mainModule
+    mainModule
+        freeDebug
+        freeDebugAndroidTest
             freeDebug
-            freeDebugAndroidTest
-                freeDebug
-            freeDebugUnitTest
-                freeDebug
+        freeDebugUnitTest
+            freeDebug
+        freeRelease
+            lib1:1.0,0.9.1→1.0 (com.example.libs)
+        freeReleaseUnitTest
             freeRelease
-                lib1:1.0,0.9.1→1.0
-            freeReleaseUnitTest
-                freeRelease
-                    lib1:1.0,0.9.1→1.0
+                lib1:1.0,0.9.1→1.0 (com.example.libs)
+        paidDebug
+        paidDebugAndroidTest
             paidDebug
-            paidDebugAndroidTest
-                paidDebug
-            paidDebugUnitTest
-                paidDebug
+        paidDebugUnitTest
+            paidDebug
+        paidRelease
+            lib1:1.0,0.9.1→1.0 (com.example.libs)
+        paidReleaseUnitTest
             paidRelease
-                lib1:1.0,0.9.1→1.0
-            paidReleaseUnitTest
-                paidRelease
-                    lib1:1.0,0.9.1→1.0""".trimIndent()
+                lib1:1.0,0.9.1→1.0 (com.example.libs)""".trimIndent()
 
-    val treeStructure = node.testStructure({ it !is LibraryDependencyNode || it.matches(lib1_09) })
-// Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+    val treeStructure = node.testStructure { it !is LibraryDependencyNode || it.matches(lib1_09) }
+    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
 }
