@@ -98,7 +98,6 @@ public class TemplateMetadata {
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
-  public static final String ATTR_ESPRESSO_VERSION = "espressoVersion";
   public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
   public static final String ATTR_USE_OFFLINE_REPO = "useOfflineRepo";
   public static final String ATTR_OFFLINE_REPO_PATH = "offlineRepoPath";

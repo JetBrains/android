@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -36,13 +35,10 @@ import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.plugins.PluginManager;
@@ -319,20 +315,6 @@ public final class TemplateValueInjector {
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
       myTemplateValues.put(ATTR_SDK_DIR, sdkLocation.getPath());
-
-      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ESPRESSO_CORE.getMavenGroupId(),
-                                                                             GoogleMavenArtifactId.ESPRESSO_CORE.getMavenArtifactId(),
-                                                                             null, false, sdkLocation, FileOpUtils.create());
-
-      if (espressoVersion == null) {
-        espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ANDROIDX_ESPRESSO_CORE.getMavenGroupId(),
-                                                                        GoogleMavenArtifactId.ANDROIDX_ESPRESSO_CORE.getMavenArtifactId(),
-                                                                        null, false, sdkLocation, FileOpUtils.create());
-      }
-
-      if (espressoVersion != null) {
-        myTemplateValues.put(ATTR_ESPRESSO_VERSION, espressoVersion);
-      }
     }
 
     return this;
