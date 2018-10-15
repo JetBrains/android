@@ -37,6 +37,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.io.InputStream;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -120,15 +121,17 @@ public class TutorialStep extends JPanel {
           myContents.add(new CodePane(element));
           break;
         case IMAGE:
-          File file;
           DefaultTutorialBundle.Image imageElement = element.getImage();
-          try {
-            file = new File(getClass().getResource(imageElement.getSource()).getPath());
-            if (!file.isFile()) {
+          if (imageElement == null) {
+            getLog().error("Image element has no image.");
+            continue;
+          }
+          try (InputStream imageStream = getClass().getResourceAsStream(imageElement.getSource())) {
+            if (imageStream == null) {
               getLog().error("Cannot load image: " + imageElement.getSource());
               continue;
             }
-            ImageIcon imageIcon = new ImageIcon(ImageIO.read(file));
+            ImageIcon imageIcon = new ImageIcon(ImageIO.read(imageStream));
             Image image = imageIcon.getImage();
             Image scaledImage = image.getScaledInstance(imageElement.getWidth(), imageElement.getHeight(), Image.SCALE_SMOOTH);
             imageIcon = new ImageIcon(scaledImage, imageElement.getDescription());
