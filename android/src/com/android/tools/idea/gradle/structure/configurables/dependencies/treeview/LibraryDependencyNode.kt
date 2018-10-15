@@ -20,8 +20,16 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.SimpleNode
 
 
@@ -36,21 +44,16 @@ fun <T> createResolvedLibraryDependencyNode(
         T : PsBaseDependency {
 
   fun setUpChildren(parent: AbstractPsNode, dependency: T): List<LibraryDependencyNode> =
-  // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
-    if (true) {
-      val transitiveDependencies = dependency.getTransitiveDependencies()
-      transitiveDependencies
-        .sortedWith(PsDependencyComparator(parent.uiSettings))
-        .map { transitiveLibrary ->
-          @Suppress("UNCHECKED_CAST")
-          createResolvedLibraryDependencyNode(parent, transitiveLibrary as T, forceGroupId)
-        }
-    }
-    else listOf()
-
+    dependency
+      .getTransitiveDependencies()
+      .sortedWith(PsDependencyComparator(parent.uiSettings))
+      .map { transitiveLibrary ->
+        @Suppress("UNCHECKED_CAST")
+        createResolvedLibraryDependencyNode(parent, transitiveLibrary as T, forceGroupId)
+      }
 
   val name = getText(parent, dependency, forceGroupId, parent.uiSettings)
-  return LibraryDependencyNode(parent, listOf(dependency), name).also { it.children = setUpChildren(it, dependency) }
+  return ResolvedLibraryDependencyNode(parent, dependency, name).also { it.children = setUpChildren(it, dependency) }
 }
 
 fun <T> createLibraryDependencyNode(
@@ -97,7 +100,7 @@ private fun getTextForSpec(name: String, version: String, group: String?, showGr
     append(version)
   }
 
-class LibraryDependencyNode(
+open class LibraryDependencyNode(
   parent: AbstractPsNode,
   dependencies: List<PsLibraryDependency>,
   name: String
@@ -127,6 +130,23 @@ class LibraryDependencyNode(
         }
       }
       else -> false
+    }
+  }
+}
+
+class ResolvedLibraryDependencyNode(
+  parent: AbstractPsNode,
+  val dependency: PsResolvedLibraryDependency,
+  name: String
+) : LibraryDependencyNode(parent, listOf(dependency), name) {
+
+  override fun update(presentation: PresentationData) {
+    super.update(presentation)
+    val spec = dependency.spec
+    presentation.clearText()
+    presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    if (spec.group != null) {
+      presentation.addText(" (${spec.group})", SimpleTextAttributes.GRAY_ATTRIBUTES)
     }
   }
 }
