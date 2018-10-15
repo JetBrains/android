@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.MoreObjects;
 import com.intellij.psi.xml.XmlTag;
+import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,19 +63,29 @@ public class NlTreeDumper {
   public String toTree(@NotNull List<NlComponent> roots) {
     StringBuilder sb = new StringBuilder(200);
     for (NlComponent root : roots) {
-      describe(sb, root, 0);
+      describe(sb, root, 0, new HashSet<>());
     }
     return sb.toString().trim();
   }
 
-  private void describe(@NotNull StringBuilder sb, @NotNull NlComponent component, int depth) {
+  private void describe(@NotNull StringBuilder sb, @NotNull NlComponent component, int depth, @NotNull HashSet<NlComponent> visited) {
+    boolean isLoop = !visited.add(component);
     for (int i = 0; i < depth; i++) {
       sb.append("    ");
     }
-    sb.append(describe(component));
-    sb.append('\n');
+    if (isLoop) {
+      // This is an error in the model. Mark it to easily be able to trace it.
+      sb.append("!!LOOP!! ");
+    }
+    sb.append(describe(component))
+      .append('\n');
+
+    if (isLoop) {
+      // Avoid infinite loop
+      return;
+    }
     for (NlComponent child : component.getChildren()) {
-      describe(sb, child, depth + 1);
+      describe(sb, child, depth + 1, visited);
     }
   }
 
