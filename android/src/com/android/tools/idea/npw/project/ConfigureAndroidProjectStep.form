@@ -166,7 +166,7 @@
         <properties>
           <font style="0"/>
           <label value="Include Navigation Controller"/>
-          <selected value="true"/>
+          <selected value="false"/>
           <text value="Include Navigation Controller"/>
         </properties>
       </component>
