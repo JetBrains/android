@@ -37,6 +37,7 @@ import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
@@ -135,6 +136,12 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       return new JUnitUtil.TestMethodFilter(testClass).value(method);
     }
     return false;
+  }
+
+  @Nullable
+  @Override
+  public ConfigurationFromContext createConfigurationFromContext(ConfigurationContext context) {
+    return AndroidUtils.getAndroidModule(context) == null ? null : super.createConfigurationFromContext(context);
   }
 
   @Override
