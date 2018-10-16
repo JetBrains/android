@@ -16,6 +16,7 @@
 package com.android.tools.profilers.commands
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Profiler
 
 /**
@@ -33,17 +34,17 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     nextSessionId++
     attachAgentCalled = command.beginSession.hasJvmtiConfig() && command.beginSession.jvmtiConfig.attachAgent
     events.add(Profiler.EventGroup.newBuilder().setEventId(nextSessionId)
-                 .addEvents(Profiler.Event.newBuilder().apply {
+                 .addEvents(Common.Event.newBuilder().apply {
                    eventId = nextSessionId
                    sessionId = nextSessionId
-                   kind = Profiler.Event.Kind.SESSION
-                   type = Profiler.Event.Type.SESSION_STARTED
+                   kind = Common.Event.Kind.SESSION
+                   type = Common.Event.Type.SESSION_STARTED
                    timestamp = timer.currentTimeNs
-                   sessionStarted = Profiler.SessionStarted.newBuilder().apply {
+                   sessionStarted = Common.SessionStarted.newBuilder().apply {
                      pid = command.beginSession.pid
                      startTimestampEpochMs = command.beginSession.requestTimeEpochMs
                      sessionName = command.beginSession.sessionName
-                     type = Profiler.SessionStarted.SessionType.FULL
+                     type = Common.SessionStarted.SessionType.FULL
                    }.build()
                  }))
   }

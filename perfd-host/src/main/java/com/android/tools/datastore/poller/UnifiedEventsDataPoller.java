@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.UnifiedEventsTable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;
@@ -46,9 +47,9 @@ public class UnifiedEventsDataPoller implements Runnable {
   @Override
   public void run() throws StatusRuntimeException {
     // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
-    Iterator<Profiler.Event> events = myEventPollingService.getEvents(Profiler.GetEventsRequest.getDefaultInstance());
+    Iterator<Common.Event> events = myEventPollingService.getEvents(Profiler.GetEventsRequest.getDefaultInstance());
     while (myIsRunning && events.hasNext()) {
-      Profiler.Event event = events.next();
+      Common.Event event = events.next();
       if (event != null) {
         myTable.insertUnifiedEvent(myStreamId, event);
       }

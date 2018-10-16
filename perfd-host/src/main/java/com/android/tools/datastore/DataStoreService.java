@@ -223,7 +223,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * query for the stream information via the
    * {@link ProfilerServiceGrpc.ProfilerServiceBlockingStub#getEventGroups(Profiler.GetEventGroupsRequest)} call.
    */
-  public void connect(@NotNull Profiler.Stream stream, @NotNull ManagedChannel channel) {
+  public void connect(@NotNull Common.Stream stream, @NotNull ManagedChannel channel) {
     assert stream.getStreamId() != 0;
     myProfilerService.startPolling(stream, channel);
   }
