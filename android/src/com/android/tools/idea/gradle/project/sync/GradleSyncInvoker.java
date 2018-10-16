@@ -293,6 +293,7 @@ public class GradleSyncInvoker {
     public boolean cleanProject;
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
+    public boolean forceFullVariantsSync;
     // Perform a variant-only sync if not null.
     @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
