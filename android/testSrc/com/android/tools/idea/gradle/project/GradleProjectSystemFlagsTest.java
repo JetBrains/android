@@ -27,6 +27,6 @@ public class GradleProjectSystemFlagsTest extends IdeaTestCase {
   }
 
   public void testNewPsdEnabledTest() {
-    assertTrue(StudioFlags.NEW_PSD_ENABLED.get());
+    assertFalse(StudioFlags.NEW_PSD_ENABLED.get());
   }
 }
