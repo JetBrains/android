@@ -85,7 +85,9 @@ public class LayoutEditorTest {
       .clickFinish();
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
-    List<String> newFiles = NewImageAssetTest.getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed));
+    Path filterPath = projectDir.resolve("app/src");
+    List<String> newFiles = NewImageAssetTest.getNewFiles(
+        projectDir, TreeDifferenceEngine.computeEditScript(original, changed), path -> path.startsWith(filterPath));
     assertThat(newFiles).containsAllOf("app/src/main/ic_launcher-web.png",
                                          "app/src/main/res/mipmap-hdpi/ic_launcher.png",
                                          "app/src/main/res/mipmap-mdpi/ic_launcher.png",
