@@ -44,7 +44,7 @@ public class SceneDeleteTest extends SceneTest {
                  "    app:layout_constraintLeft_toLeftOf=\"@+id/button\"\n" +
                  "    app:layout_constraintTop_toBottomOf=\"@+id/button\"\n" +
                  "    android:layout_marginTop=\"16dp\"/>");
-    myScene.clearAttributes();
+    myScene.clearAllConstraints();
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button\"\n" +

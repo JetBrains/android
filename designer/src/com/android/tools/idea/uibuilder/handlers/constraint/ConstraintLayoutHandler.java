@@ -67,7 +67,6 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.Placeholder;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -544,8 +543,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
                            .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
-      Scene scene = viewEditor.getScene();
-      scene.clearAttributes();
+      viewEditor.getScene().clearAllConstraints();
       ensureLayersAreShown(editor, 1000);
     }
 
