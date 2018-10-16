@@ -308,19 +308,25 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
 
       map = ArrayListMultimap.create();
-      SetMultimap<String, String> seenQualifiers = HashMultimap.create();
-      // Merge all items of the given type.
-      for (ResourceRepository child : myLeafsByNamespace.get(namespace)) {
-        ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
-        for (ResourceItem item : items.values()) {
-          String name = item.getName();
-          String qualifiers = item.getConfiguration().getQualifierString();
-          if (!map.containsKey(name) || type == ResourceType.STYLEABLE || type == ResourceType.ID ||
-              !seenQualifiers.containsEntry(name, qualifiers)) {
-            // We only add a duplicate item if there isn't an item with the same qualifiers and it is
-            // not an id. Ids are allowed to be defined in multiple places even with the same qualifiers.
-            map.put(name, item);
-            seenQualifiers.put(name, qualifiers);
+      ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
+      if (repositoriesForNamespace.size() == 1) {
+        map.putAll(repositoriesForNamespace.get(0).getResources(namespace, type));
+      } else {
+        // Merge all items of the given type.
+        SetMultimap<String, String> seenQualifiers = HashMultimap.create();
+        for (ResourceRepository child : repositoriesForNamespace) {
+          ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
+          for (ResourceItem item : items.values()) {
+            String name = item.getName();
+            String qualifiers = item.getConfiguration().getQualifierString();
+            if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
+                !seenQualifiers.containsEntry(name, qualifiers)) {
+              // We only add a duplicate item if there isn't an item with the same qualifiers and it is
+              // not a styleable or an id. Styleables and ids and are allowed to be defined in multiple
+              // places even with the same qualifiers.
+              map.put(name, item);
+              seenQualifiers.put(name, qualifiers);
+            }
           }
         }
       }
