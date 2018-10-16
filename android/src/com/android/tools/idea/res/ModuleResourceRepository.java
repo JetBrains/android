@@ -68,14 +68,16 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     }
 
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
-    List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size() + 1);
-    for (VirtualFile resourceDirectory : resourceDirectories) {
-      ResourceFolderRepository repository = resourceFolderRegistry.get(facet, resourceDirectory);
-      childRepositories.add(repository);
-    }
+    List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
 
     DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet);
     childRepositories.add(dynamicResources);
+
+    for (int i = resourceDirectories.size(); --i >= 0;) {
+      VirtualFile resourceDirectory = resourceDirectories.get(i);
+      ResourceFolderRepository repository = resourceFolderRegistry.get(facet, resourceDirectory);
+      childRepositories.add(repository);
+    }
 
     // We create a ModuleResourceRepository even if childRepositories.isEmpty(), because we may
     // dynamically add children to it later (in updateRoots).
@@ -119,7 +121,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     myNamespace = namespace;
     setChildren(delegates, ImmutableList.of());
 
-    // Subscribe to update the roots when the resource folders change
+    // Subscribe to update the roots when the resource folders change.
     myResourceFolderManager = ResourceFolderManager.getInstance(myFacet);
     myResourceFolderManager.addListener(myResourceFolderListener);
 
@@ -219,7 +221,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     }
 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
-    resourceDirectories.stream().forEach(dir -> delegates.add(resourceFolderRegistry.get(facet, dir, namespace)));
+    resourceDirectories.forEach(dir -> delegates.add(resourceFolderRegistry.get(facet, dir, namespace)));
 
     return new ModuleResourceRepository(facet, namespace, delegates);
   }
