@@ -34,7 +34,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -358,9 +358,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         // We should otherwise do it for performance reasons, so we should investigate why.
         ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
         if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-          myDataStore.connect(Profiler.Stream.newBuilder()
+          myDataStore.connect(Common.Stream.newBuilder()
                                              .setStreamId(myDataStore.getUniqueStreamId())
-                                             .setType(Profiler.Stream.Type.DEVICE)
+                                             .setType(Common.Stream.Type.DEVICE)
                                              .setDevice(ProfilerServiceProxy.profilerDeviceFromIDevice(myDevice))
                                              .build(),
                               proxyChannel);

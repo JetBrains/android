@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import java.sql.Connection;
@@ -78,7 +79,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     }
   }
 
-  public void insertUnifiedEvent(long streamId, @NotNull Profiler.Event event) {
+  public void insertUnifiedEvent(long streamId, @NotNull Common.Event event) {
     execute(Statements.INSERT, streamId,
             event.getSessionId(),
             event.getEventId(),
@@ -89,7 +90,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   }
 
   @VisibleForTesting
-  public List<Profiler.Event> queryUnifiedEvents() {
+  public List<Common.Event> queryUnifiedEvents() {
     return queryUnifiedEvents(Statements.QUERY_EVENTS);
   }
 
@@ -117,7 +118,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       ResultSet results = executeOneTimeQuery(sql.toString(), params.toArray());
       HashMap<Long, Profiler.EventGroup.Builder> builderGroups = new HashMap<>();
       while (results.next()) {
-        Profiler.Event event = Profiler.Event.parser().parseFrom(results.getBytes(1));
+        Common.Event event = Common.Event.parser().parseFrom(results.getBytes(1));
         Profiler.EventGroup.Builder group = builderGroups.computeIfAbsent(event.getEventId(), key -> Profiler.EventGroup.newBuilder());
         group.addEvents(event);
       }
@@ -131,12 +132,12 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     return groups;
   }
 
-  private List<Profiler.Event> queryUnifiedEvents(Statements stmt, Object... args) {
-    List<Profiler.Event> records = new ArrayList<>();
+  private List<Common.Event> queryUnifiedEvents(Statements stmt, Object... args) {
+    List<Common.Event> records = new ArrayList<>();
     try {
       ResultSet results = executeQuery(stmt, args);
       while (results.next()) {
-        records.add(Profiler.Event.parser().parseFrom(results.getBytes(1)));
+        records.add(Common.Event.parser().parseFrom(results.getBytes(1)));
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {

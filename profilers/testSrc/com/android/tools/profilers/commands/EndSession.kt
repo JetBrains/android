@@ -16,6 +16,7 @@
 package com.android.tools.profilers.commands
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Profiler
 
 /**
@@ -24,11 +25,11 @@ import com.android.tools.profiler.proto.Profiler
  */
 class EndSession(timer: FakeTimer) : CommandHandler(timer) {
   override fun handleCommand(command: Profiler.Command, events: MutableList<Profiler.EventGroup.Builder>) {
-    events.find { it.eventId == command.endSession.sessionId }!!.addEvents(Profiler.Event.newBuilder().apply {
+    events.find { it.eventId == command.endSession.sessionId }!!.addEvents(Common.Event.newBuilder().apply {
       eventId = command.endSession.sessionId
       sessionId = command.endSession.sessionId
-      kind = Profiler.Event.Kind.SESSION
-      type = Profiler.Event.Type.SESSION_ENDED
+      kind = Common.Event.Kind.SESSION
+      type = Common.Event.Type.SESSION_ENDED
       timestamp = timer.currentTimeNs
     })
   }

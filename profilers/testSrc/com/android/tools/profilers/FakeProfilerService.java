@@ -20,8 +20,36 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.Profiler.*;
+import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
+import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
+import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
+import com.android.tools.profiler.proto.Profiler.BytesRequest;
+import com.android.tools.profiler.proto.Profiler.BytesResponse;
+import com.android.tools.profiler.proto.Profiler.Command;
+import com.android.tools.profiler.proto.Profiler.DeleteSessionRequest;
+import com.android.tools.profiler.proto.Profiler.DeleteSessionResponse;
+import com.android.tools.profiler.proto.Profiler.EndSessionRequest;
+import com.android.tools.profiler.proto.Profiler.EndSessionResponse;
+import com.android.tools.profiler.proto.Profiler.EventGroup;
+import com.android.tools.profiler.proto.Profiler.ExecuteRequest;
+import com.android.tools.profiler.proto.Profiler.ExecuteResponse;
+import com.android.tools.profiler.proto.Profiler.GetDevicesRequest;
+import com.android.tools.profiler.proto.Profiler.GetDevicesResponse;
+import com.android.tools.profiler.proto.Profiler.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Profiler.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.Profiler.GetProcessesRequest;
+import com.android.tools.profiler.proto.Profiler.GetProcessesResponse;
+import com.android.tools.profiler.proto.Profiler.GetSessionMetaDataRequest;
+import com.android.tools.profiler.proto.Profiler.GetSessionMetaDataResponse;
+import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
+import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
+import com.android.tools.profiler.proto.Profiler.ImportSessionRequest;
+import com.android.tools.profiler.proto.Profiler.ImportSessionResponse;
+import com.android.tools.profiler.proto.Profiler.TimeRequest;
+import com.android.tools.profiler.proto.Profiler.TimeResponse;
+import com.android.tools.profiler.proto.Profiler.VersionRequest;
+import com.android.tools.profiler.proto.Profiler.VersionResponse;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.commands.BeginSession;
@@ -44,20 +72,20 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   // This value is the value used when we get a GRPC request but an int / long field has not been set.
   private static final int EMPTY_REQUEST_VALUE = 0;
   public static final Common.Device FAKE_DEVICE = Common.Device.newBuilder()
-                                                               .setDeviceId(FAKE_DEVICE_ID)
-                                                               .setSerial(FAKE_DEVICE_NAME)
-                                                               .setApiLevel(AndroidVersion.VersionCodes.O)
-                                                               .setFeatureLevel(AndroidVersion.VersionCodes.O)
-                                                               .setModel(FAKE_DEVICE_NAME)
-                                                               .setState(Common.Device.State.ONLINE)
-                                                               .build();
+    .setDeviceId(FAKE_DEVICE_ID)
+    .setSerial(FAKE_DEVICE_NAME)
+    .setApiLevel(AndroidVersion.VersionCodes.O)
+    .setFeatureLevel(AndroidVersion.VersionCodes.O)
+    .setModel(FAKE_DEVICE_NAME)
+    .setState(Common.Device.State.ONLINE)
+    .build();
   //Setting PID to be 1 since there is a process with pid being 1 in test input atrace_processid_1
   public static final Common.Process FAKE_PROCESS = Common.Process.newBuilder()
-                                                                  .setPid(1)
-                                                                  .setDeviceId(FAKE_DEVICE_ID)
-                                                                  .setState(Common.Process.State.ALIVE)
-                                                                  .setName(FAKE_PROCESS_NAME)
-                                                                  .build();
+    .setPid(1)
+    .setDeviceId(FAKE_DEVICE_ID)
+    .setState(Common.Process.State.ALIVE)
+    .setName(FAKE_PROCESS_NAME)
+    .build();
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
@@ -130,18 +158,18 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myProcesses.putValue(myDevices.get(device.getDeviceId()), process);
     // The event pipeline expects process started / ended events. As such depending on the process state when passed in we add such events.
     if (process.getState() != Common.Process.State.UNSPECIFIED && process.getState() != Common.Process.State.UNRECOGNIZED) {
-      addEventToEventGroup(device.getDeviceId(), process.getPid(), Profiler.Event.newBuilder()
-                                                                                 .setTimestamp(myCommandTimer.getCurrentTimeNs())
-                                                                                 .setKind(Profiler.Event.Kind.PROCESS)
-                                                                                 .setType(Profiler.Event.Type.PROCESS_STARTED)
-                                                                                 .setProcess(process).build());
+      addEventToEventGroup(device.getDeviceId(), process.getPid(), Common.Event.newBuilder()
+        .setTimestamp(myCommandTimer.getCurrentTimeNs())
+        .setKind(Common.Event.Kind.PROCESS)
+        .setType(Common.Event.Type.PROCESS_STARTED)
+        .setProcess(process).build());
     }
     if (process.getState() != Common.Process.State.DEAD) {
-      addEventToEventGroup(device.getDeviceId(), process.getPid(), Profiler.Event.newBuilder()
-                                                                                 .setTimestamp(myCommandTimer.getCurrentTimeNs())
-                                                                                 .setKind(Profiler.Event.Kind.PROCESS)
-                                                                                 .setType(Event.Type.PROCESS_ENDED)
-                                                                                 .setProcess(process).build());
+      addEventToEventGroup(device.getDeviceId(), process.getPid(), Common.Event.newBuilder()
+        .setTimestamp(myCommandTimer.getCurrentTimeNs())
+        .setKind(Common.Event.Kind.PROCESS)
+        .setType(Common.Event.Type.PROCESS_ENDED)
+        .setProcess(process).build());
     }
   }
 
@@ -159,28 +187,28 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
     if (device.getState() != Common.Device.State.UNSPECIFIED && device.getState() != Common.Device.State.UNRECOGNIZED) {
-      addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Profiler.Event.newBuilder()
-                                                                                     .setTimestamp(myCommandTimer.getCurrentTimeNs())
-                                                                                     .setKind(Profiler.Event.Kind.STREAM)
-                                                                                     .setType(Event.Type.STREAM_CONNECTED)
-                                                                                     .setStream(Profiler.Stream.newBuilder()
-                                                                                                               .setType(
-                                                                                                                 Profiler.Stream.Type.DEVICE)
-                                                                                                               .setStreamId(
-                                                                                                                 device.getDeviceId())
-                                                                                                               .setDevice(device)).build());
+      addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Common.Event.newBuilder()
+        .setTimestamp(myCommandTimer.getCurrentTimeNs())
+        .setKind(Common.Event.Kind.STREAM)
+        .setType(Common.Event.Type.STREAM_CONNECTED)
+        .setStream(Common.Stream.newBuilder()
+                     .setType(
+                       Common.Stream.Type.DEVICE)
+                     .setStreamId(
+                       device.getDeviceId())
+                     .setDevice(device)).build());
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
-      addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Profiler.Event.newBuilder()
-                                                                                     .setTimestamp(myCommandTimer.getCurrentTimeNs())
-                                                                                     .setKind(Profiler.Event.Kind.STREAM)
-                                                                                     .setType(Event.Type.STREAM_DISCONNECTED)
-                                                                                     .setStream(Profiler.Stream.newBuilder()
-                                                                                                               .setType(
-                                                                                                                 Profiler.Stream.Type.DEVICE)
-                                                                                                               .setStreamId(
-                                                                                                                 device.getDeviceId())
-                                                                                                               .setDevice(device)).build());
+      addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Common.Event.newBuilder()
+        .setTimestamp(myCommandTimer.getCurrentTimeNs())
+        .setKind(Common.Event.Kind.STREAM)
+        .setType(Common.Event.Type.STREAM_DISCONNECTED)
+        .setStream(Common.Stream.newBuilder()
+                     .setType(
+                       Common.Stream.Type.DEVICE)
+                     .setStreamId(
+                       device.getDeviceId())
+                     .setDevice(device)).build());
     }
   }
 
@@ -193,16 +221,16 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myDevices.remove(oldDevice.getDeviceId());
     // Update device simply kills the old device and swaps it with a new device. As such we kill the old device by creating a
     // stream disconnected event for the events pipeline.
-    addEventToEventGroup(oldDevice.getDeviceId(), oldDevice.getDeviceId(), Profiler.Event.newBuilder()
-                                                                                   .setTimestamp(myCommandTimer.getCurrentTimeNs())
-                                                                                   .setKind(Profiler.Event.Kind.STREAM)
-                                                                                   .setType(Event.Type.STREAM_DISCONNECTED)
-                                                                                   .setStream(Profiler.Stream.newBuilder()
-                                                                                                             .setType(
-                                                                                                               Profiler.Stream.Type.DEVICE)
-                                                                                                             .setStreamId(
-                                                                                                               oldDevice.getDeviceId())
-                                                                                                             .setDevice(oldDevice)).build());
+    addEventToEventGroup(oldDevice.getDeviceId(), oldDevice.getDeviceId(), Common.Event.newBuilder()
+      .setTimestamp(myCommandTimer.getCurrentTimeNs())
+      .setKind(Common.Event.Kind.STREAM)
+      .setType(Common.Event.Type.STREAM_DISCONNECTED)
+      .setStream(Common.Stream.newBuilder()
+                   .setType(
+                     Common.Stream.Type.DEVICE)
+                   .setStreamId(
+                     oldDevice.getDeviceId())
+                   .setDevice(oldDevice)).build());
     addDevice(newDevice);
   }
 
@@ -214,34 +242,34 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public void addSession(Common.Session session, Common.SessionMetaData metadata) {
     mySessions.put(session.getSessionId(), session);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
-    addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Profiler.Event.newBuilder()
-                                                                                      .setEventId(session.getSessionId())
-                                                                                      .setSessionId(session.getSessionId())
-                                                                                      .setKind(Event.Kind.SESSION)
-                                                                                      .setType(Event.Type.SESSION_STARTED)
-                                                                                      .setTimestamp(session.getStartTimestamp())
-                                                                                      .setSessionStarted(
-                                                                                        Profiler.SessionStarted.newBuilder()
-                                                                                                               .setPid(session.getPid())
-                                                                                                               .setStartTimestampEpochMs(
-                                                                                                                 metadata
-                                                                                                                   .getStartTimestampEpochMs())
-                                                                                                               .setJvmtiEnabled(
-                                                                                                                 metadata.getJvmtiEnabled())
-                                                                                                               .setSessionName(
-                                                                                                                 metadata.getSessionName())
-                                                                                                               .setType(
-                                                                                                                 Profiler.SessionStarted.SessionType.FULL))
-                                                                                      .build()
+    addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
+      .setEventId(session.getSessionId())
+      .setSessionId(session.getSessionId())
+      .setKind(Common.Event.Kind.SESSION)
+      .setType(Common.Event.Type.SESSION_STARTED)
+      .setTimestamp(session.getStartTimestamp())
+      .setSessionStarted(
+        Common.SessionStarted.newBuilder()
+          .setPid(session.getPid())
+          .setStartTimestampEpochMs(
+            metadata
+              .getStartTimestampEpochMs())
+          .setJvmtiEnabled(
+            metadata.getJvmtiEnabled())
+          .setSessionName(
+            metadata.getSessionName())
+          .setType(
+            Common.SessionStarted.SessionType.FULL))
+      .build()
     );
     if (session.getEndTimestamp() != Long.MAX_VALUE) {
-      addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Profiler.Event.newBuilder()
-                                                                                        .setEventId(session.getSessionId())
-                                                                                        .setSessionId(session.getSessionId())
-                                                                                        .setKind(Event.Kind.SESSION)
-                                                                                        .setType(Event.Type.SESSION_ENDED)
-                                                                                        .setTimestamp(session.getEndTimestamp())
-                                                                                        .build()
+      addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
+        .setEventId(session.getSessionId())
+        .setSessionId(session.getSessionId())
+        .setKind(Common.Event.Kind.SESSION)
+        .setType(Common.Event.Type.SESSION_ENDED)
+        .setTimestamp(session.getEndTimestamp())
+        .build()
       );
     }
   }
@@ -363,8 +391,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     // If our session has not already ended we set an end timestamp.
     if (session.getEndTimestamp() == Long.MAX_VALUE) {
       session = session.toBuilder()
-                       .setEndTimestamp(session.getStartTimestamp() + 1)
-                       .build();
+        .setEndTimestamp(session.getStartTimestamp() + 1)
+        .build();
     }
     mySessions.put(session.getSessionId(), session);
     EndSessionResponse.Builder builder = EndSessionResponse.newBuilder().setSession(session);
@@ -426,7 +454,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   /**
    * Helper method for finding an existing event group and updating its array of events, or creating an event group if one does not exist.
    */
-  private void addEventToEventGroup(long streamId, long eventId, Event event) {
+  private void addEventToEventGroup(long streamId, long eventId, Common.Event event) {
     List<EventGroup.Builder> groups = getListForStream(streamId);
     Optional<EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getEventId() == eventId).findFirst();
     if (eventGroup.isPresent()) {
@@ -452,7 +480,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     assertThat(myCommandHandlers.containsKey(request.getCommand().getType()))
       .named("Missing command handler for: %s", request.getCommand().getType().toString()).isTrue();
     myCommandHandlers.get(request.getCommand().getType())
-                     .handleCommand(request.getCommand(), getListForStream(request.getCommand().getStreamId()));
+      .handleCommand(request.getCommand(), getListForStream(request.getCommand().getStreamId()));
     responseObserver.onNext(ExecuteResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
@@ -471,7 +499,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
         continue;
       }
       for (EventGroup.Builder eventGroup : myStreamEvents.get(stream)) {
-        for (Event event : eventGroup.getEventsList()) {
+        for (Common.Event event : eventGroup.getEventsList()) {
           if (request.getSessionId() != event.getSessionId() && request.getSessionId() != EMPTY_REQUEST_VALUE) {
             continue;
           }

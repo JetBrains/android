@@ -26,7 +26,7 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common.*;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -324,7 +324,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void streamConnectAndDisconnect() {
     // Connect new channel.
     Channel eventsChannel = myService.getChannel();
-    myProfilerService.startPolling(Profiler.Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(2).build(), eventsChannel);
+    myProfilerService.startPolling(Common.Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(2).build(), eventsChannel);
     // Force the poller to tick.
     getPollTicker().run();
     // Get events from poller to validate we have a connection.
@@ -372,7 +372,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void executeRedirectsProperly() {
     Channel eventsChannel = myService.getChannel();
-    myProfilerService.startPolling(Profiler.Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(2).build(), eventsChannel);
+    myProfilerService.startPolling(Common.Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(2).build(), eventsChannel);
     StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
     Command sentCommand = Command.newBuilder().setStreamId(2).setType(Command.CommandType.BEGIN_SESSION).build();
     myProfilerService.execute(

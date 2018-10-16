@@ -20,6 +20,7 @@ import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.UnifiedEventsTable
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profiler.proto.ProfilerServiceGrpc
 import com.google.common.truth.Truth.assertThat
@@ -100,27 +101,27 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
     val eventsPopulated = eventsLock.newCondition()
 
     companion object {
-      val eventsList = mutableListOf(Profiler.Event.newBuilder()
+      val eventsList = mutableListOf(Common.Event.newBuilder()
                                        .setTimestamp(10)
                                        .setSessionId(1)
                                        .setEventId(1)
-                                       .setKind(Profiler.Event.Kind.SESSION)
+                                       .setKind(Common.Event.Kind.SESSION)
                                        .build(),
-                                     Profiler.Event.newBuilder()
+                                     Common.Event.newBuilder()
                                        .setTimestamp(11)
                                        .setSessionId(1)
                                        .setEventId(2)
-                                       .setKind(Profiler.Event.Kind.SESSION)
+                                       .setKind(Common.Event.Kind.SESSION)
                                        .build(),
-                                     Profiler.Event.newBuilder()
+                                     Common.Event.newBuilder()
                                        .setTimestamp(12)
                                        .setSessionId(1)
                                        .setEventId(3)
-                                       .setKind(Profiler.Event.Kind.SESSION)
+                                       .setKind(Common.Event.Kind.SESSION)
                                        .build())
     }
 
-    override fun getEvents(request: Profiler.GetEventsRequest?, responseObserver: StreamObserver<Profiler.Event>) {
+    override fun getEvents(request: Profiler.GetEventsRequest?, responseObserver: StreamObserver<Common.Event>) {
       eventsList.forEach { responseObserver.onNext(it) }
       responseObserver.onCompleted()
       eventsLock.lock()

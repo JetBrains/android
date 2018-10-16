@@ -26,7 +26,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common.*;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
@@ -351,7 +351,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       // If we are using the new event pipeline we also want to create a process started entry
       // for each process.
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myEventQueue.enqueue(Profiler.Event.newBuilder()
+        myEventQueue.enqueue(Common.Event.newBuilder()
                                            .setEventId(process.getPid())
                                            .setKind(Event.Kind.PROCESS)
                                            .setType(Event.Type.PROCESS_STARTED)
@@ -364,7 +364,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
     for (Client client : removedClients) {
       Common.Process process = myCachedProcesses.remove(client);
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myEventQueue.enqueue(Profiler.Event.newBuilder()
+        myEventQueue.enqueue(Common.Event.newBuilder()
                                            .setEventId(process.getPid())
                                            .setKind(Event.Kind.PROCESS)
                                            .setType(Event.Type.PROCESS_ENDED)
