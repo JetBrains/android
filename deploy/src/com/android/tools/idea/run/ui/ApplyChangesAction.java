@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.ui;
 
 import com.android.tools.deployer.Trace;
 import com.intellij.execution.Executor;
@@ -40,24 +40,22 @@ import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CodeSwapAction extends AnAction {
+public class ApplyChangesAction extends AnAction {
 
-  public static final String ID = "android.deploy.CodeSwap";
+  public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final Key<Boolean> CODE_SWAP = Key.create(ID);
+  public static final Key<Boolean> APPLY_CHANGES = Key.create(ID);
 
-  private static final Logger LOG = Logger.getInstance(CodeSwapAction.class);
+  private static final Logger LOG = Logger.getInstance(ApplyChangesAction.class);
 
-  // TODO: Control Alt F10 is almost always going to get your xserver to send you to
-  //       your 10th virtual console.....
   private static final Shortcut SHORTCUT =
-    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift R" : "control alt F10"), null);
+    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
 
-  @NotNull private final Function<Project, Boolean> myShouldEnableCodeSwapProvider;
+  @NotNull private final Function<Project, Boolean> myShouldEnableApplyChangesProvider;
 
-  public CodeSwapAction(@NotNull Function<Project, Boolean> shouldEnableCodeSwapProvider) {
-    super("Code Swap", "Code Swap", StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP);
-    myShouldEnableCodeSwapProvider = shouldEnableCodeSwapProvider;
+  public ApplyChangesAction(@NotNull Function<Project, Boolean> shouldEnableApplyChangesProvider) {
+    super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
+    myShouldEnableApplyChangesProvider = shouldEnableApplyChangesProvider;
 
     KeymapManager manager = KeymapManager.getInstance();
     if (manager != null) {
@@ -71,50 +69,45 @@ public class CodeSwapAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    if (e.isFromActionToolbar()) {
-      presentation.setVisible(false);
-      presentation.setEnabled(false);
-      return;
-    }
 
     if (e.getProject() == null) {
       presentation.setEnabled(false);
       return;
     }
-    presentation.setEnabled(myShouldEnableCodeSwapProvider.apply(e.getProject()));
+    presentation.setEnabled(myShouldEnableApplyChangesProvider.apply(e.getProject()));
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
-      LOG.warn("Code Swap action performed with no project");
+      LOG.warn("Apply Changes action performed with no project");
       return;
     }
 
     RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
     if (settings == null) {
-      LOG.warn("Code Swap  action could not locate current run config settings");
+      LOG.warn("Apply Changes action could not locate current run config settings");
       return;
     }
 
     // TODO: Figure out the debugger flow. For now always use the Run executor.
     Executor executor = getExecutor(DefaultRunExecutor.EXECUTOR_ID);
     if (executor == null) {
-      LOG.warn("Code Swap  action could not identify executor");
+      LOG.warn("Apply Changes action could not identify executor");
       return;
     }
 
     ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.createOrNull(executor, settings);
     if (builder == null) {
-      LOG.warn("Code Swap  action could not construct an env");
+      LOG.warn("Apply Changes action could not construct an env");
       return;
     }
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
-    env.putCopyableUserData(CODE_SWAP, true);
+    env.putCopyableUserData(APPLY_CHANGES, true);
     Trace.reset();
-    Trace.begin("PostCodeSwap Clicked");
+    Trace.begin("PostApplyChange Clicked");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 

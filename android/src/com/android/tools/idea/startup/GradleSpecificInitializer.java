@@ -22,7 +22,6 @@ import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.moveAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
-import static com.intellij.openapi.actionSystem.Anchor.BEFORE;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
@@ -49,8 +48,8 @@ import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ApplyChangesAction;
-import com.android.tools.idea.run.CodeSwapAction;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
@@ -211,8 +210,8 @@ public class GradleSpecificInitializer implements Runnable {
       PluginId androidPluginId = PluginId.findId("org.jetbrains.android");
       if (StudioFlags.JVMTI_REFRESH.get()) {
         AnAction applyChanges = new ApplyChangesAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
-        ag.add(applyChanges, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
         actionManager.registerAction(ApplyChangesAction.ID, applyChanges, androidPluginId);
+        ag.add(applyChanges, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
 
         AnAction codeswap = new CodeSwapAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
         actionManager.registerAction(CodeSwapAction.ID, codeswap, androidPluginId);
