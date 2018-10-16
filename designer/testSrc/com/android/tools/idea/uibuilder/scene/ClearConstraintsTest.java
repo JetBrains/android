@@ -58,7 +58,7 @@ public class ClearConstraintsTest  extends SceneTest {
   }
 
   public void testClearingConstraints() {
-    myScene.clearAttributes();
+    myScene.clearAllConstraints();
     myScreen.get("@+id/button1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/button1\"\n" +
