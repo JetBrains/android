@@ -42,6 +42,11 @@ public class IdeaTestSuiteBase {
   private static void setProperties() {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
     System.setProperty("gradle.user.home", createTmpDir("home").toString());
+
+    // Set roots for java.util.prefs API.
+    System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
+    System.setProperty("java.util.prefs.systemRoot", createTmpDir("systemRoot").toString());
+
     System.setProperty("local.gradle.distribution.path", new File(getWorkspaceRoot(), "tools/external/gradle/").getAbsolutePath());
     // See AndroidLocation.java for more information on this system property.
     System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
