@@ -451,5 +451,11 @@ public final class StudioFlags {
     false
   );
 
-  private StudioFlags() {}
+  private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
+  public static final Flag<Boolean> THEME_EDITOR_ENABLED = Flag.create(
+    THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
+    "If enabled, a visual editor will be available for Android themes.",
+    false);
+
+  private StudioFlags() { }
 }

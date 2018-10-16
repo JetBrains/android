@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.adtui.TextAccessors;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -33,6 +34,8 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +50,16 @@ import static org.fest.swing.data.TableCell.row;
 public class ThemeEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
 
   /**
    * To verify that the layout preview renders appropriately with different themes and API selections
