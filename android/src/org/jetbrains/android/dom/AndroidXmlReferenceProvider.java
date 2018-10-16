@@ -8,7 +8,15 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.ElementManipulator;
+import com.intellij.psi.ElementManipulators;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -17,13 +25,11 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ProcessingContext;
-import com.intellij.util.Processor;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -150,13 +156,8 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
 
     @Override
     public PsiElement resolve() {
-      return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, new ResolveCache.Resolver() {
-        @Nullable
-        @Override
-        public PsiElement resolve(@NotNull PsiReference reference, boolean incompleteCode) {
-          return resolveInner();
-        }
-      }, false, false);
+      return ResolveCache.getInstance(myElement.getProject())
+                         .resolveWithCaching(this, (reference, incompleteCode) -> resolveInner(), false, false);
     }
 
     @Nullable
@@ -186,18 +187,19 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
         return EMPTY_ARRAY;
       }
       final Project project = myModule.getProject();
-      final PsiClass baseClass =
-        JavaPsiFacade.getInstance(project).findClass(myBaseClassQName, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+      final PsiClass baseClass = JavaPsiFacade
+        .getInstance(project)
+        .findClass(myBaseClassQName, myModule.getModuleWithDependenciesAndLibrariesScope(false));
 
       if (baseClass == null) {
         return EMPTY_ARRAY;
       }
       final List<Object> result = new ArrayList<>();
 
-      ClassInheritorsSearch.search(baseClass, myModule.getModuleWithDependenciesAndLibrariesScope(false), true, true, false).forEach(
-        new Processor<PsiClass>() {
-          @Override
-          public boolean process(PsiClass psiClass) {
+      ClassInheritorsSearch
+        .search(baseClass, myModule.getModuleWithDependenciesAndLibrariesScope(false), true, true, false)
+        .forEach(
+          psiClass -> {
             if (psiClass.getContainingClass() != null) {
               return true;
             }
@@ -208,8 +210,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
               result.add(JavaLookupElementBuilder.forClass(psiClass, name, true));
             }
             return true;
-          }
-        });
+          });
       return ArrayUtil.toObjectArray(result);
     }
 
