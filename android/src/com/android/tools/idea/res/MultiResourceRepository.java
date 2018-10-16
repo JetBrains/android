@@ -300,19 +300,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
 
       if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
-        LocalResourceRepository child = myLocalResources.get(0);
-        if (child instanceof MultiResourceRepository) {
-          return ((MultiResourceRepository)child).getMap(namespace, type);
-        }
-        return child.getFullTablePackageAccessible().get(namespace, type);
+        return myLocalResources.get(0).getMapPackageAccessible(namespace, type);
       }
 
-      map = ArrayListMultimap.create();
       ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
       if (repositoriesForNamespace.size() == 1) {
-        map.putAll(repositoriesForNamespace.get(0).getResources(namespace, type));
+        return ArrayListMultimap.create(repositoriesForNamespace.get(0).getResources(namespace, type));
       } else {
         // Merge all items of the given type.
+        map = ArrayListMultimap.create();
         SetMultimap<String, String> seenQualifiers = HashMultimap.create();
         for (ResourceRepository child : repositoriesForNamespace) {
           ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
