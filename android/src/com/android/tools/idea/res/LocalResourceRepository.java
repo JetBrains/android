@@ -195,12 +195,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  public boolean hasParents() {
-    synchronized (ITEM_MAP_LOCK) {
-      return myParents != null && !myParents.isEmpty();
-    }
-  }
-
   protected void invalidateParentCaches() {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
@@ -405,7 +399,17 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  /** Package accessible version of {@link #getFullTable()}. */
+  /**
+   * Package accessible version of {@link #getMap(ResourceNamespace, ResourceType)}. Do not call outside of {@link MultiResourceRepository}.
+   */
+  @NonNull
+  ListMultimap<String, ResourceItem> getMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    return getMap(namespace, type);
+  }
+
+  /**
+   * Package accessible version of {@link #getFullTable()}. Do not call outside of {@link MultiResourceRepository}.
+   */
   @NonNull
   ResourceTable getFullTablePackageAccessible() {
     return getFullTable();
