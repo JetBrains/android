@@ -23,8 +23,10 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric;
+import com.android.tools.perflogger.Metric.MetricSample;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.time.Instant;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderPerfgateTest extends AndroidTestCase {
+
   @Language("XML")
   private static final String SIMPLE_LAYOUT = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                               "    android:layout_height=\"match_parent\"\n" +
@@ -55,6 +58,7 @@ public class RenderPerfgateTest extends AndroidTestCase {
                                               "    \n" +
                                               "\n" +
                                               "</LinearLayout>";
+  private static final int NUMBER_OF_WARMUP = 2;
   private static final int NUMBER_OF_SAMPLES = 10;
 
   // This is the name that appears on perfgate dashboard.
@@ -78,56 +82,73 @@ public class RenderPerfgateTest extends AndroidTestCase {
   }
 
   public void testBaseInflate() throws Exception {
-    System.out.println("testInflateBaseline");
-
     // This is the name that is used for point in the metric.
     Metric metric = new Metric("inflate_time_base");
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    // baseline samples
-    Metric.MetricSample[] samples = new Metric.MetricSample[NUMBER_OF_SAMPLES];
-    for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
+    ThrowableComputable<MetricSample, Exception> computable = () -> {
       RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-      samples[i] = getInflateSamples(task);
+      MetricSample sample = getInflateSamples(task);
       task.dispose().get(5, TimeUnit.SECONDS);
+      return sample;
+    };
+
+    // LayoutLib has a large static initialization that would trigger on the first render.
+    // Warm up by inflating few times before measuring.
+    for (int i = 0; i < NUMBER_OF_WARMUP; i++) {
+      computable.compute();
+    }
+
+    // baseline samples
+    MetricSample[] samples = new MetricSample[NUMBER_OF_SAMPLES];
+    for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
+      samples[i] = computable.compute();
     }
     metric.addSamples(sBenchMark, samples);
     metric.commit();
   }
 
   public void testBaseRender() throws Exception {
-    System.out.println("testRenderBaseline");
-
     // This is the name that is used for point in the metric.
     Metric metric = new Metric("render_time_base");
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    // baseline samples
-    Metric.MetricSample[] samples = new Metric.MetricSample[NUMBER_OF_SAMPLES];
-    for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
+    ThrowableComputable<MetricSample, Exception> computable = () -> {
       RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-      samples[i] = getRenderSamples(task);
+      MetricSample sample = getRenderSamples(task);
       task.dispose().get(5, TimeUnit.SECONDS);
+      return sample;
+    };
+
+    // LayoutLib has a large static initialization that would trigger on the first render.
+    // Warm up by inflating few times before measuring.
+    for (int i = 0; i < NUMBER_OF_WARMUP; i++) {
+      computable.compute();
+    }
+
+    // baseline samples
+    MetricSample[] samples = new MetricSample[NUMBER_OF_SAMPLES];
+    for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
+      samples[i] = computable.compute();
     }
     metric.addSamples(sBenchMark, samples);
     metric.commit();
   }
 
-  private Metric.MetricSample getInflateSamples(RenderTask task) throws Exception {
+  private MetricSample getInflateSamples(RenderTask task) {
     long startTime = System.currentTimeMillis();
     RenderResult result = task.inflate();
     long elapsedTime = System.currentTimeMillis() - startTime;
 
     checkSimpleLayoutResult(result);
-    System.out.println("inflate took : " + elapsedTime + " ms");
-    return new Metric.MetricSample(Instant.now().toEpochMilli(), elapsedTime);
+    return new MetricSample(Instant.now().toEpochMilli(), elapsedTime);
   }
 
-  private Metric.MetricSample getRenderSamples(RenderTask task) throws Exception {
+  private MetricSample getRenderSamples(RenderTask task) {
     checkSimpleLayoutResult(task.inflate());
 
     long startTime = System.currentTimeMillis();
@@ -136,8 +157,7 @@ public class RenderPerfgateTest extends AndroidTestCase {
     long elapsedTime = System.currentTimeMillis() - startTime;
 
     checkSimpleLayoutResult(result);
-    System.out.println("render took : " + elapsedTime + " ms");
-    return new Metric.MetricSample(Instant.now().toEpochMilli(), elapsedTime);
+    return new MetricSample(Instant.now().toEpochMilli(), elapsedTime);
   }
 
   /**
