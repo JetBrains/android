@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -33,6 +34,8 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,8 +61,19 @@ public class ChooseResourceDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
+
   @Test
   public void testColorStateList() throws IOException {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();

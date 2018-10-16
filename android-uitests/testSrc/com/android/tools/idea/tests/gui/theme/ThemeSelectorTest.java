@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -26,6 +27,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +51,16 @@ public class ThemeSelectorTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
 
   /**
    * Tests the theme renaming functionality of the theme selector
