@@ -20,9 +20,9 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.List;
 
 /**
@@ -116,11 +116,11 @@ public class SceneDecorator {
     if (!children.isEmpty()) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
-      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+      list.pushClip(sceneContext, rect);
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
       }
-      list.add(unClip);
+      list.popClip();
     }
   }
 
