@@ -316,13 +316,13 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertEquals(expected, reference);
 
     if (shouldExist) {
-      List<ResourceItem> matches = repo.getFullTablePackageAccessible().get(reference);
-      assertSize(1, matches);
+      List<ResourceItem> matches = repo.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName());
+      assertThat(matches).hasSize(1);
       ResourceItem target = matches.get(0);
       assertNotNull(target);
     }
     else {
-      assertNull(repo.getFullTablePackageAccessible().get(reference));
+      assertThat(repo.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName())).isEmpty();
     }
   }
 
@@ -360,7 +360,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                             String name) {
     String fullName = String.format("@%s:%s/%s", namespace, resourceType, name);
 
-    ListMultimap<String, ResourceItem> multimap = repository.getFullTablePackageAccessible().get(namespace, resourceType);
+    ListMultimap<String, ResourceItem> multimap = repository.getResources(namespace, resourceType);
     assertThat(multimap).named(String.format("@%s:%s", namespace, resourceType)).isNotNull();
 
     List<ResourceItem> items = multimap.get(name);
