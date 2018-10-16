@@ -22,13 +22,13 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -239,9 +239,48 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     try {
       stats.beginBeforeRunTasks();
       return doExecuteTask(context, configuration, env, task);
-    } finally {
+    }
+    finally {
       stats.endBeforeRunTasks();
     }
+  }
+
+  @Nullable
+  private String runGradleSyncIfNeeded() {
+    boolean syncNeeded = false;
+    boolean forceFullVariantsSync = false;
+    AtomicReference<String> errorMsgRef = new AtomicReference<>();
+
+    // Sync-before-build option is enabled, and build files have been changed since last sync.
+    if (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD &&
+        GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO) {
+      syncNeeded = true;
+    }
+
+    // If the project has native modules, and there're any un-synced variants.
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      NdkModuleModel ndkModel = NdkModuleModel.get(module);
+      if (ndkModel != null && ndkModel.getVariants().size() < ndkModel.getNdkVariantNames().size()) {
+        syncNeeded = true;
+        forceFullVariantsSync = true;
+        break;
+      }
+    }
+
+    if (syncNeeded) {
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.runInBackground = false;
+      request.forceFullVariantsSync = forceFullVariantsSync;
+
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
+        @Override
+        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+          errorMsgRef.set(errorMessage);
+        }
+      });
+    }
+
+    return errorMsgRef.get();
   }
 
   private boolean doExecuteTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
@@ -250,27 +289,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    AtomicReference<String> errorMsgRef = new AtomicReference<>();
-
-    if (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD) {
-      // If the model needs a sync, we need to sync "synchronously" before running.
-      // See: https://code.google.com/p/android/issues/detail?id=70718
-      GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-      if (syncState.isSyncNeeded() != ThreeState.NO) {
-
-        GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
-        request.runInBackground = false;
-
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
-          @Override
-          public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-            errorMsgRef.set(errorMessage);
-          }
-        });
-      }
-    }
-
-    String errorMsg = errorMsgRef.get();
+    // If the model needs a sync, we need to sync "synchronously" before running.
+    String errorMsg = runGradleSyncIfNeeded();
     if (errorMsg != null) {
       // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
       // including the path of the APK.
@@ -401,7 +421,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) throws IOException {
+  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices)
+    throws IOException {
     if (!(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
       return Collections.emptyList();
     }
@@ -465,7 +486,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // Use the "select apks from bundle" task if using a "AndroidBundleRunConfiguration".
       // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
       if (useSelectApksFromBundleBuilder(modules, configuration, targetDevices)) {
-        return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType), BuildMode.APK_FROM_BUNDLE);
+        return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
+                                        BuildMode.APK_FROM_BUNDLE);
       }
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
     }
