@@ -28,6 +28,8 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.Collection;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,7 +66,6 @@ public class NewImageAssetTest {
     wizard.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testNotificationImageCount() throws Exception {
     NewImageAssetStepFixture<AssetStudioWizardFixture> step = guiTest.importSimpleApplication()
@@ -86,7 +87,9 @@ public class NewImageAssetTest {
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
 
-    List<String> newFiles = getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed));
+    Path filterPath = projectDir.resolve("app/src");
+    List<String> newFiles =
+        getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed), path -> path.startsWith(filterPath));
     assertThat(newFiles).containsExactly("app/src/main/res/drawable-mdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-hdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
@@ -95,17 +98,17 @@ public class NewImageAssetTest {
   }
 
   @NotNull
-  public static List<String> getNewFiles(@NotNull Path root, @NotNull Script script) {
+  public static List<String> getNewFiles(@NotNull Path root, @NotNull Script script, @NotNull Predicate<Path> filter) {
     List<String> newFiles = new ArrayList<>();
     List<Action> actions = script.getActions();
     for (Action action : actions) {
       if (action instanceof CreateFileAction) {
-        newFiles.add(toString(root, action.getSourceEntry().getPath()));
+        addRelativePathConditionally(action.getSourceEntry().getPath(), root, filter, newFiles);
       }
       if (action instanceof CreateDirectoryAction) {
         try (Stream<Path> stream = Files.walk(action.getSourceEntry().getPath())) {
           stream.filter(Files::isRegularFile)
-            .forEach(path -> newFiles.add(toString(root, path)));
+              .forEach(path -> addRelativePathConditionally(path, root, filter, newFiles));
         }
         catch (IOException ex) {
           throw new RuntimeException(ex);
@@ -113,6 +116,13 @@ public class NewImageAssetTest {
       }
     }
     return newFiles;
+  }
+
+  private static void addRelativePathConditionally(
+      @NotNull Path pathToAdd, @NotNull Path root, @NotNull Predicate<Path> condition, @NotNull Collection<String> result) {
+    if (condition.test(pathToAdd)) {
+      result.add(toString(root, pathToAdd));
+    }
   }
 
   @NotNull
