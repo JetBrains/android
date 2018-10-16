@@ -74,9 +74,9 @@ object NavigationDecorator : NavBaseDecorator() {
                                  component: SceneComponent) {
     if (isDisplayRoot(sceneContext, component)) {
       if (component.childCount > 0) {
-        val unClip = list.addClip(sceneContext, component.fillRect(null))
+        list.pushClip(sceneContext, component.fillRect(null))
         buildRootList(list, time, sceneContext, component)
-        list.add(unClip)
+        list.popClip()
       }
     }
     else {

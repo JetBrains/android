@@ -26,9 +26,9 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.List;
 
 /**
@@ -194,7 +194,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       }
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
-      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+      list.pushClip(sceneContext, rect);
       Scene scene = component.getScene();
 
       boolean showAllConstraints = ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
@@ -208,7 +208,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
         }
       }
-      list.add(unClip);
+      list.popClip();
     }
   }
 

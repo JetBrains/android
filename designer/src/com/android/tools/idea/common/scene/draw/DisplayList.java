@@ -25,6 +25,9 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.EmptyStackException;
+import java.util.Stack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -44,9 +47,11 @@ import java.util.function.Function;
 public class DisplayList {
   private final static boolean DEBUG = false;
   private ArrayList<DrawCommand> myCommands = new ArrayList<>();
+  private Stack<UNClip> myUnClipStack = new Stack<>();
 
   public void clear() {
     myCommands.clear();
+    myUnClipStack.clear();
   }
 
   public ArrayList<DrawCommand> getCommands() {
@@ -189,7 +194,7 @@ public class DisplayList {
     }
   }
 
-  static class Clip extends Rectangle implements DrawCommand {
+  private static class Clip extends Rectangle implements DrawCommand {
     Shape myOriginal;
 
     @Override
@@ -211,7 +216,7 @@ public class DisplayList {
       height = Integer.parseInt(sp[c]);
     }
 
-    public Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
+    private Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
 
@@ -226,7 +231,7 @@ public class DisplayList {
     }
   }
 
-  public static class UNClip implements DrawCommand {
+  private static class UNClip implements DrawCommand {
     Clip lastClip;
 
     @Override
@@ -255,6 +260,21 @@ public class DisplayList {
 
     public void setClip(Clip clip) {
       lastClip = clip;
+    }
+  }
+
+  /**
+   * Used when pushClip doesn't offer the rectangle.
+   */
+  private static class EmptyUNClip extends UNClip {
+
+    public EmptyUNClip() {
+      super((Clip)null);
+    }
+
+    @Override
+    public void paint(Graphics2D g, SceneContext sceneContext) {
+      // Do nothing
     }
   }
 
@@ -314,14 +334,32 @@ public class DisplayList {
     myCommands.add(cmd);
   }
 
-  public UNClip addClip(SceneContext context, @AndroidDpCoordinate Rectangle r) {
+  public void pushClip(@NotNull SceneContext context, @Nullable @AndroidDpCoordinate Rectangle r) {
+    if (r == null) {
+      myUnClipStack.add(new EmptyUNClip());
+      return;
+    }
     int l = context.getSwingXDip(r.x);
     int t = context.getSwingYDip(r.y);
     int w = context.getSwingDimensionDip(r.width);
     int h = context.getSwingDimensionDip(r.height);
     Clip c = new Clip(l, t, w, h);
     myCommands.add(c);
-    return new UNClip(c);
+    myUnClipStack.add(new UNClip(c));
+  }
+
+  public boolean popClip() {
+    UNClip c;
+    try {
+       c = myUnClipStack.pop();
+    }
+    catch (EmptyStackException e) {
+      return false;
+    }
+    if (!(c instanceof EmptyUNClip)) {
+      myCommands.add(c);
+    }
+    return true;
   }
 
   public void addRect(SceneContext context, @AndroidDpCoordinate Rectangle r, Color color) {
@@ -497,6 +535,10 @@ public class DisplayList {
   }
 
   public void paint(Graphics2D g2, SceneContext sceneContext) {
+    if (!myUnClipStack.isEmpty()) {
+      Logger.getInstance(DisplayList.class).warn("There are still clippings in the clip stack.");
+      myUnClipStack.clear();
+    }
     int count = myCommands.size();
     if (count == 0) {
       return;
