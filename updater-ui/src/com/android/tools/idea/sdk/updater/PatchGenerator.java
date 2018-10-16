@@ -140,13 +140,11 @@ public class PatchGenerator {
       mySrc = src;
     }
 
-/* TODO(b/117708316): does not compile after commit a5eb6d0
     @Override
-    protected void writeDiff(File ignored, File newerFile, OutputStream patchOutput) throws IOException {
+    protected void writeDiff(InputStream olderFileIn, InputStream newerFileIn, OutputStream patchOutput) throws IOException {
       patchOutput.write(DiffAlgorithm.determineDiffAlgorithm(null, true, 0).getId());
       Utils.copyStream(mySrc.getInputStream(myEntry), patchOutput);
     }
-TODO(b/117708316): does not compile after commit a5eb6d0 */
   }
 
   /**
