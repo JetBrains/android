@@ -42,8 +42,8 @@ import java.util.function.Function;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
-import static com.android.tools.idea.run.ApplyChangesAction.APPLY_CHANGES;
-import static com.android.tools.idea.run.CodeSwapAction.CODE_SWAP;
+import static com.android.tools.idea.run.ui.ApplyChangesAction.APPLY_CHANGES;
+import static com.android.tools.idea.run.ui.CodeSwapAction.CODE_SWAP;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
