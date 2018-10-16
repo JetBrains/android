@@ -86,8 +86,8 @@ public class GuiTestRule implements TestRule {
    * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
    */
   private static final int DEFAULT_TEST_TIMEOUT_MINUTES = 3;
-  private Timeout myInnerTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
-  private Timeout myOuterTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES + 2, TimeUnit.MINUTES);
+  private Timeout myInnerTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+  private Timeout myOuterTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES + 2, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
