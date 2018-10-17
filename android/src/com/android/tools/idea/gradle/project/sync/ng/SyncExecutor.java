@@ -100,7 +100,7 @@ class SyncExecutor {
   List<SyncModuleModels> fetchGradleModels(ProgressIndicator indicator) {
     GradleExecutionSettings executionSettings = findGradleExecutionSettings();
     Function<ProjectConnection, SyncProjectModels> syncFunction =
-      connection -> doFetchModels(connection, executionSettings, indicator, createId(myProject), null, false/* full variants sync */);
+      connection -> doFetchModels(connection, executionSettings, indicator, createId(myProject), null, true/* full variants sync */);
     SyncProjectModels models = myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
     return models.getModuleModels();
   }
@@ -177,6 +177,7 @@ class SyncExecutor {
       });
     syncViewManager.onEvent(startEvent);
     try {
+      boolean forceFullVariantsSync = request != null && request.forceFullVariantsSync;
       if (isInTestingMode()) {
         simulateRegisteredSyncError();
       }
@@ -185,14 +186,15 @@ class SyncExecutor {
           executeVariantOnlySyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
         }
         else {
-          executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback);
+          executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback,
+                                            forceFullVariantsSync);
         }
       }
       else if (options != null) {
         executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
       }
       else {
-        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback);
+        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback, forceFullVariantsSync);
       }
     }
     catch (RuntimeException e) {
@@ -204,7 +206,7 @@ class SyncExecutor {
         GradleSyncState.getInstance(myProject).syncEnded();
         generateFailureEvent(id);
         GradleSyncInvoker.getInstance()
-                         .requestProjectSync(myProject, request != null ? request : GradleSyncInvoker.Request.projectModified(), listener);
+          .requestProjectSync(myProject, request != null ? request : GradleSyncInvoker.Request.projectModified(), listener);
       }
       else {
         myErrorHandlerManager.handleError(e);
@@ -231,9 +233,10 @@ class SyncExecutor {
                                @NotNull ProgressIndicator indicator,
                                @NotNull ExternalSystemTaskId id,
                                @NotNull BuildOutputInstantReaderImpl buildOutputReader,
-                               @NotNull SyncExecutionCallback callback) {
+                               @NotNull SyncExecutionCallback callback,
+                               boolean forceFullVariantsSync) {
     SyncProjectModels projectModels =
-      doFetchModels(connection, executionSettings, indicator, id, buildOutputReader, isSingleVariantSync(myProject));
+      doFetchModels(connection, executionSettings, indicator, id, buildOutputReader, forceFullVariantsSync);
     callback.setDone(projectModels, id);
   }
 
@@ -243,7 +246,8 @@ class SyncExecutor {
                                           @NotNull ProgressIndicator indicator,
                                           @NotNull ExternalSystemTaskId id,
                                           @Nullable BuildOutputInstantReaderImpl buildOutputReader,
-                                          boolean isSingleVariantSync) {
+                                          boolean forceFullVariantsSync) {
+    boolean isSingleVariantSync = !forceFullVariantsSync && isSingleVariantSync(myProject);
     SyncAction syncAction = createSyncAction(false, isSingleVariantSync);
     BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
 
@@ -256,11 +260,12 @@ class SyncExecutor {
                                                  @NotNull ProgressIndicator indicator,
                                                  @NotNull ExternalSystemTaskId id,
                                                  @NotNull BuildOutputInstantReaderImpl buildOutputReader,
-                                                 @NotNull SyncExecutionCallback callback) {
+                                                 @NotNull SyncExecutionCallback callback,
+                                                 boolean forceFullVariantsSync) {
     SyncAction syncAction = createSyncAction(true, isSingleVariantSync(myProject));
     // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
-                                                   .build().forTasks(emptyList());
+      .build().forTasks(emptyList());
 
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
 
@@ -270,7 +275,7 @@ class SyncExecutor {
     }
     catch (UnsupportedVersionException e) {
       if (e.getMessage().contains("PhasedBuildActionExecuter API")) {
-        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback);
+        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback, forceFullVariantsSync);
       }
       else {
         throw e;
@@ -301,7 +306,7 @@ class SyncExecutor {
     VariantOnlySyncAction syncAction = new VariantOnlySyncAction(options);
     // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
-                                                   .build().forTasks(emptyList());
+      .build().forTasks(emptyList());
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
 
     // If new API is not available (Gradle 4.7-), fall back to non compound sync.
