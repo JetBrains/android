@@ -229,6 +229,7 @@ public final class ProfilerDeviceFileManager {
                        .setAndroidFeatureLevel(device.getVersion().getFeatureLevel())
                        .setCpuConfig(
                          Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC))
+                       .setUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
                        .build();
 
     File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);

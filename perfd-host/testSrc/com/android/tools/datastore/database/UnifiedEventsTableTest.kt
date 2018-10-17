@@ -153,6 +153,37 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                      .setToTimestamp(3).build())
   }
 
+  @Test
+  fun filterKindGroupId() {
+    validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
+                     .setSessionId(1).setGroupId(1).build())
+  }
+
+  @Test
+  fun filterKindGroupIdSessionFromTimestamp() {
+    validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
+                     .setSessionId(1)
+                     .setGroupId(1)
+                     .setFromTimestamp(3).build())
+  }
+
+  @Test
+  fun filterKindGroupIdSessionToTimestamp() {
+    validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
+                     .setSessionId(1)
+                     .setGroupId(2)
+                     .setToTimestamp(3).build())
+  }
+
+  @Test
+  fun filterKindGroupIdSessionFromTimestampToTimestamp() {
+    validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
+                     .setSessionId(1)
+                     .setGroupId(2)
+                     .setFromTimestamp(2)
+                     .setToTimestamp(3).build())
+  }
+
   private fun validateFilter(request: Profiler.GetEventGroupsRequest) {
     val results = mutableListOf<List<Common.Event>>()
     for (eventGroup in events) {
@@ -167,6 +198,9 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
           result = false
         }
         if (request.sessionId != 0L && request.sessionId != it.sessionId) {
+          result = false
+        }
+        if (request.groupId != 0L && request.groupId != it.eventId) {
           result = false
         }
         if (request.fromTimestamp != 0L && it.timestamp < request.fromTimestamp) {

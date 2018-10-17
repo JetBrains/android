@@ -15,11 +15,15 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
 
 public class NetworkUsage extends LineChartModel {
@@ -49,9 +53,19 @@ public class NetworkUsage extends LineChartModel {
   }
 
   @NotNull
-  public NetworkTrafficDataSeries createSeries(@NotNull StudioProfilers profilers, @NotNull NetworkTrafficDataSeries.Type trafficType) {
-    NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
-    return new NetworkTrafficDataSeries(client, profilers.getSession(), trafficType);
+  public DataSeries<Long> createSeries(@NotNull StudioProfilers profilers, @NotNull NetworkTrafficDataSeries.Type trafficType) {
+    if (profilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+      ProfilerServiceGrpc.ProfilerServiceBlockingStub client = profilers.getClient().getProfilerClient();
+      return new UnifiedEventDataSeries(client, profilers.getSession(), Common.Event.Kind.NETWORK_SPEED,
+                                        trafficType == NetworkTrafficDataSeries.Type.BYTES_SENT
+                                        ? Common.Event.EventGroupIds.NETWORK_TX_VALUE
+                                        : Common.Event.EventGroupIds.NETWORK_RX_VALUE,
+                                        event -> event.getNetworkSpeed().getThroughput());
+    }
+    else {
+      NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
+      return new NetworkTrafficDataSeries(client, profilers.getSession(), trafficType);
+    }
   }
 
   @NotNull

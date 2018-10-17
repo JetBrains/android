@@ -15,10 +15,14 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
 
 public class DetailedNetworkUsage extends NetworkUsage {
@@ -41,9 +45,17 @@ public class DetailedNetworkUsage extends NetworkUsage {
   }
 
   @NotNull
-  private NetworkOpenConnectionsDataSeries createOpenConnectionsSeries(@NotNull StudioProfilers profilers) {
-    NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
-    return new NetworkOpenConnectionsDataSeries(client, profilers.getSession());
+  private DataSeries<Long> createOpenConnectionsSeries(@NotNull StudioProfilers profilers) {
+    if (profilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+      ProfilerServiceGrpc.ProfilerServiceBlockingStub client = profilers.getClient().getProfilerClient();
+      return new UnifiedEventDataSeries(client, profilers.getSession(), Common.Event.Kind.NETWORK_CONNECTION_COUNT,
+                                        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                        event -> (long)event.getNetworkConnections().getNumConnections());
+    }
+    else {
+      NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
+      return new NetworkOpenConnectionsDataSeries(client, profilers.getSession());
+    }
   }
 
   @NotNull

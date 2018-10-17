@@ -103,6 +103,11 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       params.add(request.getSessionId());
     }
 
+    if (request.getGroupId() != 0) {
+      sql.append(" AND EventId = ?");
+      params.add(request.getGroupId());
+    }
+
     if (request.getFromTimestamp() != 0) {
       sql.append(" AND Timestamp >= ?");
       params.add(request.getFromTimestamp());
