@@ -19,14 +19,9 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
-import org.jetbrains.android.facet.AndroidFacet
 import javax.imageio.ImageIO
-import javax.swing.JPanel
-
-val logger = Logger.getInstance(RasterResourceImporter::class.java)
 
 /**
  * [ResourceImporter] that handles the importation of raster type images
@@ -63,23 +58,13 @@ class RasterResourceImporter : ResourceImporter {
     val imageTypeExtensions = ImageIO.getReaderFormatNames().toSet()
   }
 
-  override fun getPresentableName() = "Simple Image Importer"
+  override val presentableName = "Simple Image Importer"
 
   override fun getSupportedFileTypes(): Set<String> = RasterResourceImporter.imageTypeExtensions
 
-  override fun supportsBatchImport(): Boolean = true
-
-  override fun getConfigurationPanel(facet: AndroidFacet,
-                                     callback: ConfigurationDoneCallback)
-    : JPanel? {
-    callback.configurationDone()
-    return null
-  }
-
-  override fun userCanEditQualifiers(): Boolean = true
+  override val userCanEditQualifiers: Boolean
+    get() = true
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(RasterAssetRenderer::class.java)
-
-  override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
 }

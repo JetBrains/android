@@ -16,8 +16,6 @@
 package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import org.jetbrains.android.facet.AndroidFacet
-import javax.swing.JPanel
 
 
 private val supportedFileTypes = setOf("xml")
@@ -26,21 +24,12 @@ private val supportedFileTypes = setOf("xml")
  * Importer for VectorDrawable
  */
 class VectorDrawableImporter : ResourceImporter {
-  override fun getPresentableName() = "Vector Drawable Importer"
+  override val presentableName = "Vector Drawable Importer"
 
-  override fun getConfigurationPanel(facet: AndroidFacet,
-                                     callback: ConfigurationDoneCallback)
-    : JPanel? {
-    callback.configurationDone()
-    return null
-  }
-
-  override fun userCanEditQualifiers() = true
+  override val userCanEditQualifiers get() = true
 
   override fun getSupportedFileTypes() = supportedFileTypes // TODO reuse DesignAssetRenderer.isFileSupported
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(DrawableAssetRenderer::class.java)
-
-  override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
 }

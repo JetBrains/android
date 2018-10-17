@@ -16,7 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
-import com.android.tools.idea.resourceExplorer.plugin.ConfigurationDoneCallback
+import com.android.tools.idea.resourceExplorer.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.IdeView
 import com.intellij.ide.util.DirectoryChooserUtil
@@ -25,7 +25,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.util.Comparing
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.facet.AndroidFacet
@@ -61,10 +67,10 @@ class ResourceExplorerToolbarViewModel(
    * Returns the [AnAction] to open the available [com.android.tools.idea.resourceExplorer.plugin.ResourceImporter]s.
    */
   fun getImportersActions(): List<AnAction> {
-    return importersProvider.importers.mapIndexed { index, importer ->
-      object : AnAction(importer.getPresentableName()) {
+    return customImporters.map { importer ->
+      object : AnAction(importer.presentableName) {
         override fun actionPerformed(e: AnActionEvent) {
-          invokeImporter(index)
+          invokeImporter(importer)
         }
       }
     }
@@ -74,12 +80,27 @@ class ResourceExplorerToolbarViewModel(
    * Open the [com.android.tools.idea.resourceExplorer.plugin.ResourceImporter] at the provided index in
    * the [ImportersProvider.importers] list.
    */
-  private fun invokeImporter(index: Int) {
-    importersProvider.importers.elementAtOrNull(index)
-      ?.getConfigurationPanel(facet, object : ConfigurationDoneCallback {
-        override fun configurationDone() {}
-      })
+  private fun invokeImporter(importer: ResourceImporter) {
+    val files = chooseFile(importer.getSupportedFileTypes(), importer.supportsBatchImport)
+    importer.invokeCustomImporter(facet, files)
   }
+
+  /**
+   * Prompts user to choose a file.
+   *
+   * @return filePath or null if user cancels the operation
+   */
+  private fun chooseFile(supportedFileTypes: Set<String>, supportsBatchImport: Boolean): Collection<String> {
+    val fileChooserDescriptor = FileChooserDescriptor(true, true, false, false, false, supportsBatchImport)
+      .withFileFilter { file ->
+        supportedFileTypes.any { Comparing.equal(file.extension, it, SystemInfo.isFileSystemCaseSensitive) }
+      }
+    return FileChooser.chooseFiles(fileChooserDescriptor, facet.module.project, null)
+      .map(VirtualFile::getPath)
+      .map(FileUtil::toSystemDependentName)
+  }
+
+  private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
 
   /**
    * Implementation of [IdeView.getDirectories] that returns the resource directories of
