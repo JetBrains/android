@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
+import com.android.tools.deployer.DebuggerCodeSwapAdapter;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.Trace;
@@ -26,6 +27,7 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.DeploymentService;
+import com.android.tools.idea.run.util.DebuggerHelper;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -151,7 +153,7 @@ public class UnifiedDeployTask implements LaunchTask {
             return true;
           case CODE_SWAP:
             Trace.begin("Unified.codeSwap");
-            deployer.codeSwap(apk.getApplicationId(), paths);
+            deployer.codeSwap(apk.getApplicationId(), paths, makeDebuggerAdapter(device, apk));
             Trace.end();
             break;
           case FULL_SWAP:
@@ -176,6 +178,32 @@ public class UnifiedDeployTask implements LaunchTask {
         .setImportant(false).notify(myProject);
     }
     return true;
+  }
+
+  private DebuggerCodeSwapAdapter makeDebuggerAdapter(IDevice device, ApkInfo apk) throws IOException {
+    if (!DebuggerHelper.hasDebuggersAttached(myProject)) {
+      return null;
+    }
+    int pid = device.getClient(apk.getApplicationId()).getClientData().getPid();
+    DebuggerCodeSwapAdapter adapter = new DebuggerCodeSwapAdapter() {
+      @Override
+      public void performSwap() {
+        DebuggerHelper.startDebuggerTasksOnProject(myProject, ((project, session) -> {
+          this.performSwapImpl(session.getProcess().getVirtualMachineProxy().getVirtualMachine());}));
+      }
+
+      @Override
+      public void disableBreakPoints() {
+        DebuggerHelper.waitFor(DebuggerHelper.disableBreakPoints(myProject));
+      }
+
+      @Override
+      public void enableBreakPoints() {
+        DebuggerHelper.waitFor(DebuggerHelper.enableBreakPoints(myProject));
+      }
+    };
+    adapter.addAttachedPid(pid);
+    return adapter;
   }
 
   @NotNull
