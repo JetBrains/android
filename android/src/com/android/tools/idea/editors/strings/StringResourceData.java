@@ -214,7 +214,9 @@ public class StringResourceData {
 
   @NotNull
   public List<StringResourceKey> getKeys() {
-    return new ArrayList<>(myKeyToResourceMap.keySet());
+    return myKeyToResourceMap.keySet().stream()
+      .sorted()
+      .collect(Collectors.toList());
   }
 
   @NotNull
