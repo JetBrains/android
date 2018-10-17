@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
   </component>
 </module>

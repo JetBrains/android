@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.notification.NotificationListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -37,6 +38,11 @@ public interface LaunchTask {
 
   @Nullable
   default String getFailureReason() {
+    return null;
+  }
+
+  @Nullable
+  default NotificationListener getNotificationListener() {
     return null;
   }
 

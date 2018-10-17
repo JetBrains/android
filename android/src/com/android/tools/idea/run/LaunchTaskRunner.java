@@ -27,6 +27,7 @@ import com.android.tools.idea.stats.RunStats;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -52,6 +53,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final RunStats myStats;
 
   @Nullable private String myError;
+  @Nullable private NotificationListener myErrorNotificationListener;
 
   public LaunchTaskRunner(@NotNull Project project,
                           @NotNull String configName,
@@ -131,6 +133,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         myStats.endLaunchTask(details, success);
         if (!success) {
           String failureReason = task.getFailureReason();
+          myErrorNotificationListener = task.getNotificationListener();
           if (failureReason == null) {
             myError = "Error " + task.getDescription();
             launchStatus.terminateLaunch("Error while " + task.getDescription());
@@ -184,7 +187,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       myStats.success();
     } else {
       myStats.fail();
-      LaunchUtils.showNotification(myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR);
+      LaunchUtils.showNotification(
+        myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR, myErrorNotificationListener);
     }
   }
 

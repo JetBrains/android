@@ -43,5 +43,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
