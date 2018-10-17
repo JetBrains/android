@@ -27,14 +27,14 @@ import java.io.StringReader
 class JCenterRepositoryTest {
   @Test
   fun testCreateUrlWithGroupId() {
-    val request = SearchRequest(SearchQuery("guava", "com.google.guava"), 20, 1)
+    val request = SearchRequest(SearchQuery("com.google.guava", "guava"), 20, 1)
     val url = JCenterRepository.createRequestUrl(request)
     assertEquals("https://api.bintray.com/search/packages/maven?g=com.google.guava&a=guava&subject=bintray&repo=jcenter", url)
   }
 
   @Test
   fun testCreateUrlWithoutGroupId() {
-    val request = SearchRequest(SearchQuery("guava", null), 20, 1)
+    val request = SearchRequest(SearchQuery(null, "guava"), 20, 1)
     val url = JCenterRepository.createRequestUrl(request)
     assertEquals("https://api.bintray.com/search/packages/maven?a=guava&subject=bintray&repo=jcenter", url)
   }

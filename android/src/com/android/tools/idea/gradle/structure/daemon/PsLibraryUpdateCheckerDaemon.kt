@@ -87,7 +87,7 @@ class PsLibraryUpdateCheckerDaemon(
 
     val requests =
       ids
-        .map { id -> SearchRequest(SearchQuery(id.name, id.groupId), 1, 0) }
+        .map { id -> SearchRequest(SearchQuery(id.groupId, id.name), 1, 0) }
         .toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
