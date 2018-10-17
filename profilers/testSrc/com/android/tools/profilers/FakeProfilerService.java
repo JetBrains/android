@@ -454,7 +454,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   /**
    * Helper method for finding an existing event group and updating its array of events, or creating an event group if one does not exist.
    */
-  private void addEventToEventGroup(long streamId, long eventId, Common.Event event) {
+  public void addEventToEventGroup(long streamId, long eventId, Common.Event event) {
     List<EventGroup.Builder> groups = getListForStream(streamId);
     Optional<EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getEventId() == eventId).findFirst();
     if (eventGroup.isPresent()) {
@@ -503,7 +503,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
           if (request.getSessionId() != event.getSessionId() && request.getSessionId() != EMPTY_REQUEST_VALUE) {
             continue;
           }
-          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() <= event.getTimestamp()) {
+          if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getEventId()) {
+            continue;
+          }
+          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
             continue;
           }
           if (request.getKind() != event.getKind()) {
