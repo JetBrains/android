@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.android.tools.profiler.proto.Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
@@ -282,6 +283,36 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     DumpDataResponse response = myProfilers.getClient().getMemoryClient().getHeapDump(request);
 
     assertThat(response.getData()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
+  }
+
+  /**
+   * The following is a regression test against implementation where 'mySelectionComponent' in MemoryProfilerStageView is a null pointer
+   * when profiler is importing a heap dump file. (Regression bug: b/117796712)
+   */
+  @Test
+  public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Create a temp file
+    String data = "random_string_~!@#$%^&*()_+";
+    File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
+    PrintWriter printWriter = new PrintWriter(file);
+    printWriter.write(data);
+    printWriter.close();
+    // Import heap dump from file
+    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+    assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+    assertThat(stage.isMemoryCaptureOnly()).isTrue();
+    // Create a FakeCaptureObject and then call selectCaptureDuration().
+    // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will trigger captureObjectChanged().
+    // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
+    // which would execute the logic that had a null pointer exception as reported by b/117796712.
+    FakeCaptureObject captureObj = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, "DUMMY_CLASS1").setHeapId(0).build();
+    captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
+    stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
+                                null);
   }
 
   @Test
