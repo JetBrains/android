@@ -110,7 +110,7 @@ public class CodeSwapAction extends AnAction {
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
     env.putCopyableUserData(CODE_SWAP, true);
-    Trace.reset();
+    Trace.start();
     Trace.begin("PostCodeSwap Clicked");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
