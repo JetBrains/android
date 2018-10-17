@@ -117,6 +117,11 @@ public final class StudioFlags {
     "Add the option to export CPU trace files when right-clicking a CPU capture.",
     true);
 
+  public static final Flag<Boolean> PROFILER_SIMPLEPERF_HOST = Flag.create(
+    PROFILER, "cpu.simpleperf.host", "Enable simpleperf report-sample to be run on the host.",
+    "If enabled, simpleperf report-sample commands are going to be run on the host instead of the device.",
+    false);
+
   public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
     PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
     "Allow opening .hprof and .trace files (e.g. File -> Open; via Drag & Drop) which imports them into Android Profiler.",
