@@ -42,8 +42,6 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_STYLE;
 
 public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
-  public final static boolean THEME_EDITOR_ENABLE = StudioFlags.THEME_EDITOR_ENABLED.get();
-
   private final static String THEME_NAME = "theme-name";
   private final static String STYLE_NAME = "style-name";
   private final static String MODULE_NAME = "module-name";
@@ -51,7 +49,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!THEME_EDITOR_ENABLE) {
+    if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
       return false;
     }
 
@@ -127,10 +125,6 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   }
 
   public static boolean isAndroidTheme(@Nullable PsiFile file) {
-    if (!THEME_EDITOR_ENABLE) {
-      return false;
-    }
-
     if (ResourceHelper.getFolderType(file) != ResourceFolderType.VALUES || !(file instanceof XmlFile)) {
       return false;
     }

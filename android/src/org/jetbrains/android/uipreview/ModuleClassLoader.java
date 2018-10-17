@@ -8,8 +8,8 @@ import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.projectmodel.Library;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -378,7 +378,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
     List<URL> result = new ArrayList<>();
 
-    if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
+    if (StudioFlags.THEME_EDITOR_ENABLED.get()) {
       URL customWidgetsUrl = ThemeEditorUtils.getCustomWidgetsJarUrl();
       if (customWidgetsUrl != null) {
         result.add(customWidgetsUrl);
