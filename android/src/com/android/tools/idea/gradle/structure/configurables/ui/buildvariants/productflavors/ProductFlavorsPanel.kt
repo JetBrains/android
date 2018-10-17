@@ -108,24 +108,29 @@ class ProductFlavorsPanel(
         },
         object : DumbAwareAction("Add Product Flavor", "", IconUtil.getAddIcon()) {
           override fun actionPerformed(e: AnActionEvent) {
-            val newName =
-                Messages.showInputDialog(
-                  e.project,
-                  "Enter a new product flavor name:",
-                  "Create New Product Flavor",
-                  null,
-                  "", object : InputValidator {
-                  override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean =
-                    validateAndShow { module.validateProductFlavorName(inputString.orEmpty()) }
-                })
-            if (newName != null) {
-              val selectedObject = selectedConfigurable
-              val currentDimension = when (selectedObject) {
-                is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
-                is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
-                else -> return
+            val selectedObject = selectedConfigurable
+            val currentDimension = when (selectedObject) {
+              is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
+              is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
+              else -> {
+                Messages.showErrorDialog(
+                  "All product flavors must belong to a named flavor dimension. Add a flavor dimension first.",
+                  "Add Product Flavor")
+                return
               }
+            }
+            val newName =
+              Messages.showInputDialog(
+                e.project,
+                "Enter a new product flavor name:",
+                "Create New Product Flavor",
+                null,
+                "", object : InputValidator {
+                override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
+                override fun canClose(inputString: String?): Boolean =
+                  validateAndShow { module.validateProductFlavorName(inputString.orEmpty()) }
+              })
+            if (newName != null) {
               val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
               val dimension = module.findFlavorDimension(currentDimension.orEmpty())
               val node =
