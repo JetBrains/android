@@ -19,7 +19,6 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import javax.swing.JPanel
 
 /**
  * Plugin interface to add resources importation plugins.
@@ -27,13 +26,13 @@ import javax.swing.JPanel
 interface ResourceImporter {
 
   companion object {
-    val EP_NAME = ExtensionPointName.create<ResourceImporter>("com.android.resourceImporter")
+    val EP_NAME: ExtensionPointName<ResourceImporter> = ExtensionPointName.create<ResourceImporter>("com.android.resourceImporter")
   }
 
   /**
    * The name of the plugin as it should be shown to the user
    */
-  fun getPresentableName(): String
+  val presentableName: String
 
   /**
    * Returns a list of the file extensions supported by this plugin.
@@ -44,28 +43,34 @@ interface ResourceImporter {
    * Returns true if the plugin can import multiple files at a time or
    * false if each file needs to be imported separately.
    */
-  fun supportsBatchImport(): Boolean = true
+  val supportsBatchImport: Boolean
+    get() = true
 
   /**
-   * Return a [JPanel] displaying a interface to configure the importation settings.
+   * Invoke a custom panel that handles the importation.
+   * @param filePaths the paths of the files to import.
+   * If [supportsBatchImport] is false, the list will only contain a single element.
    */
-  fun getConfigurationPanel(facet: AndroidFacet,
-                            callback: ConfigurationDoneCallback): JPanel?
+  fun invokeCustomImporter(facet: AndroidFacet, filePaths: Collection<String>) {}
+
+  /**
+   * If true, the implementing class should handle the import flow itself.
+   * The [com.android.tools.idea.resourceExplorer.importer.ImportersProvider] will just invoke
+   * the implementing class with the selected files.
+   */
+  val hasCustomImport: Boolean
+    get() = false
 
   /**
    * Returns true if we should let the user configure the qualifiers or if the plugin handles it itself.
    */
-  fun userCanEditQualifiers(): Boolean
+  val userCanEditQualifiers: Boolean
+    get() = true
 
   /**
    * Return the [DesignAssetRenderer] needed to preview the source file of the provided [asset]
    */
   fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer?
-
-  /**
-   * Return [DesignAssetRenderer] needed to preview the result of the importation.
-   */
-  fun getImportPreview(asset: DesignAsset): DesignAssetRenderer?
 
   /**
    * Wrap the provided files into [DesignAsset].
@@ -80,9 +85,3 @@ interface ResourceImporter {
     }
 }
 
-/**
- * Callback interface that the plugin should call once the configuration is done.
- */
-interface ConfigurationDoneCallback {
-  fun configurationDone()
-}

@@ -47,7 +47,7 @@ class ResourceExplorerToolbarViewModelTest {
   @Test
   fun getImportersActions() {
     val importers = viewModel.getImportersActions().map { it.templatePresentation.text }.sorted()
-    assertThat(importers).containsExactly("SVG Importer", "Simple Image Importer", "Sketch Importer", "Vector Drawable Importer")
+    assertThat(importers).containsExactly("Sketch Importer")
   }
 
   @Test

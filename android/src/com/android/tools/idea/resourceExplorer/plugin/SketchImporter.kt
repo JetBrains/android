@@ -23,14 +23,10 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterP
 import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterView
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import org.apache.commons.io.FilenameUtils
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JOptionPane
-import javax.swing.JPanel
 
 private val SUPPORTED_FILE_TYPES = setOf("sketch")
 private const val OLDEST_SUPPORTED_SKETCH_VERSION = 50.0
@@ -44,25 +40,24 @@ val DIALOG_OPTIONS = arrayOf(IMPORT_ALL_OPTION, IMPORT_SELECTED_OPTION, CANCEL_O
  * [ResourceImporter] for Sketch files
  */
 class SketchImporter : ResourceImporter {
-  override fun getPresentableName() = "Sketch Importer"
+  override val presentableName = "Sketch Importer"
 
-  override fun getConfigurationPanel(facet: AndroidFacet, callback: ConfigurationDoneCallback): JPanel? {
-    val sketchFilePath = getFilePath(facet.module.project)
-    if (sketchFilePath != null) {
-      val sketchFile = SketchParser.read(sketchFilePath)
-      if (sketchFile == null || sketchFile.meta.appVersion < OLDEST_SUPPORTED_SKETCH_VERSION) {
-        showInvalidSketchFileNotification(sketchFilePath, sketchFile?.meta?.appVersion, facet.module.project)
-      }
-      else {
-        val view = SketchImporterView()
-        view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet)
-        showImportDialog(view)
-      }
+  override val supportsBatchImport: Boolean = false
+
+  override fun invokeCustomImporter(facet: AndroidFacet, filePaths: Collection<String>) {
+    val filePath = filePaths.firstOrNull() ?: return
+    val sketchFile = SketchParser.read(filePath)
+    if (sketchFile == null || sketchFile.meta.appVersion < OLDEST_SUPPORTED_SKETCH_VERSION) {
+      showInvalidSketchFileNotification(filePath, sketchFile?.meta?.appVersion, facet.module.project)
     }
-
-    callback.configurationDone()
-    return null
+    else {
+      val view = SketchImporterView()
+      view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet)
+      showImportDialog(view)
+    }
   }
+
+  override val hasCustomImport = true
 
   /**
    * Create a dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
@@ -77,26 +72,12 @@ class SketchImporter : ResourceImporter {
     }
   }
 
-  override fun userCanEditQualifiers() = true
+  override val userCanEditQualifiers get() = true
 
   override fun getSupportedFileTypes() = SUPPORTED_FILE_TYPES
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
-
-  override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
-
-  /**
-   * Prompts user to choose a file.
-   *
-   * @return filePath or null if user cancels the operation
-   */
-  private fun getFilePath(project: Project): String? {
-    val fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(SUPPORTED_FILE_TYPES.first())
-    val files = FileChooser.chooseFiles(fileDescriptor, project, null)
-    if (files.isEmpty()) return null
-    return FileUtil.toSystemDependentName(files[0].path)
-  }
 
   /**
    * Show a notification containing information about the [version] that was used to create the file at [path]. If [version] is null,

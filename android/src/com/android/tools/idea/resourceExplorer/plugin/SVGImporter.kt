@@ -16,8 +16,6 @@
 package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import org.jetbrains.android.facet.AndroidFacet
-import javax.swing.JPanel
 
 private val supportedFileTypes = setOf("svg")
 
@@ -25,21 +23,12 @@ private val supportedFileTypes = setOf("svg")
  * Importer for SVGs
  */
 class SVGImporter : ResourceImporter {
-  override fun getPresentableName() = "SVG Importer"
+  override val presentableName = "SVG Importer"
 
-  override fun getConfigurationPanel(facet: AndroidFacet,
-                                     callback: ConfigurationDoneCallback)
-    : JPanel? {
-    callback.configurationDone()
-    return null
-  }
-
-  override fun userCanEditQualifiers() = true
+  override val userCanEditQualifiers get() = true
 
   override fun getSupportedFileTypes() = supportedFileTypes
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
-
-  override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
 }
