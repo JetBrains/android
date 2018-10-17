@@ -39,12 +39,12 @@ class BuildTypesPanel(
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Build Type", "Removes a Build Type", IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
-        e?.presentation?.isEnabled = selectedConfigurable != null
+        e.presentation.isEnabled = selectedConfigurable != null
       }
 
       override fun actionPerformed(e: AnActionEvent) {
         if (Messages.showYesNoDialog(
-            e?.project,
+            e.project,
             "Remove build type '${selectedConfigurable?.displayName}' from the module?",
             "Remove Build Type",
             Messages.getQuestionIcon()
@@ -63,11 +63,11 @@ class BuildTypesPanel(
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
-                    e?.project,
-                    "Enter a new build type name:",
-                    "Create New Build Type",
-                    null,
-                    "", object : InputValidator {
+                  e.project,
+                  "Enter a new build type name:",
+                  "Create New Build Type",
+                  null,
+                  "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
                   override fun canClose(inputString: String?): Boolean =
                     validateAndShow { module.validateBuildTypeName(inputString.orEmpty()) }
