@@ -55,42 +55,42 @@ class LocalMavenRepositoryTest {
   @Test
   fun searchByName() {
     assertThat(
-      repository.search(SearchRequest("lib1", null, 50, 0)).get(10, TimeUnit.SECONDS),
+      repository.search(SearchRequest(SearchQuery("lib1", null), 50, 0)).get(10, TimeUnit.SECONDS),
       equalTo(SearchResult(artifacts = listOf(LIB1))))
   }
 
   @Test
   fun searchByGroupId() {
     assertThat(
-      repository.search(SearchRequest("", "com.example.jlib", 50, 0)).get(10, TimeUnit.SECONDS),
+      repository.search(SearchRequest(SearchQuery("", "com.example.jlib"), 50, 0)).get(10, TimeUnit.SECONDS),
       equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4))))
   }
 
   @Test
   fun searchByNameWildcard() {
     assertThat(
-      repository.search(SearchRequest("lib*", null, 50, 0)).get(10, TimeUnit.SECONDS),
+      repository.search(SearchRequest(SearchQuery("lib*", ""), 50, 0)).get(10, TimeUnit.SECONDS),
       equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4, LIB1, LIB2))))
   }
 
   @Test
   fun searchByGroupIdWildcard() {
     assertThat(
-      repository.search(SearchRequest("", "com.example.j*", 50, 0)).get(10, TimeUnit.SECONDS),
+      repository.search(SearchRequest(SearchQuery(null, "com.example.j*"), 50, 0)).get(10, TimeUnit.SECONDS),
       equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4))))
   }
 
   @Test
   fun searchByExactMatch() {
     assertThat(
-      repository.search(SearchRequest("lib2", "com.example.libs", 50, 0)).get(10, TimeUnit.SECONDS),
+      repository.search(SearchRequest(SearchQuery("lib2", "com.example.libs"), 50, 0)).get(10, TimeUnit.SECONDS),
       equalTo(SearchResult(artifacts = listOf(LIB2))))
   }
 
   @Test
   fun searchByWildcard() {
     assertThat(
-      repository.search(SearchRequest("lib*", "com.example.lib*", 50, 0)).get(10, TimeUnit.SECONDS),
+      repository.search(SearchRequest(SearchQuery("lib*", "com.example.lib*"), 50, 0)).get(10, TimeUnit.SECONDS),
       equalTo(SearchResult(artifacts = listOf(LIB1, LIB2))))
   }
 }

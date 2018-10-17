@@ -26,9 +26,10 @@ open class GoogleRepositoryBase(val repository: GoogleMavenRepository) : Artifac
   override val isRemote: Boolean = true
 
   override fun doSearch(request: SearchRequest): SearchResult {
-    fun String?.toFilterPredicate() = this?.let { Regex(replace("*", ".*")) }?.let { { probe: String -> it.matches(probe) } } ?: { true }
-    val groupFilter = request.groupId.toFilterPredicate()
-    val artifactFilter = request.artifactName.nullize(nullizeSpaces = true).toFilterPredicate()
+    fun String?.toFilterPredicate() =
+      nullize(true)?.let { Regex(it.replace("*", ".*")) }?.let { { probe: String -> it.matches(probe) } } ?: { true }
+    val groupFilter = request.query.groupId.toFilterPredicate()
+    val artifactFilter = request.query.artifactName.toFilterPredicate()
 
     return SearchResult(
       repository

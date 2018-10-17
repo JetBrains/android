@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrate
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -65,7 +66,7 @@ class ArtifactRepositorySearchForm(
   private val versionsPanel: AvailableVersionsPanel
   private val eventDispatcher = SelectionChangeEventDispatcher<ParsedValue<String>>()
 
-  private val artifactName: String get() = myArtifactNameTextField.text.trim { it <= ' ' }
+  private val artifactName: String? get() = myArtifactNameTextField.text.trim { it <= ' ' }.nullize()
   private val groupId: String? get() = myGroupIdTextField.text.trim { it <= ' ' }.nullize()
 
   private val selectedArtifact: FoundArtifact? get() = resultsTable.selection.singleOrNull()
@@ -158,7 +159,7 @@ class ArtifactRepositorySearchForm(
     resultsTable.setPaintBusy(true)
     clearResults()
 
-    val request = SearchRequest(artifactName, groupId, 50, 0)
+    val request = SearchRequest(SearchQuery(artifactName, groupId), 50, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
       val foundArtifacts = results.artifacts.sorted()
@@ -186,7 +187,7 @@ class ArtifactRepositorySearchForm(
   }
 
   private fun showSearchStopped() {
-    mySearchButton.isEnabled = artifactName.length + (groupId?.length ?: 0) >= 3
+    mySearchButton.isEnabled = (artifactName?.length ?: 0) + (groupId?.length ?: 0) >= 3
 
     resultsTable.setPaintBusy(false)
     resultsTable.emptyText.text = NOTHING_TO_SHOW_EMPTY_TEXT

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.google.common.util.concurrent.Futures
@@ -120,7 +121,7 @@ fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFutur
   Futures.transform(
     model.parent.parent.repositorySearchFactory
       .create(model.parent.getArtifactRepositories())
-      .search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0))
+      .search(SearchRequest(SearchQuery(model.spec.name, model.spec.group), MAX_ARTIFACTS_TO_REQUEST, 0))
   ) {
     it!!.toVersionValueDescriptors()
   }

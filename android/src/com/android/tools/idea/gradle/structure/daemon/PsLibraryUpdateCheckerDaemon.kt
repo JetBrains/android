@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFac
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.getResultSafely
 import com.intellij.openapi.Disposable
@@ -86,7 +87,7 @@ class PsLibraryUpdateCheckerDaemon(
 
     val requests =
       ids
-        .map { id -> SearchRequest(id.name, id.groupId, 1, 0) }
+        .map { id -> SearchRequest(SearchQuery(id.name, id.groupId), 1, 0) }
         .toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
