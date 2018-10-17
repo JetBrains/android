@@ -46,7 +46,7 @@ class ProductFlavorsPanel(
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
-        e?.presentation?.apply {
+        e.presentation.apply {
           isEnabled = selectedConfigurable != null
           text = removeTextFor(selectedConfigurable)
           description = removeDescriptionFor(selectedConfigurable)
@@ -57,7 +57,7 @@ class ProductFlavorsPanel(
         when (selectedConfigurable) {
           is FlavorDimensionConfigurable -> {
             if (Messages.showYesNoDialog(
-                e?.project,
+                e.project,
                 "Remove flavor dimension '${selectedConfigurable?.displayName}' from the module?",
                 "Remove Flavor Dimension",
                 Messages.getQuestionIcon()
@@ -69,7 +69,7 @@ class ProductFlavorsPanel(
           }
           is ProductFlavorConfigurable -> {
             if (Messages.showYesNoDialog(
-                e?.project,
+                e.project,
                 "Remove product flavor '${selectedConfigurable?.displayName}' from the module?",
                 "Remove Product Flavor",
                 Messages.getQuestionIcon()
@@ -90,11 +90,11 @@ class ProductFlavorsPanel(
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
-                    e?.project,
-                    "Enter a new flavor dimension name:",
-                    "Create New Flavor Dimension",
-                    null,
-                    "", object : InputValidator {
+                  e.project,
+                  "Enter a new flavor dimension name:",
+                  "Create New Flavor Dimension",
+                  null,
+                  "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
                   override fun canClose(inputString: String?): Boolean
                     = validateAndShow { module.validateFlavorDimensionName(inputString.orEmpty()) }
@@ -110,11 +110,11 @@ class ProductFlavorsPanel(
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
-                    e?.project,
-                    "Enter a new product flavor name:",
-                    "Create New Product Flavor",
-                    null,
-                    "", object : InputValidator {
+                  e.project,
+                  "Enter a new product flavor name:",
+                  "Create New Product Flavor",
+                  null,
+                  "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
                   override fun canClose(inputString: String?): Boolean =
                     validateAndShow { module.validateProductFlavorName(inputString.orEmpty()) }
