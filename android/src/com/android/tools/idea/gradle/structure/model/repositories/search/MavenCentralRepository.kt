@@ -93,8 +93,8 @@ object MavenCentralRepository : ArtifactRepository() {
   fun createRequestUrl(request: SearchRequest): String = buildString {
     fun String.escapeQueryExpression() = this
 
-    val queryGroupId = request.groupId?.takeUnless { it.isBlank() }
-    val queryArtifactId = request.artifactName.nullize()?.takeUnless { it.isBlank() }
+    val queryGroupId = request.query.groupId?.takeUnless { it.isBlank() }
+    val queryArtifactId = request.query.artifactName?.takeUnless { it.isBlank() }
     val query =
       listOfNotNull(queryGroupId?.let { "g:${it.escapeQueryExpression()}" },
                     queryArtifactId?.let { "a:${it.escapeQueryExpression()}" })

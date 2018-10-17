@@ -43,8 +43,8 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 
           if (!mavenMetadataFile.isFile) return CONTINUE
 
-          val match = isMatch(mavenMetadataFile, request.groupId?.toWildcardMatchingPredicate() ?: { true },
-                              request.artifactName.toWildcardMatchingPredicate())
+          val match = isMatch(mavenMetadataFile, request.query.groupId?.toWildcardMatchingPredicate() ?: { true },
+                              request.query.artifactName?.toWildcardMatchingPredicate() ?: { true })
           if (match != null) {
             val versions = parent.listFiles()?.filter { it.isDirectory}?.mapNotNull { GradleVersion.tryParse(it.name) } ?: listOf()
             foundArtifacts.add(FoundArtifact(name, match.groupId, match.artifactName, versions))
@@ -94,7 +94,7 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 }
 
 private fun String.toWildcardMatchingPredicate() : (String) -> Boolean =
-  if (isEmpty()) {
+  if (isBlank()) {
     { true }
   }
   else {

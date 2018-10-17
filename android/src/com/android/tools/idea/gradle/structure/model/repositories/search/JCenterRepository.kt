@@ -169,14 +169,18 @@ object JCenterRepository : ArtifactRepository() {
   @VisibleForTesting
   fun createRequestUrl(request: SearchRequest): String = buildString {
     append("https://api.bintray.com/search/packages/maven?")
-    val groupId = request.groupId
+    val groupId = request.query.groupId
     if (!groupId.isNullOrEmpty()) {
       append("g=")
       append(groupId)
       append("&")
     }
-    append("a=")
-    append(request.artifactName)
-    append("&subject=bintray&repo=jcenter")
+    val artifactName = request.query.artifactName
+    if (!artifactName.isNullOrEmpty()) {
+      append("a=")
+      append(artifactName)
+      append("&")
+    }
+    append("subject=bintray&repo=jcenter")
   }
 }
