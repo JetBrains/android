@@ -105,13 +105,13 @@ public class StringResourceRepository {
     Project project = facet.getModule().getProject();
 
     myResourceDirectoryRepositoryMap.entrySet().stream()
-                                    .flatMap(StringResourceRepository::getKeys)
-                                    .forEach(key -> map.put(key, new StringResource(key, this, project)));
+      .flatMap(StringResourceRepository::getKeys)
+      .forEach(key -> map.put(key, new StringResource(key, this, project)));
 
     if (myDynamicResourceRepository != null) {
       myDynamicResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet().stream()
-                                 .map(name -> new StringResourceKey(name, null))
-                                 .forEach(key -> map.put(key, new StringResource(key, this, project)));
+        .map(name -> new StringResourceKey(name, null))
+        .forEach(key -> map.put(key, new StringResource(key, this, project)));
     }
 
     return new StringResourceData(facet, map, this);
@@ -122,7 +122,7 @@ public class StringResourceRepository {
     VirtualFile directory = entry.getKey();
 
     return entry.getValue().getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet().stream()
-                .map(name -> new StringResourceKey(name, directory));
+      .map(name -> new StringResourceKey(name, directory));
   }
 
   @NotNull
@@ -150,8 +150,8 @@ public class StringResourceRepository {
     LocalResourceRepository repository = getRepository(key);
 
     Optional<ResourceItem> optionalItem = getItems(repository, key).stream()
-                                                                   .filter(predicate)
-                                                                   .findFirst();
+      .filter(predicate)
+      .findFirst();
 
     return optionalItem.orElse(null);
   }

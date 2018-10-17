@@ -30,12 +30,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameProcessor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StringResourceData {
   private static final int MAX_LOCALE_LABEL_COUNT = 3;
@@ -58,8 +62,8 @@ public class StringResourceData {
     }
 
     boolean mapContainsName = myKeyToResourceMap.keySet().stream()
-                                                .map(k -> k.getName())
-                                                .anyMatch(n -> n.equals(name));
+      .map(k -> k.getName())
+      .anyMatch(n -> n.equals(name));
 
     if (mapContainsName) {
       return;
@@ -177,15 +181,15 @@ public class StringResourceData {
   @NotNull
   private static List<Locale> getLowest(@NotNull Collection<Locale> locales) {
     return locales.stream()
-                  .limit(MAX_LOCALE_LABEL_COUNT)
-                  .sorted(Comparator.comparing(StringResourceData::getLabel))
-                  .collect(Collectors.toList());
+      .limit(MAX_LOCALE_LABEL_COUNT)
+      .sorted(Comparator.comparing(StringResourceData::getLabel))
+      .collect(Collectors.toList());
   }
 
   private static String getLabels(Collection<Locale> locales) {
     return locales.stream()
-                  .map(StringResourceData::getLabel)
-                  .collect(Collectors.joining(", "));
+      .map(StringResourceData::getLabel)
+      .collect(Collectors.joining(", "));
   }
 
   private static String getLabel(@Nullable Locale locale) {

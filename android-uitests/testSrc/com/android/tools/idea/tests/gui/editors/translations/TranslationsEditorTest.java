@@ -36,7 +36,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.translations.FrozenCol
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
 import com.intellij.notification.Notification;
-import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
@@ -189,9 +189,9 @@ public final class TranslationsEditorTest {
     table.pressAndReleaseKey(TableCell.row(4).column(KEY_COLUMN), KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
     DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
-                       .safe(false)
-                       .clickOk()
-                       .waitUntilNotShowing();
+      .safe(false)
+      .clickOk()
+      .waitUntilNotShowing();
 
     translationsEditor.finishLoading();
     assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), table.columnAt(KEY_COLUMN));
@@ -214,9 +214,9 @@ public final class TranslationsEditorTest {
     table.pressAndReleaseKey(TableCell.row(4).column(KEY_COLUMN), KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
     DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
-                       .clickOk()
-                       .waitForUnsafeDialog()
-                       .deleteAnyway();
+      .clickOk()
+      .waitForUnsafeDialog()
+      .deleteAnyway();
 
     translationsEditor.finishLoading();
     assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), table.columnAt(KEY_COLUMN));
@@ -412,7 +412,7 @@ public final class TranslationsEditorTest {
       "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n" +
       "</resources>\n";
 
-    new WriteAndSaveDocumentAction(myGuiTest.getProjectPath().toPath().resolve(myStringsXmlPath), text).execute();
+    ApplicationManager.getApplication().invokeLater(() -> saveDocument(myStringsXmlPath, text));
     openTranslationsEditor(myStringsXmlPath);
 
     SimpleColoredComponent component = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getCellRenderer(5, DEFAULT_VALUE_COLUMN);
@@ -432,7 +432,7 @@ public final class TranslationsEditorTest {
       "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n" +
       "</resources>\n";
 
-    new WriteAndSaveDocumentAction(myGuiTest.getProjectPath().toPath().resolve(stringsXml), text).execute();
+    ApplicationManager.getApplication().invokeLater(() -> saveDocument(stringsXml, text));
     openTranslationsEditor(stringsXml);
 
     SimpleColoredComponent component = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getCellRenderer(5, ENGLISH_COLUMN);
@@ -442,24 +442,15 @@ public final class TranslationsEditorTest {
     assertEquals("Invalid XML", component.myTooltipText);
   }
 
-  private static final class WriteAndSaveDocumentAction extends WriteAction<Void> {
-    private final VirtualFile myFile;
-    private final CharSequence myText;
-
-    private WriteAndSaveDocumentAction(@NotNull Path path, @NotNull CharSequence text) {
-      myFile = LocalFileSystem.getInstance().findFileByIoFile(path.toFile());
-      myText = text;
-    }
-
-    @Override
-    protected void run(@NotNull Result<Void> result) {
+  private void saveDocument(@NotNull Path path, @NotNull CharSequence text) {
+    WriteAction.run(() -> {
       FileDocumentManager manager = FileDocumentManager.getInstance();
+      File file = myGuiTest.getProjectPath().toPath().resolve(path).toFile();
+      Document document = manager.getDocument(LocalFileSystem.getInstance().findFileByIoFile(file));
 
-      Document document = manager.getDocument(myFile);
-      document.setText(myText);
-
+      document.setText(text);
       manager.saveDocument(document);
-    }
+    });
   }
 
   @Test
