@@ -42,7 +42,7 @@ public class AndroidModularizeAction extends BaseRefactoringAction {
   }
 
   @Override
-  protected boolean isEnabledOnDataContext(DataContext dataContext) {
+  protected boolean isEnabledOnDataContext(@NotNull DataContext dataContext) {
     // Hide action if last Gradle sync was unsuccessful.
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
     if (project != null && !ProjectSystemUtil.getSyncManager(project).getLastSyncResult().isSuccessful()) {
