@@ -60,7 +60,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +73,6 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion;
 import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
@@ -82,7 +80,6 @@ import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.util.DependencyManagementUtil.dependsOnOldSupportLib;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
@@ -147,22 +144,9 @@ public final class TemplateValueInjector {
       setDynamicFeatureSupport(module);
     }
 
-    myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, useAndroidX(project, module));
+    myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, isAndroidx(project));
 
     return this;
-  }
-
-
-  private static boolean useAndroidX(@NotNull Project project, @Nullable Module module) {
-    if (MigrateToAndroidxUtil.hasAndroidxProperty(project)) {
-      return isAndroidx(project);
-    }
-
-    if (module != null && dependsOnOldSupportLib(module)) {
-      return false;
-    }
-
-    return NELE_USE_ANDROIDX_DEFAULT.get();
   }
 
   /**
