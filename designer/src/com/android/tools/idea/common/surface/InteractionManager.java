@@ -33,6 +33,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
@@ -69,6 +70,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
@@ -747,11 +749,19 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        List<NlComponent> dragged = ApplicationManager.getApplication()
-                                                      .runWriteAction((Computable<List<NlComponent>>)() -> model
-                                                        .createComponents(item, insertType, mySurface));
+        List<NlComponent> dragged;
+        if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette()) {
+          // When dragging from ComponentTree, it should reuse the existing NlComponents rather than creating the new ones.
+          // This impacts some Handlers, using StudioFlag to protect for now.
+          // Most of Handlers should be removed once this flag is removed.
+          dragged = new ArrayList<>(mySurface.getSelectionModel().getSelection());
+        }
+        else {
+          dragged = ApplicationManager.getApplication()
+            .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(item, insertType, mySurface));
+        }
 
-        if (dragged == null) {
+        if (dragged == null || dragged.isEmpty()) {
           event.reject();
           return;
         }

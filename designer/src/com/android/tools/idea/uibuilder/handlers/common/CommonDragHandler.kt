@@ -36,7 +36,6 @@ import com.android.tools.idea.uibuilder.menu.ItemHandler
 import com.android.tools.idea.uibuilder.menu.MenuHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
-import kotlin.reflect.KClass
 
 private const val ERROR_UNDEFINED = "undefined"
 
@@ -51,7 +50,7 @@ internal class CommonDragHandler(editor: ViewEditor,
 ) : DragHandler(editor, handler, layout, components, type) {
 
   private val component: SceneComponent?
-  private val dragTarget = CommonDragTarget()
+  private val dragTarget = CommonDragTarget(fromToolWindow = true)
 
   init {
     if (components.size == 1) {
@@ -85,24 +84,26 @@ internal class CommonDragHandler(editor: ViewEditor,
       return ERROR_UNDEFINED
     }
     val result = super.update(x, y, modifiers)
-    @AndroidDpCoordinate val dx = x + startX - component.drawWidth / 2
-    @AndroidDpCoordinate val dy = y + startY - component.drawHeight / 2
-    dragTarget.mouseDrag(dx, dy, emptyList())
+    dragTarget.mouseDrag(x, y, emptyList())
     return result
   }
 
+  // Note that coordinate is AndroidCoordinate, not AndroidDpCoordinate.
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
     if (component == null) {
       return
     }
     editor.insertChildren(layout.nlComponent, components, -1, insertType)
     assert(components.size == 1)
-    @AndroidDpCoordinate val dx = editor.pxToDp(x) + startX - component.drawWidth / 2
-    @AndroidDpCoordinate val dy = editor.pxToDp(y) + startY - component.drawHeight / 2
+    @AndroidDpCoordinate val dx = editor.pxToDp(x)
+    @AndroidDpCoordinate val dy = editor.pxToDp(y)
     dragTarget.mouseRelease(dx, dy, emptyList())
 
     // Remove Temporary SceneComponent
-    layout.scene.removeComponent(component)
+    if (component is TemporarySceneComponent) {
+      layout.scene.removeComponent(component)
+    }
+    component.drawState = SceneComponent.DrawState.NORMAL
     layout.scene.checkRequestLayoutStatus()
   }
 
@@ -110,6 +111,7 @@ internal class CommonDragHandler(editor: ViewEditor,
     if (component != null) {
       layout.scene.removeComponent(component)
     }
+    component?.drawState = SceneComponent.DrawState.NORMAL
     dragTarget.cancel()
   }
 

@@ -39,7 +39,7 @@ private const val DEBUG_RENDERER = false
 
 private const val MIN_SIZE = 16
 
-class CommonDragTarget : BaseTarget() {
+class CommonDragTarget(private val fromToolWindow: Boolean = false) : BaseTarget() {
 
   @AndroidDpCoordinate private var offsetX: Int = 0
   @AndroidDpCoordinate private var offsetY: Int = 0
@@ -145,8 +145,18 @@ class CommonDragTarget : BaseTarget() {
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     firstMouseX = x
     firstMouseY = y
-    offsetX = x - myComponent.getDrawX(System.currentTimeMillis())
-    offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
+
+    if (fromToolWindow) {
+      // If drag from Tool window, makes the dragged point is in the center of widget.
+      // We assign the offset here because the component is not really clicked.
+      offsetX = myComponent.drawWidth / 2
+      offsetY = myComponent.drawHeight / 2
+    }
+    else {
+      // Drag inside the component, leave the dragged point same as the clicked point.
+      offsetX = x - myComponent.getDrawX(System.currentTimeMillis())
+      offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
+    }
     currentSnappedPlaceholder = null
   }
 
