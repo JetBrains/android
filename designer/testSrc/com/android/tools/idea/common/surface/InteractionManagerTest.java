@@ -57,6 +57,7 @@ import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
  * TODO: remove layout-specific stuff, add generic tests.
  */
 public class InteractionManagerTest extends LayoutTestCase {
+  private final NlTreeDumper myTreeDumper = new NlTreeDumper(true, false);
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
@@ -82,9 +83,9 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
-                      "    NlComponent{tag=<TextView>, bounds=[0,0:2x2, instance=1}";
-    assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
+    String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
+                      "    NlComponent{tag=<TextView>, instance=1}";
+    assertEquals(expected, myTreeDumper.toTree(model.getComponents()));
     assertEquals("Hello World", model.find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
   }
 
@@ -112,9 +113,9 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
-                      "    NlComponent{tag=<ImageView>, bounds=[0,0:2x2, instance=1}";
-    assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
+    String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
+                      "    NlComponent{tag=<ImageView>, instance=1}";
+    assertEquals(expected, myTreeDumper.toTree(model.getComponents()));
     assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
   }
 
