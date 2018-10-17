@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.intellij.facet.ProjectFacetManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AndroidShowThemeEditor extends AnAction {
   public AndroidShowThemeEditor() {
@@ -35,7 +29,7 @@ public class AndroidShowThemeEditor extends AnAction {
 
   @Override
   public void update(final AnActionEvent e) {
-    if (!ThemeEditorProvider.THEME_EDITOR_ENABLE) {
+    if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
       e.getPresentation().setVisible(false);
       return;
     }
