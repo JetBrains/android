@@ -24,6 +24,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -43,6 +44,7 @@ class DrawableResourceCellRendererTest {
   @JvmField
   val rule = DisposableRule()
 
+  @Ignore("b/117130787")
   @Test
   fun getListCellRendererComponent() {
     val jList = JBList<DesignAssetSet>().apply {
