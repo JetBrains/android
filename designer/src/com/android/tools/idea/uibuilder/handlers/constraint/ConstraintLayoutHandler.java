@@ -106,7 +106,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintRe
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.PopupMenuActionTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -474,7 +473,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       listBuilder.add(baselineActionTarget);
     }
     listBuilder.add(new ChainCycleTarget(null));
-    listBuilder.add(new PopupMenuActionTarget());
 
     return listBuilder.build();
   }
