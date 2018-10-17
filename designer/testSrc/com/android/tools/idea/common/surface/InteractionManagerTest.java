@@ -23,10 +23,12 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -34,13 +36,12 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetContext;
+import java.awt.dnd.DropTargetListener;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.awt.*;
@@ -374,6 +375,50 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0), 0, 0));
     Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRABBING);
+  }
+
+  public void testReusingNlComponentWhenDraggingFromComponentTree() {
+    SyncNlModel model = model("model.xml",
+                              component(LINEAR_LAYOUT)
+                                .withBounds(0, 0, 100, 100)
+                                .id("@+id/outer")
+                                .children(
+                                  component(BUTTON)
+                                    .withBounds(0, 0, 10, 10)
+                                    .id("@+id/button"),
+                                  component(LINEAR_LAYOUT)
+                                    .withBounds(10, 0, 90, 100)
+                                    .id("@+id/inner")
+                                    .children(
+                                      component(TEXT_VIEW)
+                                        .withBounds(10, 0, 10, 10)
+                                        .id("@+id/textView1"),
+                                      component(TEXT_VIEW)
+                                        .withBounds(20, 0, 10, 10)
+                                        .id("@+id/textView2")
+                                    )
+                                )).build();
+    NlComponent button = model.find("button");
+    DesignSurface surface = createScreen(model).getSurface();
+    surface.getScene().buildDisplayList(new DisplayList(), 0);
+    surface.getSelectionModel().setSelection(ImmutableList.of(button));
+    surface.setModel(model);
+    Transferable transferable = surface.getSelectionAsTransferable();
+    InteractionManager manager = new InteractionManager(surface);
+    manager.startListening();
+    dragDrop(manager, 0, 0, 40, 0, transferable, DnDConstants.ACTION_MOVE);
+
+    Object listener = manager.getListener();
+    assertTrue(listener instanceof DropTargetListener);
+    DropTargetListener dropListener = (DropTargetListener)listener;
+
+    DropTargetContext context = createDropTargetContext();
+    dropListener.dragEnter(new DropTargetDragEventBuilder(context, 0, 0, transferable).withDropAction(DnDConstants.ACTION_MOVE).build());
+
+    // SceneComponent should be reused.
+    SceneComponent buttonSceneComponent = surface.getScene().getSceneComponent(button);
+    assertFalse(surface.getScene().getSceneComponent(button) instanceof TemporarySceneComponent);
+    assertEquals(button, buttonSceneComponent.getNlComponent());
   }
 
   private MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask) {
