@@ -1515,6 +1515,13 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     toTestCompletion("restricted.xml", "restricted_after.xml");
   }
 
+  public void testProtected() throws Throwable {
+    myFixture.addClass(protectedView);
+    myFixture.addClass(view);
+
+    doTestCompletionVariants("protected.xml", "p1.p2.MyAddedImageView");
+  }
+
   @Language("JAVA")
   String innerClass =
     "package p1.p2;\n" +

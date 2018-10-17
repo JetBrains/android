@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.facet;
 
+import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
+
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,6 +26,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
@@ -38,24 +42,21 @@ public class LayoutViewClassUtils {
 
   @NotNull
   public static String[] getTagNamesByClass(@NotNull final PsiClass c, final int apiLevel) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String[]>() {
-      @Override
-      public String[] compute() {
-        String name = c.getName();
-        if (name == null) {
-          return ArrayUtil.EMPTY_STRING_ARRAY;
-        }
-
-        String qualifiedName = c.getQualifiedName();
-        if (qualifiedName == null) {
-          return new String[]{name};
-        }
-
-        if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
-          return new String[]{qualifiedName};
-        }
-        return new String[]{name, qualifiedName};
+    return ApplicationManager.getApplication().runReadAction((Computable<String[]>)() -> {
+      String name = c.getName();
+      if (name == null || !isViewClassVisibleAsTag(c)) {
+        return ArrayUtil.EMPTY_STRING_ARRAY;
       }
+
+      String qualifiedName = c.getQualifiedName();
+      if (qualifiedName == null) {
+        return new String[]{name};
+      }
+
+      if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
+        return new String[]{qualifiedName};
+      }
+      return new String[]{name, qualifiedName};
     });
   }
 
@@ -94,5 +95,16 @@ public class LayoutViewClassUtils {
     final PsiClass baseClass = JavaPsiFacade.getInstance(facet.getModule().getProject()).findClass(
       baseClassQName, facet.getModule().getModuleWithLibrariesScope());
     return baseClass != null ? findClassByTagName(facet, name, baseClass) : null;
+  }
+
+  public static boolean isViewClassVisibleAsTag(@NotNull PsiClass aClass) {
+    PsiModifierList modifierList = aClass.getModifierList();
+    if (modifierList == null) {
+      return false; // not public
+    }
+    boolean isPublic = modifierList.hasModifierProperty(PsiModifier.PUBLIC);
+    boolean isRestricted = modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.oldName()) != null ||
+                           modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.newName()) != null;
+    return isPublic && !isRestricted;
   }
 }
