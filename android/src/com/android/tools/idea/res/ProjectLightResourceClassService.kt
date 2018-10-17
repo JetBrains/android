@@ -37,19 +37,19 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import javax.annotation.concurrent.GuardedBy
-import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 private data class ResourceClasses(
   val namespaced: PsiClass?,
@@ -86,17 +86,22 @@ class ProjectLightResourceClassService(
   /**
    * [Multimap] of all [ExternalLibrary] dependencies in the project, indexed by their package name (read from Manifest).
    */
-  @GuardedBy("aarLocationsLock")
-  private var aarLocationsCache: Multimap<String, ExternalLibrary>? = null
-  private val aarLocationsLock = ReentrantReadWriteLock()
+  private var aarsByPackage: CachedValue<Multimap<String, ExternalLibrary>>
 
   init {
-    // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep hard references
-    // to ExternalLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync removes a library from
-    // the project.
+    aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
+      CachedValueProvider.Result<Multimap<String, ExternalLibrary>>(
+        Multimaps.index(findAllLibrariesWithResources(project).values) { getAarPackageName(it!!) },
+        ProjectRootManager.getInstance(project)
+      )
+    }, false)
+
+    // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep
+    // hard references to ExternalLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync
+    // removes a library from the project.
     project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent?) {
-        val aars = getAllAars().values()
+        val aars = aarsByPackage.value.values()
         aarPackageNamesCache.retainAll(aars)
         aarClassesCache.retainAll(aars)
       }
@@ -172,7 +177,7 @@ class ProjectLightResourceClassService(
   }
 
   private fun getAarRClasses(packageName: String): Sequence<ResourceClasses> {
-    return getAllAars().get(packageName).asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
+    return aarsByPackage.value.get(packageName).asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
   }
 
   private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
@@ -198,7 +203,7 @@ class ProjectLightResourceClassService(
   }
 
   override fun findRClassPackage(packageName: String): PsiPackage? {
-    return if (getAllAars().containsKey(packageName) || findAndroidFacetsWithPackageName(packageName).isNotEmpty()) {
+    return if (aarsByPackage.value.containsKey(packageName) || findAndroidFacetsWithPackageName(packageName).isNotEmpty()) {
       androidLightPackagesCache.get(packageName)
     }
     else {
@@ -220,19 +225,6 @@ class ProjectLightResourceClassService(
     // TODO(b/110188226): cache this and figure out how to invalidate that cache.
     return projectFacetManager.getFacets(AndroidFacet.ID).filter {
       AndroidManifestUtils.getPackageName(it) == packageName || AndroidManifestUtils.getTestPackageName(it) == packageName
-    }
-  }
-
-  private fun getAllAars(): Multimap<String, ExternalLibrary> {
-    return aarLocationsLock.read {
-      aarLocationsCache ?: aarLocationsLock.write {
-        /** Check aarLocationsCache again, see [kotlin.concurrent.write]. */
-        aarLocationsCache ?: run {
-          Multimaps.index(findAllLibrariesWithResources(project).values) { getAarPackageName(it!!) }.also {
-            aarLocationsCache = it
-          }
-        }
-      }
     }
   }
 
