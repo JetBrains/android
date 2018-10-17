@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Collections2;
@@ -316,6 +317,10 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
    * Returns whether the passed {@link TextEditor} is an XML editor with a theme file open.
    */
   private boolean isApplicableEditor(@NotNull TextEditor editor) {
+    if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
+      return false;
+    }
+
     final Document document = editor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
