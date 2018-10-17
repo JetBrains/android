@@ -28,6 +28,7 @@ import com.intellij.util.ProcessingContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,7 +206,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
             }
             String name = psiClass.getQualifiedName();
 
-            if (name != null && name.startsWith(prefix)) {
+            if (name != null && name.startsWith(prefix) && LayoutViewClassUtils.isViewClassVisibleAsTag(psiClass)) {
               name = name.substring(prefix.length());
               result.add(JavaLookupElementBuilder.forClass(psiClass, name, true));
             }
