@@ -103,7 +103,6 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
                                        className: String?, localOnly: Boolean): AndroidResourceUtil.MyReferredResourceFieldInfo? {
     val resFieldName = expression.getReferencedName()
     val resClassReference = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return null
-    val resolvedClass = resClassReference.mainReference.resolve() as? PsiClass ?: return null
     val resClassName = resClassReference.getReferencedName()
 
     if (resClassName.isEmpty() || className != null && className != resClassName) {
@@ -111,17 +110,16 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
     }
 
     val rClassReference = resClassReference.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return null
-    val rClassDescriptor = rClassReference.analyze(BodyResolveMode.PARTIAL)
-                                   .get(BindingContext.REFERENCE_TARGET, rClassReference) as? ClassDescriptor ?: return null
+    val resolvedClass = rClassReference.mainReference.resolve() as? PsiClass ?: return null
 
-    val rClassShortName = rClassDescriptor.name.asString()
+    val rClassShortName = resolvedClass.name
     val fromManifest = AndroidUtils.MANIFEST_CLASS_NAME == rClassShortName
 
     if (!fromManifest && AndroidUtils.R_CLASS_NAME != rClassShortName) {
         return null
     }
 
-    val qName = rClassDescriptor.fqNameSafe.asString()
+    val qName = resolvedClass.qualifiedName
     if (!localOnly) {
 
         if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
