@@ -782,7 +782,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void captureObjectFinishedLoading() {
     myAllocationButton.setEnabled(true);
-    mySelectionComponent.requestFocus();
+    // If the capture is an imported file, mySelectionComponent is null.
+    // If it is part of a profiler session, mySelectionComponent is not null and should obtain the focus.
+    if (mySelectionComponent != null) {
+      mySelectionComponent.requestFocus();
+    }
     myHeapDumpButton.setEnabled(true);
     if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
       return;
