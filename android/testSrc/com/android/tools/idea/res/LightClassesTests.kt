@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.light.LightElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
@@ -353,6 +354,18 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
       myFixture.checkHighlighting()
+    }
+
+    fun testAddingAar() {
+      // Initialize the light classes code.
+      assertThat(myFixture.javaFacade.findClass("p1.p2.R", GlobalSearchScope.everythingScope(project))).isNotNull()
+
+      addAarDependency(myModule, "someLib", "com.example.someLib") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("int string some_lib_string 0x7f010001")
+      }
+
+      assertThat(myFixture.javaFacade.findClass("com.example.someLib.R", GlobalSearchScope.everythingScope(project)))
+        .isNotNull()
     }
   }
 
