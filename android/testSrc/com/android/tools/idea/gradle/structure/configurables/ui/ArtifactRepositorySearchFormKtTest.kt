@@ -89,6 +89,44 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
       GradleVersion(1, 0) asVariable "ver10"
     )))
   }
+
+}
+
+class ArtifactRepositorySearchFormKtLightTest {
+  @Test
+  fun testParseArtifactSearchQuery_fullyQualified() {
+    assertThat("com.google.guava:guava:26.0".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery("com.google.guava", "guava", "26.0")))
+  }
+
+  @Test
+  fun testParseArtifactSearchQuery_groupAndName() {
+    assertThat("com.google.guava:guava".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery("com.google.guava", "guava")))
+  }
+
+  @Test
+  fun testParseArtifactSearchQuery_groupOnly() {
+    assertThat("com.google.guava".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(groupId = "com.google.guava")))
+  }
+
+  @Test
+  fun testParseArtifactSearchQuery_nameOnly() {
+    assertThat("guava".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(artifactName = "guava")))
+  }
+
+  @Test
+  fun testParseArtifactSearchQuery_groupAndColon() {
+    assertThat("short:".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(groupId = "short")))
+  }
+
+  @Test
+  fun testParseArtifactSearchQuery_colonAndName() {
+    assertThat(":guava".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(artifactName = "guava")))
+  }
+
+  @Test
+  fun testParseArtifactSearchQuery_wildcards() {
+    assertThat("com.*:gu*".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(groupId = "com.*", artifactName = "gu*")))
+  }
 }
 
 private infix fun <T : Any> T.asVariable(variable: String) = ParsedValue.Set.Parsed(dslText = DslText.Reference(variable), value = this)
