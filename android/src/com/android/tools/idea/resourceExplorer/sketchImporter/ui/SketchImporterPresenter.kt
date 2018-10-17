@@ -31,7 +31,6 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.D
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.StudioResourcesModel
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
@@ -41,6 +40,7 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.event.ItemEvent
+import java.util.concurrent.CompletableFuture
 
 private fun LightVirtualFile.toAsset(name: String) = DesignAssetSet(name, listOf(
   DesignAsset(this, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE)))
@@ -165,7 +165,7 @@ abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
   protected abstract val colorsToColorAssets: Map<Pair<Color, String>, ColorAssetModel>
   private val rendererManager = DesignAssetRendererManager.getInstance()
 
-  fun fetchImage(dimension: Dimension, designAsset: DesignAsset): ListenableFuture<out Image?> {
+  fun fetchImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> {
     val file = designAsset.file
     return rendererManager.getViewer(file).getImage(file, facet.module, dimension)
   }

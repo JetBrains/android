@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcechooser.icons;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.util.ui.EmptyIcon;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -29,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 public class AsyncIconTest {
   @Test
   public void testAsyncIcon() {
-    SettableFuture<Icon> futureIcon = SettableFuture.create();
+    CompletableFuture<Icon> futureIcon = new CompletableFuture();
     Icon placeholder = EmptyIcon.create(50, 40);
     AtomicInteger loaded = new AtomicInteger(0);
 
@@ -61,7 +62,7 @@ public class AsyncIconTest {
     asyncIcon.paintIcon(null, null, 1, 2);
     assertEquals(0, painted.get());
 
-    futureIcon.set(mockIcon);
+    futureIcon.complete(mockIcon);
     assertEquals(1, loaded.get());
 
     asyncIcon.paintIcon(null, null, 1, 2);
@@ -69,7 +70,7 @@ public class AsyncIconTest {
 
     // Now check with an icon that it's already loaded (we didn't have to wait for it)
     asyncIcon = new AsyncIcon(
-      Futures.immediateFuture(mockIcon),
+      CompletableFuture.completedFuture(mockIcon),
       placeholder,
       loaded::incrementAndGet);
     assertEquals(2, loaded.get());

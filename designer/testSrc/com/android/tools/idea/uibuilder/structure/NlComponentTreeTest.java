@@ -107,6 +107,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
       }
     };
     mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
+      @NotNull
       @Override
       public CompletableFuture<Void> requestRender() {
         // We do not need layoutlib renders for these tests

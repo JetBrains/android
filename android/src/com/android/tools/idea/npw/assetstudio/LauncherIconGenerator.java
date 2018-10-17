@@ -36,7 +36,6 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -53,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -921,7 +921,7 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull String xmlDrawable,
                                                  @NotNull Rectangle imageRect) {
-    ListenableFuture<BufferedImage> imageFuture = context.renderDrawable(xmlDrawable, imageRect.getSize());
+    Future<BufferedImage> imageFuture = context.renderDrawable(xmlDrawable, imageRect.getSize());
     try {
       BufferedImage image = imageFuture.get();
       if (image != null) {
@@ -950,7 +950,7 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull BufferedImage sourceImage,
                                                  @NotNull Rectangle imageRect, double scaleFactor, boolean useFillColor, int fillColor) {
-    Callable<ListenableFuture<BufferedImage>> generator = () -> FutureUtils.executeOnPooledThread(() -> {
+    Callable<Future<BufferedImage>> generator = () -> FutureUtils.executeOnPooledThread(() -> {
       // Scale the image.
       BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
       Graphics2D gIcon = (Graphics2D)iconImage.getGraphics();
@@ -1006,7 +1006,7 @@ public class LauncherIconGenerator extends IconGenerator {
     }
 
     CacheKey cacheKey = new CacheKey(sourceImage, imageRect, scaleFactor, useFillColor, fillColor);
-    ListenableFuture<BufferedImage> imageFuture = context.getFromCacheOrCreate(cacheKey, generator);
+    Future<BufferedImage> imageFuture = context.getFromCacheOrCreate(cacheKey, generator);
     return Futures.getUnchecked(imageFuture);
   }
 

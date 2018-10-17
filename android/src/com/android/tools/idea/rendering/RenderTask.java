@@ -15,11 +15,24 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.DrawableParams;
+import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.ide.common.rendering.api.IImageFactory;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.util.PathString;
@@ -44,10 +57,12 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ReadAction;
@@ -58,18 +73,24 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -123,7 +144,7 @@ public class RenderTask {
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
-  private final List<ListenableFuture<?>> myRunningFutures = new LinkedList<>();
+  private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
 
@@ -248,13 +269,13 @@ public class RenderTask {
 
     FutureTask<Void> disposeTask = new FutureTask<>(() -> {
       try {
-        ImmutableList<ListenableFuture<?>> currentRunningFutures;
+        CompletableFuture<?>[] currentRunningFutures;
         synchronized (myRunningFutures) {
-          currentRunningFutures = ImmutableList.copyOf(myRunningFutures);
+          currentRunningFutures = myRunningFutures.toArray(new CompletableFuture<?>[0]);
           myRunningFutures.clear();
         }
         // Wait for all current running operations to complete
-        Futures.successfulAsList(currentRunningFutures).get(5, TimeUnit.SECONDS);
+        CompletableFuture.allOf(currentRunningFutures).get(5, TimeUnit.SECONDS);
       }
       catch (InterruptedException | ExecutionException e) {
         // We do not care about these exceptions since we are disposing the task anyway
@@ -582,6 +603,12 @@ public class RenderTask {
     return topParser;
   }
 
+  private static <T> CompletableFuture<T> immediateFailedFuture(Throwable exception) {
+    CompletableFuture<T> future = new CompletableFuture<>();
+    future.completeExceptionally(exception);
+    return future;
+  }
+
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running.
@@ -589,29 +616,20 @@ public class RenderTask {
    */
   @VisibleForTesting
   @NotNull
-  <V> ListenableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
+  <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Supplier<V> callable) {
     if (isDisposed.get()) {
-      return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
+      return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
     synchronized (myRunningFutures) {
-      ListenableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
-      Futures.addCallback(newFuture, new FutureCallback<V>() {
-        @Override
-        public void onSuccess(@Nullable V result) {
-          synchronized (myRunningFutures) {
-            myRunningFutures.remove(newFuture);
-          }
-        }
-
-        @Override
-        public void onFailure(@Nullable Throwable ignored) {
-          synchronized (myRunningFutures) {
-            myRunningFutures.remove(newFuture);
-          }
-        }
-      });
+      CompletableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
       myRunningFutures.add(newFuture);
+      newFuture
+        .whenComplete((result, ex) -> {
+          synchronized (myRunningFutures) {
+            myRunningFutures.remove(newFuture);
+          }
+        });
 
       return newFuture;
     }
@@ -661,9 +679,9 @@ public class RenderTask {
    * Only do a measure pass using the current render session
    */
   @NotNull
-  public ListenableFuture<RenderResult> layout() {
+  public CompletableFuture<RenderResult> layout() {
     if (myRenderSession == null) {
-      return Futures.immediateFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     assert getXmlFile() != null;
@@ -679,7 +697,7 @@ public class RenderTask {
     catch (Exception e) {
       // nothing
     }
-    return Futures.immediateFuture(null);
+    return CompletableFuture.completedFuture(null);
   }
 
   /**
@@ -694,7 +712,7 @@ public class RenderTask {
    * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
    */
   @NotNull
-  private ListenableFuture<RenderResult> renderInner() {
+  private CompletableFuture<RenderResult> renderInner() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
@@ -708,7 +726,7 @@ public class RenderTask {
           }
           myLogger.error(null, result.getErrorMessage(), result.getException(), null, null);
         }
-        return Futures.immediateFuture(renderResult);
+        return CompletableFuture.completedFuture(renderResult);
       }
     }
 
@@ -734,7 +752,7 @@ public class RenderTask {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return Futures.immediateFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
+      return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
     }
   }
 
@@ -745,7 +763,7 @@ public class RenderTask {
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
    */
   @NotNull
-  ListenableFuture<RenderResult> render(@NotNull IImageFactory factory) {
+  CompletableFuture<RenderResult> render(@NotNull IImageFactory factory) {
     myImageFactoryDelegate = factory;
 
     return renderInner();
@@ -758,7 +776,7 @@ public class RenderTask {
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
    */
   @NotNull
-  public ListenableFuture<RenderResult> render() {
+  public CompletableFuture<RenderResult> render() {
     return render(myCachingImageFactory);
   }
 
@@ -797,12 +815,12 @@ public class RenderTask {
    * and returns it as an image.
    *
    * @param drawableResourceValue the drawable resource value to be rendered, or null
-   * @return a {@link ListenableFuture} with the BufferedImage of the passed drawable.
+   * @return a {@link CompletableFuture} with the BufferedImage of the passed drawable.
    */
   @NotNull
-  public ListenableFuture<BufferedImage> renderDrawable(ResourceValue drawableResourceValue) {
+  public CompletableFuture<BufferedImage> renderDrawable(ResourceValue drawableResourceValue) {
     if (drawableResourceValue == null) {
-      return Futures.immediateFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
@@ -816,17 +834,17 @@ public class RenderTask {
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
 
-    ListenableFuture<Result> futureResult = runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params));
-    return Futures.transform(futureResult, result -> {
-      if (result != null && result.isSuccess()) {
-        Object data = result.getData();
-        if (data instanceof BufferedImage) {
-          return (BufferedImage)data;
+    return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
+      .thenApply(result -> {
+        if (result != null && result.isSuccess()) {
+          Object data = result.getData();
+          if (data instanceof BufferedImage) {
+            return (BufferedImage)data;
+          }
         }
-      }
 
-      return null;
-    });
+        return null;
+      });
   }
 
   /**

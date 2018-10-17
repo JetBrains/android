@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
@@ -35,8 +38,6 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListenableFutureTask;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -50,6 +51,18 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -59,14 +72,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.IOException;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
@@ -321,14 +326,11 @@ public class RenderService implements Disposable {
    * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
    * <p/>
-   * This method will run the passed action asynchronously and return a {@link ListenableFuture}
+   * This method will run the passed action asynchronously and return a {@link CompletableFuture}
    */
   @NotNull
-  public static <T> ListenableFuture<T> runAsyncRenderAction(@NotNull Callable<T> callable) {
-    ListenableFutureTask<T> future = ListenableFutureTask.create(callable);
-    ourRenderingExecutor.submit(future);
-
-    return future;
+  public static <T> CompletableFuture<T> runAsyncRenderAction(@NotNull Supplier<T> callable) {
+    return CompletableFuture.supplyAsync(callable, ourRenderingExecutor);
   }
 
   /**

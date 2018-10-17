@@ -24,13 +24,12 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.view.DesignAssetExplorer
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
+import java.util.concurrent.CompletableFuture
 
 private val LOG = Logger.getInstance(ExternalBrowserViewModel::class.java)
 
@@ -93,13 +92,13 @@ class ExternalBrowserViewModel(
     }
   }
 
-  override fun getPreview(asset: DesignAsset, dimension: Dimension): ListenableFuture<out Image?> {
-    val extension = asset.file.extension ?: return Futures.immediateFuture(null)
+  override fun getPreview(asset: DesignAsset, dimension: Dimension): CompletableFuture<out Image?> {
+    val extension = asset.file.extension ?: return CompletableFuture.completedFuture(null)
     return importersProvider.getImportersForExtension(extension)
       .firstOrNull()
       ?.getSourcePreview(asset)
       ?.getImage(asset.file, facet.module, dimension)
-        ?: Futures.immediateFuture(null)
+        ?: CompletableFuture.completedFuture(null)
   }
 
 

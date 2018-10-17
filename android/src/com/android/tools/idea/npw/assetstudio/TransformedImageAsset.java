@@ -16,14 +16,12 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -31,6 +29,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,8 +38,8 @@ import org.jetbrains.annotations.Nullable;
  * A raster image or an XML drawable with transformation parameters. Thread safe.
  */
 public final class TransformedImageAsset {
-  @Nullable private final ListenableFuture<BufferedImage> myImageFuture;
-  @Nullable private final ListenableFuture<String> myDrawableFuture;
+  @Nullable private final Future<BufferedImage> myImageFuture;
+  @Nullable private final Future<String> myDrawableFuture;
   @NotNull private final GraphicGeneratorContext myContext;
   @Nullable private final Color myTint;
   private final double myOpacity;
@@ -127,7 +126,7 @@ public final class TransformedImageAsset {
     if (isDrawable()) {
       String drawable = getTransformedDrawable();
       if (drawable != null) {
-        ListenableFuture<BufferedImage> future = myContext.renderDrawable(drawable, imageSize);
+        Future<BufferedImage> future = myContext.renderDrawable(drawable, imageSize);
         try {
           return future.get();
         }
@@ -199,8 +198,8 @@ public final class TransformedImageAsset {
 
   @NotNull
   private Rectangle2D calculateTrimRectangle(@NotNull String xmlDrawable) {
-    ListenableFuture<BufferedImage> futureImage = myContext.renderDrawable(xmlDrawable, myTargetSize);
-    ListenableFuture<Rectangle2D> rectangleFuture = Futures.transform(futureImage, (BufferedImage image) -> {
+    Future<BufferedImage> futureImage = myContext.renderDrawable(xmlDrawable, myTargetSize);
+    Future<Rectangle2D> rectangleFuture = Futures.lazyTransform(futureImage, (BufferedImage image) -> {
       Rectangle bounds = ImageUtils.getCropBounds(image, ImageUtils.TRANSPARENCY_FILTER, null);
       if (bounds == null) {
         return new Rectangle(myTargetSize);  // Do not trim a completely transparent image.
@@ -209,7 +208,7 @@ public final class TransformedImageAsset {
       double height = myTargetSize.getHeight();
       return new Rectangle2D.Double(bounds.getX() / width, bounds.getY() / height,
                                     bounds.getWidth() / width, bounds.getHeight() / height);
-    }, directExecutor());
+    });
 
     try {
       return rectangleFuture.get();

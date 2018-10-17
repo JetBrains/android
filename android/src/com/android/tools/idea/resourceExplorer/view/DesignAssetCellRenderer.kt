@@ -24,8 +24,6 @@ import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.editor.RESOURCE_DEBUG
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.toCompletableFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
@@ -40,6 +38,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Image
 import java.awt.image.BufferedImage
+import java.util.concurrent.CompletableFuture
 import java.util.function.BiConsumer
 import javax.swing.ImageIcon
 import javax.swing.JComponent
@@ -152,7 +151,7 @@ class ColorResourceCellRenderer(
  * called once it's finished.
  */
 class DrawableResourceCellRenderer(
-  private val imageProvider: (size: Dimension, designAsset: DesignAsset) -> ListenableFuture<out Image?>,
+  private val imageProvider: (size: Dimension, designAsset: DesignAsset) -> CompletableFuture<out Image?>,
   private val imageCache: ImageCache,
   private val refreshListCallback: (index: Int) -> Unit
 ) : DesignAssetCellRenderer() {

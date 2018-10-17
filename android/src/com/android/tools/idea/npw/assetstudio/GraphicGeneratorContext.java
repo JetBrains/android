@@ -20,13 +20,13 @@ import com.android.utils.Pair;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * The context used for graphic generation.
  */
 public class GraphicGeneratorContext {
-  private final Cache<Object, ListenableFuture<BufferedImage>> myImageCache;
+  private final Cache<Object, Future<BufferedImage>> myImageCache;
   private final DrawableRenderer myDrawableRenderer;
 
   /**
@@ -61,8 +61,8 @@ public class GraphicGeneratorContext {
    * @return the cached or the newly created image
    */
   @NotNull
-  public final ListenableFuture<BufferedImage> getFromCacheOrCreate(@NotNull Object key,
-                                                                    @NotNull Callable<? extends ListenableFuture<BufferedImage>> creator) {
+  public final Future<BufferedImage> getFromCacheOrCreate(@NotNull Object key,
+                                                                    @NotNull Callable<? extends Future<BufferedImage>> creator) {
     try {
       return myImageCache.get(key, creator);
     }
@@ -85,7 +85,7 @@ public class GraphicGeneratorContext {
   @Nullable
   public BufferedImage loadImageResource(@NotNull String path) {
     try {
-      ListenableFuture<BufferedImage> imageFuture = getFromCacheOrCreate(path, () -> getStencilImage(path));
+      Future<BufferedImage> imageFuture = getFromCacheOrCreate(path, () -> getStencilImage(path));
       return imageFuture.get();
     }
     catch (ExecutionException | InterruptedException e) {
@@ -103,16 +103,16 @@ public class GraphicGeneratorContext {
    * @throws IllegalStateException if a drawable renderer was not provided to the constructor
    */
   @NotNull
-  public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
+  public Future<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
     Pair<String, Dimension> key = Pair.of(xmlDrawableText, size);
-    Callable<ListenableFuture<BufferedImage>> renderer = myDrawableRenderer == null ?
-                                                         () -> renderVectorDrawable(xmlDrawableText, size) :
-                                                         () -> myDrawableRenderer.renderDrawable(xmlDrawableText, size);
+    Callable<Future<BufferedImage>> renderer = myDrawableRenderer == null ?
+                                               () -> renderVectorDrawable(xmlDrawableText, size) :
+                                               () -> myDrawableRenderer.renderDrawable(xmlDrawableText, size);
     return getFromCacheOrCreate(key, renderer);
   }
 
   @NotNull
-  private static ListenableFuture<BufferedImage> renderVectorDrawable(@NotNull String vectorDrawableText, @NotNull Dimension size) {
+  private static Future<BufferedImage> renderVectorDrawable(@NotNull String vectorDrawableText, @NotNull Dimension size) {
     VdPreview.TargetSize targetSize = VdPreview.TargetSize.createFromMaxDimension(Math.max(size.width, size.height));
     BufferedImage image = VdPreview.getPreviewFromVectorXml(targetSize, vectorDrawableText, null);
     if (image == null) {
@@ -122,7 +122,7 @@ public class GraphicGeneratorContext {
   }
 
   @NotNull
-  private static ListenableFuture<BufferedImage> getStencilImage(@NotNull String path) throws IOException {
+  private static Future<BufferedImage> getStencilImage(@NotNull String path) throws IOException {
     BufferedImage image = BuiltInImages.getStencilImage(path);
     if (image == null) {
       image = AssetStudioUtils.createDummyImage();

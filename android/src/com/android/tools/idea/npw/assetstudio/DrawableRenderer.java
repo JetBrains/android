@@ -31,8 +31,6 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.LanguageFileType;
@@ -47,9 +45,11 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.LightVirtualFile;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * Renders XML drawables to raster images.
  */
 public class DrawableRenderer implements Disposable {
-  @NotNull private final ListenableFuture<RenderTask> myRenderTaskFuture;
+  @NotNull private final Future<RenderTask> myRenderTaskFuture;
   @NotNull private final Object myRenderLock = new Object();
   @NotNull private final MyLayoutPullParserFactory myParserFactory;
   @NotNull private final AtomicInteger myCounter = new AtomicInteger();
@@ -105,7 +105,7 @@ public class DrawableRenderer implements Disposable {
    * @return the rendering of the drawable in form of a future
    */
   @NotNull
-  public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
+  public CompletableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
     String xmlText = VectorDrawableTransformer.transform(xmlDrawableText, size, 1, null, null, 1);
     String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
     ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
@@ -113,7 +113,7 @@ public class DrawableRenderer implements Disposable {
 
     RenderTask renderTask = getRenderTask();
     if (renderTask == null) {
-      return Futures.immediateFuture(AssetStudioUtils.createDummyImage());
+      return CompletableFuture.completedFuture(AssetStudioUtils.createDummyImage());
     }
 
     synchronized (myRenderLock) {

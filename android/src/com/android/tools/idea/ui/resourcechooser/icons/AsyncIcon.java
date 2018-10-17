@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.ui.resourcechooser.icons;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Icon that loads asynchronously from a given {@link ListenableFuture}
@@ -35,34 +34,31 @@ public class AsyncIcon implements Icon {
 
   /**
    * Creates a new {@link AsyncIcon} from the given {@link ListenableFuture}
-   * @param futureIcon The {@link ListenableFuture} for the icon that it's been loaded
+   * @param futureIcon The {@link CompletableFuture} for the icon that it's been loaded
    * @param placeholderIcon A placeholder icon to be used while futureIcon loads. This must have the same dimensions
    *                        as the futureIcon
    * @param onIconLoad Callback that will be notified when the icon is loaded and the placeholder is not being displayed
    *                   anymore.
    */
-  AsyncIcon(@NotNull ListenableFuture<? extends Icon> futureIcon,
+  AsyncIcon(@NotNull CompletableFuture<? extends Icon> futureIcon,
                    @NotNull Icon placeholderIcon,
                    @Nullable Runnable onIconLoad) {
     myIcon = placeholderIcon;
     myW = placeholderIcon.getIconWidth();
     myH = placeholderIcon.getIconHeight();
 
-    Futures.addCallback(futureIcon, new FutureCallback<Icon>() {
-      @Override
-      public void onSuccess(@Nullable Icon result) {
-        if (result != null) {
-          myIcon = result;
-        }
-
-        if (onIconLoad != null) {
-          onIconLoad.run();
-        }
+    futureIcon.whenComplete((result, e) -> {
+      if (e != null) {
+        Logger.getInstance(AsyncIcon.class).warn("Unable to load AsyncIcon", e);
+        return;
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable e) {
-        Logger.getInstance(AsyncIcon.class).warn("Unable to load AsyncIcon", e);
+      if (result != null) {
+        myIcon = result;
+      }
+
+      if (onIconLoad != null) {
+        onIconLoad.run();
       }
     });
   }

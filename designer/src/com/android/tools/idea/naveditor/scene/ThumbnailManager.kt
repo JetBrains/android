@@ -24,7 +24,6 @@ import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.HashBasedTable
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
@@ -220,7 +219,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): BufferedImage? {
     val renderService = RenderService.getInstance(module.project)
     val task = createTask(facet, xmlFile, configuration, renderService)
-    var renderResult: ListenableFuture<RenderResult>? = null
+    var renderResult: CompletableFuture<RenderResult>? = null
     if (task != null) {
       renderResult = task.render()
     }
