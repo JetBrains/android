@@ -509,11 +509,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   private String convertToAndroidX(String dep) {
     Boolean useAndroidX = (Boolean)getParamMap().get(ATTR_ANDROIDX_SUPPORT);
     if (Boolean.TRUE.equals(useAndroidX)) {
-      Module module = myContext.getModule();
-      if (module != null && dependsOnOldSupportLib(module)) {
-          return dep;
-      }
-
       return AndroidxNameUtils.getVersionedCoordinateMapping(dep);
     }
     return dep;
