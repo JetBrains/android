@@ -46,6 +46,8 @@ public class ApplyChangesAction extends AnAction {
 
   public static final Key<Boolean> APPLY_CHANGES = Key.create(ID);
 
+  public static final String NAME = "Apply Changes";
+
   private static final Logger LOG = Logger.getInstance(ApplyChangesAction.class);
 
   private static final Shortcut SHORTCUT =
@@ -54,7 +56,7 @@ public class ApplyChangesAction extends AnAction {
   @NotNull private final Function<Project, Boolean> myShouldEnableApplyChangesProvider;
 
   public ApplyChangesAction(@NotNull Function<Project, Boolean> shouldEnableApplyChangesProvider) {
-    super("Apply Changes", "Apply Changes", StudioIcons.Shell.Toolbar.INSTANT_RUN);
+    super(NAME, NAME, StudioIcons.Shell.Toolbar.INSTANT_RUN);
     myShouldEnableApplyChangesProvider = shouldEnableApplyChangesProvider;
 
     KeymapManager manager = KeymapManager.getInstance();
@@ -81,26 +83,26 @@ public class ApplyChangesAction extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
-      LOG.warn("Apply Changes action performed with no project");
+      LOG.warn(NAME + " action performed with no project");
       return;
     }
 
     RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
     if (settings == null) {
-      LOG.warn("Apply Changes action could not locate current run config settings");
+      LOG.warn(NAME + " action could not locate current run config settings");
       return;
     }
 
     // TODO: Figure out the debugger flow. For now always use the Run executor.
     Executor executor = getExecutor(DefaultRunExecutor.EXECUTOR_ID);
     if (executor == null) {
-      LOG.warn("Apply Changes action could not identify executor");
+      LOG.warn(NAME + " action could not identify executor");
       return;
     }
 
     ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.createOrNull(executor, settings);
     if (builder == null) {
-      LOG.warn("Apply Changes action could not construct an env");
+      LOG.warn(NAME + " action could not construct an env");
       return;
     }
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();

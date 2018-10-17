@@ -123,7 +123,8 @@ public class LaunchUtils {
                                       @NotNull final Executor executor,
                                       @NotNull final String sessionName,
                                       @NotNull final String message,
-                                      @NotNull final NotificationType type) {
+                                      @NotNull final NotificationType type,
+                                      @Nullable final NotificationListener errorNotificationListener) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -133,17 +134,19 @@ public class LaunchUtils {
 
         String toolWindowId = executor.getToolWindowId();
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-        if (toolWindow.isVisible()) {
+        if (toolWindow.isVisible() && errorNotificationListener == null) {
           return;
         }
 
-        final String notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + message;
+        final String link = "toolWindow_" + sessionName;
+        final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
 
         NotificationGroup group = getNotificationGroup(toolWindowId);
         group.createNotification("", notificationMessage, type, new NotificationListener() {
           @Override
           public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            boolean handled = false;
+            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED && link.equals(event.getDescription())) {
               for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
                 if (sessionName.equals(d.getDisplayName())) {
                   final Content content = d.getAttachedContent();
@@ -151,9 +154,14 @@ public class LaunchUtils {
                     content.getManager().setSelectedContent(content);
                   }
                   toolWindow.activate(null, true, true);
+                  handled = true;
                   break;
                 }
               }
+            }
+
+            if (!handled && errorNotificationListener != null) {
+              errorNotificationListener.hyperlinkUpdate(notification, event);
             }
           }
         }).notify(project);

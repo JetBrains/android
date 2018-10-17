@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.deployer.PreswapCheck.RESOURCE_MODIFICATION_NOT_ALLOWED;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.deploy.swapper.DexArchiveDatabase;
 import com.android.tools.deploy.swapper.SQLiteDexArchiveDatabase;
@@ -23,18 +25,30 @@ import com.android.tools.deploy.swapper.WorkQueueDexArchiveDatabase;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
-import com.android.tools.deployer.Trace;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.SystraceConsumer;
+import com.android.tools.deployer.Trace;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +58,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +70,7 @@ public class UnifiedDeployTask implements LaunchTask {
     // When there is no previous APK Install.
     INSTALL("Install"),
 
-    // Only update Java classes. No resource change, now activity restarts.
+    // Only update Java classes. No resource change, no activity restarts.
     CODE_SWAP("Code swap"),
 
     // Everything, including resource changes.
@@ -76,6 +91,18 @@ public class UnifiedDeployTask implements LaunchTask {
 
   private static final String ID = "UNIFIED_DEPLOY";
 
+  @NotNull
+  static final String APPLY_CHANGES_LINK = "apply_changes";
+
+  @NotNull
+  static final String RERUN_LINK = "rerun";
+
+  @VisibleForTesting
+  static final String APPLY_CHANGES_OPTION = "<a href='" + APPLY_CHANGES_LINK + "'>Apply Changes</a>";
+
+  @VisibleForTesting
+  static final String RERUN_OPTION = "<a href='" + RERUN_LINK + "'>Rerun</a>";
+
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN);
 
   @NotNull private final Project myProject;
@@ -83,6 +110,8 @@ public class UnifiedDeployTask implements LaunchTask {
   @NotNull private final Collection<ApkInfo> myApks;
 
   @Nullable private String myFailureReason;
+
+  @Nullable private NotificationListener myNotificationListener;
 
   // TODO: Move this to an an application component.
   private static DexArchiveDatabase myDb = new WorkQueueDexArchiveDatabase(new SQLiteDexArchiveDatabase(
@@ -116,6 +145,12 @@ public class UnifiedDeployTask implements LaunchTask {
   @Override
   public String getFailureReason() {
     return myFailureReason;
+  }
+
+  @Nullable
+  @Override
+  public NotificationListener getNotificationListener() {
+    return myNotificationListener;
   }
 
   @Override
@@ -172,7 +207,8 @@ public class UnifiedDeployTask implements LaunchTask {
       }
 
       if (response.status == Deployer.RunResponse.Status.ERROR) {
-        myFailureReason = "Error during deployment \"" + response.errorMessage + "\"";
+        myFailureReason = formatDeploymentErrors(type, response.errorMessage);
+        myNotificationListener = new DeploymentErrorNotificationListener();
         LOG.info(response.errorMessage);
         return false;
       }
@@ -199,12 +235,12 @@ public class UnifiedDeployTask implements LaunchTask {
 
         for (Map.Entry<String, ApkDiffer.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
           LOG.info("  " + statusEntry.getKey() +
-                             " [" + statusEntry.getValue().toString().toLowerCase() + "]");
+                   " [" + statusEntry.getValue().toString().toLowerCase() + "]");
         }
       }
 
       NOTIFICATION_GROUP.createNotification(type.getName() + " successful", NotificationType.INFORMATION)
-                        .setImportant(false).notify(myProject);
+        .setImportant(false).notify(myProject);
     }
 
     Path jsonPath = Paths.get(PathManager.getSystemPath(), "systrace.json");
@@ -217,5 +253,68 @@ public class UnifiedDeployTask implements LaunchTask {
   @Override
   public String getId() {
     return ID;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static String formatDeploymentErrors(@NotNull DeployType type, @NotNull String errorsString) {
+    List<String> errors = Lists.newArrayList(Splitter.on('\n').split(errorsString));
+    errors.sort(String::compareTo); // Sort the errors so at least they're consistent over runs.
+
+    StringBuilder builder = new StringBuilder();
+
+    if (errors.isEmpty() || type == DeployType.INSTALL) {
+      builder.append("Incompatible changes.");
+    }
+    else {
+      builder.append("Recent changes are incompatible with ");
+      //noinspection EnumSwitchStatementWhichMissesCases
+      switch (type) {
+        case CODE_SWAP:
+          builder.append(CodeSwapAction.NAME);
+          break;
+        case FULL_SWAP:
+          builder.append(ApplyChangesAction.NAME);
+          break;
+      }
+      builder.append(".\n");
+    }
+
+    // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
+    if (type == DeployType.CODE_SWAP && errors.size() == 1 && RESOURCE_MODIFICATION_NOT_ALLOWED.equals(errors.get(0))) {
+      builder.append(APPLY_CHANGES_OPTION);
+      builder.append(" | ");
+    }
+    builder.append(RERUN_OPTION);
+
+    return builder.toString();
+  }
+
+  @VisibleForTesting
+  static class DeploymentErrorNotificationListener implements NotificationListener {
+    @Override
+    public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+      if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+        return;
+      }
+      ActionManager manager = ActionManager.getInstance();
+      String actionId = null;
+      switch (event.getDescription()) {
+        case APPLY_CHANGES_LINK:
+          actionId = ApplyChangesAction.ID;
+          break;
+        case RERUN_LINK:
+          actionId = IdeActions.ACTION_DEFAULT_RUNNER;
+          break;
+      }
+      if (actionId == null) {
+        return;
+      }
+      AnAction action = manager.getAction(actionId);
+      if (action == null) {
+        return;
+      }
+      manager.tryToExecute(action, ActionCommand.getInputEvent(ApplyChangesAction.ID), null, ActionPlaces.UNKNOWN, true);
+    }
   }
 }
