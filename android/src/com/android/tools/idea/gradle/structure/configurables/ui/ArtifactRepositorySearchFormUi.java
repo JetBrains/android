@@ -17,14 +17,12 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
-
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 public class ArtifactRepositorySearchFormUi {
-  protected JBLabel myArtifactNameLabel;
-  protected JBTextField myArtifactNameTextField;
-  protected JBLabel myGroupIdLabel;
-  protected JBTextField myGroupIdTextField;
+  protected JBLabel myArtifactQueryLabel;
+  protected JBTextField myArtifactQueryTextField;
   protected JButton mySearchButton;
   protected JPanel myResultsPanel;
   protected JPanel myPanel;

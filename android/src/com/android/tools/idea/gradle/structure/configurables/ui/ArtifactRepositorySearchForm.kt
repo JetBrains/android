@@ -65,12 +65,9 @@ class ArtifactRepositorySearchForm(
   private val versionsPanel: AvailableVersionsPanel
   private val eventDispatcher = SelectionChangeEventDispatcher<ParsedValue<String>>()
 
-  private val artifactName: String? get() = myArtifactNameTextField.text.trim { it <= ' ' }.nullize()
-  private val groupId: String? get() = myGroupIdTextField.text.trim { it <= ' ' }.nullize()
-
   private val selectedArtifact: FoundArtifact? get() = resultsTable.selection.singleOrNull()
   val panel: JPanel get() = myPanel
-  val preferredFocusedComponent: JComponent get() = myArtifactNameTextField
+  val preferredFocusedComponent: JComponent get() = myArtifactQueryTextField
   var searchErrors: List<Exception> = listOf(); private set
 
   init {
@@ -80,8 +77,7 @@ class ArtifactRepositorySearchForm(
         showSearchStopped()
       }
     }
-    myArtifactNameTextField.document.addDocumentListener(inputChangedListener)
-    myGroupIdTextField.document.addDocumentListener(inputChangedListener)
+    myArtifactQueryTextField.document.addDocumentListener(inputChangedListener)
 
     val actionListener = ActionListener {
       if (mySearchButton.isEnabled) {
@@ -91,25 +87,16 @@ class ArtifactRepositorySearchForm(
 
     mySearchButton.addActionListener(actionListener)
 
-    myArtifactNameLabel.labelFor = myArtifactNameTextField
-    myArtifactNameTextField.addActionListener(actionListener)
-    myArtifactNameTextField.emptyText.apply {
+    myArtifactQueryTextField.addActionListener(actionListener)
+    myArtifactQueryTextField.emptyText.apply {
       clear()
       appendText("Example: ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       appendText("guava", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
       appendText(" or ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+      appendText("com.google.*:*", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
       // NOTE: While *guava* might also be supported by some search providers, it is not supported by mavenCentral().
-      appendText("guava*", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
-    }
-
-    myGroupIdLabel.labelFor = myGroupIdTextField
-    myGroupIdTextField.addActionListener(actionListener)
-    myGroupIdTextField.emptyText.apply {
-      clear()
-      appendText("Example: ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
-      appendText("com.google.guava", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
       appendText(" or ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
-      appendText("com.google.*", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
+      appendText("guava*", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
     }
 
     resultsTable = TableView(ResultsTableModel())
@@ -141,6 +128,8 @@ class ArtifactRepositorySearchForm(
     TableSpeedSearch(resultsTable)
   }
 
+  private fun getQuery() = myArtifactQueryTextField.text.parseArtifactSearchQuery()
+
   private fun notifyVersionSelectionChanged(version: ParsedValue<GradleVersion>) {
     val selectedLibrary = selectedArtifact?.let { selectedArtifact ->
       when (version) {
@@ -158,7 +147,7 @@ class ArtifactRepositorySearchForm(
     resultsTable.setPaintBusy(true)
     clearResults()
 
-    val request = SearchRequest(SearchQuery(groupId, artifactName), 50, 0)
+    val request = SearchRequest(getQuery().toSearchQeury(), 50, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
       val foundArtifacts = results.artifacts.sorted()
@@ -186,7 +175,7 @@ class ArtifactRepositorySearchForm(
   }
 
   private fun showSearchStopped() {
-    mySearchButton.isEnabled = (artifactName?.length ?: 0) + (groupId?.length ?: 0) >= 3
+    mySearchButton.isEnabled = getQuery().let { (it.artifactName?.length ?: 0) + (it.groupId?.length ?: 0) >= 3 }
 
     resultsTable.setPaintBusy(false)
     resultsTable.emptyText.text = NOTHING_TO_SHOW_EMPTY_TEXT
@@ -282,3 +271,21 @@ fun versionToLibrary(
     }
   }
 }
+
+@VisibleForTesting
+data class ArtifactSearchQuery(val groupId: String? = null, val artifactName: String? = null, val version: String? = null)
+
+@VisibleForTesting
+fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
+  val split = split(':', limit = 3).map { it.nullize(true) }
+  return when {
+    split.isEmpty() -> ArtifactSearchQuery()
+    split.size == 1 && split[0]?.contains('.') == true -> ArtifactSearchQuery(groupId = split[0])
+    split.size == 1 -> ArtifactSearchQuery(artifactName = split[0])
+    split.size == 2 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1])
+    split.size >= 3 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1], version = split[2])
+    else -> throw RuntimeException()
+  }
+}
+
+private fun ArtifactSearchQuery.toSearchQeury() = SearchQuery(groupId = groupId, artifactName = artifactName)
