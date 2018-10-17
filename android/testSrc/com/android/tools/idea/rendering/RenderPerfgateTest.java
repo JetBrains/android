@@ -30,6 +30,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -152,7 +153,7 @@ public class RenderPerfgateTest extends AndroidTestCase {
     checkSimpleLayoutResult(task.inflate());
 
     long startTime = System.currentTimeMillis();
-    ListenableFuture<RenderResult> resultsFuture = task.render();
+    CompletableFuture<RenderResult> resultsFuture = task.render();
     RenderResult result = Futures.getUnchecked(resultsFuture);
     long elapsedTime = System.currentTimeMillis() - startTime;
 

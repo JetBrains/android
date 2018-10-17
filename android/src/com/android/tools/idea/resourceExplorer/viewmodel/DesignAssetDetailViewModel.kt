@@ -17,21 +17,21 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import java.awt.Dimension
 import java.awt.Image
+import java.util.concurrent.CompletableFuture
 
 class DesignAssetDetailViewModel(val module: Module) {
 
   /**
-   * Fetch the image representing the [asset] and returns a [ListenableFuture] that will
+   * Fetch the image representing the [asset] and returns a [CompletableFuture] that will
    * returns the fetched image.
    */
   fun fetchAssetImage(
     asset: DesignAsset,
     dimension: Dimension
-  ): ListenableFuture<out Image?> {
+  ): CompletableFuture<out Image?> {
     return DesignAssetRendererManager.getInstance()
       .getViewer(asset.file)
       .getImage(asset.file, module, dimension)

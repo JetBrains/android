@@ -23,8 +23,6 @@ import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRenderer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -41,6 +39,7 @@ import java.awt.Dimension
 import java.awt.Image
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.*
@@ -138,17 +137,17 @@ private fun assertColor(icon: Icon,
 }
 
 class StubRenderer : DesignAssetRenderer {
-  private val future = SettableFuture.create<Image?>()
+  private val future = CompletableFuture<Image?>()
   private val latch = CountDownLatch(1)
 
   override fun isFileSupported(file: VirtualFile) = true
 
   override fun getImage(file: VirtualFile,
                         module: Module?,
-                        dimension: Dimension): ListenableFuture<out Image?> = future
+                        dimension: Dimension): CompletableFuture<out Image?> = future
 
   fun simulateRender(image: Image?) {
-    future.set(image)
+    future.complete(image)
     latch.countDown()
   }
 

@@ -31,12 +31,11 @@ import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
+import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
 private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
@@ -78,8 +77,8 @@ class ProjectResourcesBrowserViewModel(
   /**
    * Returns a preview of the [DesignAsset].
    */
-  fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): ListenableFuture<out Image?> {
-    val resolveValue = designAsset.resolveValue() ?: return Futures.immediateFuture(null)
+  fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> {
+    val resolveValue = designAsset.resolveValue() ?: return CompletableFuture.completedFuture(null)
     val file = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
                ?: designAsset.file
     return DesignAssetRendererManager.getInstance().getViewer(file)

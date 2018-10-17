@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.plugin
 
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import java.awt.Dimension
 import java.awt.Image
+import java.util.concurrent.CompletableFuture
 
 /**
  * Interface to extend the rendering capabilities of the resources explorer
@@ -39,7 +38,7 @@ interface DesignAssetRenderer {
    * Implementing class should return an image corresponding to the [file] with
    * dimension optimized to be displayed at the provided [dimension] (this usually means equals or smaller)
    */
-  fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): ListenableFuture<out Image?>
+  fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?>
 
 }
 
@@ -64,6 +63,6 @@ class DesignAssetRendererManager private constructor() {
 
 private class NullDesignAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = false
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): ListenableFuture<out Image?> =
-    Futures.immediateCancelledFuture()
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =
+    CompletableFuture.completedFuture(null)
 }

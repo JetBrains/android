@@ -20,7 +20,6 @@ import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.google.common.truth.Truth
-import com.google.common.util.concurrent.Futures
 import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
@@ -28,6 +27,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
@@ -55,7 +55,7 @@ class DrawableResourceCellRendererTest {
       }
     }
     val latch = CountDownLatch(1)
-    val renderer = DrawableResourceCellRenderer({ _, _ -> Futures.immediateFuture(image) }, imageCache) {
+    val renderer = DrawableResourceCellRenderer({ _, _ -> CompletableFuture.completedFuture(image) }, imageCache) {
       jList.paintImmediately(jList.bounds)
       latch.countDown()
     }
@@ -82,7 +82,7 @@ class DrawableResourceCellRendererTest {
       }
     }
     val latch = CountDownLatch(1)
-    val renderer = DrawableResourceCellRenderer({ _, _ -> Futures.immediateFuture(image) }, imageCache) {
+    val renderer = DrawableResourceCellRenderer({ _, _ -> CompletableFuture.completedFuture(image) }, imageCache) {
       jList.paintImmediately(jList.bounds)
       latch.countDown()
     }
@@ -104,7 +104,7 @@ class DrawableResourceCellRendererTest {
       fixedCellWidth = 100
     }
     val latch = CountDownLatch(1)
-    val renderer = DrawableResourceCellRenderer({ _, _ -> Futures.immediateFuture(null) }, imageCache) {
+    val renderer = DrawableResourceCellRenderer({ _, _ -> CompletableFuture.completedFuture(null) }, imageCache) {
       jList.paintImmediately(jList.bounds)
       latch.countDown()
     }

@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.google.common.cache.CacheBuilder
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -27,7 +26,15 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
-import javax.swing.*
+import java.util.concurrent.CompletableFuture
+import java.util.function.BiConsumer
+import javax.swing.BorderFactory
+import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.ListCellRenderer
+import javax.swing.ListModel
 
 
 private val ICON_SIZE = JBUI.size(64)
@@ -110,18 +117,15 @@ class DesignAssetsList(
     }
 
     private fun fetchImage(asset: DesignAssetSet): Image {
-      val previewFuture = browserViewModel.getPreview(asset.getHighestDensityAsset(), ICON_SIZE)
-
-      val listener = Runnable {
-        val image = previewFuture.get()
-        if (image != null) {
-          assetToImage.put(asset, image)
-        } else {
-          assetToImage.put(asset, EMPTY_ICON) //TODO use unsupported icon.
-        }
-        repaint()
-      }
-      previewFuture.addListener(listener, EdtExecutor.INSTANCE)
+      browserViewModel.getPreview(asset.getHighestDensityAsset(), ICON_SIZE).whenCompleteAsync(
+        BiConsumer { image: Image?, _: Throwable ->
+          if (image != null) {
+            assetToImage.put(asset, image)
+          } else {
+            assetToImage.put(asset, EMPTY_ICON) //TODO use unsupported icon.
+          }
+          repaint()
+        }, EdtExecutor.INSTANCE)
       return EMPTY_ICON
     }
   }
@@ -133,13 +137,13 @@ class DesignAssetsList(
 interface DesignAssetExplorer {
 
   /**
-   * Returns a [ListenableFuture] that computes and returns an [Image] representing
+   * Returns a [CompletableFuture] that computes and returns an [Image] representing
    * the provided [asset] and that matches the provided [dimension].
    *
    * The [dimension] is just an indication for the implementing class and it is not
    * assured that the computed image will be exactly of these dimension.
    */
-  fun getPreview(asset: DesignAsset, dimension: Dimension): ListenableFuture<out Image?>
+  fun getPreview(asset: DesignAsset, dimension: Dimension): CompletableFuture<out Image?>
 
   /**
    * Returns a status label that will be displayed on

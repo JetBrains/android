@@ -46,7 +46,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
@@ -73,6 +72,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -339,7 +339,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
       // Use the same scale as a full bleed preview at xhdpi (see LauncherIconGenerator.generatePreviewImage).
       Rectangle rectangle = scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(Density.XHIGH) * 0.8f);
-      ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
+      Future<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
       try {
         return imageFuture.get();
       }

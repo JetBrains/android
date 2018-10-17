@@ -18,8 +18,6 @@ package com.android.tools.idea.resourceExplorer.plugin
 import com.android.SdkConstants
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer
 import com.android.tools.idea.util.TimedDisposable
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -28,6 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
 import java.text.ParseException
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -82,7 +81,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
     file: VirtualFile,
     module: Module?,
     dimension: Dimension
-  ): ListenableFuture<out Image?> {
+  ): CompletableFuture<out Image?> {
     try {
       if (module == null) {
         throw NullPointerException("Module cannot be null to render a Drawable.")
@@ -102,8 +101,10 @@ class DrawableAssetRenderer : DesignAssetRenderer {
     }
   }
 
-  private fun failedFuture(exception: Throwable): ListenableFuture<out Image?> {
+  private fun failedFuture(exception: Throwable): CompletableFuture<out Image?> {
     LOG.warn(exception)
-    return Futures.immediateFailedFuture(exception)
+    val failedFuture = CompletableFuture<Image?>()
+    failedFuture.completeExceptionally(exception)
+    return failedFuture
   }
 }

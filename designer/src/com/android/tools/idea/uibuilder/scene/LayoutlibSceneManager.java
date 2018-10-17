@@ -826,7 +826,7 @@ public class LayoutlibSceneManager extends SceneManager {
       }
 
       RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
-                                                                       .withPsiFile(getModel().getFile());
+        .withPsiFile(getModel().getFile());
       myRenderTask = setupRenderTaskBuilder(renderTaskBuilder).build();
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback()

@@ -78,8 +78,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     return new ModelBuilder(myFacet, myFixture, name, root,
                             model -> {
                               LayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
-                              SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
-                              return manager;
+                              return new SyncLayoutlibSceneManager(model);
                             },
                             (model, newModel) ->
                               LayoutlibSceneManager

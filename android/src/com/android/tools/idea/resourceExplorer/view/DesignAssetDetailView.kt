@@ -22,6 +22,7 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.DesignAssetDetailViewModel
 import com.intellij.util.ui.JBUI
 import java.awt.FlowLayout
+import java.util.function.BiConsumer
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JLabel
@@ -71,9 +72,7 @@ class DesignAssetDetailView(
     border = BorderFactory.createEmptyBorder(16, 16, 16, 16)
     preferredSize = JBUI.size(64)
     horizontalAlignment = JLabel.CENTER
-    val fetchAssetImageFuture = designAssetDetailViewModel.fetchAssetImage(asset, preferredSize)
-    fetchAssetImageFuture.addListener(Runnable {
-      val image = fetchAssetImageFuture.get()
+    designAssetDetailViewModel.fetchAssetImage(asset, preferredSize).whenCompleteAsync(BiConsumer { image, _ ->
       if (image != null) {
         icon = ImageIcon(image)
       }

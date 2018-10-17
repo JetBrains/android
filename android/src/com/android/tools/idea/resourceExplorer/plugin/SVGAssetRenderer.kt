@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.plugin
 
-import com.google.common.util.concurrent.JdkFutureAdapters
-import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,7 +31,7 @@ import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.io.InputStream
-import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 
 /**
  * [DesignAssetRenderer] to display SVGs
@@ -42,22 +39,18 @@ import java.util.concurrent.Callable
 class SVGAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile): Boolean = "svg".equals(file.extension, true)
 
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): ListenableFuture<out Image?> {
-    return JdkFutureAdapters.listenInPoolThread(
-      ApplicationManager.getApplication().executeOnPooledThread(
-        Callable {
-          try {
-            SVGLoader(file.inputStream, dimension.height, dimension.width).createImage()
-          } catch (saxParserException: SAXParseException) {
-            logFileNotSupported(file, saxParserException)
-            null
-          } catch (saxIOException: IOException) {
-            logFileNotSupported(file, saxIOException)
-            null
-          }
-        })
-    )
-  }
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =
+    CompletableFuture.supplyAsync {
+      try {
+        SVGLoader(file.inputStream, dimension.height, dimension.width).createImage()
+      } catch (saxParserException: SAXParseException) {
+        logFileNotSupported(file, saxParserException)
+        null
+      } catch (saxIOException: IOException) {
+        logFileNotSupported(file, saxIOException)
+        null
+      }
+    }
 
   private fun logFileNotSupported(file: VirtualFile, ex: Exception) {
     Logger.getInstance(SVGAssetRenderer::class.java).warn(
