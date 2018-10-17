@@ -121,7 +121,7 @@ fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFutur
   Futures.transform(
     model.parent.parent.repositorySearchFactory
       .create(model.parent.getArtifactRepositories())
-      .search(SearchRequest(SearchQuery(model.spec.name, model.spec.group), MAX_ARTIFACTS_TO_REQUEST, 0))
+      .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0))
   ) {
     it!!.toVersionValueDescriptors()
   }

@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.JDOMUtil.load
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.encodeUrlQueryParameter
-import com.intellij.util.text.nullize
 import org.jdom.Element
 import org.jdom.JDOMException
 import java.io.IOException

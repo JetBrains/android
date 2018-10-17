@@ -61,8 +61,8 @@ class CachingRepositorySearchFactoryTest {
     val module1Repos = factory.create(listOf(repoA1))
     val module2Repos = factory.create(listOf(repoA2, repoB2))
 
-    module1Repos.search(SearchRequest(SearchQuery("name", "group"), 10, 0))
-    module2Repos.search(SearchRequest(SearchQuery("name", "group"), 10, 0))
+    module1Repos.search(SearchRequest(SearchQuery("group", "name"), 10, 0))
+    module2Repos.search(SearchRequest(SearchQuery("group", "name"), 10, 0))
 
     assertThat(a1Searched, equalTo(1))
     assertThat(a2Searched, equalTo(0))

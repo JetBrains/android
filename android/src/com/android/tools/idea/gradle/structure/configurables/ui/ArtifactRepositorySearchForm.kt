@@ -46,7 +46,6 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -159,7 +158,7 @@ class ArtifactRepositorySearchForm(
     resultsTable.setPaintBusy(true)
     clearResults()
 
-    val request = SearchRequest(SearchQuery(artifactName, groupId), 50, 0)
+    val request = SearchRequest(SearchQuery(groupId, artifactName), 50, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
       val foundArtifacts = results.artifacts.sorted()
