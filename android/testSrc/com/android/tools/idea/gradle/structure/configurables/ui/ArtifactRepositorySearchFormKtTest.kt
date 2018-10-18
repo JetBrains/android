@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsVariables
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
@@ -80,13 +81,13 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
     }
     val choices = prepareArtifactVersionChoices(foundArtifact, variables)
     assertThat(choices, equalTo(listOf(
-      GradleVersion(2, 0).asParsed(),
-      GradleVersion(2, 0) asVariable "ver20",
-      GradleVersion(1, 1).asParsed(),
-      GradleVersion(1, 1) asVariable "inTheMap.itemVer11",
-      GradleVersion(1, 0).asParsed(),
-      GradleVersion(1, 0) asVariable "inTheMap.itemVer10",
-      GradleVersion(1, 0) asVariable "ver10"
+      GradleVersion(2, 0).asParsed().annotated(),
+      (GradleVersion(2, 0) asVariable "ver20").annotated(),
+      GradleVersion(1, 1).asParsed().annotated(),
+      (GradleVersion(1, 1) asVariable "inTheMap.itemVer11").annotated(),
+      GradleVersion(1, 0).asParsed().annotated(),
+      (GradleVersion(1, 0) asVariable "inTheMap.itemVer10").annotated(),
+      (GradleVersion(1, 0) asVariable "ver10").annotated()
     )))
   }
 
