@@ -18,6 +18,11 @@ package com.android.tools.tests;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.junit.rules.ExternalResource;
 
+/**
+ * A rule that ensures any Gradle daemons started over the course of some tests will be shutdown.
+ *
+ * This may be too aggressive for test classes, but it can be a useful rule for test suites.
+ */
 public class GradleDaemonsRule extends ExternalResource {
   @Override
   protected void after() {
