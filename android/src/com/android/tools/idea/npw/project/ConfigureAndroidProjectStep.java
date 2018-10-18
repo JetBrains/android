@@ -34,7 +34,6 @@ import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.platform.NavigationType;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -86,7 +85,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModuleModel> {
   private final NewProjectModel myProjectModel;
-  private final NewProjectModuleModel myProjectModuleModel;
 
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
@@ -99,7 +97,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
-  private JCheckBox myNavigationControllerCheck;
   private JCheckBox myInstantAppCheck;
   private JCheckBox myWearCheck;
   private JCheckBox myTvCheck;
@@ -114,7 +111,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
-    myProjectModuleModel = newProjectModuleModel;
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
@@ -164,7 +160,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     else {
       myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
     }
-    myBindings.bindTwoWay(getModel().includeNavController(), new SelectedProperty(myNavigationControllerCheck));
     myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
 
 
@@ -195,7 +190,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       FormFactor formFactor = getModel().formFactor().get();
       boolean isCppTemplate = myProjectModel.enableCppSupport().get();
 
-      myNavigationControllerCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myInstantAppCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
@@ -203,13 +197,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
       myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
     });
-
-    if (StudioFlags.NPW_NAVIGATION_SUPPORT.get()) {
-      myListeners.listenAndFire(myProjectModuleModel.includeNavController(), value -> {
-        // Enable/disable the Next/Finish buttons based on the Include Navigation Controller checkbox
-        wizard.updateNavigationProperties();
-      });
-    }
   }
 
   @Override
@@ -238,9 +225,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myInstallRequests.addAll(myFormFactorSdkControls.getSdkInstallPackageList());
     myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
-    if (!myNavigationControllerCheck.isSelected()) {
-      myProjectModel.navigationType().setValue(NavigationType.NONE);
-    }
   }
 
   @Override
