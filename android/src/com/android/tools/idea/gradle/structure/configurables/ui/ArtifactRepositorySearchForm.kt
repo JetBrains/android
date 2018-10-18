@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
@@ -27,6 +28,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
@@ -112,8 +114,9 @@ class ArtifactRepositorySearchForm(
     resultsTable.selectionModel.addListSelectionListener {
       val artifact = selectedArtifact
 
-      if (artifact != null) {
-        versionsPanel.setVersions(prepareArtifactVersionChoices(artifact, variables))
+      val searchQuery = currentSearchQuery
+      if (searchQuery != null && artifact != null) {
+        versionsPanel.setVersions(prepareArtifactVersionChoices(searchQuery, artifact, variables))
       }
       else {
         notifyVersionSelectionChanged(ParsedValue.NotSet)
@@ -141,6 +144,8 @@ class ArtifactRepositorySearchForm(
     eventDispatcher.selectionChanged(selectedLibrary)
   }
 
+  private var currentSearchQuery: ArtifactSearchQuery? = null
+
   private fun performSearch() {
     mySearchButton.isEnabled = false
     versionsPanel.setEmptyText(SEARCHING_EMPTY_TEXT)
@@ -148,10 +153,18 @@ class ArtifactRepositorySearchForm(
     resultsTable.setPaintBusy(true)
     clearResults()
 
-    val request = SearchRequest(getQuery().toSearchQeury(), 50, 0)
+    val searchQuery = getQuery().also { currentSearchQuery = it }
+    val request = SearchRequest(searchQuery.toSearchQeury(), 50, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
-      val foundArtifacts = results.artifacts.sorted()
+      val foundArtifacts = results.artifacts.sorted().takeUnless { it.isEmpty() } ?: let {
+        when {
+          searchQuery.gradleCoordinates != null -> listOf(
+            FoundArtifact("(none)", searchQuery.gradleCoordinates.groupId.orEmpty(), searchQuery.gradleCoordinates.artifactId.orEmpty(),
+                          searchQuery.gradleCoordinates.version!!))
+          else -> listOf()
+        }
+      }
 
       resultsTable.listTableModel.items = foundArtifacts
       resultsTable.updateColumnSizes()
@@ -170,6 +183,7 @@ class ArtifactRepositorySearchForm(
   }
 
   private fun clearResults() {
+    currentSearchQuery = null
     resultsTable.listTableModel.items = emptyList()
     searchErrors = listOf()
     versionsPanel.clear()
@@ -213,6 +227,7 @@ class ArtifactRepositorySearchForm(
 
 @VisibleForTesting
 fun prepareArtifactVersionChoices(
+  searchQuery: ArtifactSearchQuery,
   artifact: FoundArtifact,
   variablesScope: PsVariablesScope
 ): List<Annotated<ParsedValue.Set.Parsed<GradleVersion>>> {
@@ -227,7 +242,20 @@ fun prepareArtifactVersionChoices(
           throw UnsupportedOperationException()
       })
   }
-  val versions = artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
+
+  val missingVersion = searchQuery
+    .gradleCoordinates
+    ?.takeIf {
+      it.artifactId == artifact.name &&
+      it.groupId == artifact.groupId &&
+      it.version != null &&
+      !artifact.versions.contains(it.version!!)
+    }
+
+  val versions =
+    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.version!!, DslText.Literal).annotateWithError("not found") }) +
+    artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
+
   val suitableVariables =
     variablesScope
       .getAvailableVariablesFor(versionPropertyContext)
@@ -274,7 +302,12 @@ fun versionToLibrary(
 }
 
 @VisibleForTesting
-data class ArtifactSearchQuery(val groupId: String? = null, val artifactName: String? = null, val version: String? = null)
+data class ArtifactSearchQuery(
+  val groupId: String? = null,
+  val artifactName: String? = null,
+  val version: String? = null,
+  val gradleCoordinates: GradleCoordinate? = null
+)
 
 @VisibleForTesting
 fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
@@ -284,7 +317,12 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
     split.size == 1 && split[0]?.contains('.') == true -> ArtifactSearchQuery(groupId = split[0])
     split.size == 1 -> ArtifactSearchQuery(artifactName = split[0])
     split.size == 2 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1])
-    split.size >= 3 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1], version = split[2])
+    split.size >= 3 ->
+      ArtifactSearchQuery(
+        groupId = split[0],
+        artifactName = split[1],
+        version = split[2],
+        gradleCoordinates = GradleCoordinate.parseCoordinateString(this))
     else -> throw RuntimeException()
   }
 }
