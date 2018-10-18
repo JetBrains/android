@@ -190,6 +190,8 @@ iml_module(
         "//tools/idea/.idea/libraries:gson[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
 
