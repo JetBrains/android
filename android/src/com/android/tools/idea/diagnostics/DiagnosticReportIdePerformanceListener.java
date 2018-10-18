@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics;
 import static java.nio.file.Files.newDirectoryStream;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.openapi.application.Application;

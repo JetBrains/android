@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.diagnostics;
+package com.android.tools.idea.diagnostics.report
 
-import com.android.tools.idea.diagnostics.report.DiagnosticReport;
-import java.util.function.Consumer;
+import com.android.tools.idea.diagnostics.crash.BaseStudioReport
 
-public class ThreadSamplingReport {
+open class DiagnosticCrashReport(type: String,
+                                 private val properties: DiagnosticReportProperties) :
+  BaseStudioReport(properties.studioVersion,
+                   properties.asProductDataMap(),
+                   type) {
 
-  public static final boolean ENABLED =
-    !Boolean.getBoolean("studio.diagnostic.uiFreezeSampling.disable");
-
-  public static boolean isEnabled() {
-    return ENABLED;
-  }
-
-  public static void startCollectingThreadSamplingReports(Consumer<DiagnosticReport> reportCallback) {
-    if (!isEnabled()) {
-      return;
-    }
-    DiagnosticReportBuilder.registerPerformanceListener(reportCallback);
+  override fun overrideDefaultParameters(parameters: MutableMap<String, String>) {
+    parameters["ptime"] = properties.uptime.toString()
   }
 }

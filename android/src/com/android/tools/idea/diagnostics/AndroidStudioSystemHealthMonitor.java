@@ -18,9 +18,11 @@ package com.android.tools.idea.diagnostics;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.diagnostics.crash.StudioHistogramReport;
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
+import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
@@ -450,22 +452,10 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       List<DiagnosticReport> performanceThreadDumps = reports.stream().filter(r -> r.getType().equals("PerformanceThreadDump")).collect(
         Collectors.toList());
       Collections.shuffle(performanceThreadDumps);
-      performanceThreadDumps.stream().limit(MAX_PERFORMANCE_REPORTS_COUNT).forEach(r -> {
-        PerformanceThreadDumpReport report = (PerformanceThreadDumpReport) r;
-        Path threadDumpPath = report.getThreadDumpPath();
-        if (threadDumpPath == null) {
-          return;
-        }
-        try {
-          List<String> lines = java.nio.file.Files.readAllLines(threadDumpPath);
-          reportAnr(threadDumpPath.getFileName().toString(), lines);
-        }
-        catch (IOException e) {
-          // Ignore
-        }
-      });
-      reports.stream().filter(r -> r.getType().equals("Histogram")).limit(10).forEach(r -> reportHistogram((HistogramReport) r));
-      reports.stream().filter(r -> r.getType().equals("Freeze")).limit(10).forEach(r -> reportFreeze((FreezeReport) r));
+      performanceThreadDumps.stream().limit(MAX_PERFORMANCE_REPORTS_COUNT).forEach(r -> sendDiagnosticReport(r));
+
+      reports.stream().filter(r -> r.getType().equals("Histogram")).limit(10).forEach(r -> sendDiagnosticReport(r));
+      reports.stream().filter(r -> r.getType().equals("Freeze")).limit(10).forEach(r -> sendDiagnosticReport(r));
     });
   }
 
@@ -756,19 +746,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private static void reportAnr(@NotNull String fileName, @NotNull List<String> threadDump) {
-    if (!AnalyticsSettings.getOptedIn()) {
-      return;
-    }
-
-    ErrorReportSubmitter reporter = IdeErrorsDialog.getAndroidErrorReporter();
-    if (reporter != null) {
-      IdeaLoggingEvent e = new AndroidStudioAnrEvent(fileName, Joiner.on('\n').join(threadDump));
-      reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
-      });
-    }
-  }
-
   private static void reportCrashes(@NotNull List<StudioCrashDetails> descriptions) {
     if (!AnalyticsSettings.getOptedIn()) {
       return;
@@ -796,18 +773,14 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private static void reportHistogram(@NotNull HistogramReport report) {
+  private static void sendDiagnosticReport(@NotNull DiagnosticReport report) {
     if (!AnalyticsSettings.getOptedIn()) {
       return;
     }
 
     try {
-      StudioHistogramReport histogramReport = new StudioHistogramReport.Builder()
-        .setThreadDump(new String(Files.asCharSource(report.getThreadDumpPath().toFile(), Charsets.UTF_8).read()))
-        .setHistogram(new String(Files.asCharSource(report.getHistogramPath().toFile(), Charsets.UTF_8).read()))
-        .build();
       // Performance reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(histogramReport, true);
+      StudioCrashReporter.getInstance().submit(report.asCrashReport(), true);
     }
     catch (IOException e) {
       // Ignore
@@ -828,25 +801,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       return ImmutableMap.of("Type", "Exception", // keep consistent with the error reporter in android plugin
                              "md5", myStackTrace.md5string(),
                              "summary", myStackTrace.summarize(50));
-    }
-  }
-
-  private static class AndroidStudioAnrEvent extends IdeaLoggingEvent {
-    private final String myFileName;
-    private final String myThreadDump;
-
-    public AndroidStudioAnrEvent(@NotNull String fileName, @NotNull String threadDump) {
-      super("", null);
-      myFileName = fileName;
-      myThreadDump = threadDump;
-    }
-
-    @Nullable
-    @Override
-    public Object getData() {
-      return ImmutableMap.of("Type", "ANR", // keep consistent with the error reporter in android plugin
-                             "file", myFileName,
-                             "threadDump", myThreadDump);
     }
   }
 

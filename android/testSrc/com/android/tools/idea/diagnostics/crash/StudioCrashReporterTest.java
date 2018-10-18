@@ -22,6 +22,8 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
+import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
+import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpCrashReport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
@@ -161,11 +163,10 @@ public class StudioCrashReporterTest {
 
   @Test
   public void serializePerformanceReportInvalidThreadDump() throws Exception {
-    CrashReport report =
-      new StudioPerformanceWatcherReport.Builder()
-        .setFile("threadDump.txt")
-        .setThreadDump("Not a thread dump")
-        .build();
+    CrashReport report = new PerformanceThreadDumpCrashReport(
+      new DiagnosticReportProperties(),
+      "threadDump.txt", "Not a thread dump"
+    );
 
     String request = getSerializedContent(report);
     assertRequestContainsField(request, "exception_info", "com.android.ApplicationNotResponding: ");
@@ -173,14 +174,14 @@ public class StudioCrashReporterTest {
 
   @Test
   public void serializePerformanceReportValidThreadDump() throws Exception {
-    CrashReport report =
-      new StudioPerformanceWatcherReport.Builder()
-        .setFile("threadDump.txt")
-        .setThreadDump("\"AWT-EventQueue-0 2.3#__BUILD_NUMBER__ Studio, eap:true, os:Linux 3.13.0-93-generic\" prio=0 tid=0x0 nid=0x0 waiting on condition\n" +
-                       "     java.lang.Thread.State: WAITING\n" +
-                       " on java.util.concurrent.FutureTask@12345678\n" +
-                       "\tat sun.misc.Unsafe.park(Native Method)\n\n")
-        .build();
+      CrashReport report = new PerformanceThreadDumpCrashReport(
+        new DiagnosticReportProperties(),
+        "threadDump.txt",
+        "\"AWT-EventQueue-0 2.3#__BUILD_NUMBER__ Studio, eap:true, os:Linux 3.13.0-93-generic\" prio=0 tid=0x0 nid=0x0 waiting on condition\n" +
+        "     java.lang.Thread.State: WAITING\n" +
+        " on java.util.concurrent.FutureTask@12345678\n" +
+        "\tat sun.misc.Unsafe.park(Native Method)\n\n"
+      );
 
     String request = getSerializedContent(report);
 
@@ -208,7 +209,10 @@ public class StudioCrashReporterTest {
         .setIsJvmCrash(true)
         .setUptimeInMs(123456)
         .build());
-    submit(crash, new StudioPerformanceWatcherReport.Builder().setFile("fileName").setThreadDump("threadDump").build());
+    submit(crash, new PerformanceThreadDumpCrashReport(
+      new DiagnosticReportProperties(),
+      "filename",
+      "threadDump"));
   }
 
   private static void submit(@NonNull GoogleCrashReporter reporter, @NonNull CrashReport report) {
@@ -273,7 +277,7 @@ public class StudioCrashReporterTest {
       }
     }
 
-    List<StackTraceElement> frames = new ArrayList<StackTraceElement>();
+    List<StackTraceElement> frames = new ArrayList<>();
     Pattern outerPattern = Pattern.compile("\tat (.*)\\.([^.]*)\\((.*)\\)");
     Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
     while (iterator.hasNext()) {
@@ -283,7 +287,7 @@ public class StudioCrashReporterTest {
       }
       Matcher outerMatcher = outerPattern.matcher(line);
       if (!outerMatcher.matches()) {
-        fail("Line " + line + " does not match expected stactrace pattern");
+        fail("Line " + line + " does not match expected stacktrace pattern");
       }
       else {
         String clz = outerMatcher.group(1);
@@ -309,7 +313,7 @@ public class StudioCrashReporterTest {
       }
     }
 
-    throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
+    throwable.setStackTrace(frames.toArray(new StackTraceElement[0]));
 
     // Dump stack back to string to make sure we have the same exception
     assertEquals(desc, getStackTrace(throwable));

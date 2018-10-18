@@ -19,7 +19,6 @@ package com.android.tools.idea.diagnostics.error;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
-import com.android.tools.idea.diagnostics.crash.StudioPerformanceWatcherReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -165,12 +164,6 @@ public class ErrorReporter extends ErrorReportSubmitter {
       StudioExceptionReport exceptionReport =
         new StudioExceptionReport.Builder().setThrowable(t, false).addProductData(productData).build();
       StudioCrashReporter.getInstance().submit(exceptionReport);
-    }
-    else if ("ANR".equals(type)) {
-      StudioPerformanceWatcherReport perfReport =
-        new StudioPerformanceWatcherReport.Builder().setFile((String)map.get("file")).setThreadDump((String)map.get("threadDump")).build();
-      // Performance reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(perfReport, true);
     }
     else if ("Crashes".equals(type)) {
       //noinspection unchecked
