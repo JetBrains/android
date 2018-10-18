@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
+import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.apk.ApkFacet;
@@ -32,16 +35,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
+import java.util.List;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
  * @author yole
@@ -162,6 +160,13 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public Manifest getManifest() {
+    // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
+    // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
+    // general, but pretending there was no manifest terminates many code paths early.
+    if (isDisposed()) {
+      return null;
+    }
+
     VirtualFile manifestFile = getMainIdeaSourceProvider().getManifestFile();
     return manifestFile != null ? loadDomElement(getModule(), manifestFile, Manifest.class) : null;
   }
