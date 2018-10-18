@@ -49,15 +49,16 @@ internal class CommonDragHandler(editor: ViewEditor,
                                  type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
-  private val component: SceneComponent?
-  private val dragTarget = CommonDragTarget(fromToolWindow = true)
+  private val dragTarget: CommonDragTarget?
 
   init {
     if (components.size == 1) {
       val dragged = components[0]
-      component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
+      val component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
         setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
       }
+
+      dragTarget = CommonDragTarget(component, fromToolWindow = true)
 
       component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
       // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
@@ -67,12 +68,12 @@ internal class CommonDragHandler(editor: ViewEditor,
       component.drawState = SceneComponent.DrawState.DRAG
     }
     else {
-      component = null
+      dragTarget = null
     }
   }
 
   override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {
-    if (component == null) {
+    if (dragTarget == null) {
       return
     }
     super.start(x, y, modifiers)
@@ -80,7 +81,7 @@ internal class CommonDragHandler(editor: ViewEditor,
   }
 
   override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
-    if (component == null) {
+    if (dragTarget == null) {
       return ERROR_UNDEFINED
     }
     val result = super.update(x, y, modifiers)
@@ -90,7 +91,7 @@ internal class CommonDragHandler(editor: ViewEditor,
 
   // Note that coordinate is AndroidCoordinate, not AndroidDpCoordinate.
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    if (component == null) {
+    if (dragTarget == null) {
       return
     }
     editor.insertChildren(layout.nlComponent, components, -1, insertType)
@@ -100,6 +101,7 @@ internal class CommonDragHandler(editor: ViewEditor,
     dragTarget.mouseRelease(dx, dy, emptyList())
 
     // Remove Temporary SceneComponent
+    val component = dragTarget.component
     if (component is TemporarySceneComponent) {
       layout.scene.removeComponent(component)
     }
@@ -108,10 +110,13 @@ internal class CommonDragHandler(editor: ViewEditor,
   }
 
   override fun cancel() {
-    if (component != null) {
-      layout.scene.removeComponent(component)
+    if (dragTarget == null) {
+      return
     }
-    component?.drawState = SceneComponent.DrawState.NORMAL
+    if (dragTarget.component is TemporarySceneComponent) {
+      layout.scene.removeComponent(dragTarget.component)
+    }
+    dragTarget.component.drawState = SceneComponent.DrawState.NORMAL
     dragTarget.cancel()
   }
 

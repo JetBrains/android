@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Stream;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
@@ -910,7 +909,7 @@ public class SceneComponent {
         hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
       }
       if (hasDragTarget && myScene.getRoot() != this) {
-        addTarget(new CommonDragTarget());
+        addTarget(new CommonDragTarget(this));
       }
     }
   }
