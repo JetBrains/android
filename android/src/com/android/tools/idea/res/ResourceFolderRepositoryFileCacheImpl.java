@@ -250,6 +250,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @Override
     public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+      if (myProject.isDisposed()) {
+        return;
+      }
       maintainLRUCache(MAX_PROJECT_CACHES);
     }
 
@@ -375,6 +378,10 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @Override
     public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+      if (myProject.isDisposed()) {
+        return;
+      }
+
       ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
       Path projectCacheBase = cache.getProjectDir(myProject);
       if (projectCacheBase == null || !Files.exists(projectCacheBase)) {
