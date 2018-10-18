@@ -36,7 +36,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
 
     assertThat(isSameArtifact(
       moduleSystem.getLatestCompatibleDependency("com.android.support", "appcompat-v7"),
-      GradleCoordinate("com.android.support", "appcompat-v7", "+")
+      GradleCoordinate("com.android.support", "appcompat-v7", "27.+")
     )).isTrue()
   }
 
@@ -71,7 +71,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     // Verify that getRegisteredDependency gets a existing dependency correctly.
     val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
     assertThat(moduleSystem.getRegisteredDependency(appCompat)).isNotNull()
-    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("+")
+    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("27.+")
   }
 
   @Throws(Exception::class)
@@ -168,7 +168,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     // Check that the version is picked up from one of the sub modules
     val coord = myModules.appModule.getModuleSystem().getLatestCompatibleDependency(SdkConstants.SUPPORT_LIB_GROUP_ID, "recyclerview-v7")
     assertThat(coord!!.id).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT)
-    assertThat(coord.version.toString()).isEqualTo("+")
+    assertThat(coord.version.toString()).isEqualTo("27.+")
 
     checkFindInReverseDependency()
   }
@@ -221,7 +221,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
         ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.APP_COMPAT_V7.toString() }
 
     assertThat(appCompatArtifact).isNotNull()
-    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("+")
+    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("27.+")
   }
 
   private fun verifyProjectDependsOnGuava() {

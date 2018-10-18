@@ -86,6 +86,10 @@ public class AndroidGradleTests {
 
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", getKotlinVersionForTests());
 
+      // App compat version needs to match compile SDK
+      String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
+      contents =  replaceRegexGroup(contents, "com.android.support:appcompat-v7:(\\+)",  appCompatMainVersion + ".+");
+
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
       contents = updateTargetSdkVersion(contents);
