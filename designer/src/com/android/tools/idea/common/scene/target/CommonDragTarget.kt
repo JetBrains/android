@@ -39,7 +39,9 @@ private const val DEBUG_RENDERER = false
 
 private const val MIN_SIZE = 16
 
-class CommonDragTarget(private val fromToolWindow: Boolean = false) : BaseTarget() {
+class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
+                                                 private val fromToolWindow: Boolean = false)
+  : BaseTarget() {
 
   @AndroidDpCoordinate private var offsetX: Int = 0
   @AndroidDpCoordinate private var offsetY: Int = 0
@@ -52,15 +54,26 @@ class CommonDragTarget(private val fromToolWindow: Boolean = false) : BaseTarget
    * Needs to be lazy because [myComponent] doesn't exist when constructing the [Target].
    * But it will be set immediately after [Target] is created.
    */
-  private val placeholders by lazy { myComponent.scene.getPlaceholders(myComponent).filter { it.host != myComponent } }
-
-  private val dominatePlaceholders by lazy { placeholders.filter { it.dominate }.toList() }
-
-  private val recessivePlaceholders by lazy { placeholders.filterNot { it.dominate }.toList() }
-
-  private val placeholderHosts by lazy { placeholders.map { it.host }.toSet() }
+  private val placeholders: List<Placeholder>
+  private val dominatePlaceholders: List<Placeholder>
+  private val recessivePlaceholders: List<Placeholder>
+  private val placeholderHosts: Set<SceneComponent>
 
   private var currentSnappedPlaceholder: Placeholder? = null
+
+  init {
+    myComponent = sceneComponent
+
+    placeholders = component.scene.getPlaceholders(component).filter { it.host != component }
+    dominatePlaceholders = placeholders.filter { it.dominate }
+    recessivePlaceholders = placeholders.filterNot { it.dominate }
+    placeholderHosts = placeholders.map { it.host }.toSet()
+  }
+
+  override fun setComponent(component: SceneComponent) {
+    assert(myComponent == component)
+    super.setComponent(component)
+  }
 
   override fun canChangeSelection() = true
 
