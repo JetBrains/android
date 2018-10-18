@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.databinding;
+package com.android.tools.idea.databinding;
+
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -23,12 +26,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
-
 import java.util.Arrays;
-
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
+import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 
 public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
 

@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.databinding;
-
-import com.android.tools.idea.databinding.DataBindingMode;
+package com.android.tools.idea.databinding;
 
 public class AndroidXDataBindingTest extends AndroidDataBindingTest {
   public AndroidXDataBindingTest() {
