@@ -60,7 +60,6 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final StringProperty myProjectPackageName;
   @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
-  @NotNull private final BoolProperty myIncludeNavController = new BoolValueProperty();
   @NotNull private final BoolProperty myEnableCppSupport;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
@@ -147,11 +146,6 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @NotNull
-  public BoolProperty includeNavController() {
-    return myIncludeNavController;
-  }
-
-  @NotNull
   public BoolProperty enableCppSupport() {
     return myEnableCppSupport;
   }
@@ -230,7 +224,6 @@ public final class NewModuleModel extends WizardModel {
 
       myTemplateValues = new HashMap<>(NewModuleModel.this.myTemplateValues);
       myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, myIsLibrary.get());
-      myTemplateValues.put(ATTR_INCLUDE_NAV_CONTROLLER, myIncludeNavController.get());
 
       Project project = myProject.getValue();
       if (myIsInstantApp.get()) {
