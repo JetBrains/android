@@ -30,7 +30,6 @@ import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.template.ConfigureNavigationTypeStep;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -88,16 +87,9 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     myNewProjectModuleModel = new NewProjectModuleModel(getModel());
     RenderTemplateModel renderModel = myNewProjectModuleModel.getExtraRenderTemplateModel();
 
-    List<ModelWizardStep> steps = newArrayList(new ConfigureAndroidProjectStep(myNewProjectModuleModel, getModel()));
-    if (StudioFlags.NPW_NAVIGATION_SUPPORT.get()) {
-      ConfigureNavigationTypeStep navigationTypeSteps =
-        new ConfigureNavigationTypeStep(getModel(), myNewProjectModuleModel,
-                                        message("android.wizard.activity.navigation.configure"));
-      steps.add(navigationTypeSteps);
-    }
-    steps.add(new ConfigureCppSupportStep(getModel()));
-    steps.add(new ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), newArrayList()));
-    return steps;
+    return newArrayList(new ConfigureAndroidProjectStep(myNewProjectModuleModel, getModel()),
+                        new ConfigureCppSupportStep(getModel()),
+                        new ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), newArrayList()));
   }
 
   @Override

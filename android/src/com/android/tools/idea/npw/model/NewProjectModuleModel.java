@@ -78,11 +78,6 @@ public final class NewProjectModuleModel extends WizardModel {
   }
 
   @NotNull
-  public BoolProperty includeNavController() {
-    return myNewModuleModel.includeNavController();
-  }
-
-  @NotNull
   public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
     return myAndroidSdkInfo;
   }
