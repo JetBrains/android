@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.databinding;
+package com.android.tools.idea.databinding;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
+import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
+
 import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.blame.Message;
-import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
-import com.intellij.testFramework.Parameterized;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.intellij.util.containers.ContainerUtil;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.*;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.

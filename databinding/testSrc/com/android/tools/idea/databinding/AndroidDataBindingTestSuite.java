@@ -16,10 +16,27 @@
 package com.android.tools.idea.databinding;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidDataBindingTestSuite.class)  // a suite mustn't contain itself
 public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
+  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
+
+  static {
+    symlinkToIdeaHome(
+      "prebuilts/studio/jdk",
+      "prebuilts/studio/sdk",
+      "tools/adt/idea/android/annotations",
+      "tools/adt/idea/android/testData",
+      "tools/base/templates",
+      "tools/idea/java"); // For the mock JDK.
+
+    setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
+    setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
+  }
 }

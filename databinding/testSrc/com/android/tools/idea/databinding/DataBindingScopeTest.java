@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.databinding;
+package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.ModuleDataBinding;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.psi.JavaPsiFacade;
-import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB;
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
