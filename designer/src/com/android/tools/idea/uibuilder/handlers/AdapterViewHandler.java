@@ -17,12 +17,17 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.common.scene.Placeholder;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ScrollHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,5 +64,11 @@ public class AdapterViewHandler extends ViewGroupHandler {
   @Nullable
   public ScrollHandler createScrollHandler(@NonNull ViewEditor editor, @NonNull NlComponent component) {
     return null;
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    // AdapterView should use Java code to add content, returns empty placeholder to disallow dragging widget into it.
+    return Collections.emptyList();
   }
 }

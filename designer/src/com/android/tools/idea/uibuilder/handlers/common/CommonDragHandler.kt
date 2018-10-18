@@ -27,7 +27,6 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.scene.target.CommonDragTarget
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.AdapterViewHandler
 import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.TabLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler
@@ -119,7 +118,6 @@ internal class CommonDragHandler(editor: ViewEditor,
      * TODO: makes [CommonDragHandler] can be used in all [ViewGroupHandler].
      */
     private val HANDLER_CLASSES_NOT_SUPPORT= listOf(
-      AdapterViewHandler::class,
       DelegatingViewGroupHandler::class,
       ItemHandler::class,
       MenuHandler::class,
