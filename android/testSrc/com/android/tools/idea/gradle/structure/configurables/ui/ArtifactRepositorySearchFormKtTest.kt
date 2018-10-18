@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -23,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.PsVariables
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import org.hamcrest.CoreMatchers.equalTo
@@ -33,6 +35,14 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
 
   private val foundArtifact = FoundArtifact(
     "repository", "org.example.group.id", "artifact-name", listOf(GradleVersion(1, 0), GradleVersion(1, 1), GradleVersion(2, 0)))
+
+  private val notExactQuery = ArtifactSearchQuery("group", "name", "9.99", gradleCoordinates = null)
+  private val exactMatchingQuery =
+    ArtifactSearchQuery(
+      groupId = "org.example.group.id",
+      artifactName = "artifact-name",
+      version = "9.99",
+      gradleCoordinates = GradleCoordinate.parseCoordinateString("org.example.group.id:artifact-name:9.99"))
 
   @Test
   fun testVersionToLibrary() {
@@ -79,8 +89,20 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
     val variables = object: PsVariables(stubModel, "variables", null) {
       override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()
     }
-    val choices = prepareArtifactVersionChoices(foundArtifact, variables)
+    val choices = prepareArtifactVersionChoices(notExactQuery, foundArtifact, variables)
     assertThat(choices, equalTo(listOf(
+      GradleVersion(2, 0).asParsed().annotated(),
+      (GradleVersion(2, 0) asVariable "ver20").annotated(),
+      GradleVersion(1, 1).asParsed().annotated(),
+      (GradleVersion(1, 1) asVariable "inTheMap.itemVer11").annotated(),
+      GradleVersion(1, 0).asParsed().annotated(),
+      (GradleVersion(1, 0) asVariable "inTheMap.itemVer10").annotated(),
+      (GradleVersion(1, 0) asVariable "ver10").annotated()
+    )))
+
+    val choicesWithNotFound = prepareArtifactVersionChoices(exactMatchingQuery, foundArtifact, variables)
+    assertThat(choicesWithNotFound, equalTo(listOf(
+      GradleVersion(9, 99).asParsed().annotateWithError("not found"),
       GradleVersion(2, 0).asParsed().annotated(),
       (GradleVersion(2, 0) asVariable "ver20").annotated(),
       GradleVersion(1, 1).asParsed().annotated(),
@@ -96,7 +118,9 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
 class ArtifactRepositorySearchFormKtLightTest {
   @Test
   fun testParseArtifactSearchQuery_fullyQualified() {
-    assertThat("com.google.guava:guava:26.0".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery("com.google.guava", "guava", "26.0")))
+    assertThat("com.google.guava:guava:26.0".parseArtifactSearchQuery(),
+               equalTo(ArtifactSearchQuery(
+                 "com.google.guava", "guava", "26.0", GradleCoordinate.parseCoordinateString("com.google.guava:guava:26.0"))))
   }
 
   @Test
