@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
@@ -214,7 +215,7 @@ class ArtifactRepositorySearchForm(
 fun prepareArtifactVersionChoices(
   artifact: FoundArtifact,
   variablesScope: PsVariablesScope
-): List<ParsedValue.Set.Parsed<GradleVersion>> {
+): List<Annotated<ParsedValue.Set.Parsed<GradleVersion>>> {
   val versionPropertyContext = object : ModelPropertyContext<GradleVersion> {
     override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(value)
     override fun format(value: GradleVersion): String = value.toString()
@@ -226,13 +227,13 @@ fun prepareArtifactVersionChoices(
           throw UnsupportedOperationException()
       })
   }
-  val versions = artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal) }
+  val versions = artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
   val suitableVariables =
     variablesScope
       .getAvailableVariablesFor(versionPropertyContext)
       .filter { VariableMatchingStrategy.WELL_KNOWN_VALUE.matches(it.value, artifact.versions.toSet()) }
-      .map { it.value }
-  return (versions + suitableVariables).sortedByDescending { it.value }
+      .map { it.value.annotated() }
+  return (versions + suitableVariables).sortedByDescending { it.value.value }
 }
 
 
