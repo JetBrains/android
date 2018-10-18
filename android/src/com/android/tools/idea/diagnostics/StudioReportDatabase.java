@@ -15,27 +15,20 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class StudioReportDatabase {
   private final Object myDbLock = new Object();

@@ -17,12 +17,18 @@ package com.android.tools.idea.diagnostics;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
+import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
+import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.google.common.base.Charsets;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.text.DateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -35,9 +41,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -114,7 +120,7 @@ public class StudioReportDatabaseTest {
     Path threadDump = createTempFileWithThreadDump("T1");
     Path actions = createTempFileWithThreadDump("Actions");
     Path memoryUse = createTempFileWithThreadDump("Memory use");
-    Path profile = createTempFileWithThreadDump("PBasrofile");
+    Path profile = createTempFileWithThreadDump("Profile");
     Map<String, Path> paths = new TreeMap<>();
     paths.put("actionsDiagnostics", actions);
     paths.put("memoryUseDiagnostics", memoryUse);
@@ -165,6 +171,25 @@ public class StudioReportDatabaseTest {
 
     assertEquals(1, details.size());
     assertEquals(t2, ((PerformanceThreadDumpReport) details.get(0)).getThreadDumpPath());
+  }
+
+  @Test
+  public void testDiagnosticProperties() throws Exception {
+    Path t1 = createTempFileWithThreadDump("T1");
+    Path t2 = createTempFileWithThreadDump("T2");
+    long time = DateFormat.getInstance().parse("07/10/2018 4:05 PM, PDT").getTime();
+    DiagnosticReportProperties properties = new DiagnosticReportProperties(
+      1000, // uptime
+      time, // report time
+      "testSessionId",
+      "1.2.3.4", //studio version
+      "9.8.7.6" // kotlin version
+    );
+    db.appendReport(new HistogramReport(t1, t2, "", properties));
+    List<DiagnosticReport> reports = db.reapReportDetails();
+    HistogramReport report = (HistogramReport) reports.get(0);
+    assertNotSame(properties, report.getProperties());
+    assertEquals(properties, report.getProperties());
   }
 
   @NotNull

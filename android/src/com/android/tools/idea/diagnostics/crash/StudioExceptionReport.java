@@ -76,10 +76,16 @@ public class StudioExceptionReport extends BaseStudioReport {
     if (isKotlinOnStack()) {
       builder.addTextBody("kotlinVersion", getKotlinPluginVersionDescription());
     }
-    IdeaPluginDescriptor plugin = PluginManager.getPlugin(pluginId);
-    if (plugin != null) {
-      builder.addTextBody("plugin.name", plugin.getName());
-      builder.addTextBody("plugin.version", plugin.getVersion());
+    try {
+      IdeaPluginDescriptor plugin = PluginManager.getPlugin(pluginId);
+      if (plugin != null) {
+        final String name = plugin.getName();
+        final String version = plugin.getVersion();
+        builder.addTextBody("plugin.name", name);
+        builder.addTextBody("plugin.version", version);
+      }
+    } catch (Throwable ignored) {
+      builder.addTextBody("plugin.name", "exceptionWhileReadingNameVersion");
     }
     builder.addTextBody("userReported", userReported ? "1" : "0");
     builder.addTextBody(KEY_EXCEPTION_INFO, exceptionInfo);
