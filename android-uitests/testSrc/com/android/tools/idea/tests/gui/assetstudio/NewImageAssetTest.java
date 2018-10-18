@@ -23,8 +23,6 @@ import com.android.testutils.filesystemdiff.Script;
 import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -48,7 +46,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testAdaptiveIconsPreviewPanelContents() throws Exception {
     AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
