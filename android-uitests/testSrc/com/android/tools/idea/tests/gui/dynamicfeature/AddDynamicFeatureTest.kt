@@ -285,7 +285,7 @@ class AddDynamicFeatureTest {
       .currentFileContents.run {
       assertThat(this).contains("prompt_email")
       assertThat(this).contains("prompt_password")
-      assertThat(this).contains("error_invalid_email")
+      assertThat(this).contains("invalid_password")
     }
   }
 

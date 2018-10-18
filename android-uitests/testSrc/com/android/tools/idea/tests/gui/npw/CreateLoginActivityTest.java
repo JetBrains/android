@@ -52,8 +52,8 @@ public class CreateLoginActivityTest {
    *   3. Configure a project name, package and location and click Next
    *
    *   Verification
-   *   1. An activity template that provides input fields and a sample implementation of
-   *      an AsyncTask that asks users to login or register with their credentials is added to the project
+   *   1. An activity template that provides input fields
+   *      and asks users to login or register with their credentials is added to the project
    * </pre>
    */
   @RunIn(TestGroup.FAT_BAZEL)
@@ -93,12 +93,12 @@ public class CreateLoginActivityTest {
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();
     String content = editorFixture.getCurrentFileContents();
 
-    String emailViewCode = "mEmailView = (AutoCompleteTextView) findViewById(R.id.email)";
-    String pwViewCode = "mPasswordView = (EditText) findViewById(R.id.password)";
-    String asyncTaskCode = "public class UserLoginTask extends AsyncTask<Void, Void, Boolean>";
+    String username = "findViewById(R.id.username)";
+    String password = "findViewById(R.id.password)";
+    String loginSuccess = "updateUiWithUser(loginResult.getSuccess())";
 
-    assertThat(content.contains(emailViewCode)).isTrue();
-    assertThat(content.contains(pwViewCode)).isTrue();
-    assertThat(content.contains(asyncTaskCode)).isTrue();
+    assertThat(content.contains(username)).isTrue();
+    assertThat(content.contains(password)).isTrue();
+    assertThat(content.contains(loginSuccess)).isTrue();
   }
 }
