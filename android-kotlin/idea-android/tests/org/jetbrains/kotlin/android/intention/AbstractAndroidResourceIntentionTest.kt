@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.intention
 
+import com.android.tools.idea.flags.StudioFlags
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.codeInsight.intention.IntentionAction
@@ -47,15 +48,17 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
         val intentionClass = if (config.has("intentionClass")) config.getString("intentionClass") else null
         val intentionText = if (config.has("intentionText")) config.getString("intentionText") else null
         val isApplicableExpected = if (config.has("isApplicable")) config.get("isApplicable").asBoolean else true
-        val rFile = if (config.has("rFile")) config.get("rFile").asString else null
         val resDirectory = if (config.has("resDirectory")) config.get("resDirectory").asString else null
 
-        if (rFile != null) {
-            myFixture.copyFileToProject(rFile, "gen/$COM_MYAPP_PACKAGE_PATH" + PathUtil.getFileName(rFile))
-        }
-        else {
-            if (File("$testDataPath/R.java").isFile) {
-                myFixture.copyFileToProject("R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
+        if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+            val rFile = if (config.has("rFile")) config.get("rFile").asString else null
+            if (rFile != null) {
+                myFixture.copyFileToProject(rFile, "gen/$COM_MYAPP_PACKAGE_PATH" + PathUtil.getFileName(rFile))
+            }
+            else {
+                if (File("$testDataPath/R.java").isFile) {
+                    myFixture.copyFileToProject("R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
+                }
             }
         }
 
