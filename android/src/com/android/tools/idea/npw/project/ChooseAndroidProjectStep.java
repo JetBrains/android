@@ -73,15 +73,13 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   // To have the sequence specified by design, we hardcode the sequence.
   private final String[] ORDERED_ACTIVITY_NAMES = {
     "Basic Activity", "Empty Activity", BOTTOM_NAVIGATION_ACTIVITY, "Fullscreen Activity", "Master/Detail Flow",
-    NAVIGATION_DRAWER_ACTIVITY, "Google Maps Activity", "Login Activity", "Scrolling Activity", TABBED_ACTIVITY,
+    NAVIGATION_DRAWER_ACTIVITY, "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
   };
   private static final String NAVIGATION_DRAWER_ACTIVITY = "Navigation Drawer Activity";
   private static final String BOTTOM_NAVIGATION_ACTIVITY = "Bottom Navigation Activity";
-  private static final String TABBED_ACTIVITY = "Tabbed Activity";
   // This is a set of activities that should be hidden in the list of Activities.
   // Once NPW_NAVIGATION_SUPPORT is set to true by default, they should be removed from ORDERED_ACTIVITY_NAMES.
-  private static final Set<String> EXCLUDE_ACTIVITIES_NAV_OPTION =
-    ImmutableSet.of(NAVIGATION_DRAWER_ACTIVITY, BOTTOM_NAVIGATION_ACTIVITY, TABBED_ACTIVITY);
+  private static final Set<String> EXCLUDE_ACTIVITIES_NAV_OPTION = ImmutableSet.of(NAVIGATION_DRAWER_ACTIVITY, BOTTOM_NAVIGATION_ACTIVITY);
 
   private final List<FormFactorInfo> myFormFactors = new ArrayList<>();
 
