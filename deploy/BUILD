@@ -13,6 +13,7 @@ iml_module(
         "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
     ],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
