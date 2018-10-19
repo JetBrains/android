@@ -21,14 +21,14 @@ import android.databinding.tool.reflection.ModelMethod;
 import com.google.common.collect.Lists;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTypesUtil;
+import java.util.Collections;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class PsiModelClass extends ModelClass {
-
-  private static final ModelField[] EMPTY_MODEL_FIELD_ARRAY = new ModelField[0];
-  private static final ModelMethod[] EMPTY_MODEL_METHOD_ARRAY = new ModelMethod[0];
 
   @NotNull PsiType myType;
   ModelClass myComponentType;
@@ -39,11 +39,12 @@ public class PsiModelClass extends ModelClass {
 
   public PsiClass getPsiClass() {
     if (myType instanceof PsiClassType) {
-      return ((PsiClassType) myType).resolve();
+      return ((PsiClassType)myType).resolve();
     }
     return null;
   }
 
+  @NotNull
   @Override
   public String toJavaCode() {
     return myType.getCanonicalText();
@@ -77,7 +78,7 @@ public class PsiModelClass extends ModelClass {
   public boolean isPrimitive() {
     String canonicalText = myType.getCanonicalText(false);
     String boxed = PsiTypesUtil.boxIfPossible(canonicalText);
-    return boxed != null && !boxed.equals(canonicalText);
+    return !boxed.equals(canonicalText);
   }
 
   @Override
@@ -160,11 +161,13 @@ public class PsiModelClass extends ModelClass {
     return PsiType.VOID.equalsToText(myType.getCanonicalText());
   }
 
+  @NotNull
   @Override
   public ModelClass unbox() {
     return this;
   }
 
+  @NotNull
   @Override
   public ModelClass box() {
     return this;
@@ -189,52 +192,48 @@ public class PsiModelClass extends ModelClass {
     return new PsiModelClass(superClass);
   }
 
+  @NotNull
   @Override
   public ModelClass erasure() {
     return this;
   }
 
+  @NotNull
   @Override
   public String getJniDescription() {
     return getCanonicalName();
   }
 
+  @NotNull
   @Override
-  public ModelField[] getDeclaredFields() {
+  public List<ModelField> getDeclaredFields() {
     if (myType instanceof PsiClassType) {
       PsiClassType myPsiClassType = (PsiClassType)myType;
       PsiClass resolved = myPsiClassType.resolve();
       if (resolved == null) {
-        return EMPTY_MODEL_FIELD_ARRAY;
+        return Collections.emptyList();
       }
-
-      PsiField[] fields = resolved.getFields();
-      ModelField[] result = new ModelField[fields.length];
-      for (int i = 0; i < fields.length; i ++) {
-        result[i] = new PsiModelField(fields[i]);
-      }
-      return result;
+      return Stream.of(resolved.getFields())
+        .map(PsiModelField::new)
+        .collect(Collectors.toList());
     }
-    return EMPTY_MODEL_FIELD_ARRAY;
+    return Collections.emptyList();
   }
 
+  @NotNull
   @Override
-  public ModelMethod[] getDeclaredMethods() {
+  public List<ModelMethod> getDeclaredMethods() {
     if (myType instanceof PsiClassType) {
       PsiClassType myPsiClassType = (PsiClassType)myType;
       PsiClass resolved = myPsiClassType.resolve();
       if (resolved == null) {
-        return EMPTY_MODEL_METHOD_ARRAY;
+        return Collections.emptyList();
       }
-
-      PsiMethod[] fields = resolved.getMethods();
-      ModelMethod[] result = new ModelMethod[fields.length];
-      for (int i = 0; i < fields.length; i ++) {
-        result[i] = new PsiModelMethod(fields[i]);
-      }
-      return result;
+      return Stream.of(resolved.getMethods())
+        .map(PsiModelMethod::new)
+        .collect(Collectors.toList());
     }
-    return EMPTY_MODEL_METHOD_ARRAY;
+    return Collections.emptyList();
   }
 
   @Override
