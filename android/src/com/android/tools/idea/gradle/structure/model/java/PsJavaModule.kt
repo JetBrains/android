@@ -17,7 +17,11 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleType
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.icons.AllIcons
@@ -49,7 +53,33 @@ class PsJavaModule(
   val resolvedDependencies: PsResolvedJavaDependencyCollection
     get() = myResolvedDependencyCollection ?: PsResolvedJavaDependencyCollection(this).also { myResolvedDependencyCollection = it }
 
-  override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> = resolvedModel?.configurations.orEmpty()
+  override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> {
+    val defaultImportant = setOf("implementation",
+                        "annotationProcessor",
+                        "api",
+                        "compile",
+                        "runtime",
+                        "testAnnotationProcessor",
+                        "testImplementation",
+                        "testRuntime")
+    val defaultOther = setOf("implementation",
+                        "annotationProcessor",
+                        "api",
+                        "compile",
+                        "compileOnly",
+                        "runtime",
+                        "runtimeOnly",
+                        "testAnnotationProcessor",
+                        "testCompile",
+                        "testCompileOnly",
+                        "testImplementation",
+                        "testRuntime",
+                        "testRuntimeOnly")
+    return when {
+      onlyImportantFor != null -> defaultImportant.toList()
+      else -> (defaultImportant + defaultOther + resolvedModel?.configurations.orEmpty().toSet()).toList()
+    }
+  }
 
   // Java libraries can depend on any type of modules, including Android apps (when a Java library is actually a 'test'
   // module for the Android app.)
