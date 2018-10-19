@@ -30,6 +30,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
     ],
 )
 
@@ -87,5 +88,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
     ],
 )

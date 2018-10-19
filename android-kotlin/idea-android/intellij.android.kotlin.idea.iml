@@ -33,5 +33,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.lang-databinding" />
   </component>
 </module>
