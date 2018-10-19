@@ -45,7 +45,7 @@ import static java.util.regex.Pattern.DOTALL;
 import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunIn(TestGroup.UNRELIABLE)  // b/117808945 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleTasksTest {
 
