@@ -454,6 +454,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
     return ((NavigationItem)myWrappedElement).canNavigateToSource();
   }
 
+  @NotNull
   @Override
   public String getValue() {
     return myWrappedElement.getValue();

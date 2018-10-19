@@ -21,6 +21,11 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     addFactory(new AndroidRunConfigurationFactory(this));
   }
 
+  @Override
+  public String getHelpTopic() {
+    return "reference.dialogs.rundebug.AndroidRunConfigurationType";
+  }
+
   public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
     protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
       super(type);

@@ -1216,13 +1216,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (value instanceof ManifestTreeNode) {
         ManifestTreeNode node = (ManifestTreeNode)value;
 
-        // on GTK theme the Tree.isFileColorsEnabled does not work, so we fall back to using the background
-        if (UIUtil.isUnderGTKLookAndFeel()) {
-          // we need to make the colors saturated, but with alpha, so the selector and foreground text still work
-          setBackground(ColorUtil.withAlpha(harder(getNodeColor(node.getUserObject())), 0.2));
-          setOpaque(true);
-        }
-
         setIcon(null);
 
         if (node.getUserObject() instanceof Element) {
