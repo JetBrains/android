@@ -61,17 +61,17 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
 
-  @GuardedBy("DISPOSAL_LOCK")
+  @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage>>()
 
-  @GuardedBy("DISPOSAL_LOCK")
+  @GuardedBy("disposalLock")
   private var myDisposed: Boolean = false
 
-  private val DISPOSAL_LOCK = Any()
+  private val disposalLock = Any()
 
   override fun onDispose() {
     lateinit var futures: Array<CompletableFuture<RefinableImage>>
-    synchronized(DISPOSAL_LOCK) {
+    synchronized(disposalLock) {
       myDisposed = true
       futures = myPendingFutures.values.toTypedArray()
       myPendingFutures.clear()
@@ -115,7 +115,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     val file = xmlFile.virtualFile
     val result = CompletableFuture<RefinableImage>()
 
-    synchronized(DISPOSAL_LOCK) {
+    synchronized(disposalLock) {
       if (myDisposed) {
         return CompletableFuture.completedFuture(null)
       }
@@ -134,7 +134,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
           RefinableImage()
         }
         else {
-          synchronized(DISPOSAL_LOCK) {
+          synchronized(disposalLock) {
             // We might have been disposed while waiting to run
             if (myDisposed) {
               result.complete(null)
@@ -157,7 +157,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
         result.completeExceptionally(t)
       }
       finally {
-        synchronized(DISPOSAL_LOCK) {
+        synchronized(disposalLock) {
           myPendingFutures.remove(file)
         }
       }
