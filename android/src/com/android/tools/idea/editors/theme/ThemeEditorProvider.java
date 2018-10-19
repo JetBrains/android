@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -41,7 +42,7 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_STYLE;
 
 public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
-  public final static boolean THEME_EDITOR_ENABLE = true;
+  public final static boolean THEME_EDITOR_ENABLE = StudioFlags.THEME_EDITOR_ENABLED.get();
 
   private final static String THEME_NAME = "theme-name";
   private final static String STYLE_NAME = "style-name";

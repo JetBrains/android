@@ -322,7 +322,8 @@ public class RenderTaskTest extends AndroidTestCase {
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 
-  public void testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+  // b/117489965
+  public void ignore_testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
     @Language("XML")
     final String content= "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                           "    android:layout_height=\"match_parent\"\n" +

@@ -310,7 +310,7 @@ public final class StudioFlags {
     "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
-    "Turns on the new \"Project Structure\" dialog.", true);
+    "Turns on the new \"Project Structure\" dialog.", false);
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
@@ -442,6 +442,12 @@ public final class StudioFlags {
     "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow.",
     true
   );
+
+  private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
+  public static final Flag<Boolean> THEME_EDITOR_ENABLED = Flag.create(
+    THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
+    "If enabled, a visual editor will be available for Android themes.",
+    false);
 
   private StudioFlags() {
   }
