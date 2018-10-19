@@ -53,7 +53,7 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
   @Nullable
   public Channel getChannel() {
     Channel res = null;
-    ChannelStatus channelStatus = ChannelStatus.fromCode(UpdateSettings.getInstance().getUpdateChannelType());
+    ChannelStatus channelStatus = UpdateSettings.getInstance().getSelectedChannelStatus();
     switch (channelStatus) {
       case RELEASE:
         res = Channel.create(0);
