@@ -25,5 +25,6 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.lang-databinding" />
   </component>
 </module>
