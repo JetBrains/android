@@ -757,6 +757,10 @@ public class InteractionManager {
           dragged = new ArrayList<>(mySurface.getSelectionModel().getSelection());
         }
         else {
+          if (item.isFromPalette()) {
+            // remove selection when dragging from Palette.
+            mySurface.getSelectionModel().clear();
+          }
           dragged = ApplicationManager.getApplication()
             .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(item, insertType, mySurface));
         }
