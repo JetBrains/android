@@ -17,16 +17,12 @@ package org.jetbrains.android.dom.motion;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "KeyFrameSet", packageName = "android.support.constraint")
-public interface KeyFrameSet extends MotionElement {
-  List<KeyAttribute> getKeyAttributes();
-  List<KeyCycle> getKeyCycles();
-  List<KeyPosition> getKeyPositions();
-  List<KeyTimeCycle> getKeyTimeCycles();
+@Styleable(value = "KeyTimeCycle", packageName = "android.support.constraint")
+public interface KeyTimeCycle extends MotionElement {
+  List<CustomAttribute> getCustomAttributes();
 }
