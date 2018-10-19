@@ -72,6 +72,16 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
+
+    val removedId = newChild.id ?: return
+
+    layout.children.filterNot { it == newChild }.forEach {
+      val anchor = it.getAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR) ?: return@forEach
+      if (NlComponent.extractId(anchor) == removedId) {
+        it.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
+        it.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
+      }
+    }
   }
 
   override fun createDragHandler(editor: ViewEditor,
