@@ -3,6 +3,7 @@ package org.jetbrains.android.augment;
 import com.android.builder.model.AaptOptions.Namespacing;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.ModuleRClass;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
@@ -77,7 +78,11 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
           }
 
           if (!existingInnerClasses.contains(resType.getName())) {
-            final AndroidLightInnerClassBase resClass = new ModuleResourceTypeClass(facet, Namespacing.DISABLED, resType, aClass);
+            final AndroidLightInnerClassBase resClass =
+              new ResourceRepositoryInnerRClass(facet,
+                                                resType,
+                                                new ModuleRClass.MainResources(facet, Namespacing.DISABLED),
+                                                aClass);
             result.add((Psi)resClass);
           }
         }
@@ -106,7 +111,11 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
           ResourceType resourceType = ResourceType.fromClassName(resClassName);
           if (resourceType != null) {
             final Set<String> existingFields = getOwnFields(aClass);
-            final PsiField[] newFields = ModuleResourceTypeClass.buildLocalResourceFields(facet, resourceType, Namespacing.DISABLED, aClass);
+            final PsiField[] newFields =
+              ResourceRepositoryInnerRClass.buildLocalResourceFields(facet,
+                                                                     resourceType,
+                                                                     new ModuleRClass.MainResources(facet, Namespacing.DISABLED),
+                                                                     aClass);
             final List<Psi> result = new ArrayList<>();
 
             for (PsiField field : newFields) {
