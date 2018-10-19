@@ -131,6 +131,7 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/idea/.idea/libraries:HdrHistogram",
         "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//tools/idea/.idea/libraries:Java_Compatibility",
     ],
 )
 
