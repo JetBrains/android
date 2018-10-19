@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.assetstudio;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.testutils.filesystemdiff.Action;
 import com.android.testutils.filesystemdiff.CreateDirectoryAction;
 import com.android.testutils.filesystemdiff.CreateFileAction;
@@ -23,32 +25,26 @@ import com.android.testutils.filesystemdiff.Script;
 import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testAdaptiveIconsPreviewPanelContents() throws Exception {
     AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()

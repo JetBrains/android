@@ -24,17 +24,21 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ColorPicker;
 import com.intellij.ui.components.JBLabel;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class NewImageAssetStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<NewImageAssetStepFixture, W> {
@@ -61,6 +65,7 @@ public class NewImageAssetStepFixture<W extends AbstractWizardFixture>
 
   public List<String> getPreviewPanelIconNames(int index) {
     JPanel panel = getPreviewPanels().get(index);
+    // It may take a while for the preview panel to appear since it involves initialization of Layoutlib and resource repositories.
     Wait.seconds(10).expecting("Icon preview showing").until(
       () -> !robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()).isEmpty());
     List<JPanel> iconPanels = Lists.newArrayList(robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()));
