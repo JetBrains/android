@@ -228,7 +228,9 @@ public class NlReferenceEditor extends BaseComponentEditor {
             UIUtil.invokeLaterIfNeeded(() -> {
               if (!getText().equals(StringUtil.notNullize(property.getValue()))) {
                 Project project = property.getModel().getProject();
-                AutoPopupController.getInstance(project).scheduleAutoPopup(myTextEditorWithAutoCompletion.getEditor());
+                if (!project.isDisposed() && myTextEditorWithAutoCompletion.editorHasFocus()) {
+                  AutoPopupController.getInstance(project).scheduleAutoPopup(myTextEditorWithAutoCompletion.getEditor());
+                }
               }
             });
           }
