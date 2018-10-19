@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -74,7 +75,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     @Override
     @NotNull
     public List<File> getResDirectories() {
-      return ImmutableList.of(new File(getModuleRoot(), "res"));
+      return ImmutableList.of(new File("/other/root"), new File(getModuleRoot(), "res"));
     }
 
     @Override
@@ -136,7 +137,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
   }
 
   private void checkGeneratedIcons(String[] expectedFilenames) throws IOException {
-    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(myProjectPaths);
+    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(getResDirectory(myProjectPaths));
     Set<File> unexpectedFiles = new HashSet<>(pathIconMap.keySet());
     File goldenDir = new File(FileUtil.join(getTestDataPath(), getTestName(true), "golden"));
     for (String filename : expectedFilenames) {
