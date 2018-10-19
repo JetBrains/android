@@ -15,11 +15,24 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
-import com.android.tools.idea.npw.assetstudio.*;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
+import com.android.tools.idea.npw.assetstudio.GraphicGeneratorContext;
+import com.android.tools.idea.npw.assetstudio.IconCategory;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -27,15 +40,12 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -52,24 +62,33 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -387,13 +406,13 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
     myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = Iterables.getFirst(template.getPaths().getResDirectories(), null);
-      if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
+      File resDirectory = getResDirectory(template.getPaths());
+      if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
         return;
       }
 
       myFilesAlreadyExist.set(false);
-      myPathToPreviewImage = iconGenerator.generateIntoIconMap(template.getPaths());
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(resDirectory);
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since
@@ -401,7 +420,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       Set<File> outputDirectories = myPathToPreviewImage.keySet()
         .stream()
         .flatMap(x -> {
-          File root = resDir.getParentFile();
+          File root = resDirectory.getParentFile();
           List<File> directories = new ArrayList<>();
           File f = x.getParentFile();
           while (f != null && !Objects.equals(f, root)) {
@@ -417,7 +436,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         .orderedBy(new DensityAwareFileComparator(outputDirectories))
         .addAll(myPathToPreviewImage.keySet())
         .build();
-      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDir.getParentFile(), proposedFiles);
+      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), proposedFiles);
 
       myFilesAlreadyExist.set(treeModel.hasConflicts());
       myOutputPreviewTree.setModel(treeModel);
