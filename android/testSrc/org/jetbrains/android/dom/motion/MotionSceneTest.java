@@ -45,7 +45,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testKeyFrameSetSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "KeyAttribute", "KeyCycle", "KeyPosition");
+    doTestCompletionVariants(getTestName(true) + ".xml", "KeyAttribute", "KeyCycle", "KeyPosition", "KeyTimeCycle");
   }
 
   public void testKeyAttributeSubTags() throws Throwable {
@@ -53,6 +53,10 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testKeyCycleSubTags() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "CustomAttribute");
+  }
+
+  public void testKeyTimeCycleSubTags() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "CustomAttribute");
   }
 
