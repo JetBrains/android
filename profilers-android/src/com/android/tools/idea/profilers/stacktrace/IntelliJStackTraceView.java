@@ -36,13 +36,11 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
-import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -268,12 +266,6 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
                                          int index,
                                          boolean selected,
                                          boolean hasFocus) {
-      // Fix GTK background
-      if (UIUtil.isUnderGTKLookAndFeel()) {
-        final Color background = selected ? UIUtil.getTreeSelectionBackground() : UIUtil.getTreeTextBackground();
-        UIUtil.changeBackGround(this, background);
-      }
-
       if (value == null) {
         return;
       }

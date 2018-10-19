@@ -100,4 +100,9 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   public static AndroidJUnitConfigurationType getInstance() {
     return ConfigurationTypeUtil.findConfigurationType(AndroidJUnitConfigurationType.class);
   }
+
+  @Override
+  public String getHelpTopic() {
+    return "reference.dialogs.rundebug.AndroidJUnit";
+  }
 }
