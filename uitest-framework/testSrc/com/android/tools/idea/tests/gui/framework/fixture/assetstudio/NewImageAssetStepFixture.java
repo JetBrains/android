@@ -61,7 +61,7 @@ public class NewImageAssetStepFixture<W extends AbstractWizardFixture>
 
   public List<String> getPreviewPanelIconNames(int index) {
     JPanel panel = getPreviewPanels().get(index);
-    Wait.seconds(1).expecting("Icon preview showing").until(
+    Wait.seconds(10).expecting("Icon preview showing").until(
       () -> !robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()).isEmpty());
     List<JPanel> iconPanels = Lists.newArrayList(robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()));
     List<String> names = new ArrayList<>();
