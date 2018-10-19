@@ -376,6 +376,7 @@
     <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
                         serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.run.database.DexArchiveDatabaseService" />
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />

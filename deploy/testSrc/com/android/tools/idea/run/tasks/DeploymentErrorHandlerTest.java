@@ -18,16 +18,16 @@ package com.android.tools.idea.run.tasks;
 import static com.android.tools.deployer.PreswapCheck.MODIFYING_ANDROID_MANIFEST_XML_FILES_NOT_SUPPORTED;
 import static com.android.tools.deployer.PreswapCheck.RESOURCE_MODIFICATION_NOT_ALLOWED;
 import static com.android.tools.deployer.PreswapCheck.STATIC_LIB_MODIFIED_ERROR;
-import static com.android.tools.idea.run.tasks.UnifiedDeployTask.APPLY_CHANGES_OPTION;
+import static com.android.tools.idea.run.tasks.DeploymentErrorHandler.APPLY_CHANGES_OPTION;
 import static com.android.tools.idea.run.tasks.UnifiedDeployTask.DeployType.CODE_SWAP;
 import static com.android.tools.idea.run.tasks.UnifiedDeployTask.DeployType.FULL_SWAP;
-import static com.android.tools.idea.run.tasks.UnifiedDeployTask.RERUN_OPTION;
+import static com.android.tools.idea.run.tasks.DeploymentErrorHandler.RERUN_OPTION;
 import static com.google.common.truth.Truth.assertThat;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-public class UnifiedDeployTaskTest {
+public class DeploymentErrorHandlerTest {
   @Test
   public void ensureErrorFormatterCorrectness() {
     checkEquivalentFormattedDeploymentErrors("", false);
@@ -48,12 +48,12 @@ public class UnifiedDeployTaskTest {
       String.join("\n", STATIC_LIB_MODIFIED_ERROR, MODIFYING_ANDROID_MANIFEST_XML_FILES_NOT_SUPPORTED, RESOURCE_MODIFICATION_NOT_ALLOWED),
       false);
 
-    String result = UnifiedDeployTask.formatDeploymentErrors(CODE_SWAP, RESOURCE_MODIFICATION_NOT_ALLOWED);
+    String result = new DeploymentErrorHandler(CODE_SWAP, RESOURCE_MODIFICATION_NOT_ALLOWED).getFormattedErrorString();
     assertThat(result).contains(APPLY_CHANGES_OPTION);
   }
 
   private void checkEquivalentFormattedDeploymentErrors(@NotNull String errorString, boolean containsApplyChanges) {
-    String result = UnifiedDeployTask.formatDeploymentErrors(CODE_SWAP, errorString);
+    String result = new DeploymentErrorHandler(CODE_SWAP, errorString).getFormattedErrorString();
     assertThat(result).contains(RERUN_OPTION);
     if (containsApplyChanges) {
       assertThat(result).contains(APPLY_CHANGES_OPTION);
@@ -62,7 +62,7 @@ public class UnifiedDeployTaskTest {
       assertThat(result).doesNotContain(APPLY_CHANGES_OPTION);
     }
 
-    result = UnifiedDeployTask.formatDeploymentErrors(FULL_SWAP, errorString);
+    result = new DeploymentErrorHandler(FULL_SWAP, errorString).getFormattedErrorString();
     assertThat(result).contains(RERUN_OPTION);
     if (containsApplyChanges) {
       assertThat(result).contains(APPLY_CHANGES_OPTION);
