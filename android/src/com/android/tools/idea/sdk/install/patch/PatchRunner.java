@@ -79,7 +79,7 @@ public class PatchRunner {
     throws RestartRequiredException {
     Object ui;
     try {
-      ui = myUiClass.getConstructor(Component.class, ProgressIndicator.class).newInstance(null, progress);
+      ui = myUiClass.getDeclaredConstructor(Component.class, ProgressIndicator.class).newInstance(null, progress);
     }
     catch (ReflectiveOperationException e) {
       progress.logWarning("Failed to create updater UI!", e);

@@ -77,6 +77,7 @@ public class CapturesTreeStructure extends SimpleTreeStructure {
     return myCaptureNodes.get(capture);
   }
 
+  @NotNull
   @Override
   public Object getRootElement() {
     return myRoot;

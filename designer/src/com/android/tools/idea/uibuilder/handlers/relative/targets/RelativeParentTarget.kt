@@ -29,8 +29,8 @@ import com.intellij.ui.JBColor
 import java.awt.BasicStroke
 import java.awt.Graphics2D
 
-const private val DEBUG = false
-const private val NOTCH_GAP_SIZE = 10
+private const val DEBUG = false
+private const val NOTCH_GAP_SIZE = 10
 
 private val DRAW_LINE_STROKE = BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER)
 

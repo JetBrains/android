@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.intellij.icons.AllIcons.General.ExternalToolsSmall;
+import static com.intellij.icons.AllIcons.General.ExternalTools;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
@@ -96,7 +96,7 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.setPresentableText("External Build Files");
-    presentation.setIcon(ExternalToolsSmall);
+    presentation.setIcon(ExternalTools);
   }
 
   @Nullable

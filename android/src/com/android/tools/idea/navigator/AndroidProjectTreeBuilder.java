@@ -97,11 +97,7 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
    */
   @Nullable
   @Override
-  protected Object findNodeByElement(@Nullable Object element) {
-    if (element == null) {
-      return null;
-    }
-
+  protected Object findNodeByElement(@NotNull Object element) {
     Object node = super.findNodeByElement(element);
     if (node != null) {
       return node;
@@ -125,7 +121,8 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
     }
 
     // recurse and find the tree node corresponding to the parent
-    Object parentNode = findNodeByElement(treeNode.getParent());
+    AbstractTreeNode parent = treeNode.getParent();
+    Object parentNode = parent == null ? null : findNodeByElement(parent);
     if (!(parentNode instanceof DefaultMutableTreeNode)) {
       return null;
     }
