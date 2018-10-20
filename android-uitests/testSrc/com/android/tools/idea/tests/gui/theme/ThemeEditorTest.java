@@ -32,6 +32,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +75,7 @@ public class ThemeEditorTest {
     }
   }
 
+  @Ignore("b/117516713")
   @Test
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
