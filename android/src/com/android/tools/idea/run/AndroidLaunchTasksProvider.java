@@ -26,6 +26,8 @@ import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.*;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -42,8 +44,6 @@ import java.util.function.Function;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
-import static com.android.tools.idea.run.ui.ApplyChangesAction.APPLY_CHANGES;
-import static com.android.tools.idea.run.ui.CodeSwapAction.CODE_SWAP;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -103,8 +103,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
       boolean launchApp = true;
       if (StudioFlags.JVMTI_REFRESH.get()) {
-        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES)) ||
-            Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
+        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(ApplyChangesAction.KEY)) ||
+            Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY))) {
           launchApp = false;
         }
       }
@@ -171,10 +171,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       // Use JVMTI deployment if it is enabled and supported.
       if (StudioFlags.JVMTI_REFRESH.get() && device.getVersion().getApiLevel() >= UnifiedDeployTask.MIN_API_VERSION) {
         UnifiedDeployTask.DeployType type = UnifiedDeployTask.DeployType.INSTALL;
-        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES))) {
+        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(ApplyChangesAction.KEY))) {
           type = UnifiedDeployTask.DeployType.FULL_SWAP;
         }
-        else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
+        else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY))) {
           type = UnifiedDeployTask.DeployType.CODE_SWAP;
         }
         return ImmutableList.of(new UnifiedDeployTask(myProject, myApkProvider.getApks(device), type));

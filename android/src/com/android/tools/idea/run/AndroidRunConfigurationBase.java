@@ -605,7 +605,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           myAndroidTests,
           getDeployTargetContext().getDeployTargetStates(),
           getUniqueID(),
-          LaunchCompatibilityCheckerImpl.create(facet)
+          LaunchCompatibilityCheckerImpl.create(facet, env, this)
         );
       if (deployTarget == null) {
         return null;
