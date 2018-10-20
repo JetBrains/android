@@ -235,6 +235,8 @@ public class LintIdeProject extends Project {
       return;
     }
 
+    project.setIdeaProject(module.getProject());
+
     projects.add(project);
     moduleMap.put(module, project);
     projectMap.put(project, module);
