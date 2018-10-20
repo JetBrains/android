@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.quickfix
 
 import com.android.SdkConstants
-import com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION
+import com.android.tools.lint.checks.ApiDetector.Companion.REQUIRES_API_ANNOTATION
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
