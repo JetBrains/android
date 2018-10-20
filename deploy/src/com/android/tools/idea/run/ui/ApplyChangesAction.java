@@ -15,22 +15,8 @@
  */
 package com.android.tools.idea.run.ui;
 
-import com.android.tools.deployer.Trace;
-import com.intellij.execution.Executor;
-import com.intellij.execution.ProgramRunnerUtil;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
@@ -38,88 +24,20 @@ import icons.StudioIcons;
 import java.util.function.Function;
 import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ApplyChangesAction extends AnAction {
+public class ApplyChangesAction extends BaseAction {
 
   public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final Key<Boolean> APPLY_CHANGES = Key.create(ID);
+  public static final Key<Boolean> KEY = Key.create(ID);
 
   public static final String NAME = "Apply Changes";
-
-  private static final Logger LOG = Logger.getInstance(ApplyChangesAction.class);
 
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
 
-  @NotNull private final Function<Project, Boolean> myShouldEnableApplyChangesProvider;
-
   public ApplyChangesAction(@NotNull Function<Project, Boolean> shouldEnableApplyChangesProvider) {
-    super(NAME, NAME, StudioIcons.Shell.Toolbar.INSTANT_RUN);
-    myShouldEnableApplyChangesProvider = shouldEnableApplyChangesProvider;
-
-    KeymapManager manager = KeymapManager.getInstance();
-    if (manager != null) {
-      final Keymap keymap = manager.getActiveKeymap();
-      if (keymap != null) {
-        keymap.addShortcut(ID, SHORTCUT);
-      }
-    }
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent e) {
-    Presentation presentation = e.getPresentation();
-
-    if (e.getProject() == null) {
-      presentation.setEnabled(false);
-      return;
-    }
-    presentation.setEnabled(myShouldEnableApplyChangesProvider.apply(e.getProject()));
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project == null) {
-      LOG.warn(NAME + " action performed with no project");
-      return;
-    }
-
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
-    if (settings == null) {
-      LOG.warn(NAME + " action could not locate current run config settings");
-      return;
-    }
-
-    // TODO: Figure out the debugger flow. For now always use the Run executor.
-    Executor executor = getExecutor(DefaultRunExecutor.EXECUTOR_ID);
-    if (executor == null) {
-      LOG.warn(NAME + " action could not identify executor");
-      return;
-    }
-
-    ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.createOrNull(executor, settings);
-    if (builder == null) {
-      LOG.warn(NAME + " action could not construct an env");
-      return;
-    }
-    ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
-
-    env.putCopyableUserData(APPLY_CHANGES, true);
-    ProgramRunnerUtil.executeConfiguration(env, false, true);
-  }
-
-  @Nullable
-  private static Executor getExecutor(@NotNull String executorId) {
-    for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensions()) {
-      if (executorId.equals(executor.getId())) {
-        return executor;
-      }
-    }
-
-    return null;
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN, SHORTCUT, shouldEnableApplyChangesProvider);
   }
 }
 
