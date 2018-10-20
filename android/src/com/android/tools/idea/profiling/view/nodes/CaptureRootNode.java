@@ -34,6 +34,7 @@ public class CaptureRootNode extends SimpleNode {
     myTypes = new SortedList<>((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
   }
 
+  @NotNull
   @Override
   public SimpleNode[] getChildren() {
     // TODO(b/112073094): the list is flattened because it only displays one type of node (Layout Inspector). If this panel is used to

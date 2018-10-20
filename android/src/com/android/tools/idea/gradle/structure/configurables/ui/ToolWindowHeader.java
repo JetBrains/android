@@ -34,9 +34,7 @@ import java.awt.event.FocusEvent;
 import java.util.EventListener;
 import java.util.List;
 
-import static com.intellij.icons.AllIcons.General.HideLeft;
-import static com.intellij.icons.AllIcons.General.HideRight;
-import static com.intellij.openapi.wm.ToolWindowAnchor.LEFT;
+import static com.intellij.icons.AllIcons.General.HideToolWindow;
 import static javax.swing.SwingUtilities.isDescendingFrom;
 
 public class ToolWindowHeader extends Header implements Disposable {
@@ -83,8 +81,7 @@ public class ToolWindowHeader extends Header implements Disposable {
     myIcon = icon;
     myAnchor = anchor;
     if (myAnchor != null) {
-      Icon minimizeIcon = myAnchor == LEFT ? HideLeft : HideRight; // We don't support TOP or BOTTOM
-      myMinimizeAction = new DumbAwareAction("Hide", "", minimizeIcon) {
+      myMinimizeAction = new DumbAwareAction("Hide", "", HideToolWindow) {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
           myEventDispatcher.getMulticaster().minimized();

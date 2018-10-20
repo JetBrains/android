@@ -25,7 +25,7 @@ import com.intellij.openapi.components.ProjectComponent
  * Facility for providing [NlComponentEditor]s for [NlProperty]s.
  */
 abstract class PropertyEditors : ProjectComponent, LafManagerListener, Disposable {
-  abstract protected fun resetCachedEditors()
+  protected abstract fun resetCachedEditors()
 
   abstract fun create(property: NlProperty): NlComponentEditor
 

@@ -24,20 +24,18 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 
 public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
+  @NotNull
   @Override
-  public Object[] getChildElements(Object element) {
+  public Object[] getChildElements(@NotNull Object element) {
     if (element instanceof SimpleNode) {
-      SimpleNode[] children = ((SimpleNode)element).getChildren();
-      if (children != null) {
-        return children;
-      }
+      return ((SimpleNode)element).getChildren();
     }
     return EMPTY_OBJECT_ARRAY;
   }
 
   @Override
   @Nullable
-  public Object getParentElement(Object element) {
+  public Object getParentElement(@NotNull Object element) {
     if (element instanceof NodeDescriptor) {
       return ((NodeDescriptor)element).getParentDescriptor();
     }
@@ -46,7 +44,7 @@ public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
 
   @Override
   @NotNull
-  public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
+  public NodeDescriptor createDescriptor(@NotNull Object element, NodeDescriptor parentDescriptor) {
     if (element instanceof NodeDescriptor) {
       return (NodeDescriptor)element;
     }

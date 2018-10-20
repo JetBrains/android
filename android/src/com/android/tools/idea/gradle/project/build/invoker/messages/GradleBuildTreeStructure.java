@@ -60,8 +60,9 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
     return myGroupNameToMessagesMap.get(groupingElement.getName()).size();
   }
 
+  @NotNull
   @Override
-  public ErrorTreeElement[] getChildElements(Object element) {
+  public ErrorTreeElement[] getChildElements(@NotNull Object element) {
     if (element instanceof ErrorTreeElement && element.getClass().getName().contains("MyRootElement")) {
       List<ErrorTreeElement> messages = Lists.newArrayListWithExpectedSize(myMessages.size());
       for (ErrorTreeElement message : myMessages) {
