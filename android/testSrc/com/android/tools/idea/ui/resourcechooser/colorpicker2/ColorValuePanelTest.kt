@@ -141,7 +141,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     panel.colorField3.text = "100"
     panel.alphaField.text = "50"
 
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals(Color(200, 150, 100, 50), model.color)
 
@@ -162,7 +162,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     panel.currentAlphaFormat = AlphaFormat.BYTE
     panel.currentColorFormat = ColorFormat.RGB
     panel.hexField.text = "10ABCDEF"
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals(Color(0xAB, 0xCD, 0xEF, 0x10), model.color)
 
@@ -216,7 +216,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     panel.colorField3.text = "30"
     panel.alphaField.text = "200"
 
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     val rgbValue = Color.HSBtoRGB(180 / 360f, 50 / 100f, 30 / 100f)
     val color = Color((200 shl 24) or (0x00FFFFFF and rgbValue), true)
@@ -232,7 +232,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     panel.currentAlphaFormat = AlphaFormat.BYTE
     panel.currentColorFormat = ColorFormat.HSB
     panel.hexField.text = "10ABCDEF"
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals(Color(0xAB, 0xCD, 0xEF, 0x10), model.color)
 
@@ -258,7 +258,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     model.setColor(Color(0xFF, 0xFF, 0xFF, 0xFF), null)
 
     panel.alphaField.text = "200"
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals(200, model.color.alpha)
   }
@@ -272,7 +272,7 @@ class ColorValuePanelTest : IdeaTestCase() {
     model.setColor(Color(0xFF, 0xFF, 0xFF, 0xFF), null)
 
     panel.alphaField.text = "50"
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals(0x80, model.color.alpha)
   }
@@ -284,7 +284,7 @@ class ColorValuePanelTest : IdeaTestCase() {
 
     panel.currentAlphaFormat = AlphaFormat.BYTE
     panel.hexField.text = "10ABCDEF"
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals("16", panel.alphaField.text)
   }
@@ -296,7 +296,7 @@ class ColorValuePanelTest : IdeaTestCase() {
 
     panel.currentAlphaFormat = AlphaFormat.BYTE
     panel.hexField.text = "80ABCDEF"
-    panel.updateAlarm.flush()
+    panel.updateAlarm.drainRequestsInTest()
 
     assertEquals("128", panel.alphaField.text)
   }
