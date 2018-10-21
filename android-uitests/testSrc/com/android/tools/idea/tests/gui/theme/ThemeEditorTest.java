@@ -48,6 +48,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Unit test for the layout theme editor
  */
+@Ignore("b/117516713")
 @RunIn(TestGroup.THEME)
 @RunWith(GuiTestRemoteRunner.class)
 public class ThemeEditorTest {
@@ -75,7 +76,6 @@ public class ThemeEditorTest {
     }
   }
 
-  @Ignore("b/117516713")
   @Test
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
