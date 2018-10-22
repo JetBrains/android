@@ -312,7 +312,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
     TimeResponse times;
     try {
-      times = myServiceStub.getCurrentTime(TimeRequest.newBuilder().setDeviceId(myProfilerDevice.getDeviceId()).build());
+      times = myServiceStub.getCurrentTime(TimeRequest.newBuilder().setStreamId(myProfilerDevice.getDeviceId()).build());
     }
     catch (Exception e) {
       // Most likely the destination server went down, and we're in shut down/disconnect mode.

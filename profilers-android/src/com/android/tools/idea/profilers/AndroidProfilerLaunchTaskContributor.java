@@ -437,7 +437,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       }
 
       Profiler.TimeResponse timeResponse = profilerService.getProfilerClient().getProfilerClient().getCurrentTime(
-        Profiler.TimeRequest.newBuilder().setDeviceId(deviceId).build());
+        Profiler.TimeRequest.newBuilder().setStreamId(deviceId).build());
       if (!Profiler.TimeResponse.getDefaultInstance().equals(timeResponse)) {
         // Found a valid time response, sets that as the time for detecting when the process is next launched.
         startTimeNs = timeResponse.getTimestampNs();

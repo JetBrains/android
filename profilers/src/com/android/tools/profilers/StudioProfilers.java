@@ -192,7 +192,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         // The session is live - move the timeline to the current time.
         TimeResponse timeResponse = myClient.getProfilerClient()
                                             .getCurrentTime(
-                                              TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
+                                              TimeRequest.newBuilder().setStreamId(mySelectedSession.getDeviceId()).build());
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         if (startupCpuProfilingStarted()) {

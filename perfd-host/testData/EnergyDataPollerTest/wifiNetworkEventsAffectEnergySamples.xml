@@ -24,11 +24,11 @@
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
-        <Message>device_id: 1234
+        <Message>stream_id: 1234
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>device_id: 1234
+        <message>stream_id: 1234
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
@@ -60,11 +60,11 @@
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
-        <Message>device_id: 1234
+        <Message>stream_id: 1234
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>device_id: 1234
+        <message>stream_id: 1234
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
@@ -140,11 +140,11 @@
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
-        <Message>device_id: 1234
+        <Message>stream_id: 1234
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>device_id: 1234
+        <message>stream_id: 1234
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">

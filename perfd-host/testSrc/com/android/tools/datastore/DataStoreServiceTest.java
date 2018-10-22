@@ -108,7 +108,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       myDataStore.getProfilerClient(DeviceId.of(DEVICE.getDeviceId()));
-    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
+    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
   }
 
@@ -118,7 +118,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
-    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
+    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
     myDataStore.disconnect(DeviceId.of(DEVICE.getDeviceId()));
     myExpectedException.expect(StatusRuntimeException.class);

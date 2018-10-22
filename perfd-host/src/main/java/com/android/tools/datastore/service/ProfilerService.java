@@ -116,8 +116,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
+    long streamId = request.getStreamId();
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
-      myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+      myStreamIdToStub.containsKey(streamId) ? myStreamIdToStub.get(streamId) : myService.getProfilerClient(DeviceId.of(streamId));
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
     }
@@ -130,8 +131,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getVersion(VersionRequest request, StreamObserver<VersionResponse> observer) {
+    long streamId = request.getStreamId();
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
-      myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+      myStreamIdToStub.containsKey(streamId) ? myStreamIdToStub.get(streamId) : myService.getProfilerClient(DeviceId.of(streamId));
     if (client != null) {
       observer.onNext(client.getVersion(request));
     }
@@ -161,6 +163,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   @Override
   public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myStreamIdToStub.containsKey(request.getDeviceId()) ? myStreamIdToStub.get(request.getDeviceId()) :
       myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
 
     if (client != null) {
