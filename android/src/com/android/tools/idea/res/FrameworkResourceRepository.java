@@ -151,12 +151,15 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    */
   @NotNull
   public static FrameworkResourceRepository create(@NotNull File resFolder, boolean withLocaleResources, boolean usePersistentCache) {
+    LOG.debug("Creating FrameworkResourceRepository for " + resFolder);
+
     FrameworkResourceRepository repository = new FrameworkResourceRepository(resFolder, withLocaleResources);
     // Try to load from file cache first. Loading from cache is significantly faster than reading resource files.
     if (usePersistentCache && repository.loadFromPersistentCache()) {
       return repository;
     }
 
+    LOG.debug("Loading FrameworkResourceRepository from sources in " + resFolder);
     ResourceSet resourceSet = new FrameworkResourceSet(resFolder, withLocaleResources);
 
     try {

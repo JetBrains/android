@@ -18,7 +18,11 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
@@ -27,7 +31,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.FrameworkResourceRepository;
+import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -36,18 +40,23 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -71,7 +80,6 @@ public class AndroidTargetData {
   private TIntObjectHashMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
-  private FrameworkResourceRepository myFrameworkResources;
 
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -233,20 +241,13 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(boolean withLocale) {
-    // If the framework resources that we got was created by someone else who didn't need locale data.
-    if (myFrameworkResources != null && withLocale && !myFrameworkResources.isWithLocaleResources()) {
-      myFrameworkResources = null;
+    File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
+    if (!resFolder.isDirectory()) {
+      LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
+      return null;
     }
-    if (myFrameworkResources == null) {
-      File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
-      if (!resFolder.isDirectory()) {
-        LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
-        return null;
-      }
 
-      myFrameworkResources = FrameworkResourceRepository.create(resFolder, withLocale, true);
-    }
-    return myFrameworkResources;
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolder, withLocale);
   }
 
   /**
