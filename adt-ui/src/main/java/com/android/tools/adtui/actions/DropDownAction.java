@@ -40,6 +40,23 @@ import java.awt.*;
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
+  private static final Icon BLANK_ICON = new Icon() {
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+
+    }
+
+    @Override
+    public int getIconWidth() {
+      return 0;
+    }
+
+    @Override
+    public int getIconHeight() {
+      return 0;
+    }
+  };
+
   @Nullable private JBPopup myCurrentPopup = null;
 
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
@@ -51,8 +68,8 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
       presentation.setIcon(icon);
     }
     else {
-      presentation.setIcon(EmptyIcon.ICON_0);
-      presentation.setDisabledIcon(EmptyIcon.ICON_0);
+      presentation.setIcon(BLANK_ICON);
+      presentation.setDisabledIcon(BLANK_ICON);
     }
   }
 
