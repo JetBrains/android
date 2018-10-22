@@ -24,13 +24,14 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.aar.AarResourceRepository
 import com.android.tools.idea.res.resolveDrawable
-import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
@@ -46,20 +47,36 @@ private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.CO
  * to manage resources in the provided [facet].
  */
 class ProjectResourcesBrowserViewModel(
-  facet: AndroidFacet,
-  synchronizationManager: SynchronizationManager
-) {
+  facet: AndroidFacet
+) : Disposable {
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
    */
-  var updateCallback: (() -> Unit)? = null
+  var resourceChangedCallback: (() -> Unit)? = null
 
-  var facet by Delegates.observable(facet) { _, _, newFacet ->
-    updateCallback?.invoke()
-    dataManager.facet = newFacet
-  }
-  val resourceResolver = createResourceResolver(facet)
+  var facet by Delegates.observable(facet) { _, oldFacet, newFacet -> facetUpdated(newFacet, oldFacet) }
+
+  private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
+
+  private val resourceNotificationManager: ResourceNotificationManager = ResourceNotificationManager(facet.module.project)
+
   private val dataManager = ResourceDataManager(facet)
+
+  private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
+    if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
+      // We don't want to update all resources for every resource file edit.
+      // TODO cache the resources, notify the view to only update the rendering of the edited resource.
+      return@ResourceChangeListener
+    }
+    val currentVersion = resourceNotificationManager.getCurrentVersion(facet, null, null)
+    if (resourceVersion == currentVersion) {
+      return@ResourceChangeListener
+    }
+    resourceVersion = currentVersion
+    resourceChangedCallback?.invoke()
+  }
+
+  var resourceResolver = createResourceResolver(facet)
 
   /**
    * The index in [resourceTypes] of the resource type being used.
@@ -68,11 +85,33 @@ class ProjectResourcesBrowserViewModel(
     set(value) {
       if (value in 0 until resourceTypes.size) {
         field = value
-        updateCallback?.invoke()
+        resourceChangedCallback?.invoke()
       }
     }
 
   val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
+
+  init {
+    subscribeListener(facet)
+  }
+
+  private fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
+    resourceResolver = createResourceResolver(newFacet)
+    unsubscribeListener(oldFacet)
+    subscribeListener(newFacet)
+    dataManager.facet = newFacet
+    resourceChangedCallback?.invoke()
+  }
+
+  private fun subscribeListener(facet: AndroidFacet) {
+    ResourceNotificationManager.getInstance(facet.module.project)
+      .addListener(resourceNotificationListener, facet, null, null)
+  }
+
+  private fun unsubscribeListener(oldFacet: AndroidFacet) {
+    ResourceNotificationManager.getInstance(oldFacet.module.project)
+      .removeListener(resourceNotificationListener, oldFacet, null, null)
+  }
 
   /**
    * Returns a preview of the [DesignAsset].
@@ -134,6 +173,10 @@ class ProjectResourcesBrowserViewModel(
       .map { (libName, resourceItems) -> createResourceSection(resourceType, libName, resourceItems) }
       .toList()
     return listOf(moduleResources) + librariesResources
+  }
+
+  override fun dispose() {
+    unsubscribeListener(facet)
   }
 
   fun getData(dataId: String?, selectedAssets: List<DesignAssetSet>): Any? {

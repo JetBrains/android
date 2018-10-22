@@ -176,7 +176,7 @@ class ResourceExplorerView(
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
-    resourcesBrowserViewModel.updateCallback = ::populateResourcesLists
+    resourcesBrowserViewModel.resourceChangedCallback = ::populateResourcesLists
     populateResourcesLists()
 
     add(headerPanel, BorderLayout.NORTH)
@@ -185,18 +185,35 @@ class ResourceExplorerView(
   }
 
   private fun populateResourcesLists() {
+    val selectedValue = sectionList.selectedValue
+    val selectedIndices = sectionList.selectedIndices
+
     sectionListModel.clear()
-    resourcesBrowserViewModel.getResourcesLists()
+    val sections = resourcesBrowserViewModel.getResourcesLists()
       .filterNot { it.assets.isEmpty() }
-      .forEach { (type, libName, assets): ResourceSection ->
-        sectionListModel.addSection(AssetSection(libName, AssetListView(assets).apply {
+      .map { (type, libName, assets): ResourceSection ->
+        AssetSection(libName, AssetListView(assets).apply {
           cellRenderer = getRendererForType(type, this)
           dragHandler.registerSource(this)
           addMouseListener(popupHandler)
           thumbnailWidth = this@ResourceExplorerView.previewSize
           isGridMode = this@ResourceExplorerView.gridMode
-        }))
+        })
+      }.toList()
+    sectionListModel.addSections(sections)
+
+
+    // Attempt to reselect the previously selected element
+    if (selectedValue != null) {
+      // If the value still exist in the list, just reselect it
+      sectionList.selectedValue = selectedValue
+
+      // Otherwise, like if the selected resource was renamed, we reselect the element
+      // based on the indexes
+      if (sectionList.selectedIndex == null) {
+        sectionList.selectedIndices = selectedIndices
       }
+    }
   }
 
   private fun createSectionListCellRenderer(): ListCellRenderer<Section<*>> {

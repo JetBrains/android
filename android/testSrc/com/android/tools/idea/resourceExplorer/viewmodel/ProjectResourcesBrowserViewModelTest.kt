@@ -17,12 +17,12 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.resourceExplorer.getPNGFile
 import com.android.tools.idea.resourceExplorer.getPNGResourceItem
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
-import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -115,8 +115,6 @@ class ProjectResourcesBrowserViewModelTest {
 
   private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
     val facet = AndroidFacet.getInstance(module)!!
-    val synchronizationManager = SynchronizationManager(facet)
-    Disposer.register(disposable, synchronizationManager)
-    return ProjectResourcesBrowserViewModel(facet, synchronizationManager)
+    return ProjectResourcesBrowserViewModel(facet)
   }
 }
