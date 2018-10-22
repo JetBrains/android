@@ -32,7 +32,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +47,6 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Unit test for the layout theme editor
  */
-@Ignore("b/117516713")
 @RunIn(TestGroup.THEME)
 @RunWith(GuiTestRemoteRunner.class)
 public class ThemeEditorTest {
