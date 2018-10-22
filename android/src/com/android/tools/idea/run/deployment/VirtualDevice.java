@@ -23,11 +23,13 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -145,15 +147,21 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  AndroidDevice toAndroidDevice() {
-    if (myConnected) {
-      IDevice device = getDdmlibDevice();
-      assert device != null;
+  DeviceFutures newDeviceFutures(@NotNull Project project) {
+    AndroidDevice androidDevice;
 
-      return new ConnectedAndroidDevice(device, Collections.singletonList(myAvdInfo));
+    if (myConnected) {
+      IDevice ddmlibDevice = getDdmlibDevice();
+      assert ddmlibDevice != null;
+
+      androidDevice = new ConnectedAndroidDevice(ddmlibDevice, Collections.singletonList(myAvdInfo));
+    }
+    else {
+      androidDevice = new LaunchableAndroidDevice(myAvdInfo);
+      androidDevice.launch(project);
     }
 
-    return new LaunchableAndroidDevice(myAvdInfo);
+    return new DeviceFutures(Collections.singletonList(androidDevice));
   }
 
   @Override

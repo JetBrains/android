@@ -23,7 +23,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.ActionManager;
-import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +52,6 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
     Device device = ((DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox")).getSelectedDevice();
     assert device != null;
 
-    return new DeviceFutures(Collections.singletonList(device.toAndroidDevice()));
+    return device.newDeviceFutures(facet.getModule().getProject());
   }
 }

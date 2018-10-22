@@ -18,12 +18,14 @@ package com.android.tools.idea.run.deployment;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNameProperties;
-import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
+import java.util.Collections;
 import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -76,11 +78,11 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  AndroidDevice toAndroidDevice() {
+  DeviceFutures newDeviceFutures(@NotNull Project project) {
     IDevice device = getDdmlibDevice();
     assert device != null;
 
-    return new ConnectedAndroidDevice(device, null);
+    return new DeviceFutures(Collections.singletonList(new ConnectedAndroidDevice(device, null)));
   }
 
   @Override
