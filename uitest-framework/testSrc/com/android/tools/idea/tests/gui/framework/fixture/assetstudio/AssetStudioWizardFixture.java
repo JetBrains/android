@@ -24,6 +24,9 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.fields.ExtendableTextField;
+import javax.swing.text.JTextComponent;
+import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JSliderFixture;
@@ -116,6 +119,17 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
     FileChooserDialogFixture.findDialog(robot(), "Select Path")
       .select(file)
       .clickOk();
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture useLocalFile(@NotNull String localFilePath) {
+    switchToLocalFile();
+
+    ExtendableTextField extendableTextField = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(ExtendableTextField.class));
+    JTextComponent jTextComponent = robot().finder().find(extendableTextField, JTextComponentMatcher.any());
+    new JTextComponentFixture(robot(), jTextComponent).selectAll().enterText(localFilePath);
+
     return this;
   }
 
