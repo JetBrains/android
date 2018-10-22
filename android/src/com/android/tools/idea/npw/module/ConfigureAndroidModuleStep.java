@@ -165,9 +165,9 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected void onEntering() {
     // TODO: The old version only loaded the list of version once, and kept everything on a static field
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
-    myAndroidVersionsInfo.load();
-    mySdkControls.init(myFormFactor, myAndroidVersionsInfo.getTargetVersions(myFormFactor, myMinSdkLevel)); // Pre-populate
-    myAndroidVersionsInfo.loadTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
+    myAndroidVersionsInfo.loadLocalVersions();
+    mySdkControls.init(myFormFactor, myAndroidVersionsInfo.getKnownTargetVersions(myFormFactor, myMinSdkLevel)); // Pre-populate
+    myAndroidVersionsInfo.loadRemoteTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
   }
 
   @NotNull

@@ -68,7 +68,7 @@ public class AndroidVersionsInfo {
 
   /**
    * Call back interface to notify the caller that the requested items were loaded.
-   * @see AndroidVersionsInfo#loadTargetVersions(FormFactor, int, ItemsLoaded)
+   * @see AndroidVersionsInfo#loadRemoteTargetVersions(FormFactor, int, ItemsLoaded)
    */
   public interface ItemsLoaded {
     void onDataLoadedFinished(List<VersionItem> items);
@@ -77,23 +77,45 @@ public class AndroidVersionsInfo {
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AndroidVersionsInfo.class);
   private static final IdDisplay NO_MATCH = IdDisplay.create("no_match", "No Match");
 
-  private final List<VersionItem> myTargetVersions = Lists.newArrayList(); // All versions that we know about
+  private final List<VersionItem> myKnownTargetVersions = Lists.newArrayList(); // All versions that we know about
   private final Set<AndroidVersion> myInstalledVersions = Sets.newHashSet();
   private IAndroidTarget myHighestInstalledApiTarget;
 
-  public void load() {
-    loadTargetVersions();
+  /**
+   * Load the list of known Android Versions. The list is made of Android Studio pre-known Android versions, and querying
+   * the SDK manager for extra installed versions (can be third party SDKs). No remote network connection is needed.
+   */
+  public void loadLocalVersions() {
+    loadLocalTargetVersions();
     loadInstalledVersions();
   }
 
   /**
-   * Load the installed android versions from the installed SDK
+   * Gets the list of known Android versions. The list can be loaded by calling
+   * {@link #loadLocalVersions()} and/or {@link #loadRemoteTargetVersions(FormFactor, int, ItemsLoaded)}.
+   */
+  @NotNull
+  public List<VersionItem> getKnownTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel) {
+    List<VersionItem> versionItemList = new ArrayList<>();
+
+    for (VersionItem target : myKnownTargetVersions) {
+      if (isFormFactorAvailable(formFactor, minSdkLevel, target.getMinApiLevel())
+          || (target.getAndroidTarget() != null && target.getAndroidTarget().getVersion().isPreview())) {
+        versionItemList.add(target);
+      }
+    }
+
+    return versionItemList;
+  }
+
+  /**
+   * Load the installed android versions from the installed SDK. No network connection needed.
    */
   private void loadInstalledVersions() {
     myInstalledVersions.clear();
 
     IAndroidTarget highestInstalledTarget = null;
-    for (IAndroidTarget target : getCompilationTargets()) {
+    for (IAndroidTarget target : loadInstalledCompilationTargets()) {
       if (target.isPlatform() && target.getVersion().getFeatureLevel() >= SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION &&
           (highestInstalledTarget == null ||
            target.getVersion().getFeatureLevel() > highestInstalledTarget.getVersion().getFeatureLevel() &&
@@ -172,44 +194,27 @@ public class AndroidVersionsInfo {
   /**
    * Get the list of versions, notably by populating the available values from local, remote, and statically-defined sources.
    */
-  public void loadTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, @NotNull ItemsLoaded itemsLoadedCallback) {
-    List<VersionItem> versionItemList = getTargetVersions(formFactor, minSdkLevel);
-    loadRemoteTargets(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
+  public void loadRemoteTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, @NotNull ItemsLoaded itemsLoadedCallback) {
+    List<VersionItem> versionItemList = getKnownTargetVersions(formFactor, minSdkLevel);
+    loadRemoteTargetVersions(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
   }
 
   /**
-   * Gets the list of local populated versions
+   * Load the local definitions of the android compilation targets.
    */
-  @NotNull
-  public List<VersionItem> getTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel) {
-    List<VersionItem> versionItemList = new ArrayList<>();
-
-    for (VersionItem target : myTargetVersions) {
-      if (isFormFactorAvailable(formFactor, minSdkLevel, target.getMinApiLevel())
-          || (target.getAndroidTarget() != null && target.getAndroidTarget().getVersion().isPreview())) {
-        versionItemList.add(target);
-      }
-    }
-
-    return versionItemList;
-  }
-
-  /**
-   * Load the definitions of the android compilation targets
-   */
-  private void loadTargetVersions() {
-    myTargetVersions.clear();
+  private void loadLocalTargetVersions() {
+    myKnownTargetVersions.clear();
 
     if (AndroidSdkUtils.isAndroidSdkAvailable()) {
       String[] knownVersions = TemplateUtils.getKnownVersions();
       for (int i = 0; i < knownVersions.length; i++) {
-        myTargetVersions.add(new VersionItem(knownVersions[i], i + 1));
+        myKnownTargetVersions.add(new VersionItem(knownVersions[i], i + 1));
       }
     }
 
-    for (IAndroidTarget target : getCompilationTargets()) {
+    for (IAndroidTarget target : loadInstalledCompilationTargets()) {
       if (target.getVersion().isPreview() || !target.getAdditionalLibraries().isEmpty()) {
-        myTargetVersions.add(new VersionItem(target));
+        myKnownTargetVersions.add(new VersionItem(target));
       }
     }
   }
@@ -218,7 +223,7 @@ public class AndroidVersionsInfo {
    * @return a list of android compilation targets (platforms and add-on SDKs)
    */
   @NotNull
-  private static IAndroidTarget[] getCompilationTargets() {
+  private static IAndroidTarget[] loadInstalledCompilationTargets() {
     AndroidTargetManager targetManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
     List<IAndroidTarget> result = Lists.newArrayList();
     for (IAndroidTarget target : targetManager.getTargets(REPO_LOG)) {
@@ -229,7 +234,7 @@ public class AndroidVersionsInfo {
     return result.toArray(new IAndroidTarget[0]);
   }
 
-  private void loadRemoteTargets(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,
+  private void loadRemoteTargetVersions(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,
                                         ItemsLoaded completedCallback) {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
