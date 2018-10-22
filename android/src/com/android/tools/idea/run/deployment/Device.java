@@ -16,8 +16,9 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.collect.ImmutableCollection;
+import com.intellij.openapi.project.Project;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +49,7 @@ abstract class Device {
   }
 
   @NotNull
-  abstract AndroidDevice toAndroidDevice();
+  abstract DeviceFutures newDeviceFutures(@NotNull Project project);
 
   @NotNull
   @Override
