@@ -16,10 +16,54 @@
 package com.android.tools.idea.resourceExplorer.widget
 
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
+import com.google.common.truth.Truth
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.junit.Test
 import java.awt.BorderLayout
-import javax.swing.*
+import javax.swing.ImageIcon
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import kotlin.test.assertEquals
+
+
+class SectionListTest {
+
+  @Suppress("UndesirableClassUsage")
+  @Test
+  fun testIndices() {
+    val model = SectionListModel()
+    val sectionList = SectionList(model)
+    val list1 = JList<String>(arrayOf("1", "2", "3"))
+    val list2 = JList<String>(arrayOf("4", "5", "6"))
+    model.addSection(SimpleSection("Section 1", list1))
+    model.addSection(SimpleSection("Section 2", list2))
+    sectionList.selectedIndex = 0 to 0
+    assertEquals(0, sectionList.getLists()[0].selectedIndex)
+
+    val selection1 = IntArray(3).apply {
+      set(0, 2)
+      set(1, 0)
+      set(2, 1)
+    }
+
+    val selection2 = IntArray(1) { 1 }
+
+    sectionList.selectedIndices = listOf(selection1, null)
+    Truth.assertThat(sectionList.selectedIndices[0]).asList().containsExactly(0, 1, 2)
+    Truth.assertThat(sectionList.selectedIndices[1]).isEmpty()
+    assertEquals(0, sectionList.getLists()[0].selectedIndex)
+    assertEquals(-1, sectionList.getLists()[1].selectedIndex)
+
+    sectionList.selectedIndices = listOf(selection1, selection2)
+    Truth.assertThat(sectionList.selectedIndices[0]).asList().containsExactly(0, 1, 2)
+    Truth.assertThat(sectionList.selectedIndices[1]).asList().containsExactly(1)
+    assertEquals(0, sectionList.getLists()[0].selectedIndex)
+    assertEquals(1, sectionList.getLists()[1].selectedIndex)
+  }
+}
 
 fun main(args: Array<String>) {
   val frame = JFrame()
