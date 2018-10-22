@@ -54,7 +54,7 @@ class ResourceExplorer private constructor(
 
   private val synchronizationManager = SynchronizationManager(facet)
   private val importersProvider = ImportersProvider()
-  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet, synchronizationManager)
+  private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet)
   private val toolbarViewModel = ResourceExplorerToolbarViewModel(facet, importersProvider) { newFacet -> this.facet = newFacet }
   private val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
   private val toolbar = ResourceExplorerToolbar(toolbarViewModel)
@@ -112,6 +112,8 @@ class ResourceExplorer private constructor(
     add(centerContainer, BorderLayout.CENTER)
     Disposer.register(parentDisposable, this)
     Disposer.register(this, synchronizationManager)
+    Disposer.register(this, projectResourcesBrowserViewModel)
+    Disposer.register(this, resourceExplorerView)
   }
 
   private fun updateFacet(facet: AndroidFacet) {
@@ -121,6 +123,5 @@ class ResourceExplorer private constructor(
   }
 
   override fun dispose() {
-    Disposer.dispose(resourceExplorerView)
   }
 }
