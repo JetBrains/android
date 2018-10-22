@@ -31,7 +31,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMap;
@@ -88,8 +87,8 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
    */
   private String myFilesystemProtocol;
   /**
-   * Common prefix of paths of all file resources. Used to compose resource path strings when
-   * the repository is loaded from unzipped contents of res.apk.
+   * Common prefix of paths of all file resources.  Used to compose resource paths returned by
+   * the {@link AarFileResourceItem#getSource()} method.
    */
   private String myResourcePathPrefix;
   /**
@@ -141,12 +140,12 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     loadResourceTable(loader.resourceTableMsg);
     if (loader.loadedFromResApk) {
       myFilesystemProtocol = "apk";
-      myResourcePathPrefix = myResApkFileOrFolder.getPath() + URLUtil.JAR_SEPARATOR;
+      myResourcePathPrefix = myResApkFileOrFolder.getAbsolutePath() + URLUtil.JAR_SEPARATOR;
     } else {
       myFilesystemProtocol = "file";
-      myResourcePathPrefix = myResApkFileOrFolder.getAbsolutePath() + File.separator;
+      myResourcePathPrefix = myResApkFileOrFolder.getAbsolutePath() + File.separatorChar;
     }
-    myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix;
+    myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix.replace(File.separatorChar, '/');
   }
 
   private void loadResourceTable(@NotNull Resources.ResourceTable resourceTableMsg) {
@@ -180,26 +179,16 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     }
   }
 
-  @Nullable
-  final PathString getPathString(@Nullable String relativeResourcePath) {
-    return relativeResourcePath == null ? null : new PathString(myFilesystemProtocol, myResourcePathPrefix + relativeResourcePath);
+  @Override
+  @NotNull
+  final PathString getPathString(@NotNull String relativeResourcePath) {
+    return new PathString(myFilesystemProtocol, myResourcePathPrefix + relativeResourcePath);
   }
 
-  /**
-   * Produces a string to be returned by the {@link AarFileResourceItem#getValue()} method.
-   * The string represents an URL in one of the following formats:
-   * <ul>
-   *  <li>file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"</li>
-   *  <li>URL of a zipped element inside the res.apk file, e.g. "apk:/foo/bar/res.apk!/res/layout/my_layout.xml"</li>
-   * </ul>
-   *
-   * @param relativeResourcePath the relative path of a file resource
-   * @return the URL pointing to the file resource
-   * @see ResourceHelper#toFileResourcePathString(String)
-   */
-  @Nullable
-  final String getResourceUrl(@Nullable String relativeResourcePath) {
-    return relativeResourcePath == null ? null : myResourceUrlPrefix + relativeResourcePath;
+  @Override
+  @NotNull
+  final String getResourceUrl(@NotNull String relativeResourcePath) {
+    return myResourceUrlPrefix + relativeResourcePath;
   }
 
   @Nullable
@@ -696,8 +685,8 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     void load() throws IOException {
       try {
         resourceTableMsg = readResourceTableFromResourcesPbFile();
-        packageName = AndroidManifestUtils
-          .getPackageNameFromManifestFile(new PathString(new File(resApkFileOrFolder, SdkConstants.FN_ANDROID_MANIFEST_XML)));
+        PathString manifestPath = new PathString(new File(resApkFileOrFolder, SdkConstants.FN_ANDROID_MANIFEST_XML));
+        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(manifestPath);
       } catch (FileNotFoundException e) {
         try (ZipFile zipFile = new ZipFile(resApkFileOrFolder)) {
           resourceTableMsg = readResourceTableFromResApk(zipFile);

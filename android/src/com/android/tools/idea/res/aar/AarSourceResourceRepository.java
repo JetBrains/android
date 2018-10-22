@@ -54,6 +54,16 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   private static final Logger LOG = Logger.getInstance(AarSourceResourceRepository.class);
 
   @NotNull protected final File myResourceDirectory;
+  /**
+   * Common prefix of paths of all file resources.  Used to compose resource paths returned by
+   * the {@link AarFileResourceItem#getSource()} method.
+   */
+  private String myResourcePathPrefix;
+  /**
+   * Common prefix of URLs of all file resources. Used to compose resource URLs returned by
+   * the {@link AarFileResourceItem#getValue()} method.
+   */
+  private String myResourceUrlPrefix;
   /** @see #getIdsFromRTxt(). */
   @Nullable private Set<String> myRTxtIds;
   /** The package name read on-demand from the manifest. */
@@ -63,6 +73,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
                                         @Nullable Set<String> rTxtDeclaredIds, @NotNull String libraryName) {
     super(namespace, libraryName);
     myResourceDirectory = resourceDirectory;
+    myResourcePathPrefix = myResourceDirectory.getAbsolutePath() + File.separatorChar;
+    myResourceUrlPrefix = "file://" + myResourcePathPrefix.replace(File.separatorChar, '/');
     myRTxtIds = rTxtDeclaredIds;
 
     myManifestPackageName = NullableLazyValue.createValue(() -> {
@@ -83,20 +95,21 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   /**
-   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this method.
+   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this
+   * method.
    *
    * @param resourceDirectory the directory containing resources
    * @param libraryName the name of the library
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull File resourceDirectory,
-                                                   @NotNull String libraryName) {
+  public static AarSourceResourceRepository create(@NotNull File resourceDirectory, @NotNull String libraryName) {
     return create(resourceDirectory, null, ResourceNamespace.RES_AUTO, libraryName);
   }
 
   /**
-   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this method.
+   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this
+   * method.
    *
    * @param resourceFolder location where the resource files located. It contains a resource directory and a resource list should be loaded.
    *                      A null or empty resource list indicates that all files contained in {@code resourceFolder#root} should be loaded
@@ -104,8 +117,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder,
-                                                   @NotNull String libraryName) {
+  public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder, @NotNull String libraryName) {
     File resDir = resourceFolder.getRoot().toFile();
     Preconditions.checkArgument(resDir != null);
     return create(resDir, resourceFolder.getResources(), ResourceNamespace.RES_AUTO, libraryName);
@@ -118,15 +130,47 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
                                                     @NotNull String libraryName) {
     Set<String> rTxtIds = loadIdsFromRTxt(resourceDirectory);
     AarSourceResourceRepository repository = new AarSourceResourceRepository(resourceDirectory, namespace, rTxtIds, libraryName);
+    repository.load(resourceFiles);
+    return repository;
+  }
+
+  private void load(@Nullable Collection<PathString> resourceFiles) {
     try {
-      ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, resourceFiles, repository.getNamespace(), libraryName, rTxtIds == null);
-      ResourceRepositories.updateTableFromMerger(resourceMerger, repository.getFullTable());
+      ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
+      ResourceMerger merger = new ResourceMerger(0);
+
+      ResourceSet resourceSet = new ResourceSet(myResourceDirectory.getName(), getNamespace(), getLibraryName(), false /* validateEnabled */);
+      if (myRTxtIds == null) {
+        resourceSet.setShouldParseResourceIds(true);
+      }
+
+      // The resourceFiles collection contains resource files to be parsed.
+      // If it's null or empty, all files in the resource folder should be parsed.
+      if (resourceFiles == null || resourceFiles.isEmpty()) {
+        resourceSet.addSource(myResourceDirectory);
+      }
+      else {
+        for (PathString resourceFile : resourceFiles) {
+          resourceSet.addSource(resourceFile.toFile());
+        }
+      }
+      resourceSet.setTrackSourcePositions(false);
+      try {
+        resourceSet.loadFromFiles(logger);
+      }
+      catch (DuplicateDataException e) {
+        // This should not happen; resourceSet validation is disabled.
+        assert false;
+      }
+      catch (MergingException e) {
+        LOG.warn(e);
+      }
+      merger.addDataSet(resourceSet);
+      ResourceRepositories.updateTableFromMerger(merger, myFullTable);
     }
     catch (Exception e) {
-      LOG.error("Failed to initialize resources", e);
+      LOG.error("Failed to load resources from " + myResourceDirectory.getAbsolutePath(), e);
     }
-
-    return repository;
   }
 
   @VisibleForTesting
@@ -181,44 +225,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     return packageName == null ? myManifestPackageName.getValue() : packageName;
   }
 
-  private static ResourceMerger createResourceMerger(@NotNull File resFolder,
-                                                     @Nullable Collection<PathString> resourceFiles,
-                                                     @NotNull ResourceNamespace namespace,
-                                                     @Nullable String libraryName,
-                                                     boolean parseResourceIds) {
-    ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
-    ResourceMerger merger = new ResourceMerger(0);
-
-    ResourceSet resourceSet = new ResourceSet(resFolder.getName(), namespace, libraryName, false /* validateEnabled */);
-    if (parseResourceIds) {
-      resourceSet.setShouldParseResourceIds(true);
-    }
-
-    // The resourceFiles collection contains resource files to be parsed.
-    // If it's null or empty, all files in the resource folder should be parsed.
-    if (resourceFiles == null || resourceFiles.isEmpty()) {
-      resourceSet.addSource(resFolder);
-    }
-    else {
-      for (PathString resourceFile : resourceFiles) {
-        resourceSet.addSource(resourceFile.toFile());
-      }
-    }
-    resourceSet.setTrackSourcePositions(false);
-    try {
-      resourceSet.loadFromFiles(logger);
-    }
-    catch (DuplicateDataException e) {
-      // This should not happen; resourceSet validation is disabled.
-      assert false;
-    }
-    catch (MergingException e) {
-      LOG.warn(e);
-    }
-    merger.addDataSet(resourceSet);
-    return merger;
-  }
-
   /**
    * Returns names of id resources found in the R.txt file if the directory referenced by this repository contained a valid one.
    *
@@ -235,6 +241,18 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   @Nullable
   public Set<String> getIdsFromRTxt() {
     return myRTxtIds;
+  }
+
+  @Override
+  @NotNull
+  final PathString getPathString(@NotNull String relativeResourcePath) {
+    return new PathString(myResourcePathPrefix + relativeResourcePath);
+  }
+
+  @Override
+  @NotNull
+  final String getResourceUrl(@NotNull String relativeResourcePath) {
+    return myResourceUrlPrefix + relativeResourcePath;
   }
 
   // For debugging only.

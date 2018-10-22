@@ -19,7 +19,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.Contract;
@@ -75,4 +77,28 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   public String getDisplayName() {
     return myLibraryName;
   }
+
+  /**
+   * Produces a string to be returned by the {@link AarFileResourceItem#getValue()} method.
+   * The string represents an URL in one of the following formats:
+   * <ul>
+   *  <li>file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"</li>
+   *  <li>URL of a zipped element inside the res.apk file, e.g. "apk:///foo/bar/res.apk!/res/layout/my_layout.xml"</li>
+   * </ul>
+   *
+   * @param relativeResourcePath the relative path of a file resource
+   * @return the URL pointing to the file resource
+   * @see ResourceHelper#toFileResourcePathString(String)
+   */
+  @NotNull
+  abstract String getResourceUrl(@NotNull String relativeResourcePath);
+
+  /**
+   * Produces a {@link PathString} to be returned by the {@link AarFileResourceItem#getSource()} method.
+   *
+   * @param relativeResourcePath the relative path of a file resource
+   * @return the PathString pointing to the file resource
+   */
+  @NotNull
+  abstract PathString getPathString(@NotNull String relativeResourcePath);
 }

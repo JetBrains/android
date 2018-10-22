@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.HashCodes;
 import com.google.common.base.MoreObjects;
@@ -33,9 +32,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
   @NotNull private final AarConfiguration myConfiguration;
   @NotNull private final ResourceVisibility myVisibility;
 
-  public AbstractAarResourceItem(@NotNull String name,
-                                 @NotNull AarConfiguration configuration,
-                                 @NotNull ResourceVisibility visibility) {
+  AbstractAarResourceItem(@NotNull String name, @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
     myName = name;
     myConfiguration = configuration;
     myVisibility = visibility;
@@ -66,7 +63,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
   }
 
   @Override
-  @Nullable
+  @NotNull
   public final String getLibraryName() {
     return getRepository().getLibraryName();
   }
@@ -107,7 +104,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
   }
 
   @NotNull
-  protected final AarProtoResourceRepository getRepository() {
+  protected final AbstractAarResourceRepository getRepository() {
     return myConfiguration.getRepository();
   }
 
