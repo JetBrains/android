@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.ui;
 
 import com.android.tools.deployer.Trace;
+import com.android.tools.idea.run.ui.model.ProjectExecutionState;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
@@ -76,14 +77,16 @@ public abstract class BaseAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
+    Project project = e.getProject();
 
-    if (e.getProject() == null) {
+    if (project == null) {
       presentation.setEnabled(false);
       return;
     }
-    presentation.setEnabled(myShouldEnableProvider.apply(e.getProject()));
-  }
 
+    boolean currentlyExecuting = ProjectExecutionState.getInstance(project).isAnyExecutorInScheduledState();
+    presentation.setEnabled(!currentlyExecuting && myShouldEnableProvider.apply(project));
+  }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
@@ -100,7 +103,7 @@ public abstract class BaseAction extends AnAction {
     }
 
     // TODO: Figure out the debugger flow. For now always use the Run executor.
-    Executor executor = getExecutor(DefaultRunExecutor.EXECUTOR_ID);
+    Executor executor = getExecutor();
     if (executor == null) {
       LOG.warn(myName + " action could not identify executor");
       return;
@@ -114,9 +117,9 @@ public abstract class BaseAction extends AnAction {
   }
 
   @Nullable
-  private static Executor getExecutor(@NotNull String executorId) {
+  private static Executor getExecutor() {
     for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensions()) {
-      if (executorId.equals(executor.getId())) {
+      if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
         return executor;
       }
     }
