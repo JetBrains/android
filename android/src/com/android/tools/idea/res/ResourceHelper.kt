@@ -110,7 +110,6 @@ import com.intellij.util.ui.TwoColorsIcon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
@@ -875,12 +874,7 @@ fun getCompletionFromTypes(
 
   val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
   val appResources = repoManager.getAppResources(true)!!
-  val androidPlatform = AndroidPlatform.getInstance(facet.module)
-  var frameworkResources: ResourceRepository? = null
-  if (androidPlatform != null) {
-    val targetData = androidPlatform.sdkData.getTargetData(androidPlatform.target)
-    frameworkResources = targetData.getFrameworkResources(false)
-  }
+  val frameworkResources = repoManager.getFrameworkResources(false)
 
   val resources = Lists.newArrayListWithCapacity<String>(500)
   for (type in types) {

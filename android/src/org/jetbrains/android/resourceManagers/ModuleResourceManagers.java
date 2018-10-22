@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
+
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
@@ -25,14 +27,10 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
-
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 public class ModuleResourceManagers {
   private final Module myModule;
@@ -112,19 +110,13 @@ public class ModuleResourceManagers {
   public FrameworkResourceManager getFrameworkResourceManager(boolean publicOnly) {
     if (publicOnly) {
       if (myPublicFrameworkResourceManager == null) {
-        AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
-        if (platform != null) {
-          myPublicFrameworkResourceManager = new FrameworkResourceManager(myModule.getProject(), platform, true);
-        }
+        myPublicFrameworkResourceManager = new FrameworkResourceManager(myModule, true);
       }
       return myPublicFrameworkResourceManager;
     }
 
     if (myFullFrameworkResourceManager == null) {
-      AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
-      if (platform != null) {
-        myFullFrameworkResourceManager = new FrameworkResourceManager(myModule.getProject(), platform, false);
-      }
+      myFullFrameworkResourceManager = new FrameworkResourceManager(myModule, false);
     }
     return myFullFrameworkResourceManager;
   }
