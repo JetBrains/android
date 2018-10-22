@@ -32,9 +32,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -48,7 +48,6 @@ import java.awt.Component
 import java.awt.Point
 import java.awt.event.InputEvent
 import javax.swing.BorderFactory
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
@@ -59,16 +58,19 @@ import javax.swing.ListCellRenderer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.properties.Delegates
 
 
-private val DEFAULT_CELL_WIDTH = JBUI.scale(150)
 private val MAX_CELL_WIDTH = JBUI.scale(300)
-private val MIN_CELL_WIDTH = JBUI.scale(100)
-private val COMPACT_MODE_TRIGGER_SIZE = JBUI.scale(150)
+private val LIST_CELL_SIZE = JBUI.scale(70)
+private val MIN_CELL_WIDTH = JBUI.scale(150)
+private const val DEFAULT_GRID_MODE = false
+private val DEFAULT_CELL_WIDTH = LIST_CELL_SIZE
 private val SECTION_CELL_MARGIN = JBUI.scale(4)
 private val SECTION_CELL_MARGIN_LEFT = JBUI.scale(8)
 private val COLORED_BORDER_WIDTH = JBUI.scale(4)
 private val SECTION_HEADER_SECONDARY_COLOR = Gray.x66
+
 private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
   JBUI.Borders.emptyBottom(8),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
@@ -92,19 +94,23 @@ class ResourceExplorerView(
     return sectionList.getLists().flatMap { it.selectedValuesList }.filterIsInstance<DesignAssetSet>()
   }
 
-  private var cellWidth = DEFAULT_CELL_WIDTH
+  private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
-      val boundedValue = min(MAX_CELL_WIDTH, max(MIN_CELL_WIDTH, value))
-      if (boundedValue != field) {
-        field = boundedValue
+      if (value != field) {
+        field = value
         sectionList.getLists().forEach {
-          it.setupListUI()
+          (it as AssetListView).thumbnailWidth = previewSize
         }
       }
     }
 
-  private val listeners = mutableListOf<SelectionListener>()
+  private var gridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, newValue ->
+    sectionList.getLists().forEach {
+      (it as AssetListView).isGridMode = newValue
+    }
+  }
 
+  private val listeners = mutableListOf<SelectionListener>()
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
   private val dragHandler = resourceDragHandler()
@@ -112,13 +118,13 @@ class ResourceExplorerView(
 
   private val headerPanel = JTabbedPane(JTabbedPane.NORTH).apply {
     tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
-      resourcesBrowserViewModel.resourceTypes.forEach {
-        addTab(it.displayName, null)
-      }
-      addChangeListener { event ->
-        val index = (event.source as JTabbedPane).model.selectedIndex
-        resourcesBrowserViewModel.resourceTypeIndex = index
-      }
+    resourcesBrowserViewModel.resourceTypes.forEach {
+      addTab(it.displayName, null)
+    }
+    addChangeListener { event ->
+      val index = (event.source as JTabbedPane).model.selectedIndex
+      resourcesBrowserViewModel.resourceTypeIndex = index
+    }
   }
 
   private val listPanel: JBScrollPane = sectionList.mainComponent.apply {
@@ -129,7 +135,7 @@ class ResourceExplorerView(
       val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
       val modifierPressed = (event.modifiers and modifierKey) == modifierKey
       if (modifierPressed) {
-        cellWidth = (cellWidth * (1 - event.preciseWheelRotation * 0.1)).roundToInt()
+        previewSize = (previewSize * (1 - event.preciseWheelRotation * 0.1)).roundToInt()
       }
     }
   }
@@ -139,13 +145,7 @@ class ResourceExplorerView(
 
     add(ActionManager.getInstance().createActionToolbar(
       "resourceExplorer",
-      DefaultActionGroup(
-        ActionButton(StudioIcons.LayoutEditor.Palette.GRID_VIEW) {},
-        ActionButton(StudioIcons.LayoutEditor.Palette.LIST_VIEW) {},
-        Separator(),
-        ActionButton(StudioIcons.Common.ZOOM_OUT) { cellWidth = (cellWidth * 0.9).roundToInt() },
-        ActionButton(StudioIcons.Common.ZOOM_IN) { cellWidth = (cellWidth * 1.1).roundToInt() }
-      ), true).component, BorderLayout.EAST)
+      createBottomActions(), true).component, BorderLayout.EAST)
   }
 
   /**
@@ -189,12 +189,12 @@ class ResourceExplorerView(
     resourcesBrowserViewModel.getResourcesLists()
       .filterNot { it.assets.isEmpty() }
       .forEach { (type, libName, assets): ResourceSection ->
-        sectionListModel.addSection(AssetSection(libName, JList<DesignAssetSet>().apply {
-          model = CollectionListModel(assets)
+        sectionListModel.addSection(AssetSection(libName, AssetListView(assets).apply {
           cellRenderer = getRendererForType(type, this)
           dragHandler.registerSource(this)
           addMouseListener(popupHandler)
-          setupListUI()
+          thumbnailWidth = this@ResourceExplorerView.previewSize
+          isGridMode = this@ResourceExplorerView.gridMode
         }))
       }
   }
@@ -232,13 +232,6 @@ class ResourceExplorerView(
 
   interface SelectionListener {
     fun onDesignAssetSetSelected(designAssetSet: DesignAssetSet?)
-  }
-
-  private fun <T : Any> JList<T>.setupListUI() {
-    fixedCellWidth = cellWidth
-    layoutOrientation = JList.HORIZONTAL_WRAP
-    visibleRowCount = 0
-    isOpaque = false
   }
 
   private fun getRendererForType(type: ResourceType, list: JList<*>): ListCellRenderer<DesignAssetSet> {
@@ -281,10 +274,76 @@ class ResourceExplorerView(
   override fun dispose() {
     DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
   }
-}
 
-private class ActionButton(icon: Icon, private val action: () -> Unit) : AnAction(icon), DumbAware {
-  override fun actionPerformed(e: AnActionEvent) {
-    action()
+  private fun createBottomActions(): DefaultActionGroup {
+    return DefaultActionGroup(
+      ListModeButton(),
+      GridModeButton(),
+      Separator(),
+      ZoomMinus(),
+      ZoomPlus()
+    )
+  }
+
+  /**
+   * Button to enable the list view
+   */
+  private inner class ListModeButton
+    : ToggleAction(null, null, StudioIcons.LayoutEditor.Palette.LIST_VIEW),
+      DumbAware {
+
+    override fun isSelected(e: AnActionEvent) = !gridMode
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (state) {
+        gridMode = false
+        previewSize = LIST_CELL_SIZE
+      }
+    }
+  }
+
+  /**
+   * Button to enable the grid view
+   */
+  private inner class GridModeButton
+    : ToggleAction(null, null, StudioIcons.LayoutEditor.Palette.GRID_VIEW),
+      DumbAware {
+
+    override fun isSelected(e: AnActionEvent) = gridMode
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (state) {
+        gridMode = true
+        previewSize = MIN_CELL_WIDTH
+      }
+    }
+  }
+
+  /**
+   * Button to scale down the icons. It is only enabled in grid mode.
+   */
+  private inner class ZoomMinus : AnAction(StudioIcons.Common.ZOOM_OUT), DumbAware {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = gridMode && previewSize > MIN_CELL_WIDTH
+    }
+  }
+
+  /**
+   * Button to scale up the icons. It is only enabled in grid mode.
+   */
+  private inner class ZoomPlus : AnAction(StudioIcons.Common.ZOOM_IN), DumbAware {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = gridMode && previewSize < MAX_CELL_WIDTH
+    }
   }
 }

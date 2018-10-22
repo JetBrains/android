@@ -72,10 +72,6 @@ fun createIcon(color: Color?): BufferedImage = UIUtil.createImage(
  */
 abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
 
-  private val cardView = SingleAssetCard().apply {
-    withChessboard = true
-  }
-
   override fun getListCellRendererComponent(
     list: JList<out DesignAssetSet>,
     value: DesignAssetSet,
@@ -83,18 +79,16 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     isSelected: Boolean,
     cellHasFocus: Boolean
   ): Component {
-    cardView.title = value.name
-    cardView.subtitle = value.getHighestDensityAsset().type.displayName
+    val assetView = (list as AssetListView).assetView
+    assetView.withChessboard = true
+    assetView.title = value.name
+    assetView.subtitle = value.getHighestDensityAsset().type.displayName
     val size = value.designAssets.size
-    cardView.metadata = "$size $VERSION".pluralize(size)
-    val width = cardView.viewWidth
-    if (width != list.fixedCellWidth) {
-      cardView.viewWidth = list.fixedCellWidth
-    }
-    val thumbnailSize = cardView.thumbnailSize
-    cardView.thumbnail = getContent(value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
-    cardView.selected = isSelected
-    return cardView
+    assetView.metadata = "$size $VERSION".pluralize(size)
+    val thumbnailSize = assetView.thumbnailSize
+    assetView.thumbnail = getContent(value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
+    assetView.selected = isSelected
+    return assetView
   }
 
   abstract fun getContent(
