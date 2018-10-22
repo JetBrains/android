@@ -18,7 +18,9 @@ package com.android.tools.idea.res.aar
 import com.android.ide.common.resources.configuration.FolderConfiguration
 
 /**
- * A (AarProtoResourceRepository, FolderConfiguration) pair. Used to reduce memory consumed by instances
- * of the {@link AbstractAarResourceItem} class.
+ * A ([AbstractAarResourceRepository], [FolderConfiguration]) pair. Instances of [AbstractAarResourceItem] contain
+ * a reference to an `AarConfiguration` instead of two separate references to [AbstractAarResourceRepository] and
+ * [FolderConfiguration]. This indirection saves memory because the number of `AarConfiguration` instances is tiny
+ * fraction of the number of [AbstractAarResourceItem] instances.
  */
-internal data class AarConfiguration(val repository: AarProtoResourceRepository, val folderConfiguration: FolderConfiguration)
+internal data class AarConfiguration(val repository: AbstractAarResourceRepository, val folderConfiguration: FolderConfiguration)
