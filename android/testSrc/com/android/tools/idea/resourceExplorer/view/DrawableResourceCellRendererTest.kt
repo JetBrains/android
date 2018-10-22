@@ -44,7 +44,7 @@ class DrawableResourceCellRendererTest {
   @Ignore("b/117130787")
   @Test
   fun getListCellRendererComponent() {
-    val jList = JBList<DesignAssetSet>().apply {
+    val jList = AssetListView(emptyList()).apply {
       fixedCellHeight = 100
       fixedCellWidth = 100
     }
@@ -71,7 +71,7 @@ class DrawableResourceCellRendererTest {
 
   @Test
   fun get0SizedListCellRendererComponent() {
-    val jList = JBList<DesignAssetSet>().apply {
+    val jList = AssetListView(emptyList()).apply {
       fixedCellHeight = 0
       fixedCellWidth = 0
     }
@@ -98,7 +98,7 @@ class DrawableResourceCellRendererTest {
 
   @Test
   fun nullImage() {
-    val jList = JBList<DesignAssetSet>().apply {
+    val jList = AssetListView(emptyList()).apply {
       fixedCellHeight = 100
       fixedCellWidth = 100
     }

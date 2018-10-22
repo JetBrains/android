@@ -20,7 +20,7 @@ import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.view.DesignAssetCellRenderer
 import com.android.tools.idea.resourceExplorer.view.DrawableResourceCellRenderer
-import com.android.tools.idea.resourceExplorer.view.SingleAssetCard
+import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.CollectionListModel
@@ -264,10 +264,6 @@ class ColorAssetCellRenderer : ListCellRenderer<Pair<Color, String>> {
                                             cellHasFocus: Boolean): Component? {
     cardView.title = "#${ColorUtil.toHex(value.first)}"
     cardView.subtitle = value.second
-    val width = cardView.viewWidth
-    if (width != list.fixedCellWidth) {
-      cardView.viewWidth = list.fixedCellWidth
-    }
     val thumbnailSize = cardView.thumbnailSize
     cardView.thumbnail = JPanel(BorderLayout()).apply {
       background = value.first
