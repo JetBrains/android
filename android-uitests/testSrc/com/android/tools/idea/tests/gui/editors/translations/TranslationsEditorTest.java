@@ -19,9 +19,9 @@ import static com.android.tools.idea.editors.strings.table.StringResourceTableMo
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.RESOURCE_FOLDER_COLUMN;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
-import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -545,11 +545,11 @@ public final class TranslationsEditorTest {
 
     // gone from en
     editor.open("app/src/main/res/values-en/strings.xml");
-    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
 
     // still in other languages
     editor.open("app/src/main/res/values-ta/strings.xml");
-    assertThat(editor.getCurrentFileContents()).contains("hello_world");
+    assertTrue(editor.getCurrentFileContents().contains("hello_world"));
   }
 
   @Test
@@ -561,7 +561,7 @@ public final class TranslationsEditorTest {
     editor.getTranslationsEditor().getTable().showPopupMenuAt(cell).menuItemWithPath("Delete String(s)").click();
 
     editor.open("app/src/main/res/values-en/strings.xml");
-    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
   @Test
