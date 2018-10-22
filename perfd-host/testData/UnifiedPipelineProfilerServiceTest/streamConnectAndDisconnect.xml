@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Common$Event">
+        <Message>session_id: 1
+kind: PROCESS
+timestamp: 100
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Common$Event</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message>session_id: 1
+kind: PROCESS
+timestamp: 100
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Profiler$GetEventsRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetEventsRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetEvents" Class="class com.android.tools.profiler.proto.Common$Event">
+        <Message>session_id: 1
+kind: PROCESS
+timestamp: 100
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Common$Event</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetEvents</functionCalled>
+        <message>session_id: 1
+kind: PROCESS
+timestamp: 100
+</message>
+    </GrpcCall>
+</GrpcList>

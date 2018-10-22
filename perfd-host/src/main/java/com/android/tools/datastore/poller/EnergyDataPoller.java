@@ -96,7 +96,7 @@ public final class EnergyDataPoller extends PollRunner {
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
   private long queryCurrentTime() {
-    Profiler.TimeRequest timeRequest = Profiler.TimeRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build();
+    Profiler.TimeRequest timeRequest = Profiler.TimeRequest.newBuilder().setStreamId(mySession.getDeviceId()).build();
     return myProfilerService.getCurrentTime(timeRequest).getTimestampNs();
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,15 +25,11 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Common.*;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.google.common.collect.ImmutableMap;
-import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
@@ -42,17 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
-
-import java.util.Map;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ProfilerServiceTest extends DataStorePollerTest {
   private static final long DEVICE_ID = 1234;
@@ -132,8 +116,8 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void testGetDevices() {
     StreamObserver<GetDevicesResponse> observer = mock(StreamObserver.class);
     GetDevicesResponse expected = GetDevicesResponse.newBuilder()
-                                                    .addDevice(DEVICE)
-                                                    .build();
+      .addDevice(DEVICE)
+      .build();
     myProfilerService.getDevices(GetDevicesRequest.getDefaultInstance(), observer);
     validateResponse(observer, expected);
   }
@@ -286,7 +270,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     StreamObserver<GetSessionMetaDataResponse> metaDataObserver = mock(StreamObserver.class);
     GetSessionMetaDataResponse metaDataResponse =
       GetSessionMetaDataResponse.newBuilder().setData(Common.SessionMetaData.newBuilder().setSessionId(END_SESSION_1.getSessionId()))
-                                .build();
+        .build();
     myProfilerService
       .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(END_SESSION_1.getSessionId()).build(), metaDataObserver);
     validateResponse(metaDataObserver, metaDataResponse);
@@ -320,86 +304,10 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observer, response);
   }
 
-  @Test
-  public void streamConnectAndDisconnect() {
-    // Connect new channel.
-    Channel eventsChannel = myService.getChannel();
-    myProfilerService.startPolling(Common.Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(2).build(), eventsChannel);
-    // Force the poller to tick.
-    getPollTicker().run();
-    // Get events from poller to validate we have a connection.
-    StreamObserver<GetEventGroupsResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
-    EventGroup expectedGroup = EventGroup.newBuilder()
-                                         .setEventId(2)
-                                         .addEvents(Event.newBuilder()
-                                                         .setEventId(2)
-                                                         .setKind(Event.Kind.STREAM)
-                                                         .setType(Event.Type.STREAM_CONNECTED)
-                                                         .setStream(Stream.newBuilder()
-                                                                          .setStreamId(2)
-                                                                          .setType(Stream.Type.DEVICE))).build();
-
-    ArgumentCaptor<GetEventGroupsResponse> response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
-    verify(observer, times(1)).onNext(response.capture());
-    assertThat(response.getValue().getGroupsCount()).isEqualTo(1);
-    EventGroup actualGroup = response.getValue().getGroups(0);
-    assertThat(actualGroup.getEventsCount()).isEqualTo(expectedGroup.getEventsCount());
-    validateEventNoTimestamp(expectedGroup.getEvents(0), actualGroup.getEvents(0));
-
-    // Disconnect service.
-    myProfilerService.stopMonitoring(eventsChannel);
-    Mockito.reset(observer);
-    response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
-    myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
-    verify(observer, times(1)).onNext(response.capture());
-    expectedGroup = expectedGroup.toBuilder().addEvents(Event.newBuilder()
-                            .setEventId(2)
-                            .setKind(Event.Kind.STREAM)
-                            .setType(Event.Type.STREAM_DISCONNECTED)
-                            .setTimestamp(100)
-                            .setStream(Stream.newBuilder()
-                                             .setStreamId(2)
-                                             .setType(Stream.Type.DEVICE))).build();
-    assertThat(response.getValue().getGroupsCount()).isEqualTo(1);
-
-    actualGroup = response.getValue().getGroups(0);
-    assertThat(actualGroup.getEventsCount()).isEqualTo(expectedGroup.getEventsCount());
-    validateEventNoTimestamp(expectedGroup.getEvents(0), actualGroup.getEvents(0));
-    validateEventNoTimestamp(expectedGroup.getEvents(1), actualGroup.getEvents(1));
-  }
-
-  @Test
-  public void executeRedirectsProperly() {
-    Channel eventsChannel = myService.getChannel();
-    myProfilerService.startPolling(Common.Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(2).build(), eventsChannel);
-    StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
-    Command sentCommand = Command.newBuilder().setStreamId(2).setType(Command.CommandType.BEGIN_SESSION).build();
-    myProfilerService.execute(
-      ExecuteRequest.newBuilder().setCommand(sentCommand).build(),
-      observer);
-    assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
-    // Test executing a command on an invalid stream.
-    myProfilerService.execute(
-      ExecuteRequest.newBuilder().setCommand(Command.newBuilder().setStreamId(2).setType(Command.CommandType.BEGIN_SESSION)).build(),
-      observer);
-    assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
-  }
-
-  private void validateEventNoTimestamp(Event expected, Event actual) {
-    actual = actual.toBuilder().setTimestamp(expected.getTimestamp()).build();
-    assertThat(expected).isEqualTo(actual);
-  }
-
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
     private Common.Process myProcessToReturn = INITIAL_PROCESS;
     private Common.Session mySessionToReturn;
-    private Command myLastCommandReceived;
-
-    public Command getLastCommandReceived() {
-      return myLastCommandReceived;
-    }
 
     public void setProcessToReturn(Common.Process process) {
       myProcessToReturn = process;
@@ -477,28 +385,6 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
       observer.onNext(ConfigureStartupAgentResponse.newBuilder().setAgentArgs(request.getAgentLibFileName()).build());
       observer.onCompleted();
-    }
-
-    @Override
-    public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
-      myLastCommandReceived = request.getCommand();
-      responseObserver.onNext(ExecuteResponse.getDefaultInstance());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getEvents(GetEventsRequest request, StreamObserver<Event> responseObserver) {
-      responseObserver.onNext(Event.newBuilder()
-                                   .setKind(Event.Kind.PROCESS)
-                                   .setTimestamp(100)
-                                   .setSessionId(1)
-                                   .build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getEventGroups(GetEventGroupsRequest request, StreamObserver<GetEventGroupsResponse> responseObserver) {
-      super.getEventGroups(request, responseObserver);
     }
   }
 }
