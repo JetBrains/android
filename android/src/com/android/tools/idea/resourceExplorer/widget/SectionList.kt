@@ -23,10 +23,20 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
-import javax.swing.*
+import javax.swing.Box
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.ListCellRenderer
+import javax.swing.ListModel
+import javax.swing.ListSelectionModel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 import javax.swing.event.ListSelectionListener
+
+private val EMPTY_SELECTION_ARRAY = IntArray(0)
 
 /**
  * A Swing component displaying multiple lists organized in [Section]s with a header.
@@ -53,7 +63,7 @@ class SectionList(private val model: SectionListModel) {
   /**
    * Gap between lists
    */
-  val listsGap = JBUI.scale(50)
+  private val listsGap = JBUI.scale(50)
 
   /**
    * Returns the main component displaying the multi-list
@@ -171,6 +181,49 @@ class SectionList(private val model: SectionListModel) {
   fun getLists(): List<JList<*>> {
     return allInnerLists
   }
+
+  var selectedValue: Any?
+    get() = allInnerLists.firstOrNull { it.selectedValue != null }?.selectedValue
+    set(value) = allInnerLists.forEach {
+      listSelectionChanging = true
+      it.setSelectedValue(value, false)
+      listSelectionChanging = false
+    }
+
+  /**
+   * Represent the selected indices for each inner [JList]
+   * @see JList.getSelectedIndices
+   * @see JList.setSelectedIndices
+   */
+  var selectedIndices: List<IntArray?>
+    get() = allInnerLists.map { it.selectedIndices }
+    set(indicesByList) = indicesByList.zip(allInnerLists).forEach { (indices, list) ->
+      listSelectionChanging = true
+      list.selectedIndices = indices ?: EMPTY_SELECTION_ARRAY
+      listSelectionChanging = false
+    }
+
+  /**
+   * Pair of the index of the first selected inner [JList] to its first selected index
+   * @see JList.setSelectedIndex
+   * @see JList.getSelectedIndex
+   */
+  var selectedIndex: Pair<Int, Int>?
+    get() {
+      val indexOfSelectedList = allInnerLists.indexOfFirst { it.selectedIndex != -1 }
+      if (indexOfSelectedList == -1) return null
+      return indexOfSelectedList to allInnerLists[indexOfSelectedList].selectedIndex
+    }
+    set(listToIndex) {
+      if (listToIndex != null) {
+        val (list, index) = listToIndex
+        allInnerLists.getOrNull(list)?.selectedIndex = index
+      }
+      else {
+        allInnerLists.forEach { it.selectedIndex = -1 }
+      }
+    }
+
 }
 
 class SectionListModel : ListModel<Section<*>> {
@@ -194,6 +247,11 @@ class SectionListModel : ListModel<Section<*>> {
 
   fun addSection(section: Section<*>) {
     sections += section
+    dataListeners.forEach { it.contentsChanged(ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, sections.size)) }
+  }
+
+  fun addSections(newSections: List<Section<*>>) {
+    sections += newSections
     dataListeners.forEach { it.contentsChanged(ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, sections.size)) }
   }
 
