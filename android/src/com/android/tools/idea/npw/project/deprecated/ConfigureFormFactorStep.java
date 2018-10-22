@@ -297,7 +297,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     // One row for each form factor
     myFormFactorPanel.setLayout(new TabularLayout("*").setVGap(5));
 
-    myAndroidVersionsInfo.load();
+    myAndroidVersionsInfo.loadLocalVersions();
 
     Set<FormFactor> formFactors = myFormFactors.keySet();
     AtomicInteger loadingCounter = new AtomicInteger(formFactors.size());
@@ -309,7 +309,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       myFormFactorPanel.add(controls.getComponent(), new TabularLayout.Constraint(row, 0));
       row++;
 
-      myAndroidVersionsInfo.loadTargetVersions(formFactor, formFactorInfo.minSdk, items -> {
+      myAndroidVersionsInfo.loadRemoteTargetVersions(formFactor, formFactorInfo.minSdk, items -> {
         controls.init(items);
         Object selectedMinSdkItem = controls.getMinSdkCombobox().getSelectedItem();
         controls.getInclusionCheckBox().setSelected(selectedMinSdkItem != null && FormFactor.MOBILE.equals(formFactor));
