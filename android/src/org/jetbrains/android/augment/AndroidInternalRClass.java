@@ -1,6 +1,7 @@
 package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.google.common.collect.ImmutableSet;
@@ -8,9 +9,13 @@ import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiModifier;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
-import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -22,14 +27,14 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidInternalRClass extends AndroidLightClassBase {
   private static final Key<Sdk> ANDROID_INTERNAL_R = Key.create("ANDROID_INTERNAL_R");
   private final PsiFile myFile;
-  private final FrameworkResourceManager myFrameworkResourceManager;
+  private final AndroidPlatform myPlatform;
   private final PsiClass[] myInnerClasses;
 
   public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform, Sdk sdk) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
     myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
-    myFrameworkResourceManager = new FrameworkResourceManager(psiManager.getProject(), platform, false);
+    myPlatform = platform;
 
     final ResourceType[] types = ResourceType.values();
     myInnerClasses = new PsiClass[types.length];
@@ -80,15 +85,21 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
 
   private class MyInnerClass extends InnerRClassBase {
 
-    public MyInnerClass(@NotNull ResourceType resourceType) {
+    private MyInnerClass(@NotNull ResourceType resourceType) {
       super(AndroidInternalRClass.this, resourceType);
     }
 
     @NotNull
     @Override
     protected PsiField[] doGetFields() {
-      return buildResourceFields(myFrameworkResourceManager.getResourceRepository(), ResourceNamespace.ANDROID,
-                                 FieldModifier.FINAL, (type, s) -> myFrameworkResourceManager.isResourcePublic(type.getName(), s),
+      ResourceRepository repository = myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getFrameworkResources(false);
+      if (repository == null) {
+        return PsiField.EMPTY_ARRAY;
+      }
+      return buildResourceFields(repository,
+                                 ResourceNamespace.ANDROID,
+                                 FieldModifier.FINAL,
+                                 (type, s) -> true,
                                  myResourceType, AndroidInternalRClass.this);
     }
   }

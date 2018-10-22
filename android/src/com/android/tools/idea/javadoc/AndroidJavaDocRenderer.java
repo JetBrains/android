@@ -48,7 +48,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
@@ -99,7 +98,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -275,31 +273,6 @@ public class AndroidJavaDocRenderer {
           return null;
       }
     }
-
-    /**
-     * Returns a {@link ResourceRepository} instance that allows accessing the framework public resources of the highest available
-     * SDK.
-     */
-    @Nullable
-    private static ResourceRepository getLatestPublicFrameworkResources(Module module) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        return null;
-      }
-
-      IAndroidTarget target = ConfigurationManager.getOrCreateInstance(module).getDefaultTarget();
-      if (target == null) {
-        return null;
-      }
-
-      AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
-      if (targetData != null) {
-        return targetData.getFrameworkResources(true);
-      }
-
-      return null;
-    }
-
 
     @Nullable
     public String render(@NotNull ResourceUrl url) {
@@ -584,11 +557,8 @@ public class AndroidJavaDocRenderer {
     @Override
     @Nullable
     public ResourceRepository getFrameworkResources() {
-      if (myFrameworkResources == null) {
-        myFrameworkResources = getLatestPublicFrameworkResources(myModule);
-      }
-
-      return myFrameworkResources;
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myModule);
+      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
     }
 
     @Override

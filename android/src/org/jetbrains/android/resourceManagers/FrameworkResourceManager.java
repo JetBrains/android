@@ -15,48 +15,49 @@
  */
 package org.jetbrains.android.resourceManagers;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
 public class FrameworkResourceManager extends ResourceManager {
-  private final AndroidPlatform myPlatform;
+  private final Module myModule;
   private final boolean myPublicOnly;
 
-  public FrameworkResourceManager(@NotNull Project project, @NotNull AndroidPlatform androidPlatform, boolean publicOnly) {
-    super(project);
-    myPlatform = androidPlatform;
+  public FrameworkResourceManager(@NotNull Module module, boolean publicOnly) {
+    super(module.getProject());
+    myModule = module;
     myPublicOnly = publicOnly;
   }
 
   @Override
   @NotNull
   public ResourceRepository getResourceRepository() {
-    AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
-    ResourceRepository frameworkResources = targetData.getFrameworkResources(false);
-    return frameworkResources == null ? new EmptyRepository(ResourceNamespace.ANDROID) : frameworkResources;
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myModule);
+    assert repositoryManager != null;
+    ResourceRepository frameworkResources = repositoryManager.getFrameworkResources(false);
+    if (frameworkResources == null) {
+      throw new RuntimeException("Failed to read framework resources for module " + myModule.getName());
+    }
+    return frameworkResources;
   }
 
   @Override
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    return !myPublicOnly || myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).isResourcePublic(type, name);
+    return !myPublicOnly || getPlatform().getSdkData().getTargetData(getPlatform().getTarget()).isResourcePublic(type, name);
   }
 
   @Override
@@ -72,7 +73,7 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Nullable
   private VirtualFile getResourceDir() {
-    String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
+    String resPath = getPlatform().getTarget().getPath(IAndroidTarget.RESOURCES);
     resPath = FileUtil.toSystemIndependentName(resPath);
     return LocalFileSystem.getInstance().findFileByPath(resPath);
   }
@@ -89,6 +90,10 @@ public class FrameworkResourceManager extends ResourceManager {
     return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 
+  private AndroidPlatform getPlatform() {
+    return AndroidPlatform.getInstance(myModule);
+  }
+
   @Nullable
   public static FrameworkResourceManager getInstance(@NotNull ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
@@ -98,6 +103,6 @@ public class FrameworkResourceManager extends ResourceManager {
   @Override
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
-    return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getPublicAttrDefs(myProject);
+    return getPlatform().getSdkData().getTargetData(getPlatform().getTarget()).getPublicAttrDefs(myProject);
   }
 }
