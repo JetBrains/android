@@ -15,20 +15,25 @@
  */
 package org.jetbrains.jps.android.model.impl;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static org.jetbrains.android.util.AndroidCommonUtils.ARCHITECTURE_ATTRIBUTE;
+import static org.jetbrains.android.util.AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME;
+import static org.jetbrains.android.util.AndroidCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME;
+import static org.jetbrains.android.util.AndroidCommonUtils.ITEM_ELEMENT;
+import static org.jetbrains.android.util.AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL;
+import static org.jetbrains.android.util.AndroidCommonUtils.TARGET_FILE_NAME_ATTRIBUTE;
+import static org.jetbrains.android.util.AndroidCommonUtils.URL_ATTRIBUTE;
+
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static org.jetbrains.android.util.AndroidCommonUtils.*;
 
 /**
  * @author nik
@@ -55,6 +60,7 @@ public class JpsAndroidModuleProperties {
 
   public String RES_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_RES;
   public String RES_FOLDERS_RELATIVE_PATH;
+  public String TEST_RES_FOLDERS_RELATIVE_PATH;
   public String ASSETS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_ASSETS;
   public String LIBS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_NATIVE_LIBS;
 

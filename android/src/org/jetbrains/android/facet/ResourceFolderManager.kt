@@ -43,7 +43,15 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
   /** Listeners for resource folder changes  */
   interface ResourceFolderListener {
     /** The resource folders in this project has changed  */
-    fun resourceFoldersChanged(
+    fun mainResourceFoldersChanged(
+      facet: AndroidFacet,
+      folders: List<VirtualFile>,
+      added: Collection<VirtualFile>,
+      removed: Collection<VirtualFile>
+    )
+
+    /** The resource folders in this project has changed  */
+    fun testResourceFoldersChanged(
       facet: AndroidFacet,
       folders: List<VirtualFile>,
       added: Collection<VirtualFile>,
@@ -51,8 +59,10 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
     )
   }
 
+  private data class Folders(val main: List<VirtualFile>, val test: List<VirtualFile>)
+
   private val lock = ReentrantLock()
-  @GuardedBy("lock") private var resDirCache: List<VirtualFile>? = null
+  @GuardedBy("this") private var foldersCache: Folders? = null
   @GuardedBy("lock") private var variantListenerAdded: Boolean = false
   @GuardedBy("lock") private val listeners = mutableListOf<ResourceFolderListener>()
   @Volatile private var generation: Long = 0
@@ -64,11 +74,22 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
 
 
   /**
-   * Returns all resource directories, in the overlay order
+   * Returns main (production) resource directories, in increasing precedence order.
+   *
+   * @see IdeaSourceProvider.getCurrentSourceProviders
    */
-  val folders: List<VirtualFile>
-    get() = lock.withLock {
-      resDirCache ?: computeFolders().also { resDirCache = it }
+  val folders get() = lock.withLock { mainAndTestFolders.main }
+
+  /**
+   * Returns test resource directories, in the overlay order.
+   *
+   * @see IdeaSourceProvider.getCurrentTestSourceProviders
+   */
+  val testFolders get() = mainAndTestFolders.test
+
+  private val mainAndTestFolders: Folders
+    @Synchronized get() {
+      return foldersCache ?: computeFolders().also { foldersCache = it }
     }
 
   /**
@@ -85,21 +106,44 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
 
   /** Notifies the resource folder manager that the resource folder set may have changed.  */
   fun invalidate() = lock.withLock {
-    val old = resDirCache
-    if (old == null || isDisposed) {
+    val before = foldersCache
+    if (before == null || isDisposed) {
       return
     }
-    resDirCache = null
-    val new = folders
-    if (old != new) {
-      notifyChanged(old, new)
+    foldersCache = null
+    val after = mainAndTestFolders
+    notifyIfChanged(before, after, Folders::main, ResourceFolderListener::mainResourceFoldersChanged)
+    notifyIfChanged(before, after, Folders::test, ResourceFolderListener::testResourceFoldersChanged)
+  }
+
+  private inline fun notifyIfChanged(
+    before: Folders,
+    after: Folders,
+    filesToCheck: Folders.() -> List<VirtualFile>,
+    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>, Collection<VirtualFile>, Collection<VirtualFile>) -> Unit
+  ) {
+    val filesBefore = before.filesToCheck()
+    val filesAfter = after.filesToCheck()
+    if (filesBefore != filesAfter) {
+      generation++
+      val added = HashSet<VirtualFile>(after.main.size)
+      added.addAll(after.main)
+      added.removeAll(before.main)
+
+      val removed = HashSet<VirtualFile>(before.main.size)
+      removed.addAll(before.main)
+      removed.removeAll(after.main)
+
+      for (listener in listeners) {
+        listener.callback(facet, after.filesToCheck(), added, removed)
+      }
     }
   }
 
-  private fun computeFolders(): List<VirtualFile> {
+  private fun computeFolders(): Folders {
     val facet = this.facet
     return if (!facet.requiresAndroidModel()) {
-      facet.mainIdeaSourceProvider.resDirectories.toList()
+      Folders(main = facet.mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
     } else {
       // Listen to root change events. Be notified when project is initialized so we can update the
       // resource set, if necessary.
@@ -108,12 +152,16 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
     }
   }
 
-  private fun readFromModel(facet: AndroidFacet): List<VirtualFile> {
-    val resDirectories = IdeaSourceProvider.getCurrentSourceProviders(facet).flatMap { it.resDirectories }
+  private fun readFromModel(facet: AndroidFacet): Folders {
+    val mainResDirectories = IdeaSourceProvider.getCurrentSourceProviders(facet).flatMap { it.resDirectories }
+    val testResDirectories = IdeaSourceProvider.getCurrentTestSourceProviders(facet).flatMap { it.resDirectories }
 
     // Write string property such that subsequent restarts can look up the most recent list before the gradle model has been initialized
     // asynchronously.
-    facet.configuration.state?.RES_FOLDERS_RELATIVE_PATH = resDirectories.joinToString(SEPARATOR) { it.url }
+    facet.configuration.state?.apply {
+      RES_FOLDERS_RELATIVE_PATH = mainResDirectories.joinToString(SEPARATOR) { it.url }
+      TEST_RES_FOLDERS_RELATIVE_PATH = testResDirectories.joinToString(SEPARATOR) { it.url }
+    }
 
     // Also refresh the app resources whenever the variant changes.
     if (!variantListenerAdded) {
@@ -121,39 +169,40 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       BuildVariantUpdater.getInstance(facet.module.project).addSelectionChangeListener(this::invalidate)
     }
 
-    return resDirectories
+    return Folders(mainResDirectories, testResDirectories)
   }
 
-  private fun readFromFacetState(facet: AndroidFacet): List<VirtualFile> {
-    val state = facet.configuration.state ?: return emptyList()
-    val path = state.RES_FOLDERS_RELATIVE_PATH
-    return if (path != null) {
+  private fun readFromFacetState(facet: AndroidFacet): Folders {
+    val state = facet.configuration.state ?: return emptyFolders
+    val mainFolders = state.RES_FOLDERS_RELATIVE_PATH
+    return if (mainFolders != null) {
+      // We have state saved in the facet.
       val manager = VirtualFileManager.getInstance()
-      Splitter.on(SEPARATOR).omitEmptyStrings().trimResults().split(path).mapNotNull(manager::findFileByUrl)
+      Folders(
+        main = mainFolders.toVirtualFiles(manager),
+        test = state.TEST_RES_FOLDERS_RELATIVE_PATH?.toVirtualFiles(manager).orEmpty()
+      )
     }
     else {
       // First time; have not yet computed the res folders, just try the default: src/main/res/ from Gradle templates, res/ from exported
       // Eclipse projects.
-      listOf(
-        AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_SOURCES/$FD_MAIN/$FD_RES", true)
-        ?: AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_RES", true)
-        ?: return emptyList())
+      Folders(
+        main = listOf(
+          AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_SOURCES/$FD_MAIN/$FD_RES", true)
+          ?: AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_RES", true)
+          ?: return emptyFolders
+        ),
+        test = emptyList()
+      )
     }
   }
 
-  private fun notifyChanged(before: List<VirtualFile>, after: List<VirtualFile>) {
-    generation++
-    val added = HashSet<VirtualFile>(after.size)
-    added.addAll(after)
-    added.removeAll(before)
-
-    val removed = HashSet<VirtualFile>(before.size)
-    removed.addAll(before)
-    removed.removeAll(after)
-
-    for (listener in listeners) {
-      listener.resourceFoldersChanged(facet, after, added, removed)
-    }
+  private fun String.toVirtualFiles(manager: VirtualFileManager): List<VirtualFile> {
+    return Splitter.on(SEPARATOR)
+      .omitEmptyStrings()
+      .trimResults()
+      .split(this)
+      .mapNotNull(manager::findFileByUrl)
   }
 
   companion object {
@@ -165,6 +214,8 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
      * `file://foo:file://bar`
      */
     private const val SEPARATOR = ";"
+
+    private val emptyFolders = Folders(emptyList(), emptyList())
 
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ResourceFolderManager {
