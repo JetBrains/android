@@ -16,7 +16,11 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property2.api.PropertiesModel
@@ -37,7 +41,6 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    model.updateQueue.isPassThrough = true
     model.addListener(listener)
 
     // test
@@ -110,7 +113,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val textView = nlModel.find(TEXT_VIEW)!!
     val view = nlModel.surface.currentSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, listOf(textView))
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, null, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     waitUntilEventsProcessed(model)
@@ -157,15 +160,6 @@ class NelePropertiesModelTest: LayoutTestCase() {
     return model
   }
 
-  // Ugly hack:
-  // The production code is executing the properties creation on a separate thread.
-  // This code makes sure that the last scheduled worker thread is finished,
-  // then we also need to wait for events on the UI thread.
-  private fun waitUntilEventsProcessed(model: NelePropertiesModel) {
-    model.lastSelectionUpdate?.get()
-    UIUtil.dispatchAllInvocationEvents()
-  }
-
   private class RecursiveValueChangedListener : PropertiesModelListener<NelePropertyItem> {
     var called = 0
 
@@ -177,6 +171,21 @@ class NelePropertiesModelTest: LayoutTestCase() {
     override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
       model.addListener(RecursiveValueChangedListener())
       called++
+    }
+  }
+
+  companion object {
+
+    // Ugly hack:
+    // The production code is executing the properties creation on a separate thread.
+    // This code makes sure that the last scheduled worker thread is finished,
+    // then we also need to wait for events on the UI thread.
+    fun waitUntilEventsProcessed(model: NelePropertiesModel) {
+      if (model.lastSelectionUpdate!!.get()) {
+        while (!model.lastUpdateCompleted) {
+          UIUtil.dispatchAllInvocationEvents()
+        }
+      }
     }
   }
 }
