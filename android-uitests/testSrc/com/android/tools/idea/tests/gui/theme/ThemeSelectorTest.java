@@ -67,7 +67,6 @@ public class ThemeSelectorTest {
    * and that IntelliJ's Undo works can revert this action
    */
   @Ignore("b/63048046#comment6")
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRenameTheme() throws IOException {
     guiTest.importSimpleApplication();

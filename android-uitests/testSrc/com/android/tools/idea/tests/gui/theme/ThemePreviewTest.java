@@ -101,7 +101,6 @@ public class ThemePreviewTest {
     assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isTrue();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/79252943
   @Test
   public void testToolbarState() throws Exception {
     guiTest.importSimpleLocalApplication();

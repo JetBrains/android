@@ -287,7 +287,6 @@ public class ChooseResourceDialogTest {
   /**
    * Test looking at the attributes for a drawable
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/117353711
   @Test
   public void testDrawable() throws IOException {
     guiTest.importSimpleLocalApplication();
@@ -351,7 +350,6 @@ public class ChooseResourceDialogTest {
    * Checks that, when assigning the src for an ImageView we do not allow color state lists (since they crash at runtime).
    * http://b/70650615
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/117353711
   @Test
   public void testDrawableDoesNotAllowColorStateLists() throws IOException {
     guiTest.importSimpleLocalApplication();
@@ -416,7 +414,6 @@ public class ChooseResourceDialogTest {
     dialog.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/117353711
   @Test
   public void testSearchExactMatch() throws IOException {
     guiTest.importSimpleLocalApplication();
@@ -451,7 +448,6 @@ public class ChooseResourceDialogTest {
     dialog.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/117353711
   @Test
   public void testArray() throws IOException {
     guiTest.importSimpleLocalApplication();
