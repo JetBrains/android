@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.deployer.Trace;
 import com.android.tools.idea.actions.DevicePickerHelpAction;
 import com.android.tools.idea.actions.DevicePickerHelpActionKt;
 import com.android.tools.idea.adb.AdbService;
@@ -154,6 +155,14 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     setTitle("Select Deployment Target");
     setModal(true);
     init();
+  }
+
+  @Override
+  public boolean showAndGet() {
+    Trace.begin("DeployTargetPickerDialog");
+    boolean result = super.showAndGet();
+    Trace.end();
+    return result;
   }
 
   @Nullable
