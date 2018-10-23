@@ -99,7 +99,7 @@
   implements(".*_name")="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
   mixin(".*_name")="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
   generateTokenAccessors(".*_name")=false
-  generate=[names='long']
+  generate=[names='long' java='8']
 }
 
 root ::= statement ';'?

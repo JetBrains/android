@@ -3637,7 +3637,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_);
     result = with_clause_select_statement(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, subquery_recover_parser_);
+    exit_section_(builder, level, marker, result, false, RoomSqlParser::subquery_recover);
     return result;
   }
 
@@ -4095,7 +4095,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     result = result && report_error_(builder, with_clause_greedy_1(builder, level + 1));
     result = pinned && report_error_(builder, with_clause_table(builder, level + 1)) && result;
     result = pinned && with_clause_greedy_3(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, with_clause_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, RoomSqlParser::with_clause_recover);
     return result || pinned;
   }
 
@@ -5055,14 +5055,4 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result || pinned;
   }
 
-  final static Parser subquery_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return subquery_recover(builder, level + 1);
-    }
-  };
-  final static Parser with_clause_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return with_clause_recover(builder, level + 1);
-    }
-  };
 }
