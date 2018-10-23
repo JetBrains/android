@@ -100,4 +100,17 @@ public class SceneResizeTest extends SceneTest {
                  "        tools:layout_editor_absoluteX=\"500dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"500dp\" />");
   }
+
+  public void testResizeCancel() {
+    myInteraction.select("button", true);
+    myInteraction.mouseDown("button", ResizeBaseTarget.Type.LEFT_TOP);
+    myInteraction.mouseCancel(300, 300);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"500dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"500dp\"/>");
+  }
 }

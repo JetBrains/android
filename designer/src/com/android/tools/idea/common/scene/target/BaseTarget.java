@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.common.scene.target;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -113,16 +111,6 @@ public abstract class BaseTarget implements Target {
   @Nullable
   public String getToolTipText() {
     return null;
-  }
-
-  /**
-   * Apply live and commit a list of AttributesTransaction
-   */
-  protected void applyAndCommit(@NotNull AttributesTransaction attributes, @NotNull String label) {
-    attributes.apply();
-    NlWriteCommandAction.run(attributes.getComponent(), label, attributes::commit);
-
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
   //endregion

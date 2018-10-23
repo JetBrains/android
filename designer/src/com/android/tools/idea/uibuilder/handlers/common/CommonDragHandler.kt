@@ -109,7 +109,7 @@ internal class CommonDragHandler(editor: ViewEditor,
       layout.scene.removeComponent(dragTarget.component)
     }
     dragTarget.component.drawState = SceneComponent.DrawState.NORMAL
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 
   companion object {

@@ -49,9 +49,14 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   private lateinit var draggedComponents: List<SceneComponent>
 
   /**
+   * list of initial positions of dragged components
+   */
+  private lateinit var initialPositions: List<Point>
+
+  /**
    * Offsets of every selected components. Their units are AndroidDpCoordinate
    */
-  private lateinit var offsets: Array<Point>
+  private lateinit var offsets: List<Point>
 
   /**
    * Mouse position when start dragging.
@@ -178,7 +183,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
       draggedComponents = sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
     }
-    offsets = Array(draggedComponents.size) { Point(-1, -1) }
+    initialPositions = draggedComponents.map { Point(it.drawX, it.drawY) }
+    offsets = draggedComponents.map { Point(-1, -1) }
 
 
     if (fromToolWindow) {
@@ -335,10 +341,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   /**
    * Reset the status when the dragging is canceled.
    */
-  fun cancel() {
-    myComponent.isDragging = false
-    myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+  override fun mouseCancel() {
     currentSnappedPlaceholder = null
+    val liveRendered = myComponent.scene.isLiveRenderingEnabled
+    draggedComponents.forEachIndexed { index, component ->
+      component.setPosition(initialPositions[index].x, initialPositions[index].y)
+      component.isDragging = false
+      // Rollback the transaction. Some attributes may be changed due to live rendering.
+      val nlComponent = component.authoritativeNlComponent
+      if (liveRendered && nlComponent.parent?.viewHandler is ConstraintLayoutHandler) {
+        nlComponent.startAttributeTransaction().rollback()
+        nlComponent.fireLiveChangeEvent()
+      }
+    }
+    myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
   }
 
   override fun newSelection(): List<SceneComponent> = listOf(myComponent)

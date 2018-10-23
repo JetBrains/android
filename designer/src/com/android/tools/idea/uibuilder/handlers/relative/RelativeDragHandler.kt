@@ -101,6 +101,6 @@ internal class RelativeDragHandler(editor: ViewEditor,
     if (component != null) {
       layout.scene.removeComponent(component)
     }
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 }

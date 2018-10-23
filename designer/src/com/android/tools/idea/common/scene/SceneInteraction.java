@@ -98,7 +98,12 @@ public class SceneInteraction extends Interaction {
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
     scene.updateModifiers(modifiers);
-    scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY);
+    if (canceled) {
+      scene.mouseCancel();
+    }
+    else {
+      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY);
+    }
     mySceneView.getSurface().repaint();
   }
 }

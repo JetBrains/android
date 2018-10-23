@@ -108,7 +108,7 @@ public class LinearDragTarget extends DragBaseTarget {
         myClosest.setHighlight(false);
       }
 
-      if (closestTarget != null && closestTarget instanceof LinearSeparatorTarget) {
+      if (closestTarget instanceof LinearSeparatorTarget) {
         myClosest = (LinearSeparatorTarget)closestTarget;
         myClosest.setHighlight(true, myComponent.getDrawWidth(), myComponent.getDrawHeight());
       }
@@ -146,8 +146,8 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void cancel() {
-    super.cancel();
+  public void mouseCancel() {
+    super.mouseCancel();
     myHandler.setDragging(myComponent, false);
     if (myClosest != null) {
       myClosest.setHighlight(false);
