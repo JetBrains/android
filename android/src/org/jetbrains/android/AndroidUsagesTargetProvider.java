@@ -28,11 +28,6 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
            : UsageTarget.EMPTY_ARRAY;
   }
 
-  @Override
-  public UsageTarget[] getTargets(@NotNull PsiElement psiElement) {
-    return UsageTarget.EMPTY_ARRAY;
-  }
-
   /**
    *
    * The rename parameter should be set to true when the method is called from a rename handler.

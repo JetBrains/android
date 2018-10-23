@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element> implements PreferGradleMake {
 
   private static Logger getLogger() {
     return Logger.getInstance(AndroidRunConfigurationBase.class);

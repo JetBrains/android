@@ -36,7 +36,7 @@ public class AndroidTreeUpdater extends AbstractTreeUpdater {
    * This makes sure that the hierarchy of nodes is refreshed properly when for example a resource file is added or deleted.
    */
   @Override
-  public boolean addSubtreeToUpdateByElement(Object element) {
+  public boolean addSubtreeToUpdateByElement(@NotNull Object element) {
     if (element instanceof PsiDirectory && !myTreeBuilder.getProject().isDisposed()) {
       PsiDirectory dirToUpdateFrom = (PsiDirectory)element;
       boolean addedOk;
