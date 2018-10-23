@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
+
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Segment;
@@ -31,17 +35,13 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.DocumentUtil;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.RegEx;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.RegEx;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
-import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
 
 /**
  * Generic lint quickfix which replaces text somewhere in the range from [startElement,endElement] by matching
@@ -58,6 +58,7 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   private boolean myFormat;
   private SmartPsiFileRange myRange;
   private String myExpandedNewValue;
+  private String mySelectPattern;
 
   /**
    * Creates a new lint quickfix which can replace string contents at the given PSI element
@@ -89,6 +90,15 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   /** Sets whether the replace operation should attempt to shorten class names after the replacement */
   public ReplaceStringQuickFix setFormat(boolean format) {
     myFormat = format;
+    return this;
+  }
+
+  /**
+   * Sets a pattern to select; if it contains parentheses, group(1) will be selected.
+   * To just set the caret, use an empty group.
+   */
+  public ReplaceStringQuickFix setSelectPattern(String selectPattern) {
+    mySelectPattern = selectPattern;
     return this;
   }
 
@@ -171,6 +181,24 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
             }
           } else if (myFormat) {
             CodeStyleManager.getInstance(project).reformatRange(element, startOffset, endOffset);
+          }
+        }
+
+        if (mySelectPattern != null && context instanceof AndroidQuickfixContexts.EditorContext) {
+          Pattern pattern = Pattern.compile(mySelectPattern);
+          Matcher matcher = pattern.matcher(document.getText());
+          if (matcher.find(startOffset)) {
+            int selectStart;
+            int selectEnd;
+            if (matcher.groupCount() > 0) {
+              selectStart = matcher.start(1);
+              selectEnd = matcher.end(1);
+            } else {
+              selectStart = matcher.start();
+              selectEnd = matcher.end();
+            }
+            Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
+            editor.getSelectionModel().setSelection(selectStart, selectEnd);
           }
         }
       }
