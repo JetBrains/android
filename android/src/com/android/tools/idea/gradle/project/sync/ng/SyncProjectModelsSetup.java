@@ -280,6 +280,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
         setupContextByModuleModel.javaSetupContexts.put(javaModel, context);
         cachedModels.addModel(javaModel);
       }
+
+      myExtraModelsManager.addAndroidModelsToCache(module, cachedModels);
       return;
     }
     // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.

@@ -133,6 +133,7 @@ iml_module(
         "//tools/idea/.idea/libraries:HdrHistogram",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/idea/.idea/libraries:Java_Compatibility",
+        "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
     ],
 )
 

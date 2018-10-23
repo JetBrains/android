@@ -42,7 +42,7 @@ public class SyncExecutorTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myExtraGradleSyncModelsManager = new ExtraGradleSyncModelsManager(new ArrayList<>());
+    myExtraGradleSyncModelsManager = new ExtraGradleSyncModelsManager(new ArrayList<>(), new ArrayList<>());
     mySyncExecutor = new SyncExecutor(myProject, myExtraGradleSyncModelsManager, myCommandLineArgs, mySyncErrorHandlerManager,
                                       mySelectedVariantCollector);
 
