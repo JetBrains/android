@@ -23,13 +23,16 @@ import static com.intellij.testFramework.VfsTestUtil.createFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
+import com.google.common.collect.Iterables;
+import com.intellij.openapi.util.Disposer;
 import java.util.List;
 
 /** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
 public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
-  // This test provides additional coverage relative to ModuleResourceRepositoryTest.testOverlays by exercising
-  // the ModuleResourceRepository.forMainResources method that may affect resource overlay order. See http://b/117805863.
+  /**
+   * This test provides additional coverage relative to ModuleResourceRepositoryTest.testOverlays by exercising
+   * the ModuleResourceRepository.forMainResources method that may affect resource overlay order. See http://b/117805863.
+   */
   public void testOverlayOrder() throws Exception {
     loadProject(PROJECT_WITH_APPAND_LIB);
     createFile(
@@ -39,11 +42,37 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
         "<resources>\n" +
         "  <string name=\"app_name\">This app_name definition should win</string>\n" +
         "</resources>");
-    Module appModule = myModules.getAppModule();
-    LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(appModule);
+    LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(myAndroidFacet);
     List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(resources).hasSize(1);
     // Check that the debug version of app_name takes precedence over the default on.
     assertThat(resources.get(0).getResourceValue().getValue()).isEqualTo("This app_name definition should win");
+  }
+
+  /**
+   * Checks that test res folders created between syncs are picked up by ResourceFolderManager and handled by ModuleResourceRepository.
+   */
+  public void testTestFolders() throws Exception {
+    loadSimpleApplication();
+    LocalResourceRepository repository = ModuleResourceRepository.forTestResources(myAndroidFacet);
+    Disposer.register(myAndroidFacet, repository);
+
+    assertThat(repository.getAllResources()).isEmpty();
+
+    createFile(
+      getProject().getBaseDir(),
+      "app/src/androidTest/res/values/strings.xml",
+      "" +
+      "<resources>\n" +
+      "  <string name=\"test_res\">test res value</string>\n" +
+      "</resources>");
+
+    List<ResourceItem> newResources = repository.getAllResources();
+    assertThat(newResources).hasSize(1);
+    ResourceItem resourceItem = Iterables.getOnlyElement(newResources);
+    assertThat(resourceItem.getNamespace()).isEqualTo(RES_AUTO);
+    assertThat(resourceItem.getType()).isEqualTo(ResourceType.STRING);
+    assertThat(resourceItem.getName()).isEqualTo("test_res");
+    assertThat(resourceItem.getResourceValue().getValue()).isEqualTo("test res value");
   }
 }

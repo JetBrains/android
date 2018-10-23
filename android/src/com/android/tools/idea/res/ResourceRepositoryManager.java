@@ -23,9 +23,7 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
-import com.android.projectmodel.ResourceFolder;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -44,7 +42,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -337,7 +334,6 @@ public class ResourceRepositoryManager implements Disposable {
       return moduleTestResources;
     }
 
-    // TODO(b/116692965): Do it properly for other build systems.
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
     if (model == null) {
       return moduleTestResources;

@@ -87,7 +87,7 @@ import org.jetbrains.annotations.NotNull;
  * <li>Add listener or remove listener can be done from any thread</li>
  * </ul>
  */
-@SuppressWarnings({"SynchronizeOnThis", "UseOfSystemOutOrSystemErr"})
+@SuppressWarnings({"SynchronizeOnThis"})
 public class ResourceNotificationManager {
   private final Project myProject;
 
@@ -397,10 +397,19 @@ public class ResourceNotificationManager {
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
     @Override
-    public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-                                       @NotNull List<? extends VirtualFile> folders,
-                                       @NotNull Collection<? extends VirtualFile> added,
-                                       @NotNull Collection<? extends VirtualFile> removed) {
+    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
+                                           @NotNull List<? extends VirtualFile> folders,
+                                           @NotNull Collection<? extends VirtualFile> added,
+                                           @NotNull Collection<? extends VirtualFile> removed) {
+      myModificationCount++;
+      notice(Reason.GRADLE_SYNC);
+    }
+
+    @Override
+    public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
+                                           @NotNull List<? extends VirtualFile> folders,
+                                           @NotNull Collection<? extends VirtualFile> added,
+                                           @NotNull Collection<? extends VirtualFile> removed) {
       myModificationCount++;
       notice(Reason.GRADLE_SYNC);
     }
@@ -492,7 +501,8 @@ public class ResourceNotificationManager {
         }
         else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
           XmlAttributeValue attributeValue = (XmlAttributeValue)child;
-          if (attributeValue.getValue() == null || attributeValue.getValue().isEmpty()) {
+          attributeValue.getValue();
+          if (attributeValue.getValue().isEmpty()) {
             // Just added a new blank attribute; nothing to render yet
             return;
           }
@@ -535,7 +545,7 @@ public class ResourceNotificationManager {
           // Typing in attribute name. Don't need to do any rendering until there
           // is an actual value
           XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
-          if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+          if (valueElement == null || valueElement.getValue().isEmpty()) {
             return;
           }
         }
@@ -561,7 +571,7 @@ public class ResourceNotificationManager {
           // Typing in attribute name. Don't need to do any rendering until there
           // is an actual value
           XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
-          if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+          if (valueElement == null || valueElement.getValue().isEmpty()) {
             return;
           }
         }
@@ -673,7 +683,7 @@ public class ResourceNotificationManager {
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;
 
-    public FileEventObserver(Module module) {
+    private FileEventObserver(Module module) {
       myModule = module;
     }
 
@@ -732,7 +742,7 @@ public class ResourceNotificationManager {
     private final Configuration myConfiguration;
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
 
-    public ConfigurationEventObserver(Configuration configuration) {
+    private ConfigurationEventObserver(Configuration configuration) {
       myConfiguration = configuration;
     }
 

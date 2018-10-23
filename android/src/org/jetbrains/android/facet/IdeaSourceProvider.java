@@ -15,6 +15,16 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.getAidlGenDir;
+import static org.jetbrains.android.facet.AndroidRootUtil.getAssetsDir;
+import static org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath;
+import static org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir;
+
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
@@ -24,22 +34,14 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.facet.AndroidRootUtil.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
@@ -356,10 +358,10 @@ public abstract class IdeaSourceProvider {
   /**
    * Returns a list of source providers, in the overlay order (meaning that later providers
    * override earlier providers when they redefine resources) for the currently selected variant.
-   * <p>
-   * Note that the list will never be empty; there is always at least one source provider.
-   * <p>
-   * The overlay source order is defined by the Android Gradle plugin.
+   *
+   * <p>Note that the list will never be empty; there is always at least one source provider.
+   *
+   * <p>The overlay source order is defined by the Android Gradle plugin.
    */
   @NotNull
   public static List<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
@@ -373,6 +375,12 @@ public abstract class IdeaSourceProvider {
     return Collections.emptyList();
   }
 
+  /**
+   * Returns a list of source providers for all test artifacts (e.g. both {@code test/} and {@code androidTest/} source sets), in increasing
+   * precedence order.
+   *
+   * @see #getCurrentSourceProviders(AndroidFacet)
+   */
   @NotNull
   public static List<IdeaSourceProvider> getCurrentTestSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.requiresAndroidModel()) {
