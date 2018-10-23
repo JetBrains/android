@@ -45,16 +45,18 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   private val relativeLayoutAttrs = listOf("layout_toLeftOf", "layout_above", "layout_alignTop")
 
   fun testViewAttributes() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createViewTagComponent())
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createViewTagComponent())
     assertThat(properties.size).isAtLeast(124)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
   }
 
   fun testRootHasAllLayoutAttributes() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createViewTagComponent())
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createViewTagComponent())
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(frameLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -62,8 +64,9 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testSubViewHasLayoutAttributesOfParent() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW)))
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(relativeLayoutAttrs)
@@ -71,39 +74,44 @@ class NelePropertiesProviderTest : PropertyTestCase() {
 
   fun testFontFamilyFromAppCompatForMinApi14() {
     setUpAppCompat()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
     assertThat(properties.contains(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
 
   fun testFontFamilyFromAndroidForMinApi16() {
     setUpAppCompat()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.contains(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
 
   fun testSrcCompatIncludedWhenUsingAppCompat() {
     setUpAppCompat()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 
   fun testSrcCompatNotIncludedWhenNotUsingAppCompat() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(IMAGE_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW)))
     assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 
   fun testCustomViewProperties() {
     setUpCustomView()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(CUSTOM_TAG)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -113,8 +121,9 @@ class NelePropertiesProviderTest : PropertyTestCase() {
 
   fun testToolTip() {
     setUpCustomView()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(CUSTOM_TAG)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
     val id = properties[ANDROID_URI, ATTR_ID]
     val legend = properties[AUTO_URI, ATTR_LEGEND]
     assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
@@ -123,11 +132,6 @@ class NelePropertiesProviderTest : PropertyTestCase() {
 
   private fun setUpAppCompat() {
     MockAppCompat.setUp(this, myFacet, myFixture)
-  }
-
-  private fun createProvider(): NelePropertiesProvider {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
-    return NelePropertiesProvider(model)
   }
 
   private fun createViewTagComponent(): List<NlComponent> {
