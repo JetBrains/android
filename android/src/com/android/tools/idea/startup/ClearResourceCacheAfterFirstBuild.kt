@@ -29,7 +29,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Project component responsible for clearing the resource cache after the initial project build if any resources
@@ -46,25 +45,6 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) : ProjectC
   private var errorOccurred = false
   private val callbacks = mutableListOf<CacheClearedCallback>()
   private var messageBusConnection: MessageBusConnection? = null
-
-  /**
-   * Used to reset this component to its initial state between test cases.
-   */
-  @TestOnly
-  fun reset() {
-    messageBusConnection?.apply {
-      messageBusConnection = null
-      disconnect()
-    }
-    synchronized(lock) {
-      cacheClean = false
-      errorOccurred = false
-      callbacks.clear()
-    }
-    if (project.isOpen) {
-      projectOpened()
-    }
-  }
 
   override fun projectOpened() {
     // Listen for sync results until the first successful project sync.
