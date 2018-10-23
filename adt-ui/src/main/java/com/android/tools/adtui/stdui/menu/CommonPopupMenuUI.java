@@ -17,10 +17,8 @@ package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaPopupMenuBorder;
-import com.intellij.ide.ui.laf.intellij.WinIntelliJPopupBorder;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,7 +37,7 @@ public class CommonPopupMenuUI extends PopupMenuUI {
     Border border = component.getBorder();
     if (border == null || border instanceof UIResource) {
       if (SystemInfo.isWindows) {
-        border = UIUtil.isUnderDarcula() ? new DarculaPopupMenuBorder() :  new WinIntelliJPopupBorder();
+        border = new DarculaPopupMenuBorder();
       }
       else {
         border = new BorderUIResource.EmptyBorderUIResource(0, 0, 0, 0);
