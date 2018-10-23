@@ -645,6 +645,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (data.reformat) {
         fix.setFormat(true);
       }
+      if (data.selectPattern != null) {
+        fix.setSelectPattern(data.selectPattern);
+      }
       if (data.range != null && file != null) {
         Position start = data.range.getStart();
         Position end = data.range.getEnd();
