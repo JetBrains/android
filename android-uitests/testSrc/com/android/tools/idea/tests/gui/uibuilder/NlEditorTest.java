@@ -22,9 +22,6 @@ import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -51,7 +48,6 @@ import org.junit.runners.Parameterized;
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
 public class NlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
 
   @Parameterized.Parameters(name="{0}")
   public static TargetBuildSystem.BuildSystem[] data() {
@@ -160,7 +156,6 @@ public class NlEditorTest {
     assertEquals(5, layout.getAllComponents().size());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72573971
   @Test
   public void testZoomAndPanWithMouseShortcut() throws Exception {
     guiTest.importSimpleLocalApplication();
