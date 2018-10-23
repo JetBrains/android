@@ -16,10 +16,64 @@
 
 package com.android.tools.idea.refactoring.rtl;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_DRAWABLE_END;
+import static com.android.SdkConstants.ATTR_DRAWABLE_LEFT;
+import static com.android.SdkConstants.ATTR_DRAWABLE_RIGHT;
+import static com.android.SdkConstants.ATTR_DRAWABLE_START;
+import static com.android.SdkConstants.ATTR_GRAVITY;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_GRAVITY;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LIST_PREFERRED_ITEM_PADDING_END;
+import static com.android.SdkConstants.ATTR_LIST_PREFERRED_ITEM_PADDING_LEFT;
+import static com.android.SdkConstants.ATTR_LIST_PREFERRED_ITEM_PADDING_RIGHT;
+import static com.android.SdkConstants.ATTR_LIST_PREFERRED_ITEM_PADDING_START;
+import static com.android.SdkConstants.ATTR_PADDING_END;
+import static com.android.SdkConstants.ATTR_PADDING_LEFT;
+import static com.android.SdkConstants.ATTR_PADDING_RIGHT;
+import static com.android.SdkConstants.ATTR_PADDING_START;
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.SdkConstants.GRAVITY_VALUE_END;
+import static com.android.SdkConstants.GRAVITY_VALUE_LEFT;
+import static com.android.SdkConstants.GRAVITY_VALUE_RIGHT;
+import static com.android.SdkConstants.GRAVITY_VALUE_START;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.LAYOUT_FILE_ATTRIBUTE;
+import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.MANIFEST_SUPPORTS_RTL;
+import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.MANIFEST_TARGET_SDK;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_SUPPORTS_RTL;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_TARGET_SDK_VERSION;
+import static com.android.xml.AndroidManifest.NODE_APPLICATION;
+import static com.android.xml.AndroidManifest.NODE_USES_SDK;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -27,7 +81,11 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -36,6 +94,11 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -46,16 +109,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.*;
-import static com.android.xml.AndroidManifest.*;
 
 public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
@@ -301,7 +354,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           final List<VirtualFile> allLayoutDir = new ArrayList<>();
 
           for (VirtualFile oneRes : allRes) {
-            if (ResourceFolderManager.isLibraryResourceRoot(oneRes)) {
+            if (isLibraryResourceRoot(oneRes)) {
               continue;
             }
             final VirtualFile[] children = oneRes.getChildren();
@@ -339,7 +392,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
           List<PsiFile> files = resourceManager.findResourceFiles(ResourceFolderType.LAYOUT);
           for (PsiFile psiFile : files) {
-            if (ResourceFolderManager.isLibraryResourceFile(psiFile.getVirtualFile())) {
+            if (isLibraryResourceFile(psiFile.getVirtualFile())) {
               continue;
             }
             list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk));
@@ -567,5 +620,48 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   @Override
   protected String getCommandName() {
     return REFACTORING_NAME;
+  }
+
+  /**
+   * Returns true if the given resource file (such as a given layout XML file) is an extracted library (AAR) resource file
+   *
+   * @param file the file to check
+   * @return true if the file is a library resource file
+   */
+  private static boolean isLibraryResourceFile(@Nullable VirtualFile file) {
+    if (file != null) {
+      VirtualFile folder = file.getParent();
+      if (folder != null) {
+        return isLibraryResourceRoot(folder.getParent());
+      }
+
+      return false;
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if the given resource folder (such as a given "res" folder, a parent of say a layout folder) is an extracted
+   * library (AAR) resource folder
+   *
+   * @param res the folder to check
+   * @return true if the folder is a library resource folder
+   */
+  private static boolean isLibraryResourceRoot(@Nullable VirtualFile res) {
+    if (res != null) {
+      VirtualFile aar = res.getParent();
+      if (aar != null) {
+        VirtualFile exploded = aar.getParent();
+        if (exploded != null) {
+          String name = exploded.getName();
+          if (name.equals(FilenameConstants.EXPLODED_AAR)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }
