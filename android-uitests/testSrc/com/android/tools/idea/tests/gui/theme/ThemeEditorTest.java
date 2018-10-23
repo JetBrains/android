@@ -117,7 +117,6 @@ public class ThemeEditorTest {
     checkNoErrors();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testConfigurationToolbar() throws IOException {
     guiTest.importSimpleLocalApplication();
