@@ -48,7 +48,7 @@ iml_module(
     deps = [
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
+        "//tools/idea/platform/analysis-api:intellij.platform.analysis[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
@@ -61,7 +61,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/android-kotlin:lib/dx",
-        "//tools/idea/platform/analysis-api:intellij.platform.analysis[module]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
     ],
 )
 
@@ -86,7 +86,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
+        "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
         "//tools/idea/platform/indexing-api:intellij.platform.indexing[module]",
         "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
@@ -101,7 +101,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:kotlin-plugin",
-        "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
     ],
 )
 
@@ -140,11 +140,11 @@ iml_module(
     deps = [
         "//tools/adt/idea/jps-plugin:intellij.android.jps[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/idea/jps/model-api:intellij.platform.jps.model[module]",
         "//tools/idea/jps/model-serialization:intellij.platform.jps.model.serialization[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:kotlin-plugin",
-        "//tools/idea:intellij.platform.jps.build_and_others[module]",
     ],
 )
 
