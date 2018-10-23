@@ -72,8 +72,7 @@ public class CpuProfilerTestUtils {
     }
   }
 
-  public static CpuCapture getCapture(ByteString traceBytes, CpuProfilerType profilerType)
-    throws IOException, ExecutionException, InterruptedException {
+  public static CpuCapture getCapture(ByteString traceBytes, CpuProfilerType profilerType) throws ExecutionException, InterruptedException {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
     return parser.parse(ProfilersTestData.SESSION_DATA, FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
   }
