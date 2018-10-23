@@ -49,7 +49,6 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
         "//prebuilts/studio/sdk:platforms/latest",
     ],
-    test_runtime_deps = ["//tools/adt/idea/adt-branding:intellij.android.adt.branding"],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
     visibility = ["//visibility:public"],
@@ -58,6 +57,7 @@ iml_module(
         "//tools/idea/plugins/IntelliLang:intellij.java.langInjection",
         "//tools/idea/plugins/IntelliLang:intellij.xml.langInjection",
         "//tools/idea/uast/uast-java:intellij.java.uast",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
@@ -67,6 +67,7 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
     # do not sort: must match IML order
     deps = [
@@ -77,8 +78,5 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
     ],
 )
