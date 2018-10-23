@@ -20,8 +20,11 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
@@ -123,6 +126,9 @@ class AndroidProjectRule private constructor(
   fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
 
   fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
+
+  fun <T> registerExtension(epName: ExtensionPointName<T>, extension: T) =
+    PlatformTestUtil.registerExtension<T>(Extensions.getArea(project), epName, extension, fixture.projectDisposable)
 
   override fun before(description: Description) {
     fixture = if (lightFixture) {
