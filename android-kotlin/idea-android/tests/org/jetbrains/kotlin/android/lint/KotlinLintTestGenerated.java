@@ -22,8 +22,6 @@ public class KotlinLintTestGenerated extends AbstractKotlinLintTest {
         KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
     }
 
-    public void testDisabled() {}
-    /* TODO(b/117954721): The Kotlin Lint tests in android-kotlin are flaky due to spurious errors from the Kotlin compiler.
     @TestMetadata("alarm.kt")
     public void testAlarm() throws Exception {
         runTest("idea-android/testData/android/lint/alarm.kt");
@@ -163,5 +161,4 @@ public class KotlinLintTestGenerated extends AbstractKotlinLintTest {
     public void testWrongViewCall() throws Exception {
         runTest("idea-android/testData/android/lint/wrongViewCall.kt");
     }
-    TODO(b/117954721): The Kotlin Lint tests in android-kotlin are flaky due to spurious errors from the Kotlin compiler. */
 }
