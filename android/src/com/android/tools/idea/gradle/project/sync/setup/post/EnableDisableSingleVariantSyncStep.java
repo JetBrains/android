@@ -52,9 +52,6 @@ public class EnableDisableSingleVariantSyncStep {
     boolean hasAndroidModule = false;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       // Check if module has kotlin plugin, only populated in new sync.
-      if (hasKotlinPlugin(module)) {
-        return HAS_KOTLIN;
-      }
       for (Facet facet : FacetManager.getInstance(module).getAllFacets()) {
         if (AndroidFacet.NAME.equals(facet.getName())) {
           hasAndroidModule = true;
@@ -76,8 +73,8 @@ public class EnableDisableSingleVariantSyncStep {
 
         // kotlin module. Old sync relies on this check.
         // Hard-code kotlin facet name, because kotlin plugin didn't provide access to it, also good to avoid adding extra dependency on kotlin plugin.
-        if ("Kotlin".equals(facet.getName())) {
-          return HAS_KOTLIN;
+        if ("Kotlin".equals(facet.getName()) && !hasKotlinPlugin(module)) {
+          return OLD_PLUGIN;
         }
       }
     }

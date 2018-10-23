@@ -62,6 +62,8 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/android-kotlin:lib/dx",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
     ],
 )
@@ -194,8 +196,11 @@ iml_module(
         "//tools/idea/.idea/libraries:gson[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
-        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
+        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module, test]",
     ],
 )
 

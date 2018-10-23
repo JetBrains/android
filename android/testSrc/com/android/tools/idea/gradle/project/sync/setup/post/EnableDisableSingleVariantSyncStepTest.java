@@ -40,7 +40,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
 
   public void testIsEligibleWithKotlinModule() throws Exception {
     loadProject(KOTLIN_GRADLE_DSL);
-    assertEquals(HAS_KOTLIN, isEligibleForSingleVariantSync(getProject()));
+    assertEquals(OLD_PLUGIN, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithPureJavaProject() throws Exception {
@@ -60,7 +60,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
   public void testIsEligibleWithKotlinModuleWithNewSync() throws Exception {
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     loadProject(KOTLIN_GRADLE_DSL);
-    assertEquals(HAS_KOTLIN, isEligibleForSingleVariantSync(getProject()));
+    assertEquals(OLD_PLUGIN, isEligibleForSingleVariantSync(getProject()));
     StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
   }
 

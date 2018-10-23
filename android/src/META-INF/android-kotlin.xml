@@ -123,6 +123,8 @@
 
     <extensions defaultExtensionNs="com.android.gradle.sync">
         <postSyncModuleSetupStep implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidModuleSetupStep"/>
+        <extraGradleSyncJavaModels implementation="org.jetbrains.kotlin.android.sync.ng.KotlinSyncModels$KotlinJavaSyncModels"/>
+        <extraGradleSyncAndroidModels implementation="org.jetbrains.kotlin.android.sync.ng.KotlinSyncModels$KotlinAndroidSyncModels"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin.android.model">

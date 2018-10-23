@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.junit.Before;
@@ -35,33 +36,67 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ExtraGradleSyncModelsManagerTest {
   @Mock private ExtraGradleSyncJavaModels myJavaExtension1;
   @Mock private ExtraGradleSyncJavaModels myJavaExtension2;
+  @Mock private ExtraGradleSyncAndroidModels myAndroidExtension1;
+  @Mock private ExtraGradleSyncAndroidModels myAndroidExtension2;
   @Mock private GradleModuleModels myModuleModels;
   @Mock private Module myModule;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
+  @Mock private CachedModuleModels myCachedModuleModels;
 
   private ExtraGradleSyncModelsManager myExtraModelsManager;
 
   private static class MockAppEngineProject {
   }
 
+  private static class MockKotlinProject {
+  }
+
   @Before
   public void setUp() {
     initMocks(this);
     when(myJavaExtension1.getModelTypes()).thenReturn(Collections.singleton(MockAppEngineProject.class));
+    when(myAndroidExtension1.getModelTypes()).thenReturn(Collections.singleton(MockKotlinProject.class));
 
     myExtraModelsManager =
-      new ExtraGradleSyncModelsManager(Arrays.asList(myJavaExtension1, myJavaExtension2));
+      new ExtraGradleSyncModelsManager(Arrays.asList(myJavaExtension1, myJavaExtension2),
+                                       Arrays.asList(myAndroidExtension1, myAndroidExtension2));
   }
 
   @Test
-  public void testGetExtraModels() {
+  public void testGetExtraJavaModels() {
     assertThat(myExtraModelsManager.getJavaModelTypes()).containsExactly(MockAppEngineProject.class);
   }
 
   @Test
+  public void testGetExtraAndroidModels() {
+    assertThat(myExtraModelsManager.getAndroidModelTypes()).containsExactly(MockKotlinProject.class);
+  }
+
+  @Test
   public void testSetupJavaModuleExtraModels() {
-    myExtraModelsManager.applyModelsToModule(myModuleModels, myModule, myModelsProvider);
+    myExtraModelsManager.applyJavaModelsToModule(myModuleModels, myModule, myModelsProvider);
     verify(myJavaExtension1, times(1)).applyModelsToModule(myModuleModels, myModule, myModelsProvider);
     verify(myJavaExtension2, times(1)).applyModelsToModule(myModuleModels, myModule, myModelsProvider);
+  }
+
+  @Test
+  public void testSetupAndroidModuleExtraModels() {
+    myExtraModelsManager.applyAndroidModelsToModule(myModuleModels, myModule, myModelsProvider);
+    verify(myAndroidExtension1, times(1)).applyModelsToModule(myModuleModels, myModule, myModelsProvider);
+    verify(myAndroidExtension2, times(1)).applyModelsToModule(myModuleModels, myModule, myModelsProvider);
+  }
+
+  @Test
+  public void testCacheJavaModuleExtraModels() {
+    myExtraModelsManager.addJavaModelsToCache(myModule, myCachedModuleModels);
+    verify(myJavaExtension1, times(1)).addModelsToCache(myModule, myCachedModuleModels);
+    verify(myJavaExtension2, times(1)).addModelsToCache(myModule, myCachedModuleModels);
+  }
+
+  @Test
+  public void testCacheAndroidModuleExtraModels() {
+    myExtraModelsManager.addAndroidModelsToCache(myModule, myCachedModuleModels);
+    verify(myAndroidExtension1, times(1)).addModelsToCache(myModule, myCachedModuleModels);
+    verify(myAndroidExtension2, times(1)).addModelsToCache(myModule, myCachedModuleModels);
   }
 }
