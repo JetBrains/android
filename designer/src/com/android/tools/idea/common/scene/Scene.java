@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -594,6 +595,25 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
+  private void delegateMouseCancelToSelection(@NotNull SceneComponent currentComponent) {
+    // update other selected widgets
+    NlComponent currentNlComponent = currentComponent.getNlComponent();
+    Scene scene = currentComponent.getScene();
+    List<SceneComponent> otherComponents = getSelection().stream().filter( it -> it != currentNlComponent)
+      .map( it -> scene.getSceneComponent(it) )
+      .filter( it -> it != null)
+      .collect(Collectors.toList());
+
+    for (SceneComponent c : otherComponents) {
+      List<Target> targets = c.getTargets();
+      for (Target t : targets) {
+        if (t instanceof  MultiComponentTarget) {
+          t.mouseCancel();
+        }
+      }
+    }
+  }
+
   public void mouseDown(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myPressedMouseX = x;
     myPressedMouseY = y;
@@ -716,6 +736,20 @@ public class Scene implements SelectionListener, Disposable {
     if (!sameSelection() && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
+    checkRequestLayoutStatus();
+  }
+
+  public void mouseCancel() {
+    if (myHitTarget != null) {
+      myHitTarget.mouseCancel();
+      myHitTarget.getComponent().setDragging(false);
+      if (myHitTarget instanceof MultiComponentTarget) {
+        delegateMouseCancelToSelection(myHitTarget.getComponent());
+      }
+    }
+
+    myFilterType = FilterType.NONE;
+    myNewSelectedComponentsOnRelease.clear();
     checkRequestLayoutStatus();
   }
 

@@ -231,6 +231,23 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
+  /**
+   * Reset the size and position when mouse resizing is canceled.
+   */
+  @Override
+  public void mouseCancel() {
+    myComponent.setPosition(myStartX1, myStartY1);
+
+    // rollback the transaction. The value may be temporarily changed by live rendering.
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.rollback();
+    component.fireLiveChangeEvent();
+
+    myComponent.setDragging(false);
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+  }
+
   @Override
   public String getToolTipText() {
     return "Resize View";

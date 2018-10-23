@@ -144,6 +144,12 @@ public interface Target {
   default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
   }
 
+  /**
+   * Implement this method to react when mouse interaction is canceled.
+   */
+  default void mouseCancel() {
+  }
+
   SceneComponent getComponent();
 
   Cursor getMouseCursor();

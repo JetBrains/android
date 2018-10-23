@@ -71,7 +71,7 @@ class FrameDragHandler(editor: ViewEditor,
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
     if (component != null) {
-      dragTarget.cancel()
+      dragTarget.mouseCancel()
       layout.scene.removeComponent(component)
       editor.insertChildren(layout.nlComponent, components, -1, insertType)
       layout.scene.checkRequestLayoutStatus()
@@ -82,6 +82,6 @@ class FrameDragHandler(editor: ViewEditor,
     if (component != null) {
       layout.scene.removeComponent(component)
     }
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 }

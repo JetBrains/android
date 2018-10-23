@@ -172,6 +172,11 @@ public class InteractionManager {
   private boolean myIsPanning;
 
   /**
+   * Flag to indicate if interaction has canceled by pressing escape button.
+   */
+  private boolean myIsInteractionCanceled;
+
+  /**
    * Constructs a new {@link InteractionManager} for the given
    * {@link NlDesignSurface}.
    *
@@ -417,6 +422,8 @@ public class InteractionManager {
         mySurface.getLayeredPane().requestFocusInWindow();
       }
 
+      myIsInteractionCanceled = false;
+
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
       //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -440,6 +447,9 @@ public class InteractionManager {
 
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
+      if (myIsInteractionCanceled) {
+        return;
+      }
       if (event.isPopupTrigger()) {
         NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
         mySurface.repaint();
@@ -470,6 +480,7 @@ public class InteractionManager {
       }
       else {
         finishInteraction(x, y, modifiers, false);
+        myCurrentInteraction = null;
       }
       mySurface.repaint();
     }
@@ -552,6 +563,9 @@ public class InteractionManager {
 
     @Override
     public void mouseDragged(MouseEvent event) {
+      if (myIsInteractionCanceled) {
+        return;
+      }
       int x = event.getX();
       int y = event.getY();
 
@@ -678,6 +692,7 @@ public class InteractionManager {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
           finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
+          myIsInteractionCanceled = true;
           return;
         }
 

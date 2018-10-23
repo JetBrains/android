@@ -115,7 +115,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     if (myComponent.parent == null) {
       return
     }
-    mySnapTarget?.setMouseHovered(false)
+    mySnapTarget?.isMouseHovered = false
     mySnapTarget = null
     val snapTarget : Target? = closestTarget.firstOrNull { it is CoordinatorSnapTarget }
     if (snapTarget is CoordinatorSnapTarget) {
@@ -145,8 +145,8 @@ class CoordinatorDragTarget : DragBaseTarget() {
     }
   }
 
-  override fun cancel() {
-    super.cancel()
+  override fun mouseCancel() {
+    super.mouseCancel()
     myComponent.setPosition(myFirstMouseX - myOffsetX, myFirstMouseY - myOffsetY)
     myComponent.scene.repaint()
   }

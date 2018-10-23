@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.target;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
@@ -217,7 +218,18 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
   /**
    * Reset the status when the dragging is canceled.
    */
-  public void cancel() {
+  @Override
+  public void mouseCancel() {
+    int originalX = myFirstMouseX - myOffsetX;
+    int originalY = myFirstMouseY - myOffsetY;
+    myComponent.setPosition(originalX, originalY);
+
+    // rollback the transaction. The value may be temporarily changed by live rendering.
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.rollback();
+    component.fireLiveChangeEvent();
+
     myComponent.setDragging(false);
     myTargetSnapper.reset();
     myChangedComponent = false;

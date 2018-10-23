@@ -312,6 +312,35 @@ public class SceneMouseInteraction {
     repaint();
   }
 
+  /**
+   * Simulate dragging mouse to coordinate (x, y) then cancel the interaction.
+   *
+   * @param x coordinate on cancel
+   * @param y coordinate on cancel
+   */
+  public void mouseCancel(float x, float y) {
+    // drag first
+    int steps = 10;
+    float dx = x - myLastX;
+    float dy = y - myLastY;
+    float deltaX = dx / (float)steps;
+    float deltaY = dy / (float)steps;
+    dx = myLastX;
+    dy = myLastY;
+    SceneContext transform = SceneContext.get();
+    if (deltaX != 0 || deltaY != 0) {
+      for (int i = 0; i < steps; i++) {
+        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+        dx += deltaX;
+        dy += deltaY;
+      }
+      myScene.mouseDrag(transform, (int)x, (int)y);
+    }
+    myScene.mouseCancel();
+    repaint();
+  }
+
   public DisplayList getDisplayList() {
     return myDisplayList;
   }

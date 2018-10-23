@@ -106,6 +106,6 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
 
   override fun cancel() {
     editor.scene.removeComponent(sceneComponent)
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 }

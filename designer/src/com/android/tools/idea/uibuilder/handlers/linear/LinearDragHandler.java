@@ -92,7 +92,7 @@ class LinearDragHandler extends DragHandler {
   public void cancel() {
     Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
-    myDragTarget.cancel();
+    myDragTarget.mouseCancel();
   }
 
   @Nullable
@@ -109,7 +109,7 @@ class LinearDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     Scene scene = editor.getScene();
     if (myComponent != null) {
-      myDragTarget.cancel();
+      myDragTarget.mouseCancel();
       scene.removeComponent(myComponent);
       LinearSeparatorTarget closest = myDragTarget.getClosest();
       int index = closest != null ? closest.getInsertionIndex() : -1;
