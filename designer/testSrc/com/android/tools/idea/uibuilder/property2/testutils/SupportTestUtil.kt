@@ -44,15 +44,15 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
     this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag)
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
-    return NelePropertyItem(namespace, name, type, null, "", model, components)
+    return NelePropertyItem(namespace, name, type, null, "", model, null, components)
   }
 
   fun makeProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
-    return NelePropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, components)
+    return NelePropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, null, components)
   }
 
   fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
-    return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, components)
+    return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, null, components)
   }
 
   fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NelePropertyItem {
@@ -64,7 +64,7 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
   }
 
   fun makeIdProperty(): NeleIdPropertyItem {
-    return NeleIdPropertyItem(model, null, components)
+    return NeleIdPropertyItem(model, null, null, components)
   }
 
   fun findSiblingById(id: String): NlComponent? {

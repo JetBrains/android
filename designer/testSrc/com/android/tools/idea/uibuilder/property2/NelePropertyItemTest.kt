@@ -15,23 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ABSOLUTE_LAYOUT
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
+import com.android.SdkConstants.ATTR_PARENT_TAG
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_TEXT_COLOR
+import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.FRAME_LAYOUT
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
-import java.awt.Color
 import com.intellij.util.ui.TwoColorsIcon
+import icons.StudioIcons
 import org.intellij.lang.annotations.Language
+import java.awt.Color
 
 internal const val EXPECTED_ID_TOOLTIP = """
 android:id:
@@ -282,7 +299,6 @@ class NelePropertyItemTest : PropertyTestCase() {
     val referenceFromDefaultProperty = createPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.DIMENSION, components, model)
     val manager = getSceneManager(hardcodedFromDefaultProperty)
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)  // Platform dependent !!!
-    referenceFromDefaultProperty.resolver
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "16sp")
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "@dimen/text_size_button_material")
     waitUntilEventsProcessed(model)
@@ -411,15 +427,6 @@ class NelePropertyItemTest : PropertyTestCase() {
     val property = createPropertyItem(ANDROID_URI, "name", type, components)
     property.value = value
     return property.resolvedValue
-  }
-
-  // Ugly hack:
-  // The production code is executing the properties creation on a separate thread.
-  // This code makes sure that the last scheduled worker thread is finished,
-  // then we also need to wait for events on the UI thread.
-  private fun waitUntilEventsProcessed(model: NelePropertiesModel) {
-    model.lastSelectionUpdate?.get()
-    UIUtil.dispatchAllInvocationEvents()
   }
 
   @Language("XML")

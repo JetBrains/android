@@ -36,7 +36,8 @@ import com.android.tools.idea.common.property2.api.PropertiesTable
  */
 class NeleNewPropertyItem(model: NelePropertiesModel,
                           var properties: PropertiesTable<NelePropertyItem>)
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, listOf()), NewPropertyItem, FlagsPropertyItem<NeleFlagPropertyItem> {
+  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, null, listOf()), NewPropertyItem,
+    FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
     private set
