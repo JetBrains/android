@@ -61,7 +61,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.module.Module;
@@ -336,7 +335,7 @@ public class PostSyncProjectSetup {
 
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
-    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
+    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensions(myProject);
     RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
