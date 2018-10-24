@@ -437,7 +437,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
+  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
     return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
   }
 
