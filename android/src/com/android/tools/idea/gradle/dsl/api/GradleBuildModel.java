@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -22,9 +24,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -33,6 +37,28 @@ import java.util.List;
 import java.util.Set;
 
 public interface GradleBuildModel extends GradleFileModel {
+  /**
+   * Runs the given supplier and returns the result if no exception was thrown. If an exception was thrown then
+   * log it to back intellijs logs and the AndroidStudioCrashReporter and return null.
+   *
+   * @param supplier supplier to run
+   * @return supplied value or null if an exception was thrown
+   */
+  @Nullable
+  static <T> T tryOrLog(@NotNull Supplier<T> supplier) {
+    try {
+      return supplier.get();
+    } catch (Exception e) {
+      Logger logger = Logger.getInstance(ProjectBuildModel.class);
+      logger.error(e);
+
+      // Since this would have caused an IDE crash we still want to report any exceptions for monitoring.
+      StudioCrashReporter reporter = StudioCrashReporter.getInstance();
+      reporter.submit(new StudioExceptionReport.Builder().setThrowable(e, false).build());
+      return null;
+    }
+  }
+
   /**
    * Obtains an instance of {@link GradleBuildModel} for the given projects root build.gradle file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
@@ -43,7 +69,7 @@ public interface GradleBuildModel extends GradleFileModel {
   @Deprecated
   @Nullable
   static GradleBuildModel get(@NotNull Project project) {
-    return GradleModelProvider.get().getBuildModel(project);
+    return tryOrLog(() -> GradleModelProvider.get().getBuildModel(project));
   }
 
   /**
@@ -54,7 +80,7 @@ public interface GradleBuildModel extends GradleFileModel {
   @Deprecated
   @Nullable
   static GradleBuildModel get(@NotNull Module module) {
-    return GradleModelProvider.get().getBuildModel(module);
+    return tryOrLog(() -> GradleModelProvider.get().getBuildModel(module));
   }
 
   /**
