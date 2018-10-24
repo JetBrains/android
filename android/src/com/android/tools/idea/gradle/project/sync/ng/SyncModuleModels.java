@@ -34,13 +34,12 @@ import java.util.stream.Collectors;
 
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 4L;
+  private static final long serialVersionUID = 5L;
 
   @NotNull private final BuildIdentifier myBuildId;
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
   @NotNull private final SyncActionOptions myOptions;
-  @NotNull private final GradleProject myGradleProject;
 
   @NotNull private final Map<Class, List<Object>> myModelsByType = new HashMap<>();
 
@@ -55,7 +54,6 @@ public class SyncModuleModels implements GradleModuleModels {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
     myModuleName = gradleProject.getName();
-    myGradleProject = gradleProject;
     myOptions = options;
   }
 
@@ -119,23 +117,11 @@ public class SyncModuleModels implements GradleModuleModels {
   }
 
   /**
-   * Include Gradle path in module name to make sure module names are unique inside of the same project.
-   * For example, nested1-lib and nested2-lib.
+   * Set module name to make sure module names are unique.
    * Call this method if current module has duplicated name with another module.
    */
-  public void includeGradlePathInModuleName() {
-    myModuleName = myGradleProject.getPath();
-    myModuleName = myModuleName.startsWith(":") ? myModuleName.substring(1) : myModuleName;
-    myModuleName = myModuleName.replace(':', '-');
-  }
-
-  /**
-   * Include project name in module name to make sure module names are unique across included projects.
-   * For example, MyApplication1-app and MyApplication2-app.
-   * Call this method if current module has duplicated name with another module in different project.
-   */
-  public void includeProjectNameInModuleName() {
-    myModuleName = myBuildId.getRootDir().getName() + "-" + myModuleName;
+  public void setModuleName(@NotNull String moduleName) {
+    myModuleName = moduleName;
   }
 
   /**
