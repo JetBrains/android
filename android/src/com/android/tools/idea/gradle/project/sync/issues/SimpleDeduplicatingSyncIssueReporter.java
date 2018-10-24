@@ -111,10 +111,10 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       .updateNotification(notification, notification.getMessage(), getCustomLinks(project, syncIssues, affectedModules, buildFileMap));
     String message = notification.getMessage().trim();
 
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
 
     // Add links to each of the affected modules
-    if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
+    if (projectBuildModel != null && shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       builder.append("\nAffected Modules: ");
       for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
         Module m = it.next();

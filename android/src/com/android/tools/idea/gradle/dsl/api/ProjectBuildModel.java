@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.tryOrLog;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * A model representing a whole project. Multiple {@link GradleBuildModel}s that are obtained via a {@link ProjectBuildModel} will present
@@ -29,6 +30,7 @@ import java.io.File;
  * across different models.
  */
 public interface ProjectBuildModel {
+
   /**
    * @param project the project to create a model for.
    * @return the model for the project
@@ -36,6 +38,18 @@ public interface ProjectBuildModel {
   @NotNull
   static ProjectBuildModel get(@NotNull Project project) {
     return GradleModelProvider.get().getProjectModel(project);
+  }
+
+  /**
+   * Attempts to get the {@link ProjectBuildModel} for the given project, null if ANY (including unchecked) exceptions occurred.
+   * Exceptions will be logged via intellijs logger and Android Studios crash reporter.
+   *
+   * @param project the project to create a model for
+   * @return the model for the project or null if something went wrong.
+   */
+  @Nullable
+  static ProjectBuildModel getOrLog(@NotNull Project project) {
+    return tryOrLog(() -> get(project));
   }
 
   /**

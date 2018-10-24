@@ -262,7 +262,10 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       return;
     }
 
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+    if (projectBuildModel == null) {
+      return;
+    }
 
     // Check modules
     List<VirtualFile> filesToFix = new ArrayList<>();

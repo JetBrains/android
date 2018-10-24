@@ -66,7 +66,10 @@ public class BuildFileProcessor {
                                     .collect(Collectors.toList()));
       }
 
-      ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+      ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+      if (projectBuildModel == null) {
+        return;
+      }
 
       for (VirtualFile rootFolder : projectRootFolders) {
         processFileRecursivelyWithoutIgnored(rootFolder, virtualFile -> {

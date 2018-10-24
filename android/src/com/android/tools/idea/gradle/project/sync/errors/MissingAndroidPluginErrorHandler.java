@@ -62,10 +62,13 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
       List<VirtualFile> buildFiles = getBuildFileForPlugin(project);
       if (!buildFiles.isEmpty()) {
         VirtualFile buildFile = buildFiles.get(0);
-        GradleBuildModel gradleBuildModel = ProjectBuildModel.get(project).getModuleBuildModel(buildFile);
-        // Check if Google Maven repository can be added
-        if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
-          hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
+        ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+        if (projectBuildModel != null) {
+          GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile);
+          // Check if Google Maven repository can be added
+          if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
+            hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
+          }
         }
         hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));
       }

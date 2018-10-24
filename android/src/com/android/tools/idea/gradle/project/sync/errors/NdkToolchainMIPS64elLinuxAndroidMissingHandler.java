@@ -80,7 +80,10 @@ public final class NdkToolchainMIPS64elLinuxAndroidMissingHandler extends BaseSy
    */
   @Nullable
   private static ArtifactDependencyModel getAndroidPluginArtifactModel(@NotNull Project project) {
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+    if (projectBuildModel == null) {
+      return null;
+    }
     GradleBuildModel rootModel = projectBuildModel.getProjectBuildModel();
     if (rootModel != null) {
       List<ArtifactDependencyModel> dependencyModels = rootModel.buildscript().dependencies().artifacts();
