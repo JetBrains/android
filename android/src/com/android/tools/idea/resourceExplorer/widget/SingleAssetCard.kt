@@ -22,66 +22,20 @@ import com.intellij.ui.RoundedLineBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import java.awt.*
-import java.awt.image.BufferedImage
-import javax.swing.*
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.FlowLayout
+import java.awt.Font
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
+import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 import kotlin.properties.Delegates
-import kotlin.reflect.KProperty
-
-// Chessboard texture constants
-/**
- * Size of a single square in the chessboard pattern
- */
-private val CHESSBOARD_CELL_SIZE = JBUI.scale(10)
-
-/**
- * Size of the whole patten (width and height)
- */
-private val CHESSBOARD_PATTERN_SIZE = 2 * CHESSBOARD_CELL_SIZE
-
-private val CHESSBOARD_COLOR_1 = JBColor(0xCDCDCD, 0x414243)
-
-private val CHESSBOARD_COLOR_2 = JBColor(0xF1F1F1, 0x393A3B)
-
-private val TEXTURE_ANCHOR = Rectangle(0, 0, CHESSBOARD_PATTERN_SIZE,
-                                       CHESSBOARD_PATTERN_SIZE)
-
-/**
- * A [TexturePaint] that updates itself when the theme changes
- */
-private val CHESSBOARD_PAINT by object {
-
-  private var isDarcula = UIUtil.isUnderDarcula()
-  private var chessboardPaint = TexturePaint(createTexturePattern(), TEXTURE_ANCHOR)
-
-  /**
-   * Four alternating squares to make the chessboard pattern
-   */
-  private fun createTexturePattern() = UIUtil.createImage(CHESSBOARD_PATTERN_SIZE,
-                                                          CHESSBOARD_PATTERN_SIZE,
-                                                          BufferedImage.TYPE_INT_ARGB).apply {
-    with(this.graphics) {
-      color = CHESSBOARD_COLOR_1
-      fillRect(0, 0, CHESSBOARD_PATTERN_SIZE,
-               CHESSBOARD_PATTERN_SIZE)
-      color = CHESSBOARD_COLOR_2
-      fillRect(0, CHESSBOARD_CELL_SIZE,
-               CHESSBOARD_CELL_SIZE,
-               CHESSBOARD_CELL_SIZE)
-      fillRect(CHESSBOARD_CELL_SIZE, 0,
-               CHESSBOARD_CELL_SIZE,
-               CHESSBOARD_CELL_SIZE)
-    }
-  }
-
-  operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
-    if (isDarcula != UIUtil.isUnderDarcula()) {
-      isDarcula = UIUtil.isUnderDarcula()
-      chessboardPaint = TexturePaint(createTexturePattern(), TEXTURE_ANCHOR)
-    }
-    return chessboardPaint
-  }
-}
 
 // Graphic constant for the view
 
@@ -133,7 +87,7 @@ abstract class AssetView : JPanel(BorderLayout()) {
   /**
    * If true, draw a chessboard as in background of [thumbnail]
    */
-  var withChessboard = false
+  var withChessboard: Boolean by Delegates.observable(false) { _, _, withChessboard -> contentWrapper.showChessboard = withChessboard }
 
   /**
    * Set the [JComponent] acting as the thumbnail of the object represented (e.g an image or a color)
@@ -184,27 +138,7 @@ abstract class AssetView : JPanel(BorderLayout()) {
 
   abstract var selected: Boolean
 
-  protected var contentWrapper = object : JPanel(BorderLayout()) {
-    init {
-      isOpaque = false
-    }
-
-    override fun paintComponent(g: Graphics?) {
-      if (withChessboard) {
-        with(g as Graphics2D) {
-          val oldPaint = paint
-          paint = CHESSBOARD_PAINT
-          val insets = insets
-          fillRect(insets.left,
-                   insets.top,
-                   size.width - insets.right - insets.left,
-                   size.height - insets.bottom - insets.top)
-          paint = oldPaint
-        }
-      }
-      super.paintComponent(g)
-    }
-  }
+  protected var contentWrapper = ChessBoardPanel(BorderLayout()).apply { showChessboard = withChessboard }
 }
 
 /**
