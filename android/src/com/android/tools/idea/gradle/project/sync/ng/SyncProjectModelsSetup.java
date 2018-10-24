@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.ng.ModuleNameGenerator.deduplicateModuleNames;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -132,6 +133,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     // This can be different from the name used by Gradle. For example, entered name is "My Application", Gradle name is "MyApplication10".
     // Make the project use Gradle project name to be consistent with IDEA sync. With IDEA sync, the name was set by ProjectDataServiceImpl::renameProject.
     renameProject(projectModels, myProject);
+    // Ensure unique module names.
+    deduplicateModuleNames(projectModels, myProject);
     createAndSetUpModules(projectModels, cache);
     myProjectDataNodeSetup.setupProjectDataNode(projectModels, myProject);
     myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
