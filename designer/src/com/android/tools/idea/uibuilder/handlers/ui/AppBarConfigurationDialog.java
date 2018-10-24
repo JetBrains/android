@@ -419,11 +419,14 @@ public class AppBarConfigurationDialog extends JDialog {
     myExpandedPreviewFuture = cancel(myExpandedPreviewFuture);
     myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
     Application application = ApplicationManager.getApplication();
-    DumbService dumbService = DumbService.getInstance(myEditor.getModel().getProject());
-    myExpandedPreviewFuture =
-      application.executeOnPooledThread(() -> dumbService.runReadActionInSmartMode(() -> updateExpandedImage(expandedFile)));
-    myCollapsedPreviewFuture =
-      application.executeOnPooledThread(() -> dumbService.runReadActionInSmartMode(() -> updateCollapsedImage(collapsedFile)));
+    myExpandedPreviewFuture = application.executeOnPooledThread(() -> {
+      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      updateExpandedImage(expandedFile);
+    });
+    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> {
+      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      updateCollapsedImage(collapsedFile);
+    });
   }
 
   @Nullable
@@ -714,12 +717,7 @@ public class AppBarConfigurationDialog extends JDialog {
       task.dispose();
     }
 
-    if (result == null) {
-      return null;
-    }
-    if (!result.hasImage()) {
-      String msg = result.getRenderResult().getStatus() + " " + result.getRenderResult().getErrorMessage();
-      getLogger().warn(xmlFile.getName() + " No render Image: " + msg, result.getRenderResult().getException());
+    if (result == null || !result.hasImage()) {
       return null;
     }
 
@@ -732,10 +730,9 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void updatePreviewImage(@Nullable BufferedImage image, @NotNull JBLabel view) {
-    myPreview.setText(image == null ? RENDER_ERROR : PREVIEW_HEADER);
-
     if (image == null) {
       view.setIcon(null);
+      myPreview.setText(RENDER_ERROR);
       return;
     }
     double width = myPreviewPanel.getWidth() / 2.0;
@@ -743,12 +740,11 @@ public class AppBarConfigurationDialog extends JDialog {
       myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
     if (width < MIN_WIDTH || height < MIN_HEIGHT) {
       view.setIcon(null);
-      getLogger().warn(String.format("Preview panel is to small for rendering (%.2f x %.2f)", width, height));
-      return;
     }
     double scale = Math.min(width / image.getWidth(), height / image.getHeight()) * FUDGE_FACTOR;
     image = ImageUtils.scale(image, scale, scale);
     view.setIcon(new ImageIcon(image));
+    myPreview.setText(PREVIEW_HEADER);
   }
 
   private static Logger getLogger() {
