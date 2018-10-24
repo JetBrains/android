@@ -171,16 +171,16 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
 
     virtualDevices.stream()
-                  .map(this::newSelectDeviceAndSnapshotAction)
-                  .forEach(actions::add);
+      .map(this::newSelectDeviceAndSnapshotAction)
+      .forEach(actions::add);
 
     if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
       actions.add(Separator.create());
     }
 
     physicalDevices.stream()
-                   .map(device -> new SelectDeviceAndSnapshotAction(this, device))
-                   .forEach(actions::add);
+      .map(device -> new SelectDeviceAndSnapshotAction(this, device))
+      .forEach(actions::add);
 
     return actions;
   }
@@ -256,8 +256,8 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Object selectedDeviceName = mySelectedDevice.getName();
 
     Optional<Device> selectedDevice = myDevices.stream()
-                                               .filter(device -> device.getName().equals(selectedDeviceName))
-                                               .findFirst();
+      .filter(device -> device.getName().equals(selectedDeviceName))
+      .findFirst();
 
     mySelectedDevice = selectedDevice.orElseGet(() -> myDevices.get(0));
   }
