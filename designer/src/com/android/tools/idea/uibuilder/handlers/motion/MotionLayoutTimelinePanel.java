@@ -41,6 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -486,15 +487,15 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   private List<NlComponent> getSelectionFrom(@NotNull NlComponent component, @NotNull String id) {
-    if (component.getId().equals(id)) {
-      return Arrays.asList(component);
+    if (id.equals(component.getId())) {
+      return Collections.singletonList(component);
     }
     for (NlComponent child : component.getChildren()) {
-      if (child.getId().equals(id)) {
-        return Arrays.asList(child);
+      if (id.equals(child.getId())) {
+        return Collections.singletonList(child);
       }
     }
-    return new ArrayList<>();
+    return Collections.emptyList();
   }
 
   @Override
@@ -518,9 +519,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
    * @param attributeName
    * @param value
    */
-  public void setKeyframeAttribute(@NotNull String attributeName, float value) {
+  public void setKeyframeAttribute(@NotNull AttrName attributeName, float value) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
-    keyFrame.setValue(attributeName, Float.toString(value));
+    if (keyFrame != null) {
+      keyFrame.setValue(attributeName, Float.toString(value));
+    }
   }
 
   /**
@@ -528,9 +531,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
    * @param model
    * @param values
    */
-  public void setKeyframeAttributes(@NotNull HashMap<String, String> values) {
+  public void setKeyframeAttributes(@NotNull HashMap<AttrName, String> values) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
-    keyFrame.setValues(values);
+    if (keyFrame != null) {
+      keyFrame.setValues(values);
+    }
   }
 
   // TODO: merge with the above parse function

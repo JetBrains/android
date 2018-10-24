@@ -158,7 +158,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
       if (selected != null && myKeyframe != null) {
         MotionLayoutTimelinePanel panel = MotionLayoutHandler.getTimeline(selected);
         ViewInfo info = NlComponentHelperKt.getViewInfo(selected);
-        if (info != null) {
+        if (info != null && panel != null) {
           float fx = Coordinates.getAndroidX(mySceneView, x);
           float fy = Coordinates.getAndroidY(mySceneView, y);
           Object view = info.getViewObject();
@@ -167,9 +167,9 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
           positionAttributes[1] = "percentY";
           float[] positionsValues = new float[2];
           if (myMotionHelper.getPositionKeyframe(myKeyframe, view, fx, fy, positionAttributes, positionsValues)) {
-            HashMap<String, String> values = new HashMap<>();
-            values.put(positionAttributes[0], Float.toString(positionsValues[0]));
-            values.put(positionAttributes[1], Float.toString(positionsValues[1]));
+            HashMap<AttrName, String> values = new HashMap<>();
+            values.put(AttrName.motionAttr(positionAttributes[0]), Float.toString(positionsValues[0]));
+            values.put(AttrName.motionAttr(positionAttributes[1]), Float.toString(positionsValues[1]));
             panel.setKeyframeAttributes(values);
           }
         }

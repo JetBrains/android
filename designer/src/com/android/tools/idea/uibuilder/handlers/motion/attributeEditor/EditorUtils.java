@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.Key_framePosition;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.Key_frameTarget;
+
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.*;
+import java.awt.Component;
 import java.util.Comparator;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  * Collection of utilities used by the Panels
@@ -58,9 +63,9 @@ public class EditorUtils {
   //============================AttributesNamesHolder==================================//
 
   static class AttributesNamesHolder {
-    String name;
+    AttrName name;
 
-    AttributesNamesHolder(String n) {
+    AttributesNamesHolder(AttrName n) {
       name = n;
     }
 
@@ -71,7 +76,7 @@ public class EditorUtils {
 
     @Override
     public String toString() {
-      return name;
+      return name.toString();
     }
 
     @Override
@@ -121,23 +126,26 @@ public class EditorUtils {
       return c;
     }
   }
-  //==============================================================//
-   static Comparator compareAttributes = new Comparator<String>() {
-    public static final  String ourframePosition = "framePosition";
-    public static final  String ourTarget= "target";
-    @Override
-    public int compare(String s1, String s2) {
 
+  //==============================================================//
+
+  static Comparator compareAttributes = new Comparator<AttrName>() {
+    // Adjust the sort order to sort "target" and "framePosition" first
+    private final AttrName ourFramePosition = AttrName.motionAttr(Key_framePosition);
+    private final AttrName ourTarget = AttrName.motionAttr(Key_frameTarget);
+
+    @Override
+    public int compare(AttrName s1, AttrName s2) {
       if (s1.equals(ourTarget)) {
         return -1;
       }
       if (s2.equals(ourTarget)) {
         return 1;
       }
-      if (s1.equals(ourframePosition)) {
+      if (s1.equals(ourFramePosition)) {
         return -1;
       }
-      if (s2.equals(ourframePosition)) {
+      if (s2.equals(ourFramePosition)) {
         return 1;
       }
       return s1.compareTo(s2);

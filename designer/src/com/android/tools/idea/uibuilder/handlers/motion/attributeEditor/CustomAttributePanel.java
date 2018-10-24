@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
@@ -115,13 +116,13 @@ public class CustomAttributePanel extends TagPanel {
 
   public void setTag(MotionSceneModel.CustomAttributes tag) {
     myCustomAttributes = tag;
-    HashMap<String, Object> attr = tag.getAttributes();
+    HashMap<AttrName, Object> attr = tag.getAttributes();
     data.clear();
-    for (String s : attr.keySet()) {
-      Vector<Object> v = new Vector<Object>(Arrays.asList(s, attr.get(s)));
+    for (AttrName s : attr.keySet()) {
+      Vector<Object> v = new Vector<>(Arrays.asList(s, attr.get(s)));
       data.add(v);
     }
-    data.sort(Comparator.comparing(row -> ((String)row.get(0))));
+    data.sort(Comparator.comparing(row -> ((AttrName)row.get(0)).getName()));
     myTableModel.fireTableDataChanged();
   }
 
@@ -134,7 +135,7 @@ public class CustomAttributePanel extends TagPanel {
     @Override
     public void setValueAt(@NotNull Object value, int rowIndex, int columnIndex) {
       super.setValueAt(value, rowIndex, columnIndex);
-      String key = getValueAt(rowIndex, 0).toString();
+      AttrName key = (AttrName)getValueAt(rowIndex, 0);
       myCustomAttributes.setValue(key, (String)value);
     }
 

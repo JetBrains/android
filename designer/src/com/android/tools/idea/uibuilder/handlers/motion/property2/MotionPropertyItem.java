@@ -19,22 +19,19 @@ import com.android.tools.adtui.model.stdui.EditingSupport;
 import com.android.tools.adtui.ptable2.PTableItem;
 import com.android.tools.idea.common.property2.api.ActionIconButton;
 import com.android.tools.idea.common.property2.api.PropertyItem;
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.util.text.StringUtil;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
-
 public class MotionPropertyItem implements PropertyItem, PTableItem {
-  private final String myName;
+  private final AttrName myName;
   private final MotionSceneModel.BaseTag myTag;
   private final EditingSupport myEditingSupport;
 
-  public MotionPropertyItem(@NotNull String name, @NotNull MotionSceneModel.BaseTag tag) {
+  public MotionPropertyItem(@NotNull AttrName name, @NotNull MotionSceneModel.BaseTag tag) {
     myName = name;
     myTag = tag;
     myEditingSupport = EditingSupport.Companion.getINSTANCE();
@@ -43,13 +40,13 @@ public class MotionPropertyItem implements PropertyItem, PTableItem {
   @NotNull
   @Override
   public String getNamespace() {
-    return myTag.isAndroidAttribute(myName) ? ANDROID_URI : AUTO_URI;
+    return myName.getNamespace();
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myName;
+    return myName.getName();
   }
 
   @NotNull
@@ -63,7 +60,7 @@ public class MotionPropertyItem implements PropertyItem, PTableItem {
     if (myTag instanceof MotionSceneModel.CustomAttributes) {
       MotionSceneModel.CustomAttributes customAttributes = (MotionSceneModel.CustomAttributes)myTag;
       String valueTag = customAttributes.getValueTagName();
-      return valueTag != null ? customAttributes.getValue(valueTag) : null;
+      return valueTag != null ? customAttributes.getValue(AttrName.motionAttr(valueTag)) : null;
     }
     else {
       return myTag.getValue(myName);
@@ -76,7 +73,7 @@ public class MotionPropertyItem implements PropertyItem, PTableItem {
       MotionSceneModel.CustomAttributes customAttributes = (MotionSceneModel.CustomAttributes)myTag;
       String valueTag = customAttributes.getValueTagName();
       if (valueTag != null) {
-        customAttributes.setValue(valueTag, StringUtil.notNullize(newValue));
+        customAttributes.setValue(AttrName.motionAttr(valueTag), StringUtil.notNullize(newValue));
       }
     }
     else {

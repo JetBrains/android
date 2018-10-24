@@ -233,12 +233,12 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       MotionSceneModel.KeyFrame keyFrame = myLocationTable.find(x, y, 20);
       if (keyFrame != myChart.mySelectedKeyFrame) {
         myChart.mySelectedKeyFrame = keyFrame;
-        myChart.mySelectedKeyView = keyFrame.target;
         myChart.mySelection = Chart.Selection.KEY;
         myChart.update(Reason.SELECTION_CHANGED);
         if (keyFrame != null) {
           float position = keyFrame.getFramePosition() / 100f;
           myChart.setCursorPosition(position);
+          myChart.mySelectedKeyView = keyFrame.target;
         }
       }
       else {

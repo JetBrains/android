@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -45,6 +46,7 @@ public class TransitionPanel extends TagPanel {
   private DefaultTableModel myTableModel = new TransitionTableModel(data, colNames);
   private MotionSceneModel.TransitionTag myTag;
   private JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
+  private static final String ATTR_ATTRIBUTE_NAME = "AttributeName";
 
   public TransitionPanel(MotionLayoutAttributePanel panel) {
     super(panel);
@@ -102,7 +104,8 @@ public class TransitionPanel extends TagPanel {
   public ActionListener myAddItemAction = new ActionListener() {
     @Override
     public void actionPerformed(@NotNull ActionEvent event) {
-      String attributeName = ((JMenuItem)event.getSource()).getText();
+      JMenuItem menu = (JMenuItem)event.getSource();
+      AttrName attributeName = (AttrName)menu.getClientProperty(ATTR_ATTRIBUTE_NAME);
       String value = "";
       if (myTag == null || !myTag.setValue(attributeName, value)) {
         return;
@@ -113,13 +116,14 @@ public class TransitionPanel extends TagPanel {
 
   private void setupPopup(MotionSceneModel.TransitionTag tag) {
     myPopupMenu.removeAll();
-    String[] names = tag.getPossibleAttr();
-    Set<String> keys = tag.getAttributes().keySet();
+    AttrName[] names = tag.getPossibleAttr();
+    Set<AttrName> keys = tag.getAttributes().keySet();
     for (int i = 0; i < names.length; i++) {
       if (keys.contains(names[i])) {
         continue;
       }
-      JMenuItem menuItem = new JMenuItem(names[i]);
+      JMenuItem menuItem = new JMenuItem(names[i].getName());
+      menuItem.putClientProperty(ATTR_ATTRIBUTE_NAME, names[i]);
       menuItem.addActionListener(myAddItemAction);
       myPopupMenu.add(menuItem);
     }
@@ -127,7 +131,7 @@ public class TransitionPanel extends TagPanel {
 
   @Override
   protected void deleteAttr(int selection) {
-    String attributeName = (String)myTable.getValueAt(selection, 0);
+    AttrName attributeName = (AttrName)myTable.getValueAt(selection, 0);
     if (myTag == null || !myTag.deleteAttribute(attributeName)) {
       return;
     }
@@ -139,10 +143,10 @@ public class TransitionPanel extends TagPanel {
     if (tag == null) {
       return;
     }
-    HashMap<String, Object> attr = tag.getAttributes();
+    HashMap<AttrName, Object> attr = tag.getAttributes();
     data.clear();
-    for (String s : attr.keySet()) {
-      Vector<Object> v = new Vector<Object>(Arrays.asList(s, attr.get(s)));
+    for (AttrName s : attr.keySet()) {
+      Vector<Object> v = new Vector<>(Arrays.asList(s, attr.get(s)));
       data.add(v);
     }
     myTableModel.fireTableDataChanged();
@@ -158,7 +162,7 @@ public class TransitionPanel extends TagPanel {
     @Override
     public void setValueAt(@NotNull Object value, int rowIndex, int columnIndex) {
       super.setValueAt(value, rowIndex, columnIndex);
-      String key = getValueAt(rowIndex, 0).toString();
+      AttrName key = (AttrName)getValueAt(rowIndex, 0);
       myTag.setValue(key, (String)value);
     }
 

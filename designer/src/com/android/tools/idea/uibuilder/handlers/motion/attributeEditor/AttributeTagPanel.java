@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
@@ -51,6 +52,8 @@ public class AttributeTagPanel extends TagPanel {
   public HashMap<EditorUtils.AttributesNamesHolder, Object> myAttributes;
   public ArrayList<EditorUtils.AttributesNamesHolder> myAttributesNames;
   EasingCurve myEasingCurve;
+  private static final String ATTR_ATTRIBUTE_NAME = "AttributeName";
+  private static final AttrName customAttr = AttrName.customAttr(CustomLabel);
 
   public AttributeTagPanel(MotionLayoutAttributePanel panel) {
     super(panel);
@@ -79,7 +82,6 @@ public class AttributeTagPanel extends TagPanel {
       }
     });
 
-    gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.weightx = 1;
@@ -109,8 +111,8 @@ public class AttributeTagPanel extends TagPanel {
   public ActionListener myAddItemAction = new ActionListener() {
     @Override
     public void actionPerformed(ActionEvent e) {
-      String s = ((JMenuItem)e.getSource()).getText();
-      if (CustomLabel.equals(s)) { // add custom attribute
+      AttrName s = (AttrName)((JMenuItem)e.getSource()).getClientProperty(ATTR_ATTRIBUTE_NAME);
+      if (customAttr.equals(s)) { // add custom attribute
         NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel();
         newAttributePanel.show();
         if (newAttributePanel.isOK()) {
@@ -137,7 +139,11 @@ public class AttributeTagPanel extends TagPanel {
 
   @Override
   protected void deleteAttr(int selection) {
-    if (myKeyframe.deleteAttribute(myKeyAttrTableModel.getValueAt(selection, 0).toString())) {
+    EditorUtils.AttributesNamesHolder holder = (EditorUtils.AttributesNamesHolder)myKeyAttrTableModel.getValueAt(selection, 0);
+    if (holder == null) {
+      return;
+    }
+    if (myKeyframe.deleteAttribute(holder.name)) {
       myKeyAttrTableModel.removeRow(selection);
     }
   }
@@ -152,16 +158,17 @@ public class AttributeTagPanel extends TagPanel {
 
   private void setupPopup(MotionSceneModel.KeyFrame keyframe) {
     myPopupMenu.removeAll();
-    String[] names = keyframe.getPossibleAttr();
+    AttrName[] names = keyframe.getPossibleAttr();
 
-    HashMap<String, Object> attributes = new HashMap<>();
+    HashMap<AttrName, Object> attributes = new HashMap<>();
     keyframe.fill(attributes);
-    Set<String> keys = attributes.keySet();
+    Set<AttrName> keys = attributes.keySet();
     for (int i = 0; i < names.length; i++) {
       if (keys.contains(names[i])) {
         continue;
       }
-      JMenuItem menuItem = new JMenuItem(names[i]);
+      JMenuItem menuItem = new JMenuItem(names[i].getName());
+      menuItem.putClientProperty(ATTR_ATTRIBUTE_NAME, names[i]);
       menuItem.addActionListener(myAddItemAction);
       myPopupMenu.add(menuItem);
     }
@@ -169,15 +176,15 @@ public class AttributeTagPanel extends TagPanel {
 
   private void setEasing(String points) {
     for (int i = 0; i < myAttributesNames.size(); i++) {
-      if (KeyPosition_transitionEasing.equals(myAttributesNames.get(i).toString())) {
+      if (AttrName.motionAttr(KeyPosition_transitionEasing).equals(myAttributesNames.get(i))) {
         myAttributes.put(myAttributesNames.get(i), points);
-        myKeyAttrTableModel.fireTableCellUpdated(i,1);
+        myKeyAttrTableModel.fireTableCellUpdated(i, 1);
       }
     }
   }
 
   private void saveEasing(String value) {
-    myBasePanel.myCurrentKeyframe.setValue(KeyPosition_transitionEasing, value);
+    myBasePanel.myCurrentKeyframe.setValue(AttrName.motionAttr(KeyPosition_transitionEasing), value);
   }
 
   public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
@@ -290,8 +297,12 @@ public class AttributeTagPanel extends TagPanel {
       if (myBasePanel.myCurrentKeyframe == null) {
         return;
       }
-      String key = getValueAt(rowIndex, 0).toString();
-      myBasePanel.myCurrentKeyframe.setValue(key, aValue.toString());
+
+      EditorUtils.AttributesNamesHolder holder = (EditorUtils.AttributesNamesHolder)getValueAt(rowIndex, 0);
+      if (holder == null) {
+        return;
+      }
+      myBasePanel.myCurrentKeyframe.setValue(holder.name, aValue.toString());
     }
 
     public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
@@ -305,12 +316,12 @@ public class AttributeTagPanel extends TagPanel {
         myAttributesNames.clear();
       }
       if (keyframe != null) {
-        HashMap<String, Object> tmp = new HashMap<>();
+        HashMap<AttrName, Object> tmp = new HashMap<>();
         keyframe.fill(tmp);
-        ArrayList<String> attributesNames = new ArrayList<String>(tmp.keySet());
+        ArrayList<AttrName> attributesNames = new ArrayList<>(tmp.keySet());
         attributesNames.sort(EditorUtils.compareAttributes);
 
-        for (String s : attributesNames) {
+        for (AttrName s : attributesNames) {
           EditorUtils.AttributesNamesHolder holder = new EditorUtils.AttributesNamesHolder(s);
           myAttributesNames.add(holder);
           myAttributes.put(holder, tmp.get(s));

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
@@ -265,7 +266,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       myKeyList = keyList;
       myView = viewElement;
       myType = type;
-      String[] list = MotionSceneModel.getGraphAttributes(keyList);
+      AttrName[] list = MotionSceneModel.getGraphAttributes(keyList);
       Arrays.sort(list);
       switch (type) {
         case Position:
@@ -279,7 +280,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
           break;
       }
       for (int i = 0; i < list.length; i++) {
-        String name = list[i];
+        AttrName name = list[i];
         add(new GraphMode(MotionSceneModel.filterList(keyList, name), type, name));
       }
     }
@@ -289,8 +290,8 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   static class GraphMode extends DefaultMutableTreeNode {
     ArrayList<MotionSceneModel.KeyFrame> myKeyList;
 
-    GraphMode(ArrayList<MotionSceneModel.KeyFrame> keyList, CategoryNode.Type type, String name) {
-      super(name);
+    GraphMode(ArrayList<MotionSceneModel.KeyFrame> keyList, CategoryNode.Type type, AttrName name) {
+      super(name.getName());
       myKeyList = keyList;
     }
   }
