@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
-import java.io.File
+import com.intellij.openapi.application.PathManager
+import com.intellij.util.PathUtil
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Paths
-import javax.swing.filechooser.FileSystemView
+
+const val WNA_CACHE_DIR_KEY = "whatsnew"
 
 open class WhatsNewAssistantURLProvider {
   /**
@@ -42,7 +42,7 @@ open class WhatsNewAssistantURLProvider {
    * @return URL for the local config file where xml will be stored
    */
   open fun getLocalConfig(version: String): URL {
-    val localConfigPath = Paths.get(createAndGetConfigDir(), "$version.xml")
+    val localConfigPath = Paths.get(getConfigCacheDir(), "$version.xml")
     try {
       return localConfigPath.toUri().toURL()
     }
@@ -58,19 +58,7 @@ open class WhatsNewAssistantURLProvider {
   /**
    * @return path to directory where local xml config will be stored
    */
-  private fun createAndGetConfigDir(): String {
-    val userHome = System.getProperty("user.home")
-    val path: String
-    path = when {
-      SystemInfo.isWindows -> FileSystemView.getFileSystemView().defaultDirectory.path
-      SystemInfo.isMac -> FileUtil.join(userHome, "Documents")
-      SystemInfo.isLinux -> userHome
-      else -> throw RuntimeException("Platform is not supported")
-    }
-
-    val configPath = Paths.get(path, "AndroidStudio", "WhatsNewAssistant").toString()
-    File(configPath).mkdirs()
-
-    return configPath
+  private fun getConfigCacheDir(): String {
+    return Paths.get(PathUtil.getCanonicalPath(PathManager.getSystemPath()), WNA_CACHE_DIR_KEY).toString()
   }
 }
