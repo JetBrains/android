@@ -22,9 +22,8 @@ import org.junit.Test;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class ObservableValueTest {
-
   @Test
-  public void listenerIsTriggeredOnInvalidation() throws Exception {
+  public void listenerIsTriggeredOnInvalidation() {
     CountListener listener = new CountListener();
     MockObservableValue mockValue = new MockObservableValue();
     mockValue.addListener(listener);
@@ -39,7 +38,7 @@ public final class ObservableValueTest {
   }
 
   @Test
-  public void removeListenerPreventsFurtherCallbacks() throws Exception {
+  public void removeListenerPreventsFurtherCallbacks() {
     CountListener listener = new CountListener();
     MockObservableValue mockValue = new MockObservableValue();
     mockValue.addListener(listener);
@@ -56,7 +55,7 @@ public final class ObservableValueTest {
   }
 
   @Test
-  public void weakListenersCanBeRemovedManually() throws Exception {
+  public void weakListenersCanBeRemovedManually() {
     CountListener listener = new CountListener();
     MockObservableValue mockValue = new MockObservableValue();
     mockValue.addWeakListener(listener);
@@ -67,7 +66,7 @@ public final class ObservableValueTest {
   }
 
   @Test
-  public void weakListenerIsRemovedAutomaticallyByGc() throws Exception {
+  public void weakListenerIsRemovedAutomaticallyByGc() {
     final MutableInt strongCount = new MutableInt();
     final MutableInt weakCount = new MutableInt();
     MockObservableValue mockValue = new MockObservableValue();
@@ -87,7 +86,7 @@ public final class ObservableValueTest {
     // optimization. See: https://stackoverflow.com/a/25960828
     //noinspection unused
     Object forceGcToCleanUpScopedListener = null;
-    GCUtil.tryForceGC();
+    GCUtil.tryGcSoftlyReachableObjects();
 
     mockValue.fireInvalidated();
     assertThat(strongCount.value).isEqualTo(2);
