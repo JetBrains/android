@@ -69,7 +69,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     .build();
 
   private static final String NO_CLIENT_TITLE = "Initialization failed";
-  private static final String NO_CLIENT_MESSAGE = "You can run the profiler for a single project at a time.";
+  private static final String NO_CLIENT_MESSAGE = "To start the profiler, close all other Android Studio projects.";
 
   @NotNull
   private final JPanel myPanel;
