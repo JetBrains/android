@@ -147,7 +147,7 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  DeviceFutures newDeviceFutures(@NotNull Project project) {
+  DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
     AndroidDevice androidDevice;
 
     if (myConnected) {
@@ -158,7 +158,7 @@ final class VirtualDevice extends Device {
     }
     else {
       androidDevice = new LaunchableAndroidDevice(myAvdInfo);
-      androidDevice.launch(project);
+      androidDevice.launch(project, snapshot);
     }
 
     return new DeviceFutures(Collections.singletonList(androidDevice));

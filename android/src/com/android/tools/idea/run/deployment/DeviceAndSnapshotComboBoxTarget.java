@@ -48,10 +48,11 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
                                   boolean debug,
                                   int id) {
     ActionManager manager = ActionManager.getInstance();
+    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
 
-    Device device = ((DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox")).getSelectedDevice();
+    Device device = action.getSelectedDevice();
     assert device != null;
 
-    return device.newDeviceFutures(facet.getModule().getProject());
+    return device.newDeviceFutures(facet.getModule().getProject(), action.getSelectedSnapshot());
   }
 }

@@ -78,7 +78,7 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  DeviceFutures newDeviceFutures(@NotNull Project project) {
+  DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
     IDevice device = getDdmlibDevice();
     assert device != null;
 

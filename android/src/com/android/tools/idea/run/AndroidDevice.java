@@ -84,6 +84,12 @@ public interface AndroidDevice {
   ListenableFuture<IDevice> launch(@NotNull Project project);
 
   /**
+   * @param snapshot if the snapshot is null, the -snapshot argument is not passed to the emulator command
+   */
+  @NotNull
+  ListenableFuture<IDevice> launch(@NotNull Project project, @Nullable String snapshot);
+
+  /**
    * Returns the {@link IDevice} corresponding to this device if it is running or has been launched.
    * Throws {@link IllegalStateException} if the device is not running and hasn't been launched.
    */

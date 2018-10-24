@@ -49,7 +49,7 @@ abstract class Device {
   }
 
   @NotNull
-  abstract DeviceFutures newDeviceFutures(@NotNull Project project);
+  abstract DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot);
 
   @NotNull
   @Override
