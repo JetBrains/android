@@ -146,16 +146,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @VisibleForTesting
   List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
 
-    if (StudioFlags.JVMTI_REFRESH.get() && device.getVersion().getApiLevel() >= UnifiedDeployTask.MIN_API_VERSION) {
-      UnifiedDeployTask.DeployType type = UnifiedDeployTask.DeployType.INSTALL;
-      if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES))) {
-        type = UnifiedDeployTask.DeployType.FULL_SWAP;
-      } else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
-        type = UnifiedDeployTask.DeployType.CODE_SWAP;
-      }
-      return ImmutableList.of(new UnifiedDeployTask(myProject, myApkProvider.getApks(device), type));
-    }
-
     if (myInstantRunBuildAnalyzer != null) {
       return myInstantRunBuildAnalyzer.getDeployTasks(device, myLaunchOptions);
     }
@@ -176,9 +166,21 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
       assert state != null;
       tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
-    } else {
-      InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
+    }
+    else {
+      // Use JVMTI deployment if it is enabled and supported.
+      if (StudioFlags.JVMTI_REFRESH.get() && device.getVersion().getApiLevel() >= UnifiedDeployTask.MIN_API_VERSION) {
+        UnifiedDeployTask.DeployType type = UnifiedDeployTask.DeployType.INSTALL;
+        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES))) {
+          type = UnifiedDeployTask.DeployType.FULL_SWAP;
+        }
+        else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CODE_SWAP))) {
+          type = UnifiedDeployTask.DeployType.CODE_SWAP;
+        }
+        return ImmutableList.of(new UnifiedDeployTask(myProject, myApkProvider.getApks(device), type));
+      }
 
+      InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
       // Add tasks for each apk (or split-apk) returned by the apk provider
       tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
                                      apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
