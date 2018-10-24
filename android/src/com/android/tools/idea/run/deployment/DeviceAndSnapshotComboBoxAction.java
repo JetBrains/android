@@ -96,7 +96,6 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
-  @VisibleForTesting
   String getSelectedSnapshot() {
     return mySelectedSnapshot;
   }
