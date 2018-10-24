@@ -18,7 +18,9 @@ package com.android.tools.idea.lang.roomSql
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiField
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 
@@ -30,78 +32,108 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
     assertThat(ModuleRootManager.getInstance(myModule).sdk).named("module SDK").isNotNull()
 
     myFixture.addClass(
-        """
-          package androidx.room;
+      """
+      package androidx.room;
 
-          public @interface Dao {}
-          """.trimIndent())
-
-    myFixture.addClass(
-        """
-          package androidx.room;
-
-          public @interface Database { Class[] entities(); int version(); }
-          """.trimIndent())
+      public @interface Dao {}
+      """.trimIndent()
+    )
 
     myFixture.addClass(
-        """
-          package androidx.room;
+      """
+      package androidx.room;
 
-          public @interface Entity { String tableName() default ""; }
-          """.trimIndent())
-
-    myFixture.addClass(
-        """
-          package androidx.room;
-
-          public @interface Query { String value(); }
-          """.trimIndent())
+      public @interface Database { Class[] entities(); int version(); }
+      """.trimIndent()
+    )
 
     myFixture.addClass(
-        """
-          package androidx.room;
+      """
+      package androidx.room;
 
-          public @interface Ignore {}
-          """.trimIndent())
-
-    myFixture.addClass(
-        """
-          package androidx.room;
-
-          public @interface ColumnInfo { String name() default ""; }
-          """.trimIndent())
+      public @interface Entity { String tableName() default ""; }
+      """.trimIndent()
+    )
 
     myFixture.addClass(
-        """
-          package androidx.room;
+      """
+      package androidx.room;
 
-          public @interface Embedded { String prefix() default ""; }
-          """.trimIndent())
+      public @interface Query { String value(); }
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      """
+      package androidx.room;
+
+      public @interface DatabaseView { String value(); }
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      """
+      package androidx.room;
+
+      public @interface Ignore {}
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      """
+      package androidx.room;
+
+      public @interface ColumnInfo { String name() default ""; }
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      """
+      package androidx.room;
+
+      public @interface Embedded { String prefix() default ""; }
+      """.trimIndent()
+    )
   }
 
   protected data class FieldDefinition(val name: String, val type: String, val columnName: String? = null)
 
   protected infix fun String.ofType(type: String): FieldDefinition = FieldDefinition(this, type)
 
-  protected fun JavaCodeInsightTestFixture.classPointer(qualifiedClassName: String) =
-      SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findClass(qualifiedClassName))
+  protected fun JavaCodeInsightTestFixture.classPointer(qualifiedClassName: String): SmartPsiElementPointer<PsiClass> {
+    return SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findClass(qualifiedClassName))
+  }
 
-  protected fun JavaCodeInsightTestFixture.findField(qualifiedClassName: String, fieldName: String, checkBases: Boolean = false) =
-      findClass(qualifiedClassName).findFieldByName(fieldName, checkBases)!!
+  protected fun JavaCodeInsightTestFixture.findField(
+    qualifiedClassName: String,
+    fieldName: String,
+    checkBases: Boolean = false
+  ): PsiField {
+    return findClass(qualifiedClassName).findFieldByName(fieldName, checkBases)!!
+  }
 
-  protected fun JavaCodeInsightTestFixture.fieldPointer(qualifiedClassName: String, fieldName: String, checkBases: Boolean = false) =
-      SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findField(qualifiedClassName, fieldName, checkBases))
+  protected fun JavaCodeInsightTestFixture.fieldPointer(
+    qualifiedClassName: String,
+    fieldName: String,
+    checkBases: Boolean = false
+  ): SmartPsiElementPointer<PsiField> {
+    return SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findField(qualifiedClassName, fieldName, checkBases))
+  }
 
-  protected fun JavaCodeInsightTestFixture.addRoomEntity(qualifiedClassName: String, vararg fields: FieldDefinition) =
-      addRoomEntity(qualifiedClassName, tableNameOverride = null, fields = *fields)
+  protected fun JavaCodeInsightTestFixture.addRoomEntity(
+    qualifiedClassName: String,
+    vararg fields: FieldDefinition
+  ): PsiClass {
+    return addRoomEntity(qualifiedClassName, tableNameOverride = null, fields = *fields)
+  }
 
   protected val JavaCodeInsightTestFixture.referenceAtCaret get() = file.findReferenceAt(caretOffset)!!
 
   protected fun JavaCodeInsightTestFixture.addRoomEntity(
-      qualifiedClassName: String,
-      tableNameOverride: String?,
-      vararg fields: FieldDefinition
-  ) : PsiClass {
+    qualifiedClassName: String,
+    tableNameOverride: String?,
+    vararg fields: FieldDefinition
+  ): PsiClass {
     val packageName = qualifiedClassName.substringBeforeLast('.', "")
     val className = qualifiedClassName.substringAfterLast('.')
     val packageLine = if (packageName.isEmpty()) "" else "package $packageName;"
@@ -113,14 +145,15 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
     }
 
     return addClass(
-        """
-        $packageLine
+      """
+      $packageLine
 
-        import androidx.room.Entity;
-        import androidx.room.ColumnInfo;
+      import androidx.room.Entity;
+      import androidx.room.ColumnInfo;
 
-        @Entity$annotationArguments
-        public class $className { $fieldsSnippet }
-        """.trimIndent())
+      @Entity$annotationArguments
+      public class $className { $fieldsSnippet }
+      """.trimIndent()
+    )
   }
 }

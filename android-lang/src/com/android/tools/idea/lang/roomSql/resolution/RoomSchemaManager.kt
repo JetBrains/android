@@ -20,7 +20,19 @@ import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiArrayInitializerMemberValue
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassObjectAccessExpression
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiModifierList
+import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.impl.ResolveScopeManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch.searchPsiClasses
@@ -44,8 +56,11 @@ class RoomSchemaManager(val project: Project) {
    *
    * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
    */
-  fun getSchema(psiFile: PsiFile): RoomSchema? = CachedValuesManager.getManager(project).getCachedValue(
-    psiFile, { CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
+  fun getSchema(psiFile: PsiFile): RoomSchema? {
+    return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
+      CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT)
+    }
+  }
 
   private val constantEvaluationHelper = JavaPsiFacade.getInstance(project).constantEvaluationHelper
   private val pointerManager = SmartPointerManager.getInstance(project)

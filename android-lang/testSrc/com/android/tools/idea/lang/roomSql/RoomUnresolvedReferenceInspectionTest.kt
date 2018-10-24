@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lang.roomSql
 
+import com.android.tools.idea.testing.highlightedAs
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
+
 class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   override fun setUp() {
     super.setUp()
@@ -509,6 +512,23 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
           @Query("SELECT oid FROM user WHERE oid = 1")
           String oid();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testDatabaseView() {
+    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+
+    myFixture.configureByText("NamesView.java", """
+        package com.example;
+
+        import androidx.room.DatabaseView;
+
+        @DatabaseView("SELECT name, ${"age" highlightedAs ERROR} FROM user")
+        public class NamesView {
+          String name;
         }
     """.trimIndent())
 

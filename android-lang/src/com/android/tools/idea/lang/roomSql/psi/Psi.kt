@@ -30,7 +30,8 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.uast.*
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.getUastParentOfType
 import javax.swing.Icon
 
 class RoomTokenType(debugName: String) : IElementType(debugName, RoomSqlLanguage.INSTANCE) {
@@ -49,25 +50,31 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
   override fun getIcon(flags: Int): Icon? = ROOM_ICON
 
-  val queryAnnotation: UAnnotation?
+  val hostRoomAnnotation: UAnnotation?
     get() {
-      val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)
-      val annotation = injectionHost?.getUastParentOfType<UAnnotation>() ?: return null
-
-      return if (RoomAnnotations.QUERY.isEquals(annotation.qualifiedName)) annotation else null
+      return InjectedLanguageManager.getInstance(project)
+        .getInjectionHost(this)
+        ?.getUastParentOfType<UAnnotation>()
+        ?.takeIf {
+          val qualifiedName = it.qualifiedName
+          when {
+            RoomAnnotations.QUERY.isEquals(qualifiedName) -> true
+            RoomAnnotations.DATABASE_VIEW.isEquals(qualifiedName) -> true
+            else -> false
+          }
+        }
     }
 
-  val queryMethod: UMethod? get() = queryAnnotation?.getParentOfType<UAnnotated>() as? UMethod
-
   fun processTables(processor: Processor<SqlTable>): Boolean {
-    if (queryAnnotation != null) {
-      // We are inside a Room @Query annotation, let's use the Room schema.
+    if (hostRoomAnnotation != null) {
+      // We are inside a Room annotation, let's use the Room schema.
       val tables = RoomSchemaManager.getInstance(project)?.getSchema(this)?.entities ?: emptySet<SqlTable>()
       return ContainerUtil.process(tables, processor)
     }
 
     return true
   }
+
 }
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(RoomSqlLanguage.INSTANCE)
