@@ -19,6 +19,8 @@
     <display-name>Room Query annotation</display-name>
     <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("android.arch.persistence.room.Query")]]></place>
     <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("androidx.room.Query")]]></place>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("android.arch.persistence.room.DatabaseView")]]></place>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("androidx.room.DatabaseView")]]></place>
   </injection>
   <injection language="RoomSql" injector-id="java">
     <display-name>SQLiteDatabase methods</display-name>

@@ -15,7 +15,17 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-import com.android.tools.idea.lang.roomSql.psi.*
+import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
+import com.android.tools.idea.lang.roomSql.psi.RoomDefinedTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomDeleteStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomInsertStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectedTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomSqlFile
+import com.android.tools.idea.lang.roomSql.psi.RoomUpdateStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomVisitor
+import com.android.tools.idea.lang.roomSql.psi.RoomWithClauseStatement
 import com.android.tools.idea.lang.roomSql.resolution.RoomColumnPsiReference
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
@@ -27,7 +37,7 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.util.PsiTreeUtil
 
 /**
- * Inspection for the RoomSql language that only does something when running on a PSI file that's injected into Room's `@Query`.
+ * Inspection for the RoomSql language that only does something when running on a PSI file that's injected into a Room query.
  */
 abstract class RoomQueryOnlyInspection : LocalInspectionTool() {
 
@@ -35,7 +45,7 @@ abstract class RoomQueryOnlyInspection : LocalInspectionTool() {
     return if (isThisRoomQuery(session)) super.buildVisitor(holder, isOnTheFly, session) else PsiElementVisitor.EMPTY_VISITOR
   }
 
-  private fun isThisRoomQuery(session: LocalInspectionToolSession) = (session.file as? RoomSqlFile)?.queryAnnotation != null
+  private fun isThisRoomQuery(session: LocalInspectionToolSession) = (session.file as? RoomSqlFile)?.hostRoomAnnotation != null
 }
 
 class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
@@ -71,8 +81,8 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
         // string template as such, see the splitLiteralToInjectionParts function and b/77211318. See KT-25906.
         if (roomSqlFile.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == true) return
 
-        // Make sure we're inside Room's @Query annotation, otherwise we don't know the schema.
-        if (roomSqlFile.queryAnnotation == null) return
+        // Make sure we're inside a Room annotation, otherwise we don't know the schema.
+        if (roomSqlFile.hostRoomAnnotation == null) return
 
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 

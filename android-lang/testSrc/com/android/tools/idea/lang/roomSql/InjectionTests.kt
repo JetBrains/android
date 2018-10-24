@@ -24,7 +24,9 @@ import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil.enumerate
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidFacetProjectDescriptor
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 
 private fun JavaCodeInsightTestFixture.checkNoInjection(text: String) {
   assertFalse(InjectedLanguageUtil.hasInjections(findElementByText(text, PsiLanguageInjectionHost::class.java)!!))
@@ -73,8 +75,28 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
         interface UserDao {
           @Query("select * from User")
-        List<User> findAll();
-      }""".trimIndent()
+          List<User> findAll();
+        }""".trimIndent()
+    )
+
+    myFixture.checkInjection("* from") { psi, _ ->
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
+      assertEquals("select * from User", psi.text)
+    }
+  }
+
+  fun testDatabaseView() {
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+        package com.example;
+
+        import androidx.room.Query;
+
+        interface UserDao {
+          @Query("select * from User")
+          List<User> findAll();
+        }""".trimIndent()
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
