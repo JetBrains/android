@@ -30,7 +30,6 @@ iml_module(
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
     ],
 )
 
@@ -68,6 +67,5 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
     ],
 )

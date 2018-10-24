@@ -21,7 +21,6 @@ iml_module(
     deps = [
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
@@ -61,7 +60,6 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/android-kotlin:lib/dx",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
     ],
 )
 
@@ -101,7 +99,6 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:kotlin-plugin",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
     ],
 )
 
@@ -181,7 +178,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
