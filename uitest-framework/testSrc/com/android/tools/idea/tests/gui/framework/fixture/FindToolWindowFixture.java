@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.OccurenceNavigatorSupport;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.usageView.UsageViewManager;
+import com.intellij.usageView.UsageViewContentManager;
 import com.intellij.usages.impl.GroupNode;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ public class FindToolWindowFixture {
     @NotNull private final Content myContent;
 
     ContentFixture(@NotNull IdeFrameFixture parent) {
-      UsageViewManager usageViewManager = UsageViewManager.getInstance(parent.getProject());
+      UsageViewContentManager usageViewManager = UsageViewContentManager.getInstance(parent.getProject());
       myContent = usageViewManager.getSelectedContent();
     }
 
