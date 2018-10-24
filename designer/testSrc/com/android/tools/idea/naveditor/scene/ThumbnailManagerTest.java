@@ -52,7 +52,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   @Override
   public void setUp() {
     super.setUp();
-    TestableThumbnailManager.register(myFacet, getProject());
+    TestableThumbnailManager.register(myFacet, myRootDisposable);
   }
 
   public void testCaching() {
@@ -60,7 +60,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     BufferedImage image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
@@ -93,7 +93,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     Configuration configuration = model.getConfiguration();
     RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
     BufferedImage orig = thumbnail.getTerminalImage();
@@ -153,7 +153,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
 
