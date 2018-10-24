@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import com.android.tools.idea.common.property2.api.PropertiesTable;
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -31,7 +32,7 @@ public class MotionLayoutPropertyProvider {
   }
 
   private static Table<String, String, MotionPropertyItem> getPropertiesImpl(@NotNull MotionSceneModel.KeyFrame keyFrame) {
-    HashMap<String, Object> attributes = new HashMap<>();
+    HashMap<AttrName, Object> attributes = new HashMap<>();
     keyFrame.fill(attributes);
     Table<String, String, MotionPropertyItem> properties = HashBasedTable.create(3, 20);
     attributes.forEach((attribute, value) -> addProperty(properties, attribute, keyFrame));
@@ -40,10 +41,10 @@ public class MotionLayoutPropertyProvider {
   }
 
   private static void addProperty(@NotNull Table<String, String, MotionPropertyItem> properties,
-                                  @NotNull String name,
+                                  @NotNull AttrName name,
                                   @NotNull MotionSceneModel.BaseTag tag) {
     MotionPropertyItem item = new MotionPropertyItem(name, tag);
-    properties.put(item.getNamespace(), name, item);
+    properties.put(item.getNamespace(), item.getName(), item);
   }
 
   private static void addCustomProperty(@NotNull Table<String, String, MotionPropertyItem> properties,
@@ -51,7 +52,7 @@ public class MotionLayoutPropertyProvider {
     String name = attribute.getAttributeName();
     if (StringUtil.isNotEmpty(name)) {
       name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-      MotionPropertyItem item = new MotionPropertyItem(name, attribute);
+      MotionPropertyItem item = new MotionPropertyItem(AttrName.motionAttr(name), attribute);
       properties.put(item.getNamespace(), name, item);
     }
   }

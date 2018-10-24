@@ -162,6 +162,9 @@ public class Gantt extends JPanel implements GanttCommands {
   }
 
   public MotionSceneModel.OnSwipeTag getOnSwipeTag() {
+    if (myChart.myModel == null) {
+      return null;
+    }
     return myChart.myModel.getOnSwipeTag();
   }
 

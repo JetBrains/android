@@ -105,10 +105,23 @@ public class MotionSceneString {
   public static final String KeyPositionPath_target = "target";
   public static final String KeyPositionPath_transitionEasing = "transitionEasing";
 
-  public static final String[] ourStandardAttributes = {
-    "progress", "waveShape", "wavePeriod", "waveOffset", "waveVariesBy", "transitionPathRotate", "android:alpha", "android:elevation",
-    "android:rotation", "android:rotationX", "android:rotationY", "android:scaleX", "android:scaleY", "android:translationX",
-    "android:translationY", "android:translationZ"
+  public static final AttrName[] ourStandardAttributes = {
+    AttrName.motionAttr(KeyCycle_progress),
+    AttrName.motionAttr(KeyCycle_waveShape),
+    AttrName.motionAttr(KeyCycle_wavePeriod),
+    AttrName.motionAttr(KeyCycle_waveOffset),
+    AttrName.motionAttr(KeyCycle_waveVariesBy),
+    AttrName.motionAttr(KeyCycle_transitionPathRotate),
+    AttrName.androidAttr("alpha"),
+    AttrName.androidAttr("elevation"),
+    AttrName.androidAttr("rotation"),
+    AttrName.androidAttr("rotationX"),
+    AttrName.androidAttr("rotationY"),
+    AttrName.androidAttr("scaleX"),
+    AttrName.androidAttr("scaleY"),
+    AttrName.androidAttr("translationX"),
+    AttrName.androidAttr("translationY"),
+    AttrName.androidAttr("translationZ"),
   };
-  public static HashSet<String> ourStandardSet = new HashSet<>(Arrays.asList(ourStandardAttributes));
+  public static HashSet<AttrName> ourStandardSet = new HashSet<>(Arrays.asList(ourStandardAttributes));
 }
