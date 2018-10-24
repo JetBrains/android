@@ -95,6 +95,11 @@ import static java.util.concurrent.TimeUnit.MINUTES;
  *
  * TODO: After converting all tests over, check to see if there are any methods we can delete or
  * reduce visibility on.
+ *
+ * NOTE: If you are writing a new test, consider using JUnit4 with {@link AndroidGradleProjectRule}
+ * instead. This allows you to use features introduced in JUnit4 (such as parameterization) while
+ * also providing a more compositional approach - instead of your test class inheriting dozens and
+ * dozens of methods you might not be familiar with, those methods will be constrained to the rule.
  */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
@@ -320,7 +325,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
+    File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
     }

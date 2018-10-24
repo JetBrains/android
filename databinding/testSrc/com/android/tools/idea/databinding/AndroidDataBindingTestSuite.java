@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.databinding;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
@@ -38,5 +40,11 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
+
+    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
+
+    // Run Kotlin in-process for easier control over its JVM args.
+    System.setProperty("kotlin.compiler.execution.strategy", "in-process");
   }
 }
