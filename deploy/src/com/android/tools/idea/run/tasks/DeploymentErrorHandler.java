@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import static com.android.tools.deployer.PreswapCheck.RESOURCE_MODIFICATION_NOT_ALLOWED;
-
+import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.google.common.annotations.VisibleForTesting;
@@ -54,8 +53,10 @@ class DeploymentErrorHandler {
     myNotificationListener = null;
   }
 
-  DeploymentErrorHandler(@NotNull UnifiedDeployTask.DeployType type, @NotNull String errorsString) {
-    myFormattedErrorString = formatDeploymentErrors(type, errorsString);
+  DeploymentErrorHandler(@NotNull UnifiedDeployTask.DeployType type,
+                         DeployerException.Error error,
+                         @NotNull String errorsString) {
+    myFormattedErrorString = formatDeploymentErrors(type, error, errorsString);
     myNotificationListener = new DeploymentErrorNotificationListener();
   }
 
@@ -70,7 +71,9 @@ class DeploymentErrorHandler {
   }
 
   @NotNull
-  private String formatDeploymentErrors(@NotNull UnifiedDeployTask.DeployType type, @NotNull String errorsString) {
+  private String formatDeploymentErrors(@NotNull UnifiedDeployTask.DeployType type,
+                                        DeployerException.Error error,
+                                        @NotNull String errorsString) {
     List<String> errors = Lists.newArrayList(Splitter.on('\n').split(errorsString));
     errors.sort(String::compareTo); // Sort the errors so at least they're consistent over runs.
 
@@ -94,7 +97,7 @@ class DeploymentErrorHandler {
     }
 
     // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
-    if (type == UnifiedDeployTask.DeployType.CODE_SWAP && errors.size() == 1 && RESOURCE_MODIFICATION_NOT_ALLOWED.equals(errors.get(0))) {
+    if (type == UnifiedDeployTask.DeployType.CODE_SWAP && errors.size() == 1 && DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(error)) {
       builder.append(APPLY_CHANGES_OPTION);
       builder.append(" | ");
     }

@@ -18,30 +18,27 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
-import com.android.tools.deployer.ApkDiffer;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
-import com.android.tools.deployer.SystraceConsumer;
 import com.android.tools.deployer.Trace;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.database.DexArchiveDatabaseService;
+import com.android.tools.deployer.DeployerException;
+import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,24 +140,23 @@ public class UnifiedDeployTask implements LaunchTask {
       List<String> paths = apk.getFiles().stream().map(apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
       AdbClient adb = new AdbClient(device, logger);
       Installer installer = new Installer(getLocalInstaller(), adb, logger);
-      Deployer deployer = new Deployer(
-        apk.getApplicationId(), paths, adb, DexArchiveDatabaseService.getInstance().getDb(), installer, logger);
-      Deployer.RunResponse response;
+      DeploymentService service = ServiceManager.getService(myProject, DeploymentService.class);
+      Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer);
       try {
         switch (type) {
           case INSTALL:
             Trace.begin("Unified.install");
-            response = deployer.install();
+            deployer.install(paths);
             Trace.end();
-            break;
+            return true;
           case CODE_SWAP:
             Trace.begin("Unified.codeSwap");
-            response = deployer.codeSwap();
+            deployer.codeSwap(apk.getApplicationId(), paths);
             Trace.end();
             break;
           case FULL_SWAP:
             Trace.begin("Unified.fullSwap");
-            response = deployer.fullSwap();
+            deployer.fullSwap(apk.getApplicationId(), paths);
             Trace.end();
             break;
           default:
@@ -172,46 +168,13 @@ public class UnifiedDeployTask implements LaunchTask {
         LOG.error("Error deploying APK", e);
         return false;
       }
-
-      if (response.status == Deployer.RunResponse.Status.ERROR) {
-        myDeploymentErrorHandler = new DeploymentErrorHandler(type, response.errorMessage);
-        LOG.info(response.errorMessage);
+      catch (DeployerException e) {
+        myDeploymentErrorHandler = new DeploymentErrorHandler(type, e.getError(), e.getMessage());
         return false;
       }
-
-      if (response.status == Deployer.RunResponse.Status.NOT_INSTALLED) {
-        // TODO: Skip code swap and resource swap altogether.
-        // Save localApk using localApkHash key.
-        for (String apkAnalysisKey : response.result.keySet()) {
-          Deployer.RunResponse.Analysis analysis = response.result.get(apkAnalysisKey);
-          LOG.info("Apk: " + apkAnalysisKey);
-          LOG.info("    local apk id: " + analysis.localApkHash);
-        }
-        continue;
-      }
-
-      // For each APK, a diff, a local if and a remote id were generated.
-      for (String apkAnalysisKey : response.result.keySet()) {
-        // TODO: Analysis diff, see if resource or code swap are needed. Use local and remote hash as key
-        // to query the apk database.
-        Deployer.RunResponse.Analysis analysis = response.result.get(apkAnalysisKey);
-        LOG.info("Apk: " + apkAnalysisKey);
-        LOG.info("    local apk id: " + analysis.localApkHash);
-        LOG.info("    remot apk id: " + analysis.remoteApkHash);
-
-        for (Map.Entry<String, ApkDiffer.ApkEntryStatus> statusEntry : analysis.diffs.entrySet()) {
-          LOG.info("  " + statusEntry.getKey() +
-                   " [" + statusEntry.getValue().toString().toLowerCase() + "]");
-        }
-      }
-
       NOTIFICATION_GROUP.createNotification(type.getName() + " successful", NotificationType.INFORMATION)
         .setImportant(false).notify(myProject);
     }
-
-    Path jsonPath = Paths.get(PathManager.getSystemPath(), "systrace.json");
-    SystraceConsumer consumer = new SystraceConsumer(jsonPath.toString(), logger);
-    Trace.consume(consumer);
     return true;
   }
 

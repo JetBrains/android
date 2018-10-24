@@ -108,8 +108,6 @@ public class ApplyChangesAction extends AnAction {
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
     env.putCopyableUserData(APPLY_CHANGES, true);
-    Trace.start();
-    Trace.begin("PostApplyChange Clicked");
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 
