@@ -104,13 +104,13 @@ public final class BuildModelContext {
   /* The following methods are just wrappers around the same methods in GradleDslFileCache but pass this build
    * context along as well. */
   @NotNull
-  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, @NotNull String name) {
-    return myFileCache.getOrCreateBuildFile(file, name, this);
+  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, @NotNull String name, boolean isApplied) {
+    return myFileCache.getOrCreateBuildFile(file, name, this, isApplied);
   }
 
   @NotNull
-  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file) {
-    return getOrCreateBuildFile(file, file.getName());
+  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, boolean isApplied) {
+    return getOrCreateBuildFile(file, file.getName(), isApplied);
   }
 
   @Nullable

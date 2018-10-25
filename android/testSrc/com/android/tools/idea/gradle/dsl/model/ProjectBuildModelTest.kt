@@ -249,7 +249,6 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
                        }""".trimIndent()
     val text = ""
     writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("")
     writeToBuildFile(text)
     writeToSettingsFile("include ':" + GradleFileModelTestCase.SUB_MODULE_NAME + "'")
     var pbm = ProjectBuildModel.get(myProject)
@@ -289,5 +288,34 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val buildModel = pbm.getModuleBuildModel(file)
     assertNotNull(buildModel)
     verifyPropertyModel(buildModel.android().compileSdkVersion(), STRING_TYPE, "28", STRING, REGULAR, 0)
+  }
+
+  @Test
+  fun testEnsureParsingAppliedFileInSubmoduleFolder() {
+    val text = """
+      buildscript {
+        apply from: "${mySubModule.name}/a.gradle"
+
+        dependencies {
+          classpath 'com.android.tools.build:gradle:${"$"}version'
+        }
+      }
+    """.trimIndent()
+    val childText = """
+      ext.someProperty = 5
+    """.trimIndent()
+    val appliedText = """
+      ext.version = '1.2.3'
+    """.trimIndent()
+    writeToSubModuleBuildFile(childText)
+    writeToBuildFile(text)
+    writeToSettingsFile("include ':" + GradleFileModelTestCase.SUB_MODULE_NAME + "'")
+    writeToNewSubModuleFile("a.gradle", appliedText)
+
+    val pbm = ProjectBuildModel.get(myProject)
+    val buildModel = pbm.getModuleBuildModel(myModule)
+
+    val pluginModel = buildModel!!.buildscript().dependencies().artifacts()[0].completeModel()
+    assertEquals("com.android.tools.build:gradle:${'$'}version", pluginModel.forceString())
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.intellij.openapi.project.Project;
@@ -30,6 +31,11 @@ import java.util.Map;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 
+/**
+ * Cache to store a mapping between file paths and their respective {@link GradleDslFileCache} objects, its main purpose it to
+ * prevent the parsing of a file more than once. In large projects without caching the parsed file we can end up parsing the same
+ * file hundreds of times.
+ */
 public class GradleDslFileCache {
   @NotNull private Project myProject;
   @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
@@ -43,12 +49,16 @@ public class GradleDslFileCache {
   }
 
   @NotNull
-  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, @NotNull String name, @NotNull BuildModelContext context) {
+  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file,
+                                              @NotNull String name,
+                                              @NotNull BuildModelContext context,
+                                              boolean isApplied) {
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
-      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context);
+      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context, isApplied);
       myParsedBuildFiles.put(file.getUrl(), dslFile);
-    } else if (!(dslFile instanceof GradleBuildFile)) {
+    }
+    else if (!(dslFile instanceof GradleBuildFile)) {
       throw new IllegalStateException("Found wrong type for build file in cache!");
     }
 
@@ -85,7 +95,8 @@ public class GradleDslFileCache {
       dslFile = new GradleSettingsFile(file, myProject, "settings", context);
       dslFile.parse();
       myParsedBuildFiles.put(file.getUrl(), dslFile);
-    } else if (!(dslFile instanceof GradleSettingsFile)) {
+    }
+    else if (!(dslFile instanceof GradleSettingsFile)) {
       throw new IllegalStateException("Found wrong type for settings file in cache!");
     }
     return (GradleSettingsFile)dslFile;

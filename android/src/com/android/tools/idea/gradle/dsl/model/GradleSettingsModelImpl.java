@@ -185,7 +185,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       return null;
     }
     GradleBuildFile dslFile =
-      myGradleDslFile.getContext().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1));
+      myGradleDslFile.getContext().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1), false);
     return new GradleBuildModelImpl(dslFile);
   }
 
