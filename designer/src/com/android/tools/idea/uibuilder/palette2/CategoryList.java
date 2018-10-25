@@ -126,7 +126,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
                                          boolean hasFocus) {
       String text = group.getName();
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
-      mySelectionForeground = hasFocus ? UIUtil.getTreeSelectionForeground(): UIUtil.getTreeForeground();
+      mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
       append(text, SMALL_FONT);
     }
   }
