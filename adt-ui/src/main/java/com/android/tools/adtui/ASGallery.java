@@ -528,14 +528,7 @@ public class ASGallery<E> extends JBList {
     }
 
     public void setLabelForeground(JLabel label) {
-      final Color labelForeground;
-      if (myIsSelected && myCellHasFocus) {
-        labelForeground = UIUtil.getTreeSelectionForeground();
-      }
-      else {
-        labelForeground = UIUtil.getTreeForeground();
-      }
-      label.setForeground(labelForeground);
+      label.setForeground(UIUtil.getTreeForeground(myIsSelected, myCellHasFocus));
     }
   }
 }
