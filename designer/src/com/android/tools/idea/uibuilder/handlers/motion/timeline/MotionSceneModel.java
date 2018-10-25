@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomAttributes_attributeName;
@@ -69,6 +71,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -106,6 +110,11 @@ public class MotionSceneModel {
   public String getName() {
     return myName;
   }
+
+  public Project getProject() {
+    return myProject;
+  }
+
   public TransitionTag getTransitionTag(int i) {
     return myTransition.get(i);
   }
@@ -233,7 +242,7 @@ public class MotionSceneModel {
         createdTag = keyFrame.addSubTag(createdTag, false);
         createdTag.setAttribute(KeyAttributes_framePosition, AUTO_URI, Integer.toString(framePosition));
         createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
-      //  createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
+        //  createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
         if (type.equals(KeyTypePosition)) {
           createdTag.setAttribute(KeyPosition_type, AUTO_URI, KeyPosition_type_cartesian);
         }
@@ -252,10 +261,12 @@ public class MotionSceneModel {
   public static abstract class BaseTag {
     protected final MotionSceneModel myMotionSceneModel;
     protected final String myTitle;
+    protected final SmartPsiElementPointer<XmlTag> myTag;
 
-    public BaseTag(@NotNull MotionSceneModel model, @NotNull String title) {
+    public BaseTag(@NotNull MotionSceneModel model, @NotNull XmlTag tag, @NotNull String title) {
       myMotionSceneModel = model;
       myTitle = title;
+      myTag = SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(tag);
     }
 
     @NotNull
@@ -268,7 +279,13 @@ public class MotionSceneModel {
       return myMotionSceneModel;
     }
 
-    public abstract XmlTag findMyTag();
+    public XmlTag findMyTag() {
+      return myTag.getElement();
+    }
+
+    public SmartPsiElementPointer<XmlTag> getTag() {
+      return myTag;
+    }
 
     protected void completeSceneModelUpdate() {
       // Temporary for LayoutLib:
@@ -364,8 +381,8 @@ public class MotionSceneModel {
     HashMap<AttrName, Object> myAttributes = new HashMap<>();
     protected AttrName[] myPossibleAttr;
 
-    public KeyFrame(@NotNull MotionSceneModel motionSceneModel, @NotNull String title) {
-      super(motionSceneModel, title);
+    public KeyFrame(@NotNull MotionSceneModel motionSceneModel, @NotNull XmlTag tag, @NotNull String title) {
+      super(motionSceneModel, tag, title);
     }
 
     @Override
@@ -453,36 +470,6 @@ public class MotionSceneModel {
         XmlAttribute attribute = attributes[i];
         parse(new AttrName(attribute), attribute.getValue());
       }
-    }
-
-    /**
-     * Find the {@link XmlTag} corresponding to this {@link KeyFrame} type.
-     */
-    @Nullable
-    @Override
-    public XmlTag findMyTag() {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
-      XmlTag root = xmlFile != null ? xmlFile.getRootTag() : null;
-      if (root == null) {
-        return null;
-      }
-      XmlTag[] transitions = root.findSubTags(MotionSceneTransition);
-      if (transitions.length == 0) {
-        return null;
-      }
-      // TODO: Add id to transitions such that we can select the current transition
-      XmlTag transition = transitions[0];
-      XmlTag[] keyFrames = transition.findSubTags(MotionSceneKeyFrameSet);
-      if (keyFrames.length == 0) {
-        return null;
-      }
-      XmlTag[] keyFrame = keyFrames[0].getSubTags();
-      for (XmlTag tag : keyFrame) {
-        if (match(tag)) {
-          return tag;
-        }
-      }
-      return null;
     }
 
     /**
@@ -574,7 +561,9 @@ public class MotionSceneModel {
   public static abstract class KeyPos extends KeyFrame {
     String transitionEasing = null;
 
-    public KeyPos(MotionSceneModel motionSceneModel) { super(motionSceneModel, KeyPositionTitle); }
+    public KeyPos(MotionSceneModel motionSceneModel, XmlTag tag) {
+      super(motionSceneModel, tag, KeyPositionTitle);
+    }
 
     @Override
     public float getFloat(String type) {
@@ -637,8 +626,8 @@ public class MotionSceneModel {
       return ourDefaults[0];
     }
 
-    public KeyPosition(MotionSceneModel motionSceneModel) {
-      super(motionSceneModel);
+    public KeyPosition(MotionSceneModel motionSceneModel, XmlTag tag) {
+      super(motionSceneModel, tag);
       myPossibleAttr = ourPossibleAttr;
       mType = KeyTypePosition;
     }
@@ -756,8 +745,8 @@ public class MotionSceneModel {
       return ourDefaults[0];
     }
 
-    public KeyAttributes(MotionSceneModel motionSceneModel) {
-      super(motionSceneModel, KeyAttributesTitle);
+    public KeyAttributes(MotionSceneModel motionSceneModel, XmlTag tag) {
+      super(motionSceneModel, tag, KeyAttributesTitle);
       mType = KeyTypeAttribute;
       myPossibleAttr = ourPossibleAttr;
     }
@@ -802,7 +791,7 @@ public class MotionSceneModel {
         createdTag = keyFrame.addSubTag(createdTag, false);
         createdTag.setAttribute(CustomAttributes_attributeName, AUTO_URI, key);
         createdTag.setAttribute(type.getTagName(), AUTO_URI, StringUtil.isNotEmpty(value) ? value : type.getDefaultValue());
-        CustomAttributes custom = new CustomAttributes(this);
+        CustomAttributes custom = new CustomAttributes(this, createdTag);
         Arrays.stream(createdTag.getAttributes()).forEach(attr -> custom.parse(AttrName.motionAttr(attr.getLocalName()), attr.getValue()));
         myCustomAttributes.add(custom);
         return custom;
@@ -879,8 +868,8 @@ public class MotionSceneModel {
       return getName() + Arrays.toString(myAttributes.keySet().toArray());
     }
 
-    public KeyCycle(MotionSceneModel motionSceneModel) {
-      super(motionSceneModel, KeyCycleTitle);
+    public KeyCycle(MotionSceneModel motionSceneModel, XmlTag tag) {
+      super(motionSceneModel, tag, KeyCycleTitle);
       super.mType = KeyTypeCycle;
       myPossibleAttr = ourPossibleAttr;
     }
@@ -915,13 +904,13 @@ public class MotionSceneModel {
     }
   }
 
- public static class KeyTimeCycle extends KeyCycle {
-   static  final String TYPE = KeyTypeTimeCycle;
+  public static class KeyTimeCycle extends KeyCycle {
+    static  final String TYPE = KeyTypeTimeCycle;
 
-   public KeyTimeCycle(MotionSceneModel motionSceneModel) {
-     super(motionSceneModel);
-   }
- }
+    public KeyTimeCycle(MotionSceneModel motionSceneModel, XmlTag tag) {
+      super(motionSceneModel, tag);
+    }
+  }
 
   /* ===========================CustomCycleAttributes===================================*/
 
@@ -974,9 +963,9 @@ public class MotionSceneModel {
     @Nullable
     public String getValueTagName() {
       return Arrays.stream(Type.values()).map(key -> key.getTagName())
-                   .filter(tag -> myAttributes.containsKey(AttrName.customAttr(tag)))
-                   .findFirst()
-                   .orElse(null);
+        .filter(tag -> myAttributes.containsKey(AttrName.customAttr(tag)))
+        .findFirst()
+        .orElse(null);
     }
 
     @Override
@@ -1019,26 +1008,6 @@ public class MotionSceneModel {
       throw new UnsupportedOperationException();
     }
 
-    @Override
-    @Nullable
-    public XmlTag findMyTag() {
-      String attributeName = getAttributeName();
-      if (StringUtil.isEmpty(attributeName)) {
-        return null;
-      }
-      XmlTag parent = parentKeyAttributes.findMyTag();
-      if (parent == null) {
-        return null;
-      }
-      XmlTag[] customAttrs = parent.findSubTags(KeyAttributes_customAttribute);
-      for (XmlTag tag : customAttrs) {
-        if (attributeName.equals(tag.getAttributeValue(CustomAttributes_attributeName, AUTO_URI))) {
-          return tag;
-        }
-      }
-      return null;
-    }
-
     public enum Type {
       CUSTOM_COLOR("Color", CustomAttributes_customColorValue, "#FFF"),
       CUSTOM_INTEGER("Integer", CustomAttributes_customIntegerValue, "2"),
@@ -1073,8 +1042,8 @@ public class MotionSceneModel {
       }
     }
 
-    public CustomAttributes(@NotNull KeyAttributes frame) {
-      super(frame.getModel(), "");
+    public CustomAttributes(@NotNull KeyAttributes frame, @NotNull XmlTag tag) {
+      super(frame.getModel(), tag, "");
       parentKeyAttributes = frame;
     }
 
@@ -1098,9 +1067,19 @@ public class MotionSceneModel {
 
   public static class ConstraintSet implements AttributeParse {
     String mId;
+    SmartPsiElementPointer<XmlTag> mTag;
+
+    public ConstraintSet(@NotNull XmlTag tag) {
+      mId = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+      mTag = SmartPointerManager.getInstance(tag.getProject()).createSmartPsiElementPointer(tag);
+    }
 
     public String getId() {
       return mId;
+    }
+
+    public SmartPsiElementPointer<XmlTag> getTag() {
+      return mTag;
     }
 
     void setId(String id) {
@@ -1108,6 +1087,11 @@ public class MotionSceneModel {
     }
 
     HashMap<String, ConstraintView> myConstraintViews = new HashMap<>();
+
+    @Nullable
+    public ConstraintView getConstraintView(@NotNull String id) {
+      return myConstraintViews.get(id);
+    }
 
     @Override
     public void parse(AttrName name, String value) {
@@ -1164,8 +1148,8 @@ public class MotionSceneModel {
       return myAllAttributes;
     }
 
-    TransitionTag(MotionSceneModel model) {
-      super(model, TransitionTitle);
+    TransitionTag(MotionSceneModel model, XmlTag tag) {
+      super(model, tag, TransitionTitle);
       myPossibleAttr = ourPossibleAttr;
     }
 
@@ -1206,21 +1190,6 @@ public class MotionSceneModel {
       else if (name.isMotionAttr(TransitionDuration)) {
         duration = Integer.parseInt(value);
       }
-    }
-
-    @Override
-    @Nullable
-    public XmlTag findMyTag() {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
-      XmlTag root = xmlFile != null ? xmlFile.getRootTag() : null;
-      if (root == null) {
-        return null;
-      }
-      XmlTag[] onSwipes = root.findSubTags(MotionSceneTransition);
-      if (onSwipes.length == 0) {
-        return null;
-      }
-      return onSwipes[0];
     }
 
     @Override
@@ -1281,30 +1250,9 @@ public class MotionSceneModel {
       return myAllAttributes;
     }
 
-    OnSwipeTag(@NotNull MotionSceneModel model) {
-      super(model, OnSwipeTitle);
+    OnSwipeTag(@NotNull MotionSceneModel model, XmlTag tag) {
+      super(model, tag, OnSwipeTitle);
       myPossibleAttr = ourPossibleAttr;
-    }
-
-    @Nullable
-    @Override
-    public XmlTag findMyTag() {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
-      XmlTag root = xmlFile != null ? xmlFile.getRootTag() : null;
-      if (root == null) {
-        return null;
-      }
-      XmlTag[] transitions = root.findSubTags(MotionSceneTransition);
-      if (transitions.length == 0) {
-        return null;
-      }
-      // TODO: Add id to transitions such that we can select the current transition
-      XmlTag transition = transitions[0];
-      XmlTag[] onSwipes = transition.findSubTags(MotionSceneOnSwipe);
-      if (onSwipes.length == 0) {
-        return null;
-      }
-      return onSwipes[0];
     }
 
     @Override
@@ -1355,6 +1303,21 @@ public class MotionSceneModel {
 
     HashMap<String, String> myConstraintViews = new HashMap<>();
 
+    @Nullable
+    public String getAttribute(@NotNull AttrName name) {
+      Object value = myAllAttributes.get(name);
+      return value != null ? value.toString() : null;
+    }
+
+    public void setAttribute(@NotNull AttrName name, @Nullable String value) {
+      if (value == null) {
+        myAllAttributes.remove(name);
+      }
+      else {
+        myAllAttributes.put(name, value);
+      }
+    }
+
     @Override
     public void parse(AttrName name, String value) {
       myAllAttributes.put(name, value);
@@ -1404,8 +1367,7 @@ public class MotionSceneModel {
     XmlTag[] tagKeyFrames = file.getRootTag().findSubTags(MotionSceneConstraintSet);
     for (int i = 0; i < tagKeyFrames.length; i++) {
       XmlTag frame = tagKeyFrames[i];
-      ConstraintSet set = new ConstraintSet();
-      set.setId(frame.getAttributeValue("android:id"));
+      ConstraintSet set = new ConstraintSet(frame);
       parse(set, frame.getAttributes());
       constraintSet.add(set);
       XmlTag[] subTags = frame.getSubTags();
@@ -1429,7 +1391,7 @@ public class MotionSceneModel {
       motionSceneModel.myTransition = new ArrayList<>();
     }
     for (XmlTag transitionTag : transitionTags) {
-      TransitionTag transition = new TransitionTag(motionSceneModel);
+      TransitionTag transition = new TransitionTag(motionSceneModel, transitionTag);
       XmlTag tag = transitionTag;
       parse(transition, tag.getAttributes());
       motionSceneModel.myTransition.add(transition);
@@ -1440,7 +1402,7 @@ public class MotionSceneModel {
       }
       // TODO add onClick
       for (XmlTag onSwipeTag1 : onSwipeTags) {
-        OnSwipeTag onSwipeTag = new OnSwipeTag(motionSceneModel);
+        OnSwipeTag onSwipeTag = new OnSwipeTag(motionSceneModel, onSwipeTag1);
         transition.myOnSwipeTag = onSwipeTag;
         XmlTag swipeTag = onSwipeTag1;
         parse(onSwipeTag, swipeTag.getAttributes());
@@ -1460,18 +1422,18 @@ public class MotionSceneModel {
           KeyFrame frame = null;
           switch (keyNodeName) {
             case KeyPosition.TYPE:
-              frame = new KeyPosition(motionSceneModel);
+              frame = new KeyPosition(motionSceneModel, xmlTag);
               break;
             case KeyAttributes.TYPE:
-              frame = new KeyAttributes(motionSceneModel);
+              frame = new KeyAttributes(motionSceneModel, xmlTag);
               for (XmlTag ctag : customTags) {
-                CustomAttributes custom = new CustomAttributes((KeyAttributes)frame);
+                CustomAttributes custom = new CustomAttributes((KeyAttributes)frame, ctag);
                 parse(custom, ctag.getAttributes());
                 ((KeyAttributes)frame).myCustomAttributes.add(custom);
               }
               break;
             case KeyCycle.TYPE:
-              frame = new KeyCycle(motionSceneModel);
+              frame = new KeyCycle(motionSceneModel, xmlTag);
               for (XmlTag ctag : customTags) {
                 CustomCycleAttributes custom = new CustomCycleAttributes((KeyCycle)frame);
                 parse(custom, ctag.getAttributes());
@@ -1479,7 +1441,7 @@ public class MotionSceneModel {
               }
               break;
             case KeyTimeCycle.TYPE:
-              frame = new KeyTimeCycle(motionSceneModel);
+              frame = new KeyTimeCycle(motionSceneModel, xmlTag);
               for (XmlTag ctag : customTags) {
                 CustomCycleAttributes custom = new CustomCycleAttributes((KeyTimeCycle)frame);
                 parse(custom, ctag.getAttributes());
