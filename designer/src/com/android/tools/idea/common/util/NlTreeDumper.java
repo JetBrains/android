@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.MoreObjects;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collections;
 import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,14 +32,16 @@ public class NlTreeDumper {
   private final Map<NlComponent, Integer> myComponentIds;
 
   private final boolean myIncludeIdentity;
+  private final boolean myShowBoundaries;
 
   public NlTreeDumper() {
-    this(true);
+    this(true, true);
   }
 
-  private NlTreeDumper(boolean includeIdentity) {
-    myComponentIds = new HashMap<>();
+  public NlTreeDumper(boolean includeIdentity, boolean showBoundaries) {
+    myComponentIds = includeIdentity ? new HashMap<>() : Collections.emptyMap();
     myIncludeIdentity = includeIdentity;
+    myShowBoundaries = showBoundaries;
   }
 
   /**
@@ -49,7 +52,7 @@ public class NlTreeDumper {
    */
   @NotNull
   public static String dumpTree(@NotNull List<NlComponent> roots) {
-    return new NlTreeDumper(false).toTree(roots);
+    return new NlTreeDumper(false, true).toTree(roots);
   }
 
   /**
@@ -94,7 +97,7 @@ public class NlTreeDumper {
 
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(root).omitNullValues()
       .add("tag", describe(root.getTag()));
-    if (NlComponentHelperKt.getHasNlComponentInfo(root)) {
+    if (myShowBoundaries && NlComponentHelperKt.getHasNlComponentInfo(root)) {
       helper.add("bounds", "[" +
                            NlComponentHelperKt.getX(root) +
                            "," +
