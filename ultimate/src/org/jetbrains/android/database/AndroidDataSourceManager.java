@@ -1,6 +1,6 @@
 package org.jetbrains.android.database;
 
-import com.intellij.database.DatabaseFamilyId;
+import com.intellij.database.Dbms;
 import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.psi.BasicDataSourceManager;
 import com.intellij.database.util.DbImplUtil;
@@ -34,13 +34,13 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   @Nullable
   @Override
   public DatabaseDialectEx getDatabaseDialect(@NotNull AndroidDataSource element) {
-    return DbImplUtil.getDatabaseDialect(DatabaseFamilyId.SQLITE);
+    return DbImplUtil.getDatabaseDialect(Dbms.SQLITE);
   }
 
   @Nullable
   @Override
   public SqlLanguageDialect getSqlDialect(@NotNull AndroidDataSource element) {
-    return DbSqlUtil.findSqlDialect(DatabaseFamilyId.SQLITE);
+    return DbSqlUtil.findSqlDialect(Dbms.SQLITE);
   }
 
   @Override
