@@ -97,7 +97,7 @@ object NavModelBuilderUtil {
 
     init {
       id?.let { id("@+id/" + it) }
-      startDestination?.let { withAttribute(AUTO_URI, ATTR_START_DESTINATION, "@id/" + it) }
+      startDestination?.let { withAttribute(AUTO_URI, ATTR_START_DESTINATION, "@id/$it") }
       label?.let { withAttribute(ANDROID_URI, ATTR_LABEL, it) }
     }
 
@@ -122,8 +122,10 @@ object NavModelBuilderUtil {
       destination.apply(f)
     }
 
-    fun activity(id: String, f: ActivityComponentDescriptor.() -> Unit = {}) {
-      val activity = ActivityComponentDescriptor(id)
+    fun activity(id: String,
+                 name: String? = null,
+                 f: ActivityComponentDescriptor.() -> Unit = {}) {
+      val activity = ActivityComponentDescriptor(id, name)
       addChild(activity, null)
       activity.apply(f)
     }
@@ -158,8 +160,8 @@ object NavModelBuilderUtil {
   open class FragmentlikeComponentDescriptor(tag: String, id: String, layout: String?, name: String?, label: String?)
     : NavComponentDescriptor(tag) {
     init {
-      id("@+id/" + id)
-      layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, "@layout/" + it) }
+      id("@+id/$id")
+      layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, "@layout/$it") }
       name?.let { withAttribute(ANDROID_URI, ATTR_NAME, it) }
       label?.let { withAttribute(ANDROID_URI, ATTR_LABEL, it) }
     }
@@ -187,8 +189,8 @@ object NavModelBuilderUtil {
     : NavComponentDescriptor(TAG_ACTION) {
     init {
       id("@+id/" + id)
-      destination?.let { withAttribute(AUTO_URI, ATTR_DESTINATION, "@id/" + it) }
-      popUpTo?.let { withAttribute(AUTO_URI, ATTR_POP_UP_TO, "@id/" + it) }
+      destination?.let { withAttribute(AUTO_URI, ATTR_DESTINATION, "@id/$it") }
+      popUpTo?.let { withAttribute(AUTO_URI, ATTR_POP_UP_TO, "@id/$it") }
       if (popUpToInclusive) {
         withAttribute(AUTO_URI, ATTR_POP_UP_TO_INCLUSIVE, "true")
       }
@@ -199,9 +201,10 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ActivityComponentDescriptor(id: String) : NavComponentDescriptor(TAG_ACTIVITY) {
+  class ActivityComponentDescriptor(id: String, name: String?) : NavComponentDescriptor(TAG_ACTIVITY) {
     init {
-      id("@+id/" + id)
+      id("@+id/$id")
+      name?.let { withAttribute(ANDROID_URI, ATTR_NAME, it) }
     }
 
     fun deeplink(uri: String, autoVerify: Boolean = false) {

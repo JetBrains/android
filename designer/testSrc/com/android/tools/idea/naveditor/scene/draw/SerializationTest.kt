@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.scene.RefinableImage
+import com.intellij.ui.JBColor
 import junit.framework.TestCase
 import java.awt.BasicStroke
 import java.awt.Color
@@ -55,15 +56,11 @@ class SerializationTest : TestCase() {
   fun testDrawAction() {
     val factory = { s: String -> DrawAction(s) }
 
-    testSerialization("DrawAction,REGULAR,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,NORMAL", DrawAction(ActionType.REGULAR,
-        Rectangle2D.Float(10f, 20f, 30f, 40f),
-        Rectangle2D.Float(50f, 60f, 70f, 80f),
-        DrawAction.DrawMode.NORMAL), factory)
-
-    testSerialization("DrawAction,EXIT_DESTINATION,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,HOVER", DrawAction(ActionType.EXIT_DESTINATION,
-        Rectangle2D.Float(10f, 20f, 30f, 40f),
-        Rectangle2D.Float(50f, 60f, 70f, 80f),
-        DrawAction.DrawMode.HOVER), factory)
+    testSerialization("DrawAction,REGULAR,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,ffffffff", DrawAction(
+      ActionType.REGULAR,
+      Rectangle2D.Float(10f, 20f, 30f, 40f),
+      Rectangle2D.Float(50f, 60f, 70f, 80f),
+      JBColor.WHITE), factory)
   }
 
   fun testDrawActionHandleDrag() {
@@ -202,7 +199,7 @@ class SerializationTest : TestCase() {
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()
-      TestCase.assertEquals(serialized, s)
+      TestCase.assertEquals(s, serialized)
 
       val deserialized = factory(serialized.substringAfter(','))
       TestCase.assertEquals(serialized, deserialized.serialize())

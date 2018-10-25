@@ -176,19 +176,18 @@ public abstract class IconGenerator implements Disposable {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateIconsToDisk(AndroidModuleTemplate)} is called.
+   * will be created / overwritten if {@link #generateIconsToDisk(File)} is called.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
-  public final Map<File, BufferedImage> generateIntoFileMap(@NotNull AndroidModuleTemplate paths) {
+  public final Map<File, BufferedImage> generateIntoFileMap(@NotNull File resDirectory) {
     if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
 
-    File resDirectory = Iterables.getFirst(paths.getResDirectories(), null);
-    if (resDirectory == null || resDirectory.getParentFile() == null) {
+    if (resDirectory.getParentFile() == null) {
       throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
     }
 
@@ -198,15 +197,15 @@ public abstract class IconGenerator implements Disposable {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateIconsToDisk(AndroidModuleTemplate)} is called.
+   * will be created / overwritten if {@link #generateIconsToDisk(File)} is called.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
-  public Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate paths) {
+  public Map<File, GeneratedIcon> generateIntoIconMap(@NotNull File resDirectory) {
     Options options = createOptions(false);
-    return generateIntoIconMap(paths, options);
+    return generateIntoIconMap(resDirectory, options);
   }
 
   /**
@@ -217,30 +216,29 @@ public abstract class IconGenerator implements Disposable {
    * an exception will be thrown.
    */
   @NotNull
-  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull AndroidModuleTemplate paths) {
+  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull File resDirectory) {
     if (myOutputName.get().isEmpty()) {
       return Collections.emptyMap(); // May happen during initialization.
     }
     Options options = createOptions(false);
     options.usePlaceholders = true;
-    return generateIntoIconMap(paths, options);
+    return generateIntoIconMap(resDirectory, options);
   }
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateIconsToDisk(AndroidModuleTemplate)} is called.
+   * will be created / overwritten if {@link #generateIconsToDisk(File)} is called.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
-  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate paths, Options options) {
+  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull File resDirectory, Options options) {
     if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
 
-    File resDirectory = Iterables.getFirst(paths.getResDirectories(), null);
-    if (resDirectory == null || resDirectory.getParentFile() == null) {
+    if (resDirectory.getParentFile() == null) {
       throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
     }
 
@@ -261,8 +259,21 @@ public abstract class IconGenerator implements Disposable {
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
-  public void generateIconsToDisk(@NotNull AndroidModuleTemplate paths) {
-    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(paths);
+  public void generateIconsToDisk(@NotNull AndroidModuleTemplate moduleTemplate) {
+    File resDirectory = getResDirectory(moduleTemplate);
+    if (resDirectory != null) {
+      generateIconsToDisk(resDirectory);
+    }
+  }
+
+  /**
+   * Generates icons and writes them to disk.
+   *
+   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
+   * an exception will be thrown.
+   */
+  public void generateIconsToDisk(@NotNull File resDirectory) {
+    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(resDirectory);
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       for (Map.Entry<File, GeneratedIcon> fileImageEntry : pathIconMap.entrySet()) {
@@ -641,6 +652,16 @@ public abstract class IconGenerator implements Disposable {
   @NotNull
   private static Logger getLog() {
     return Logger.getInstance(IconGenerator.class);
+  }
+
+  /**
+   * Returns the most specific resource directory of the given template.
+   *
+   * @see AndroidModuleTemplate#getResDirectories()
+   */
+  @Nullable
+  public static File getResDirectory(@NotNull AndroidModuleTemplate template) {
+    return Iterables.getLast(template.getResDirectories(), null);
   }
 
   /**

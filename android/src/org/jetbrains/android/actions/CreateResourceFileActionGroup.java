@@ -37,15 +37,13 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
     CreateResourceFileAction a = new CreateResourceFileAction();
     a.add(new CreateMultiRootResourceFileAction(ResourceType.LAYOUT.getDisplayName(), ResourceFolderType.LAYOUT));
 
-    if (NavigationSchema.enableNavigationEditor()) {
-      a.add(new CreateMultiRootResourceFileAction(ResourceType.NAVIGATION.getDisplayName(), ResourceFolderType.NAVIGATION) {
-        @NotNull
-        @Override
-        public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-          return NavigationSchema.getPossibleRootsMaybeWithoutSchema(facet.getModule());
-        }
-      });
-    }
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.NAVIGATION.getDisplayName(), ResourceFolderType.NAVIGATION) {
+      @NotNull
+      @Override
+      public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
+        return NavigationSchema.getPossibleRootsMaybeWithoutSchema(facet.getModule());
+      }
+    });
 
     a.add(new CreateMultiRootResourceFileAction(ResourceType.XML.getDisplayName(), ResourceFolderType.XML) {
       @NotNull

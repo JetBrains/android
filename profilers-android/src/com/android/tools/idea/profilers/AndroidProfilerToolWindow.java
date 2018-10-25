@@ -69,7 +69,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     .build();
 
   private static final String NO_CLIENT_TITLE = "Initialization failed";
-  private static final String NO_CLIENT_MESSAGE = "You can run the profiler for a single project at a time.";
+  private static final String NO_CLIENT_MESSAGE = "To start the profiler, close all other Android Studio projects.";
 
   @NotNull
   private final JPanel myPanel;
@@ -280,10 +280,9 @@ public class AndroidProfilerToolWindow implements Disposable {
         myProject.putUserData(LAST_RUN_APP_INFO, null);
       }
       else {
-        // Note the always-false predicate, which prevents the Profilers from randomly start profiling.
         StartupManager
           .getInstance(myProject)
-          .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), p -> false));
+          .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
       }
 
       IdeProfilerComponents profilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());

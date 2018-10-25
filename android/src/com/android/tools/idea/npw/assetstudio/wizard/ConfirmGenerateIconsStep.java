@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.ProportionalImageScaler;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -28,30 +33,30 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.tree.DefaultTreeModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -164,12 +169,12 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
     myListeners.receiveAndFire(mySelectedTemplate, template -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = Iterables.getFirst(template.getPaths().getResDirectories(), null);
-      if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
+      File resDirectory = getResDirectory(template.getPaths());
+      if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
         return;
       }
 
-      Map<File, BufferedImage> pathToUnscaledImage = iconGenerator.generateIntoFileMap(template.getPaths());
+      Map<File, BufferedImage> pathToUnscaledImage = iconGenerator.generateIntoFileMap(resDirectory);
 
       Map<File, Icon> pathToIcon = Maps.newTreeMap((file1, file2) -> {
         String path1 = file1.getAbsolutePath();
@@ -203,7 +208,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
 
-      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDir.getParentFile(), pathToIcon);
+      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), pathToIcon);
 
       myFilesAlreadyExist.set(treeModel.hasConflicts());
       myOutputPreviewTree.setModel(treeModel);

@@ -18,30 +18,91 @@
 package com.android.tools.idea.util
 
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.ui.UIUtil
+import java.util.function.Consumer
 
 /**
  * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus
- * until the next successful sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
+ * until the next sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
  *
- * 1) a sync completes successfully and [listener] is notified of the success, or
+ * 1) a sync completes and [listener] is notified, or
  * 2) [parentDisposable] is disposed
  */
 @JvmOverloads
-fun listenUntilNextSuccessfulSync(project: Project, parentDisposable: Disposable = project, listener: SyncResultListener) {
-  project.messageBus.connect(parentDisposable).apply {
-    subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
+fun Project.listenUntilNextSync(parentDisposable: Disposable = this, listener: SyncResultListener) {
+  messageBus.connect(parentDisposable).apply {
+    subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
       override fun syncEnded(result: SyncResult) {
-        if (result.isSuccessful) {
-          disconnect()
-        }
+        disconnect()
         listener.syncEnded(result)
       }
     })
   }
+}
+
+/**
+ * Runs the given [callback] when the project is smart and synced.
+ * @param parentDisposable [Disposable] used to track the current request. If this parent [Disposable] is disposed
+ *  then the callback might never be called.
+ * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode
+ *  and the sync has completed.
+ * @param runOnEdt indicates whether the callback must run on the UI thread
+ * @param syncManager optional [ProjectSystemSyncManager] for testing
+ */
+@JvmOverloads
+fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
+                                  callback: Consumer<SyncResult>,
+                                  runOnEdt: Boolean = false,
+                                  syncManager: ProjectSystemSyncManager = this.getSyncManager()) {
+  val dumbService = DumbService.getInstance(this)
+  if (dumbService.isDumb) {
+    if (runOnEdt) {
+      dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+    }
+    else {
+      dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+    }
+    return
+  }
+
+  if (syncManager.isSyncInProgress()) {
+    listenUntilNextSync(parentDisposable, object : SyncResultListener {
+      override fun syncEnded(result: SyncResult) {
+        runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager)
+      }
+    })
+    return
+  }
+
+  if (runOnEdt && !ApplicationManager.getApplication().isDispatchThread) {
+    UIUtil.invokeLaterIfNeeded { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+    return
+  }
+
+  if (Disposer.isDisposed(parentDisposable)) return
+  callback.accept(syncManager.getLastSyncResult())
+}
+
+/**
+ * Runs the given [callback] on the EDT when the project is smart and synced.
+ * @param parentDisposable [Disposable] used to track the current request. If this parent [Disposable] is disposed
+ *  then the callback might never be called.
+ * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode
+ *  and the sync has completed.
+ * @param syncManager optional [ProjectSystemSyncManager] for testing
+ */
+@JvmOverloads
+fun Project.runWhenSmartAndSyncedOnEdt(parentDisposable: Disposable = this,
+                                       callback: Consumer<SyncResult>,
+                                       syncManager: ProjectSystemSyncManager = this.getSyncManager()) {
+  runWhenSmartAndSynced(parentDisposable, callback, true, syncManager)
 }

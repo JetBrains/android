@@ -24,8 +24,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.UIUtil
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,12 +36,6 @@ class DestinationListTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
-
-  @Before
-  fun setUp() = beforeNavTest()
-
-  @After
-  fun tearDown() = afterNavTest()
 
   /**
    * Make sure the DestinationList is updated correctly when the nav file is updated outside studio.

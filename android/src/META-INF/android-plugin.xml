@@ -123,9 +123,13 @@
       <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
     </group>
 
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
-      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
-    </action>
+    <group id="GradleFileGroup">
+      <separator/>
+      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC"/>
+      <action id="Android.ReImportGradleProject" class="com.android.tools.idea.gradle.actions.ReImportGradleProjectAction"/>
+      <add-to-group group-id="FileMenu" anchor="before" relative-to-action="SaveAll"/>
+      <separator/>
+    </group>
 
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
@@ -1301,6 +1305,7 @@
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>
+    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
 
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.TestArtifactSearchScopeSetupStep"/>
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.AndroidRunConfigurationSetupStep"/>

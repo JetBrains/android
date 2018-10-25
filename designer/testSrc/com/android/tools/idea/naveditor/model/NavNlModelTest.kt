@@ -74,4 +74,18 @@ class NavNlModelTest : NavTestCase() {
     Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<fragment\n" +
                                                                       "android:id=\"@+id/f1\"/>\n")
   }
+
+  fun testTooltips() {
+    val model = model("nav.xml") {
+      navigation {
+        action("global", destination = "f1")
+        fragment("f1") {
+          action("exit", destination = "foo")
+        }
+      }
+    }
+
+    assertEquals("global", model.find("global")?.tooltipText)
+    assertEquals("exit", model.find("exit")?.tooltipText)
+  }
 }

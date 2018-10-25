@@ -26,8 +26,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
 import com.android.tools.idea.naveditor.structure.StructurePanel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
@@ -39,7 +37,6 @@ import com.android.tools.idea.util.SyncUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -133,26 +130,13 @@ public class NlEditorPanel extends JPanel implements Disposable {
    * setting up the UI.
    */
   public void initNeleModel() {
-    ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
-
-    if (!syncManager.isSyncInProgress()) {
-      if (syncManager.getLastSyncResult().isSuccessful()) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
-        return;
-      }
-      else {
-        buildError();
-      }
-    }
-
-    // Wait for a successful sync in case the module containing myFile was
-    // just added and the Android facet isn't available yet.
-    SyncUtil.listenUntilNextSuccessfulSync(myProject, myEditor, result -> {
+    SyncUtil.runWhenSmartAndSynced(myProject, this, result -> {
       if (result.isSuccessful()) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
+        initNeleModelWhenSmart();
       }
       else {
         buildError();
+        SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
       }
     });
   }
@@ -172,7 +156,15 @@ public class NlEditorPanel extends JPanel implements Disposable {
     CompletableFuture<?> complete = mySurface.goingToSetModel(model);
     complete.whenComplete((unused, exception) -> {
       if (exception == null) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread(model));
+        SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
+          if (result.isSuccessful()) {
+            initNeleModelOnEventDispatchThread(model);
+          }
+          else {
+            buildError();
+            SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
+          }
+        });
       }
       else {
         myWorkBench.loadingStopped("Failed to initialize editor");
@@ -185,6 +177,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     if (Disposer.isDisposed(model)) {
       return;
     }
+
     mySurface.setModel(model);
 
     if (myAccessoryPanel != null) {

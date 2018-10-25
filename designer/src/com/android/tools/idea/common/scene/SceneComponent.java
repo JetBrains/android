@@ -530,13 +530,6 @@ public class SceneComponent {
     return myIsToolLocked;
   }
 
-  @NotNull
-  public Stream<SceneComponent> flatten() {
-    return Stream.concat(
-      Stream.of(this),
-      getChildren().stream().flatMap(SceneComponent::flatten));
-  }
-
   public void setDrawState(@NotNull DrawState drawState) {
     DrawState oldState = myDrawState;
     myDrawState = drawState;
@@ -697,9 +690,6 @@ public class SceneComponent {
     NlComponent component = getAuthoritativeNlComponent();
     ViewGroupHandler viewGroupHandler = NlComponentHelperKt.getViewGroupHandler(component);
     viewGroupHandler.clearAttributes(component);
-    for (SceneComponent child : getChildren()) {
-      viewGroupHandler.clearAttributes(child.getAuthoritativeNlComponent());
-    }
   }
 
   public void addTarget(@NotNull Target target) {

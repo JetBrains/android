@@ -167,13 +167,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return psiClass.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }
   }
 
-  @Suppress("UNCHECKED_CAST")
-  val destinationsList: JBList<Destination> = object : JBList<Destination>() {
-    override fun locationToIndex(location: Point): Int {
-      val pointIndex = super.locationToIndex(location)
-      return if (getCellBounds(pointIndex, pointIndex).contains(location)) pointIndex else -1
-    }
-  }
+  val destinationsList = JBList<Destination>()
+
   var maxIconWidth: Int = 0
 
   @VisibleForTesting

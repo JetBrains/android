@@ -29,6 +29,7 @@ open class LegacyAndroidLibrary(private val androidLibrary: AndroidLibrary) : Le
 
   override fun getManifest(): String = FN_ANDROID_MANIFEST_XML
   override fun getJarFile(): String = FileUtils.join(FD_JARS, FN_CLASSES_JAR)
+  override fun getApiJarFile(): String = FN_API_JAR
   override fun getResFolder(): String = FD_RESOURCES
   override fun getResStaticLibrary(): File? = null // TODO(qumeric): properly support it
   override fun getAssetsFolder(): String = FD_ASSETS

@@ -64,7 +64,6 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.Placeholder;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -104,7 +103,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintRe
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.PopupMenuActionTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -472,7 +470,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       listBuilder.add(baselineActionTarget);
     }
     listBuilder.add(new ChainCycleTarget(null));
-    listBuilder.add(new PopupMenuActionTarget());
 
     return listBuilder.build();
   }
@@ -529,8 +526,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
                            .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
-      Scene scene = viewEditor.getScene();
-      scene.clearAttributes();
+      viewEditor.getScene().clearAllConstraints();
       ensureLayersAreShown(editor, 1000);
     }
 

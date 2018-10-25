@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.common.model;
 
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -62,15 +65,22 @@ public class NlComponentUtil {
    *
    * @return true if potentialAncestor element have potentialDescendant as child or grand-child
    */
-  public static boolean isDescendant(@NotNull NlComponent potentialDescendant, @NotNull List<NlComponent> potentialAncestors) {
+  public static boolean isDescendant(@NotNull NlComponent potentialDescendant, @NotNull Collection<NlComponent> potentialAncestors) {
+    HashSet<NlComponent> visited = new HashSet<>();
     for (NlComponent component : potentialAncestors) {
       NlComponent same = potentialDescendant;
       while (same != null) {
+        if (!visited.add(same)) {
+          // We found a loop on the model. Fail for debug releases
+          assert false : "Loop found in NlModel. \n" + NlTreeDumper.dumpTree(ImmutableList.of(same));
+          return false;
+        }
         if (same == component) {
           return true;
         }
         same = same.getParent();
       }
+      visited.clear();
     }
     return false;
   }
