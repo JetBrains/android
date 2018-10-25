@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateSiblingDslFileWithGradlePropertiesFile;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateWithParentModuleSubProjectsProperties;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -26,18 +31,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.function.Consumer;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateSiblingDslFileWithGradlePropertiesFile;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateWithParentModuleSubProjectsProperties;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull private final BuildModelContext myBuildModelContext;
@@ -92,10 +89,18 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     return file == null ? null : getModuleBuildModel(file);
   }
 
+  /**
+   * Gets the {@link GradleBuildModel} for the given {@link VirtualFile}. Please prefer using {@link #getModuleBuildModel(Module)} if
+   * possible.
+   *
+   * @param file the file to parse, this file should be a Gradle build file that represents a Gradle Project (Idea Module or Project). The
+   *             given file must also belong to the {@link Project} for which this {@link ProjectBuildModel} was created.
+   * @return the build model for the requested file
+   */
   @Override
   @NotNull
   public GradleBuildModel getModuleBuildModel(@NotNull VirtualFile file) {
-    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
+    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file, false);
     return new GradleBuildModelImpl(dslFile);
   }
 

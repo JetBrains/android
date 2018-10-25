@@ -225,6 +225,12 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
   }
 
+  protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull String text) throws IOException {
+    File newFile = new File(mySubModuleBuildFile.getParent(), fileName);
+    writeToFile(newFile, text);
+    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
+  }
+
   @NotNull
   protected String loadBuildFile() throws IOException {
     return loadFile(myBuildFile);
