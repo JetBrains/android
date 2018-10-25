@@ -20,6 +20,7 @@ package com.android.tools.idea.stats
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.analytics.recordTestLibrary
 import com.google.common.collect.Iterables
 import com.google.wireless.android.sdk.stats.TestLibraries
 
@@ -43,39 +44,6 @@ fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifac
     val groupId = coordinate.groupId ?: continue
     val artifactId = coordinate.artifactId ?: continue
     val version = coordinate.version?.toString() ?: continue
-    recordTestLibrary(builder, groupId, artifactId, version)
-  }
-}
-
-/**
- * Fills in the right field of a [TestLibraries.Builder] based on the maven coordinates.
- */
-fun recordTestLibrary(builder: TestLibraries.Builder, groupId: String, artifactId: String, version: String) {
-  when (groupId) {
-    "com.android.support.test", "androidx.test" -> {
-      when (artifactId) {
-        "orchestrator" -> builder.testOrchestratorVersion = version
-        "rules" -> builder.testRulesVersion = version
-        "runner" -> builder.testSupportLibraryVersion = version
-      }
-    }
-    "com.android.support.test.espresso", "androidx.test.espresso" -> {
-      when (artifactId) {
-        "espresso-accessibility" -> builder.espressoAccessibilityVersion = version
-        "espresso-contrib" -> builder.espressoContribVersion = version
-        "espresso-core" -> builder.espressoVersion = version
-        "espresso-idling-resource" -> builder.espressoIdlingResourceVersion = version
-        "espresso-intents" -> builder.espressoIntentsVersion = version
-        "espresso-web" -> builder.espressoWebVersion = version
-      }
-    }
-    "org.robolectric" -> {
-      when (artifactId) { "robolectric" -> builder.robolectricVersion = version
-      }
-    }
-    "org.mockito" -> {
-      when (artifactId) { "mockito-core" -> builder.mockitoVersion = version
-      }
-    }
+    builder.recordTestLibrary(groupId, artifactId, version)
   }
 }
