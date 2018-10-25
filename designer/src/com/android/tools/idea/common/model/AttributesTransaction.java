@@ -59,6 +59,7 @@ public class AttributesTransaction implements NlAttributesHolder {
    */
   private boolean isSuccessful = false;
   private boolean hasPendingRelayout;
+  private boolean hasLayoutAttributeChanged = false;
 
   public AttributesTransaction(@NotNull NlComponent thisComponent) {
     myComponent = thisComponent;
@@ -203,6 +204,7 @@ public class AttributesTransaction implements NlAttributesHolder {
     if (viewInfo != null) {
       applyAllPendingAttributesToView(viewInfo);
       if (hasPendingRelayout) {
+        hasLayoutAttributeChanged = true;
         triggerViewRelayout((View)viewInfo.getViewObject());
       }
     }
@@ -286,6 +288,14 @@ public class AttributesTransaction implements NlAttributesHolder {
   public boolean rollback() {
     myLock.writeLock().lock();
     try {
+      if (hasLayoutAttributeChanged) {
+        // TODO: Investigate a more lightweight solution for this.
+        // When apply() is called, we use RenderService to update the LayoutParam attribute for the associated View. We need to
+        // discard those changes.
+        // The most simple way is notifying modification to NlModel to trigger re-render. After that the new LayoutParam and
+        // ViewInfo will be used which their values are same as the original ones.
+        myModel.notifyModified(NlModel.ChangeType.DND_END);
+      }
       return finishTransaction();
     }
     finally {
