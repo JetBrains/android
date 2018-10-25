@@ -102,6 +102,7 @@ public class Gantt extends JPanel implements GanttCommands {
 
         JViewport viewPort = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, myRowGraphc);
         Rectangle rec = myRowGraphc.getVisibleRect();
+        clearSelectedKey();
         myGanttController.framePosition(percent);
         int dx = 0;
         if (pos + 1 < rec.x) {

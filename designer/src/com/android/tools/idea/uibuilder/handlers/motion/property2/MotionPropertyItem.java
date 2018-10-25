@@ -17,68 +17,94 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import com.android.tools.adtui.model.stdui.EditingSupport;
 import com.android.tools.adtui.ptable2.PTableItem;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property2.api.ActionIconButton;
 import com.android.tools.idea.common.property2.api.PropertyItem;
-import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlTag;
 import javax.swing.Icon;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * {@link PropertyItem} for a property in the motion layout property editor.
+ *
+ * Values are retrieved and written via the {@link XmlTag} supplied with
+ * the property.
+ *
+ * TODO: Refine the editing support including completion and error handling.
+ */
 public class MotionPropertyItem implements PropertyItem, PTableItem {
-  private final AttrName myName;
-  private final MotionSceneModel.BaseTag myTag;
+  private final MotionLayoutAttributesModel myModel;
+  private final String myNamespace;
+  private final String myName;
+  private final AttributeDefinition myDefinition;
+  private final SmartPsiElementPointer<XmlTag> myTagPointer;
+  private final NlComponent myComponent;
   private final EditingSupport myEditingSupport;
 
-  public MotionPropertyItem(@NotNull AttrName name, @NotNull MotionSceneModel.BaseTag tag) {
+  public MotionPropertyItem(@NotNull MotionLayoutAttributesModel model,
+                            @NotNull String namespace,
+                            @NotNull String name,
+                            @Nullable AttributeDefinition definition,
+                            @NotNull SmartPsiElementPointer<XmlTag> tagPointer,
+                            @NotNull NlComponent component) {
+    myModel = model;
+    myNamespace = namespace;
     myName = name;
-    myTag = tag;
+    myDefinition = definition;
+    myTagPointer = tagPointer;
+    myComponent = component;
     myEditingSupport = EditingSupport.Companion.getINSTANCE();
   }
 
   @NotNull
   @Override
   public String getNamespace() {
-    return myName.getNamespace();
+    return myNamespace;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myName.getName();
+    return myName;
   }
 
   @NotNull
-  public MotionSceneModel.BaseTag getTag() {
-    return myTag;
+  public SmartPsiElementPointer<XmlTag> getTag() {
+    return myTagPointer;
+  }
+
+  @NotNull
+  public NlComponent getComponent() {
+    return myComponent;
   }
 
   @Nullable
   @Override
   public String getValue() {
-    if (myTag instanceof MotionSceneModel.CustomAttributes) {
-      MotionSceneModel.CustomAttributes customAttributes = (MotionSceneModel.CustomAttributes)myTag;
-      String valueTag = customAttributes.getValueTagName();
-      return valueTag != null ? customAttributes.getValue(AttrName.motionAttr(valueTag)) : null;
+    XmlTag tag = myTagPointer.getElement();
+    if (tag == null) {
+      return null;
     }
-    else {
-      return myTag.getValue(myName);
-    }
+    return tag.getAttributeValue(myName, myNamespace);
   }
 
   @Override
   public void setValue(@Nullable String newValue) {
-    if (myTag instanceof MotionSceneModel.CustomAttributes) {
-      MotionSceneModel.CustomAttributes customAttributes = (MotionSceneModel.CustomAttributes)myTag;
-      String valueTag = customAttributes.getValueTagName();
-      if (valueTag != null) {
-        customAttributes.setValue(AttrName.motionAttr(valueTag), StringUtil.notNullize(newValue));
-      }
+    XmlTag tag = myTagPointer.getElement();
+    if (tag == null) {
+      return;
     }
-    else {
-      myTag.setValue(myName, StringUtil.notNullize(newValue));
-    }
+    TransactionGuard.submitTransaction(myModel, () ->
+      WriteCommandAction.runWriteCommandAction(
+        myModel.getProject(),
+        "Set $componentName.$name to $newValue",
+        null,
+        () -> tag.setAttribute(myName, myNamespace, newValue)));
   }
 
   @Override
