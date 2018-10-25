@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -147,11 +148,17 @@ public class LinearDragTarget extends DragBaseTarget {
 
   @Override
   public void mouseCancel() {
-    super.mouseCancel();
     myHandler.setDragging(myComponent, false);
+    myComponent.setModelUpdateAuthorized(true);
+    SceneComponent parent = myComponent.getParent();
+    if (parent != null) {
+      // myComponent may not have a parent when it is a TemporarySceneComponent.
+      parent.updateTargets();
+    }
     if (myClosest != null) {
       myClosest.setHighlight(false);
     }
+    super.mouseCancel();
   }
 
   @Nullable
