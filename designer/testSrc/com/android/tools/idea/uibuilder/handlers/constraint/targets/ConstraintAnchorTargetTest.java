@@ -37,6 +37,15 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                                           "        tools:layout_editor_absoluteY=\"15dp\" />");
   }
 
+  public void testCancelAnchorWhenCreating() {
+    myInteraction.select("button2", true);
+    myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
+    myInteraction.mouseCancel(500, 500);
+
+    myScreen.get("@id/button2").expectXml("<Button\n" +
+                                          "    android:id=\"@id/button2\"/>");
+  }
+
   @Override
   public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())

@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene.target;
 import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
@@ -355,6 +356,14 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> ignored) {
     myLastX = -1;
     myLastY = -1;
+  }
+
+  @Override
+  public void mouseCancel() {
+    myLastX = -1;
+    myLastY = -1;
+    myComponent.getScene().needsRebuildList();
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override
