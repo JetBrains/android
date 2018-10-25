@@ -15,9 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Interface used to notify the motion property editor to display data.
+ */
 public interface TimelineListener {
-  void updateSelection(@Nullable MotionSceneModel.KeyFrame keyFrame);
+  /**
+   * Display properties related to a transition with a selected component.
+   */
+  void updateTransition(@NotNull MotionSceneModel.TransitionTag transition, @Nullable NlComponent component);
+
+  /**
+   * Display properties of the specified constraintSet for a selected component.
+   */
+  void updateConstraintSet(@NotNull MotionSceneModel.ConstraintSet constraintSet, @Nullable NlComponent component);
+
+  /**
+   * Display properties of the specified key frame of a specified component.
+   */
+  void updateSelection(@NotNull MotionSceneModel.KeyFrame keyFrame, @Nullable NlComponent component);
 }

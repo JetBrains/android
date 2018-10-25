@@ -38,7 +38,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
   : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val componentModel = NelePropertiesModel(this, facet)
   private val componentView = NelePropertiesView(componentModel)
-  private val motionModel = MotionLayoutAttributesModel(this)
+  private val motionModel = MotionLayoutAttributesModel(this, facet)
   private val motionEditorView = MotionLayoutAttributesView(motionModel)
   private val properties = PropertiesPanel(componentModel)
   private val filterKeyListener = createFilterKeyListener()

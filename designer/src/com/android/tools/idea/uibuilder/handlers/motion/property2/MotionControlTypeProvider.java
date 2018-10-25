@@ -19,6 +19,11 @@ import com.android.tools.idea.common.property2.api.ControlType;
 import com.android.tools.idea.common.property2.api.ControlTypeProvider;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * {@link ControlTypeProvider} for the motion property editor.
+ *
+ * Currently: all properties are edited with a simple text editor.
+ */
 public class MotionControlTypeProvider implements ControlTypeProvider<MotionPropertyItem> {
 
   @Override

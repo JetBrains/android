@@ -19,6 +19,9 @@ import com.android.tools.idea.common.property2.api.EnumSupport;
 import com.android.tools.idea.common.property2.api.EnumSupportProvider;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An empty enum support provider i.e. none of the properties will show up as a combo box.
+ */
 public class MotionEnumSupportProvider implements EnumSupportProvider<MotionPropertyItem> {
 
   @Override

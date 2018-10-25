@@ -20,71 +20,60 @@ import com.android.tools.idea.common.property2.api.PropertiesModel;
 import com.android.tools.idea.common.property2.api.PropertiesModelListener;
 import com.android.tools.idea.common.property2.api.PropertiesTable;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
+import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * {@link PropertiesModel} for motion layout property editor.
+ */
 public class MotionLayoutAttributesModel implements PropertiesModel<MotionPropertyItem>, Disposable {
+  private final AndroidFacet myFacet;
   private final List<PropertiesModelListener> myListeners;
   private final MotionLayoutPropertyProvider myPropertyProvider;
-  private DesignSurface mySurface;
-  private DesignSurfaceListener mySurfaceListener;
-  private TimelineOwner myTimeline;
-  private TimelineListener myTimelineListener;
+  private final TimelineHelper myTimelineHelper;
   private PropertiesTable<MotionPropertyItem> myPropertiesTable;
 
-  public MotionLayoutAttributesModel(@NotNull Disposable parentDisposable) {
+  public MotionLayoutAttributesModel(@NotNull Disposable parentDisposable, @NotNull AndroidFacet facet) {
+    myFacet = facet;
     myListeners = new ArrayList<>();
-    myPropertyProvider = new MotionLayoutPropertyProvider();
+    myPropertyProvider = new MotionLayoutPropertyProvider(this);
+    myTimelineHelper = new TimelineHelper(new PropertiesTimelineListener());
     myPropertiesTable = PropertiesTable.Companion.emptyTable();
-    mySurfaceListener = new PropertiesDesignSurfaceListener();
-    myTimelineListener = new PropertiesTimelineListener();
     Disposer.register(parentDisposable, this);
   }
 
   @Override
   public void dispose() {
-    setSurface(null);
-    setTimeline(null);
+    myTimelineHelper.setSurface(null);
+  }
+
+  @NotNull
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myFacet.getModule().getProject();
   }
 
   @Nullable
   public DesignSurface getSurface() {
-    return mySurface;
+    return myTimelineHelper.getSurface();
   }
 
   public void setSurface(@Nullable DesignSurface surface) {
-    if (surface == mySurface) {
-      return;
-    }
-
-    if (mySurface != null) {
-      mySurface.removeListener(mySurfaceListener);
-    }
-    mySurface = surface;
-    if (mySurface != null) {
-      mySurface.addListener(mySurfaceListener);
-    }
-  }
-
-  private void setTimeline(@Nullable TimelineOwner timeline) {
-    if (timeline == myTimeline) {
-      return;
-    }
-
-    if (myTimeline != null) {
-      myTimeline.removeTimeLineListener(myTimelineListener);
-    }
-    myTimeline = timeline;
-    if (myTimeline != null) {
-      myTimeline.addTimelineListener(myTimelineListener);
-    }
+    myTimelineHelper.setSurface(surface);
   }
 
   @NotNull
@@ -108,48 +97,31 @@ public class MotionLayoutAttributesModel implements PropertiesModel<MotionProper
     myListeners.remove(listener);
   }
 
-  private void designSelectionUpdate(@NotNull DesignSurface surface, @NotNull List<NlComponent> selection) {
-    if (surface != mySurface) {
+  private void displayItem(@NotNull SmartPsiElementPointer<XmlTag> tagPointer, @Nullable NlComponent component) {
+    if (component == null) {
       return;
     }
-    if (selection.isEmpty()) {
-      setTimeline(null);
-      return;
-    }
-    NlComponent component = selection.get(0);
-    Object property = component.getClientProperty(TimelineOwner.TIMELINE_PROPERTY);
-    if (property instanceof TimelineOwner) {
-      setTimeline((TimelineOwner)property);
-      return;
-    }
-    NlComponent parent = component.getParent();
-    property = parent != null ? parent.getClientProperty(TimelineOwner.TIMELINE_PROPERTY) : null;
-    if (property instanceof TimelineOwner) {
-      setTimeline((TimelineOwner)property);
-    }
-    else {
-      setTimeline(null);
-    }
-  }
-
-  private void displayKeyFrame(@Nullable MotionSceneModel.KeyFrame keyFrame) {
-    if (keyFrame != null) {
-      myPropertiesTable = myPropertyProvider.getProperties(keyFrame);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      myPropertiesTable = myPropertyProvider.getProperties(component, tagPointer);
+      //noinspection unchecked
       myListeners.forEach(listener -> listener.propertiesGenerated(this));
-    }
-  }
-
-  private class PropertiesDesignSurfaceListener implements DesignSurfaceListener {
-    @Override
-    public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-      designSelectionUpdate(surface, newSelection);
-    }
+    });
   }
 
   private class PropertiesTimelineListener implements TimelineListener {
     @Override
-    public void updateSelection(@Nullable MotionSceneModel.KeyFrame keyFrame) {
-      displayKeyFrame(keyFrame);
+    public void updateTransition(@NotNull MotionSceneModel.TransitionTag transition, @Nullable NlComponent component) {
+      displayItem(transition.getTag(), component);
+    }
+
+    @Override
+    public void updateConstraintSet(@NotNull MotionSceneModel.ConstraintSet constraintSet, @Nullable NlComponent component) {
+      displayItem(constraintSet.getTag(), component);
+    }
+
+    @Override
+    public void updateSelection(@NotNull MotionSceneModel.KeyFrame keyFrame, @Nullable NlComponent component) {
+      displayItem(keyFrame.getTag(), component);
     }
   }
 }

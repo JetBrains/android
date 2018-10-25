@@ -17,7 +17,14 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An interface the timeline component should implement to
+ * attach the motion property editor.
+ */
 public interface TimelineOwner {
+  /**
+   * A key used to specify a {@link TimelineOwner} on a component.
+   */
   String TIMELINE_PROPERTY = "Timeline";
 
   void addTimelineListener(@NotNull TimelineListener listener);
