@@ -1389,7 +1389,6 @@
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
-    <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.DataBindingCompletionContributor" language="AndroidDataBinding"/>
     <applicationConfigurable groupId="editor" id="android.databinding"
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
