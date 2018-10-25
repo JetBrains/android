@@ -146,9 +146,8 @@ class CoordinatorDragTarget : DragBaseTarget() {
   }
 
   override fun mouseCancel() {
+    updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
     super.mouseCancel()
-    myComponent.setPosition(myFirstMouseX - myOffsetX, myFirstMouseY - myOffsetY)
-    myComponent.scene.repaint()
   }
 
   fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, component: NlComponent) {
