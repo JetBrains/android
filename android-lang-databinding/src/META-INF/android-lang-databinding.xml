@@ -15,5 +15,7 @@
   -->
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
-  <!-- TODO: Add implementations for extension points as we move code over from tools.idea.lang.databinding -->
+  <extensions defaultExtensionNs="com.intellij">
+    <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.DataBindingCompletionContributor" language="AndroidDataBinding"/>
+  </extensions>
 </idea-plugin>
