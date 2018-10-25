@@ -61,7 +61,8 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create( // TODO: Remove in b/109788793
+  // TODO: Remove in b/109788793
+  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create(
     NPW, "dynamic.apps", "New Dynamic App Project flow",
     "Use new Dynamic App flow when creating a New Mobile Project",
     true);
@@ -398,6 +399,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag
     .create(NDK, "clangtidyinspections", "Enable clang-tidy inspections",
             "If enabled, show inspections derived from clang-tidy.", true);
+
+  public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag
+    .create(NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
+            "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", false);
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
