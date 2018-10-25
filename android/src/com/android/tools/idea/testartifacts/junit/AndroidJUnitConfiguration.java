@@ -30,12 +30,13 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.testframework.TestSearchScope;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.options.SettingsEditorGroup;
 import com.intellij.openapi.project.Project;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 /**
  * Android implementation of {@link JUnitConfiguration} so some behaviors can be overridden.
@@ -75,10 +76,21 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
 
   @NotNull
   public Module[] getModulesToCompile() {
-    if (TEST_PACKAGE.equals(getPersistentData().TEST_OBJECT) && (getPersistentData().getScope() == TestSearchScope.WHOLE_PROJECT)) {
-      Collection<Module> modules = getAllModules();
-      return modules.toArray(Module.EMPTY_ARRAY);
+    if (TEST_PACKAGE.equals(getPersistentData().TEST_OBJECT)) {
+      TestSearchScope scope = getPersistentData().getScope();
+      if (scope == TestSearchScope.WHOLE_PROJECT) {
+        return getAllModules().toArray(Module.EMPTY_ARRAY);
+      }
+      if (scope == TestSearchScope.MODULE_WITH_DEPENDENCIES) {
+        Module classpathModule = getConfigurationModule().getModule();
+        if (classpathModule != null) {
+          Set<Module> modules = new HashSet<>();
+          ModuleUtilCore.getDependencies(classpathModule, modules);
+          return modules.toArray(Module.EMPTY_ARRAY);
+        }
+      }
     }
+
     return getModules();
   }
 

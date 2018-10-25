@@ -18,14 +18,24 @@ package com.android.tools.idea.testing
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestRun
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.ExecutionManager
+import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.impl.ExecutionManagerKtImpl
+import com.intellij.execution.junit.JUnitConfiguration
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.execution.testframework.TestSearchScope
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
@@ -89,136 +99,182 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
   override fun tearDown() {
     try {
       UsageTracker.cleanAfterTesting()
-    } finally {
+    }
+    finally {
       super.tearDown()
     }
   }
 
   fun testAppModule() {
     checkTestClass(
-        "com.example.app.AppJavaUnitTest",
-        expectedTests = setOf(
-            "java:test://com.example.app.AppJavaUnitTest/aarDependencies",
-            "java:test://com.example.app.AppJavaUnitTest/assertions",
-            "java:test://com.example.app.AppJavaUnitTest/commonsLogging",
-            "java:test://com.example.app.AppJavaUnitTest/enums",
-            "java:test://com.example.app.AppJavaUnitTest/exceptions",
-            "java:test://com.example.app.AppJavaUnitTest/instanceFields",
-            "java:test://com.example.app.AppJavaUnitTest/javaLibJavaResourcesOnClasspath",
-            "java:test://com.example.app.AppJavaUnitTest/javaResourcesOnClasspath",
-            "java:test://com.example.app.AppJavaUnitTest/libJavaResourcesOnClasspath",
-            "java:test://com.example.app.AppJavaUnitTest/mockFinalClass",
-            "java:test://com.example.app.AppJavaUnitTest/mockFinalMethod",
-            "java:test://com.example.app.AppJavaUnitTest/mockInnerClass",
-            "java:test://com.example.app.AppJavaUnitTest/prodJavaResourcesOnClasspath",
-            "java:test://com.example.app.AppJavaUnitTest/prodRClass",
-            "java:test://com.example.app.AppJavaUnitTest/referenceJavaLibJavaClass",
-            "java:test://com.example.app.AppJavaUnitTest/referenceJavaLibKotlinClass",
-            "java:test://com.example.app.AppJavaUnitTest/referenceLibraryCode",
-            "java:test://com.example.app.AppJavaUnitTest/referenceLibraryKotlinCode",
-            "java:test://com.example.app.AppJavaUnitTest/referenceProductionCode",
-            "java:test://com.example.app.AppJavaUnitTest/referenceProductionKotlinCode",
-            "java:test://com.example.app.AppJavaUnitTest/workingDir"
-        )
+      "com.example.app.AppJavaUnitTest",
+      expectedTests = setOf(
+        "java:test://com.example.app.AppJavaUnitTest/aarDependencies",
+        "java:test://com.example.app.AppJavaUnitTest/assertions",
+        "java:test://com.example.app.AppJavaUnitTest/commonsLogging",
+        "java:test://com.example.app.AppJavaUnitTest/enums",
+        "java:test://com.example.app.AppJavaUnitTest/exceptions",
+        "java:test://com.example.app.AppJavaUnitTest/instanceFields",
+        "java:test://com.example.app.AppJavaUnitTest/javaLibJavaResourcesOnClasspath",
+        "java:test://com.example.app.AppJavaUnitTest/javaResourcesOnClasspath",
+        "java:test://com.example.app.AppJavaUnitTest/libJavaResourcesOnClasspath",
+        "java:test://com.example.app.AppJavaUnitTest/mockFinalClass",
+        "java:test://com.example.app.AppJavaUnitTest/mockFinalMethod",
+        "java:test://com.example.app.AppJavaUnitTest/mockInnerClass",
+        "java:test://com.example.app.AppJavaUnitTest/prodJavaResourcesOnClasspath",
+        "java:test://com.example.app.AppJavaUnitTest/prodRClass",
+        "java:test://com.example.app.AppJavaUnitTest/referenceJavaLibJavaClass",
+        "java:test://com.example.app.AppJavaUnitTest/referenceJavaLibKotlinClass",
+        "java:test://com.example.app.AppJavaUnitTest/referenceLibraryCode",
+        "java:test://com.example.app.AppJavaUnitTest/referenceLibraryKotlinCode",
+        "java:test://com.example.app.AppJavaUnitTest/referenceProductionCode",
+        "java:test://com.example.app.AppJavaUnitTest/referenceProductionKotlinCode",
+        "java:test://com.example.app.AppJavaUnitTest/workingDir"
+      )
     )
 
     checkTestClass(
-        "com.example.app.AppKotlinUnitTest",
-        expectedTests = setOf(
-            "java:test://com.example.app.AppKotlinUnitTest/aarDependencies",
-            "java:test://com.example.app.AppKotlinUnitTest/assertions",
-            "java:test://com.example.app.AppKotlinUnitTest/commonsLogging",
-            "java:test://com.example.app.AppKotlinUnitTest/enums",
-            "java:test://com.example.app.AppKotlinUnitTest/exceptions",
-            "java:test://com.example.app.AppKotlinUnitTest/instanceFields",
-            "java:test://com.example.app.AppKotlinUnitTest/javaLibJavaResourcesOnClasspath",
-            "java:test://com.example.app.AppKotlinUnitTest/javaResourcesOnClasspath",
-            "java:test://com.example.app.AppKotlinUnitTest/libJavaResourcesOnClasspath",
-            "java:test://com.example.app.AppKotlinUnitTest/mockFinalClass",
-            "java:test://com.example.app.AppKotlinUnitTest/mockFinalMethod",
-            "java:test://com.example.app.AppKotlinUnitTest/mockInnerClass",
-            "java:test://com.example.app.AppKotlinUnitTest/prodJavaResourcesOnClasspath",
-            "java:test://com.example.app.AppKotlinUnitTest/prodRClass",
-            "java:test://com.example.app.AppKotlinUnitTest/referenceJavaLibJavaClass",
-            "java:test://com.example.app.AppKotlinUnitTest/referenceJavaLibKotlinClass",
-            "java:test://com.example.app.AppKotlinUnitTest/referenceLibraryCode",
-            "java:test://com.example.app.AppKotlinUnitTest/referenceLibraryKotlinCode",
-            "java:test://com.example.app.AppKotlinUnitTest/referenceProductionCode",
-            "java:test://com.example.app.AppKotlinUnitTest/referenceProductionKotlinCode",
-            "java:test://com.example.app.AppKotlinUnitTest/workingDir"
-        )
+      "com.example.app.AppKotlinUnitTest",
+      expectedTests = setOf(
+        "java:test://com.example.app.AppKotlinUnitTest/aarDependencies",
+        "java:test://com.example.app.AppKotlinUnitTest/assertions",
+        "java:test://com.example.app.AppKotlinUnitTest/commonsLogging",
+        "java:test://com.example.app.AppKotlinUnitTest/enums",
+        "java:test://com.example.app.AppKotlinUnitTest/exceptions",
+        "java:test://com.example.app.AppKotlinUnitTest/instanceFields",
+        "java:test://com.example.app.AppKotlinUnitTest/javaLibJavaResourcesOnClasspath",
+        "java:test://com.example.app.AppKotlinUnitTest/javaResourcesOnClasspath",
+        "java:test://com.example.app.AppKotlinUnitTest/libJavaResourcesOnClasspath",
+        "java:test://com.example.app.AppKotlinUnitTest/mockFinalClass",
+        "java:test://com.example.app.AppKotlinUnitTest/mockFinalMethod",
+        "java:test://com.example.app.AppKotlinUnitTest/mockInnerClass",
+        "java:test://com.example.app.AppKotlinUnitTest/prodJavaResourcesOnClasspath",
+        "java:test://com.example.app.AppKotlinUnitTest/prodRClass",
+        "java:test://com.example.app.AppKotlinUnitTest/referenceJavaLibJavaClass",
+        "java:test://com.example.app.AppKotlinUnitTest/referenceJavaLibKotlinClass",
+        "java:test://com.example.app.AppKotlinUnitTest/referenceLibraryCode",
+        "java:test://com.example.app.AppKotlinUnitTest/referenceLibraryKotlinCode",
+        "java:test://com.example.app.AppKotlinUnitTest/referenceProductionCode",
+        "java:test://com.example.app.AppKotlinUnitTest/referenceProductionKotlinCode",
+        "java:test://com.example.app.AppKotlinUnitTest/workingDir"
+      )
     )
   }
 
   fun testLibModule() {
     checkTestClass(
-        "com.example.lib.LibJavaUnitTest",
-        expectedTests = setOf(
-            "java:test://com.example.lib.LibJavaUnitTest/aarDependencies",
-            "java:test://com.example.lib.LibJavaUnitTest/assertions",
-            "java:test://com.example.lib.LibJavaUnitTest/commonsLogging",
-            "java:test://com.example.lib.LibJavaUnitTest/enums",
-            "java:test://com.example.lib.LibJavaUnitTest/exceptions",
-            "java:test://com.example.lib.LibJavaUnitTest/instanceFields",
-            "java:test://com.example.lib.LibJavaUnitTest/javaLibJavaResourcesOnClasspath",
-            "java:test://com.example.lib.LibJavaUnitTest/javaResourcesOnClasspath",
-            "java:test://com.example.lib.LibJavaUnitTest/libJavaResourcesOnClasspath",
-            "java:test://com.example.lib.LibJavaUnitTest/mockFinalClass",
-            "java:test://com.example.lib.LibJavaUnitTest/mockFinalMethod",
-            "java:test://com.example.lib.LibJavaUnitTest/mockInnerClass",
-            "java:test://com.example.lib.LibJavaUnitTest/prodJavaResourcesOnClasspath",
-            "java:test://com.example.lib.LibJavaUnitTest/prodRClass",
-            "java:test://com.example.lib.LibJavaUnitTest/referenceJavaLibJavaClass",
-            "java:test://com.example.lib.LibJavaUnitTest/referenceJavaLibKotlinClass",
-            "java:test://com.example.lib.LibJavaUnitTest/referenceLibraryCode",
-            "java:test://com.example.lib.LibJavaUnitTest/referenceLibraryKotlinCode",
-            "java:test://com.example.lib.LibJavaUnitTest/referenceProductionCode",
-            "java:test://com.example.lib.LibJavaUnitTest/referenceProductionKotlinCode",
-            "java:test://com.example.lib.LibJavaUnitTest/workingDir"
-        )
+      "com.example.lib.LibJavaUnitTest",
+      expectedTests = setOf(
+        "java:test://com.example.lib.LibJavaUnitTest/aarDependencies",
+        "java:test://com.example.lib.LibJavaUnitTest/assertions",
+        "java:test://com.example.lib.LibJavaUnitTest/commonsLogging",
+        "java:test://com.example.lib.LibJavaUnitTest/enums",
+        "java:test://com.example.lib.LibJavaUnitTest/exceptions",
+        "java:test://com.example.lib.LibJavaUnitTest/instanceFields",
+        "java:test://com.example.lib.LibJavaUnitTest/javaLibJavaResourcesOnClasspath",
+        "java:test://com.example.lib.LibJavaUnitTest/javaResourcesOnClasspath",
+        "java:test://com.example.lib.LibJavaUnitTest/libJavaResourcesOnClasspath",
+        "java:test://com.example.lib.LibJavaUnitTest/mockFinalClass",
+        "java:test://com.example.lib.LibJavaUnitTest/mockFinalMethod",
+        "java:test://com.example.lib.LibJavaUnitTest/mockInnerClass",
+        "java:test://com.example.lib.LibJavaUnitTest/prodJavaResourcesOnClasspath",
+        "java:test://com.example.lib.LibJavaUnitTest/prodRClass",
+        "java:test://com.example.lib.LibJavaUnitTest/referenceJavaLibJavaClass",
+        "java:test://com.example.lib.LibJavaUnitTest/referenceJavaLibKotlinClass",
+        "java:test://com.example.lib.LibJavaUnitTest/referenceLibraryCode",
+        "java:test://com.example.lib.LibJavaUnitTest/referenceLibraryKotlinCode",
+        "java:test://com.example.lib.LibJavaUnitTest/referenceProductionCode",
+        "java:test://com.example.lib.LibJavaUnitTest/referenceProductionKotlinCode",
+        "java:test://com.example.lib.LibJavaUnitTest/workingDir"
+      )
     )
 
     checkTestClass(
-        "com.example.lib.LibKotlinUnitTest",
-        expectedTests = setOf(
-            "java:test://com.example.lib.LibKotlinUnitTest/aarDependencies",
-            "java:test://com.example.lib.LibKotlinUnitTest/assertions",
-            "java:test://com.example.lib.LibKotlinUnitTest/commonsLogging",
-            "java:test://com.example.lib.LibKotlinUnitTest/enums",
-            "java:test://com.example.lib.LibKotlinUnitTest/exceptions",
-            "java:test://com.example.lib.LibKotlinUnitTest/instanceFields",
-            "java:test://com.example.lib.LibKotlinUnitTest/javaLibJavaResourcesOnClasspath",
-            "java:test://com.example.lib.LibKotlinUnitTest/javaResourcesOnClasspath",
-            "java:test://com.example.lib.LibKotlinUnitTest/libJavaResourcesOnClasspath",
-            "java:test://com.example.lib.LibKotlinUnitTest/mockFinalClass",
-            "java:test://com.example.lib.LibKotlinUnitTest/mockFinalMethod",
-            "java:test://com.example.lib.LibKotlinUnitTest/mockInnerClass",
-            "java:test://com.example.lib.LibKotlinUnitTest/prodJavaResourcesOnClasspath",
-            "java:test://com.example.lib.LibKotlinUnitTest/prodRClass",
-            "java:test://com.example.lib.LibKotlinUnitTest/referenceJavaLibJavaClass",
-            "java:test://com.example.lib.LibKotlinUnitTest/referenceJavaLibKotlinClass",
-            "java:test://com.example.lib.LibKotlinUnitTest/referenceLibraryCode",
-            "java:test://com.example.lib.LibKotlinUnitTest/referenceLibraryKotlinCode",
-            "java:test://com.example.lib.LibKotlinUnitTest/referenceProductionCode",
-            "java:test://com.example.lib.LibKotlinUnitTest/referenceProductionKotlinCode",
-            "java:test://com.example.lib.LibKotlinUnitTest/workingDir"
-        )
+      "com.example.lib.LibKotlinUnitTest",
+      expectedTests = setOf(
+        "java:test://com.example.lib.LibKotlinUnitTest/aarDependencies",
+        "java:test://com.example.lib.LibKotlinUnitTest/assertions",
+        "java:test://com.example.lib.LibKotlinUnitTest/commonsLogging",
+        "java:test://com.example.lib.LibKotlinUnitTest/enums",
+        "java:test://com.example.lib.LibKotlinUnitTest/exceptions",
+        "java:test://com.example.lib.LibKotlinUnitTest/instanceFields",
+        "java:test://com.example.lib.LibKotlinUnitTest/javaLibJavaResourcesOnClasspath",
+        "java:test://com.example.lib.LibKotlinUnitTest/javaResourcesOnClasspath",
+        "java:test://com.example.lib.LibKotlinUnitTest/libJavaResourcesOnClasspath",
+        "java:test://com.example.lib.LibKotlinUnitTest/mockFinalClass",
+        "java:test://com.example.lib.LibKotlinUnitTest/mockFinalMethod",
+        "java:test://com.example.lib.LibKotlinUnitTest/mockInnerClass",
+        "java:test://com.example.lib.LibKotlinUnitTest/prodJavaResourcesOnClasspath",
+        "java:test://com.example.lib.LibKotlinUnitTest/prodRClass",
+        "java:test://com.example.lib.LibKotlinUnitTest/referenceJavaLibJavaClass",
+        "java:test://com.example.lib.LibKotlinUnitTest/referenceJavaLibKotlinClass",
+        "java:test://com.example.lib.LibKotlinUnitTest/referenceLibraryCode",
+        "java:test://com.example.lib.LibKotlinUnitTest/referenceLibraryKotlinCode",
+        "java:test://com.example.lib.LibKotlinUnitTest/referenceProductionCode",
+        "java:test://com.example.lib.LibKotlinUnitTest/referenceProductionKotlinCode",
+        "java:test://com.example.lib.LibKotlinUnitTest/workingDir"
+      )
     )
   }
 
   fun testJavaLibModule() {
     checkTestClass(
-        "com.example.javalib.JavaLibJavaTest",
-        expectedTests = setOf(
-            "java:test://com.example.javalib.JavaLibJavaTest/assertions",
-            "java:test://com.example.javalib.JavaLibJavaTest/javaResourcesOnClasspath",
-            "java:test://com.example.javalib.JavaLibJavaTest/prodJavaResourcesOnClasspath",
-            "java:test://com.example.javalib.JavaLibJavaTest/referenceJavaLibJavaClass",
-            "java:test://com.example.javalib.JavaLibJavaTest/referenceJavaLibKotlinClass",
-            "java:test://com.example.javalib.JavaLibJavaTest/workingDir"
-        )
+      "com.example.javalib.JavaLibJavaTest",
+      expectedTests = setOf(
+        "java:test://com.example.javalib.JavaLibJavaTest/assertions",
+        "java:test://com.example.javalib.JavaLibJavaTest/javaResourcesOnClasspath",
+        "java:test://com.example.javalib.JavaLibJavaTest/prodJavaResourcesOnClasspath",
+        "java:test://com.example.javalib.JavaLibJavaTest/referenceJavaLibJavaClass",
+        "java:test://com.example.javalib.JavaLibJavaTest/referenceJavaLibKotlinClass",
+        "java:test://com.example.javalib.JavaLibJavaTest/workingDir"
+      )
     )
     // TODO(b/64667992): check JavaLibKotlinTest once the Kotlin setup works.
+  }
+
+  /**
+   * Tries to test that running all tests "across module boundaries" does the right thing. Unfortunately this cannot really be done, so
+   * instead we check the right Gradle tasks are executed and that enough directories are on the classpath of the test VM. See the comment
+   * in [ExecutionListener] below for details.
+   */
+  fun testAcrossModuleBoundaries() {
+    val gradleBuildInvoker = GradleBuildInvoker.getInstance(project)
+    gradleBuildInvoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
+      override fun execute(result: GradleInvocationResult) {
+        gradleBuildInvoker.remove(this)
+        assertThat(result.tasks).containsAllOf(
+          ":app:compileDebugUnitTestSources",
+          ":util-lib:compileDebugUnitTestSources",
+          ":javalib:testClasses"
+        )
+      }
+
+    })
+
+    project.messageBus.connect(testRootDisposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
+      override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+        // The way testing "all in package" typically works is that a testing VM is started with paths to some temporary helper files. These
+        // files contain tests to be executed as well as the desired working directory, classpath etc. For some reason, there's a mechanism
+        // in place in JUnitStarter that will read byte from a local socket before opening the files, presumably to make sure the files have
+        // been updated with correct content (the socket's port number is passed on the command line to the JUnitStarter VM). TestPackage
+        // generally uses this mechanism, so in `createJavaParameters` it adds "-socket1234" to the test VM command line. Unfortunately,
+        // in unit test mode it never actually writes to the socket (see
+        // [com.intellij.execution.testframework.SearchForTestsTask#startSearch]), so we end up with a deadlock: the IDE process is waiting
+        // for testing to finish and the testing VM is waiting on the IDE to signal readiness. Because of that we just kill the test
+        // process here, as the most we can check is that correct Gradle tasks have been run.
+        handler.destroyProcess()
+      }
+    })
+
+    runInEdtAndWait {
+      val runnerConfigurationSettings = createRunnerConfigurationSettingsForClass("com.example.app.AppJavaUnitTest")
+      val androidJUnit = runnerConfigurationSettings.configuration as AndroidJUnitConfiguration
+      androidJUnit.persistentData.TEST_SEARCH_SCOPE.scope = TestSearchScope.MODULE_WITH_DEPENDENCIES
+      androidJUnit.persistentData.TEST_OBJECT = JUnitConfiguration.TEST_PACKAGE
+      androidJUnit.persistentData.MAIN_CLASS_NAME = ""
+      androidJUnit.persistentData.PACKAGE_NAME = ""
+      ExecutionUtil.runConfiguration(runnerConfigurationSettings, DefaultRunExecutor.getRunExecutorInstance())
+    }
   }
 
   private fun checkTestClass(className: String, expectedTests: Set<String>) {
@@ -232,9 +288,8 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
     runInEdtAndWait {
       try {
-        val busConnection = myFixture.project.messageBus.connect(project)
 
-        busConnection.subscribe(SMTRunnerEventsListener.TEST_STATUS, object : SMTRunnerEventsAdapter() {
+        project.messageBus.connect(testRootDisposable).subscribe(SMTRunnerEventsListener.TEST_STATUS, object : SMTRunnerEventsAdapter() {
           override fun onTestingStarted(testsRoot: SMTestProxy.SMRootTestProxy) {
             log("Testing $className started.")
           }
@@ -252,15 +307,11 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
           override fun onTestingFinished(testsRoot: SMTestProxy.SMRootTestProxy) {
             log("Testing $className finished.")
             testingFinished.countDown()
-            busConnection.disconnect()
           }
         })
 
         log("Running $className")
-        ExecutionUtil.runConfiguration(
-            createContext(project, myFixture.findClass(className)).configuration!!,
-            DefaultRunExecutor.getRunExecutorInstance()
-        )
+        ExecutionUtil.runConfiguration(createRunnerConfigurationSettingsForClass(className), DefaultRunExecutor.getRunExecutorInstance())
       }
       catch (t: Throwable) {
         log("failed!")
@@ -271,8 +322,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
     // Make sure we don't hang the entire build here.
     assertTrue("Timed out", testingFinished.await(1, TimeUnit.MINUTES))
-    UsageTracker.cleanAfterTesting()
-
     failure.get()?.let { throw it }
 
     log("Checking $className")
@@ -284,11 +333,15 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       .filter { it.kind == AndroidStudioEvent.EventKind.TEST_RUN }
 
     assertThat(events).hasSize(1)
-    val testRun = events.single().testRun
+    val testRun = events.single().testRun!!
 
     assertThat(testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_TEST)
     assertThat(testRun.testKind).isEqualTo(TestRun.TestKind.UNIT_TEST)
     assertThat(testRun.numberOfTestsExecuted).isEqualTo(expectedTests.size)
     assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.19.0")
+  }
+
+  private fun createRunnerConfigurationSettingsForClass(className: String): RunnerAndConfigurationSettings {
+    return createContext(project, myFixture.findClass(className)).configuration!!
   }
 }
