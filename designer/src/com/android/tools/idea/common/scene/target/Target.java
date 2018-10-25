@@ -102,6 +102,11 @@ public interface Target {
   void setMouseHovered(boolean over);
 
   /**
+   * @return Whether the mouse is hovering over this target.
+   */
+  boolean isMouseHovered();
+
+  /**
    * Can be used by the target to expand its bounds
    *
    * @param expand true to expand

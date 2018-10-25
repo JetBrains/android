@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.common.actions.ActivateComponentAction
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.actions.ZoomInAction
@@ -22,7 +23,7 @@ import com.android.tools.idea.common.actions.ZoomOutAction
 import com.android.tools.idea.common.actions.ZoomToFitAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurfaceShortcut
+import com.android.tools.idea.common.surface.ZoomShortcut
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
 import com.android.tools.idea.naveditor.actions.AddGlobalAction
 import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
@@ -62,9 +63,9 @@ import javax.swing.KeyStroke
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
   private val autoArrangeAction: AnAction = AutoArrangeAction(surface)
-  private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
-  private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
-  private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
+  private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
+  private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
+  private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
   private val selectNextAction: AnAction = SelectNextAction(surface)
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)
@@ -85,6 +86,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
     val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface, parentDisposable)
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
   }
 
   override fun createPopupMenu(

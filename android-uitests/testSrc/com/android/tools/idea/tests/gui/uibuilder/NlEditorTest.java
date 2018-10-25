@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -28,6 +35,10 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBui
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.junit.Ignore;
@@ -35,14 +46,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
@@ -413,6 +416,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true);
     Point surfacePosition = layoutEditor
+      .waitForRenderToFinish()
       .showOnlyDesignView()
       .waitForRenderToFinish()
       .mouseWheelZoomIn(-10)

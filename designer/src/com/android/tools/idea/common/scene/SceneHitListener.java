@@ -59,6 +59,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     myPicker.find(transform.getSwingXDip(x), transform.getSwingYDip(y));
   }
 
+  @SuppressWarnings("FloatingPointEquality")  // The values are directly assigned with no math, so this should be fine.
   @Override
   public void over(Object over, double dist) {
     if (over instanceof Target) {
@@ -130,10 +131,11 @@ class SceneHitListener implements ScenePicker.HitElementListener {
 
     for (int i = count - 2; i >= 0; i--) {
       Target target = myHitTargets.get(i);
-      if (!selection.contains(target.getComponent().getNlComponent())) {
+      if (inSelection && !parentInSelection(target.getComponent(), selection)) {
         continue;
       }
-      if (!inSelection || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
+      if ((!inSelection && parentInSelection(target.getComponent(), selection))
+           || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
         candidate = target;
         inSelection = true;
       }

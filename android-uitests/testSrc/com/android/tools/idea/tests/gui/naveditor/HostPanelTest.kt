@@ -23,8 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,12 +33,6 @@ class HostPanelTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
-
-  @Before
-  fun setUp() = beforeNavTest()
-
-  @After
-  fun tearDown() = afterNavTest()
 
   @RunIn(TestGroup.UNRELIABLE)
   @Test

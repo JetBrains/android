@@ -36,11 +36,15 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -350,24 +354,43 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           if (window != null) {
             window.setShowStripeButton(true);
 
-            // Caching the device+process info in case auto-profiling should kick in at a later time.
             String deviceName = AndroidProfilerToolWindow.getDeviceDisplayName(device);
             String processName = AndroidProfilerToolWindow.getModuleName(myModule);
             AndroidProfilerToolWindow.PreferredProcessInfo preferredProcessInfo =
               new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, processName,
                                                                  p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
-            project.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
-
             // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
             // then we shouldn't start profiling the launched app.
+            boolean profileStarted = false;
             if (window.isVisible()) {
               AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
               if (profilerToolWindow != null) {
                 profilerToolWindow.profile(preferredProcessInfo);
+                profileStarted = true;
               }
+            }
+            // Caching the device+process info in case auto-profiling should kick in at a later time.
+            if (!profileStarted) {
+              project.putUserData(LAST_RUN_APP_INFO, preferredProcessInfo);
             }
           }
         });
+
+      // When Studio detects that the process is terminated, remove the LAST_RUN_APP_INFO cache to prevent the profilers from waiting
+      // to auto-profiling a process that has already been killed.
+      if (launchStatus instanceof ProcessHandlerLaunchStatus) {
+        ProcessHandler processHandler = ((ProcessHandlerLaunchStatus)launchStatus).getProcessHandler();
+        ProcessAdapter adapter = new ProcessAdapter() {
+          @Override
+          public void processTerminated(@NotNull ProcessEvent event) {
+            myModule.getProject().putUserData(LAST_RUN_APP_INFO, null);
+            // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
+            processHandler.removeProcessListener(this);
+          }
+        };
+        processHandler.addProcessListener(adapter);
+      }
+
       return true;
     }
 

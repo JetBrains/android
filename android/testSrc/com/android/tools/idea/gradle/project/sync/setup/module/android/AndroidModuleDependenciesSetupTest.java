@@ -172,6 +172,28 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
   }
 
+  public void testSetupUpWithMissingFile() throws IOException {
+    File binaryPath = createTempFile("fakeLibrary.jar", "");
+    File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
+    File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
+    assertTrue(binaryPath.delete());
+    // Library should only have sources added by url.
+    Library newLibrary = createLibrary(binaryPath, sourcePath, javadocPath);
+
+    String libraryName = binaryPath.getName();
+    Module module = getModule();
+
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths = {binaryPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
+    LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
+    assertNotSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been recreated.
+  }
+
   @NotNull
   private static List<LibraryOrderEntry> getLibraryOrderEntries(@NotNull Module module) {
     List<LibraryOrderEntry> libraryOrderEntries = new ArrayList<>();

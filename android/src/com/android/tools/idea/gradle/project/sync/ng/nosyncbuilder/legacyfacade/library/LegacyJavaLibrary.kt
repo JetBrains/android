@@ -30,6 +30,7 @@ open class LegacyJavaLibrary(private val javaLibrary: JavaLibrary) : Level2Libra
   override fun getFolder(): File = throw unsupportedMethodForJavaLibrary("getFolder")
   override fun getManifest(): String = throw unsupportedMethodForJavaLibrary("getManifest")
   override fun getJarFile(): String = throw unsupportedMethodForJavaLibrary("getJarFile")
+  override fun getApiJarFile(): String = throw unsupportedMethodForJavaLibrary("getApiJarFile")
   override fun getResFolder(): String = throw unsupportedMethodForJavaLibrary("getResFolder")
   override fun getResStaticLibrary(): File? = throw unsupportedMethodForJavaLibrary("getResStaticLibrary")
   override fun getAssetsFolder(): String = throw unsupportedMethodForJavaLibrary("getAssetsFolder")

@@ -132,10 +132,6 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       list.cellRenderer = object: ColoredListCellRenderer<NlProperty>() {
         override fun customizeCellRenderer(list: JList<out NlProperty>, value: NlProperty?, index: Int, selected: Boolean, hasFocus: Boolean) {
           icon = if (selected && hasFocus) whiteIcon else this@NavListInspectorProvider.icon
-          if (selected && !hasFocus) {
-            background = UIUtil.getListUnfocusedSelectionBackground()
-            mySelectionForeground = UIUtil.getListForeground()
-          }
           val name = value?.name ?: ""
           val id = displayIdSuffix(value)
           append(name)
@@ -166,6 +162,11 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
               refresh()
             }
           }
+        }
+      })
+      list.addFocusListener(object: FocusAdapter() {
+        override fun focusLost(e: FocusEvent?) {
+          list.clearSelection()
         }
       })
       list.emptyText.also {

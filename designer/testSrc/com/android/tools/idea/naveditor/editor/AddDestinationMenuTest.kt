@@ -150,7 +150,7 @@ class AddDestinationMenuTest : NavTestCase() {
     assertEquals(destinations, expected)
   }
 
-  fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
+  private fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
 
   override fun tearDown() {
     _model = null
@@ -237,7 +237,7 @@ class AddDestinationMenuTest : NavTestCase() {
     val action = object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {
         TestCase.assertEquals(event, e)
-        val createdFiles = DataManagerImpl.MyDataContext(panel).getData(CREATED_FILES)!!
+        val createdFiles = DataManagerImpl().getDataContext(panel).getData(CREATED_FILES)!!
         val root = myModule.rootManager.contentRoots[0].path
         myFixture.addFileToProject("src/mytest/navtest/Frag.java",
                                    "package mytest.navtest\n" +
@@ -262,7 +262,7 @@ class AddDestinationMenuTest : NavTestCase() {
     val action = object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {
         TestCase.assertEquals(event, e)
-        val createdFiles = DataManagerImpl.MyDataContext(panel).getData(CREATED_FILES)!!
+        val createdFiles = DataManagerImpl().getDataContext(panel).getData(CREATED_FILES)!!
         val root = myModule.rootManager.contentRoots[0].path
         myFixture.addFileToProject("src/mytest/navtest/Frag.java",
                                    "package mytest.navtest\n" +
@@ -281,7 +281,7 @@ class AddDestinationMenuTest : NavTestCase() {
   fun testCreatePlaceholder() {
     val gallery = menu.destinationsList
     val cell0Bounds = gallery.getCellBounds(1, 1)
-    val destination = gallery.model.getElementAt(1) as Destination
+    val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
     gallery.dispatchEvent(MouseEvent(
       gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
@@ -289,41 +289,9 @@ class AddDestinationMenuTest : NavTestCase() {
     val component = destination.component
     assertNotNull(component)
     assertEquals(listOf(component!!), surface.selectionModel.selection)
+    assertEquals("placeholder", component.id)
     assertNull(component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
-  }
-
-  fun testImageLoading() {
-    // TODO: implement thumbnails for destinations
-    /*
-    Lock lock = new ReentrantLock();
-    lock.lock();
-
-    // use createImage so the instances are different
-    ToolkitImage image = (ToolkitImage)Toolkit.getDefaultToolkit().createImage(
-      ResourceUtil.getResource(AndroidIcons.class, "/icons/naveditor", "basic-activity.png"));
-    image.preload((img, infoflags, x, y, width, height) -> {
-      lock.lock();
-      return false;
-    });
-
-    MediaTracker tracker = new MediaTracker(new JPanel());
-    tracker.addImage(image, 0);
-
-    Destination dest = new Destination.RegularDestination(surface.getCurrentNavigation(), "fragment", null, "foo", "foo");
-
-    AddMenuWrapper menu = new AddMenuWrapper(surface, ImmutableList.of(dest));
-    menu.createCustomComponentPopup();
-    assertTrue(menu.myLoadingPanel.isLoading());
-    lock.unlock();
-    tracker.waitForAll();
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    assertFalse(menu.myLoadingPanel.isLoading());
-
-    // Now images are loaded, make sure a new menu doesn't even have the loading panel
-    menu = new AddMenuWrapper(surface, ImmutableList.of(dest));
-    menu.createCustomComponentPopup();
-    assertNull(menu.myLoadingPanel);
-    */
+    assertNull(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
   }
 
   private fun addFragment(name: String) {

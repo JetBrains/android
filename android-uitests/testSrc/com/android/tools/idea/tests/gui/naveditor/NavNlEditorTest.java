@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.awt.event.InputEvent.CTRL_MASK;
+import static java.awt.event.InputEvent.META_MASK;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -31,21 +39,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.Add
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
+import java.awt.event.KeyEvent;
+import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.awt.event.KeyEvent;
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
 
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
@@ -54,16 +56,6 @@ import static org.junit.Assert.*;
 public class NavNlEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void setUp() {
-    NavTestSetupKt.beforeNavTest();
-  }
-
-  @After
-  public void tearDown() {
-    NavTestSetupKt.afterNavTest();
-  }
 
   @Test
   public void testSelectComponent() throws Exception {
@@ -304,18 +296,17 @@ public class NavNlEditorTest {
     screen.click();
 
     double scale = fixture.getScale();
+    int actionMask = SystemInfo.isMac ? META_MASK : CTRL_MASK;
 
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_MINUS);
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_MINUS, actionMask);
     double zoomOutScale = fixture.getScale();
     assertTrue(zoomOutScale < scale);
 
-    guiTest.robot().pressKey(KeyEvent.VK_SHIFT);
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_PLUS);
-    guiTest.robot().releaseKey(KeyEvent.VK_SHIFT);
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_PLUS, actionMask);
     double zoomInScale = fixture.getScale();
     assertTrue(zoomInScale > zoomOutScale);
 
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_0);
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_0, actionMask);
     double fitScale = fixture.getScale();
 
     assertTrue(Math.abs(fitScale - scale) < 0.001);
