@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-
-import java.util.List;
-
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import java.util.List;
 
 /**
  * Tests for {@link MissingBuildToolsErrorHandler}.
@@ -53,6 +54,32 @@ public class MissingBuildToolsErrorHandlerTest extends AndroidGradleTestCase {
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
+    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
+    assertThat(quickFixes.get(1)).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+  }
+
+  public void testHandleErrorOlderPlugin()  {
+    List<NotificationHyperlink> quickFixes =
+      MissingBuildToolsErrorHandler.getQuickFixHyperlinks("27.0.1", GradleVersion.parse("3.0.0"), GradleVersion.parse("3.1.0"));
+
+    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
+    assertThat(quickFixes.get(1)).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+  }
+
+  public void testHandleErrorCurrentPlugin() {
+    List<NotificationHyperlink> quickFixes =
+      MissingBuildToolsErrorHandler.getQuickFixHyperlinks("27.0.1", GradleVersion.parse("3.1.0"), GradleVersion.parse("3.1.0"));
+
+    assertThat(quickFixes).hasSize(1);
+    assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
+  }
+
+  public void testHandleErrorNewerPlugin() {
+    List<NotificationHyperlink> quickFixes =
+      MissingBuildToolsErrorHandler.getQuickFixHyperlinks("27.0.1", GradleVersion.parse("3.2.0"), GradleVersion.parse("3.1.0"));
+
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
   }
