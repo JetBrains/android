@@ -25,10 +25,10 @@ import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +59,9 @@ public class RenderPerfgateTest extends AndroidTestCase {
                                               "    \n" +
                                               "\n" +
                                               "</LinearLayout>";
-  private static final int NUMBER_OF_WARMUP = 2;
-  private static final int NUMBER_OF_SAMPLES = 10;
+  private static final int NUMBER_OF_WARM_UP = 2;
+  private static final int NUMBER_OF_SAMPLES = 20;
+  private static final int MAX_PRUNED_SAMPLES = NUMBER_OF_SAMPLES / 4;
 
   // This is the name that appears on perfgate dashboard.
   private static final Benchmark sBenchMark = new Benchmark.Builder("DesignTools Render Time Benchmark")
@@ -83,8 +84,6 @@ public class RenderPerfgateTest extends AndroidTestCase {
   }
 
   public void testBaseInflate() throws Exception {
-    // This is the name that is used for point in the metric.
-    Metric metric = new Metric("inflate_time_base");
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
@@ -96,24 +95,10 @@ public class RenderPerfgateTest extends AndroidTestCase {
       return sample;
     };
 
-    // LayoutLib has a large static initialization that would trigger on the first render.
-    // Warm up by inflating few times before measuring.
-    for (int i = 0; i < NUMBER_OF_WARMUP; i++) {
-      computable.compute();
-    }
-
-    // baseline samples
-    MetricSample[] samples = new MetricSample[NUMBER_OF_SAMPLES];
-    for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
-      samples[i] = computable.compute();
-    }
-    metric.addSamples(sBenchMark, samples);
-    metric.commit();
+    computeAndRecordMetric("inflate_time_base", computable);
   }
 
   public void testBaseRender() throws Exception {
-    // This is the name that is used for point in the metric.
-    Metric metric = new Metric("render_time_base");
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
@@ -125,22 +110,31 @@ public class RenderPerfgateTest extends AndroidTestCase {
       return sample;
     };
 
+    computeAndRecordMetric("render_time_base", computable);
+  }
+
+  private static void computeAndRecordMetric(
+    String metricName, ThrowableComputable<MetricSample, Exception> computable) throws Exception {
+
+    Metric metric = new Metric(metricName);
     // LayoutLib has a large static initialization that would trigger on the first render.
     // Warm up by inflating few times before measuring.
-    for (int i = 0; i < NUMBER_OF_WARMUP; i++) {
+    for (int i = 0; i < NUMBER_OF_WARM_UP; i++) {
       computable.compute();
     }
 
     // baseline samples
-    MetricSample[] samples = new MetricSample[NUMBER_OF_SAMPLES];
+    List<MetricSample> elapsedList = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
-      samples[i] = computable.compute();
+      elapsedList.add(computable.compute());
     }
-    metric.addSamples(sBenchMark, samples);
+
+    List<MetricSample> result = pruneOutliers(elapsedList);
+    metric.addSamples(sBenchMark, result.toArray(new MetricSample[0]));
     metric.commit();
   }
 
-  private MetricSample getInflateSamples(RenderTask task) {
+  private static MetricSample getInflateSamples(RenderTask task) {
     long startTime = System.currentTimeMillis();
     RenderResult result = task.inflate();
     long elapsedTime = System.currentTimeMillis() - startTime;
@@ -149,7 +143,7 @@ public class RenderPerfgateTest extends AndroidTestCase {
     return new MetricSample(Instant.now().toEpochMilli(), elapsedTime);
   }
 
-  private MetricSample getRenderSamples(RenderTask task) {
+  private static MetricSample getRenderSamples(RenderTask task) {
     checkSimpleLayoutResult(task.inflate());
 
     long startTime = System.currentTimeMillis();
@@ -178,5 +172,45 @@ public class RenderPerfgateTest extends AndroidTestCase {
       assertNotEquals(previousCoordinates, currentCoordinates);
       previousCoordinates = currentCoordinates;
     }
+  }
+
+  /**
+   * Try to prune outliers based on standard deviation. No more than {@link #MAX_PRUNED_SAMPLES} samples will be pruned.
+   */
+  private static List<MetricSample> pruneOutliers(List<MetricSample> list) {
+    float average = getAverage(list);
+    float std = getStandardDeviation(list, average);
+
+    float lowerBound = average - std;
+    float upperBound = average + std;
+
+    List<MetricSample> result = new ArrayList<>();
+    for (MetricSample sample : list) {
+      if (sample.getSampleData() >= lowerBound && sample.getSampleData() <= upperBound) {
+        result.add(sample);
+      }
+    }
+
+    // Too many samples pruned (i.e. data is widely spread). Return the raw list.
+    if (result.size() < (list.size() - MAX_PRUNED_SAMPLES)) {
+      return list;
+    }
+    return result;
+  }
+
+  private static float getStandardDeviation(List<MetricSample> list, float average) {
+    float sum = 0;
+    for (MetricSample sample : list) {
+      sum += Math.pow(sample.getSampleData() - average, 2);
+    }
+    return (float) Math.sqrt(sum / list.size());
+  }
+
+  private static float getAverage(List<MetricSample> list) {
+    float sum = 0;
+    for (MetricSample sample : list) {
+      sum += sample.getSampleData();
+    }
+    return sum / list.size();
   }
 }
