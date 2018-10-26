@@ -357,7 +357,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
   }
 
-  override fun newSelection(): List<SceneComponent> = listOf(myComponent)
+  override fun newSelection(): List<SceneComponent> = draggedComponents
 
   override fun getMouseCursor(): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 

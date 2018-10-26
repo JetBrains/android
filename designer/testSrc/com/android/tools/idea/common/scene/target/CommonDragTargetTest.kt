@@ -32,6 +32,23 @@ class CommonDragTargetTest : SceneTest() {
     super.tearDown()
   }
 
+  fun testDragComponent() {
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+    val linearLayout = myScreen.get("@id/linear").sceneComponent!!
+
+    myInteraction.select(textView)
+    myInteraction.mouseDown("textView")
+    myInteraction.mouseRelease(150f, 200f)
+
+    textView.authoritativeNlComponent.let {
+      assertEquals("100dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+      assertEquals("150dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    }
+    assertFalse(linearLayout.children.contains(textView))
+
+    assertEquals(1, myScreen.screen.selectionModel.selection.size)
+  }
+
   fun testDragMultipleComponentsInConstraintLayout() {
     // Test drag multiple components inside constraint layout
     val textView = myScreen.get("@id/textView").sceneComponent!!
@@ -75,6 +92,8 @@ class CommonDragTargetTest : SceneTest() {
 
     assertTrue(linearLayout.children.contains(textView))
     assertTrue(linearLayout.children.contains(textView2))
+
+    assertEquals(2, myScreen.screen.selectionModel.selection.size)
   }
 
   fun testDragComponentButCancel() {
