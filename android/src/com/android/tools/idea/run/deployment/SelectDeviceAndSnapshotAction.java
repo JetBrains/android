@@ -18,18 +18,20 @@ package com.android.tools.idea.run.deployment;
 import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class SelectDeviceAndSnapshotAction extends AnAction {
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
   private final Device myDevice;
   private final String mySnapshot;
 
-  SelectDeviceAndSnapshotAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Device device) {
+  SelectDeviceAndSnapshotAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
+                                @NotNull Device device,
+                                @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled) {
     super(device.getName(), null, device.getIcon());
 
     myComboBoxAction = comboBoxAction;
@@ -37,7 +39,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
 
     Collection<String> snapshots = device.getSnapshots();
 
-    if (snapshots.isEmpty()) {
+    if (snapshots.isEmpty() || !selectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
       mySnapshot = null;
       return;
     }

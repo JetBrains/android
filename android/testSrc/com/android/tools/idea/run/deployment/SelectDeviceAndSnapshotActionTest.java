@@ -15,32 +15,34 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.*;
 
 public final class SelectDeviceAndSnapshotActionTest {
   private DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
   @Before
   public void newComboBoxAction() {
-    myComboBoxAction = new DeviceAndSnapshotComboBoxAction(() -> false, Mockito.mock(AsyncDevicesGetter.class));
+    myComboBoxAction = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, Mockito.mock(AsyncDevicesGetter.class));
   }
 
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsIsEmpty() {
     Device device = new VirtualDevice(false, Devices.PIXEL_2_XL_API_28);
-    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction(myComboBoxAction, device);
+    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction(myComboBoxAction, device, () -> true);
     assertNull(action.getSnapshot());
   }
 
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsEqualsDefaultSnapshotCollection() {
     Device device = new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
-    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction(myComboBoxAction, device);
+    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction(myComboBoxAction, device, () -> true);
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSnapshot());
   }
 
@@ -49,7 +51,7 @@ public final class SelectDeviceAndSnapshotActionTest {
     Device device = new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, ImmutableList.of("snap_2018-08-07_16-27-58"));
 
     try {
-      new SelectDeviceAndSnapshotAction(myComboBoxAction, device);
+      new SelectDeviceAndSnapshotAction(myComboBoxAction, device, () -> true);
       fail();
     }
     catch (IllegalArgumentException ignored) {

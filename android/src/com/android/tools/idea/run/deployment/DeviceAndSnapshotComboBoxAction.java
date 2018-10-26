@@ -46,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
+  private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+
   private final AsyncDevicesGetter myDevicesGetter;
   private final AnAction myOpenAvdManagerAction;
 
@@ -56,13 +58,18 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
-    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(), new AsyncDevicesGetter(ApplicationManager.getApplication()));
+    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(),
+         () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
+         new AsyncDevicesGetter(ApplicationManager.getApplication()));
   }
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
+                                  @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
                                   @NotNull AsyncDevicesGetter devicesGetter) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+
     myDevicesGetter = devicesGetter;
     myOpenAvdManagerAction = new RunAndroidAvdManagerAction();
 
@@ -178,7 +185,7 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     physicalDevices.stream()
-      .map(device -> new SelectDeviceAndSnapshotAction(this, device))
+      .map(device -> new SelectDeviceAndSnapshotAction(this, device, mySelectDeviceSnapshotComboBoxSnapshotsEnabled))
       .forEach(actions::add);
 
     return actions;
@@ -188,8 +195,10 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private AnAction newSelectDeviceAndSnapshotAction(@NotNull VirtualDevice device) {
     Collection<String> snapshots = device.getSnapshots();
 
-    if (snapshots.isEmpty() || snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)) {
-      return new SelectDeviceAndSnapshotAction(this, device);
+    if (snapshots.isEmpty() ||
+        snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION) ||
+        !mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
+      return new SelectDeviceAndSnapshotAction(this, device, mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
     }
 
     return new SnapshotActionGroup(device, this);
@@ -262,6 +271,10 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   private void updateSelectedSnapshot() {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
+      return;
+    }
+
     Collection<String> snapshots = mySelectedDevice.getSnapshots();
 
     if (mySelectedSnapshot == null) {
