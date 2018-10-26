@@ -284,7 +284,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<table style=\"background-color:rgb(123,123,123);width:200px;text-align:center;vertical-align:middle;\" " +
                  "border=\"0\">" +
                  "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#80000000" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">#80000000" +
                  "</td>" +
                  "</tr>" +
                  "</table><BR/>" +
