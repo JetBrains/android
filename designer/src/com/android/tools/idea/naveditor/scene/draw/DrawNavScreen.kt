@@ -32,7 +32,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Font
 import java.awt.Graphics2D
-import java.awt.Rectangle
 import java.awt.geom.AffineTransform
 import java.awt.geom.Rectangle2D
 
@@ -90,7 +89,7 @@ class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     g.color = NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
     g.fill(rectangle)
 
-    g.color = NavColorSet.THUMBNAIL_BORDER_COLOR
+    g.color = NavColorSet.PLACEHOLDER_TEXT_COLOR
     g.font = Font(FONT_NAME, Font.PLAIN, sceneContext.getSwingDimension(FONT_SIZE))
 
     var x = rectangle.x + (rectangle.width - g.fontMetrics.stringWidth(text1)) / 2
