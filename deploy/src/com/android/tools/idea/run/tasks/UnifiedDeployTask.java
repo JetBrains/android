@@ -19,6 +19,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.DebuggerCodeSwapAdapter;
+import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.Trace;
@@ -141,7 +142,7 @@ public class UnifiedDeployTask implements LaunchTask {
 
       List<String> paths = apk.getFiles().stream().map(apkunit -> apkunit.getApkFile().getPath()).collect(Collectors.toList());
       AdbClient adb = new AdbClient(device, logger);
-      Installer installer = new Installer(getLocalInstaller(), adb, logger);
+      Installer installer = new AdbInstaller(getLocalInstaller(), adb, logger);
       DeploymentService service = ServiceManager.getService(myProject, DeploymentService.class);
       Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer);
       try {
