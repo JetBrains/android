@@ -17,5 +17,9 @@
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.DataBindingCompletionContributor" language="AndroidDataBinding"/>
+    <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory"/>
+    <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
+    <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition"/>
+    <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector"/>
   </extensions>
 </idea-plugin>
