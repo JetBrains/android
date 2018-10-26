@@ -63,7 +63,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     // the resulting document ends up modified as expected.
     SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
       .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
-      .withBounds(0, 0, 100, 100)).build();
+      .withBounds(0, 0, 200, 200)).build();
 
     ScreenView screenView = createScreen(model);
 
@@ -95,7 +95,7 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
       .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
-      .withBounds(0, 0, 100, 100)).build();
+      .withBounds(0, 0, 200, 200)).build();
 
     ScreenView screenView = createScreen(model);
 
@@ -115,7 +115,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
                       "    NlComponent{tag=<ImageView>, bounds=[0,0:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
-    assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
+    SceneComponent sceneComponent = screenView.getScene().getRoot().getChild(0);
+    assertEquals("@android:drawable/selected_image", sceneComponent.getNlComponent().getAttribute(ANDROID_URI, ATTR_SRC));
   }
 
   public void testSelectSingleComponent() {

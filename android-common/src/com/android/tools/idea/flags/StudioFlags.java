@@ -278,7 +278,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_RENDER_HIGH_QUALITY_SHADOW = Flag.create(
     NELE, "high.quality.shadow", "Enable the high quality shadows",
