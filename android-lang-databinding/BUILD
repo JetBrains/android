@@ -3,7 +3,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.lang-databinding",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
     iml_files = ["intellij.android.lang-databinding.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -26,6 +30,7 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
+        "//tools/data-binding:studio.compilerCommon[module]",
     ],
 )
 

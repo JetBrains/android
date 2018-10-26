@@ -16,54 +16,55 @@
 package com.android.tools.idea.databinding;
 
 
+import static com.android.SdkConstants.ATTR_ALIAS;
+
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.config.DataBindingConfiguration;
-import com.android.tools.idea.lang.databinding.DbFile;
-import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
-import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
-import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
-import com.intellij.lang.ASTNode;
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaParserFacade;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeVisitor;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiModificationTracker;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.FileContentUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.GenericAttributeValue;
-import org.jetbrains.android.dom.layout.Import;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.ATTR_ALIAS;
+import org.jetbrains.android.dom.layout.Import;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class that handles the interaction between Data Binding and the IDE.
@@ -350,31 +351,9 @@ public class DataBindingUtil {
 
   @Nullable
   public static String getBindingExprDefault(@NotNull XmlAttribute psiAttribute) {
-    XmlAttributeValue attrValue = psiAttribute.getValueElement();
-    if (attrValue instanceof PsiLanguageInjectionHost) {
-      final Ref<PsiElement> injections = Ref.create();
-      InjectedLanguageManager.getInstance(psiAttribute.getProject()).enumerate(attrValue, (injectedPsi, places) -> {
-        if (injectedPsi instanceof DbFile) {
-          injections.set(injectedPsi);
-        }
-      });
-      if (injections.get() != null) {
-        PsiDbDefaults defaults = PsiTreeUtil.getChildOfType(injections.get(), PsiDbDefaults.class);
-        if (defaults != null) {
-          PsiDbConstantValue constantValue = defaults.getConstantValue();
-          ASTNode stringLiteral = constantValue.getNode().findChildByType(DbTokenTypes.STRING_LITERAL);
-          if (stringLiteral == null) {
-            return constantValue.getText();
-          } else {
-            String text = stringLiteral.getText();
-            if (text.length() > 1) {
-              return text.substring(1, text.length() - 1);  // return unquoted string literal.
-            } else {
-              return text;
-            }
-          }
-        }
-      }
+    DataBindingExpressionProvider expressionProvider = DataBindingExpressionUtil.getDataBindingExpressionProvider();
+    if (expressionProvider != null) {
+      return expressionProvider.getBindingExprDefault(psiAttribute);
     }
     return null;
   }
@@ -384,21 +363,11 @@ public class DataBindingUtil {
    */
   @Nullable
   public static String getBindingExprDefault(@NotNull String exprn) {
-    if (!exprn.contains(DbTokenTypes.DEFAULT_KEYWORD.toString())) {
-      // A fast check since many expressions would likely not have a default.
-      return null;
+    DataBindingExpressionProvider expressionProvider = DataBindingExpressionUtil.getDataBindingExpressionProvider();
+    if (expressionProvider != null) {
+      return expressionProvider.getBindingExprDefault(exprn);
     }
-    Pattern defaultCheck = Pattern.compile(",\\s*default\\s*=\\s*");
-    int index = 0;
-    Matcher matcher = defaultCheck.matcher(exprn);
-    while (matcher.find()) {
-      index = matcher.end();
-    }
-    String def = exprn.substring(index, exprn.length() - 1).trim();  // remove the trailing "}"
-    if (def.startsWith("\"") && def.endsWith("\"")) {
-      def = def.substring(1, def.length() - 1);       // Unquote the string.
-    }
-    return def;
+    return null;
   }
 
   public static boolean isBindingExpression(@NotNull String string) {
