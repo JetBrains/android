@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.util.ui.JBUI
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -317,7 +318,7 @@ private fun testRender(action: TextRenderer.() -> Unit): String =
       if (attributes.fgColor == SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor && color != "comment") {
         result += "<comment>"; color = "comment"
       }
-      if (attributes.fgColor == JBColor.link() && color != "var") {
+      if (attributes.fgColor == JBUI.CurrentTheme.Link.Foreground.ENABLED && color != "var") {
         result += "<var>"; color = "var"
       }
       if (attributes.fgColor == SimpleTextAttributes.ERROR_ATTRIBUTES.fgColor && color != "error") {
