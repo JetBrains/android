@@ -28,7 +28,7 @@ import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
-import com.android.tools.idea.naveditor.scene.NavColorSet.THUMBNAIL_BORDER_COLOR
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
@@ -78,8 +78,8 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     val p3 = Point2D.Float(p1.x + rectangle.width, p1.y)
     val p4 = Point2D.Float(p3.x, p2.y)
 
-    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p1, p4, THUMBNAIL_BORDER_COLOR, stroke))
-    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p2, p3, THUMBNAIL_BORDER_COLOR, stroke))
+    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p1, p4, PLACEHOLDER_BORDER_COLOR, stroke))
+    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p2, p3, PLACEHOLDER_BORDER_COLOR, stroke))
   }
 
   private fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle2D.Float) {
