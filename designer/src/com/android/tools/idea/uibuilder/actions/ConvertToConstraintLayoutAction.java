@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
@@ -292,14 +293,18 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
 
     public void postLayoutRun() {
+      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      if (manager == null) {
+        Logger.getInstance(ConvertToConstraintLayoutAction.class).warn("null SceneManager");
+        return;
+      }
+
       NlModel model = myLayout.getModel();
       XmlTag layoutTag = myLayout.getTag();
       XmlTag rootTag = myRoot.getTag();
       //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
       PsiElement tag = myLayout.getTag().setName(
         DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
-
-      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
       myRoot = model.findViewByTag(rootTag);
@@ -316,29 +321,23 @@ public class ConvertToConstraintLayoutAction extends AnAction {
             assert id != null;
             NlComponent layout = myScreenView.getModel().find(id);
 
-            Runnable action = new NlWriteCommandAction(Collections.singletonList(layout), "Infer Constraints", () -> {
-              if (layout != null) {
-                Map<NlComponent, Dimension> sizes = myEditor.measureChildren(layout, null);
-                assert sizes != null;
+            if (layout != null) {
+              manager.removeRenderListener(this);
 
-                for (NlComponent component : sizes.keySet()) {
-                  Dimension d = sizes.get(component);
-                  component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
-                  component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
-                }
+              myEditor.measureChildren(layout, null)
+                .whenComplete((sizes, ex) -> ApplicationManager.getApplication()
+                  .invokeLater(new NlWriteCommandAction(Collections.singletonList(layout), "Infer Constraints", () -> {
+                    for (NlComponent component : sizes.keySet()) {
+                      Dimension d = sizes.get(component);
+                      component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
+                      component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
+                    }
 
-                inferConstraints(layout);
-                manager.removeRenderListener(this);
-              }
-            });
-
-            ApplicationManager.getApplication().invokeLater(action);
+                    inferConstraints(layout);
+                  })));
+            }
           }
         });
-
-        //});
-        //t.setRepeats(false);
-        // t.start();
       }
     }
 

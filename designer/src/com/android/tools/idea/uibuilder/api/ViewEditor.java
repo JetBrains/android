@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,7 +148,7 @@ public abstract class ViewEditor {
    * @return a map from child to bounds information, if possible
    */
   @Nullable
-  public abstract Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
+  public abstract CompletableFuture<Map<NlComponent, Dimension>> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   @Nullable
   public final String displayResourceInput(@NotNull EnumSet<ResourceType> types) {
