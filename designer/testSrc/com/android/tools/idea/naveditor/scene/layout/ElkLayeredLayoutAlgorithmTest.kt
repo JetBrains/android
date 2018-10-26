@@ -94,6 +94,31 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
     assertPosition(scene, "f3", 12, 20)
   }
 
+  fun testDisconnectedDestinations() {
+    val model = model("nav.xml") {
+      navigation(startDestination = "f1") {
+        fragment("f1") {
+          action("a1", destination = "f2")
+          action("a2", destination = "f3")
+        }
+        fragment("f2")
+        fragment("f3")
+        fragment("f4")
+      }
+    }
+    model.surface.sceneManager!!.update()
+    val scene = model.surface.scene!!
+    val root = scene.root!!
+    val algorithm = ElkLayeredLayoutAlgorithm()
+    root.children.forEach { it.setPosition(0, 0) }
+    algorithm.layout(root.children)
+
+    assertPosition(scene, "f1", 265, 54)
+    assertPosition(scene, "f2", 518, 12)
+    assertPosition(scene, "f3", 518, 368)
+    assertPosition(scene, "f4", 12, 12)
+  }
+
   private fun assertPosition(scene: Scene, id: String, x: Int, y: Int) {
     val sceneComponent = scene.getSceneComponent(id)!!
     assertEquals(x, sceneComponent.drawX)

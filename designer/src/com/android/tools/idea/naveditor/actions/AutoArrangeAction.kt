@@ -30,5 +30,6 @@ class AutoArrangeAction(private val surface: DesignSurface) : AnAction("Auto Arr
       surface.sceneManager?.requestRender()
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
     }
+    surface.zoomToFit()
   }
 }
