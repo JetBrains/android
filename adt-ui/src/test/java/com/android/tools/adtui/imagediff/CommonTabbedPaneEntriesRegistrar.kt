@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.imagediff
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import java.awt.BorderLayout
 import java.awt.image.BufferedImage
@@ -23,19 +22,15 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-// Temporary make the similarity threshold larger for 2 images that have been failing a lot on Mac post submit
-// b/116180969
-private const val TEMP_IMAGE_DIFF_THRESHOLD_PERCENT_FOR_B116180969 = 0.8
-
 private class CommonTabbedPaneEntriesRegistrar : ImageDiffEntriesRegistrar() {
   init {
-    register(CommonTabbedPaneEntry("common_tabbed_pane_top.png", SwingConstants.TOP, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT))
-    register(CommonTabbedPaneEntry("common_tabbed_pane_left.png", SwingConstants.LEFT, TEMP_IMAGE_DIFF_THRESHOLD_PERCENT_FOR_B116180969))
-    register(CommonTabbedPaneEntry("common_tabbed_pane_bottom.png", SwingConstants.BOTTOM, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT))
-    register(CommonTabbedPaneEntry("common_tabbed_pane_right.png", SwingConstants.RIGHT, TEMP_IMAGE_DIFF_THRESHOLD_PERCENT_FOR_B116180969))
+    register(CommonTabbedPaneEntry("common_tabbed_pane_top.png", SwingConstants.TOP))
+    register(CommonTabbedPaneEntry("common_tabbed_pane_left.png", SwingConstants.LEFT))
+    register(CommonTabbedPaneEntry("common_tabbed_pane_bottom.png", SwingConstants.BOTTOM))
+    register(CommonTabbedPaneEntry("common_tabbed_pane_right.png", SwingConstants.RIGHT))
   }
 
-  private class CommonTabbedPaneEntry(fileName: String, tabPlacement: Int, threshold: Double) : ImageDiffEntry(fileName, threshold) {
+  private class CommonTabbedPaneEntry(fileName: String, tabPlacement: Int) : ImageDiffEntry(fileName) {
     private val panel = JPanel(BorderLayout())
 
     init {
