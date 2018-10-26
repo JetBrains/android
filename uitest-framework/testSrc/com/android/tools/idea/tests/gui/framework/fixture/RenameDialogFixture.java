@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -93,7 +94,8 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
   public boolean warningExists(@Nullable final String warningText) {
     return GuiQuery.getNonNull(
       () -> {
-        JComponent errorTextPane = field("myErrorText").ofType(JComponent.class).in(getDialogWrapper()).get();
+        NotNullLazyValue lazyValue = field("myErrorText").ofType(NotNullLazyValue.class).in(getDialogWrapper()).get();
+        JComponent errorTextPane = (JComponent)lazyValue.getValue();
         if (!errorTextPane.isVisible()) {
           return false;
         }
