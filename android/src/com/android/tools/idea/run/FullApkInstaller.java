@@ -69,6 +69,7 @@ public class FullApkInstaller {
     }
 
     String pmInstallOptions = getPmInstallOptions(device);
+
     RetryingInstaller.Installer installer = new ApkInstaller(myPrinter, remotePath, pmInstallOptions);
     RetryingInstaller retryingInstaller = new RetryingInstaller(myProject, device, installer, packageName, myPrinter, launchStatus);
 
@@ -95,6 +96,13 @@ public class FullApkInstaller {
     // the permissions are properly granted at install time.
     if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       pmInstallOptions = StringUtil.trimLeading(StringUtil.notNullize(pmInstallOptions) + " -g");
+    }
+
+    // API 28 changes how the instant property is set on app install.
+    // We can add --full to pmInstallOptions to restore the previous behavior,
+    // and avoid errors installing a non-instant app over its instant version.
+    if (device.getVersion().isGreaterOrEqualThan(28)) {
+      pmInstallOptions = StringUtil.trimLeading(StringUtil.notNullize(pmInstallOptions) + " --full");
     }
     return pmInstallOptions;
   }
