@@ -894,7 +894,8 @@ public class SceneComponent {
     if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
       boolean hasDragTarget;
       synchronized (myTargets) {
-        hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
+        // TODO: http://b/120497918 Remove this when removing flag.
+        hasDragTarget = myTargets.removeIf(CommonDragTarget::isSupported);
       }
       if (hasDragTarget && myScene.getRoot() != this) {
         addTarget(new CommonDragTarget(this));
