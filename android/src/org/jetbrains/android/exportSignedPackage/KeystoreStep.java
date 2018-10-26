@@ -99,7 +99,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     final PasswordSafe passwordSafe = PasswordSafe.getInstance();
     passwordSafe.set(CredentialAttributes(primaryRequestor, key), value == null ? null : new Credentials(key, value));
     // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
-    passwordSafe.set(CredentialAttributes(KeystoreStep.class, key), null == null ? null : new Credentials(key, (String)null));
+    passwordSafe.set(CredentialAttributes(KeystoreStep.class, key), null);
   }
 
   @VisibleForTesting
