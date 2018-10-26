@@ -13,7 +13,10 @@ iml_module(
 iml_module(
     name = "intellij.android.databinding.tests",
     iml_files = ["intellij.android.databinding.tests.iml"],
-    tags = ["no_test_mac_psq"],  # b/113099009
+    tags = [
+        "no_test_mac",
+        "no_test_mac_psq",  # b/113099009
+    ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_data = [
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
