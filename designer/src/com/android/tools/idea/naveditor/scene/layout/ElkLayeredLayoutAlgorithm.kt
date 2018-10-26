@@ -32,6 +32,8 @@ import org.eclipse.elk.graph.util.ElkGraphUtil
 class ElkLayeredLayoutAlgorithm : NavSceneLayoutAlgorithm {
   override fun layout(destinations: List<SceneComponent>): List<SceneComponent> {
     val graph = ElkGraphUtil.createGraph()
+    graph.setProperty(CoreOptions.SEPARATE_CONNECTED_COMPONENTS, true)
+    graph.setProperty(CoreOptions.SPACING_COMPONENT_COMPONENT, 100.0)
     graph.setProperty(CoreOptions.SPACING_NODE_NODE, 100.0)
     graph.setProperty(LayeredMetaDataProvider.SPACING_NODE_NODE_BETWEEN_LAYERS, 100.0)
     // We don't use their line routing, so no need to leave space

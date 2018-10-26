@@ -272,4 +272,39 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(100, component.drawX)
     assertEquals(200, component.drawY)
   }
+
+  fun testSkipPersisted() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
+    model.find("fragment2")!!.putClientProperty(SKIP_PERSISTED_LAYOUT, true)
+    val scene = model.surface.scene!!
+    val fragment1 = scene.getSceneComponent("fragment1")!!
+    fragment1.setPosition(10, 20)
+    val fragment2 = scene.getSceneComponent("fragment2")!!
+    fragment2.setPosition(30, 40)
+
+    val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
+    val positions = ManualLayoutAlgorithm.LayoutPositions()
+    rootPositions.put("nav.xml", positions)
+
+    var newPositions = ManualLayoutAlgorithm.LayoutPositions()
+    newPositions.myPosition = ManualLayoutAlgorithm.Point(123, 456)
+    positions.put("fragment1", newPositions)
+
+    newPositions = ManualLayoutAlgorithm.LayoutPositions()
+    newPositions.myPosition = ManualLayoutAlgorithm.Point(456, 789)
+    positions.put("fragment2", newPositions)
+
+    val algorithm = ManualLayoutAlgorithm(rootPositions, myModule, mock(NavSceneManager::class.java))
+    val notLaidOut = algorithm.layout(scene.root!!.children)
+    assertSameElements(notLaidOut, fragment2)
+    assertEquals(123, fragment1.drawX)
+    assertEquals(456, fragment1.drawY)
+    assertEquals(30, fragment2.drawX)
+    assertEquals(40, fragment2.drawY)
+  }
 }
