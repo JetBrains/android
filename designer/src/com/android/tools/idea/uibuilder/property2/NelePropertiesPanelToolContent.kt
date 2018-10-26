@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
 import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.idea.common.property2.api.PropertiesPanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesView
-import com.android.tools.idea.uibuilder.property2.inspector.*
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -35,27 +31,16 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
-private const val VIEW_NAME = "LayoutEditor"
-private const val BASIC_PAGE = "Basic"
-private const val ADVANCED_PAGE = "Advanced"
-
 /**
  * Create the models and views for the properties tool content.
  */
 class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
   : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val componentModel = NelePropertiesModel(this, facet)
-  private val componentView = PropertiesView(VIEW_NAME, componentModel)
+  private val componentView = NelePropertiesView(componentModel)
   private val motionModel = MotionLayoutAttributesModel(this)
-  private val motionEditorView = MotionLayoutAttributesView.createMotionView(motionModel)
+  private val motionEditorView = MotionLayoutAttributesView(motionModel)
   private val properties = PropertiesPanel(componentModel)
-  private val enumSupportProvider = NeleEnumSupportProvider()
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
-  private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-  private val nameControlTypeProvider = SimpleControlTypeProvider<NeleNewPropertyItem>(ControlType.TEXT_EDITOR)
-  private val nameEditorProvider = EditorProvider.createForNames<NeleNewPropertyItem>()
-  private val tableUIProvider = TableUIProvider.create(NeleNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
-                                                       NelePropertyItem::class.java, controlTypeProvider, editorProvider)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
 
@@ -64,16 +49,6 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
-    val basic = componentView.addTab(BASIC_PAGE)
-    basic.searchable = false
-    basic.builders.add(IdInspectorBuilder(editorProvider))
-    basic.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
-    basic.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
-    basic.builders.add(TextViewInspectorBuilder(editorProvider))
-    basic.builders.add(ProgressBarInspectorBuilder(editorProvider))
-    basic.builders.add(FavoritesInspectorBuilder(editorProvider))
-    val advanced = componentView.addTab(ADVANCED_PAGE)
-    advanced.builders.add(AdvancedInspectorBuilder(componentModel, tableUIProvider))
     registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }

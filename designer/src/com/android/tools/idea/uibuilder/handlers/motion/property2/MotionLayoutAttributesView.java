@@ -33,10 +33,11 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.*;
 
-public class MotionLayoutAttributesView {
+public class MotionLayoutAttributesView extends PropertiesView<MotionPropertyItem> {
   private static final String MOTION_VIEW_NAME = "Motion";
 
-  public static PropertiesView<MotionPropertyItem> createMotionView(@NotNull MotionLayoutAttributesModel model) {
+  public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
+    super(MOTION_VIEW_NAME, model);
     PropertiesView<MotionPropertyItem> view = new PropertiesView<>(MOTION_VIEW_NAME, model);
     PropertiesViewTab<MotionPropertyItem> tab = view.addTab("");
     MotionControlTypeProvider controlTypeProvider = new MotionControlTypeProvider();
@@ -44,7 +45,6 @@ public class MotionLayoutAttributesView {
       EditorProvider.Companion.create(new MotionEnumSupportProvider(), controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(MotionPropertyItem.class, controlTypeProvider, editorProvider);
     tab.getBuilders().add(new KeyFrameInspectorBuilder(editorProvider, tableUIProvider));
-    return view;
   }
 
   private static class KeyFrameInspectorBuilder implements InspectorBuilder<MotionPropertyItem> {
