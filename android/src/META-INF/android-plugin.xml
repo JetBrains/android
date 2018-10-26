@@ -1286,6 +1286,8 @@
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
                     interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingExpressionProvider"
+                    interface="com.android.tools.idea.databinding.DataBindingExpressionProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
