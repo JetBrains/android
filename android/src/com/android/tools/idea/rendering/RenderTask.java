@@ -932,39 +932,37 @@ public class RenderTask {
    * @param filter the filter to apply to the attribute values
    * @return a map from the children of the parent to new bounds of the children
    */
-  @Nullable
-  public Map<XmlTag, ViewInfo> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
+  @NotNull
+  public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = new HashMap<>();
-    RenderSession session = null;
-    try {
-      session = RenderService.runRenderAction(() -> measure(modelParser));
-    }
-    catch (Exception ignored) {
-    }
-    if (session != null) {
-      try {
-        Result result = session.getResult();
+    return RenderService.runAsyncRenderAction(() -> measure(modelParser))
+        .thenComposeAsync(session -> {
+          if (session != null) {
+            try {
+              Result result = session.getResult();
 
-        if (result != null && result.isSuccess()) {
-          assert session.getRootViews().size() == 1;
-          ViewInfo root = session.getRootViews().get(0);
-          List<ViewInfo> children = root.getChildren();
-          for (ViewInfo info : children) {
-            XmlTag tag = RenderService.getXmlTag(info);
-            if (tag != null) {
-              map.put(tag, info);
+              if (result != null && result.isSuccess()) {
+                assert session.getRootViews().size() == 1;
+                ViewInfo root = session.getRootViews().get(0);
+                List<ViewInfo> children = root.getChildren();
+                for (ViewInfo info : children) {
+                  XmlTag tag = RenderService.getXmlTag(info);
+                  if (tag != null) {
+                    map.put(tag, info);
+                  }
+                }
+              }
+
+              return CompletableFuture.completedFuture(map);
+            }
+            finally {
+              RenderService.runAsyncRenderAction(session::dispose);
             }
           }
-        }
 
-        return map;
-      } finally {
-        RenderService.runAsyncRenderAction(session::dispose);
-      }
-    }
-
-    return null;
+          return CompletableFuture.completedFuture(Collections.emptyMap());
+        });
   }
 
   /**
@@ -979,7 +977,8 @@ public class RenderTask {
   public ViewInfo measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
     XmlTag parent = tag.getParentTag();
     if (parent != null) {
-      Map<XmlTag, ViewInfo> map = measureChildren(parent, filter);
+      // This should be asynchronous too
+      Map<XmlTag, ViewInfo> map = Futures.getUnchecked(measureChildren(parent, filter));
       if (map != null) {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           if (entry.getKey() == tag) {
