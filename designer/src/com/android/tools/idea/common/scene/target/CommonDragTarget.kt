@@ -21,9 +21,13 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
+import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
@@ -396,6 +400,18 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   override fun getMouseCursor(): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
   override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
+
+  companion object {
+    /**
+     * Determine if the [Target] could be replaced by [CommonDragTarget]
+     */
+    @JvmStatic
+    fun isSupported(target: Target): Boolean = when (target) {
+      !is NonPlaceholderDragTarget -> false
+      is ScreenDragTarget, is GuidelineTarget, is GuidelineCycleTarget, is BarrierTarget -> false
+      else -> true
+    }
+  }
 }
 
 private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private val x1: Int,
