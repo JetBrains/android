@@ -118,7 +118,7 @@ public class DependenciesExtractor {
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
     LibraryDependency dependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
-    dependency.addBinaryPath(library.getJarFile());
+    dependency.addBinaryPath(library.getCompileJarFile());
     dependency.addBinaryPath(library.getResFolder());
 
     for (String localJar : library.getLocalJars()) {
