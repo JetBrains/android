@@ -428,7 +428,7 @@ public class PsiResourceItem implements ResourceItem {
 
   @Nullable
   private static String getDescription(@NotNull XmlTag tag) {
-    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
+    PsiElement comment = XmlUtil.findPreviousComment(tag);
     if (comment != null) {
       String text = XmlUtil.getCommentText((XmlComment)comment);
       if (text != null && !StringUtil.isEmpty(text)) {
