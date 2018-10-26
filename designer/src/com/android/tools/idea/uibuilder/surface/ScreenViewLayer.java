@@ -241,6 +241,12 @@ public class ScreenViewLayer extends Layer {
       sh = image.getHeight() - sy;
     }
 
+    if (sw <= 0 || sh <= 0) {
+      Logger.getInstance(ScreenViewLayer.class).warn(
+        String.format("requestHighQualityScaledImage with invalid size (sw=%d, sh=%d)", sw, sh));
+      return;
+    }
+
     BufferedImage imageCopy = image.getCopy(sx, sy, sw, sh);
     if (imageCopy == null) {
       return;
