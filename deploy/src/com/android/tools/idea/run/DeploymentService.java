@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.deploy.swapper.ApkFileDatabase;
-import com.android.tools.deploy.swapper.SqlApkFileDatabase;
+import com.android.tools.deployer.ApkFileDatabase;
+import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
