@@ -19,8 +19,6 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.AddGlobalAction
-import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
-import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
 import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
 import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
 import com.android.tools.idea.naveditor.actions.SelectAllAction
@@ -37,13 +35,14 @@ import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import org.mockito.Mockito.mock
 
 /**
  * Tests for actions used by the nav editor
  */
 class NavActionTest : NavTestCase() {
-  fun testDisabled() = Unit /* TODO(b/117707776): does not compile after commit b32cced
   fun testAddGlobalAction() {
     val model = model("nav.xml") {
       navigation {
@@ -54,7 +53,7 @@ class NavActionTest : NavTestCase() {
     val component = model.find("fragment1")!!
 
     val action = AddGlobalAction(model.surface, component)
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -83,7 +82,7 @@ class NavActionTest : NavTestCase() {
     val component = model.find("fragment1")!!
 
     val action = ReturnToSourceAction(model.surface, component)
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -119,7 +118,7 @@ class NavActionTest : NavTestCase() {
 
     val component = model.find("fragment1")!!
     val action = StartDestinationAction(component)
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -142,7 +141,7 @@ class NavActionTest : NavTestCase() {
     val component = model.find("fragment1")!!
 
     val action = ToSelfAction(model.surface, component)
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -184,16 +183,17 @@ class NavActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val action = SelectNextAction(surface)
 
-    action.actionPerformed(null)
+    val event = mock(AnActionEvent::class.java)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
 
-    action.actionPerformed(null)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
 
-    action.actionPerformed(null)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
 
-    action.actionPerformed(null)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
   }
 
@@ -215,16 +215,17 @@ class NavActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val action = SelectPreviousAction(surface)
 
-    action.actionPerformed(null)
+    val event = mock(AnActionEvent::class.java)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
 
-    action.actionPerformed(null)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
 
-    action.actionPerformed(null)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
 
-    action.actionPerformed(null)
+    action.actionPerformed(event)
     assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
   }
 
@@ -245,7 +246,7 @@ class NavActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val action = SelectAllAction(surface)
 
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
     assertEquals(listOf(fragment1, fragment2, fragment3), model.surface.selectionModel.selection)
   }
 
@@ -262,7 +263,7 @@ class NavActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(component))
 
     val action = StartDestinationToolbarAction(surface)
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -304,7 +305,7 @@ class NavActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf())
     val action = NestedGraphToolbarAction(surface)
 
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -324,7 +325,7 @@ class NavActionTest : NavTestCase() {
     val fragment2 = model.find("fragment2")!!
     val fragment3 = model.find("fragment3")!!
     surface.selectionModel.setSelection(listOf(fragment2, fragment3))
-    action.actionPerformed(null)
+    action.actionPerformed(mock(AnActionEvent::class.java))
 
     assertEquals(
       """
@@ -371,5 +372,4 @@ class NavActionTest : NavTestCase() {
     assertEquals(action3.parent, fragment4)
     assertEquals(action3.actionDestinationId, "navigation")
   }
-  TODO(b/117707776): does not compile after commit b32cced */
 }
