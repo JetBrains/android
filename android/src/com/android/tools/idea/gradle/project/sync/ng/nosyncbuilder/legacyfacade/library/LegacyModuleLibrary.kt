@@ -30,7 +30,7 @@ open class LegacyModuleLibrary(private val moduleDependency: ModuleDependency) :
   override fun getFolder(): File = throw unsupportedMethodForModuleLibrary("getFolder")
   override fun getManifest(): String = throw unsupportedMethodForModuleLibrary("getManifest")
   override fun getJarFile(): String = throw unsupportedMethodForModuleLibrary("getJarFile")
-  override fun getApiJarFile(): String = throw unsupportedMethodForModuleLibrary("getApiJarFile")
+  override fun getCompileJarFile(): String = throw unsupportedMethodForModuleLibrary("getCompileJarFile")
   override fun getResFolder(): String = throw unsupportedMethodForModuleLibrary("getResFolder")
   override fun getResStaticLibrary(): File? = throw unsupportedMethodForModuleLibrary("getResStaticLibrary")
   override fun getAssetsFolder(): String = throw unsupportedMethodForModuleLibrary("getAssetsFolder")

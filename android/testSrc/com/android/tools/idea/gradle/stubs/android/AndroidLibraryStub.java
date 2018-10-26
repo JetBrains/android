@@ -108,7 +108,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
 
   @Override
   @NotNull
-  public File getApiJarFile() {
+  public File getCompileJarFile() {
     // Use the same jar file for now, we can use a different jar file later
     return myJarFile;
   }
