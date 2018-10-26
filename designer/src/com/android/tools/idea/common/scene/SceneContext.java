@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.reference.SoftReference;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,8 +37,12 @@ import java.util.WeakHashMap;
 public class SceneContext {
   ColorSet myColorSet;
   Long myTime;
-  @SwingCoordinate int myMouseX = -1, myMouseY = -1;
+  @SwingCoordinate private int myMouseX = -1;
+  @SwingCoordinate private int myMouseY = -1;
   private boolean myShowOnlySelection = false;
+  @NotNull
+  @SwingCoordinate
+  private Rectangle myBounds = new Rectangle();
 
   private SceneContext() {
     myTime = System.currentTimeMillis();
@@ -122,6 +127,16 @@ public class SceneContext {
   }
 
   public double getScale() { return 1; }
+
+  public void setBounds(@NotNull @SwingCoordinate Rectangle bounds) {
+    myBounds.setBounds(bounds);
+  }
+
+  @NotNull
+  @SwingCoordinate
+  public Rectangle getBounds() {
+    return myBounds;
+  }
 
   private static SceneContext lazySingleton;
 

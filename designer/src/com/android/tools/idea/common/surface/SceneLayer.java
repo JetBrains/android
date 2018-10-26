@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.flags.StudioFlags;
@@ -74,6 +75,7 @@ public class SceneLayer extends Layer {
       if (mySizeRectangle.isEmpty()) {
         return;
       }
+      sceneContext.setBounds(mySizeRectangle);
 
       if (myShowAlways) {
         paintBackground(g, sceneContext);
