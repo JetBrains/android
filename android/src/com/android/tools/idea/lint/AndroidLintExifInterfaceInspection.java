@@ -39,6 +39,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
@@ -131,7 +132,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         public void onFailure(@Nullable Throwable t) {
           throw new RuntimeException(t);
         }
-      });
+      }, AppExecutorUtil.getAppExecutorService());
     }
 
     private static String getExifLibraryCoordinate() {
@@ -152,7 +153,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
     private void replaceReferences(@NotNull PsiElement element) {
       new WriteCommandAction(element.getProject(), getName()) {
         @Override
-        protected void run(@NotNull Result result) throws Throwable {
+        protected void run(@NotNull Result result) {
           Project project = element.getProject();
           PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
           PsiClass cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIT_INTERFACE, GlobalSearchScope.allScope(project));

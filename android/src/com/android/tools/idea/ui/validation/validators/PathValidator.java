@@ -89,7 +89,7 @@ public final class PathValidator implements Validator<File> {
   public static final Rule WHITESPACE = new RecursiveRule() {
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return CharMatcher.WHITESPACE.matchesAnyOf(file.getName());
+      return CharMatcher.whitespace().matchesAnyOf(file.getName());
     }
 
     @NotNull
@@ -102,7 +102,7 @@ public final class PathValidator implements Validator<File> {
   public static final Rule NON_ASCII_CHARS = new RecursiveRule() {
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return !CharMatcher.ASCII.matchesAllOf(file.getName());
+      return !CharMatcher.ascii().matchesAllOf(file.getName());
     }
 
     @NotNull

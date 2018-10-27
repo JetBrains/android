@@ -60,6 +60,7 @@ import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.*;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -217,7 +218,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    });
+    }, AppExecutorUtil.getAppExecutorService());
   }
 
   // Intellij code from InferNullityAnnotationsAction.
@@ -227,7 +228,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       try {
         new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
           @Override
-          protected void run(@NotNull Result result) throws Throwable {
+          protected void run(@NotNull Result result) {
             UsageInfo[] infos = computable.compute();
             if (infos.length > 0) {
 
@@ -288,7 +289,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
     Runnable refactoringRunnable = applyRunnable(project, () -> {
       Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-      return infos.toArray(new UsageInfo[infos.size()]);
+      return infos.toArray(UsageInfo.EMPTY_ARRAY);
     });
 
     String canNotMakeString =
@@ -303,6 +304,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
                                                      @NotNull AnalysisScope scope,
                                                      AndroidInferNullityAnnotationAction action) {
     return () -> new UsageInfoSearcherAdapter() {
+      @NotNull
       @Override
       protected UsageInfo[] findUsages() {
         return action.findUsages(project, scope, scope.getFileCount());

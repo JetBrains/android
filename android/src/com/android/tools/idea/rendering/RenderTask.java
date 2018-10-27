@@ -59,6 +59,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.reference.SoftReference;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -654,7 +655,7 @@ public class RenderTask implements IImageFactory {
             myRunningFutures.remove(newFuture);
           }
         }
-      });
+      }, AppExecutorUtil.getAppExecutorService());
       myRunningFutures.add(newFuture);
 
       return newFuture;
@@ -862,7 +863,7 @@ public class RenderTask implements IImageFactory {
       }
 
       return null;
-    });
+    }, AppExecutorUtil.getAppExecutorService());
   }
 
   /**

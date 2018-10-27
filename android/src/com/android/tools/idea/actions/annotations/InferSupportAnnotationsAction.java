@@ -68,6 +68,7 @@ import com.intellij.util.ObjectUtils;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.SequentialTask;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -319,7 +320,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    });
+    }, AppExecutorUtil.getAppExecutorService());
   }
 
   private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {

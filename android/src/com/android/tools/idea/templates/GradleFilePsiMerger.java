@@ -32,7 +32,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
@@ -95,7 +97,7 @@ public class GradleFilePsiMerger {
                                                                                                              dest);
     String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
       @Override
-      protected void run(@NotNull Result<String> result) throws Throwable {
+      protected void run(@NotNull Result<String> result) {
         // Make sure that the file we are merging in to has a trailing new line. This ensures that
         // any added elements appear at the buttom of the file, it also keeps consistency with
         // how projects created with the Wizards look.
@@ -116,8 +118,7 @@ public class GradleFilePsiMerger {
                                @NotNull PsiElement toRoot,
                                @NotNull Project project,
                                @Nullable String supportLibVersionFilter) {
-    Set<PsiElement> destinationChildren = new HashSet<>();
-    destinationChildren.addAll(Arrays.asList(toRoot.getChildren()));
+    Set<PsiElement> destinationChildren = new HashSet<>(Arrays.asList(toRoot.getChildren()));
 
     // First try and do a string literal replacement.
     // If both toRoot and fromRoot are call expressions
@@ -205,9 +206,9 @@ public class GradleFilePsiMerger {
     }
 
     // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
-    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.WHITESPACE::removeFrom).collect(Collectors.toSet());
+    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.whitespace()::removeFrom).collect(Collectors.toSet());
     for (String dependency : unparsedDependencies) {
-      if (!originalSet.contains(CharMatcher.WHITESPACE.removeFrom(dependency))) {
+      if (!originalSet.contains(CharMatcher.whitespace().removeFrom(dependency))) {
         PsiElement dependencyElement = factory.createStatementFromText(dependency);
         toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }

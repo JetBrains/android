@@ -1,3 +1,4 @@
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import com.android.resources.ResourceType;
@@ -54,7 +55,7 @@ public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAc
   @NotNull
   static String buildResourceName(@NotNull String value) {
     final String result = DISALLOWED_CHARS.trimAndCollapseFrom(value, '_').toLowerCase(Locale.US);
-    if (!result.isEmpty() && CharMatcher.JAVA_DIGIT.matches(result.charAt(0))) {
+    if (!result.isEmpty() && CharMatcher.javaDigit().matches(result.charAt(0))) {
       return "_" + result;
     }
     return result;

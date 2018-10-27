@@ -175,7 +175,7 @@ public class NavDesignSurface extends DesignSurface {
             showFailToAddMessage(project);
             result.complete(null);
           }
-        });
+        }, AppExecutorUtil.getAppExecutorService());
       }
       else {
         showFailToAddMessage(project);

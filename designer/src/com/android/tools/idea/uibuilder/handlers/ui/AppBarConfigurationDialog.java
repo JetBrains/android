@@ -52,6 +52,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +61,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
@@ -319,7 +323,7 @@ public class AppBarConfigurationDialog extends JDialog {
       XmlFile file = model.getFile();
       WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
         @Override
-        protected void run(@NotNull Result result) throws Throwable {
+        protected void run(@NotNull Result result) {
           applyChanges(file);
         }
       };
@@ -359,7 +363,7 @@ public class AppBarConfigurationDialog extends JDialog {
       public void onFailure(@NotNull Throwable t) {
         onBuildError();
       }
-    });
+    }, AppExecutorUtil.getAppExecutorService());
 
     return true;
   }

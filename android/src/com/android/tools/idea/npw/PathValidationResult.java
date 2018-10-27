@@ -37,6 +37,7 @@ import java.util.Set;
  *
  * @deprecated Use {@link PathValidator} instead.
  */
+@Deprecated
 public final class PathValidationResult {
   public static final PathValidationResult OK = new PathValidationResult(Status.OK, null, "any");
 
@@ -98,10 +99,10 @@ public final class PathValidationResult {
         PathValidationResult.Status status = SystemInfo.isWindows ? PathValidationResult.Status.ERROR : PathValidationResult.Status.WARN;
         return new PathValidationResult(status, PathValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
-      if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
+      if (CharMatcher.whitespace().matchesAnyOf(filename)) {
         warningResult = warn(PathValidationResult.Message.WHITESPACE, fieldName);
       }
-      if (!CharMatcher.ASCII.matchesAllOf(filename)) {
+      if (!CharMatcher.ascii().matchesAllOf(filename)) {
         if (SystemInfo.isWindows) {
           return error(PathValidationResult.Message.NON_ASCII_CHARS_ERROR, fieldName);
         }
