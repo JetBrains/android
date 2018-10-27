@@ -36,8 +36,8 @@ public class ApplyChangesAction extends BaseAction {
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
 
-  public ApplyChangesAction(@NotNull Function<Project, Boolean> shouldEnableApplyChangesProvider) {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN, SHORTCUT, shouldEnableApplyChangesProvider);
+  public ApplyChangesAction() {
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN, SHORTCUT);
   }
 }
 

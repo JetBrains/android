@@ -26,10 +26,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
@@ -39,22 +36,13 @@ import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
+import com.android.tools.idea.deploy.DeployActionsInitializer;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.ApkProvisionException;
-import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
-import com.android.tools.idea.run.editor.DeployTargetState;
-import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -62,11 +50,6 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
@@ -90,7 +73,6 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -104,9 +86,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import javax.swing.event.HyperlinkEvent;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -209,13 +189,7 @@ public class GradleSpecificInitializer implements Runnable {
       DefaultActionGroup ag =  ((DefaultActionGroup)runnerActions);
       PluginId androidPluginId = PluginId.findId("org.jetbrains.android");
       if (StudioFlags.JVMTI_REFRESH.get()) {
-        AnAction applyChanges = new ApplyChangesAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
-        actionManager.registerAction(ApplyChangesAction.ID, applyChanges, androidPluginId);
-        ag.add(applyChanges, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-
-        AnAction codeswap = new CodeSwapAction(GradleSpecificInitializer::shouldEnableJvmtiCodeSwap);
-        actionManager.registerAction(CodeSwapAction.ID, codeswap, androidPluginId);
-        ag.add(codeswap, new Constraints(AFTER, ApplyChangesAction.ID));
+        DeployActionsInitializer.installActions();
       }
       else {
         HotswapAction hotswapAction = new HotswapAction();
@@ -459,74 +433,5 @@ public class GradleSpecificInitializer implements Runnable {
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
-  }
-
-  /**
-   * Determines if JVMTI code swapping should be enabled for the current project.
-   * @param project The project to test again.
-   * @return true if code swapping should be enabled, false otherwise.
-   */
-  public static boolean shouldEnableJvmtiCodeSwap(@NotNull Project project) {
-    RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
-    if (configSettings == null) {
-      return false; // No valid config settings available.
-    }
-    RunConfiguration config = configSettings.getConfiguration();
-    if (!(config instanceof AndroidRunConfigurationBase)) {
-      return true; // CodeSwap is enabled for non-Gradle-based Android, but isn't supported.
-    }
-
-    AndroidRunConfigurationBase androidRunConfig = (AndroidRunConfigurationBase)config;
-    DeployTargetProvider currentTargetProvider = androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider();
-    if (!(currentTargetProvider instanceof ShowChooserTargetProvider)) {
-      // TODO(b/113614002) Need to handle potential new workflow for device dropdown.
-      return true; // Allow code swap if there's no device picker.
-    }
-
-    ShowChooserTargetProvider chooserTargetProvider = ((ShowChooserTargetProvider)currentTargetProvider);
-    Module module = androidRunConfig.getConfigurationModule().getModule();
-    if (module == null) {
-      return false; // We only support projects with Android facets, which needs to be in a module.
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return false; // Only support projects with Android facets.
-    }
-    DeployTarget deployTarget = chooserTargetProvider.getCachedDeployTarget(
-      DefaultRunExecutor.getRunExecutorInstance(),
-      facet,
-      androidRunConfig.getDeviceCount(true),
-      androidRunConfig.getDeployTargetContext().getDeployTargetStates(),
-      androidRunConfig.getUniqueID());
-    if (deployTarget == null) {
-      return true; // No default deploy target, so allow code swapping (which allows the user to chose which device to code swap against).
-    }
-
-    // We have a default deploy target, so test to see if the app is already running and if the debugger is attached.
-    DeployTargetState deployTargetState = androidRunConfig.getDeployTargetContext().getDeployTargetState(currentTargetProvider);
-    DeviceFutures deviceFutures =
-      deployTarget.getDevices(deployTargetState, facet, androidRunConfig.getDeviceCount(true), true, androidRunConfig.getUniqueID());
-    if (deviceFutures == null) {
-      return false; // Since no active devices are available, it means the app isn't already running, so user will have to Run/Debug first.
-    }
-    List<ListenableFuture<IDevice>> listenableFuturesList = deviceFutures.get();
-    ApplicationIdProvider idProvider = androidRunConfig.getApplicationIdProvider(facet);
-    for (ListenableFuture<IDevice> deviceFuture : listenableFuturesList) {
-      // We should only have one device.
-      try {
-        IDevice device = deviceFuture.get(); // This should resolve immediately for ShowChooserTargetProvider
-        if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
-          return false; // We only support O MR1 or above.
-        }
-        Client client = device.getClient(idProvider.getPackageName());
-        // If the app doesn't have a Client associated with it, it's not running and should return false.
-        // Otherwise, we enable only when debugger isn't attached (swapping when debugger is attached isn't yet supported).
-        return client != null && !client.isDebuggerAttached();
-      }
-      catch (InterruptedException | ExecutionException | ApkProvisionException e) {
-        // Do nothing, fall through, and we'll just enable code swap.
-      }
-    }
-    return true;
   }
 }

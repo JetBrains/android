@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.run.ui;
 
-import com.android.tools.deployer.Trace;
+import static com.android.tools.idea.run.tasks.UnifiedDeployTask.MIN_API_VERSION;
+
+import com.android.tools.idea.run.DeploymentService;
+import com.android.tools.idea.run.deployable.Deployable;
+import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.ui.model.ProjectExecutionState;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
@@ -33,7 +37,6 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import java.util.function.Function;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,20 +53,15 @@ public abstract class BaseAction extends AnAction {
   @NotNull
   private final Key<Boolean> myKey;
 
-  @NotNull
-  private final Function<Project, Boolean> myShouldEnableProvider;
-
   public BaseAction(@NotNull String id,
                     @NotNull String name,
                     @NotNull Key<Boolean> key,
                     @NotNull Icon icon,
-                    @NotNull Shortcut shortcut,
-                    @NotNull Function<Project, Boolean> shouldEnableProvider) {
+                    @NotNull Shortcut shortcut) {
     super(name, name, icon);
     myName = name;
     myKey = key;
     myIcon = icon;
-    myShouldEnableProvider = shouldEnableProvider;
 
     KeymapManager manager = KeymapManager.getInstance();
     if (manager != null) {
@@ -85,7 +83,7 @@ public abstract class BaseAction extends AnAction {
     }
 
     boolean currentlyExecuting = ProjectExecutionState.getInstance(project).isAnyExecutorInScheduledState();
-    presentation.setEnabled(!currentlyExecuting && myShouldEnableProvider.apply(project));
+    presentation.setEnabled(!currentlyExecuting && checkCompatibility(project));
   }
 
   @Override
@@ -125,5 +123,27 @@ public abstract class BaseAction extends AnAction {
     }
 
     return null;
+  }
+
+  private static boolean checkCompatibility(@NotNull Project project) {
+    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
+    if (deployableProvider == null) {
+      return false;
+    }
+
+    if (deployableProvider.isDependentOnUserInput()) {
+      return true;
+    }
+
+    Deployable deployable;
+    try {
+      deployable = deployableProvider.getDeployable();
+    }
+    catch (Exception e) {
+      return false;
+    }
+    return deployable != null &&
+           deployable.getVersion().getApiLevel() >= MIN_API_VERSION &&
+           deployable.isApplicationRunningOnDeployable();
   }
 }
