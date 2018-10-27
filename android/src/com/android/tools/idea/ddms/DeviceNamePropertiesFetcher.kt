@@ -27,6 +27,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.SequentialTaskExecutor
+import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
 /**
@@ -72,7 +73,7 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
     return futures
         .listenInPoolThread(taskExecutor)
         .whenAllComplete()
-        .call { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) }
+        .call(Callable { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) }, taskExecutor)
   }
 
   private fun isRetrieving(device: IDevice): Boolean {

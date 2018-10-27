@@ -41,6 +41,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.AndroidIcons;
@@ -68,7 +69,6 @@ public class ApkViewPanel implements TreeSelectionListener {
   private AnimatedIcon mySizeAsyncIcon;
   private JButton myCompareWithButton;
   private Tree myTree;
-  private Project myProject;
 
   private DefaultTreeModel myTreeModel;
   private Listener myListener;
@@ -82,7 +82,6 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser) {
     myApkParser = apkParser;
-    myProject = project;
     // construct the main tree along with the uncompressed sizes
     Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<ArchiveNode>() {
       @Override
@@ -119,7 +118,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
 
-    Path pathToAapt = ProjectSystemUtil.getProjectSystem(myProject).getPathToAapt();
+    Path pathToAapt = ProjectSystemUtil.getProjectSystem(project).getPathToAapt();
     //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
     //for APKs, this will always be the APK itself
     //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
@@ -161,30 +160,29 @@ public class ApkViewPanel implements TreeSelectionListener {
                           }
                         }, EdtExecutor.INSTANCE);
 
-    Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
-                        new FutureCallBackAdapter<List<Object>>() {
-                          @Override
-                          public void onSuccess(@Nullable List<Object> result) {
-                            if (result == null) {
-                              return;
-                            }
+    Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo), new FutureCallBackAdapter<List<Object>>() {
+      @Override
+      public void onSuccess(@Nullable List<Object> result) {
+        if (result == null) {
+          return;
+        }
 
-                            int size = result.size();
-                            long uncompressed = size > 0 && result.get(0) instanceof Long ? (Long)result.get(0) : -1;
-                            long compressed = size > 1 && result.get(1) instanceof Long ? (Long)result.get(1) : -1;
-                            String applicationId =
-                              size > 2 && result.get(2) instanceof AndroidApplicationInfo ? ((AndroidApplicationInfo)result
-                                .get(2)).packageId : "unknown";
+        int size = result.size();
+        long uncompressed = size > 0 && result.get(0) instanceof Long ? (Long)result.get(0) : -1;
+        long compressed = size > 1 && result.get(1) instanceof Long ? (Long)result.get(1) : -1;
+        String applicationId =
+          size > 2 && result.get(2) instanceof AndroidApplicationInfo ? ((AndroidApplicationInfo)result
+            .get(2)).packageId : "unknown";
 
-                            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                                                             .setApkAnalyzerStats(
-                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
-                                                                 .setUncompressedSize(uncompressed)
-                                                                 .build()));
-                          }
-                        });
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                         .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                         .setApkAnalyzerStats(
+                                           ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                             .setUncompressedSize(uncompressed)
+                                             .build()));
+      }
+    }, AppExecutorUtil.getAppExecutorService());
   }
 
   private void createUIComponents() {
@@ -441,7 +439,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
-        return AllIcons.Modules.SourceFolder;
+        return AllIcons.Nodes.Package;
       }
     }
   }

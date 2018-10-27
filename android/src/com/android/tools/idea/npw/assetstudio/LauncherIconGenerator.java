@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.AtomicNullableLazyValue;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,8 +49,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -1465,7 +1466,7 @@ public class LauncherIconGenerator extends IconGenerator {
         double height = SIZE_FULL_BLEED_DP.getHeight();
         return new Rectangle2D.Double(bounds.getX() / width, bounds.getY() / height,
                                       bounds.getWidth() / width, bounds.getHeight() / height);
-      });
+      }, AppExecutorUtil.getAppExecutorService());
 
       try {
         return rectangleFuture.get();

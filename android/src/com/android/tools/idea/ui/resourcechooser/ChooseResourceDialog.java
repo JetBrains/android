@@ -65,6 +65,7 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.speedSearch.FilteringTableModel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.*;
 import com.intellij.util.ui.accessibility.ScreenReader;
@@ -1164,7 +1165,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
 
         return null;
-      });
+      }, AppExecutorUtil.getAppExecutorService());
       // TODO maybe have a different icon for state list drawable
     }
     else if (type == ResourceType.COLOR) {

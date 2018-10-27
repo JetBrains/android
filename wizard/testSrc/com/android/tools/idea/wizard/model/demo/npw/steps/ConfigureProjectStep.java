@@ -44,7 +44,6 @@ public final class ConfigureProjectStep extends ModelWizardStep<ProjectModel> {
   private JBLabel myPackageLabel;
   private JBLabel myProjectLocationLabel;
   private JPanel myRootPanel;
-  private BindingsManager myBindings = new BindingsManager();
 
   public ConfigureProjectStep(@NotNull ProjectModel model) {
     super(model, "Configure Project");
@@ -54,22 +53,23 @@ public final class ConfigureProjectStep extends ModelWizardStep<ProjectModel> {
     myPackageText = new TextProperty(myPackageLabel);
     myDomaninText = new TextProperty(myDomainTextfield);
 
-    myBindings.bind(myProjectLocationText, new StringExpression(myAppNameText) {
+    BindingsManager bindings = new BindingsManager();
+    bindings.bind(myProjectLocationText, new StringExpression(myAppNameText) {
       @NotNull
       @Override
       public String get() {
-        return String.format("/usr/local/demopath/code/%s", CharMatcher.WHITESPACE.removeFrom(myAppNameText.get()));
+        return String.format("/usr/local/demopath/code/%s", CharMatcher.whitespace().removeFrom(myAppNameText.get()));
       }
     });
 
-    myBindings.bind(myPackageText, new StringExpression(myDomaninText, myAppNameText) {
+    bindings.bind(myPackageText, new StringExpression(myDomaninText, myAppNameText) {
       @NotNull
       @Override
       public String get() {
         List<String> parts = Splitter.on('.').omitEmptyStrings().splitToList(myDomaninText.get());
         parts = Lists.newArrayList(Lists.reverse(parts));
         if (!myAppNameText.get().isEmpty()) {
-          parts.add(CharMatcher.WHITESPACE.removeFrom(myAppNameText.get()).toLowerCase());
+          parts.add(CharMatcher.whitespace().removeFrom(myAppNameText.get()).toLowerCase());
         }
         return Joiner.on('.').join(parts);
       }
