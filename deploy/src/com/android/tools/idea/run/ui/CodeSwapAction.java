@@ -38,8 +38,8 @@ public class CodeSwapAction extends BaseAction {
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift R" : "control alt F10"), null);
 
-  public CodeSwapAction(@NotNull Function<Project, Boolean> shouldEnableCodeSwapProvider) {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP, SHORTCUT, shouldEnableCodeSwapProvider);
+  public CodeSwapAction() {
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP, SHORTCUT);
   }
 }
 

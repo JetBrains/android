@@ -18,7 +18,9 @@ package com.android.tools.idea.run;
 import com.android.tools.deployer.ApkFileDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
+import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.nio.file.Path;
@@ -26,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeploymentService {
 
@@ -36,6 +39,14 @@ public class DeploymentService {
   private final TaskRunner runner;
 
   private final ApkFileDatabase dexDatabase;
+
+  @Nullable
+  private DeployableProvider myDeployableProvider = null;
+
+  @NotNull
+  public static DeploymentService getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, DeploymentService.class);
+  }
 
   private DeploymentService(@NotNull Project project) {
     this.project = project;
@@ -51,5 +62,14 @@ public class DeploymentService {
 
   public ApkFileDatabase getDexDatabase() {
     return dexDatabase;
+  }
+
+  public void setDeployableProvider(@Nullable DeployableProvider provider) {
+    myDeployableProvider = provider;
+  }
+
+  @Nullable
+  public DeployableProvider getDeployableProvider() {
+    return myDeployableProvider;
   }
 }

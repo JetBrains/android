@@ -34,7 +34,6 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
@@ -109,7 +108,7 @@ public class UnifiedDeployTask implements LaunchTask {
 
     AdbClient adb = new AdbClient(device, logger);
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, logger);
-    DeploymentService service = ServiceManager.getService(myProject, DeploymentService.class);
+    DeploymentService service = DeploymentService.getInstance(myProject);
     Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer);
 
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
