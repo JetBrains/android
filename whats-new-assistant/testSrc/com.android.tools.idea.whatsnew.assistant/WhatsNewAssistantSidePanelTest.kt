@@ -53,8 +53,8 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     Mockito.`when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
-    Mockito.`when`(mockUrlProvider.getResourceFile(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenReturn(URL("file:" + resourceFile.path))
+    Mockito.`when`(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+      .thenReturn(URL("file:" + resourceFile.path).openStream())
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")

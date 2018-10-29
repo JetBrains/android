@@ -45,8 +45,8 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     `when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
-    `when`(mockUrlProvider.getResourceFile(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenReturn(URL("file:" + resourceFile.path))
+    `when`(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+      .thenReturn(URL("file:" + resourceFile.path).openStream())
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
