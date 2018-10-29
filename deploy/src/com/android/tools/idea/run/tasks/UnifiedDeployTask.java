@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class UnifiedDeployTask implements LaunchTask {
 
-  public static final int MIN_API_VERSION = 27;
+  public static final int MIN_API_VERSION = 26;
 
   public enum DeployType {
     // When there is no previous APK Install.
