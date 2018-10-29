@@ -29,6 +29,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 import java.net.URL
+import java.util.concurrent.TimeoutException
 
 class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
   private lateinit var mockUrlProvider: WhatsNewAssistantURLProvider
@@ -166,5 +167,20 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     val version =  String.format("%d.%d.%d", revision.major, revision.minor, revision.micro)
     val bundleCreator = WhatsNewAssistantBundleCreator()
     TestCase.assertNotNull(bundleCreator.javaClass.getResource("/$version.xml"))
+  }
+
+  @Test
+  fun testDownloadTimeout() {
+    val mockConnectionOpener = mock(WhatsNewAssistantConnectionOpener::class.java)
+    `when`(mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull<URL>(), ArgumentMatchers.anyInt())).thenThrow(TimeoutException())
+
+    // Expected bundle file is defaultresource-3.3.0.xml
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, mockConnectionOpener)
+    val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
+    TestCase.assertNotNull(bundle)
+    if (bundle != null) {
+      TestCase.assertEquals(100, bundle.version)
+      TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
+    }
   }
 }
