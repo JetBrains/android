@@ -836,6 +836,7 @@ public class SceneComponent {
     return rec;
   }
 
+  @Nullable
   public String getId() {
     return myNlComponent.getId();
   }

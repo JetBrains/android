@@ -15,7 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.draw
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT_ABOVE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_BELOW
+import com.android.SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL
+import com.android.SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT
+import com.android.SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -42,7 +72,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     component.fillRect(rect)
     val unClip = if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) null else list.addClip(sceneContext, rect)
 
-    val idMap = component.children.filter({ it.id != null }).associateBy { it.id }
+    val idMap = component.children.filter { it.id != null }.associateBy { it.id!! }
     val connectionSet = mutableSetOf<Connection>()
     component.children.forEach { child ->
       child.buildDisplayList(time, list, sceneContext)
