@@ -1,50 +1,88 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.annotations.concurrency.GuardedBy;
+import static com.android.tools.lint.detector.api.TextFormat.HTML;
+import static com.android.tools.lint.detector.api.TextFormat.HTML_WITH_UNICODE;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.android.tools.lint.detector.api.TextFormat.TEXT;
+import static com.intellij.xml.CommonXmlStrings.HTML_END;
+import static com.intellij.xml.CommonXmlStrings.HTML_START;
+
 import com.android.tools.idea.lint.ProvideLintFeedbackFix;
 import com.android.tools.idea.lint.ProvideLintFeedbackPanel;
 import com.android.tools.idea.lint.ReplaceStringQuickFix;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.detector.api.Category;
+import com.android.tools.lint.detector.api.Implementation;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.LintFix.LintFixGroup;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
+import com.android.tools.lint.detector.api.Position;
+import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.*;
-import com.intellij.codeInspection.ex.*;
+import com.intellij.codeInspection.BatchSuppressManager;
+import com.intellij.codeInspection.GlobalInspectionContext;
+import com.intellij.codeInspection.GlobalInspectionTool;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptionsProcessor;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemDescriptorBase;
+import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.codeInspection.QuickFix;
+import com.intellij.codeInspection.SuppressQuickFix;
+import com.intellij.codeInspection.XmlSuppressableInspectionTool;
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.ex.InspectionProfileImpl;
+import com.intellij.codeInspection.ex.InspectionProfileKt;
+import com.intellij.codeInspection.ex.InspectionToolWrapper;
+import com.intellij.codeInspection.ex.Tools;
+import com.intellij.codeInspection.ex.ToolsImpl;
 import com.intellij.lang.annotation.ProblemGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiBinaryFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.siyeh.ig.InspectionGadgetsFix;
 import gnu.trove.THashMap;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.File;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static com.android.tools.lint.detector.api.TextFormat.*;
-import static com.intellij.xml.CommonXmlStrings.HTML_END;
-import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   /** Prefix used by the comment suppress mechanism in Studio/IntelliJ */
@@ -54,11 +92,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
   private static final Object ISSUE_MAP_LOCK = new Object();
 
-  @GuardedBy("ISSUE_MAP_LOCK")
-  private static volatile Map<Issue, String> ourIssue2InspectionShortName;
+  // Corresponds to an issue map for each project, which is protected by ISSUE_MAP_LOCK.
+  private static final Key<Map<Issue, String>> ISSUE_MAP_KEY = Key.create(AndroidLintInspectionBase.class.getName() + ".ISSUE_MAP");
 
-  @GuardedBy("ISSUE_MAP_LOCK")
-  private static volatile List<Tools> ourDynamicTools;
+  // Corresponds to a dynamic tools list for each project, which is protected by ISSUE_MAP_LOCK.
+  private static final Key<List<Tools>> DYNAMIC_TOOLS_KEY = Key.create(AndroidLintInspectionBase.class.getName() + ".DYNAMIC_TOOLS");
 
   private static boolean ourRegisterDynamicToolsFromTests;
 
@@ -334,29 +372,20 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @TestOnly
-  @SuppressWarnings("GuardedBy")
-  public static void invalidateInspectionShortName2IssueMap() {
-    //noinspection FieldAccessNotGuarded  // TestOnly method
-    ourIssue2InspectionShortName = null;
-    //noinspection FieldAccessNotGuarded  // TestOnly method
-    ourDynamicTools = null;
-  }
-
-  @TestOnly
   public static void setRegisterDynamicToolsFromTests(boolean registerDynamicToolsFromTests) {
-    ourRegisterDynamicToolsFromTests = registerDynamicToolsFromTests;
-  }
-
-  @Nullable
-  public static List<Tools> getDynamicTools() {
     synchronized (ISSUE_MAP_LOCK) {
-      return ourDynamicTools;
+      ourRegisterDynamicToolsFromTests = registerDynamicToolsFromTests;
     }
   }
 
-  public static void resetDynamicTools() {
+  @Nullable
+  public static List<Tools> getDynamicTools(@Nullable Project project) {
+    if (project == null) {
+      return null;
+    }
     synchronized (ISSUE_MAP_LOCK) {
-      ourDynamicTools = null;
+      List<Tools> tools = project.getUserData(DYNAMIC_TOOLS_KEY);
+      return tools != null ? Collections.unmodifiableList(tools) : null;
     }
   }
 
@@ -366,7 +395,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     String inspectionName = name.startsWith(LINT_INSPECTION_PREFIX) ? name : LINT_INSPECTION_PREFIX + name;
 
     Issue issue = null;
-    List<Tools> tools = getDynamicTools();
+    List<Tools> tools = getDynamicTools(project);
     if (tools != null) {
       for (Tools tool : tools) {
         if (inspectionName.equals(tool.getShortName())) {
@@ -396,8 +425,10 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
     synchronized (ISSUE_MAP_LOCK) {
-      if (ourIssue2InspectionShortName == null) {
-        ourIssue2InspectionShortName = new HashMap<>();
+      Map<Issue, String> issue2InspectionShortName = project.getUserData(ISSUE_MAP_KEY);
+      if (issue2InspectionShortName == null) {
+        issue2InspectionShortName = new HashMap<>();
+        project.putUserData(ISSUE_MAP_KEY, issue2InspectionShortName);
 
         final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
 
@@ -408,7 +439,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
             final InspectionProfileEntry entry = e.getTool();
             if (entry instanceof AndroidLintInspectionBase) {
               final Issue s = ((AndroidLintInspectionBase)entry).getIssue();
-              ourIssue2InspectionShortName.put(s, shortName);
+              issue2InspectionShortName.put(s, shortName);
             }
           }
         }
@@ -418,7 +449,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // not during unit tests (where we typically end up with empty
       // inspection profiles containing only the to-be-tested inspections
       // and we don't want random other inspections to show up)
-      String name = ourIssue2InspectionShortName.get(issue);
+      String name = issue2InspectionShortName.get(issue);
       if (name == null &&
           (!ApplicationManager.getApplication().isUnitTestMode() || ourRegisterDynamicToolsFromTests)) {
         AndroidLintInspectionBase tool = createInspection(issue);
@@ -434,12 +465,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         current.addTool(project, factory, new THashMap<>());
 
         name = tool.getShortName();
-        ourIssue2InspectionShortName.put(issue, name);
+        issue2InspectionShortName.put(issue, name);
 
         ToolsImpl tools = current.getToolsOrNull(name, project);
         if (tools != null) {
+          List<Tools> ourDynamicTools = project.getUserData(DYNAMIC_TOOLS_KEY);
           if (ourDynamicTools == null) {
             ourDynamicTools = new ArrayList<>();
+            project.putUserData(DYNAMIC_TOOLS_KEY, ourDynamicTools);
           }
           ourDynamicTools.add(tools);
         }

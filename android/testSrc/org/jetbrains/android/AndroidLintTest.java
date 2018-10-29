@@ -181,7 +181,6 @@ public class AndroidLintTest extends AndroidTestCase {
     analyticsSettings.setOptedIn(false);
     AnalyticsSettings.setInstanceForTest(analyticsSettings);
 
-    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
     myFixture.allowTreeAccessForAllFiles();
   }
