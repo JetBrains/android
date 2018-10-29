@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -44,6 +45,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   private static AssistantBundleCreator ourTestCreator = null;
 
   private WhatsNewAssistantURLProvider myURLProvider;
+  private WhatsNewAssistantConnectionOpener myConnectionOpener;
 
   private int lastSeenVersion = -1;
 
@@ -51,11 +53,17 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    * Constructor initializes default production field, will be replaced in testing
    */
   public WhatsNewAssistantBundleCreator() {
-    this(new WhatsNewAssistantURLProvider());
+    this(new WhatsNewAssistantURLProvider(), new WhatsNewAssistantConnectionOpener());
   }
 
   public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider) {
+    this(urlProvider, new WhatsNewAssistantConnectionOpener());
+  }
+
+  public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
+                                        @NotNull WhatsNewAssistantConnectionOpener connectionOpener) {
     myURLProvider = urlProvider;
+    myConnectionOpener = connectionOpener;
   }
 
   @VisibleForTesting
@@ -163,12 +171,14 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   /**
    * Download config xml from the web, using a temporary file and then moving it to the fixed location
    */
-  private static boolean downloadConfig(@NotNull URL sourceUrl, @NotNull URL destinationFileUrl) {
+  private boolean downloadConfig(@NotNull URL sourceUrl, @NotNull URL destinationFileUrl) {
     ReadableByteChannel byteChannel;
     try {
-      byteChannel = Channels.newChannel(sourceUrl.openStream());
+      // If timeout is not > 0, the default values are used: 60s read and 10s connect
+      URLConnection connection = myConnectionOpener.openConnection(sourceUrl, -1);
+      byteChannel = Channels.newChannel(connection.getInputStream());
     }
-    catch (IOException e) {
+    catch (Exception e) {
       getLog().warn(e);
       return false;
     }
