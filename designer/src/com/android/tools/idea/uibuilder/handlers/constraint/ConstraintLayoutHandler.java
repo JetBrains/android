@@ -1579,7 +1579,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    ConstraintViewActions.connectBottomVertical(reverse)),
         new DisappearingActionMenu("start to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_SRC,
                                    ConstraintViewActions.connectStartHorizontal(reverse)),
-        new DisappearingActionMenu("End to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_SRC,
+        new DisappearingActionMenu("end to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_SRC,
                                    ConstraintViewActions.connectEndHorizontal(reverse))
       );
     }
@@ -1597,7 +1597,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         "parent start"),
       new ConnectAction(Scout.Connect.ConnectToParentEnd,
                         StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_PARENT,
-                        "parent End"),
+                        "parent end"),
       new ConnectSource(0, null, connectFrom(false)),
       new ConnectSource(1, null, connectFrom(true))
 
