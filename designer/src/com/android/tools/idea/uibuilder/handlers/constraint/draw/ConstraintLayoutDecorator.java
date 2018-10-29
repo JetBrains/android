@@ -22,7 +22,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -195,10 +194,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       }
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
-      DisplayList.UNClip unClip = null;
-      if (!StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-        unClip = list.addClip(sceneContext, rect);
-      }
+      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
       Scene scene = component.getScene();
 
       boolean showAllConstraints = ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
@@ -212,9 +208,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
         }
       }
-      if (unClip != null) {
-        list.add(unClip);
-      }
+      list.add(unClip);
     }
   }
 
