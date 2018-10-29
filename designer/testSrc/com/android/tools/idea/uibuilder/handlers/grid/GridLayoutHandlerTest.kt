@@ -30,11 +30,11 @@ class GridLayoutHandlerTest : SceneTest() {
     myInteraction.mouseRelease(220f, 230f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"70dp\"\n" +
-            "        android:layout_height=\"80dp\"\n" +
-            "        android:layout_row=\"1\"\n" +
-            "        android:layout_column=\"1\" />")
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"70dp\"\n" +
+            "    android:layout_height=\"80dp\"\n" +
+            "    android:layout_row=\"1\"\n" +
+            "    android:layout_column=\"1\" />")
   }
 
   fun testDragComponentCell_0_0() {
