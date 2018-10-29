@@ -28,6 +28,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
@@ -150,7 +151,11 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfigureDynamicDeliveryStep(getModel()));
+    if (StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()) {
+      return Collections.singletonList(new ConfigureModuleDownloadOptionsStep(getModel()));
+    } else {
+      return Collections.singletonList(new ConfigureDynamicDeliveryStep(getModel()));
+    }
   }
 
   @Override
