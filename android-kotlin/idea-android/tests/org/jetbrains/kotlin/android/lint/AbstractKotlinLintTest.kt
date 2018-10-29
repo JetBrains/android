@@ -35,7 +35,6 @@ abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
 
     override fun setUp() {
         super.setUp()
-        AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap()
         (myFixture as CodeInsightTestFixtureImpl).setVirtualFileFilter { false } // Allow access to tree elements.
 
         val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")

@@ -60,7 +60,6 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     // This is needed for resolving framework classes
     myFixture.allowTreeAccessForAllFiles();
   }
