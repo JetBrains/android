@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -144,10 +145,10 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     // If downloading doesn't work and file doesn't already exist, unpack it from resources
     File localConfigFile = new File(localConfigPath.getPath());
     if (!localConfigFile.exists()) {
-      try {
-        URL configResource = myURLProvider.getResourceFile(this, getVersion());
+      try (InputStream configResource = myURLProvider.getResourceFileAsStream(this, getVersion());
+           OutputStream destinationStream = new FileOutputStream(localConfigFile)) {
         if (configResource != null) {
-          FileUtil.copy(new File(configResource.getPath()), localConfigFile);
+          FileUtil.copy(configResource, destinationStream);
         } else {
           // No resource file found and download didn't work
           throw new IllegalStateException("Cannot get or generate WNA xml file");

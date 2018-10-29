@@ -17,8 +17,11 @@ package com.android.tools.idea.whatsnew.assistant
 
 import com.intellij.openapi.application.PathManager
 import com.intellij.util.PathUtil
+import java.io.File
+import java.io.InputStream
 import java.net.MalformedURLException
 import java.net.URL
+import java.nio.file.Path
 import java.nio.file.Paths
 
 const val WNA_CACHE_DIR_KEY = "whatsnew"
@@ -42,7 +45,7 @@ open class WhatsNewAssistantURLProvider {
    * @return URL for the local config file where xml will be stored
    */
   open fun getLocalConfig(version: String): URL {
-    val localConfigPath = Paths.get(getConfigCacheDir(), "$version.xml")
+    val localConfigPath = getConfigCacheDir().resolve("$version.xml")
     try {
       return localConfigPath.toUri().toURL()
     }
@@ -51,14 +54,16 @@ open class WhatsNewAssistantURLProvider {
     }
   }
 
-  open fun getResourceFile(bundleCreator: WhatsNewAssistantBundleCreator?, version: String): URL? {
-    return bundleCreator?.javaClass?.getResource("/$version.xml")
+  open fun getResourceFileAsStream(bundleCreator: WhatsNewAssistantBundleCreator?, version: String): InputStream? {
+    return bundleCreator?.javaClass?.getResourceAsStream("/$version.xml")
   }
 
   /**
    * @return path to directory where local xml config will be stored
    */
-  private fun getConfigCacheDir(): String {
-    return Paths.get(PathUtil.getCanonicalPath(PathManager.getSystemPath()), WNA_CACHE_DIR_KEY).toString()
+  private fun getConfigCacheDir(): Path {
+    val path = Paths.get(PathUtil.getCanonicalPath(PathManager.getSystemPath()), WNA_CACHE_DIR_KEY)
+    path.toFile().mkdirs()
+    return path
   }
 }
