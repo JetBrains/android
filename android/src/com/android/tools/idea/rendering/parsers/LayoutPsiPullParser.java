@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ValueXmlHelper;
+import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -40,6 +41,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.dom.navigation.NavXmlHelperKt;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
@@ -48,6 +50,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.resources.sampledata.SampleDataManager.SUBARRAY_SEPARATOR;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
 
 /**
@@ -81,7 +84,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                                                                                          ATTR_LAYOUT_HEIGHT,
                                                                                                          VALUE_MATCH_PARENT)
                                                                                  ),
-                                                                                 ImmutableList.of());
+                                                                                 ImmutableList.of(), null);
 
   private static final Consumer<TagSnapshot> TAG_SNAPSHOT_DECORATOR = (tagSnapshot) -> {
     if ("com.google.android.gms.ads.AdView".equals(tagSnapshot.tagName) || "com.google.android.gms.maps.MapView".equals(tagSnapshot.tagName)) {
@@ -125,6 +128,24 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
 
   private final ImmutableMap<String, TagSnapshot> myDeclaredAaptAttrs;
 
+  private int mySampleDataCounter;
+  private final Map<String, AtomicInteger> mySampleDataCounterMap = new HashMap<>();
+
+  private final Consumer<TagSnapshot> mySampleDataProcessing = (tagSnapshot) -> {
+    for (AttributeSnapshot attributeSnapshot : tagSnapshot.attributes) {
+      String resourceUrl = attributeSnapshot.value;
+      if (resourceUrl != null && (resourceUrl.startsWith(SAMPLE_PREFIX) || resourceUrl.startsWith(TOOLS_SAMPLE_PREFIX))) {
+        String resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceUrl);
+        AtomicInteger position = mySampleDataCounterMap.get(resourceName);
+        if (position == null) {
+          position = new AtomicInteger(mySampleDataCounter);
+          mySampleDataCounterMap.put(resourceName, position);
+        }
+        attributeSnapshot.value = getSampleDataResourceUrl(resourceUrl, position);
+      }
+    }
+  };
+
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
@@ -135,10 +156,24 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, boolean honorMergeParentTag) {
+    return create(file, logger, honorMergeParentTag, 0);
+  }
+
+  /**
+   * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
+   * parsing a layout resource files.
+   *
+   * @param file         The {@link XmlTag} for the root node.
+   * @param logger       The logger to emit warnings too, such as missing fragment associations
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   * @param sampleDataCounter start index for displaying sample data
+   */
+  @NotNull
+  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, boolean honorMergeParentTag, int sampleDataCounter) {
     if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
       return new MenuPsiPullParser(file, logger);
     }
-    return new LayoutPsiPullParser(file, logger, honorMergeParentTag);
+    return new LayoutPsiPullParser(file, logger, honorMergeParentTag, sampleDataCounter);
   }
 
   /**
@@ -198,14 +233,23 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, null);
+    this(file, logger, honorMergeParentTag, 0);
+  }
+
+  /**
+   * Use one of the {@link #create} factory methods instead
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   * @param sampleDataCounter start index for displaying sample data
+   */
+  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag, int sampleDataCounter) {
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, null, sampleDataCounter);
   }
 
   protected LayoutPsiPullParser(@NotNull XmlFile file,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver);
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, 0);
   }
 
   /**
@@ -242,14 +286,28 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver) {
+    this(root, logger, honorMergeParentTag, resourceResolver, 0);
+  }
+
+  /**
+   * Use one of the {@link #create} factory methods instead
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   * @param sampleDataCounter start index for displaying sample data
+   */
+  protected LayoutPsiPullParser(@Nullable final XmlTag root,
+                                @NotNull ILayoutLog logger,
+                                boolean honorMergeParentTag,
+                                @Nullable ResourceResolver resourceResolver,
+                                int sampleDataCounter) {
     myResourceResolver = resourceResolver;
     myLogger = logger;
+    mySampleDataCounter = sampleDataCounter;
 
     Ref<TagSnapshot> myRootRef = new Ref<>(EMPTY_LAYOUT);
     Ref<ResourceNamespace> myLayoutNamespaceRef = new Ref<>(ResourceNamespace.RES_AUTO);
     ReadAction.run(() -> {
       if (root != null && root.isValid()) {
-        myRootRef.set(createSnapshot(root, honorMergeParentTag));
+        myRootRef.set(createSnapshot(root, honorMergeParentTag, mySampleDataProcessing));
 
         ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(root);
         if (repositoryManager != null) {
@@ -279,6 +337,54 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
 
     myNamespacePrefixes = buildNamespacesMap(myRoot);
     myLayoutNamespace = layoutNamespace;
+  }
+
+  /**
+   * Assigns a specific index for sample data resources that do not have one already.
+   * @param resourceUrl The resource url consists of the resource name plus an optional array
+   *     selector. Arrays selectors can point at specific elements [4] or use string matching
+   *     [biking.png] (this will match elements ending with "biking.png"). Selectors also allow
+   *     for sub-arrays like:
+   *     <ul>
+   *       <li>[:3] Selects elements from 0 up to the 3rd element
+   *       <li>[2:] Selects the elements from the second position on
+   *       <li>[10:20] Selects elements from position 10 up to position 20
+   *     </ul>
+   * @param offset Offset for the index of the sample data element to select
+   * @return A resource url selecting one single element:
+   *         <ul>
+   *            <li>If the original resource url was already selecting one specific element, this returns is as such
+   *            <li>If the original resource url was specifying a sub-array, this chooses the element in that sub-array with the correct offset
+   *            <li>If the original resource url did not specify anything, this picks the element with the offset as index
+   *         </ul>
+   */
+  @NotNull
+  private static String getSampleDataResourceUrl(@NotNull String resourceUrl, @NotNull AtomicInteger offset) {
+    int start = resourceUrl.indexOf('[');
+    if (start != -1) {
+      int separator = resourceUrl.indexOf(SUBARRAY_SEPARATOR, start);
+      if (separator != -1) {
+        int end = resourceUrl.indexOf(']');
+        List<String> indices = Splitter.on(SUBARRAY_SEPARATOR).limit(2).splitToList(resourceUrl.substring(start + 1, end));
+        String bottom = indices.get(0);
+        String top = indices.get(1);
+        try {
+          int low = (bottom.isEmpty() ? 0 : Integer.parseUnsignedInt(bottom));
+          int positionIndex = offset.getAndIncrement();
+          if (!top.isEmpty()) {
+            positionIndex %= Integer.parseUnsignedInt(top) + 1 - low;
+          }
+          positionIndex += low;
+          return resourceUrl.substring(0, start + 1) + positionIndex + "]";
+        }
+        catch (Throwable ignored) {
+        }
+      }
+      return resourceUrl;
+    }
+    else {
+      return resourceUrl + "[" + offset.getAndIncrement() + "]";
+    }
   }
 
   /**
@@ -767,8 +873,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   @Nullable
-  private static TagSnapshot createSnapshot(@NotNull XmlTag tag, boolean honorMergeParentTag) {
-    Consumer<TagSnapshot> tagDecorator = TAG_SNAPSHOT_DECORATOR;
+  private static TagSnapshot createSnapshot(@NotNull XmlTag tag, boolean honorMergeParentTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
+    Consumer<TagSnapshot> tagDecorator = TAG_SNAPSHOT_DECORATOR.andThen(tagPostProcessor);
     if (tag.getName().equals(TAG_LAYOUT)) {
       // If we are creating a snapshot of a databinding layout (the root tag is <layout>), we need to emulate some post-processing that
       // the databinding code does in the layouts.
@@ -803,7 +909,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     String rootTag = tag.getName();
     switch (rootTag) {
       case VIEW_FRAGMENT:
-        return createSnapshotForViewFragment(tag);
+        return createSnapshotForViewFragment(tag, tagPostProcessor);
 
       case FRAME_LAYOUT:
         return createSnapshotForFrameLayout(tag, tagDecorator);
@@ -817,7 +923,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @NotNull
-  private static TagSnapshot createSnapshotForViewFragment(@NotNull XmlTag rootTag) {
+  private static TagSnapshot createSnapshotForViewFragment(@NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
     XmlAttribute[] psiAttributes = rootTag.getAttributes();
     List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
     for (XmlAttribute psiAttribute : psiAttributes) {
@@ -845,8 +951,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     }
 
     TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
-                                                         Collections.emptyList());
-    return TagSnapshot.createSyntheticTag(rootTag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include));
+                                                         Collections.emptyList(), null);
+    return TagSnapshot.createSyntheticTag(rootTag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include), tagPostProcessor);
   }
 
   @NotNull
@@ -865,7 +971,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
         attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
         attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
         attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
-        TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes, Collections.emptyList());
+        TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes, Collections.emptyList(), null);
         children.add(element);
       }
     }
@@ -910,7 +1016,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(rootTag);
     addAttributeIfMissing(rootTag, ATTR_LAYOUT_WIDTH, attributes);
     addAttributeIfMissing(rootTag, ATTR_LAYOUT_HEIGHT, attributes);
-    return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", attributes, root.children);
+    return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", attributes, root.children, null);
   }
 
   private static void addAttributeIfMissing(@NotNull XmlTag tag, @NotNull String attrName, @NotNull List<AttributeSnapshot> attributes) {

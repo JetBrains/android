@@ -121,6 +121,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
@@ -179,6 +180,15 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private String myAdaptiveIconMaskPath;
   @Nullable private final ILayoutPullParserFactory myLayoutPullParserFactory;
   @NotNull private final ResourceNamespace.Resolver myImplicitNamespaces;
+  /**
+   * This stores the current sample data offset for sample data to use when parsing a given layout.
+   * Each time a layout that contains references to sample data is parsed, we want to use a new sample,
+   * but in a way that keeps all the elements inside that layout consistent.
+   * Using this counter as a base index, all sample data inside a given layout can keep in sync.
+   * Increasing the counter for each parsing of a given layout ensures that, if a layout is used several times
+   * (e.g. as an item in a recycler view), each version will use different elements from the sample data.
+   */
+  private final Map<String, AtomicInteger> myLayoutCounterForSampleData = new HashMap<>();
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -529,6 +539,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // if so directly reuse the PSI parser, such that we pick up the live, edited
     // contents rather than the most recently saved file contents.
     if (xml.getFilesystemUri().getScheme().equals("file")) {
+      AtomicInteger sampleDataCounter = myLayoutCounterForSampleData.get(layoutName);
+      if (sampleDataCounter == null) {
+        sampleDataCounter = new AtomicInteger(0);
+        myLayoutCounterForSampleData.put(layoutName, sampleDataCounter);
+      }
+
       String parentName = xml.getParentFileName();
       String path = xml.getRawPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
@@ -542,7 +558,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           if (psiFile instanceof XmlFile) {
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
             // layout so we already have a parent.
-            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false, sampleDataCounter.getAndIncrement());
             parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
             if (parentName.startsWith(FD_RES_LAYOUT)) {
               // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.

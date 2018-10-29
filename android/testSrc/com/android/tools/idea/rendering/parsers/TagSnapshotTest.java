@@ -56,8 +56,7 @@ public class TagSnapshotTest extends TestCase {
     // Once per element
     assertEquals(3, callCount.get());
     TagSnapshot synthetic = TagSnapshot.createSyntheticTag(newBuilder("transformed").build(), "synthetic", null, null,
-                                                           Collections.emptyList(),
-                                                           Collections.emptyList());
+                                                           Collections.emptyList(), Collections.emptyList(), null);
     synthetic.children = Collections.singletonList(snapshot);
     assertEquals("TagSnapshot{synthetic, attributes=[], children=\n" +
                  "[TagSnapshot{LinearLayout, attributes=[AttributeSnapshot{orientation=\"vertical\"}], children=\n" +
