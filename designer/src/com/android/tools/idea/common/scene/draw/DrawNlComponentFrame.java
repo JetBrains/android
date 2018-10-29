@@ -28,16 +28,17 @@ import java.awt.*;
  */
 public class DrawNlComponentFrame extends DrawRegion {
 
-  static Stroke myNormalStroke = new BasicStroke(1);
-  static Stroke myWrapStroke =  new BasicStroke(1);
-  static Stroke myMatchParentStroke = new BasicStroke(1);
-  static Stroke myDragReceiverStroke = new BasicStroke(3);
-  static Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 1);
+  private static final Stroke myNormalStroke = new BasicStroke(1);
+  private static final Stroke myWrapStroke =  new BasicStroke(1);
+  private static final Stroke myMatchParentStroke = new BasicStroke(1);
+  private static final Stroke myDragReceiverStroke = new BasicStroke(3);
+  private static final Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 1);
 
-  @NotNull SceneComponent.DrawState myMode;
-  int myLayoutWidth;
-  int myLayoutHeight;
-  int myLevel = COMPONENT_LEVEL;
+  @NotNull private SceneComponent.DrawState myMode;
+  private int myLayoutWidth;
+  private int myLayoutHeight;
+  private int myLevel = COMPONENT_LEVEL;
+  private boolean myIgnoreClipping = false;
 
   public DrawNlComponentFrame(String s) {
     String[] sp = s.split(",");
@@ -54,12 +55,13 @@ public class DrawNlComponentFrame extends DrawRegion {
   }
 
   public DrawNlComponentFrame(@AndroidDpCoordinate int x,
-                            @AndroidDpCoordinate int y,
-                            @AndroidDpCoordinate int width,
-                            @AndroidDpCoordinate int height,
-                            @NotNull SceneComponent.DrawState mode,
-                            int layout_width,
-                            int layout_height) {
+                              @AndroidDpCoordinate int y,
+                              @AndroidDpCoordinate int width,
+                              @AndroidDpCoordinate int height,
+                              @NotNull SceneComponent.DrawState mode,
+                              int layout_width,
+                              int layout_height,
+                              boolean ignoreClipping) {
     super(x, y, width, height);
     myMode = mode;
     myLayoutWidth = layout_width;
@@ -67,6 +69,7 @@ public class DrawNlComponentFrame extends DrawRegion {
     if (mode == SceneComponent.DrawState.SELECTED) {
       myLevel = COMPONENT_SELECTED_LEVEL;
     }
+    myIgnoreClipping = ignoreClipping;
   }
 
   @Override
@@ -74,6 +77,11 @@ public class DrawNlComponentFrame extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Stroke previousStroke = g.getStroke();
     Color previousColor = g.getColor();
+    Shape previousClipping = g.getClip();
+
+    if (myIgnoreClipping) {
+      g.setClip(sceneContext.getBounds());
+    }
 
     g.setStroke(myNormalStroke);
     g.setColor(getFrameColor(colorSet, myMode));
@@ -94,6 +102,7 @@ public class DrawNlComponentFrame extends DrawRegion {
       g.drawLine(x, y + height, x + width, y + height);
     }
 
+    g.setClip(previousClipping);
     g.setColor(previousColor);
     g.setStroke(previousStroke);
   }
@@ -141,11 +150,12 @@ public class DrawNlComponentFrame extends DrawRegion {
                          @AndroidDpCoordinate Rectangle rect,
                          @NotNull SceneComponent.DrawState mode,
                          int layout_width,
-                         int layout_height) {
+                         int layout_height,
+                         boolean ignoreClipping) {
     int l = sceneContext.getSwingXDip(rect.x);
     int t = sceneContext.getSwingYDip(rect.y);
     int w = sceneContext.getSwingDimensionDip(rect.width);
     int h = sceneContext.getSwingDimensionDip(rect.height);
-    list.add(new DrawNlComponentFrame(l, t, w, h, mode, layout_width, layout_height));
+    list.add(new DrawNlComponentFrame(l, t, w, h, mode, layout_width, layout_height, ignoreClipping));
   }
 }

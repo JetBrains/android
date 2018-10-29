@@ -52,7 +52,6 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection
@@ -70,7 +69,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
   override fun buildListChildren(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val rect = Rectangle()
     component.fillRect(rect)
-    val unClip = if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) null else list.addClip(sceneContext, rect)
+    val unClip = list.addClip(sceneContext, rect)
 
     val idMap = component.children.filter { it.id != null }.associateBy { it.id!! }
     val connectionSet = mutableSetOf<Connection>()
@@ -116,9 +115,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     }
 
     connectionSet.forEach { it.addDrawCommand(list, time, sceneContext) }
-    if (unClip != null) {
-      list.add(unClip)
-    }
+    list.add(unClip)
   }
 
   /**

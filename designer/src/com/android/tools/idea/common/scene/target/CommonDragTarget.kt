@@ -373,6 +373,9 @@ private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private va
   final override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val defColor = g.color
     val defStroke = g.stroke
+    val defClip = g.clip
+
+    g.clip = sceneContext.bounds
 
     setBounds(sceneContext.getSwingXDip(x1.toFloat()),
               sceneContext.getSwingYDip(y1.toFloat()),
@@ -390,6 +393,7 @@ private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private va
 
     g.color = defColor
     g.stroke = defStroke
+    g.clip = defClip
   }
 
   abstract fun getBackgroundColor(colorSet: ColorSet): Color?
