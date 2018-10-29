@@ -328,7 +328,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
-    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals(START_TAG, parser.nextTag()); // TextView
     assertEquals("TextView", parser.getName());
     assertEquals(6, parser.getAttributeCount()); // layout_width + layout_height + 2*autoSizeText + 2*text
 
@@ -357,7 +357,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
-    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals(START_TAG, parser.nextTag()); // TextView
     assertEquals("TextView", parser.getName());
     // Make sure that library namespaces are converted into app
     assertEquals("123", parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "randomAttr"));
@@ -365,7 +365,93 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertNull(parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "text"));
   }
 
-  public void testDatabindig() throws Exception {
+  public void testSampleDataOffset() throws XmlPullParserException {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    android:orientation=\"horizontal\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        tools:text=\"@tools:sample/city\"/>\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        tools:text=\"@tools:sample/city\"/>\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        tools:text=\"@tools:sample/city\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false, 3);
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // 1st TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("@tools:sample/city[3]", parser.getAttributeValue(TOOLS_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+
+    assertEquals(START_TAG, parser.nextTag()); // 2nd TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("@tools:sample/city[4]", parser.getAttributeValue(TOOLS_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+
+    assertEquals(START_TAG, parser.nextTag()); // 3rd TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("@tools:sample/city[5]", parser.getAttributeValue(TOOLS_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+  }
+
+  public void testSampleDataInterval() throws XmlPullParserException {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    android:orientation=\"horizontal\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        tools:text=\"@tools:sample/city[5:6]\"/>\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        tools:text=\"@tools:sample/city[5:6]\"/>\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        tools:text=\"@tools:sample/city[5:6]\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // 1st TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("@tools:sample/city[5]", parser.getAttributeValue(TOOLS_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+
+    assertEquals(START_TAG, parser.nextTag()); // 2nd TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("@tools:sample/city[6]", parser.getAttributeValue(TOOLS_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+
+    assertEquals(START_TAG, parser.nextTag()); // 3rd TextView
+    assertEquals("TextView", parser.getName());
+    assertEquals("@tools:sample/city[5]", parser.getAttributeValue(TOOLS_URI, "text"));
+    assertEquals(END_TAG, parser.nextTag());
+  }
+
+  public void testDatabinding() throws Exception {
     @Language("XML")
     String contents = "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                       "  xmlns:tools=\"http://schemas.android.com/tools\"\n" +
