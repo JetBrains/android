@@ -119,6 +119,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
@@ -532,6 +533,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static class ClearConstraintsAction extends DirectViewAction {
+
+    private ClearConstraintsAction() {
+      super(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, "Clear All Constraints");
+    }
+
     @Override
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
@@ -539,21 +545,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
-                           .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
-      viewEditor.getScene().clearAllConstraints();
-      ensureLayersAreShown(editor, 1000);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
-      presentation.setLabel("Clear All Constraints");
+      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Delete all the constraints in the current layout?", getLabel(), getDefaultIcon()) == Messages.YES) {
+        viewEditor.getScene().clearAllConstraints();
+        ensureLayersAreShown(editor, 1000);
+      }
     }
   }
 
