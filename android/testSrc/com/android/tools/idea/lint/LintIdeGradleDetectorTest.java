@@ -27,12 +27,6 @@ import org.jetbrains.annotations.Nullable;
 public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private static final String BASE_PATH = "gradle/";
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
-  }
-
   public void testDependencies() throws Exception {
     AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);
