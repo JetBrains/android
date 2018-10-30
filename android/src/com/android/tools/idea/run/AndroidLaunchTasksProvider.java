@@ -21,12 +21,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.*;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
@@ -35,6 +35,8 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,8 +105,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
       boolean launchApp = true;
       if (StudioFlags.JVMTI_REFRESH.get()) {
-        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(ApplyChangesAction.KEY)) ||
-            Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY))) {
+        if (shouldApplyChanges() || shouldApplyCodeChanges()) {
           launchApp = false;
         }
       }
@@ -170,14 +171,25 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     else {
       // Use JVMTI deployment if it is enabled and supported.
       if (StudioFlags.JVMTI_REFRESH.get() && device.getVersion().getApiLevel() >= UnifiedDeployTask.MIN_API_VERSION) {
-        UnifiedDeployTask.DeployType type = UnifiedDeployTask.DeployType.INSTALL;
-        if (Boolean.TRUE.equals(myEnv.getCopyableUserData(ApplyChangesAction.KEY))) {
-          type = UnifiedDeployTask.DeployType.FULL_SWAP;
+        UnifiedDeployTask.Builder builder = UnifiedDeployTask.builder().setProject(myProject);
+
+        // Add packages to the deployment, filtering out any dynamic features that are disabled.
+        for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
+          builder.addPackage(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
         }
-        else if (Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY))) {
-          type = UnifiedDeployTask.DeployType.CODE_SWAP;
+
+        // Set the appropriate action based on which deployment we're doing.
+        if (shouldApplyChanges()) {
+          builder.setAction(new ApplyChangesAction());
         }
-        return ImmutableList.of(new UnifiedDeployTask(myProject, myApkProvider.getApks(device), type));
+        else if (shouldApplyCodeChanges()) {
+          builder.setAction(new ApplyCodeChangesAction());
+        }
+        else {
+          builder.setAction(new InstallAction(myLaunchOptions.getPmInstallOptions()));
+        }
+
+        return ImmutableList.of(builder.build());
       }
 
       InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
@@ -188,6 +200,18 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                                                        new DynamicAppDeployTaskContext(apkInfo, disabledFeatures))));
     }
     return ImmutableList.copyOf(tasks);
+  }
+
+  @NotNull
+  private static List<File> getFilteredFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
+    if (apkInfo.getFiles().size() > 1) {
+      return apkInfo.getFiles().stream()
+        .filter(feature -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature))
+        .map(file -> file.getApkFile())
+        .collect(Collectors.toList());
+    } else {
+      return ImmutableList.of(apkInfo.getFile());
+    }
   }
 
   /**
@@ -284,5 +308,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private boolean shouldDeployAsInstant() {
     return (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
             myLaunchOptions.isDeployAsInstant());
+  }
+
+  private boolean shouldApplyChanges() {
+    return Boolean.TRUE.equals(myEnv.getCopyableUserData(com.android.tools.idea.run.ui.ApplyChangesAction.KEY));
+  }
+
+  private boolean shouldApplyCodeChanges() {
+    return Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY));
   }
 }
