@@ -150,7 +150,7 @@ public class UnifiedDeployTask implements LaunchTask {
             Trace.begin("Unified.install");
             deployer.install(paths);
             Trace.end();
-            return true;
+            break;
           case CODE_SWAP:
             Trace.begin("Unified.codeSwap");
             deployer.codeSwap(apk.getApplicationId(), paths, makeDebuggerAdapter(device, apk));
