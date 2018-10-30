@@ -202,7 +202,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     }
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      LOG.warn(logMessage);
+      LOG.debug(logMessage);
     }
     finally {
       RenderSecurityManager.exitSafeRegion(token);
