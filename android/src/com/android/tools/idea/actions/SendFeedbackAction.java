@@ -73,9 +73,12 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   }
 
   public static void doPerformAction(@Nullable Project project) {
-    com.intellij.ide.actions.SendFeedbackAction.doPerformAction(project, getDescription(project));
+    doPerformAction(project, "");
   }
 
+  public static void doPerformAction(@Nullable Project project, @Nullable String extraDescriptionDetails) {
+    com.intellij.ide.actions.SendFeedbackAction.doPerformAction(project, getDescription(project) + extraDescriptionDetails);
+  }
 
   public static String getDescription(@Nullable Project project) {
     // Use safe call wrapper extensively to make sure that as much as possible version context is collected and

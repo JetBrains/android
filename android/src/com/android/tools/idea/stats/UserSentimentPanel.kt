@@ -103,7 +103,7 @@ class UserSentimentPanel(private var myProject: Project?,
       notification.expire()
       if (!positive) {
         logSentiment(UserSentiment.SentimentState.FILE_BUG)
-        SendFeedbackAction.launchBrowser(project, "Source: user_sentiment_feedback")
+        SendFeedbackAction.doPerformAction(project, "Source: user_sentiment_feedback")
       }
     }
 
