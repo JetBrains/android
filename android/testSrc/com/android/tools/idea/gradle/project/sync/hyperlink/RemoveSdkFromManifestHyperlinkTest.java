@@ -15,20 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.BuildEnvironment;
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
@@ -36,6 +22,26 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPrimaryManifestFile;
+
+import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import java.io.File;
+import java.io.IOException;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link RemoveSdkFromManifestHyperlink}.
@@ -318,7 +324,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     return virtualToIoFile(getPrimaryManifestFile(androidFacet));
   }
 
-  private static void writeBuildFile(@NotNull File buildFile, @NotNull String minSdkVersion) throws IOException {
+  private void writeBuildFile(@NotNull File buildFile, @NotNull String minSdkVersion) throws IOException {
     String buildFileContent = "apply plugin: 'com.android.application'\n" +
                               "android {\n" +
                               "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
@@ -326,6 +332,15 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
                               "        " + minSdkVersion +
                               "    }\n" +
                               "}\n";
-    writeToFile(buildFile, buildFileContent);
+    // We need to write the contents to the build file via the Document, as of 30/10/18 updating via the physical file or
+    // virtual file results in the contents written not being picked up by the PsiFile and the ProjectBuildModel
+    // still sees the old contents.
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(buildFile);
+      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(psiFile);
+      doc.setText(buildFileContent);
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    });
   }
 }
