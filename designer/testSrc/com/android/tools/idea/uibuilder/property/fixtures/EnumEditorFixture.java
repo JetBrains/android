@@ -148,6 +148,11 @@ public class EnumEditorFixture extends EditorFixtureBase {
     return this;
   }
 
+  public EnumEditorFixture selectAll() {
+    myEditor.selectAll();
+    return this;
+  }
+
   public EnumEditorFixture key(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode) {
     return key(keyCode, 0);
   }
@@ -282,7 +287,7 @@ public class EnumEditorFixture extends EditorFixtureBase {
     private boolean myPopupIsVisible;
     private JComboBox myCombo;
 
-    public ComboUI(@NotNull JComboBox comboBox) {
+    private ComboUI(@NotNull JComboBox comboBox) {
       myCombo = comboBox;
     }
 

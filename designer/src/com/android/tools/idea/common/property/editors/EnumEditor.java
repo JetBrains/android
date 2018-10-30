@@ -329,12 +329,10 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
   }
 
   private void enter() {
-    if (!myCombo.isPopupVisible()) {
-      ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
-      selectItem(value);
-      stopEditing(value.getValue());
-      myCombo.getEditor().selectAll();
-    }
+    ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
+    selectItem(value);
+    stopEditing(value.getValue());
+    myCombo.getEditor().selectAll();
     myCombo.hidePopup();
   }
 
