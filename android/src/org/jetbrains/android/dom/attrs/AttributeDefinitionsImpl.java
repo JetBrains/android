@@ -15,23 +15,45 @@
  */
 package org.jetbrains.android.dom.attrs;
 
-import com.android.ide.common.rendering.api.*;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX_LEN;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_ENUM;
+import static com.android.SdkConstants.TAG_FLAG;
+import static com.android.SdkConstants.TAG_RESOURCES;
+
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.aar.CommentTrackingXmlPullParser;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.*;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
 
 /**
  * The default implementation of the {@link AttributeDefinitions} interface. Used to represent either all
@@ -40,9 +62,6 @@ import static com.android.SdkConstants.*;
 public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
   private static final Splitter PIPE_SPLITTER = Splitter.on('|').trimResults();
-
-  // Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>.
-  private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
 
   @NotNull private final Map<ResourceReference, AttributeDefinition> myAttrs = new HashMap<>();
   @NotNull private final Map<ResourceReference, StyleableDefinitionImpl> myStyleables = new HashMap<>();
@@ -164,13 +183,10 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   private void addAttrsFromFile(@NotNull File file) {
     try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
-      XmlPullParser parser = new KXmlParser(); // Parser for regular text XML.
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      CommentTrackingXmlPullParser parser = new CommentTrackingXmlPullParser(); // Parser for regular text XML.
       parser.setInput(stream, null);
 
       StyleableDefinitionImpl styleable = null;
-      String lastComment = null; // The last encountered comment that is not an ASCII art.
-      String attrGroup = null; // The name of the current attribute group, e.g. "Button Styles" group for "buttonStyleSmall" attribute.
       int event;
       do {
         event = parser.nextToken();
@@ -186,7 +202,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
             else if (depth > 1) {
               switch (tagName) {
                 case TAG_ATTR:
-                  processAttrTag(parser, file, lastComment, attrGroup, styleable);
+                  processAttrTag(parser, file, parser.getLastComment(), parser.getAttrGroupComment(), styleable);
                   break;
 
                 case TAG_DECLARE_STYLEABLE: {
@@ -205,48 +221,19 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
                   myStyleables.put(styleable.getResourceReference(), styleable);
                   break;
                 }
-
-                case TAG_EAT_COMMENT:
-                  // The framework attribute file follows a special convention where related attributes are grouped together,
-                  // and there is always a set of comments that indicate these sections which look like this:
-                  //     <!-- =========== -->
-                  //     <!-- Text styles -->
-                  //     <!-- =========== -->
-                  //     <eat-comment/>
-                  // These section headers are always immediately followed by an <eat-comment>. Not all <eat-comment/> sections are
-                  // actually attribute headers, some are comments. We identify these by looking at the line length; category comments
-                  // are short, and descriptive comments are longer.
-                  if (lastComment != null && lastComment.length() <= ATTR_GROUP_MAX_CHARACTERS && !lastComment.startsWith("TODO:")) {
-                    attrGroup = lastComment;
-                    if (attrGroup.endsWith(".")) {
-                      attrGroup = attrGroup.substring(0, attrGroup.length() - 1); // Strip the trailing period.
-                    }
-                  }
-                  break;
               }
             }
-            lastComment = null;
             break;
           }
 
           case XmlPullParser.END_TAG:
             if (parser.getName().equals(TAG_DECLARE_STYLEABLE)) {
               styleable = null;
-              attrGroup = null;
-            }
-            break;
-
-          case XmlPullParser.COMMENT:
-            if (depth >= 1) {
-              String commentText = parser.getText().trim();
-              if (!isEmptyOrAsciiArt(commentText)) {
-                lastComment = commentText;
-              }
             }
             break;
         }
       } while (event != XmlPullParser.END_DOCUMENT);
-    } catch (IOException | XmlPullParserException e){
+    } catch (IOException | XmlPullParserException e) {
       LOG.warn("Failed to parse " + file.getAbsolutePath(), e);
     }
   }
