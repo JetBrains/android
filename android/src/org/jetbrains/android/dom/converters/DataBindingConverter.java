@@ -20,7 +20,7 @@ import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.
 import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor;
+import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
@@ -261,7 +261,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
 
   @Nullable
   protected static DataBindingInfo getDataBindingInfo(@NotNull final ConvertContext context) {
-    return DataBindingXmlReferenceContributor.getDataBindingInfo(context.getFile());
+    return DataBindingLangUtil.getDataBindingInfo(context.getFile());
   }
 
   private static class AliasedReference extends PsiReferenceBase<PsiElement> {
