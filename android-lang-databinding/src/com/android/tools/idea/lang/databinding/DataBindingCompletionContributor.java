@@ -30,7 +30,11 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
-import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.completion.CompletionContributor;
+import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.codeInsight.completion.CompletionProvider;
+import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.util.text.StringUtil;
@@ -157,7 +161,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
   private static void autoCompleteVariablesAndUnqualifiedFunctions(@NonNull DbFile file, @NonNull CompletionResultSet result) {
     autoCompleteUnqualifiedFunctions(result);
 
-    DataBindingInfo dataBindingInfo = DataBindingXmlReferenceContributor.getDataBindingInfo(file);
+    DataBindingInfo dataBindingInfo = DataBindingLangUtil.getDataBindingInfo(file);
     if (dataBindingInfo == null) {
       return;
     }

@@ -21,5 +21,6 @@
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition"/>
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector"/>
+    <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
   </extensions>
 </idea-plugin>

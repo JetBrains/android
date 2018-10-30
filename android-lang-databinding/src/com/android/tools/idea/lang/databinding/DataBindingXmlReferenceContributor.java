@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lang.databinding;
 
+import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -24,7 +26,11 @@ import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
-import com.android.tools.idea.lang.databinding.psi.*;
+import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr;
+import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
+import com.android.tools.idea.lang.databinding.psi.PsiDbExpressionList;
+import com.android.tools.idea.lang.databinding.psi.PsiDbId;
+import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
@@ -34,46 +40,37 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceContributor;
+import com.intellij.psi.PsiReferenceProvider;
+import com.intellij.psi.PsiReferenceRegistrar;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ProcessingContext;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
 
 /**
  * For references in DataBinding expressions. For references in {@code <data>} tag,
  * see {@link org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter}.
  */
 public class DataBindingXmlReferenceContributor extends PsiReferenceContributor {
-  @Nullable
-  public static DataBindingInfo getDataBindingInfo(PsiElement element) {
-    DataBindingInfo dataBindingInfo = null;
-    Module module = ModuleUtilCore.findModuleForPsiElement(element);
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && ModuleDataBinding.getInstance(facet).isEnabled()) {
-        LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
-        PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
-        if (topLevelFile != null) {
-          String name = topLevelFile.getName();
-          name = name.substring(0, name.lastIndexOf('.'));
-          dataBindingInfo = moduleResources.getDataBindingInfoForLayout(name);
-        }
-      }
-    }
-    return dataBindingInfo;
-  }
-
   // TODO: Support generics
   @Override
   public void registerReferenceProviders(@NotNull PsiReferenceRegistrar registrar) {
