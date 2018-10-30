@@ -53,10 +53,8 @@ class DeploymentErrorHandler {
     myNotificationListener = null;
   }
 
-  DeploymentErrorHandler(@NotNull UnifiedDeployTask.DeployType type,
-                         DeployerException.Error error,
-                         @NotNull String errorsString) {
-    myFormattedErrorString = formatDeploymentErrors(type, error, errorsString);
+  DeploymentErrorHandler(@NotNull DeployAction action, @NotNull DeployerException exception) {
+    myFormattedErrorString = formatDeploymentErrors(action, exception);
     myNotificationListener = new DeploymentErrorNotificationListener();
   }
 
@@ -71,33 +69,17 @@ class DeploymentErrorHandler {
   }
 
   @NotNull
-  private String formatDeploymentErrors(@NotNull UnifiedDeployTask.DeployType type,
-                                        DeployerException.Error error,
-                                        @NotNull String errorsString) {
-    List<String> errors = Lists.newArrayList(Splitter.on('\n').split(errorsString));
-    errors.sort(String::compareTo); // Sort the errors so at least they're consistent over runs.
-
+  private String formatDeploymentErrors(@NotNull DeployAction action, @NotNull DeployerException exception) {
     StringBuilder builder = new StringBuilder();
-
-    if (errors.isEmpty() || type == UnifiedDeployTask.DeployType.INSTALL) {
-      builder.append("Incompatible changes.");
-    }
-    else {
-      builder.append("Recent changes are incompatible with ");
-      //noinspection EnumSwitchStatementWhichMissesCases
-      switch (type) {
-        case CODE_SWAP:
-          builder.append(CodeSwapAction.NAME);
-          break;
-        case FULL_SWAP:
-          builder.append(ApplyChangesAction.NAME);
-          break;
-      }
-      builder.append(".\n");
+    builder.append(action.getName());
+    if (exception.getMessage().isEmpty()) {
+      builder.append(" failed.");
+    } else {
+      builder.append(" failed.\n").append(exception.getMessage()).append("\n");
     }
 
     // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
-    if (type == UnifiedDeployTask.DeployType.CODE_SWAP && errors.size() == 1 && DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(error)) {
+    if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(exception.getError())) {
       builder.append(APPLY_CHANGES_OPTION);
       builder.append(" | ");
     }
