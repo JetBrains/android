@@ -753,6 +753,22 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "CreateCppKotlinProjectTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+        "qa_unreliable",  # b/112051529
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",

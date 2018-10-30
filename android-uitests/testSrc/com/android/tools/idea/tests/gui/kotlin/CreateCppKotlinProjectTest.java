@@ -56,7 +56,7 @@ public class CreateCppKotlinProjectTest {
    *   2. C++ code is created, MainActivity has .kt extension.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/112051529
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createCppKotlinProject() throws Exception {
     createNewBasicKotlinProject(true, guiTest);
