@@ -63,7 +63,7 @@ public class GradleTasksTest {
 
     openProjectAndAddToGradleConfig("\n" +
                                     "\n" +
-                                    "task('hello') << {\n" +
+                                    "task('hello') {\n" +
                                     "    10.times {\n" +
                                     "        logger.lifecycle('output entry ' + it)\n" +
                                     "        Thread.sleep(1000)\n" +
