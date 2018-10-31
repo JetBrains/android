@@ -143,7 +143,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
                                            boolean isSelected,
                                            boolean cellHasFocus) {
         if (isSelected && !list.hasFocus()) {
-          setBackground(UIUtil.getListUnfocusedSelectionBackground());
+          setBackground(UIUtil.getListSelectionBackground(false));
           mySelectionForeground = UIUtil.getListForeground();
         }
         append(NavComponentHelperKt.getUiName(component));

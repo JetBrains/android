@@ -250,7 +250,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
       if (myFocused && myFocusedComponent != -1 && myVisibleComponents.get(myFocusedComponent) == this) {
-        g.setColor(UIUtil.getTableSelectionForeground());
+        g.setColor(UIManager.getColor("Table.selectionForeground"));
         UIUtil.drawDottedRectangle(g, 0, 0, getWidth() - 2, getHeight() - 2);
       }
       if (myIcon != null) {

@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.event.ActionListener
+import javax.swing.UIManager
 
 /**
  * Used by [LITableCellEditor] to provide the JComponent for editing a cell.
@@ -47,8 +48,8 @@ class LIComponentEditor {
 
   init {
     myTextField.addActionListener(ActionListener { this.textChanged(it) })
-    val fg = UIUtil.getTableSelectionForeground()
-    val bg = UIUtil.getTableSelectionBackground()
+    val fg = UIManager.getColor("Table.selectionForeground")
+    val bg = UIUtil.getTableSelectionBackground(true)
     myPanel = JPanel(BorderLayout(if (SystemInfo.isMac) 0 else 2, 0))
     myPanel.foreground = fg
     myPanel.background = bg

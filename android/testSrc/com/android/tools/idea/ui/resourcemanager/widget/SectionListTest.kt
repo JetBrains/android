@@ -84,7 +84,7 @@ fun main(args: Array<String>) {
             JLabel(value, imageIcon, JLabel.CENTER).apply {
               isOpaque = true
               if (isSelected) {
-                background = UIUtil.getListBackground(isSelected)
+                background = UIUtil.getListBackground(isSelected, true)
               }
             }
           }

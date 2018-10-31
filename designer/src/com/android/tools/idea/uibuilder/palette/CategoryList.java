@@ -108,7 +108,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
       CategoryList categoryList = (CategoryList)list;
       myMatchCount.setText(String.valueOf(categoryList.getMatchCountAt(index)));
       myMatchCount.setVisible(categoryList.displayMatchCounts());
-      myMatchCount.setForeground(hasFocus ? UIUtil.getTreeSelectionForeground() : JBColor.GRAY);
+      myMatchCount.setForeground(hasFocus ? UIUtil.getTreeSelectionForeground(true) : JBColor.GRAY);
 
       return myPanel;
     }
