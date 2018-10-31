@@ -25,7 +25,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/databinding/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",

@@ -33,7 +33,7 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
       "prebuilts/studio/jdk",
       "prebuilts/studio/sdk",
       "tools/adt/idea/android/annotations",
-      "tools/adt/idea/android/testData",
+      "tools/adt/idea/databinding/testData",
       "tools/base/templates",
       "tools/idea/java"); // For the mock JDK.
 
