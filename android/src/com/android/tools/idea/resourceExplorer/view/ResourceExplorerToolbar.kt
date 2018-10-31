@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -57,7 +58,7 @@ class ResourceExplorerToolbar(
 /**
  * Dropdown to select the module from which resources are displayed.
  */
-private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewModel) : ComboBoxAction() {
+private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewModel) : ComboBoxAction(), DumbAware {
 
   init {
     this.templatePresentation.text = viewModel.currentModuleName
@@ -73,7 +74,7 @@ private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewMo
 /**
  * Button to add new resources
  */
-private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) : AnAction() {
+private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) : AnAction(), DumbAware {
   init {
     val presentation = templatePresentation
     presentation.icon = StudioIcons.Common.ADD
@@ -97,9 +98,16 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
       .component.show(component, x, y)
   }
 
-  private fun createAddPopupGroup() = DefaultActionGroup().apply {
-    add(viewModel.createResourceAction)
-    add(Separator())
-    addAll(viewModel.getImportersActions())
+  private fun createAddPopupGroup() = object : DefaultActionGroup() {
+    init {
+      addAll(viewModel.addActions)
+      val importersActions = viewModel.getImportersActions()
+      if (importersActions.isNotEmpty()) {
+        add(Separator())
+        addAll(importersActions)
+      }
+    }
+
+    override fun isDumbAware() = true
   }
 }

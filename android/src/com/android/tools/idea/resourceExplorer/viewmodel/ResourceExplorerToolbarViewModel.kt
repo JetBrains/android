@@ -20,14 +20,17 @@ import com.android.tools.idea.resourceExplorer.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.IdeView
 import com.intellij.ide.util.DirectoryChooserUtil
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
@@ -61,14 +64,20 @@ class ResourceExplorerToolbarViewModel(
     get() = facet.module.name
     private set
 
-  val createResourceAction = CreateResourceFileAction.getInstance()
+  val addActions
+    get() = DefaultActionGroup().apply {
+      val actionManager = ActionManager.getInstance()
+      add(actionManager.getAction("NewAndroidImageAsset"))
+      add(actionManager.getAction("NewAndroidVectorAsset"))
+      add(CreateResourceFileAction.getInstance())
+    }
 
   /**
    * Returns the [AnAction] to open the available [com.android.tools.idea.resourceExplorer.plugin.ResourceImporter]s.
    */
   fun getImportersActions(): List<AnAction> {
     return customImporters.map { importer ->
-      object : AnAction(importer.presentableName) {
+      object : DumbAwareAction(importer.presentableName) {
         override fun actionPerformed(e: AnActionEvent) {
           invokeImporter(importer)
         }
@@ -132,7 +141,7 @@ class ResourceExplorerToolbarViewModel(
       .mapNotNull { it.androidFacet }
       .filterNot { it == facet }
       .map { androidFacet ->
-        object : AnAction(androidFacet.module.name) {
+        object : DumbAwareAction(androidFacet.module.name) {
           override fun actionPerformed(e: AnActionEvent) {
             facetUpdaterCallback(androidFacet)
           }
