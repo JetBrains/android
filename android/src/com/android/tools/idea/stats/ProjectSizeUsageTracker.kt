@@ -68,45 +68,40 @@ open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(
     }
   }
 
-  private data class FileCountStats(val searchScope: SearchScope, val fileType: FileType, val count: Int)
-
-
   override fun projectOpened() {
-    myProject.messageBus.connect(myProject).subscribe<ProjectSystemSyncManager.SyncResultListener>(
+    val connection = myProject.messageBus.connect(myProject)
+    connection.subscribe<ProjectSystemSyncManager.SyncResultListener>(
       PROJECT_SYSTEM_SYNC_TOPIC,
       object : ProjectSystemSyncManager.SyncResultListener {
         override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-          if (result.isSuccessful || result === ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS) {
-            val fileCountStats = ApplicationManager.getApplication().runReadAction(
-              Computable { collectStats() })
-            val builder = AndroidStudioEvent
-              .newBuilder()
-              .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
-              .withProjectId(myProject)
-            for (stats in fileCountStats) {
-              builder.addIntellijProjectSizeStats(
-                IntellijProjectSizeStats.newBuilder()
-                  .setScope(stats.searchScope.statsSearchScope())
-                  .setType(stats.fileType.statsFileType())
-                  .setCount(stats.count))
-            }
-            UsageTracker.log(builder)
+          if (!result.isSuccessful && result != ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS) {
+            return
           }
+          val builder = AndroidStudioEvent
+            .newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
+            .withProjectId(myProject)
+          for (searchScope in SearchScope.values()) {
+            for (fileType in FileType.values()) {
+              val intellijProjectSizeStats = IntellijProjectSizeStats
+                .newBuilder()
+                .setScope(searchScope.statsSearchScope())
+                .setType(fileType.statsFileType())
+              if (fileType.languageFileType() is PlainTextFileType) {
+                // If kotlin plugin is not enabled, we will get PlainTextFileType. In such case, we do not want to collect kotlin
+                // file count since it will include so many unrelated plain text file
+                intellijProjectSizeStats.count = 0
+              } else {
+                intellijProjectSizeStats.count = ApplicationManager.getApplication().runReadAction(
+                  Computable { FileTypeIndex.getFiles(fileType.languageFileType(), searchScope.globalSearchScope(myProject)).size })
+              }
+              builder.addIntellijProjectSizeStats(intellijProjectSizeStats)
+            }
+          }
+          UsageTracker.log(builder)
+          connection.disconnect()
+
         }
       })
-  }
-
-  private fun collectStats(): Array<FileCountStats> {
-    val searchScopeSize = SearchScope.values().size
-    val fileTypeSize = FileType.values().size
-    return Array(searchScopeSize * fileTypeSize) { i ->
-      val globalSearchScope = SearchScope.values()[i / fileTypeSize]
-      val fileType = FileType.values()[i % fileTypeSize]
-      FileCountStats(globalSearchScope, fileType,
-                     if (fileType.languageFileType() !is PlainTextFileType) {
-                       FileTypeIndex.getFiles(fileType.languageFileType(), globalSearchScope.globalSearchScope(myProject)).size
-                     }
-                     else 0)
-    }
   }
 }
