@@ -188,8 +188,8 @@ public class UnifiedDeployTask implements LaunchTask {
     DebuggerCodeSwapAdapter adapter = new DebuggerCodeSwapAdapter() {
       @Override
       public void performSwap() {
-        DebuggerHelper.startDebuggerTasksOnProject(myProject, ((project, session) -> {
-          this.performSwapImpl(session.getProcess().getVirtualMachineProxy().getVirtualMachine());}));
+        DebuggerHelper.waitFor(DebuggerHelper.startDebuggerTasksOnProject(myProject, ((project, session) -> {
+          this.performSwapImpl(session.getProcess().getVirtualMachineProxy().getVirtualMachine());})));
       }
 
       @Override
