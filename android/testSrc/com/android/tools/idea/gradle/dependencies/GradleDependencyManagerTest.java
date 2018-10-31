@@ -135,7 +135,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies);
     assertThat(missing.size()).isEqualTo(1);
     assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
-    assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
+    assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.4.0");
   }
 
   public void testCanAddDependencyWhichAlreadyIsAnIndirectDependency() throws Exception {

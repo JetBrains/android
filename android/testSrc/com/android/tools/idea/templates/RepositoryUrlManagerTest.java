@@ -161,24 +161,6 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals("26.0.2", getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true));
   }
 
-  /**
-   * Checks {@link GoogleMavenArtifactId} values against a real SDK, to make sure the paths are correct.
-   */
-  public void testgetLibraryRevision_realSdk() throws Exception {
-    // the first library from each group, representing a distinct SDK component, of GoogleMavenArtifactId values
-    GoogleMavenArtifactId libraryFromAndroidRepo = GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-    GoogleMavenArtifactId libraryFromGoogleRepo = GoogleMavenArtifactId.PLAY_SERVICES;
-    for (GoogleMavenArtifactId library : ImmutableList.of(libraryFromAndroidRepo, libraryFromGoogleRepo)) {
-      assertNotNull("Can't find latest version of " + library,
-                    myRepositoryUrlManager.getLibraryRevision(library.getMavenGroupId(),
-                                                              library.getMavenArtifactId(),
-                                                              null,
-                                                              false,
-                                                              TestUtils.getSdk(),
-                                                              FileOpUtils.create()));
-    }
-  }
-
   public void testgetLibraryRevision_thirdPartyLibrary() throws Exception {
     assertNull(myRepositoryUrlManager.getLibraryRevision("com.actionbarsherlock",
                                                          "actionbarsherlock",

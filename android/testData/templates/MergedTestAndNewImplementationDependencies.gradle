@@ -37,5 +37,5 @@ dependencies {
   compile fileTree(dir: 'libs', include: ['*.jar'])
   compile 'com.google.guava:guava:19.0'
   testCompile 'junit:junit:4.11'
-  androidTestCompile 'com.android.support.test:runner:0.5'
+  androidTestCompile 'com.android.support.test:runner:1.0.2'
 }
