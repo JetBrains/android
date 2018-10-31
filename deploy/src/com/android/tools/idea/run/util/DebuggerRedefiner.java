@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run.util;
 
+import com.android.tools.deploy.proto.Deploy;
+import com.android.tools.deployer.ClassRedefiner;
+import com.android.tools.deployer.JdiBasedClassRedefiner;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.DebuggerManagerThreadImpl;
@@ -33,11 +36,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.xdebugger.XDebugSession;
-import java.io.IOException;
+import com.sun.jdi.VirtualMachine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 import javax.swing.SwingUtilities;
 
@@ -47,23 +49,57 @@ import javax.swing.SwingUtilities;
  * In particular, all the debugger interaction within IntelliJ happens in the main thread. This class takes care of queuing up debugger
  * task in that thread.
  */
-public class DebuggerHelper {
+public class DebuggerRedefiner implements ClassRedefiner {
+
+  private final Project project;
+
+  public DebuggerRedefiner(Project project) {
+    this.project = project;
+  }
+
+  @Override
+  public Deploy.SwapResponse redefine(Deploy.SwapRequest request) {
+    MultiProcessCommand commands = new MultiProcessCommand();
+    Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
+    List<DebuggerTask> tasks = new ArrayList<>(debuggerSessions.size());
+
+    if (debuggerSessions.isEmpty()) {
+      return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.ERROR).build();
+    }
+
+    for (DebuggerSession debuggerSession : debuggerSessions) {
+      DebuggerCommandImpl command = new DebuggerCommandImpl() {
+        @Override
+        protected void action() {
+          redefine(project, debuggerSession, request);
+        }
+
+        @Override
+        protected void commandCancelled() {
+          debuggerSession.setModifiedClassesScanRequired(true);
+        }
+      };
+      commands.addCommand(debuggerSession.getProcess(), command);
+      tasks.add(command);
+    }
+    commands.run();
+    tasks.forEach(cmd -> cmd.waitFor());
+
+    return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.OK).build();
+  }
+
+  private static void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) {
+    disableBreakPoints(project, session);
+    VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
+    new JdiBasedClassRedefiner(vm).redefine(request);
+    enableBreakPoints(project, session);
+  }
 
   /**
    * @return True true if there is at least one debugger attached to a given project.
    */
   public static boolean hasDebuggersAttached(Project project) {
     return !DebuggerManagerEx.getInstanceEx(project).getSessions().isEmpty();
-  }
-
-  /**
-   * Asynchronously disables all breakpoints in a given project.
-   *
-   * @return A list of DebuggerTasks that this method started. If there is no debugger session attached to a project, this list will be
-   * empty.
-   */
-  public static List<DebuggerTask> disableBreakPoints(Project project) {
-    return startDebuggerTasksOnProject(project, DebuggerHelper::disableBreakPoints);
   }
 
   private static void disableBreakPoints(Project project, DebuggerSession debuggerSession) {
@@ -80,16 +116,6 @@ public class DebuggerHelper {
                          .filter(ThreadReferenceProxyImpl::isSuspended)
                          .forEach(t -> IntStream.range(0, t.getSuspendCount()).forEach(i -> t.resume()));
     }
-  }
-
-  /**
-   * Asynchronously re-enables all breakpoints in a given project. This should be called after a code swap.
-   *
-   * @return A list of DebuggerTasks that this method started. If there is no debugger session attached to a project, this list will be
-   * empty.
-   */
-  public static List<DebuggerTask> enableBreakPoints(Project project) {
-    return startDebuggerTasksOnProject(project, DebuggerHelper::enableBreakPoints);
   }
 
   private static void enableBreakPoints(Project project, DebuggerSession debuggerSession) {
@@ -135,47 +161,5 @@ public class DebuggerHelper {
       breakpointManager.enableBreakpoints(debugProcess);
       StackCapturingLineBreakpoint.createAll(debugProcess);
     }
-  }
-
-  /**
-   * Starts executing a lambda on each debugger session within a project asynchroniously.
-   *
-   * @return A list of debugger tasks that are started.
-   */
-  public static List<DebuggerTask> startDebuggerTasksOnProject(Project project, BiConsumer<Project, DebuggerSession> task) {
-    MultiProcessCommand commands = new MultiProcessCommand();
-    Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
-
-    if (debuggerSessions.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    List<DebuggerTask> result = new ArrayList<>(debuggerSessions.size());
-
-    for (DebuggerSession debuggerSession : debuggerSessions) {
-      DebuggerCommandImpl command = new DebuggerCommandImpl() {
-        @Override
-        protected void action() throws IOException {
-          task.accept(project, debuggerSession);
-        }
-
-        @Override
-        protected void commandCancelled() {
-          debuggerSession.setModifiedClassesScanRequired(true);
-        }
-
-      };
-      commands.addCommand(debuggerSession.getProcess(), command);
-      result.add(command);
-    }
-    commands.run();
-    return result;
-  }
-
-  /**
-   * Block for all the DebuggerTasks. This method returns immediately should the list be empty.
-   */
-  public static void waitFor(List<DebuggerTask> tasks) {
-    tasks.forEach(cmd -> cmd.waitFor());
   }
 }

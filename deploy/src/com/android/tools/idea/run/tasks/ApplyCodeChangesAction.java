@@ -16,15 +16,17 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.deployer.DebuggerCodeSwapAdapter;
+import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.Trace;
-import com.android.tools.idea.run.util.DebuggerHelper;
+import com.android.tools.idea.run.util.DebuggerRedefiner;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 public class ApplyCodeChangesAction extends DeployAction {
   private static final Logger LOG = Logger.getInstance(ApplyCodeChangesAction.class);
@@ -40,34 +42,20 @@ public class ApplyCodeChangesAction extends DeployAction {
     LOG.info("Applying code changes to application: " + applicationId);
     try (Trace trace = Trace.begin("Unified.codeSwap")) {
       deployer
-        .codeSwap(applicationId, getPathsToInstall(apkFiles), makeDebuggerAdapter(project, device, applicationId));
+        .codeSwap(applicationId, getPathsToInstall(apkFiles), makeSpecificRedefiners(project, device, applicationId));
     }
   }
 
-  private static DebuggerCodeSwapAdapter makeDebuggerAdapter(Project project, IDevice device, String applicationId) {
-    if (!DebuggerHelper.hasDebuggersAttached(project)) {
-      return null;
+  /**
+   * @return redefiners that will be used for specific PIDs
+   * @param device The device we are deploying to.
+   * @param apk The apk we want to deploy.
+   */
+  private Map<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device, String applicatinId) {
+    if (!DebuggerRedefiner.hasDebuggersAttached(project)) {
+      return ImmutableMap.of();
     }
-    int pid = device.getClient(applicationId).getClientData().getPid();
-    DebuggerCodeSwapAdapter adapter = new DebuggerCodeSwapAdapter() {
-      @Override
-      public void performSwap() {
-        DebuggerHelper.waitFor(DebuggerHelper.startDebuggerTasksOnProject(project, ((project, session) -> {
-          this.performSwapImpl(session.getProcess().getVirtualMachineProxy().getVirtualMachine());
-        })));
-      }
-
-      @Override
-      public void disableBreakPoints() {
-        DebuggerHelper.waitFor(DebuggerHelper.disableBreakPoints(project));
-      }
-
-      @Override
-      public void enableBreakPoints() {
-        DebuggerHelper.waitFor(DebuggerHelper.enableBreakPoints(project));
-      }
-    };
-    adapter.addAttachedPid(pid);
-    return adapter;
+    int pid = device.getClient(applicatinId).getClientData().getPid();
+    return ImmutableMap.of(pid, new DebuggerRedefiner(project));
   }
 }
