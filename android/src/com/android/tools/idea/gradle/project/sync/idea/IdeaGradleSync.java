@@ -38,6 +38,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
@@ -57,11 +58,18 @@ import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.regi
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static java.lang.System.currentTimeMillis;
 
 public class IdeaGradleSync implements GradleSync {
+  /**
+   * This is workaround to provide AndroidSyncIssue reporting with the sync task id to be able to work with the Build Sync view
+   * Should be removed when the GradleSyncMessages will be able to use the proper sync task id for the reporting
+   */
+  @Deprecated
+  @NotNull public static final Key<ExternalSystemTaskId> LAST_SYNC_TASK_ID_KEY =
+    Key.create("com.intellij.openapi.externalSystem.util.taskId");
+
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
@@ -102,7 +110,7 @@ public class IdeaGradleSync implements GradleSync {
           DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
           SyncViewManager syncManager = ServiceManager.getService(myProject, SyncViewManager.class);
           syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "reading from cache..."));
-          myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, taskId);
+          myProject.putUserData(LAST_SYNC_TASK_ID_KEY, taskId);
           ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
           setUpTask.onSuccess(cache);
           return;

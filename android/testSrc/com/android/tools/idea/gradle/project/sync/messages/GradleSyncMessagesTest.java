@@ -22,7 +22,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
+import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.LAST_SYNC_TASK_ID_KEY;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -38,13 +38,13 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
 
     mySyncMessages = new GradleSyncMessages(getProject());
     ExternalSystemTaskId taskId = ExternalSystemTaskId.create(mySyncMessages.getProjectSystemId(), EXECUTE_TASK, myProject);
-    myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, taskId);
+    myProject.putUserData(LAST_SYNC_TASK_ID_KEY, taskId);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
+      myProject.putUserData(LAST_SYNC_TASK_ID_KEY, null);
     }
     finally {
       super.tearDown();
