@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -39,13 +38,15 @@ import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 public class GradleToolWindowFixture extends ToolWindowFixture {
+  // Name of the content tab that contains TaskTree.
+  @NotNull private static final String TASK_TREE_CONTENT_NAME = "";
+
   public GradleToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Gradle", project, robot);
   }
 
   public void runTask(@NotNull final String taskName) {
-    Content content = getContent("projects");
-    final Tree tasksTree = findComponentOfType(content.getComponent(), Tree.class);
+    final Tree tasksTree = findComponentOfType(getContent(TASK_TREE_CONTENT_NAME).getComponent(), Tree.class);
 
     Wait.seconds(1).expecting("tree to be populated").until(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get());
 
