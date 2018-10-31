@@ -26,7 +26,10 @@ abstract class AndroidQuickFixMultiFileTest : AbstractAndroidQuickFixMultiFileTe
   }
 
   class ViewConstructor : AndroidQuickFixMultiFileTest() {
+    fun testDisabled() {}
+    /* TODO(b/118754087): KT-27945
     fun testIndirect() = doTest("$TEST_DIR/viewConstructor/indirect")
     fun testSimple() = doTest("$TEST_DIR/viewConstructor/simple")
+    */
   }
 }
