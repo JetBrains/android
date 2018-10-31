@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
+import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -32,6 +33,7 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import javax.swing.BorderFactory
 import javax.swing.Box
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -77,6 +79,13 @@ private val PRIMARY_FONT_SIZE = JBUI.scaleFontSize(12f).toFloat()
 private val SECONDARY_FONT_SIZE = JBUI.scaleFontSize(10f).toFloat()
 
 private const val DEFAULT_WIDTH = 120
+
+enum class IssueLevel(internal val icon: Icon) {
+  NONE(EmptyIcon.ICON_16),
+  INFO(StudioIcons.Common.INFO),
+  WARNING(StudioIcons.Common.WARNING),
+  ERROR(StudioIcons.Common.ERROR)
+}
 
 /**
  * Abstract class to represent a graphical asset in the resource explorer.
@@ -139,6 +148,30 @@ abstract class AssetView : JPanel(BorderLayout()) {
   abstract var selected: Boolean
 
   protected var contentWrapper = ChessBoardPanel(BorderLayout()).apply { showChessboard = withChessboard }
+
+  var issueLevel: IssueLevel by Delegates.observable(IssueLevel.NONE) { _, _, level -> issueIcon.icon = level.icon }
+
+  protected val issueIcon = JLabel(issueLevel.icon)
+
+  var isNew: Boolean by Delegates.observable(false) { _, _, new -> newLabel.isVisible = new }
+
+  protected val newLabel = object : JLabel(" NEW ") {
+
+    init {
+      font = UIUtil.getLabelFont(UIUtil.FontSize.MINI)
+      foreground = JBColor.WHITE
+      isVisible = isNew
+    }
+
+    override fun paintComponent(g: Graphics) {
+      g.color = UIUtil.getTreeSelectionBorderColor()
+      val antialias = (g as Graphics2D).getRenderingHint(RenderingHints.KEY_ANTIALIASING)
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+      g.fillRoundRect(0, 0, width, height, height, height)
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialias)
+      super.paintComponent(g)
+    }
+  }
 }
 
 /**
@@ -175,7 +208,7 @@ class SingleAssetCard : AssetView() {
         add(secondLineLabel)
         add(thirdLineLabel)
       })
-      add(JLabel(StudioIcons.Common.WARNING), BorderLayout.EAST)
+      add(issueIcon, BorderLayout.EAST)
     }
   }
 }
@@ -203,29 +236,6 @@ class RowAssetView : AssetView() {
     )
   }
 
-  private val newLabel = object : JLabel(" NEW ") {
-
-    init {
-      font = UIUtil.getLabelFont(UIUtil.FontSize.MINI)
-      foreground = JBColor.WHITE
-    }
-
-    override fun paintComponent(g: Graphics) {
-      g.color = UIUtil.getTreeSelectionBorderColor()
-      val antialias = (g as Graphics2D).getRenderingHint(RenderingHints.KEY_ANTIALIASING)
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      g.fillRoundRect(0, 0, width, height, height, height)
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialias)
-      super.paintComponent(g)
-    }
-  }
-
-  private val errorIcon = object : JLabel(StudioIcons.Common.WARNING) {
-
-    // Override preferredSize so the new label is center with the error label
-    override fun getPreferredSize() = newLabel.preferredSize
-  }
-
   private val metadataPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
     add(secondLineLabel)
     add(separator())
@@ -244,9 +254,11 @@ class RowAssetView : AssetView() {
 
       add(JPanel(BorderLayout()).apply {
         add(metadataPanel)
-        add(errorIcon, BorderLayout.EAST)
+        add(issueIcon, BorderLayout.EAST)
         border = JBUI.Borders.empty(0, 0, 8, 4)
       }, BorderLayout.SOUTH)
+
+      issueIcon.preferredSize = Dimension(newLabel.preferredSize.width, issueIcon.preferredSize.height)
     }
 
     add(contentWrapper, BorderLayout.WEST)
