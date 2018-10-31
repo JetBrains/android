@@ -29,68 +29,87 @@ import java.util.Map;
 public class FakeGrpcServer extends FakeGrpcChannel {
   /**
    * Mapping from sessions being profiled to the number of profilers that are monitoring it.
-   *
-   * It is better to be a non-static variable. But that requires changing the nested service classes
-   * defined in this class to be either non-static or to take a FakeGrpcServer parameter in constructors.
-   * Neither approach is very clean; not worth it.
    */
-  private static Map<Long, Integer> ourProfiledProcesses = new HashMap<>(7);
+  private Map<Long, Integer> myProfiledProcesses;
 
-  public FakeGrpcServer(String name, BindableService service, BindableService cpuService) {
-    super(name, service,
-          new EventService(),
-          new MemoryService(),
-          new NetworkService(),
-          cpuService,
-          new EnergyService());
-    // TODO the current static map keeps around values from previous tests. We should refactor this properly so this doesn't have to be
-    // a static.
-    ourProfiledProcesses.clear();
+  private CpuService myCpuService;
+
+  /**
+   * A test should use createFakeGrpcServer() to obtain an instance of FakeGrpcServer, not calling the constructor directly.
+   */
+  private FakeGrpcServer(String name, BindableService... services) {
+    super(name, services);
+    myProfiledProcesses = new HashMap<>(7);
   }
 
-  public FakeGrpcServer(String name, BindableService service) {
-    this(name, service, new CpuService());
+  /**
+   * @return a new instance of FakeGrpcServer ready for a test to use.
+   */
+  public static FakeGrpcServer createFakeGrpcServer(String name, BindableService service) {
+    EventService eventService = new EventService();
+    MemoryService memoryService = new MemoryService();
+    NetworkService networkService = new NetworkService();
+    CpuService cpuService = new CpuService();
+    EnergyService energyService = new EnergyService();
+    FakeGrpcServer server = new FakeGrpcServer(name, service, eventService, memoryService, networkService, cpuService, energyService);
+    // Set the links between the services and the server.
+    eventService.myServer = server;
+    memoryService.myServer = server;
+    networkService.myServer = server;
+    cpuService.myServer = server;
+    energyService.myServer = server;
+    server.myCpuService = cpuService;
+    return server;
   }
 
   /**
    * @return the number of processes currently being profiled.
    */
   public int getProfiledProcessCount() {
-    return ourProfiledProcesses.keySet().size();
+    return myProfiledProcesses.keySet().size();
   }
 
-  private synchronized static void addProfiledProcess(Common.Session session) {
-    long sessionId = session.getSessionId();
-    int profilerCount = ourProfiledProcesses.getOrDefault(sessionId, 0);
-    ourProfiledProcesses.put(sessionId, profilerCount + 1);
+  /**
+   * @return the reference to the CPU service.
+   */
+  public CpuService getCpuService() {
+    return myCpuService;
   }
 
-  private synchronized static void removeProfiledProcess(Common.Session session) {
+  private synchronized void addProfiledProcess(Common.Session session) {
     long sessionId = session.getSessionId();
-    Integer profilerCount = ourProfiledProcesses.get(sessionId);
+    int profilerCount = myProfiledProcesses.getOrDefault(sessionId, 0);
+    myProfiledProcesses.put(sessionId, profilerCount + 1);
+  }
+
+  private synchronized void removeProfiledProcess(Common.Session session) {
+    long sessionId = session.getSessionId();
+    Integer profilerCount = myProfiledProcesses.get(sessionId);
     if (profilerCount != null) {
       if (profilerCount.intValue() > 1) {
-        ourProfiledProcesses.replace(sessionId, profilerCount.intValue() - 1);
+        myProfiledProcesses.replace(sessionId, profilerCount.intValue() - 1);
       }
       else {
-        ourProfiledProcesses.remove(sessionId);
+        myProfiledProcesses.remove(sessionId);
       }
     }
   }
 
   private static class EventService extends EventServiceGrpc.EventServiceImplBase {
+    private FakeGrpcServer myServer;
+
     @Override
     public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
       response.onNext(EventStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfiledProcess(request.getSession());
+      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
       response.onNext(EventStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfiledProcess(request.getSession());
+      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -107,18 +126,20 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   private static class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
+    private FakeGrpcServer myServer;
+
     @Override
     public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> response) {
       response.onNext(MemoryStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfiledProcess(request.getSession());
+      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> response) {
       response.onNext(MemoryStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfiledProcess(request.getSession());
+      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -142,18 +163,20 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   private static class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
+    private FakeGrpcServer myServer;
+
     @Override
     public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
       response.onNext(NetworkStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfiledProcess(request.getSession());
+      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
       response.onNext(NetworkStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfiledProcess(request.getSession());
+      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -167,6 +190,8 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     private boolean myIsBeingProfiled = false;
     private boolean myIsStartupProfiling = false;
     private long myProfilingStartTimestamp = 0;
+
+    private FakeGrpcServer myServer;
 
     public void setStartupProfiling(boolean isStartupProfiling) {
       myIsStartupProfiling = isStartupProfiling;
@@ -184,14 +209,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
       response.onNext(CpuStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfiledProcess(request.getSession());
+      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
       response.onNext(CpuStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfiledProcess(request.getSession());
+      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -225,12 +250,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   private static class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase {
+    private FakeGrpcServer myServer;
+
     @Override
     public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
                                    StreamObserver<EnergyProfiler.EnergyStartResponse> response) {
       response.onNext(EnergyProfiler.EnergyStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfiledProcess(request.getSession());
+      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
@@ -238,7 +265,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
                                   StreamObserver<EnergyProfiler.EnergyStopResponse> response) {
       response.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfiledProcess(request.getSession());
+      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override

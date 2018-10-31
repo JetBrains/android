@@ -30,8 +30,7 @@ import org.junit.Test;
 
 public final class StudioProfilersCommonTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
-  private final FakeGrpcServer.CpuService myCpuService = new FakeGrpcServer.CpuService();
-  @Rule public FakeGrpcServer myGrpcServer = new FakeGrpcServer("StudioProfilerCommonTestChannel", myProfilerService, myCpuService);
+  @Rule public FakeGrpcServer myGrpcServer = FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myProfilerService);
 
   @Before
   public void setup() {

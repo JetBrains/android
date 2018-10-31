@@ -47,8 +47,8 @@ public final class StudioProfilersTest {
   }
 
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
-  private final FakeGrpcServer.CpuService myCpuService = new FakeGrpcServer.CpuService();
-  @Rule public FakeGrpcServer myGrpcServer = new FakeGrpcServer("StudioProfilerTestChannel", myProfilerService, myCpuService);
+  @Rule public FakeGrpcServer myGrpcServer = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myProfilerService);
+  private final FakeGrpcServer.CpuService myCpuService = myGrpcServer.getCpuService();
   private final FakeIdeProfilerServices myIdeProfilerServices;
   private final FakeTimer myTimer;
 
