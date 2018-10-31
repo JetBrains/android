@@ -37,7 +37,7 @@ public class EventMonitorViewTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
 
   @Rule
-  public FakeGrpcServer myGrpcChannel = new FakeGrpcServer("EventMonitorViewTestChannel", myProfilerService);
+  public FakeGrpcServer myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("EventMonitorViewTestChannel", myProfilerService);
 
   private FakeTimer myTimer;
 

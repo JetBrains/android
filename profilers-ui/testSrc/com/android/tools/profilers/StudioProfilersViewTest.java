@@ -60,7 +60,7 @@ public class StudioProfilersViewTest {
     .setSessionName("App Device").setType(Common.SessionMetaData.SessionType.FULL).setStartTimestampEpochMs(1).build();
 
   private final FakeProfilerService myService = new FakeProfilerService();
-  @Rule public FakeGrpcServer myGrpcChannel = new FakeGrpcServer("StudioProfilerTestChannel", myService);
+  @Rule public FakeGrpcServer myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService);
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
   private FakeTimer myTimer;
