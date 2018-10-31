@@ -24,6 +24,7 @@ import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.editor.RESOURCE_DEBUG
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.widget.IssueLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
@@ -87,6 +88,10 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     val thumbnailSize = assetView.thumbnailSize
     assetView.thumbnail = getContent(value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
     assetView.selected = isSelected
+    if (RESOURCE_DEBUG) {
+      assetView.issueLevel = IssueLevel.ERROR
+      assetView.isNew = true
+    }
     return assetView
   }
 
