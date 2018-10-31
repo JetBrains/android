@@ -24,6 +24,7 @@ import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.editor.RESOURCE_DEBUG
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.IssueLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -42,7 +43,6 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiConsumer
 import javax.swing.ImageIcon
-import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
@@ -80,14 +80,10 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     cellHasFocus: Boolean
   ): Component {
     val assetView = (list as AssetListView).assetView
-    assetView.withChessboard = true
-    assetView.title = value.name
-    assetView.subtitle = value.getHighestDensityAsset().type.displayName
-    val size = value.designAssets.size
-    assetView.metadata = "$size $VERSION".pluralize(size)
     val thumbnailSize = assetView.thumbnailSize
-    assetView.thumbnail = getContent(value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
+    assetView.withChessboard = true
     assetView.selected = isSelected
+    customizeComponent(assetView, value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
     if (RESOURCE_DEBUG) {
       assetView.issueLevel = IssueLevel.ERROR
       assetView.isNew = true
@@ -95,13 +91,14 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     return assetView
   }
 
-  abstract fun getContent(
+  abstract fun customizeComponent(
+    assetView: AssetView,
     designAssetSet: DesignAssetSet,
     width: Int,
     height: Int,
     isSelected: Boolean,
     index: Int
-  ): JComponent?
+  )
 }
 
 class ColorResourceCellRenderer(
@@ -110,33 +107,26 @@ class ColorResourceCellRenderer(
 ) : DesignAssetCellRenderer() {
   private val backgroundPanel = ColorPreviewPanel()
 
-  override fun getContent(
+  override fun customizeComponent(
+    assetView: AssetView,
     designAssetSet: DesignAssetSet,
     width: Int,
     height: Int,
     isSelected: Boolean,
     index: Int
-  ): JComponent? {
+  ) {
 
     // TODO compute in background
     val colors = resourceResolver.resolveMultipleColors(designAssetSet.resolveValue(resourceResolver), project).toSet().toList()
+    assetView.title = designAssetSet.name
+    assetView.subtitle = if (colors.size == 1) "#${ColorUtil.toHex(colors.first())}" else "Multiple colors"
+    assetView.metadata = designAssetSet.versionCountString()
     backgroundPanel.colorList = colors
-    backgroundPanel.colorCodeLabel.text = if (colors.size == 1) {
-      "#${ColorUtil.toHex(colors.first())}"
-    }
-    else {
-      ""
-    }
-    return backgroundPanel
+    assetView.thumbnail = backgroundPanel
   }
 
   inner class ColorPreviewPanel : JPanel(BorderLayout()) {
     internal var colorList = emptyList<Color>()
-    internal val colorCodeLabel = JLabel()
-
-    init {
-      add(colorCodeLabel, BorderLayout.SOUTH)
-    }
 
     override fun paintComponent(g: Graphics) {
       if (colorList.isEmpty()) return
@@ -167,13 +157,15 @@ class DrawableResourceCellRenderer(
     border = JBUI.Borders.empty(18)
   }
 
-  override fun getContent(
+  override fun customizeComponent(
+    assetView: AssetView,
     designAssetSet: DesignAssetSet,
     width: Int,
     height: Int,
     isSelected: Boolean,
     index: Int
-  ): JComponent? {
+  ) {
+    customizeTextData(assetView, designAssetSet)
     val designAsset = designAssetSet.getHighestDensityAsset()
     val targetSize = (height * (1 - contentRatio * 2)).toInt()
     if (targetSize > 0) {
@@ -189,7 +181,14 @@ class DrawableResourceCellRenderer(
       }
       imageIcon.image = image
     }
-    return drawablePreview
+    assetView.thumbnail = drawablePreview
+  }
+
+
+  private fun customizeTextData(assetView: AssetView, designAssetSet: DesignAssetSet) {
+    assetView.title = designAssetSet.name
+    assetView.subtitle = designAssetSet.getHighestDensityAsset().type.displayName
+    assetView.metadata = designAssetSet.versionCountString()
   }
 
   /**
@@ -246,6 +245,11 @@ class DrawableResourceCellRenderer(
     }
     return image
   }
+}
+
+private fun DesignAssetSet.versionCountString(): String {
+  val size = designAssets.size
+  return "$size $VERSION".pluralize(size)
 }
 
 private fun DesignAssetSet.resolveValue(
