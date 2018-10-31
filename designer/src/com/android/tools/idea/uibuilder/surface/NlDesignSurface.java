@@ -73,6 +73,7 @@ import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -504,9 +505,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public void setModel(@Nullable NlModel model) {
+  public CompletableFuture<Void> setModel(@Nullable NlModel model) {
     myAccessoryPanel.setModel(model);
-    super.setModel(model);
+    return super.setModel(model);
   }
 
   @Override

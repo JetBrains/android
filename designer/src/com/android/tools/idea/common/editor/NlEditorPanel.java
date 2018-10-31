@@ -22,6 +22,7 @@ import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
 import com.android.tools.idea.naveditor.structure.StructurePanel;
@@ -178,7 +179,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
       return;
     }
 
-    mySurface.setModel(model);
+    CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
 
     if (myAccessoryPanel != null) {
       boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
@@ -212,7 +213,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
       }
     }
 
-    myWorkBench.init(myContentPanel, mySurface, tools);
+    modelSetFuture.whenCompleteAsync((result, ex) -> myWorkBench.init(myContentPanel, mySurface, tools), EdtExecutor.INSTANCE);
   }
 
   @Nullable
