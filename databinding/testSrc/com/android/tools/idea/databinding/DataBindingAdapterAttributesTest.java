@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.databinding;
 
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -26,67 +31,89 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.EdtTestUtil;
 import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
+@RunWith(Parameterized.class)
+public class DataBindingAdapterAttributesTest {
+  @Rule
+  public final AndroidGradleProjectRule myProjectRule = new AndroidGradleProjectRule();
 
-  public void testCompletionAndInspections() throws Exception {
-    loadProject(PROJECT_WITH_DATA_BINDING);
-    assertCompletionAndInspections();
+  @Parameterized.Parameters(name = "{0}")
+  public static List<DataBindingMode> getParameters() {
+    return Lists.newArrayList(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX);
   }
 
-  public void testCompletionAndInspectionsAndroidX() throws Exception {
-    loadProject(PROJECT_WITH_DATA_BINDING_ANDROID_X);
-    assertCompletionAndInspections();
+  @NotNull
+  private final String myProjectName;
+
+  public DataBindingAdapterAttributesTest(@NotNull DataBindingMode mode) {
+    myProjectName = mode == DataBindingMode.SUPPORT ? PROJECT_WITH_DATA_BINDING : PROJECT_WITH_DATA_BINDING_ANDROID_X;
+  }
+
+  @Before
+  public void setUp() {
+    myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
+    myProjectRule.load(myProjectName);
   }
 
   /**
    * Checks {@code @BindingAdapter} annotation completion and uses {@link AndroidUnknownAttributeInspection} to check that the attribute
    * has been defined.
    */
-  private void assertCompletionAndInspections() {
-    myFixture.enableInspections(AndroidUnknownAttributeInspection.class);
+  @Test
+  public void assertCompletionAndInspections() {
+    myProjectRule.getFixture().enableInspections(AndroidUnknownAttributeInspection.class);
 
-    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    myFixture.openFileInEditor(file);
-    Editor editor = myFixture.getEditor();
-    Document document = editor.getDocument();
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    int offset = document.getText().indexOf("name}\"");
-    int line = document.getLineNumber(offset);
+    EdtTestUtil.runInEdtAndWait(() -> {
+      VirtualFile file = myProjectRule.getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+      myProjectRule.getFixture().openFileInEditor(file);
+      Editor editor = myProjectRule.getFixture().getEditor();
+      Document document = editor.getDocument();
+      PsiDocumentManager documentManager = PsiDocumentManager.getInstance(myProjectRule.getProject());
+      int offset = document.getText().indexOf("name}\"");
+      int line = document.getLineNumber(offset);
 
-    assertFalse(document.getText().contains("my_binding_attribute"));
+      assertFalse(document.getText().contains("my_binding_attribute"));
 
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      document.insertString(document.getLineEndOffset(line), " my_bind");
-      documentManager.commitAllDocuments();
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        document.insertString(document.getLineEndOffset(line), " my_bind");
+        documentManager.commitAllDocuments();
+      });
+
+      editor.getCaretModel().moveToOffset(document.getLineEndOffset(line));
+      assertNull(myProjectRule.getFixture().completeBasic()); // null because there is only one completion option
+      assertTrue(document.getText().contains("my_binding_attribute"));
+
+      // The attribute is defined by @BindingAdapter so it shouldn't be marked as unknown
+      assertTrue(myProjectRule.getFixture().doHighlighting(HighlightSeverity.WARNING).isEmpty());
+
+      // The next attribute is not defined so it should be marked as a warning
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        document.insertString(document.getLineEndOffset(line), " my_not_attribute=\"\"");
+        documentManager.commitAllDocuments();
+      });
+      assertFalse(myProjectRule.getFixture().doHighlighting(HighlightSeverity.WARNING).isEmpty());
+
+      // Check that we do not return duplicate attributes (http://b/67408823)
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        document.insertString(document.getLineEndOffset(line), " android:paddin");
+        documentManager.commitAllDocuments();
+      });
+      editor.getCaretModel().moveToOffset(document.getLineEndOffset(line));
+      long paddingCompletions = Arrays.stream(myProjectRule.getFixture().completeBasic())
+        .map(LookupElement::getLookupString)
+        .filter("padding"::equals)
+        .count();
+      assertEquals(1, paddingCompletions);
     });
-
-    editor.getCaretModel().moveToOffset(document.getLineEndOffset(line));
-    assertNull(myFixture.completeBasic()); // null because there is only one completion option
-    assertTrue(document.getText().contains("my_binding_attribute"));
-
-    // The attribute is defined by @BindingAdapter so it shouldn't be marked as unknown
-    assertTrue(myFixture.doHighlighting(HighlightSeverity.WARNING).isEmpty());
-
-    // The next attribute is not defined so it should be marked as a warning
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      document.insertString(document.getLineEndOffset(line), " my_not_attribute=\"\"");
-      documentManager.commitAllDocuments();
-    });
-    assertFalse(myFixture.doHighlighting(HighlightSeverity.WARNING).isEmpty());
-
-    // Check that we do not return duplicate attributes (http://b/67408823)
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      document.insertString(document.getLineEndOffset(line), " android:paddin");
-      documentManager.commitAllDocuments();
-    });
-    editor.getCaretModel().moveToOffset(document.getLineEndOffset(line));
-    long paddingCompletions = Arrays.stream(myFixture.completeBasic())
-      .map(LookupElement::getLookupString)
-      .filter("padding"::equals)
-      .count();
-    assertEquals(1, paddingCompletions);
   }
 }
