@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
@@ -25,6 +26,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,5 +81,10 @@ public class RecyclerViewHandler extends ViewGroupHandler {
     return panelFactory != null ?
            ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
            ImmutableList.of();
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return Collections.emptyList();
   }
 }
