@@ -602,10 +602,12 @@ public class EditorFixture {
    * requests that it be opened if necessary
    *
    * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
+   * @param waitForSurfaceToLoad if true, this method will block until the surface is fully ready.
+   *                             See {@link NlEditorFixture#waitForSurfaceToLoad()}
    * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
    */
   @NotNull
-  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
+  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary, boolean waitForSurfaceToLoad) {
     if (switchToTabIfNecessary) {
       selectEditorTab(Tab.DESIGN);
     }
@@ -613,7 +615,7 @@ public class EditorFixture {
     // Wait for the editor to do any initializations
     robot.waitForIdle();
 
-    return GuiQuery.getNonNull(
+    NlEditorFixture editorFixture = GuiQuery.getNonNull(
       () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
@@ -621,6 +623,25 @@ public class EditorFixture {
         checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
         return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
       });
+
+
+    if (waitForSurfaceToLoad) {
+      editorFixture.waitForSurfaceToLoad();
+    }
+    return editorFixture;
+  }
+
+  /**
+   * Returns a fixture around the layout editor, <b>if</b> the currently edited file
+   * is a layout file and it is currently showing the layout editor tab or the parameter
+   * requests that it be opened if necessary
+   *
+   * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
+   * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
+   */
+  @NotNull
+  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
+    return getLayoutEditor(switchToTabIfNecessary, true);
   }
 
   /**
