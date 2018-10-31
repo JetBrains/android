@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.xml.sax.SAXParseException
 import java.awt.Dimension
 import java.awt.Image
 import java.text.ParseException
@@ -71,8 +72,12 @@ class DrawableAssetRenderer : DesignAssetRenderer {
       val document = documentBuilder.parse(file.inputStream)
       document.documentElement.nodeName in SUPPORTED_DRAWABLE_TAG
     }
+    catch (ex: SAXParseException) {
+      LOG.debug("${ex::class.simpleName} in ${file.path}", ex)
+      return false
+    }
     catch (ex: Exception) {
-      LOG.warn(ex)
+      LOG.warn("${ex::class.simpleName} in ${file.path}", ex)
       return false
     }
   }
