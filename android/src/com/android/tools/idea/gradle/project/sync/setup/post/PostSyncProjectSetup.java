@@ -77,7 +77,7 @@ import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
+import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.LAST_SYNC_TASK_ID_KEY;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
@@ -224,7 +224,7 @@ public class PostSyncProjectSetup {
   }
 
   private void finishSuccessfulSync() {
-    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
+    ExternalSystemTaskId id = myProject.getUserData(LAST_SYNC_TASK_ID_KEY);
     if (id != null) {
       String message = "synced successfully";
       // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
@@ -249,7 +249,7 @@ public class PostSyncProjectSetup {
   }
 
   private void finishFailedSync() {
-    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
+    ExternalSystemTaskId id = myProject.getUserData(LAST_SYNC_TASK_ID_KEY);
     if (id != null) {
       String message = "sync failed";
       ArrayList<Failure> failures = new ArrayList<>();
@@ -267,7 +267,7 @@ public class PostSyncProjectSetup {
   private void callFinishEventAndShowBuildView(@NotNull FinishEvent event) {
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
     syncViewManager.onEvent(event);
-    myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
+    myProject.putUserData(LAST_SYNC_TASK_ID_KEY, null);
   }
 
   public void onCachedModelsSetupFailure(@NotNull Request request) {

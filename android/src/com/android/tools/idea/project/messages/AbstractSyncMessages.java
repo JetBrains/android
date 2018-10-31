@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
+import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.LAST_SYNC_TASK_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -147,7 +147,7 @@ public abstract class AbstractSyncMessages implements Disposable {
   }
 
   public void report(@NotNull NotificationData notificationData) {
-    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
+    ExternalSystemTaskId id = myProject.getUserData(LAST_SYNC_TASK_ID_KEY);
     if (id != null) {
       String title = notificationData.getTitle();
       // Since the title of the notification data is the grooup, it is better to display the first line of the message
