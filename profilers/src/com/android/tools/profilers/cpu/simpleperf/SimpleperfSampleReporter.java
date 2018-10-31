@@ -22,6 +22,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -36,13 +37,21 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
 
   private final String myHomePath;
 
-  public SimpleperfSampleReporter() {
-    this(PathManager.getHomePath());
+  /**
+   * Directory where the .so files are located. It's passed to simpleperf report-sample command following the --symdir flag.
+   * Although this {@link Supplier} can't be null, it can return null and in this case we don't pass the --symdir flag at all.
+   */
+  @NotNull
+  private Supplier<String> mySymbolsDir;
+
+  public SimpleperfSampleReporter(@NotNull Supplier<String> symbolsDir) {
+    this(PathManager.getHomePath(), symbolsDir);
   }
 
   @VisibleForTesting
-  SimpleperfSampleReporter(@NotNull String homePath) {
+  SimpleperfSampleReporter(@NotNull String homePath, @NotNull Supplier<String> symbolsDir) {
     myHomePath = homePath;
+    mySymbolsDir = symbolsDir;
   }
 
   private static Logger getLogger() {
@@ -84,9 +93,13 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     }
   }
 
-  private String getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace) throws IOException {
-    return String.format("%s report-sample --protobuf --show-callchain -i %s -o %s",
-                         getSimpleperfBinaryPath(), tempFileFromByteString(trace).getAbsolutePath(), processedTrace.getAbsolutePath());
+  @VisibleForTesting
+  String getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace) throws IOException {
+    String symbolsDir = mySymbolsDir.get();
+    String symDirFlag = symbolsDir == null ? "" : "--symdir " + symbolsDir;
+    return String.format("%s report-sample --protobuf --show-callchain -i %s -o %s %s",
+                         getSimpleperfBinaryPath(), tempFileFromByteString(trace).getAbsolutePath(),
+                         processedTrace.getAbsolutePath(), symDirFlag);
   }
 
   @VisibleForTesting

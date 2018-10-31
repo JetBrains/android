@@ -31,6 +31,7 @@ public abstract class CodeNavigator {
   @NotNull private final FeatureTracker myFeatureTracker;
   /**
    * Target CPU architecture (e.g. arm64, x86, etc) used to build the process currently being profiled, if applicable (null otherwise).
+   * TODO(b/118865682): move ownership of this field to somewhere in CPU profiler.
    */
   @Nullable protected String myCpuAbiArch;
 
@@ -61,6 +62,11 @@ public abstract class CodeNavigator {
 
   public void setCpuAbiArch(@Nullable String cpuAbiArch) {
     myCpuAbiArch = cpuAbiArch;
+  }
+
+  @Nullable
+  public String getCpuAbiArch() {
+    return myCpuAbiArch;
   }
 
   public interface Listener {

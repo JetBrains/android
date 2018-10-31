@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -50,6 +52,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +92,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
-    mySimpleperfSampleReporter = new SimpleperfSampleReporter();
+    mySimpleperfSampleReporter = new SimpleperfSampleReporter(() -> getNativeSymbolsDirectory());
   }
 
   @NotNull
@@ -350,6 +353,30 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public TracePreProcessor getSimpleperfTracePreProcessor() {
     return mySimpleperfSampleReporter;
+  }
+
+  /**
+   * Gets the directory containing the symbol files corresponding to the architecture of the process currently selected.
+   */
+  @Nullable
+  private String getNativeSymbolsDirectory() {
+    // First, try to get the directory from the ApkFacet, in case we're profiling an APK.
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      ApkFacet apkFacet = ApkFacet.getInstance(module);
+      if (apkFacet != null) {
+        List<Abi> supportedAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARM64_V8A, Abi.X86, Abi.X86_64);
+        Abi target =
+          supportedAbis.stream().filter(abi -> abi.getCpuArch().equals(myCodeNavigator.getCpuAbiArch())).findFirst().orElse(null);
+        Collection<String> matches = apkFacet.getConfiguration().getDebugSymbolFolderPaths(Collections.singletonList(target));
+        if (matches.isEmpty()) {
+          return null;
+        }
+        assert matches.size() == 1;
+        return matches.iterator().next();
+      }
+    }
+    // TODO(b/118759303): get the paths for projects built using Android Studio.
+    return null;
   }
 
   @Override
