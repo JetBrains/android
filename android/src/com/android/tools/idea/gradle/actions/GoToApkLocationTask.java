@@ -101,10 +101,13 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
 
       AndroidNotification notification = AndroidNotification.getInstance(myProject);
       if (result.isBuildSuccessful()) {
-        if (ShowFilePathAction.isSupported()) {
+        if (isShowFilePathActionSupported()) {
           StringBuilder buffer = new StringBuilder();
-          buffer.append("APK(s) generated successfully:<br/>");
           int moduleCount = moduleNames.size();
+          buffer.append(moduleCount);
+          buffer.append(" ");
+          buffer.append(moduleCount == 1 ? "APK" : "APKs");
+          buffer.append(" generated successfully:<br/>");
           for (int i = 0; i < moduleCount; i++) {
             String moduleName = moduleNames.get(i);
             buffer.append("Module '" ).append(moduleName).append("': ");
@@ -121,8 +124,11 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
           // Platform does not support showing the location of a file.
           // Display file paths in the 'Log' view, since they could be too long to show in a balloon notification.
           StringBuilder buffer = new StringBuilder();
-          buffer.append("APK(s) generated successfully:\n");
           int moduleCount = moduleNames.size();
+          buffer.append(moduleCount);
+          buffer.append(" ");
+          buffer.append(moduleCount == 1 ? "APK" : "APKs");
+          buffer.append(" generated successfully:\n");
           for (int i = 0; i < moduleCount; i++) {
             String moduleName = moduleNames.get(i);
             buffer.append(" - ").append(moduleName).append(": ");
@@ -131,7 +137,12 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
               buffer.append("\n");
             }
           }
-          notification.showBalloon(myNotificationTitle, "APK(s) generated successfully.", INFORMATION, new OpenEventLogHyperlink());
+          StringBuilder balloonBuffer = new StringBuilder();
+          balloonBuffer.append(moduleCount);
+          balloonBuffer.append(" ");
+          balloonBuffer.append(moduleCount == 1 ? "APK" : "APKs");
+          balloonBuffer.append(" generated successfully.");
+          notification.showBalloon(myNotificationTitle, balloonBuffer.toString(), INFORMATION, new OpenEventLogHyperlink());
           notification.addLogEvent(myNotificationTitle, buffer.toString(), INFORMATION);
         }
       }
@@ -160,7 +171,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
     Map<Module, File> modulesAndPaths = new HashMap<>();
     PostBuildModel postBuildModel = null;
 
-    if (model != null && model instanceof OutputBuildAction.PostBuildProjectModels) {
+    if (model instanceof OutputBuildAction.PostBuildProjectModels) {
       postBuildModel = new PostBuildModel((OutputBuildAction.PostBuildProjectModels) model);
     }
 
@@ -241,6 +252,11 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   }
 
   @VisibleForTesting
+  boolean isShowFilePathActionSupported() {
+    return ShowFilePathAction.isSupported();
+  }
+
+  @VisibleForTesting
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Map<String, File> myApkPathsPerModule;
     @NotNull private final Project myProject;
@@ -296,7 +312,8 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
     }
   }
 
-  private static class OpenEventLogHyperlink extends NotificationHyperlink {
+  @VisibleForTesting
+  static class OpenEventLogHyperlink extends NotificationHyperlink {
     OpenEventLogHyperlink() {
       super("open.event.log", "Show APK path(s) in the 'Event Log' view");
     }
@@ -307,6 +324,19 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
       if (tw != null) {
         tw.activate(null, false);
       }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      // There are no fields to compare.
+      return true;
     }
   }
 }
