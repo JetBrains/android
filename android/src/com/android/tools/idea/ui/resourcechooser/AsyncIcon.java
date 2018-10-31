@@ -18,8 +18,8 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +65,7 @@ public class AsyncIcon implements Icon {
       public void onFailure(@NotNull Throwable e) {
         Logger.getInstance(AsyncIcon.class).warn("Unable to load AsyncIcon", e);
       }
-    }, AppExecutorUtil.getAppExecutorService());
+    }, MoreExecutors.directExecutor());
   }
 
   @Override
