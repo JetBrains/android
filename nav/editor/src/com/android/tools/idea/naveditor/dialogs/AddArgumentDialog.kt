@@ -146,8 +146,8 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
         else {
           setText(value.display)
         }
-        setBackground(UIUtil.getListBackground(isSelected))
-        setForeground(UIUtil.getListForeground(isSelected))
+        setBackground(UIUtil.getListBackground(isSelected, true))
+        setForeground(UIUtil.getListForeground(isSelected, true))
       }
     })
 
