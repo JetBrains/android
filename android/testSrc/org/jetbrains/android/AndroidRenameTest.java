@@ -152,14 +152,6 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
-  // b/117947069 - Temporarily ignore this test, as it needs databinding testData. Will move the test to databinding module shortly.
-  public void ignore_testMoveDataBindingClass() throws Throwable  {
-    myFixture.copyFileToProject("databinding/src/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
-    myFixture.copyFileToProject("databinding/res/layout/basic_binding.xml", "res/layout/basic_binding.xml");
-    moveClassNoTextReferences("p1.p2.DummyClass", "p1");
-    myFixture.checkResultByFile("res/layout/basic_binding.xml", "databinding/res/layout/basic_binding_after.xml", true);
-  }
-
   public void testAndroidManifestRenameClass1() throws Throwable {
     doTestAndroidManifestRenameClass("AndroidManifest_rename_class1.xml", "AndroidManifest_rename_class1-2_after.xml");
   }

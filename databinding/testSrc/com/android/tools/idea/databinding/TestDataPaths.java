@@ -21,7 +21,6 @@ import com.android.testutils.TestUtils;
  * Constants for databinding test data locations.
  */
 public final class TestDataPaths {
-  // TODO(b/117947069): Change to "tools/adt/idea/databinding/testData
   public static final String TEST_DATA_ROOT = TestUtils.getWorkspaceFile("tools/adt/idea/databinding/testData").getPath();
 
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
