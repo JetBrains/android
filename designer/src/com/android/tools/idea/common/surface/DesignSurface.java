@@ -399,10 +399,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #addModel(NlModel)
    * @see #removeModel(NlModel)
    */
-  public void setModel(@Nullable NlModel model) {
+  public CompletableFuture<Void> setModel(@Nullable NlModel model) {
     NlModel oldModel = getModel();
     if (model == oldModel) {
-      return;
+      return CompletableFuture.completedFuture(null);
     }
 
     if (oldModel != null) {
@@ -412,25 +412,29 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     // Should not have any other NlModel in this use case.
     assert myModelToSceneManagers.isEmpty();
 
-    if (model != null) {
-      addModelImpl(model);
-
-      requestRender()
-        .whenCompleteAsync((result, ex) -> {
-          reactivateInteractionManager();
-          zoomToFit();
-
-          // TODO: The listeners have the expectation of the call happening in the EDT. We need
-          //       to address that.
-          for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-            listener.modelChanged(this, model);
-          }
-        }, EdtExecutor.INSTANCE);
-      
-      if (myIsActive) {
-        model.activate(this);
-      }
+    if (model == null) {
+      return CompletableFuture.completedFuture(null);
     }
+
+    addModelImpl(model);
+
+    CompletableFuture<Void> future = requestRender()
+      .whenCompleteAsync((result, ex) -> {
+        reactivateInteractionManager();
+        zoomToFit();
+
+        // TODO: The listeners have the expectation of the call happening in the EDT. We need
+        //       to address that.
+        for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+          listener.modelChanged(this, model);
+        }
+      }, EdtExecutor.INSTANCE);
+
+    if (myIsActive) {
+      model.activate(this);
+    }
+
+    return future;
   }
 
   /**
