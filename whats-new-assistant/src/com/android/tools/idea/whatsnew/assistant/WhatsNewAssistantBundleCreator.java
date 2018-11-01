@@ -22,6 +22,7 @@ import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -45,12 +46,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   public static final String BUNDLE_ID = "DeveloperServices.WhatsNewAssistant";
+  private static final int UNKNOWN_VERSION = -1;
+
   private static AssistantBundleCreator ourTestCreator = null;
 
   private WhatsNewAssistantURLProvider myURLProvider;
   private WhatsNewAssistantConnectionOpener myConnectionOpener;
 
-  private int lastSeenVersion = -1;
+  private int myLastSeenVersion = UNKNOWN_VERSION;
 
   /**
    * Constructor initializes default production field, will be replaced in testing
@@ -80,9 +83,16 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     return BUNDLE_ID;
   }
 
+  /**
+   * Get the bundle for WNA. Should not be called on UI thread.
+   * @param project is not used
+   * @return
+   */
   @Nullable
   @Override
   public WhatsNewAssistantBundle getBundle(@NotNull Project project) {
+    assert ApplicationManager.getApplication().isUnitTestMode() || !ApplicationManager.getApplication().isDispatchThread();
+
     // Must download any updated xml first
     updateConfig();
 
@@ -100,15 +110,22 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   }
 
   /**
+   * Takes note of the current version of the config, then updates the config and
+   * checks if the new config is a higher version.
+   * Calling this function multiple times will return false on any subsequent calls,
+   * unless the config actually is updated, since this function pulls updated config.
+   * Should not be called on the UI thread.
    * @return whether the downloaded config is a higher version than previous local file
    */
   public boolean isNewConfigVersion() {
+    assert ApplicationManager.getApplication().isUnitTestMode() || !ApplicationManager.getApplication().isDispatchThread();
+
     // Check the current version
     Path localConfig = myURLProvider.getLocalConfig(getVersion());
     if (Files.exists(localConfig)) {
       WhatsNewAssistantBundle oldBundle = parseBundle();
       if (oldBundle != null) {
-        lastSeenVersion = oldBundle.getVersion();
+        myLastSeenVersion = oldBundle.getVersion();
       }
     }
 
@@ -117,7 +134,8 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
     // Parse and return the new bundle
     WhatsNewAssistantBundle newBundle = parseBundle();
-    if (newBundle != null && newBundle.getVersion() > lastSeenVersion) {
+    if (newBundle != null &&
+        (myLastSeenVersion == UNKNOWN_VERSION || newBundle.getVersion() > myLastSeenVersion)) {
       return true;
     }
     return false;
