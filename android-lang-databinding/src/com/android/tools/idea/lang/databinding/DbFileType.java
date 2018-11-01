@@ -17,10 +17,9 @@ package com.android.tools.idea.lang.databinding;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * A file type for testing data-binding.
@@ -33,7 +32,7 @@ public class DbFileType extends LanguageFileType {
   /**
    * Creates a language file type for the specified language.
    */
-  private   DbFileType() {
+  private DbFileType() {
     super(DbLanguage.INSTANCE);
   }
 

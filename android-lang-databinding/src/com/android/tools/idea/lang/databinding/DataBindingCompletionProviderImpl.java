@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,23 @@ package com.android.tools.idea.lang.databinding;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.TailType;
-import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.InsertHandler;
+import com.intellij.codeInsight.completion.InsertionContext;
+import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor;
+import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.TailTypeDecorator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -44,10 +53,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Used to suggest completions related to data-binding. This is used in the expressions ({@code @{...}}) and in the {@code <data>} tag.
  */
-public class DataBindingCompletionUtil {
-  public static final String JAVA_LANG = "java.lang.";
-
-  public static void addCompletions(@NotNull CompletionParameters params, @NotNull CompletionResultSet resultSet) {
+public class DataBindingCompletionProviderImpl implements DataBindingCompletionProvider {
+  @Override
+  public void addCompletions(@NotNull CompletionParameters params, @NotNull CompletionResultSet resultSet) {
     final PsiElement originalPosition = params.getOriginalPosition();
     final PsiElement originalParent = originalPosition == null ? null : originalPosition.getParent();
     if (originalParent == null) {

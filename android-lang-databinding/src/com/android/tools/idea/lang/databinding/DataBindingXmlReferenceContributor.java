@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding;
 
-import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.ModelClass;

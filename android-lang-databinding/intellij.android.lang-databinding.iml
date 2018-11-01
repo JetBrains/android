@@ -16,5 +16,6 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="db-compilerCommon" />
+    <orderEntry type="module" module-name="intellij.java.impl" />
   </component>
 </module>

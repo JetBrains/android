@@ -23,7 +23,8 @@
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector"/>
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
   </extensions>
-  <extensions defaultExtensionNs="com.android.tools.idea.databinding">
-    <dataBindingExpressionProvider implementation="com.android.tools.idea.lang.databinding.DataBindingLangExpressionProvider"/>
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <databinding.dataBindingExpressionProvider implementation="com.android.tools.idea.lang.databinding.DataBindingLangExpressionProvider"/>
+    <lang.databinding.dataBindingCompletionProvider implementation="com.android.tools.idea.lang.databinding.DataBindingCompletionProviderImpl"/>
   </extensions>
 </idea-plugin>

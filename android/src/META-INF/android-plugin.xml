@@ -1289,6 +1289,8 @@
                     interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
     <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingExpressionProvider"
                     interface="com.android.tools.idea.databinding.DataBindingExpressionProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionProvider"
+                    interface="com.android.tools.idea.lang.databinding.DataBindingCompletionProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">

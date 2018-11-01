@@ -25,6 +25,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import org.jetbrains.android.facet.AndroidFacet
 
+const val JAVA_LANG = "java.lang."
 
 /**
  * Given a [PsiElement], return an associated [DataBindingInfo] for it.
