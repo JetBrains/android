@@ -37,7 +37,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -77,6 +76,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
   private NlModel myModel;
   private MotionSceneModel myMotionSceneModel;
+  private Object myLastSelectedAccessory = new Object();
 
   public State getCurrentState() {
     return myCurrentState;
@@ -477,8 +477,14 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   private void fireSelectionChanged() {
+    Object newValue = getSelectedAccessory();
+    if (myLastSelectedAccessory == newValue) {
+      // Avoid sending change requests when there are no changes.
+      return;
+    }
     List<NlComponent> selection = mySelection != null ? Collections.singletonList(mySelection) : Collections.emptyList();
     fireSelectionChanged(selection);
+    myLastSelectedAccessory = newValue;
   }
 
   @Override
