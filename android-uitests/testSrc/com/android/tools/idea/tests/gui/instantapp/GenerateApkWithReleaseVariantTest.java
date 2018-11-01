@@ -20,9 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,7 +43,7 @@ public class GenerateApkWithReleaseVariantTest {
    *   Test steps:
    *   1. Create a Project with any Activity
    *   2. Create a Android Library module
-   *   3. Right click on app module | Module settings | Dependencies | Add Library module as dependency to app
+   *   3. Open app/build.gradle, add dependency on library module.
    *   4. Open mylibrary | build.gradle
    *   5. Add "shrinkResources true" to release variant
    *   6. Gradle sync (Verify)
@@ -62,23 +60,20 @@ public class GenerateApkWithReleaseVariantTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
     NewModuleWizardFixture.find(ideFrame)
-                          .chooseModuleType("Android Library")
-                          .clickNextToStep("Configure the new module")
-                          .clickFinish();
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Configure the new module")
+      .clickFinish();
     ideFrame.waitForGradleProjectSyncToFinish();
 
-    ideFrame.getProjectView()
-            .selectAndroidPane()
-            .clickPath(MouseButton.RIGHT_BUTTON, "app")
-            .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
-            .selectDependenciesTab()
-            .addModuleDependency(":mylibrary")
-            .clickOk();
+    ideFrame.getEditor()
+      .open("app/build.gradle")
+      .moveBetween("dependencies {", "")
+      .enterText("\nimplementation project(path: ':mylibrary')\n");
 
     ideFrame.getEditor()
-            .open("mylibrary/build.gradle")
-            .moveBetween("release {", "")
-            .enterText("\nshrinkResources true");
+      .open("mylibrary/build.gradle")
+      .moveBetween("release {", "")
+      .enterText("\nshrinkResources true");
     ideFrame.requestProjectSync();
 
     ideFrame.waitForGradleProjectSyncToFail(Wait.seconds(20));
