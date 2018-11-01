@@ -36,6 +36,8 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionEvent
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -43,7 +45,6 @@ import java.awt.event.MouseEvent
 import java.util.EventObject
 import javax.swing.AbstractAction
 import javax.swing.JComponent
-import javax.swing.JTable
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListSelectionModel
@@ -54,7 +55,12 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.text.JTextComponent
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.properties.Delegates
+
+private const val LEFT_FRACTION = 0.40
+private const val MAX_LABEL_WIDTH = 200
 
 /**
  * Implementation of a [PTable].
@@ -87,7 +93,6 @@ class PTableImpl(override val tableModel: PTableModel,
     super.setMaxItemsForSizeCalculation(5)
 
     super.setShowColumns(false)
-    super.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN)
     super.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
 
     super.setShowGrid(false)
@@ -105,6 +110,10 @@ class PTableImpl(override val tableModel: PTableModel,
     super.resetDefaultFocusTraversalKeys()
     super.setFocusTraversalPolicyProvider(true)
     super.setFocusTraversalPolicy(PTableFocusTraversalPolicy())
+
+    super.addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(event: ComponentEvent) = updateColumnWidths()
+    })
 
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
@@ -168,6 +177,13 @@ class PTableImpl(override val tableModel: PTableModel,
   override fun updateUI() {
     super.updateUI()
     customizeKeyMaps()
+  }
+
+  private fun updateColumnWidths() {
+    val nameColumn = getColumnModel().getColumn(0)
+    val valueColumn = getColumnModel().getColumn(1)
+    nameColumn.preferredWidth = min((width * LEFT_FRACTION).roundToInt(), SCALED_MAX_LABEL_WIDTH)
+    valueColumn.preferredWidth = width - nameColumn.preferredWidth
   }
 
   // Bug: 221565
@@ -578,6 +594,10 @@ class PTableImpl(override val tableModel: PTableModel,
     override fun getDefaultComponent(aContainer: Container): Component? {
       return null
     }
+  }
+
+  companion object {
+    private val SCALED_MAX_LABEL_WIDTH = JBUI.scale(MAX_LABEL_WIDTH)
   }
 }
 
