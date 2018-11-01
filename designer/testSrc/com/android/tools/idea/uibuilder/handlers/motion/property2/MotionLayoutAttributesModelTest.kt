@@ -21,13 +21,24 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
+import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetStart
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel
-import com.google.common.truth.Truth
+import com.android.tools.idea.uibuilder.surface.AccessoryPanel
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import java.awt.event.ActionEvent
+import javax.swing.JPanel
 
 class MotionLayoutAttributesModelTest: LayoutTestCase() {
 
@@ -39,19 +50,18 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     @Suppress("UNCHECKED_CAST")
     val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<MotionPropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    val (nlModel, timeline) = createNlModel()
+    val nlModel = createNlModel()
+    val timeline = retrieveTimeline(nlModel)
     model.addListener(listener)
 
     // test
     model.surface = nlModel.surface
-    assertThat(timeline.listenerCount).isEqualTo(0)
-    nlModel.surface.selectionModel.setSelection(nlModel.components)
     assertThat(timeline.listenerCount).isEqualTo(1)
     Mockito.verifyZeroInteractions(listener)
 
     val textView = nlModel.components[0].getChild(0)
     val scene = MotionSceneModel.parse(nlModel, project, file, xmlFile)
-    timeline.updateTransition(scene.getTransitionTag(0), textView)
+    timeline.select(scene.getTransitionTag(0).tag, textView)
     UIUtil.dispatchAllInvocationEvents()
     Mockito.verify(listener).propertiesGenerated(model)
   }
@@ -66,9 +76,11 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<MotionPropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     model.addListener(listener)
-    val (nlModelA, timelineA) = createNlModel()
-    val (nlModelB, timelineB) = createNlModel()
-    val textViewA = nlModelB.find("widget")!!
+    val nlModelA = createNlModel()
+    val nlModelB = createNlModel()
+    val timelineA = retrieveTimeline(nlModelA)
+    val timelineB = retrieveTimeline(nlModelB)
+    val textViewA = nlModelA.find("widget")!!
     val textViewB = nlModelB.find("widget")!!
     val scene = MotionSceneModel.parse(nlModelB, project, file, xmlFile)
 
@@ -76,12 +88,12 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     model.surface = nlModelA.surface
     model.surface = nlModelB.surface
     nlModelA.surface.selectionModel.setSelection(listOf(textViewA))
-    timelineA.updateTransition(scene.getTransitionTag(0), textViewA)
+    timelineA.select(scene.getTransitionTag(0).tag, textViewA)
     UIUtil.dispatchAllInvocationEvents()
     Mockito.verifyZeroInteractions(listener)
 
     nlModelB.surface.selectionModel.setSelection(listOf(textViewB))
-    timelineB.updateTransition(scene.getTransitionTag(0), textViewB)
+    timelineB.select(scene.getTransitionTag(0).tag, textViewB)
     UIUtil.dispatchAllInvocationEvents()
     Mockito.verify(listener).propertiesGenerated(model)
     assertThat(model.properties[SdkConstants.AUTO_URI, TransitionConstraintSetStart].component.model).isEqualTo(nlModelB)
@@ -96,7 +108,8 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     @Suppress("UNCHECKED_CAST")
     val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<MotionPropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    val (nlModel, timeline) = createNlModel()
+    val nlModel = createNlModel()
+    val timeline = retrieveTimeline(nlModel)
     model.addListener(listener)
     val scene = MotionSceneModel.parse(nlModel, project, file, xmlFile)
     model.surface = nlModel.surface
@@ -104,13 +117,13 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     nlModel.surface.selectionModel.setSelection(nlModel.components)
 
     // test
-    timeline.updateConstraintSet(scene.startConstraintSet, textView)
+    timeline.select(scene.startConstraintSet.tag, textView)
     UIUtil.dispatchAllInvocationEvents()
     Mockito.verify(listener).propertiesGenerated(model)
     assertThat(model.properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value).isEqualTo("64dp")
   }
 
-  private fun createNlModel(): Pair<SyncNlModel, MockTimelineOwner> {
+  private fun createNlModel(): SyncNlModel {
     val builder = model(
       "motion.xml",
       component(SdkConstants.MOTION_LAYOUT.newName())
@@ -128,35 +141,86 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
         )
     )
     val model = builder.build()
-    val timeline = MockTimelineOwner()
-    model.components[0].putClientProperty(TimelineOwner.TIMELINE_PROPERTY, timeline)
-    return Pair(model, timeline)
+    val panel = mock(AccessoryPanel::class.java)
+    val timeline = Timeline()
+    val surface = model.surface as NlDesignSurface
+    `when`(surface.accessoryPanel).thenReturn(panel)
+    `when`(panel.currentPanel).thenReturn(timeline)
+    return model
   }
 
-  private class MockTimelineOwner : TimelineOwner {
-    private val listeners = mutableListOf<TimelineListener>()
+  private fun retrieveTimeline(model: SyncNlModel): Timeline {
+    val surface = model.surface as NlDesignSurface
+    return surface.accessoryPanel.currentPanel as Timeline
+  }
 
-    override fun addTimelineListener(listener: TimelineListener) {
-      listeners.add(listener)
+  private class Timeline: AccessoryPanelInterface, GanttEventListener {
+    val listeners = mutableListOf<AccessorySelectionListener>()
+    var tag: SmartPsiElementPointer<XmlTag>? = null
+
+    override fun getPanel(): JPanel {
+      throw Error("should not be called")
     }
 
-    override fun removeTimeLineListener(listener: TimelineListener) {
-      listeners.remove(listener)
+    override fun createPanel(type: AccessoryPanel.Type?): JPanel {
+      throw Error("should not be called")
+    }
+
+    override fun updateAccessoryPanelWithSelection(type: AccessoryPanel.Type, selection: MutableList<NlComponent>) {
+      throw Error("should not be called")
+    }
+
+    override fun deactivate() {
+      throw Error("should not be called")
+    }
+
+    override fun updateAfterModelDerivedDataChanged() {
+      throw Error("should not be called")
+    }
+
+    override fun setProgress(percent: Float) {
+      throw Error("should not be called")
+    }
+
+    override fun buttonPressed(e: ActionEvent?, action: GanttEventListener.Actions?) {
+      throw Error("should not be called")
+    }
+
+    override fun selectionEvent() {
+      throw Error("should not be called")
+    }
+
+    override fun transitionDuration(duration: Int) {
+      throw Error("should not be called")
+    }
+
+    override fun motionLayoutAccess(cmd: Int, type: String?, `in`: FloatArray?, inLength: Int, out: FloatArray?, outLength: Int) {
+      throw Error("should not be called")
+    }
+
+    override fun onInit(commands: GanttCommands?) {
+      throw Error("should not be called")
+    }
+
+    fun select(tag: SmartPsiElementPointer<XmlTag>?, component: NlComponent?) {
+      this.tag = tag
+      val list = if (component != null) listOf(component) else emptyList()
+      listeners.forEach { it.selectionChanged(this, list) }
+    }
+
+    override fun getSelectedAccessory(): Any? {
+      return tag
     }
 
     val listenerCount: Int
       get() = listeners.size
 
-    fun updateTransition(transition: MotionSceneModel.TransitionTag, component: NlComponent?) {
-      listeners.forEach { it.updateTransition(transition, component) }
+    override fun addListener(listener: AccessorySelectionListener) {
+      listeners.add(listener)
     }
 
-    fun updateConstraintSet(constraintSet: MotionSceneModel.ConstraintSet, component: NlComponent?) {
-      listeners.forEach { it.updateConstraintSet(constraintSet, component) }
-    }
-
-    fun updateSelection(keyFrame: MotionSceneModel.KeyFrame, component: NlComponent?) {
-      listeners.forEach { it.updateSelection(keyFrame, component) }
+    override fun removeListener(listener: AccessorySelectionListener) {
+      listeners.remove(listener)
     }
   }
 }

@@ -20,7 +20,9 @@ import com.android.tools.idea.common.property2.api.PropertiesModel;
 import com.android.tools.idea.common.property2.api.PropertiesModelListener;
 import com.android.tools.idea.common.property2.api.PropertiesTable;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
+import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimelineHelper;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -40,14 +42,14 @@ public class MotionLayoutAttributesModel implements PropertiesModel<MotionProper
   private final AndroidFacet myFacet;
   private final List<PropertiesModelListener> myListeners;
   private final MotionLayoutPropertyProvider myPropertyProvider;
-  private final TimelineHelper myTimelineHelper;
+  private final MotionLayoutTimelineHelper myTimelineHelper;
   private PropertiesTable<MotionPropertyItem> myPropertiesTable;
 
   public MotionLayoutAttributesModel(@NotNull Disposable parentDisposable, @NotNull AndroidFacet facet) {
     myFacet = facet;
     myListeners = new ArrayList<>();
     myPropertyProvider = new MotionLayoutPropertyProvider(this);
-    myTimelineHelper = new TimelineHelper(new PropertiesTimelineListener());
+    myTimelineHelper = new MotionLayoutTimelineHelper(new TimelineListener());
     myPropertiesTable = PropertiesTable.Companion.emptyTable();
     Disposer.register(parentDisposable, this);
   }
@@ -97,31 +99,24 @@ public class MotionLayoutAttributesModel implements PropertiesModel<MotionProper
     myListeners.remove(listener);
   }
 
-  private void displayItem(@NotNull SmartPsiElementPointer<XmlTag> tagPointer, @Nullable NlComponent component) {
-    if (component == null) {
-      return;
-    }
+  private void displayItem(@NotNull SmartPsiElementPointer<XmlTag> tagPointer, @NotNull NlComponent component) {
     ApplicationManager.getApplication().invokeLater(() -> {
       myPropertiesTable = myPropertyProvider.getProperties(component, tagPointer);
+      List<PropertiesModelListener> copy = new ArrayList<>(myListeners);
       //noinspection unchecked
-      myListeners.forEach(listener -> listener.propertiesGenerated(this));
+      copy.forEach(listener -> listener.propertiesGenerated(this));
     });
   }
 
-  private class PropertiesTimelineListener implements TimelineListener {
+  private class TimelineListener implements AccessorySelectionListener {
     @Override
-    public void updateTransition(@NotNull MotionSceneModel.TransitionTag transition, @Nullable NlComponent component) {
-      displayItem(transition.getTag(), component);
-    }
-
-    @Override
-    public void updateConstraintSet(@NotNull MotionSceneModel.ConstraintSet constraintSet, @Nullable NlComponent component) {
-      displayItem(constraintSet.getTag(), component);
-    }
-
-    @Override
-    public void updateSelection(@NotNull MotionSceneModel.KeyFrame keyFrame, @Nullable NlComponent component) {
-      displayItem(keyFrame.getTag(), component);
+    public void selectionChanged(@NotNull AccessoryPanelInterface accessoryPanel, @NotNull List<NlComponent> selection) {
+      @SuppressWarnings("unchecked")
+      SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)accessoryPanel.getSelectedAccessory();
+      NlComponent component = selection.isEmpty() ? null : selection.get(0);
+      if (tagPointer != null && component != null) {
+        displayItem(tagPointer, component);
+      }
     }
   }
 }

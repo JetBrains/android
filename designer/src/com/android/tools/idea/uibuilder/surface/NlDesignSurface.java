@@ -74,7 +74,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -263,7 +262,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @NotNull
-  public JPanel getAccessoryPanel() {
+  public AccessoryPanel getAccessoryPanel() {
     return myAccessoryPanel;
   }
 

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2;
+package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * An interface the timeline component should implement to
- * attach the motion property editor.
+ * Listener for {@link AccessoryPanel} content changes.
  */
-public interface TimelineOwner {
-  /**
-   * A key used to specify a {@link TimelineOwner} on a component.
-   */
-  String TIMELINE_PROPERTY = "Timeline";
+public interface AccessoryPanelListener {
 
-  void addTimelineListener(@NotNull TimelineListener listener);
-  void removeTimeLineListener(@NotNull TimelineListener listener);
+  /**
+   * This method is called whenever the {@link AccessoryPanel} changes its content.
+   * @param panel the new content or null if no content is shown.
+   */
+  void panelChange(@Nullable AccessoryPanelInterface panel);
 }

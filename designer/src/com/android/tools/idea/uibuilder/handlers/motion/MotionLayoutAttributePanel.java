@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.AttributeTagPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.MotionSceneStatusPanel;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provide the Panel that is displayed during editing a KeyFrame attribute
@@ -145,6 +147,20 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   @Override
   public void updateAfterModelDerivedDataChanged() {
     updatePanel();
+  }
+
+  @Nullable
+  @Override
+  public Object getSelectedAccessory() {
+    return null;
+  }
+
+  @Override
+  public void addListener(@NotNull AccessorySelectionListener listener) {
+  }
+
+  @Override
+  public void removeListener(@NotNull AccessorySelectionListener listener) {
   }
 
   public void clearSelectedKeyframe() {
