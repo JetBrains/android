@@ -258,6 +258,11 @@ public class GradleSyncState {
   }
 
   @VisibleForTesting
+  public boolean isSourceGenerationFinished() {
+    return mySourceGenerationEndedTimeStamp != -1;
+  }
+
+  @VisibleForTesting
   void setSyncFailedTimeStamp(long timeStampMs) {
     mySyncFailedTimeStamp = timeStampMs;
   }

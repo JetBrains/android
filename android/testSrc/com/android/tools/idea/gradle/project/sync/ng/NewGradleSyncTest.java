@@ -59,10 +59,21 @@ public class NewGradleSyncTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
+    StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
     myCallback = new SyncExecutionCallback();
     myGradleSync =
       new NewGradleSync(getProject(), mySyncMessages, mySyncExecutor, myResultHandler, myBuildFileChecksumsLoader, myProjectModelsLoader,
                         myCallbackFactory);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testSyncFromCachedModels() throws Exception {
