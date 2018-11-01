@@ -32,6 +32,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
+        "//tools/idea:intellij.java.impl[module]",
     ],
 )
 
