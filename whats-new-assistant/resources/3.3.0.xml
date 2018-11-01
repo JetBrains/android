@@ -52,7 +52,7 @@
            A visual editor for the XML resource that the new Navigation Architecture Component uses to
            handle navigation actions at runtime.
            <a href="https://d.android.com/topic/libraries/architecture/navigation/navigation-implementing?utm_source=android-studio&utm_medium=studio-assistant">
-           Learn more</a></li>
+           Learn more</a>
            ]]>
           </section>
         </stepElement>
@@ -65,7 +65,7 @@
            <a href="https://d.android.com/r/studio-wna/instant-app">Instant Apps</a>. In other words, you can now build and deploy both
            installed app and Instant App experiences from a single Android Studio project, and include them in a single Android App Bundle.
            <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
-           Learn more</a></li>
+           Learn more</a>
            ]]>
           </section>
         </stepElement>
@@ -81,7 +81,40 @@
            If the IDE doesn't prompt you to enable this optimization, enable it manually by navigating to
            <b>Settings/Preferences &gt; Experimental &gt; Gradle</b> and checking the box next to <b>Only resolve selected variants</b>.
            <a href="https://d.android.com/studio/preview/features?utm_source=android-studio&utm_medium=studio-assistant#single_variant_sync">
-           Learn more</a></li>
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Profiler updates">
+        <stepElement>
+          <section>
+            <![CDATA[
+           In addition to performance and UI improvements, the Android Studio Profiler includes the following updates.
+            <br><br>
+            <b>Select memory allocation collection rate:</b>
+            To improve app performance while profiling, you can select the rate of data collection for live memory allocation tracking
+            when deploying to devices running API level 26 or higher.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/sampling_rate_dropdown">
+            Learn more</a>
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.3.0/sampling_rate_dropdown.png"
+                 width="428"
+                 height="120"
+                 alt="">
+
+            <br><br>
+            <b>Inspect frames:</b>
+            When you <b>Trace System Calls</b> with the CPU profiler, you can inspect data about how the system rendered each frame to
+            identify bottlenecks that cause UI jank and skipped frames.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/system_trace_frames">
+            Learn more</a>
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.3.0/cpu_frames.png"
+                 width="428"
+                 height="240"
+                 alt="">
+            <br><br>
            ]]>
           </section>
         </stepElement>
@@ -90,10 +123,11 @@
         <stepElement>
           <section>
             <![CDATA[
-           The Android Gradle plugin 3.3.0 requires Gradle 4.10 and higher, and includes the following updates.
+           The Android Gradle plugin 3.3.0 requires Gradle 4.10 and higher, and includes the following updates:
            <br><br>
            <ul>
             <li><b>Improved classpath dependency synchronization:</b>
+            <br>
             When resolving dependencies on your runtime and compile time classpaths, the plugin attempts to automatically fix certain
             downstream version conflicts for dependencies that appear across multiple classpaths.
             <a href="https://d.android.com/r/studio-wna/3.3.0/classpath-sync">
@@ -118,9 +152,9 @@
             used. To see the additional info, you need to include the following in your
             project's <code>gradle.properties</code> file.
             <a href="https://d.android.com/r/studio-wna/3.3.0/obsolete_api">
-            Learn more</a>s
+            Learn more</a>
 
-            <br><br>s
+            <br><br>
             <div style="border: solid gray 1px; padding-left: 10px;">
             <pre>android.debug.obsoleteApi=true</pre>
             </div>
@@ -135,8 +169,9 @@
           <section>
             <![CDATA[
            Projects that include C/C++ code can benefit from the following improvements:
+           <br><br>
            <ul>
-            <li><b>Support for Clang-Tidy:</b>Android Studio now includes support for static code analysis using
+            <li><b>Support for Clang-Tidy:</b> Android Studio now includes support for static code analysis using
             <a href="http://clang.llvm.org/extra/clang-tidy/">Clang-Tidy</a>. To enable this feature,
             <a href="https://d.android.com/ndk/guides/#download-ndk">update your NDK</a> to r18 or higher.
             <a href="https://d.android.com/r/studio-wna/3.3.0/clang-tidy">
@@ -176,19 +211,6 @@
             <div style="border: solid gray 1px; padding-left: 10px;">
             <pre>android.enableR8 = true</pre>
             </div>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Delete old Android Studio data">
-        <stepElement>
-          <section>
-            <![CDATA[
-            After you update Android Studio, a dialog appears to help you remove data from older versions of the IDE, such as
-            caches, settings, and logs. Simply check the boxes next to the versions of the IDE that you want to remove and click
-            <b>Delete Directories</b>.
-           <a href="https://d.android.com/r/studio-wna/3.3.0/delete_unused_dirs">
-           Learn more</a>
            ]]>
           </section>
         </stepElement>
