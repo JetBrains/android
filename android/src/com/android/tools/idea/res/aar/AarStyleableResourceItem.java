@@ -20,10 +20,9 @@ import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Resource item representing a styleable resource.
@@ -35,22 +34,16 @@ final class AarStyleableResourceItem extends AbstractAarValueResourceItem implem
    * Initializes the resource.
    *
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param attrs the attributes of the styleable
    */
   public AarStyleableResourceItem(@NotNull String name,
-                                  @NotNull AarConfiguration configuration,
+                                  @NotNull AarSourceFile sourceFile,
                                   @NotNull ResourceVisibility visibility,
                                   @NotNull List<AttrResourceValue> attrs) {
-    super(name, configuration, visibility);
+    super(ResourceType.STYLEABLE, name, sourceFile, visibility);
     myAttrs = ImmutableList.copyOf(attrs);
-  }
-
-  @Override
-  @NotNull
-  public ResourceType getResourceType() {
-    return ResourceType.STYLEABLE;
   }
 
   @Override

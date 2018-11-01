@@ -18,11 +18,10 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Iterator;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource item representing an array resource.
@@ -34,22 +33,16 @@ final class AarArrayResourceItem extends AbstractAarValueResourceItem implements
    * Initializes the resource.
    *
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param elements the elements  or the array
    */
   public AarArrayResourceItem(@NotNull String name,
-                              @NotNull AarConfiguration configuration,
+                              @NotNull AarSourceFile sourceFile,
                               @NotNull ResourceVisibility visibility,
                               @NotNull List<String> elements) {
-    super(name, configuration, visibility);
+    super(ResourceType.ARRAY, name, sourceFile, visibility);
     myElements = elements;
-  }
-
-  @Override
-  @NotNull
-  public ResourceType getResourceType() {
-    return ResourceType.ARRAY;
   }
 
   @Override

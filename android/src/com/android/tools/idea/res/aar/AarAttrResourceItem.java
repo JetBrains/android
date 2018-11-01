@@ -19,14 +19,12 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.google.common.collect.ImmutableMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource item representing an attr resource.
@@ -43,7 +41,7 @@ final class AarAttrResourceItem extends AbstractAarValueResourceItem implements 
    * Initializes the resource.
    *
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param description the description of the attr resource
    * @param formats the allowed attribute formats
@@ -53,23 +51,18 @@ final class AarAttrResourceItem extends AbstractAarValueResourceItem implements 
    * @param valueDescriptionMap the the enum or flag value descriptions keyed by the value names
    */
   public AarAttrResourceItem(@NotNull String name,
-                             @NotNull AarConfiguration configuration,
+                             @NotNull AarSourceFile sourceFile,
                              @NotNull ResourceVisibility visibility,
                              @Nullable String description,
                              @NotNull Set<AttributeFormat> formats,
                              @NotNull Map<String, Integer> valueMap,
                              @NotNull Map<String, String> valueDescriptionMap) {
-    super(name, configuration, visibility);
+    super(ResourceType.ATTR, name, sourceFile, visibility);
     myDescription = description;
-    myFormats = Collections.unmodifiableSet(formats);
-    myValueMap = ImmutableMap.copyOf(valueMap);
-    myValueDescriptionMap = valueDescriptionMap;
-  }
-
-  @Override
-  @NotNull
-  public ResourceType getResourceType() {
-    return ResourceType.ATTR;
+    myFormats = formats.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(formats);
+    // Cannot use ImmutableMap.copyOf() since valueMap may contain null values.
+    myValueMap = valueMap.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(valueMap);
+    myValueDescriptionMap = valueDescriptionMap.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(valueDescriptionMap);
   }
 
   @Override
@@ -103,7 +96,7 @@ final class AarAttrResourceItem extends AbstractAarValueResourceItem implements 
   }
 
   @Override
-  public boolean equals(@com.android.annotations.Nullable Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
     AarAttrResourceItem other = (AarAttrResourceItem) obj;

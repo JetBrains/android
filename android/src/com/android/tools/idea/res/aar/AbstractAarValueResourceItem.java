@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
+import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResolvableResourceItem;
+import com.android.utils.HashCodes;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,17 +32,23 @@ import org.jetbrains.annotations.Nullable;
  * Base class for AAR value resource items.
  */
 abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem implements ResolvableResourceItem {
+  @NotNull private final AarSourceFile mySourceFile;
+  @NotNull private ResourceNamespace.Resolver myNamespaceResolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+
   /**
    * Initializes the resource.
    *
+   * @param type the type of the resource
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    */
-  public AbstractAarValueResourceItem(@NotNull String name,
-                                      @NotNull AarConfiguration configuration,
+  public AbstractAarValueResourceItem(@NotNull ResourceType type,
+                                      @NotNull String name,
+                                      @NotNull AarSourceFile sourceFile,
                                       @NotNull ResourceVisibility visibility) {
-    super(name, configuration, visibility);
+    super(type, name, visibility);
+    mySourceFile = sourceFile;
   }
 
   @Override
@@ -52,10 +63,32 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem impl
   }
 
   @Override
+  @NotNull
+  public final FolderConfiguration getConfiguration() {
+    return mySourceFile.getConfiguration().getFolderConfiguration();
+  }
+
+  @Override
+  @NotNull
+  protected final AbstractAarResourceRepository getRepository() {
+    return mySourceFile.getConfiguration().getRepository();
+  }
+
+  @Override
+  @NotNull
+  public final ResourceNamespace.Resolver getNamespaceResolver() {
+    return myNamespaceResolver;
+  }
+
+  public final void setNamespaceResolver(@NotNull ResourceNamespace.Resolver resolver) {
+    myNamespaceResolver = resolver;
+  }
+
+  @Override
   @Nullable
   public final PathString getSource() {
-    // TODO(sprigogin): Implement using a source attachment.
-    return null;
+    String sourcePath = mySourceFile.getRelativePath();
+    return sourcePath == null ? null : getRepository().getPathString(sourcePath);
   }
 
   @Override
@@ -74,5 +107,18 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem impl
         return false;
       }
     };
+  }
+
+  @Override
+  public boolean equals(@Nullable Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    AbstractAarValueResourceItem other = (AbstractAarValueResourceItem) obj;
+    return Objects.equals(mySourceFile, other.mySourceFile);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodes.mix(super.hashCode(), Objects.hashCode(mySourceFile));
   }
 }
