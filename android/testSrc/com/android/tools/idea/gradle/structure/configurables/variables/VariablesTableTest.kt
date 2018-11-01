@@ -89,7 +89,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(variablesTable.tree.isExpanded(TreePath(nested1Node.path)), equalTo(false))
 
     val nested1DeepNode = rootNode.getChildAt(7) as DefaultMutableTreeNode
-    assertThat(tableModel.getValueAt(nested1DeepNode, 0) as String, equalTo("nested1-deep"))
+    assertThat(tableModel.getValueAt(nested1DeepNode, 0) as String, equalTo("nested1.deep"))
     assertThat(tableModel.getValueAt(nested1DeepNode, 1), equalTo<Any>(ParsedValue.NotSet))
     assertThat(nested1DeepNode.childCount, equalTo(0))
     assertThat(variablesTable.tree.isExpanded(TreePath(nested1DeepNode.path)), equalTo(false))
@@ -101,7 +101,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(variablesTable.tree.isExpanded(TreePath(nested2Node.path)), equalTo(false))
 
     val nested2DeepNode = rootNode.getChildAt(9) as DefaultMutableTreeNode
-    assertThat(tableModel.getValueAt(nested2DeepNode, 0) as String, equalTo("nested2-deep"))
+    assertThat(tableModel.getValueAt(nested2DeepNode, 0) as String, equalTo("nested2.deep"))
     assertThat(tableModel.getValueAt(nested2DeepNode, 1), equalTo<Any>(ParsedValue.NotSet))
     assertThat(nested2DeepNode.childCount, equalTo(0))
     assertThat(variablesTable.tree.isExpanded(TreePath(nested2DeepNode.path)), equalTo(false))
