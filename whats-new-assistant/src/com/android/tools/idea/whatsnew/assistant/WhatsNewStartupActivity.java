@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.startup.StartupActivity;
 
 
@@ -41,7 +42,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.annotations.Tag;
-import com.intellij.util.xmlb.annotations.Transient;
+import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,14 +75,22 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
 
     Revision applicationRevision = Revision.parseRevision(ApplicationInfo.getInstance().getStrictVersion());
 
-    if (shouldShowMessage(data, applicationRevision)) {
+    // If the Android Studio version is new, then always show on startup
+    if (isNewStudioVersion(data, applicationRevision)) {
       // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
       disableTipOfTheDay();
       openWhatsNewAssistant(project);
     }
+    else {
+      // But also show if the config version is newer than current, even if AS version is not higher
+      // This needs to be done asynchronously because the WNABundleCreator needs to download config to check version
+      WhatsNewAssistantCheckVersionTask task =
+        new WhatsNewAssistantCheckVersionTask(project, new VersionCheckCallback(project));
+      task.queue();
+    }
   }
 
-  private void openWhatsNewAssistant(@NotNull Project project) {
+  private static void openWhatsNewAssistant(@NotNull Project project) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                      .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
                                                      .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
@@ -90,7 +99,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
       .actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
         @Nullable
         @Override
-        public Object getData(String dataId) {
+        public Object getData(@NotNull String dataId) {
           if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
             return project;
           }
@@ -114,7 +123,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   }
 
   @VisibleForTesting
-  boolean shouldShowMessage(@NotNull WhatsNewData data, @NotNull Revision applicationRevision) {
+  boolean isNewStudioVersion(@NotNull WhatsNewData data, @NotNull Revision applicationRevision) {
     String seenRevisionStr = data.myRevision;
     Revision seenRevision = null;
     if (seenRevisionStr != null) {
@@ -158,5 +167,38 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   @VisibleForTesting
   public static class WhatsNewData {
     @Tag("shownVersion") public String myRevision;
+  }
+
+  /**
+   * Callback for when WhatsNewAssistantBundleCreator has determined whether
+   * there has been an update to the config. If yes, WNA is automatically opened.
+   */
+  private static class VersionCheckCallback implements FutureCallback<Boolean> {
+    private Project myProject;
+
+    private VersionCheckCallback(Project project) {
+      super();
+      myProject = project;
+    }
+
+    @Override
+    public void cancelled() {
+      // Don't auto-show
+    }
+
+    @Override
+    public void completed(Boolean result) {
+      // Auto-show What's New Assistant
+      if (result) {
+        disableTipOfTheDay();
+        openWhatsNewAssistant(myProject);
+      }
+    }
+
+    @Override
+    public void failed(Exception ex) {
+      // Don't auto-show
+      Logger.getInstance(WhatsNewStartupActivity.class).error(ex);
+    }
   }
 }

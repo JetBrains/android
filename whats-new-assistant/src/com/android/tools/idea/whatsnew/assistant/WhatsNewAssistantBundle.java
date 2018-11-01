@@ -25,8 +25,11 @@ import javax.xml.bind.annotation.XmlAttribute;
  * version is the same but WNA config is higher version
  */
 public class WhatsNewAssistantBundle extends DefaultTutorialBundle {
+
+  // Default version number should be 0, representing the "first" version,
+  // while -1 means no config at all.
   @XmlAttribute(name = "version")
-  private int myVersion = -1;
+  private int myVersion = 0;
 
   public int getVersion() {
       return myVersion;
