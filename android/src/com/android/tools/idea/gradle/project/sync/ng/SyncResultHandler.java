@@ -144,7 +144,7 @@ class SyncResultHandler {
       }
 
       StartupManager.getInstance(myProject)
-                    .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+        .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -170,7 +170,7 @@ class SyncResultHandler {
     }
 
     StartupManager.getInstance(myProject)
-                  .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+      .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -178,6 +178,10 @@ class SyncResultHandler {
     String errorMessage = error != null ? getRootCauseMessage(error) : callback.getError();
     errorMessage = nullToUnknownErrorCause(errorMessage);
     notifyAndLogSyncError(errorMessage, error, syncListener);
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Fails to obtain a model from Gradle, signal myLatch so onCompoundSyncFinished can be unblocked.
+      myCompoundSyncTestManager.myLatch.countDown();
+    }
   }
 
   private void notifyAndLogSyncError(@NotNull String errorMessage, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
@@ -241,7 +245,7 @@ class SyncResultHandler {
           syncListener.syncSucceeded(myProject);
         }
         StartupManager.getInstance(myProject)
-                      .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+          .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
       }
       catch (Throwable e) {
         notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -288,7 +292,11 @@ class SyncResultHandler {
         myCompoundSyncTestManager.reset();
         throw new RuntimeException(e);
       }
-      myCompoundSyncTestManager.myModelsCallback.get().run();
+      Runnable setupCallback = myCompoundSyncTestManager.myModelsCallback.get();
+      // SetupCallback can be null if Gradle failed to return a model.
+      if (setupCallback != null) {
+        setupCallback.run();
+      }
       myCompoundSyncTestManager.reset();
     }
 
@@ -317,7 +325,7 @@ class SyncResultHandler {
    * - Test code starts in EDT -> registers a callback to be invoked by Gradle -> invokes Gradle in EDT (or thread forked from EDT)
    * - Gradle (before finishing execution and thus returning to EDT) calls the callback via proxy, in a different thread -> invokes callback
    * containing project setup code (which contains code that must be run in EDT, which is busy waiting for Gradle invocation completion)
-   *
+   * <p>
    * To solve this, instead of really calling the setup code in the callback when in unit test mode, we register a runnable to be run after
    * Gradle returns, in the EDT.
    */
