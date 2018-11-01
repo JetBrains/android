@@ -33,7 +33,6 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.BitUtil;
@@ -106,7 +105,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   @Override
   @Nullable
   public String getPackageName() {
-    return getNamespace().getPackageName();
+    return myNamespace.getPackageName();
   }
 
   /**
@@ -149,7 +148,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   }
 
   private void loadResourceTable(@NotNull Resources.ResourceTable resourceTableMsg) {
-    Map<Configuration, AarConfiguration> configCache = new HashMap<>();
+    Map<Configuration, AarSourceFile> sourceFileCache = new HashMap<>();
     myUrlParser = new ResourceUrlParser();
     try  {
       for (Resources.Package packageMsg : resourceTableMsg.getPackageList()) {
@@ -164,7 +163,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
             Resources.Visibility visibilityMsg = entryMsg.getVisibility();
             ResourceVisibility visibility = computeVisibility(visibilityMsg);
             for (Resources.ConfigValue configValueMsg : entryMsg.getConfigValueList()) {
-              AarConfiguration configuration = getConfiguration(configValueMsg.getConfig(), configCache);
+              AarSourceFile configuration = getSourceFile(configValueMsg.getConfig(), sourceFileCache);
               Resources.Value valueMsg = configValueMsg.getValue();
               ResourceItem item = createResourceItem(valueMsg, resourceType, resourceName, configuration, visibility);
               if (item != null) {
@@ -193,18 +192,18 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   @Nullable
   private AarResourceItem createResourceItem(@NotNull Resources.Value valueMsg, @NotNull ResourceType resourceType,
-                                             @NotNull String resourceName, @NotNull AarConfiguration configuration,
+                                             @NotNull String resourceName, @NotNull AarSourceFile sourceFile,
                                              @NotNull ResourceVisibility visibility) {
     switch (valueMsg.getValueCase()) {
       case ITEM:
-        return createResourceItem(valueMsg.getItem(), resourceType, resourceName, configuration, visibility);
+        return createResourceItem(valueMsg.getItem(), resourceType, resourceName, sourceFile, visibility);
 
       case COMPOUND_VALUE:
         String description = valueMsg.getComment();
         if (CharMatcher.whitespace().matchesAllOf(description)) {
           description = null;
         }
-        return createResourceItem(valueMsg.getCompoundValue(), resourceName, configuration, visibility, description);
+        return createResourceItem(valueMsg.getCompoundValue(), resourceName, sourceFile, visibility, description);
 
       case VALUE_NOT_SET:
       default:
@@ -216,13 +215,14 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   @Nullable
   private AarResourceItem createResourceItem(@NotNull Resources.Item itemMsg, @NotNull ResourceType resourceType,
-                                             @NotNull String resourceName, @NotNull AarConfiguration configuration,
+                                             @NotNull String resourceName, @NotNull AarSourceFile sourceFile,
                                              @NotNull ResourceVisibility visibility) {
     switch (itemMsg.getValueCase()) {
       case FILE: {
         String path = itemMsg.getFile().getPath();
-        FolderConfiguration config = configuration.getFolderConfiguration();
-        DensityQualifier densityQualifier = config.getDensityQualifier();
+        AarConfiguration configuration = sourceFile.getConfiguration();
+        FolderConfiguration folderConfiguration = configuration.getFolderConfiguration();
+        DensityQualifier densityQualifier = folderConfiguration.getDensityQualifier();
         if (densityQualifier != null) {
           Density densityValue = densityQualifier.getValue();
           if (densityValue != null) {
@@ -234,33 +234,33 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
       case REF: {
         String ref = decode(itemMsg.getRef());
-        return createResourceItem(resourceType, resourceName, configuration, visibility, ref);
+        return createResourceItem(resourceType, resourceName, sourceFile, visibility, ref);
       }
 
       case STR: {
         String textValue = itemMsg.getStr().getValue();
-        return new AarTextValueResourceItem(resourceType, resourceName, configuration, visibility, textValue, null);
+        return new AarTextValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue, null);
       }
 
       case RAW_STR: {
         String str = itemMsg.getRawStr().getValue();
-        return createResourceItem(resourceType, resourceName, configuration, visibility, str);
+        return createResourceItem(resourceType, resourceName, sourceFile, visibility, str);
       }
 
       case PRIM: {
         String str = decode(itemMsg.getPrim());
-        return createResourceItem(resourceType, resourceName, configuration, visibility, str);
+        return createResourceItem(resourceType, resourceName, sourceFile, visibility, str);
       }
 
       case STYLED_STR: {
         Resources.StyledString styledStrMsg = itemMsg.getStyledStr();
         String textValue = styledStrMsg.getValue();
         String rawXmlValue = ProtoStyledStringDecoder.getRawXmlValue(styledStrMsg);
-        return new AarTextValueResourceItem(resourceType, resourceName, configuration, visibility, textValue, rawXmlValue);
+        return new AarTextValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue, rawXmlValue);
       }
 
       case ID: {
-        return createResourceItem(resourceType, resourceName, configuration, visibility, "");
+        return createResourceItem(resourceType, resourceName, sourceFile, visibility, "");
       }
 
       case VALUE_NOT_SET:
@@ -273,30 +273,30 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   @NotNull
   private static AarResourceItem createResourceItem(@NotNull ResourceType resourceType, @NotNull String resourceName,
-                                                    @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
+                                                    @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
                                                     @Nullable String value) {
-    return new AarValueResourceItem(resourceType, resourceName, configuration, visibility, value);
+    return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, value);
   }
 
   @Nullable
   private AarResourceItem createResourceItem(@NotNull Resources.CompoundValue compoundValueMsg, @NotNull String resourceName,
-                                             @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
+                                             @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
                                              @Nullable String description) {
     switch (compoundValueMsg.getValueCase()) {
       case ATTR:
-        return createAttr(compoundValueMsg.getAttr(), resourceName, configuration, visibility, description);
+        return createAttr(compoundValueMsg.getAttr(), resourceName, sourceFile, visibility, description);
 
       case STYLE:
-        return createStyle(compoundValueMsg.getStyle(), resourceName, configuration, visibility);
+        return createStyle(compoundValueMsg.getStyle(), resourceName, sourceFile, visibility);
 
       case STYLEABLE:
-        return createStyleable(compoundValueMsg.getStyleable(), resourceName, configuration, visibility);
+        return createStyleable(compoundValueMsg.getStyleable(), resourceName, sourceFile, visibility);
 
       case ARRAY:
-        return createArray(compoundValueMsg.getArray(), resourceName, configuration, visibility);
+        return createArray(compoundValueMsg.getArray(), resourceName, sourceFile, visibility);
 
       case PLURAL:
-        return createPlurals(compoundValueMsg.getPlural(), resourceName, configuration, visibility);
+        return createPlurals(compoundValueMsg.getPlural(), resourceName, sourceFile, visibility);
 
       case VALUE_NOT_SET:
       default:
@@ -307,16 +307,16 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   @Nullable
   private static AarAttrResourceItem createAttr(@NotNull Resources.Attribute attributeMsg, @NotNull String resourceName,
-                                                @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
+                                                @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
                                                 @Nullable String description) {
     Set<AttributeFormat> formats = decodeFormatFlags(attributeMsg.getFormatFlags());
 
-    ImmutableMap.Builder<String, Integer> valueMap = ImmutableMap.builder();
-    ImmutableMap.Builder<String, String> valueDescriptionMap = ImmutableMap.builder();
     List<Resources.Attribute.Symbol> symbolList = attributeMsg.getSymbolList();
     if (symbolList.isEmpty() && attributeMsg.getFormatFlags() == Resources.Attribute.FormatFlags.ANY.getNumber()) {
       return null;
     }
+    Map<String, Integer> valueMap = Collections.emptyMap();
+    Map<String, String> valueDescriptionMap = Collections.emptyMap();
     for (Resources.Attribute.Symbol symbolMsg : symbolList) {
       String name = symbolMsg.getName().getName();
       // Remove the explicit resource type to match the behavior of AarSourceResourceRepository.
@@ -328,19 +328,24 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       if (CharMatcher.whitespace().matchesAllOf(symbolDescription)) {
         symbolDescription = null;
       }
+      if (valueMap.isEmpty()) {
+        valueMap = new HashMap<>();
+      }
       valueMap.put(name, symbolMsg.getValue());
       if (symbolDescription != null) {
+        if (valueDescriptionMap.isEmpty()) {
+          valueDescriptionMap = new HashMap<>();
+        }
         valueDescriptionMap.put(name, symbolDescription);
       }
     }
 
-    return new AarAttrResourceItem(resourceName, configuration, visibility, description, formats, valueMap.build(),
-                                   valueDescriptionMap.build());
+    return new AarAttrResourceItem(resourceName, sourceFile, visibility, description, formats, valueMap, valueDescriptionMap);
   }
 
   @NotNull
   private AarStyleResourceItem createStyle(@NotNull Resources.Style styleMsg, @NotNull String resourceName,
-                                           @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+                                           @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
     String parentStyle = styleMsg.getParent().getName();
     List<StyleItemResourceValue> styleItems = new ArrayList<>(styleMsg.getEntryCount());
     for (Resources.Style.Entry entryMsg : styleMsg.getEntryList()) {
@@ -348,31 +353,31 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       myUrlParser.parseResourceUrl(url);
       String name = myUrlParser.withoutType();
       String value = decode(entryMsg.getItem());
-      StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(getNamespace(), name, value, getLibraryName());
+      StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(myNamespace, name, value, myLibraryName);
       styleItems.add(itemValue);
     }
 
-    return new AarStyleResourceItem(resourceName, configuration, visibility, parentStyle, styleItems);
+    return new AarStyleResourceItem(resourceName, sourceFile, visibility, parentStyle, styleItems);
   }
 
   @NotNull
   private AarStyleableResourceItem createStyleable(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName,
-                                                   @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+                                                   @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
     List<AttrResourceValue> attrs = new ArrayList<>(styleableMsg.getEntryCount());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
       myUrlParser.parseResourceUrl(url);
       String packageName = myUrlParser.getPackageName();
-      ResourceNamespace namespace = packageName == null ? getNamespace() : ResourceNamespace.fromPackageName(packageName);
-      AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, ResourceType.ATTR, myUrlParser.getName(), getLibraryName());
+      ResourceNamespace namespace = packageName == null ? myNamespace : ResourceNamespace.fromPackageName(packageName);
+      AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, ResourceType.ATTR, myUrlParser.getName(), myLibraryName);
       attrs.add(attrValue);
     }
-    return new AarStyleableResourceItem(resourceName, configuration, visibility, attrs);
+    return new AarStyleableResourceItem(resourceName, sourceFile, visibility, attrs);
   }
 
   @NotNull
   private AarArrayResourceItem createArray(@NotNull Resources.Array arrayMsg, @NotNull String resourceName,
-                                           @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+                                           @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
     List<String> elements = new ArrayList<>(arrayMsg.getElementCount());
     for (Resources.Array.Element elementMsg : arrayMsg.getElementList()) {
       String text = decode(elementMsg.getItem());
@@ -380,19 +385,19 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
         elements.add(text);
       }
     }
-    return new AarArrayResourceItem(resourceName, configuration, visibility, elements);
+    return new AarArrayResourceItem(resourceName, sourceFile, visibility, elements);
   }
 
   @NotNull
   private AarPluralsResourceItem createPlurals(@NotNull Resources.Plural pluralMsg, @NotNull String resourceName,
-                                               @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+                                               @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
     List<String> quantities = new ArrayList<>(pluralMsg.getEntryCount());
     List<String> values = new ArrayList<>(pluralMsg.getEntryCount());
     for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
       quantities.add(getQuantity(entryMsg.getArity()));
       values.add(decode(entryMsg.getItem()));
     }
-    return new AarPluralsResourceItem(resourceName, configuration, visibility, quantities, values);
+    return new AarPluralsResourceItem(resourceName, sourceFile, visibility, quantities, values);
   }
 
   @NotNull
@@ -430,7 +435,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   }
 
   private void addResourceItem(@NotNull ResourceItem item) {
-    ListMultimap<String, ResourceItem> multimap = getFullTable().getOrPutEmpty(getNamespace(), item.getType());
+    ListMultimap<String, ResourceItem> multimap = getFullTable().getOrPutEmpty(myNamespace, item.getType());
     multimap.put(item.getName(), item);
   }
 
@@ -576,6 +581,20 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       result.add(AttributeFormat.FLAGS);
     }
     return Collections.unmodifiableSet(result);
+  }
+
+  @NotNull
+  private AarSourceFile getSourceFile(@NotNull Configuration configMsg, @NotNull Map<Configuration, AarSourceFile> cache) {
+    AarSourceFile sourceFile = cache.get(configMsg);
+    if (sourceFile != null) {
+      return sourceFile;
+    }
+
+    FolderConfiguration configuration = ProtoConfigurationDecoder.getConfiguration(configMsg);
+
+    sourceFile = new AarSourceFile(null, new AarConfiguration(this, configuration));
+    cache.put(configMsg, sourceFile);
+    return sourceFile;
   }
 
   @NotNull

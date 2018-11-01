@@ -19,16 +19,14 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.utils.HashCodes;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * Resource item representing a value resource, e.g. a string or a color.
  */
 class AarValueResourceItem extends AbstractAarValueResourceItem implements ResolvableResourceItem {
-  @NotNull private final ResourceType myResourceType;
   @Nullable private final String myValue;
 
   /**
@@ -36,24 +34,17 @@ class AarValueResourceItem extends AbstractAarValueResourceItem implements Resol
    *
    * @param type the type of the resource
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param value the value associated with the resource
    */
   public AarValueResourceItem(@NotNull ResourceType type,
                               @NotNull String name,
-                              @NotNull AarConfiguration configuration,
+                              @NotNull AarSourceFile sourceFile,
                               @NotNull ResourceVisibility visibility,
                               @Nullable String value) {
-    super(name, configuration, visibility);
-    myResourceType = type;
+    super(type, name, sourceFile, visibility);
     myValue = value;
-  }
-
-  @Override
-  @NotNull
-  public final ResourceType getResourceType() {
-    return myResourceType;
   }
 
   @Override

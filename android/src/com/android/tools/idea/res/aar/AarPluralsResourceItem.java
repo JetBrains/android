@@ -18,10 +18,9 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.PluralsResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Resource item representing a plurals resource.
@@ -34,26 +33,20 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
    * Initializes the resource.
    *
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param quantities the quantities, e.g. "one", "two", "few"
    * @param values the values corresponding to the quantities
    */
   public AarPluralsResourceItem(@NotNull String name,
-                                @NotNull AarConfiguration configuration,
+                                @NotNull AarSourceFile sourceFile,
                                 @NotNull ResourceVisibility visibility,
                                 @NotNull List<String> quantities,
                                 @NotNull List<String> values) {
-    super(name, configuration, visibility);
+    super(ResourceType.PLURALS, name, sourceFile, visibility);
     assert quantities.size() == values.size();
     myQuantities = quantities;
     myValues = values;
-  }
-
-  @Override
-  @NotNull
-  public ResourceType getResourceType() {
-    return ResourceType.PLURALS;
   }
 
   @Override

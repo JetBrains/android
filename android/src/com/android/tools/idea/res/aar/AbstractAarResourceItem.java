@@ -18,7 +18,6 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.HashCodes;
@@ -29,13 +28,14 @@ import org.jetbrains.annotations.Nullable;
 /** Base class for AAR resource items. */
 abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue {
   @NotNull private final String myName;
-  @NotNull private final AarConfiguration myConfiguration;
-  @NotNull private final ResourceVisibility myVisibility;
+  // Minimize memory usage by storing enums as their ordinals in byte form.
+  private final byte myTypeOrdinal;
+  private final byte myVisibilityOrdinal;
 
-  AbstractAarResourceItem(@NotNull String name, @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility) {
+  AbstractAarResourceItem(@NotNull ResourceType type, @NotNull String name, @NotNull ResourceVisibility visibility) {
     myName = name;
-    myConfiguration = configuration;
-    myVisibility = visibility;
+    myTypeOrdinal = (byte)type.ordinal();
+    myVisibilityOrdinal = (byte)visibility.ordinal();
   }
 
   @Override
@@ -46,7 +46,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
 
   @Override
   @NotNull
-  public final ResourceNamespace getNamespace() {
+  public ResourceNamespace getNamespace() {
     return getRepository().getNamespace();
   }
 
@@ -58,20 +58,20 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
 
   @Override
   @NotNull
-  public final FolderConfiguration getConfiguration() {
-    return myConfiguration.getFolderConfiguration();
-  }
-
-  @Override
-  @NotNull
   public final String getLibraryName() {
     return getRepository().getLibraryName();
   }
 
   @Override
   @NotNull
+  public final ResourceType getResourceType() {
+    return ResourceType.values()[myTypeOrdinal];
+  }
+
+  @Override
+  @NotNull
   public final ResourceVisibility getVisibility() {
-    return myVisibility;
+    return ResourceVisibility.values()[myVisibilityOrdinal];
   }
 
   @Override
@@ -86,7 +86,6 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
     return this;
   }
 
-  /** Returns true if the resource is user defined. */
   @Override
   public final boolean isUserDefined() {
     return false;
@@ -103,10 +102,11 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
     return new ResourceReference(getNamespace(), getResourceType(), myName);
   }
 
+  /**
+   * Returns the repository this resource belongs to.
+   */
   @NotNull
-  protected final AbstractAarResourceRepository getRepository() {
-    return myConfiguration.getRepository();
-  }
+  protected abstract AbstractAarResourceRepository getRepository();
 
   @Override
   @NotNull
@@ -119,30 +119,8 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
     return getType().getName() + '/' + getName();
   }
 
-  /**
-   * Sets the value of the resource.
-   *
-   * @param value the new value
-   */
   @Override
   public final void setValue(@Nullable String value) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @NotNull
-  public final ResourceNamespace.Resolver getNamespaceResolver() {
-    return ResourceNamespace.Resolver.EMPTY_RESOLVER;
-  }
-
-  /**
-   * Specifies logic used to resolve namespace aliases for values that come from XML files.
-   *
-   * <p>This method is meant to be called by the XML parser that created this {@link
-   * ResourceValue}.
-   */
-  @Override
-  public final void setNamespaceResolver(@NotNull ResourceNamespace.Resolver resolver) {
     throw new UnsupportedOperationException();
   }
 
@@ -155,15 +133,16 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
       return false;
     }
     AbstractAarResourceItem other = (AbstractAarResourceItem) obj;
-    return getResourceType() == other.getResourceType()
-            && myName.equals(other.myName)
-            && myConfiguration.equals(other.myConfiguration)
-            && myVisibility.equals(other.myVisibility);
+    return myTypeOrdinal == other.myTypeOrdinal
+        && myName.equals(other.myName)
+        && myVisibilityOrdinal == other.myVisibilityOrdinal;
   }
 
   @Override
   public int hashCode() {
-    return HashCodes.mix(getResourceType().hashCode(), myName.hashCode(), myConfiguration.hashCode());
+    // myVisibilityOrdinal is intentionally not included in hash code because having two resource items
+    // differing only by visibility in the same hash table is extremely unlikely.
+    return HashCodes.mix(myTypeOrdinal, myName.hashCode());
   }
 
   @Override

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
@@ -27,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * Resource item representing a file resource inside an AAR, e.g. a drawable or a layout.
  */
 class AarFileResourceItem extends AbstractAarResourceItem {
-  @NotNull private final ResourceType myResourceType;
+  @NotNull private final AarConfiguration myConfiguration;
   @NotNull private final String myRelativePath;
 
   /**
@@ -44,15 +46,9 @@ class AarFileResourceItem extends AbstractAarResourceItem {
                              @NotNull AarConfiguration configuration,
                              @NotNull ResourceVisibility visibility,
                              @NotNull String relativePath) {
-    super(name, configuration, visibility);
-    myResourceType = type;
+    super(type, name, visibility);
+    myConfiguration = configuration;
     myRelativePath = relativePath;
-  }
-
-  @Override
-  @NotNull
-  public final ResourceType getResourceType() {
-    return myResourceType;
   }
 
   @Override
@@ -70,6 +66,24 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   @Nullable
   public final ResourceReference getReference() {
     return null;
+  }
+
+  @Override
+  @NotNull
+  protected final AbstractAarResourceRepository getRepository() {
+    return myConfiguration.getRepository();
+  }
+
+  @Override
+  @NotNull
+  public final FolderConfiguration getConfiguration() {
+    return myConfiguration.getFolderConfiguration();
+  }
+
+  @Override
+  @NotNull
+  public final ResourceNamespace.Resolver getNamespaceResolver() {
+    return ResourceNamespace.Resolver.EMPTY_RESOLVER;
   }
 
   /**

@@ -35,17 +35,17 @@ class AarTextValueResourceItem extends AarValueResourceItem implements TextResou
    *
    * @param type the type of the resource
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param value the value associated with the resource
    */
   public AarTextValueResourceItem(@NotNull ResourceType type,
                                   @NotNull String name,
-                                  @NotNull AarConfiguration configuration,
+                                  @NotNull AarSourceFile sourceFile,
                                   @NotNull ResourceVisibility visibility,
                                   @Nullable String textValue,
                                   @Nullable String rawXmlValue) {
-    super(type, name, configuration, visibility, textValue);
+    super(type, name, sourceFile, visibility, textValue);
     myRawXmlValue = rawXmlValue;
   }
 

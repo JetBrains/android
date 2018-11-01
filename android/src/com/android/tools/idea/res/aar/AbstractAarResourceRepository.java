@@ -32,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * Common superclass for {@link AarSourceResourceRepository} and {@link AarProtoResourceRepository}.
  */
 public abstract class AbstractAarResourceRepository extends AbstractResourceRepository implements AarResourceRepository {
-  @NotNull private final ResourceNamespace myNamespace;
-  @NotNull private final String myLibraryName;
+  @NotNull protected final ResourceNamespace myNamespace;
+  @NotNull protected final String myLibraryName;
   @NotNull protected final ResourceTable myFullTable = new ResourceTable();
 
   protected AbstractAarResourceRepository(@NotNull ResourceNamespace namespace, @NotNull String libraryName) {

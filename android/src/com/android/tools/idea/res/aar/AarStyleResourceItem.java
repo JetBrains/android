@@ -24,12 +24,11 @@ import com.android.resources.ResourceVisibility;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource item representing a style resource.
@@ -37,36 +36,30 @@ import java.util.Objects;
 final class AarStyleResourceItem extends AbstractAarValueResourceItem implements StyleResourceValue {
   @Nullable private final String myParentStyle;
   @NotNull private final List<StyleItemResourceValue> myStyleItems;
-  /** Style items keyed by the namespace and name of the attribute they define. */
+  /** Style items keyed by the namespace and the name of the attribute they define. */
   @NotNull private final Table<ResourceNamespace, String, StyleItemResourceValue> myStyleItemTable;
 
   /**
    * Initializes the resource.
    *
    * @param name the name of the resource
-   * @param configuration the configuration the resource belongs to
+   * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
    * @param parentStyle the parent style reference (package:type/entry)
    * @param styleItems the items of the style
    */
   public AarStyleResourceItem(@NotNull String name,
-                              @NotNull AarConfiguration configuration,
+                              @NotNull AarSourceFile sourceFile,
                               @NotNull ResourceVisibility visibility,
                               @Nullable String parentStyle,
                               @NotNull Collection<StyleItemResourceValue> styleItems) {
-    super(name, configuration, visibility);
+    super(ResourceType.STYLE, name, sourceFile, visibility);
     myParentStyle = parentStyle;
     myStyleItems = ImmutableList.copyOf(styleItems);
     myStyleItemTable = HashBasedTable.create();
     for (StyleItemResourceValue item : styleItems) {
       myStyleItemTable.put(item.getNamespace(), item.getAttrName(), item);
     }
-  }
-
-  @Override
-  @NotNull
-  public ResourceType getResourceType() {
-    return ResourceType.STYLE;
   }
 
   @Override
