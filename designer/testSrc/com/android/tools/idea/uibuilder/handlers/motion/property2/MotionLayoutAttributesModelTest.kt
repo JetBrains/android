@@ -27,13 +27,14 @@ import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.Transi
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -48,7 +49,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
 
     @Suppress("UNCHECKED_CAST")
-    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<MotionPropertyItem>
+    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     val nlModel = createNlModel()
     val timeline = retrieveTimeline(nlModel)
@@ -62,7 +63,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val textView = nlModel.components[0].getChild(0)
     val scene = MotionSceneModel.parse(nlModel, project, file, xmlFile)
     timeline.select(scene.getTransitionTag(0).tag, textView)
-    UIUtil.dispatchAllInvocationEvents()
+    waitUntilEventsProcessed(model)
     Mockito.verify(listener).propertiesGenerated(model)
   }
 
@@ -73,7 +74,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
 
     @Suppress("UNCHECKED_CAST")
-    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<MotionPropertyItem>
+    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     model.addListener(listener)
     val nlModelA = createNlModel()
@@ -89,14 +90,14 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     model.surface = nlModelB.surface
     nlModelA.surface.selectionModel.setSelection(listOf(textViewA))
     timelineA.select(scene.getTransitionTag(0).tag, textViewA)
-    UIUtil.dispatchAllInvocationEvents()
+    waitUntilEventsProcessed(model)
     Mockito.verifyZeroInteractions(listener)
 
     nlModelB.surface.selectionModel.setSelection(listOf(textViewB))
     timelineB.select(scene.getTransitionTag(0).tag, textViewB)
-    UIUtil.dispatchAllInvocationEvents()
+    waitUntilEventsProcessed(model)
     Mockito.verify(listener).propertiesGenerated(model)
-    assertThat(model.properties[SdkConstants.AUTO_URI, TransitionConstraintSetStart].component.model).isEqualTo(nlModelB)
+    assertThat(model.properties[SdkConstants.AUTO_URI, TransitionConstraintSetStart].components[0].model).isEqualTo(nlModelB)
   }
 
   fun testConstraintSet() {
@@ -106,7 +107,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
 
     @Suppress("UNCHECKED_CAST")
-    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<MotionPropertyItem>
+    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     val nlModel = createNlModel()
     val timeline = retrieveTimeline(nlModel)
@@ -118,7 +119,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
 
     // test
     timeline.select(scene.startConstraintSet.tag, textView)
-    UIUtil.dispatchAllInvocationEvents()
+    waitUntilEventsProcessed(model)
     Mockito.verify(listener).propertiesGenerated(model)
     assertThat(model.properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value).isEqualTo("64dp")
   }
