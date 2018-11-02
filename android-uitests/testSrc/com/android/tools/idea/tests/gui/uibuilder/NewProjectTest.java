@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
@@ -46,7 +45,6 @@ import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.verifyOnlyExpectedWarnings;
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -94,8 +92,6 @@ public class NewProjectTest {
       "                Unused resources",
       "                    build.gradle",
       "                        The resource 'R.string.foo' appears to be unused",
-      "                    mobile_navigation.xml",
-      "                        The resource 'R.navigation.mobile_navigation' appears to be unused",
       "            Correctness",
       "                Obsolete Gradle Dependency",
       "                    build.gradle",
@@ -166,36 +162,6 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().create(guiTest);
 
     assertTrue(guiTest.getProjectPath(FN_GRADLE_WRAPPER_UNIX).canExecute());
-  }
-
-  @RunIn(TestGroup.UNRELIABLE)  // b/113197543
-  @Test
-  public void testIncludeNavControllerWithJava() throws Exception {
-    newProject("Java", true);
-
-    String buildGradleText = Files.toString(guiTest.getProjectPath("app/build.gradle"), UTF_8);
-    assertThat(buildGradleText).contains("android.arch.navigation:navigation-fragment:");
-    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).isFile();
-  }
-
-  @RunIn(TestGroup.UNRELIABLE)  // b/113197543
-  @Test
-  public void testIncludeNavControllerWithKotlin() throws Exception {
-    newProject("Kotlin", true);
-
-    String buildGradleText = Files.toString(guiTest.getProjectPath("app/build.gradle"), UTF_8);
-    assertThat(buildGradleText).contains("android.arch.navigation:navigation-fragment-ktx:");
-    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).isFile();
-  }
-
-  @RunIn(TestGroup.UNRELIABLE)  // b/113197543
-  @Test
-  public void testDontIncludeNavController() throws Exception {
-    newProject("Java", false);
-
-    String buildGradleText = Files.toString(guiTest.getProjectPath("app/build.gradle"), UTF_8);
-    assertThat(buildGradleText).doesNotContain("navigation");
-    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/navigation/mobile_navigation.xml")).doesNotExist();
   }
 
   @Test // http://b.android.com/227918
@@ -291,24 +257,5 @@ public class NewProjectTest {
   @NotNull
   private static NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
-  }
-
-  private IdeFrameFixture newProject(String language, boolean includeNavController) {
-    NPW_DYNAMIC_APPS.override(true);
-
-    guiTest
-      .welcomeFrame()
-      .createNewProject()
-      .clickNext()
-      .getConfigureNewAndroidProjectStep()
-      .selectMinimumSdkApi("27")
-      .setSourceLanguage(language)
-      .setIncludeNavController(includeNavController)
-      .wizard()
-      .clickFinish();
-
-    return guiTest
-      .ideFrame()
-      .waitForGradleProjectSyncToFinish();
   }
 }

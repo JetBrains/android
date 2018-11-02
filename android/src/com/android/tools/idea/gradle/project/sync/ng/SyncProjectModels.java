@@ -31,8 +31,6 @@ import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -93,8 +91,6 @@ public class SyncProjectModels implements Serializable {
       requireNonNull(variants);
       myVariantChooser.chooseSelectedVariants(myModuleModels, controller, variants, myOptions.shouldGenerateSources());
     }
-    // Ensure unique module names.
-    deduplicateModuleNames();
     // Request for GlobalLibraryMap model at last, when all of other models have been built.
     populateGlobalLibraryMap(controller);
   }
@@ -125,26 +121,6 @@ public class SyncProjectModels implements Serializable {
 
     for (GradleProject child : project.getChildren()) {
       populateModelsForModule(child, controller, buildId);
-    }
-  }
-
-  // If there are duplicated module names, update module name to include gradle path and project name.
-  private void deduplicateModuleNames() {
-    Map<String, Long> nameCount = myModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
-    // Deduplicate module names in the same project.
-    for (SyncModuleModels moduleModel : myModuleModels) {
-      String moduleName = moduleModel.getModuleName();
-      if (nameCount.get(moduleName) > 1) {
-        moduleModel.includeGradlePathInModuleName();
-      }
-    }
-    // Deduplicate module names across multiple projects.
-    nameCount = myModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
-    for (SyncModuleModels moduleModel : myModuleModels) {
-      String moduleName = moduleModel.getModuleName();
-      if (nameCount.get(moduleName) > 1) {
-        moduleModel.includeProjectNameInModuleName();
-      }
     }
   }
 
