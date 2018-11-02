@@ -67,8 +67,7 @@ public class LinearDragTarget extends DragBaseTarget {
     myHandler.setDragging(myComponent, true);
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
-    ((LayoutlibSceneManager)parent.getScene().getSceneManager()).addTargets(myComponent);
-    parent.updateTargets();
+    ((LayoutlibSceneManager)parent.getScene().getSceneManager()).updateTargets();
     myDragHandled = false;
     super.mouseDown(x, y);
     myComponent.setModelUpdateAuthorized(false);
