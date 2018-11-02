@@ -51,8 +51,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private SystemImageDescription myPsImageDescription;
   private SystemImageDescription myWearImageDescription;
   private SystemImageDescription myWearCnImageDescription;
+  private Device myBigPhone;
   private Device myGapiPhoneDevice;
   private Device myPlayStorePhoneDevice;
+  private Device mySmallTablet;
   private Device myWearDevice;
 
   @Override
@@ -148,9 +150,13 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     // Get a Wear device
     myWearDevice = devMgr.getDevice("wear_square", "Google");
+
+    //Get a big phone and a small tablet
+    myBigPhone = devMgr.getDevice("pixel_3_xl", "Google");
+    mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
   }
 
-  public void testClassificationFromParts() throws Exception {
+  public void testClassificationFromParts() {
     assertEquals(X86, getClassificationFromParts(Abi.X86, 21, GOOGLE_APIS_TAG));
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 22, GOOGLE_APIS_TAG));
     assertEquals(X86, getClassificationFromParts(Abi.X86, 23, DEFAULT_TAG));
@@ -170,7 +176,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, CHROMEOS_TAG));
   }
 
-  public void testClassificationForDevice() throws Exception {
+  public void testClassificationForDevice() {
     assertEquals(RECOMMENDED, getClassificationForDevice(myGapiImageDescription, myGapiPhoneDevice));
     assertEquals(X86, getClassificationForDevice(myGapiImageDescription, myPlayStorePhoneDevice));
     // Note: Play Store image is not allowed with a non-Play-Store device
@@ -178,5 +184,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     assertEquals(RECOMMENDED, getClassificationForDevice(myWearImageDescription, myWearDevice));
     assertEquals(RECOMMENDED, getClassificationForDevice(myWearCnImageDescription, myWearDevice));
+  }
+
+  public void testPhoneVsTablet() {
+    assertFalse(DeviceDefinitionList.isTablet(myBigPhone));
+    assertTrue(DeviceDefinitionList.isTablet(mySmallTablet));
   }
 }
