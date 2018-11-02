@@ -39,6 +39,9 @@ import com.android.tools.idea.common.property2.api.PropertiesViewTab;
 import com.android.tools.idea.common.property2.api.TableUIProvider;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.model.TargetModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.ui.TargetComponent;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider;
+import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
@@ -52,46 +55,46 @@ import org.jetbrains.annotations.NotNull;
 /**
  * {@link PropertiesView} for motion layout property editor.
  */
-public class MotionLayoutAttributesView extends PropertiesView<MotionPropertyItem> {
+public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem> {
   private static final String MOTION_VIEW_NAME = "Motion";
 
   public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
     super(MOTION_VIEW_NAME, model);
-    PropertiesViewTab<MotionPropertyItem> tab = addTab("");
-    MotionControlTypeProvider controlTypeProvider = new MotionControlTypeProvider();
-    EditorProvider<MotionPropertyItem> editorProvider =
-      EditorProvider.Companion.create(new MotionEnumSupportProvider(), controlTypeProvider);
-    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(MotionPropertyItem.class, controlTypeProvider, editorProvider);
+    PropertiesViewTab<NelePropertyItem> tab = addTab("");
+    NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider();
+    NeleControlTypeProvider controlTypeProvider = new NeleControlTypeProvider(enumSupportProvider);
+    EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
     tab.getBuilders().add(new MotionInspectorBuilder(editorProvider, tableUIProvider));
   }
 
-  private static class MotionInspectorBuilder implements InspectorBuilder<MotionPropertyItem> {
-    private final EditorProvider<MotionPropertyItem> myEditorProvider;
-    private final AttributeComparator<MotionPropertyItem> myAttributeComparator;
+  private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
+    private final EditorProvider<NelePropertyItem> myEditorProvider;
+    private final AttributeComparator<NelePropertyItem> myAttributeComparator;
     private final TableUIProvider myTableUIProvider;
 
-    private MotionInspectorBuilder(@NotNull EditorProvider<MotionPropertyItem> editorProvider, @NotNull TableUIProvider tableUIProvider) {
+    private MotionInspectorBuilder(@NotNull EditorProvider<NelePropertyItem> editorProvider, @NotNull TableUIProvider tableUIProvider) {
       myEditorProvider = editorProvider;
-      myAttributeComparator = new AttributeComparator<>(MotionPropertyItem::getName);
+      myAttributeComparator = new AttributeComparator<>(NelePropertyItem::getName);
       myTableUIProvider = tableUIProvider;
     }
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector,
-                                  @NotNull PropertiesTable<? extends MotionPropertyItem> properties) {
-      MotionPropertyItem any = properties.getFirst();
+                                  @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
+      NelePropertyItem any = properties.getFirst();
       if (any == null) {
         return;
       }
-      XmlTag tag = any.getTag().getElement();
+      XmlTag tag = MotionLayoutAttributesModel.getTag(any);
       if (tag == null) {
         return;
       }
-      NlComponent component = any.getComponent();
+      NlComponent component = any.getComponents().get(0);
       String label = tag.getLocalName();
       switch (label) {
         case ConstraintSetConstraint:
-          MotionPropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
+          NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           label = MotionSceneConstraintSet;
           addTargetComponent(inspector, component, label);
           addPropertyTable(inspector, label, properties, targetId);
@@ -104,11 +107,11 @@ public class MotionLayoutAttributesView extends PropertiesView<MotionPropertyIte
 
         default:
           // This should be some kind of KeyFrame
-          MotionPropertyItem target = properties.getOrNull(AUTO_URI, Key_frameTarget);
-          MotionPropertyItem position = properties.getOrNull(AUTO_URI, Key_framePosition);
+          NelePropertyItem target = properties.getOrNull(AUTO_URI, Key_frameTarget);
+          NelePropertyItem position = properties.getOrNull(AUTO_URI, Key_framePosition);
           if (target == null || position == null) {
             // All KeyFrames should have target and position.
-            Logger.getInstance(MotionPropertyItem.class).warn("KeyFrame without target and position");
+            Logger.getInstance(NelePropertyItem.class).warn("KeyFrame without target and position");
             return;
           }
           addTargetComponent(inspector, component, label);
@@ -125,9 +128,9 @@ public class MotionLayoutAttributesView extends PropertiesView<MotionPropertyIte
 
     private void addPropertyTable(@NotNull InspectorPanel inspector,
                                   @NotNull String titleName,
-                                  @NotNull PropertiesTable<? extends MotionPropertyItem> properties,
-                                  @NotNull MotionPropertyItem... excluded) {
-      List<MotionPropertyItem> attributes = properties.getValues().stream()
+                                  @NotNull PropertiesTable<? extends NelePropertyItem> properties,
+                                  @NotNull NelePropertyItem... excluded) {
+      List<NelePropertyItem> attributes = properties.getValues().stream()
         .filter(item -> ArrayUtil.find(excluded, item) < 0)
         .sorted(myAttributeComparator)
         .collect(Collectors.toList());
@@ -150,8 +153,8 @@ public class MotionLayoutAttributesView extends PropertiesView<MotionPropertyIte
   private static class MotionTableModel implements PTableModel {
     private final List<PTableItem> myItems;
 
-    private MotionTableModel(@NotNull List<MotionPropertyItem> items) {
-      items.sort(Comparator.comparing(MotionPropertyItem::getName).thenComparing(MotionPropertyItem::getNamespace));
+    private MotionTableModel(@NotNull List<NelePropertyItem> items) {
+      items.sort(Comparator.comparing(NelePropertyItem::getName).thenComparing(NelePropertyItem::getNamespace));
       myItems = new ArrayList<>(items);
     }
 
