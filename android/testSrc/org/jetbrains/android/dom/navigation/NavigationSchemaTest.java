@@ -26,6 +26,7 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -36,6 +37,8 @@ import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
@@ -270,6 +273,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateChangeDestinationButNoAnnotationChange extends " +
                       "    Navigator<QuickValidateChangeDestinationButNoAnnotationChange.Destination1> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -281,6 +285,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateChangeDestinationButNoAnnotationChange extends " +
                       "    Navigator<QuickValidateChangeDestinationButNoAnnotationChange.Destination2> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -296,6 +301,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateChangeDestinationWithAnnotationChange extends " +
                       "    Navigator<QuickValidateChangeDestinationWithAnnotationChange.Destination1> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -308,6 +314,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "import androidx.navigation.*;\n" +
                       "import android.support.v4.app.Fragment;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateChangeDestinationWithAnnotationChange extends " +
                       "    Navigator<QuickValidateChangeDestinationWithAnnotationChange.Destination2> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -323,6 +330,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateDestinationChangeInSuper extends " +
                       "    Navigator<QuickValidateDestinationChangeInSuper.Destination> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -334,6 +342,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "import androidx.navigation.*;\n" +
                       "import android.support.v4.app.Fragment;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateDestinationChangeInSuper extends " +
                       "    Navigator<QuickValidateDestinationChangeInSuper.Destination> {\n" +
                       "  @NavDestination.ClassType(Fragment.class)\n" +
@@ -348,10 +357,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateAddDestinationNoAnnotation extends Navigator {}\n",
                       "import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateAddDestinationNoAnnotation extends " +
                       "    Navigator<QuickValidateAddDestinationNoAnnotation.Destination> {\n" +
                       "  public static class Destination extends NavDestination {}\n" +
@@ -363,6 +374,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateAddDestinationAnnotation extends " +
                       "    Navigator<QuickValidateAddDestinationAnnotation.Destination> {\n" +
                       "  public static class Destination extends NavDestination {}\n" +
@@ -370,6 +382,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateAddDestinationAnnotation extends " +
                       "    Navigator<QuickValidateAddDestinationAnnotation.Destination> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -381,12 +394,14 @@ public class NavigationSchemaTest extends AndroidTestCase {
   public void testQuickValidateRemoveDestinationNoAnnotation() throws Exception {
     testQuickValidate("import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateRemoveDestinationNoAnnotation extends " +
                       "    Navigator<QuickValidateRemoveDestinationNoAnnotation.Destination> {\n" +
                       "  public static class Destination extends NavDestination {}\n" +
                       "}\n",
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateRemoveDestinationNoAnnotation extends Navigator {}\n",
                       true);
   }
@@ -395,6 +410,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import androidx.navigation.*;\n" +
                       "import android.app.Activity;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateRemoveDestinationWithAnnotation extends " +
                       "    Navigator<QuickValidateRemoveDestinationWithAnnotation.Destination> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -402,6 +418,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "}\n",
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateRemoveDestinationWithAnnotation extends Navigator {}\n",
                       false);
   }
@@ -410,6 +427,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import androidx.navigation.*;\n" +
                       "import android.app.Activity;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateRemoveDestinationWithAnnotation extends " +
                       "    Navigator<QuickValidateRemoveDestinationWithAnnotation.Destination> {\n" +
                       "  @NavDestination.ClassType(Activity.class)\n" +
@@ -417,6 +435,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "}\n",
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateRemoveDestinationWithAnnotation extends " +
                       "    Navigator<QuickValidateRemoveDestinationWithAnnotation.Destination> {\n" +
                       "  public static class Destination extends NavDestination {}\n" +
@@ -429,6 +448,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     testQuickValidate("import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateChangeDestination extends " +
                       "    Navigator<QuickValidateChangeDestination.Destination> {\n" +
                       "  public static class ActualDestination extends Activity {}\n" +
@@ -438,6 +458,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "import android.app.Activity;\n" +
                       "import androidx.navigation.*;\n" +
                       "\n" +
+                      "@Navigator.Name(\"mynav\")\n" +
                       "public class QuickValidateChangeDestination extends " +
                       "    Navigator<QuickValidateChangeDestination.Destination> {\n" +
                       "  public static class ActualDestination extends Activity {" +
@@ -447,5 +468,41 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       "  public static class Destination extends NavDestination {}\n" +
                       "}\n",
                       true);
+  }
+
+  public void testRebuildNoChange() throws Exception {
+    NavigationSchema schema = NavigationSchema.get(myModule);
+    assertSame(schema, schema.rebuildSchema().get());
+  }
+
+  public void testRebuildCompleted() throws Exception {
+    NavigationSchema orig = NavigationSchema.get(myModule);
+    addClass("import androidx.navigation.*;\n" +
+             "@Navigator.Name(\"activity_sub\")\n" +
+             "public class TestRebuildCompleted extends ActivityNavigator {}\n");
+     NavigationSchema newSchema = orig.rebuildSchema().get();
+     assertSame(newSchema, orig.rebuildSchema().get());
+  }
+
+  public void testListeners() throws Exception {
+    NavigationSchema schema = NavigationSchema.get(myModule);
+    Runnable failingListener = () -> fail("shouldn't run listener");
+    NavigationSchema.addSchemaRebuildListener(myModule, failingListener);
+    schema.rebuildSchema().get();
+    NavigationSchema.removeSchemaRebuildListener(myModule, failingListener);
+
+    Semaphore didRun = new Semaphore(1);
+    didRun.acquire();
+    Runnable checkListener = () -> didRun.release();
+    NavigationSchema.addSchemaRebuildListener(myModule, checkListener);
+    addClass("import androidx.navigation.*;\n" +
+             "@Navigator.Name(\"activity_sub\")\n" +
+             "public class TestListeners extends ActivityNavigator {}\n");
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+    NavigationSchema.get(myModule).rebuildSchema().get();
+
+    schema.rebuildSchema().get();
+    assertTrue(didRun.tryAcquire(5, TimeUnit.SECONDS));
+    NavigationSchema.removeSchemaRebuildListener(myModule, checkListener);
   }
 }

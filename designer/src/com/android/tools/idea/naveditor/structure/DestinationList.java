@@ -64,7 +64,6 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   final DefaultListModel<NlComponent> myUnderlyingModel = new DefaultListModel<>();
   @VisibleForTesting
   final FilteringListModel<NlComponent> myListModel = new FilteringListModel<>(myUnderlyingModel);
-  private NavigationSchema mySchema;
 
   @VisibleForTesting
   SelectionModel mySelectionModel;
@@ -217,14 +216,6 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myModel.removeListener(myModelListener);
     myList.removeListSelectionListener(myListSelectionListener);
     myList.removeMouseListener(myMouseListener);
-  }
-
-  private NavigationSchema getSchema() {
-    if (mySchema == null) {
-      assert myModel != null;
-      mySchema = NavigationSchema.get(myModel.getModule());
-    }
-    return mySchema;
   }
 
   void updateComponentList() {
