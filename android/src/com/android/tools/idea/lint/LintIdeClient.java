@@ -38,6 +38,7 @@ import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.FileResourceReader;
@@ -58,6 +59,7 @@ import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Context;
 import com.android.tools.lint.detector.api.DefaultPosition;
+import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Location;
@@ -684,6 +686,27 @@ public class LintIdeClient extends LintClient implements Disposable {
     sourceNodeCache.put(mergedNode, source);
 
     return source != NOT_FOUND ? source : null;
+  }
+
+  @NotNull
+  @Override
+  public Set<Desugaring> getDesugaring(@NotNull com.android.tools.lint.detector.api.Project project) {
+    Module module = getModule();
+    if (module == null) {
+      return Desugaring.DEFAULT;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return Desugaring.DEFAULT;
+    }
+
+    AndroidModel model = AndroidModel.get(module);
+    if (model == null) {
+      return Desugaring.DEFAULT;
+    }
+
+    return model.getDesugaring();
   }
 
   /**
