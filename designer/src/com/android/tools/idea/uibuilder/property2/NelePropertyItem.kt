@@ -31,6 +31,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.ActionIconButton
@@ -49,6 +50,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -85,7 +87,6 @@ open class NelePropertyItem(
   val definition: AttributeDefinition?,
   val libraryName: String,
   val model: NelePropertiesModel,
-  val optionalValue: Any?,
   val components: List<NlComponent>
 ) : PropertyItem {
 
@@ -95,7 +96,7 @@ open class NelePropertyItem(
       return if (model.showResolvedValues) resolveValue(rawValue) else rawValue
     }
     set(value) {
-      model.setPropertyValue(this, value)
+      setCommonComponentValue(value)
     }
 
   override val namespaceIcon: Icon?
@@ -117,7 +118,7 @@ open class NelePropertyItem(
     get() = isReferenceValue(rawValue)
 
   open val rawValue: String?
-    get() = model.getPropertyValue(this)
+    get() = getCommonComponentValue()
 
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
@@ -153,8 +154,7 @@ open class NelePropertyItem(
   }
 
   override val designProperty: NelePropertyItem
-    get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, libraryName, model, optionalValue, components)
+    get() = if (namespace == TOOLS_URI) this else NelePropertyItem(TOOLS_URI, name, type, definition, libraryName, model, components)
 
   override fun equals(other: Any?) =
     when (other) {
@@ -222,7 +222,7 @@ open class NelePropertyItem(
     }
   }
 
-  val project: Project
+  private val project: Project
     get() = model.facet.module.project
 
   protected val firstTag: XmlTag?
@@ -241,6 +241,38 @@ open class NelePropertyItem(
   private fun isId(value: String): Boolean {
     val url = ResourceUrl.parse(value)
     return url?.type == ResourceType.ID
+  }
+
+  private fun getCommonComponentValue(): String? {
+    ApplicationManager.getApplication().assertIsDispatchThread()
+    var prev: String? = null
+    for (component in components) {
+      val value = component.getAttribute(namespace, name) ?: return null
+      prev = prev ?: value
+      if (value != prev) return null
+    }
+    return prev
+  }
+
+  private fun setCommonComponentValue(newValue: String?) {
+    assert(ApplicationManager.getApplication().isDispatchThread)
+    if (project.isDisposed || components.isEmpty()) {
+      return
+    }
+    val componentName = if (components.size == 1) components[0].tagName else "Multiple"
+
+    TransactionGuard.submitTransaction(model, Runnable {
+      NlWriteCommandAction.run(components, "Set $componentName.$name to $newValue") {
+        components.forEach { it.setAttribute(namespace, name, newValue) }
+        model.logPropertyValueChanged(this)
+        if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
+          // When the "parentTag" attribute is set on a <merge> tag,
+          // we may have a different set of available properties available,
+          // since the attributes of the "parentTag" are included if set.
+          model.firePropertiesGenerated()
+        }
+      }
+    })
   }
 
   private fun computeTooltipForName(): String {

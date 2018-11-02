@@ -15,23 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
-import com.android.tools.idea.common.property2.api.ControlType
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.InspectorLineModel
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
-import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import com.android.tools.idea.common.property2.api.TableLineModel
-import com.android.tools.idea.common.property2.api.TableUIProvider
-import com.android.tools.idea.common.property2.impl.model.BooleanPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ColorFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.idea.common.property2.api.*
+import com.android.tools.idea.common.property2.impl.model.*
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
@@ -41,6 +27,10 @@ import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvide
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.adtui.ptable2.PTableItem
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -72,8 +62,8 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   }
 
   fun loadProperties() {
-    val provider = NelePropertiesProvider(model.facet)
-    for (propertyItem in provider.getProperties(model, null, components).values) {
+    val provider = NelePropertiesProvider(model)
+    for (propertyItem in provider.getProperties(components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
   }

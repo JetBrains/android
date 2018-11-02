@@ -42,7 +42,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
 import java.util.*
@@ -60,36 +59,34 @@ import java.util.*
  * There are special exceptions for the srcCompat attribute and attributes
  * on an AutoCompleteTextView widget.
  */
-class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvider {
+class NelePropertiesProvider(private val model: NelePropertiesModel) {
   private val descriptorProvider = AndroidDomElementDescriptorProvider()
   private val emptyTable = ImmutableTable.of<String, String, NelePropertyItem>()
 
-  override fun getProperties(model: NelePropertiesModel,
-                             optionalValue: Any?,
-                             components: List<NlComponent>): PropertiesTable<NelePropertyItem> {
+  fun getProperties(components: List<NlComponent>): PropertiesTable<NelePropertyItem> {
     assert(!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode)
 
     if (components.isEmpty()) {
       return PropertiesTable.emptyTable()
     }
 
-    return DumbService.getInstance(facet.module.project).runReadActionInSmartMode<PropertiesTable<NelePropertyItem>> {
-      PropertiesTable.create(getPropertiesImpl(model, components))
+    return DumbService.getInstance(model.facet.module.project).runReadActionInSmartMode<PropertiesTable<NelePropertyItem>> {
+      PropertiesTable.create(getPropertiesImpl(components))
     }
   }
 
-  private fun getPropertiesImpl(model: NelePropertiesModel, components: List<NlComponent>): Table<String, String, NelePropertyItem> {
-    val resourceManagers = ModuleResourceManagers.getInstance(facet)
+  private fun getPropertiesImpl(components: List<NlComponent>): Table<String, String, NelePropertyItem> {
+    val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
     val localResourceManager = resourceManagers.localResourceManager
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     if (frameworkResourceManager == null) {
-      Logger.getInstance(NelePropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
+      Logger.getInstance(NelePropertiesProvider::class.java).error("No system resource manager for module: " + model.facet.module.name)
       return emptyTable
     }
 
-    val project = facet.module.project
+    val project = model.facet.module.project
     val apiLookup = LintIdeClient.getApiLookup(project)
-    val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
+    val minApi = AndroidModuleInfo.getInstance(model.facet).minSdkVersion.featureLevel
 
     val localAttrDefs = localResourceManager.attributeDefinitions
     val systemAttrDefs = frameworkResourceManager.attributeDefinitions
@@ -117,8 +114,8 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
         }
         val attrDefs = if (NS_RESOURCES == namespaceUri) systemAttrDefs else localAttrDefs
         val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
-        val attrDef = namespace?.let { attrDefs.getAttrDefinition(ResourceReference.attr(it, name)) }
-        val property = createProperty(namespaceUri, name, attrDef, model, components)
+        val attrDef = namespace?.let { attrDefs?.getAttrDefinition(ResourceReference.attr(it, name)) }
+        val property = createProperty(namespaceUri, name, attrDef, components)
         properties.put(namespaceUri, name, property)
       }
 
@@ -127,7 +124,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       if (className != null && component.hasNlComponentInfo) {
         val viewClassName = component.viewInfo?.className
         if (viewClassName != className && viewClassName != null) {
-          addAttributesFromInflatedStyleable(properties, localAttrDefs, tagClass, viewClassName, model, components)
+          addAttributesFromInflatedStyleable(properties, localAttrDefs, tagClass, viewClassName, components)
         }
       }
 
@@ -141,8 +138,8 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       if (tag.name == AUTO_COMPLETE_TEXT_VIEW) {
         // An AutoCompleteTextView has a popup that is created at runtime.
         // Properties for this popup can be added to the AutoCompleteTextView tag.
-        val attr = systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND)
-        val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, model, components)
+        val attr = systemAttrDefs?.getAttrDefByName(ATTR_POPUP_BACKGROUND)
+        val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, components)
         properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, property)
       }
 
@@ -163,7 +160,6 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
                                                  localAttrDefs: AttributeDefinitions,
                                                  xmlClass: PsiClass,
                                                  inflatedClassName: String,
-                                                 model: NelePropertiesModel,
                                                  components: List<NlComponent>) {
     var inflatedClass = ClassUtil.findPsiClass(PsiManager.getInstance(xmlClass.project), inflatedClassName)
     while (inflatedClass != null && inflatedClass != xmlClass) {
@@ -175,7 +171,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
             continue
           }
           val namePair = getPropertyName(attrDef)
-          val property = createProperty(namePair.first, namePair.second, attrDef, model, components)
+          val property = createProperty(namePair.first, namePair.second, attrDef, components)
           properties.put(property.namespace, property.name, property)
         }
       }
@@ -184,20 +180,16 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     }
   }
 
-  private fun createProperty(namespace: String,
-                             name: String,
-                             attr: AttributeDefinition?,
-                             model: NelePropertiesModel,
-                             components: List<NlComponent>): NelePropertyItem {
+  private fun createProperty(namespace: String, name: String, attr: AttributeDefinition?, components: List<NlComponent>): NelePropertyItem {
     val type = TypeResolver.resolveType(name, attr)
     val libraryName = attr?.libraryName ?: ""
     if (namespace == ANDROID_URI && name == ATTR_ID) {
-      return NeleIdPropertyItem(model, attr, null, components)
+      return NeleIdPropertyItem(model, attr, components)
     }
     if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-      return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, null, components)
+      return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, components)
     }
-    return NelePropertyItem(namespace, name, type, attr, libraryName, model, null, components)
+    return NelePropertyItem(namespace, name, type, attr, libraryName, model, components)
   }
 
   private fun getNamespace(descriptor: XmlAttributeDescriptor, context: XmlTag): String {
