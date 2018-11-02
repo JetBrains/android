@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.intellij.openapi.project.Project
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
@@ -43,6 +44,7 @@ class NavPropertyEditors : PropertyEditors() {
       ATTR_POP_UP_TO -> return AllDestinationsEditor()
       ATTR_GRAPH -> return SourceGraphEditor()
       ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM -> return AnimationEditor()
+      ATTR_LAYOUT -> return NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER)
     }
     if (property.definition?.formats?.contains(AttributeFormat.BOOLEAN) == true) {
       return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)

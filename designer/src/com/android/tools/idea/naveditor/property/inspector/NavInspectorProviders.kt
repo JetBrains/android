@@ -34,6 +34,7 @@ open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parent
     val provider = NavMainPropertiesInspectorProvider()
     nullProvider = provider
     providers = listOf(provider,
+                       CustomPropertiesInspectorProvider(),
                        NavActivityPropertiesInspectorProvider(),
                        NavDestinationArgumentsInspectorProvider(),
                        NavActionTransitionInspectorProvider(),
@@ -41,8 +42,7 @@ open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parent
                        NavActionPopInspectorProvider(),
                        NavActionLaunchOptionsInspectorProvider(),
                        NavActionsInspectorProvider(),
-                       NavDeeplinkInspectorProvider(),
-                       CustomPropertiesInspectorProvider())
+                       NavDeeplinkInspectorProvider())
   }
 
   @VisibleForTesting

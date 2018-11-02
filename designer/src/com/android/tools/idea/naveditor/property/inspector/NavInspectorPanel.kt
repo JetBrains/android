@@ -15,14 +15,25 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LABEL
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.property.*
+import com.android.tools.idea.naveditor.property.NavActionsProperty
+import com.android.tools.idea.naveditor.property.NavArgumentDefaultValuesProperty
+import com.android.tools.idea.naveditor.property.NavComponentTypeProperty
+import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
+import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
+import com.google.common.collect.Table
 import com.intellij.openapi.Disposable
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
@@ -34,6 +45,14 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
  * Panel shown in the nav editor properties inspector. Notably includes actions, deeplinks, and arguments.
  */
 class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavPropertiesManager>(parentDisposable, null) {
+  private var layoutProperty: NlProperty? = null
+
+  override fun setComponent(components: List<NlComponent>,
+                            properties: Table<String, String, out NlProperty>,
+                            propertiesManager: NavPropertiesManager) {
+    layoutProperty = properties.get(TOOLS_URI, ATTR_LAYOUT)
+    super.setComponent(components, properties, propertiesManager)
+  }
 
   override fun collectExtraProperties(components: List<NlComponent>,
                                       propertiesManager: NavPropertiesManager,
@@ -55,6 +74,7 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
         NavArgumentDefaultValuesProperty(c, propertiesManager)
       }
     }
+    layoutProperty?.let { propertiesByName[ATTR_LAYOUT] = it }
     components.filter { it.isInclude }.forEach {
       propertiesByName[ATTR_ID] = SimpleProperty(ATTR_ID, listOf(it), ANDROID_URI, it.id)
       propertiesByName[ATTR_LABEL] = SimpleProperty(ATTR_LABEL, listOf(it), ANDROID_URI, it.resolveAttribute(ANDROID_URI, ATTR_LABEL))

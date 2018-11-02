@@ -16,13 +16,17 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorProvider
+import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class CustomPropertiesInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
@@ -38,7 +42,12 @@ class CustomPropertiesInspectorProvider : InspectorProvider<NavPropertiesManager
                                      properties: Map<String, NlProperty>,
                                      propertiesManager: NavPropertiesManager): InspectorComponent<NavPropertiesManager> {
     val inspector = inspectors.getOrPut(components[0].tagName) {
-      NavigationInspectorComponent(properties, propertiesManager, makePropertyNameUiNameMap(properties), null)
+      var propertyMap = properties.filterValues { isCustomProperty(it) }.mapValues { it.key }
+      val layoutProperty = properties[ATTR_LAYOUT]
+      if (components.all { it.destinationType == NavigationSchema.DestinationType.OTHER } && layoutProperty != null) {
+        propertyMap = propertyMap.plus(ATTR_LAYOUT to ATTR_LAYOUT)
+      }
+      NavigationInspectorComponent(properties, propertiesManager, propertyMap, null)
     }
     inspector.updateProperties(components, properties, propertiesManager)
     return inspector
@@ -47,11 +56,8 @@ class CustomPropertiesInspectorProvider : InspectorProvider<NavPropertiesManager
   private fun isCustomProperty(property: NlProperty) =
     property is NlPropertyItem &&
     property.definition?.libraryName?.startsWith(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.mavenGroupId) != true &&
-    property.namespace != ANDROID_URI
-
-  private fun makePropertyNameUiNameMap(properties: Map<String, NlProperty>): Map<String, String> {
-    return properties.filterValues { isCustomProperty(it) }.mapValues { it.key }
-  }
+    property.namespace != ANDROID_URI &&
+    !(property.name == ATTR_LAYOUT && property.namespace == TOOLS_URI)
 
   override fun resetCache() {
     inspectors.clear()
