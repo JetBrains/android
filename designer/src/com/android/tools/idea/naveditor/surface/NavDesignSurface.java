@@ -147,6 +147,12 @@ public class NavDesignSurface extends DesignSurface {
     super.dispose();
   }
 
+  @VisibleForTesting
+  @Nullable
+  NlEditorPanel getEditorPanel() {
+    return myEditorPanel;
+  }
+
   @Override
   public float getSceneScalingFactor() {
     return 1f;
@@ -283,17 +289,27 @@ public class NavDesignSurface extends DesignSurface {
 
       NavigationSchema schema = NavigationSchema.get(module);
       if (!schema.quickValidate()) {
-        myEditorPanel.getWorkBench().showLoading("Refreshing Navigators...");
+        NlEditorPanel editorPanel = getEditorPanel();
+        if (editorPanel != null) {
+          editorPanel.getWorkBench().showLoading("Refreshing Navigators...");
+        }
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           try {
             schema.rebuildSchema().get();
-            ApplicationManager.getApplication().invokeLater(() -> myEditorPanel.getWorkBench().hideLoading());
+            if (editorPanel != null) {
+              ApplicationManager.getApplication().invokeLater(() -> editorPanel.getWorkBench().hideLoading());
+            }
           }
           catch (Exception e) {
-            ApplicationManager.getApplication().invokeLater(
-              () -> myEditorPanel.getWorkBench().loadingStopped("Error refreshing Navigators"));
+            if (editorPanel != null) {
+              ApplicationManager.getApplication().invokeLater(
+                () -> editorPanel.getWorkBench().loadingStopped("Error refreshing Navigators"));
+            }
           }
         });
+      }
+      else {
+        schema.rebuildSchema();
       }
     }
   }
