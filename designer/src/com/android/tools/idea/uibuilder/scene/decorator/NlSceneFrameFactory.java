@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawNlComponentFrame;
 import com.android.tools.idea.common.scene.decorator.SceneFrameFactory;
+import com.android.tools.idea.common.scene.draw.DrawNlDraggingComponentFrame;
 import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,14 +39,19 @@ public class NlSceneFrameFactory implements SceneFrameFactory {
     Rectangle rect = new Rectangle();
     component.fillRect(rect); // get the rectangle from the component
 
-    int layout_width = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
-    int layout_height = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
+    int layoutWidth = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
+    int layoutHeight = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
     SceneComponent.DrawState mode = component.getDrawState();
     boolean paint = !sceneContext.showOnlySelection() || mode == SceneComponent.DrawState.SELECTED;
     if (paint) {
       // This allow the dragged components could be rendered outside its parent.
       boolean ignoreClipping = component.isDragging() && StudioFlags.NELE_DRAG_PLACEHOLDER.get();
-      DrawNlComponentFrame.add(list, sceneContext, rect, mode, layout_width, layout_height, ignoreClipping); // add to the list
+      if (ignoreClipping) {
+        DrawNlDraggingComponentFrame.add(list, sceneContext, rect, mode, layoutWidth, layoutHeight);
+      }
+      else {
+        DrawNlComponentFrame.add(list, sceneContext, rect, mode, layoutWidth, layoutHeight); // add to the list
+      }
     }
   }
 
