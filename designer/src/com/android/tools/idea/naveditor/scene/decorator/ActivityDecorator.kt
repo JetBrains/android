@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.Coordinates.getSwingDimension
@@ -50,7 +51,8 @@ private val ACTIVITY_PADDING = JBUI.scale(8f)
 @NavCoordinate
 private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26f)
 @SwingCoordinate
-private val ACTIVITY_BORDER_WIDTH = JBUI.scale(1f)
+@VisibleForTesting
+val ACTIVITY_BORDER_WIDTH = JBUI.scale(1f)
 
 object ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {

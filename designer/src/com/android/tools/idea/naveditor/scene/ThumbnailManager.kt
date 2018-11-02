@@ -85,7 +85,8 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     super.onDispose()
   }
 
-  fun getThumbnail(
+  // open for testing only
+  open fun getThumbnail(
     xmlFile: XmlFile,
     configuration: Configuration,
     dimensions: Dimension
