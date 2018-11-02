@@ -27,10 +27,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
@@ -87,7 +87,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     updateConfig();
 
     // Parse and return the new bundle
-    return parseBundle(myURLProvider.getLocalConfig(getVersion()));
+    return parseBundle();
   }
 
   /**
@@ -106,7 +106,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     // Check the current version
     Path localConfig = myURLProvider.getLocalConfig(getVersion());
     if (Files.exists(localConfig)) {
-      WhatsNewAssistantBundle oldBundle = parseBundle(localConfig);
+      WhatsNewAssistantBundle oldBundle = parseBundle();
       if (oldBundle != null) {
         lastSeenVersion = oldBundle.getVersion();
       }
@@ -116,7 +116,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     updateConfig();
 
     // Parse and return the new bundle
-    WhatsNewAssistantBundle newBundle = parseBundle(localConfig);
+    WhatsNewAssistantBundle newBundle = parseBundle();
     if (newBundle != null && newBundle.getVersion() > lastSeenVersion) {
       return true;
     }
@@ -126,17 +126,17 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   /**
    * Parse and return bundle from URL, retrying once after deleting local
    * cache if the first try results in an error.
-   * @param path
    * @return the bundle, or {@code null} if there is an error while parsing
    */
   @Nullable
-  private WhatsNewAssistantBundle parseBundle(@NotNull Path path) {
-    WhatsNewAssistantBundle bundle = parseBundleWorker(path);
+  private WhatsNewAssistantBundle parseBundle() {
+    WhatsNewAssistantBundle bundle = parseBundleWorker();
     if (bundle != null)
       return bundle;
 
     // Error can be caused by corrupt/empty .xml config. First delete the local file, then retry.
     try {
+      Path path = myURLProvider.getLocalConfig(getVersion());
       Files.delete(path);
     } catch (IOException e) {
       getLog().warn("Error deleting cached file", e);
@@ -145,22 +145,37 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
     getLog().info("Retrying WNA parseBundle after deleting possibly corrupt file.");
     updateConfig();
-    return parseBundleWorker(path);
+    return parseBundleWorker();
   }
 
   /**
    * Parse and return bundle from URL
-   * @param path
    * @return the bundle, or {@code null} if there is an error while parsing
    */
   @Nullable
-  private static WhatsNewAssistantBundle parseBundleWorker(@NotNull Path path) {
-    try (InputStream configStream = new FileInputStream(path.toFile())){
+  private WhatsNewAssistantBundle parseBundleWorker() {
+    Path path = myURLProvider.getLocalConfig(getVersion());
+    try (InputStream configStream = openConfigStream()) {
+      if (configStream == null)
+        return null;
       return DefaultTutorialBundle.parse(configStream, WhatsNewAssistantBundle.class);
     }
     catch (Exception e) {
-      getLog().warn(String.format("Error parsing bundle from \"%s\"", path), e);
+      getLog().warn(String.format("Error parsing bundle from \"%s\"", path.toString()), e);
       return null;
+    }
+  }
+
+  @Nullable
+  private InputStream openConfigStream() throws FileNotFoundException {
+    Path path = myURLProvider.getLocalConfig(getVersion());
+    if (Files.exists(path)) {
+      return new FileInputStream(path.toFile());
+    }
+    else {
+      // If there is no existing config file, that means it has not been downloaded recently
+      // and there is no cache, so we just display the default resource.
+      return myURLProvider.getResourceFileAsStream(this, getVersion());
     }
   }
 
@@ -173,24 +188,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
     // Download XML from server and overwrite the local file
     if (StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.get()) {
-      if (downloadConfig(webConfig, localConfigPath)) return;
-    }
-
-    // If downloading doesn't work and file doesn't already exist, unpack it from resources
-    File localConfigFile = localConfigPath.toFile();
-    if (!Files.exists(localConfigPath)) {
-      try (InputStream configResource = myURLProvider.getResourceFileAsStream(this, getVersion());
-           OutputStream destinationStream = new FileOutputStream(localConfigFile)) {
-        if (configResource != null) {
-          FileUtil.copy(configResource, destinationStream);
-        } else {
-          // No resource file found and download didn't work
-          throw new IllegalStateException("Cannot get or generate WNA xml file");
-        }
-      }
-      catch (IOException e) {
-        getLog().warn(String.format("Error creating local file \"%s\"", localConfigFile), e);
-      }
+      downloadConfig(webConfig, localConfigPath);
     }
   }
 
