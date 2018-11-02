@@ -27,6 +27,7 @@ import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
+import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -65,6 +66,7 @@ import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProj
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -977,6 +979,17 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   public AaptOptions.Namespacing getNamespacing() {
     return myAndroidProject.getAaptOptions().getNamespacing();
+  }
+
+  @NotNull
+  @Override
+  public Set<Desugaring> getDesugaring() {
+    GradleVersion version = getModelVersion();
+    if (version == null) {
+      return Desugaring.NONE;
+    }
+
+    return getGradleDesugaring(version, getJavaLanguageLevel());
   }
 
   @Override

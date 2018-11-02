@@ -20,6 +20,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
+import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -169,6 +170,10 @@ public interface AndroidModel {
 
   @NotNull
   AaptOptions.Namespacing getNamespacing();
+
+  /** @return the set of desugaring capabilities of the build system in use. */
+  @NotNull
+  Set<Desugaring> getDesugaring();
 
   /**
    * Returns the set of build-system-provided resource values and overrides.

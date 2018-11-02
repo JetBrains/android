@@ -27,6 +27,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.util.toPathString
+import com.android.tools.lint.detector.api.Desugaring
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -150,6 +151,10 @@ data class AndroidModelAdapter(
 
   override fun getNamespacing(): AaptOptions.Namespacing
     = input.selectedVariants().firstOrNull()?.submodule?.namespacing?.toAaptOptionsNamespacing() ?: AaptOptions.Namespacing.DISABLED
+
+  override fun getDesugaring(): Set<Desugaring> {
+    TODO("not implemented")
+  }
 
   override fun getClassJarProvider(): ClassJarProvider = classJars
 
