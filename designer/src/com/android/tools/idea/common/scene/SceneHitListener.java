@@ -78,16 +78,6 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     }
     else if (over instanceof SceneComponent) {
       SceneComponent component = (SceneComponent)over;
-      if (myHitComponents.size() == 1) {
-        // Handle selection of nested component.
-        SceneComponent currentSelection = myHitComponents.get(0);
-        if (currentSelection.getChildren().contains(component)) {
-          myHitComponents.clear();
-          myHitComponents.add(component);
-          myClosestComponentDistance = dist;
-          return;
-        }
-      }
       if (dist < myClosestComponentDistance) {
         myHitComponents.clear();
         myHitComponents.add(component);
@@ -112,32 +102,22 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     if (count == 0) {
       return null;
     }
-    if (count == 1) {
-      return myHitTargets.get(0);
-    }
     List<NlComponent> selection = mySelectionModel.getSelection();
-    if (selection.isEmpty()) {
-      Target candidate = myHitTargets.get(count - 1);
-      for (int i = count - 2; i >= 0; i--) {
-        Target target = myHitTargets.get(i);
-        if (target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
-          candidate = target;
-        }
-      }
-      return candidate;
-    }
+
     Target candidate = myHitTargets.get(count - 1);
     boolean inSelection = parentInSelection(candidate.getComponent(), selection);
-
     for (int i = count - 2; i >= 0; i--) {
       Target target = myHitTargets.get(i);
-      if (inSelection && !parentInSelection(target.getComponent(), selection)) {
+      boolean targetParentInSelection = parentInSelection(target.getComponent(), selection);
+      if (inSelection && !targetParentInSelection) {
         continue;
       }
-      if ((!inSelection && parentInSelection(target.getComponent(), selection))
-           || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
+      if ((!inSelection && targetParentInSelection)
+          || (target.getPreferenceLevel() > candidate.getPreferenceLevel())
+          || (target.getPreferenceLevel() == candidate.getPreferenceLevel()
+              && target.getComponent().getDepth() > candidate.getComponent().getDepth())) {
         candidate = target;
-        inSelection = true;
+        inSelection = targetParentInSelection;
       }
     }
     return candidate;
@@ -203,6 +183,9 @@ class SceneHitListener implements ScenePicker.HitElementListener {
   }
 
   private static boolean parentInSelection(@NotNull SceneComponent component, @NotNull List<NlComponent> selection) {
+    if (selection.isEmpty()) {
+      return false;
+    }
     while (component != null) {
       if (selection.contains(component.getNlComponent())) {
         return true;
