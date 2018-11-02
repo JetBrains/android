@@ -24,6 +24,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneTransition;
 
+import com.android.SdkConstants;
 import com.android.tools.adtui.ptable2.PTableColumn;
 import com.android.tools.adtui.ptable2.PTableItem;
 import com.android.tools.adtui.ptable2.PTableModel;
@@ -37,6 +38,9 @@ import com.android.tools.idea.common.property2.api.PropertiesTable;
 import com.android.tools.idea.common.property2.api.PropertiesView;
 import com.android.tools.idea.common.property2.api.PropertiesViewTab;
 import com.android.tools.idea.common.property2.api.TableUIProvider;
+import com.android.tools.idea.uibuilder.api.CustomPanel;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.model.TargetModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.ui.TargetComponent;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
@@ -49,8 +53,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AttributeComparator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link PropertiesView} for motion layout property editor.
@@ -65,18 +71,22 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     NeleControlTypeProvider controlTypeProvider = new NeleControlTypeProvider(enumSupportProvider);
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
-    tab.getBuilders().add(new MotionInspectorBuilder(editorProvider, tableUIProvider));
+    tab.getBuilders().add(new MotionInspectorBuilder(model.getFacet(), editorProvider, tableUIProvider));
   }
 
   private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
     private final EditorProvider<NelePropertyItem> myEditorProvider;
     private final AttributeComparator<NelePropertyItem> myAttributeComparator;
     private final TableUIProvider myTableUIProvider;
+    private final CustomPanel myCustomLayoutPanel;
 
-    private MotionInspectorBuilder(@NotNull EditorProvider<NelePropertyItem> editorProvider, @NotNull TableUIProvider tableUIProvider) {
+    private MotionInspectorBuilder(@NotNull AndroidFacet facet,
+                                   @NotNull EditorProvider<NelePropertyItem> editorProvider,
+                                   @NotNull TableUIProvider tableUIProvider) {
       myEditorProvider = editorProvider;
       myAttributeComparator = new AttributeComparator<>(NelePropertyItem::getName);
       myTableUIProvider = tableUIProvider;
+      myCustomLayoutPanel = loadCustomLayoutPanel(facet);
     }
 
     @Override
@@ -97,6 +107,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           label = MotionSceneConstraintSet;
           addTargetComponent(inspector, component, label);
+          addCustomLayoutComponent(inspector, component);
           addPropertyTable(inspector, label, properties, targetId);
           break;
 
@@ -118,6 +129,23 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
           addPropertyTable(inspector, label, properties, target, position);
           break;
+      }
+    }
+
+    @Nullable
+    private static CustomPanel loadCustomLayoutPanel(@NotNull AndroidFacet facet) {
+      ViewHandlerManager manager = ViewHandlerManager.get(facet);
+      ViewHandler handler = manager.getHandler(SdkConstants.MOTION_LAYOUT.newName());
+      return handler != null ? handler.getLayoutCustomPanel() : null;
+    }
+
+    private void addCustomLayoutComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component) {
+      NlComponent parent = component.getParent();
+      String parentTag = parent != null ? parent.getTagName() : null;
+      if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
+        InspectorLineModel title = inspector.addExpandableTitle("layout", true);
+        myCustomLayoutPanel.useComponent(component);
+        inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
       }
     }
 
