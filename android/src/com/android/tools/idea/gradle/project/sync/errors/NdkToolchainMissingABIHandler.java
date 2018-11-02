@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -32,16 +33,21 @@ import org.jetbrains.annotations.Nullable;
  * of the Android Gradle Plugin. We offer a message saying that the version of the NDK may be incompatible with AGP < 3 and a
  * link the prompts them to upgrade to the newest version of the plugin.
  */
-public final class NdkToolchainMIPS64elLinuxAndroidMissingHandler extends BaseSyncErrorHandler {
+public final class NdkToolchainMissingABIHandler extends BaseSyncErrorHandler {
+  @NotNull private static final String ERROR_MESSAGE = "No toolchains found in the NDK toolchains folder for ABI with prefix: ";
+  @NotNull private static final List<String> VALID_ABIS = Arrays.asList("mips64el-linux-android", "mipsel-linux-android");
 
   @Nullable
   @Override
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
-    String errorMessage = "No toolchains found in the NDK toolchains folder for ABI with prefix: mips64el-linux-android";
-    if (rootCause.getMessage().equals(errorMessage) && !isArtifactVersionOver3dot0(getAndroidPluginArtifactModel(project))) {
-      return rootCause.getMessage() + "\n" +
-             "This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n" +
-             "Please use plugin version 3.1 or newer.";
+    String text = rootCause.getMessage();
+    if (text.startsWith(ERROR_MESSAGE)) {
+      boolean valid = VALID_ABIS.stream().anyMatch(it -> text.endsWith(it));
+      if (valid && !isArtifactVersionOver3dot0(getAndroidPluginArtifactModel(project))) {
+        return text + "\n" +
+               "This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n" +
+               "Please use plugin version 3.1 or newer.";
+      }
     }
     return null;
   }

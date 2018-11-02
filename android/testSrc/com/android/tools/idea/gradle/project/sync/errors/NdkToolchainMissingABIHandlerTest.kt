@@ -26,10 +26,9 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 
-class NdkToolchainMIPS64elLinuxAndroidMissingHandlerTest : AndroidGradleTestCase() {
+class NdkToolchainMissingABIHandlerTest : AndroidGradleTestCase() {
   private var syncMessagesStub: GradleSyncMessagesStub? = null
-  private var expectedError = "No toolchains found in the NDK toolchains folder for ABI with prefix: mips64el-linux-android\n" +
-                              "This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n" +
+  private var expectedError = "This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n" +
                               "Please use plugin version 3.1 or newer."
 
   @Before
@@ -39,8 +38,27 @@ class NdkToolchainMIPS64elLinuxAndroidMissingHandlerTest : AndroidGradleTestCase
   }
 
   @Test
-  fun testHandlerWithOldGradle() {
-    val errMsg = "No toolchains found in the NDK toolchains folder for ABI with prefix: mips64el-linux-android"
+  fun testHandlerWithOldGradle32bits() {
+    verifyOld("mipsel-linux-android");
+  }
+
+  @Test
+  fun testHandlerWithOldGradle64bits() {
+    verifyOld("mips64el-linux-android");
+  }
+
+  @Test
+  fun testHandleWithNewGradle32bit() {
+    verifyNew("mipsel-linux-android");
+  }
+
+  @Test
+  fun testHandleWithNewGradle64bit() {
+    verifyNew("mips64el-linux-android");
+  }
+
+  private fun verifyOld(ABI: String) {
+    val errMsg = "No toolchains found in the NDK toolchains folder for ABI with prefix: $ABI"
     registerSyncErrorToSimulate(errMsg)
 
     prepareProjectForImport(SIMPLE_APPLICATION_PRE30)
@@ -49,7 +67,7 @@ class NdkToolchainMIPS64elLinuxAndroidMissingHandlerTest : AndroidGradleTestCase
 
     val notificationUpdate = syncMessagesStub!!.notificationUpdate
     assertNotNull(notificationUpdate)
-    assertThat(notificationUpdate!!.text).isEqualTo(expectedError)
+    assertThat(notificationUpdate!!.text).isEqualTo("$errMsg\n$expectedError")
 
     // Verify hyperlinks are correct.
     val quickFixes = notificationUpdate.fixes
@@ -57,9 +75,8 @@ class NdkToolchainMIPS64elLinuxAndroidMissingHandlerTest : AndroidGradleTestCase
     assertThat(quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionHyperlink::class.java)
   }
 
-  @Test
-  fun testHandleWithNewGradle() {
-    val errMsg = "No toolchains found in the NDK toolchains folder for ABI with prefix: mips64el-linux-android"
+  private fun verifyNew(ABI: String) {
+    val errMsg = "No toolchains found in the NDK toolchains folder for ABI with prefix: $ABI"
     registerSyncErrorToSimulate(errMsg)
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION)
