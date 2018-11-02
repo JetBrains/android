@@ -16,7 +16,15 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ArrayResourceValue;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.DensityBasedResourceValue;
+import com.android.ide.common.rendering.api.PluralsResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
@@ -30,18 +38,24 @@ import com.android.resources.ResourceVisibility;
 import com.android.testutils.TestUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.URI;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Tests for {@link AarProtoResourceRepository}.
@@ -581,12 +595,12 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     for (int i = 0; i < count; i++) {
       ResourceNamespace namespace = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
       long start = System.currentTimeMillis();
-      AarSourceResourceRepository
-        fromSources = AarSourceResourceRepository.createForTest(new File(myAarFolder, SdkConstants.FD_RES), namespace, LIBRARY_NAME);
+      AarSourceResourceRepository fromSources =
+          AarSourceResourceRepository.createForTest(new File(myAarFolder, SdkConstants.FD_RES), namespace, LIBRARY_NAME);
       loadTimeFromSources += System.currentTimeMillis() - start;
       start = System.currentTimeMillis();
       AarProtoResourceRepository fromResApk =
-        AarProtoResourceRepository.create(new File(myAarFolder, SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
+          AarProtoResourceRepository.create(new File(myAarFolder, SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
       loadTimeFromResApk += System.currentTimeMillis() - start;
       assertEquals(LIBRARY_NAME, fromResApk.getLibraryName());
       assertEquals(namespace, fromResApk.getNamespace());
