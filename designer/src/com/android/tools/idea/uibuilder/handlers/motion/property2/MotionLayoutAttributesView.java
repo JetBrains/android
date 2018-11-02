@@ -24,7 +24,6 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneTransition;
 
-import com.android.SdkConstants;
 import com.android.tools.adtui.ptable2.PTableColumn;
 import com.android.tools.adtui.ptable2.PTableItem;
 import com.android.tools.adtui.ptable2.PTableModel;
@@ -38,14 +37,8 @@ import com.android.tools.idea.common.property2.api.PropertiesTable;
 import com.android.tools.idea.common.property2.api.PropertiesView;
 import com.android.tools.idea.common.property2.api.PropertiesViewTab;
 import com.android.tools.idea.common.property2.api.TableUIProvider;
-import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.model.TargetModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.ui.TargetComponent;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider;
-import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
@@ -53,61 +46,54 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AttributeComparator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link PropertiesView} for motion layout property editor.
  */
-public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem> {
+public class MotionLayoutAttributesView extends PropertiesView<MotionPropertyItem> {
   private static final String MOTION_VIEW_NAME = "Motion";
 
   public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
     super(MOTION_VIEW_NAME, model);
-    PropertiesViewTab<NelePropertyItem> tab = addTab("");
-    NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider();
-    NeleControlTypeProvider controlTypeProvider = new NeleControlTypeProvider(enumSupportProvider);
-    EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
-    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
-    tab.getBuilders().add(new MotionInspectorBuilder(model.getFacet(), editorProvider, tableUIProvider));
+    PropertiesViewTab<MotionPropertyItem> tab = addTab("");
+    MotionControlTypeProvider controlTypeProvider = new MotionControlTypeProvider();
+    EditorProvider<MotionPropertyItem> editorProvider =
+      EditorProvider.Companion.create(new MotionEnumSupportProvider(), controlTypeProvider);
+    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(MotionPropertyItem.class, controlTypeProvider, editorProvider);
+    tab.getBuilders().add(new MotionInspectorBuilder(editorProvider, tableUIProvider));
   }
 
-  private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
-    private final EditorProvider<NelePropertyItem> myEditorProvider;
-    private final AttributeComparator<NelePropertyItem> myAttributeComparator;
+  private static class MotionInspectorBuilder implements InspectorBuilder<MotionPropertyItem> {
+    private final EditorProvider<MotionPropertyItem> myEditorProvider;
+    private final AttributeComparator<MotionPropertyItem> myAttributeComparator;
     private final TableUIProvider myTableUIProvider;
-    private final CustomPanel myCustomLayoutPanel;
 
-    private MotionInspectorBuilder(@NotNull AndroidFacet facet,
-                                   @NotNull EditorProvider<NelePropertyItem> editorProvider,
-                                   @NotNull TableUIProvider tableUIProvider) {
+    private MotionInspectorBuilder(@NotNull EditorProvider<MotionPropertyItem> editorProvider, @NotNull TableUIProvider tableUIProvider) {
       myEditorProvider = editorProvider;
-      myAttributeComparator = new AttributeComparator<>(NelePropertyItem::getName);
+      myAttributeComparator = new AttributeComparator<>(MotionPropertyItem::getName);
       myTableUIProvider = tableUIProvider;
-      myCustomLayoutPanel = loadCustomLayoutPanel(facet);
     }
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector,
-                                  @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
-      NelePropertyItem any = properties.getFirst();
+                                  @NotNull PropertiesTable<? extends MotionPropertyItem> properties) {
+      MotionPropertyItem any = properties.getFirst();
       if (any == null) {
         return;
       }
-      XmlTag tag = MotionLayoutAttributesModel.getTag(any);
+      XmlTag tag = any.getTag().getElement();
       if (tag == null) {
         return;
       }
-      NlComponent component = any.getComponents().get(0);
+      NlComponent component = any.getComponent();
       String label = tag.getLocalName();
       switch (label) {
         case ConstraintSetConstraint:
-          NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
+          MotionPropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           label = MotionSceneConstraintSet;
           addTargetComponent(inspector, component, label);
-          addCustomLayoutComponent(inspector, component);
           addPropertyTable(inspector, label, properties, targetId);
           break;
 
@@ -118,34 +104,17 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
         default:
           // This should be some kind of KeyFrame
-          NelePropertyItem target = properties.getOrNull(AUTO_URI, Key_frameTarget);
-          NelePropertyItem position = properties.getOrNull(AUTO_URI, Key_framePosition);
+          MotionPropertyItem target = properties.getOrNull(AUTO_URI, Key_frameTarget);
+          MotionPropertyItem position = properties.getOrNull(AUTO_URI, Key_framePosition);
           if (target == null || position == null) {
             // All KeyFrames should have target and position.
-            Logger.getInstance(NelePropertyItem.class).warn("KeyFrame without target and position");
+            Logger.getInstance(MotionPropertyItem.class).warn("KeyFrame without target and position");
             return;
           }
           addTargetComponent(inspector, component, label);
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
           addPropertyTable(inspector, label, properties, target, position);
           break;
-      }
-    }
-
-    @Nullable
-    private static CustomPanel loadCustomLayoutPanel(@NotNull AndroidFacet facet) {
-      ViewHandlerManager manager = ViewHandlerManager.get(facet);
-      ViewHandler handler = manager.getHandler(SdkConstants.MOTION_LAYOUT.newName());
-      return handler != null ? handler.getLayoutCustomPanel() : null;
-    }
-
-    private void addCustomLayoutComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component) {
-      NlComponent parent = component.getParent();
-      String parentTag = parent != null ? parent.getTagName() : null;
-      if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
-        InspectorLineModel title = inspector.addExpandableTitle("layout", true);
-        myCustomLayoutPanel.useComponent(component);
-        inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
       }
     }
 
@@ -156,9 +125,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     private void addPropertyTable(@NotNull InspectorPanel inspector,
                                   @NotNull String titleName,
-                                  @NotNull PropertiesTable<? extends NelePropertyItem> properties,
-                                  @NotNull NelePropertyItem... excluded) {
-      List<NelePropertyItem> attributes = properties.getValues().stream()
+                                  @NotNull PropertiesTable<? extends MotionPropertyItem> properties,
+                                  @NotNull MotionPropertyItem... excluded) {
+      List<MotionPropertyItem> attributes = properties.getValues().stream()
         .filter(item -> ArrayUtil.find(excluded, item) < 0)
         .sorted(myAttributeComparator)
         .collect(Collectors.toList());
@@ -181,8 +150,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
   private static class MotionTableModel implements PTableModel {
     private final List<PTableItem> myItems;
 
-    private MotionTableModel(@NotNull List<NelePropertyItem> items) {
-      items.sort(Comparator.comparing(NelePropertyItem::getName).thenComparing(NelePropertyItem::getNamespace));
+    private MotionTableModel(@NotNull List<MotionPropertyItem> items) {
+      items.sort(Comparator.comparing(MotionPropertyItem::getName).thenComparing(MotionPropertyItem::getNamespace));
       myItems = new ArrayList<>(items);
     }
 

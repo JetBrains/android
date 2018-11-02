@@ -590,7 +590,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         return null;
       }
     }
-    String file = component.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
+    String file = component.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_TRANSITION);
     if (file == null) {
       return null;
     }

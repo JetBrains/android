@@ -21,7 +21,6 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
@@ -197,7 +196,7 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     return tag.subTags.mapNotNull { extractTag(it, tagName) }.firstOrNull()
   }
 
-  private fun getProperties(tagName: String): PropertiesTable<NelePropertyItem> {
+  private fun getProperties(tagName: String): PropertiesTable<MotionPropertyItem> {
     // TODO: Pickup attrs.xml from the ConstraintLayout library
     myFixture.copyFileToProject("motion/attrs.xml", "res/values/attrs.xml")
     val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
@@ -206,9 +205,8 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val tagPointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(tag)
     val nlModel = createNlModel()
     val textView = nlModel.components[0].getChild(0)!!
-    val provider = MotionLayoutPropertyProvider(myFacet)
-    val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    return provider.getProperties(model, tagPointer, listOf(textView))
+    val provider = MotionLayoutPropertyProvider(createMockModel())
+    return provider.getProperties(textView, tagPointer)
   }
 
   private fun createNlModel(): SyncNlModel {
@@ -229,5 +227,12 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
         )
     )
     return builder.build()
+  }
+
+  private fun createMockModel(): MotionLayoutAttributesModel {
+    val model = mock(MotionLayoutAttributesModel::class.java)
+    `when`(model.facet).thenReturn(myFacet)
+    `when`(model.project).thenReturn(project)
+    return model
   }
 }

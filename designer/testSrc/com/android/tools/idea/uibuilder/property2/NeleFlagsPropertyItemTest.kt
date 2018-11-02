@@ -100,6 +100,6 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
         frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", model, null, components)
+    return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", model, components)
   }
 }
