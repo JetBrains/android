@@ -28,12 +28,12 @@ import java.awt.geom.Rectangle2D
  */
 private const val ELLIPSIS = "..."
 
-class DrawTruncatedText(private var myLevel: Int,
-                        private var myText: String,
-                        @SwingCoordinate private val myRectangle: Rectangle2D.Float,
-                        private val myColor: Color,
-                        private val myFont: Font,
-                        private val myIsCentered: Boolean) : DrawCommandBase() {
+data class DrawTruncatedText(private var myLevel: Int,
+                             private var myText: String,
+                             @SwingCoordinate private val myRectangle: Rectangle2D.Float,
+                             private val myColor: Color,
+                             private val myFont: Font,
+                             private val myIsCentered: Boolean) : DrawCommandBase() {
 
   private var myTruncatedText = ""
   @SwingCoordinate private var myX = 0f

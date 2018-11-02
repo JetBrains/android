@@ -22,7 +22,7 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 
-class DrawRectangle(
+data class DrawRectangle(
   private val level: Int,
   @SwingCoordinate private val rectangle: Rectangle2D.Float,
   @SwingCoordinate private val color: Color,

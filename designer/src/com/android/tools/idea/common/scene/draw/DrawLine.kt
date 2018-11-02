@@ -27,8 +27,13 @@ import java.awt.geom.Point2D
  * [DrawLine] draws a line between the specified endpoints.
  */
 // TODO: Integrate with DisplayList.addLine
-class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Point2D.Float, @SwingCoordinate private val myTo: Point2D.Float,
-               private val myColor: Color, private val myStroke: BasicStroke) : DrawCommandBase() {
+data class DrawLine(
+  private val myLevel: Int,
+  @SwingCoordinate private val myFrom: Point2D.Float,
+  @SwingCoordinate private val myTo: Point2D.Float,
+  private val myColor: Color,
+  private val myStroke: BasicStroke
+) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]), stringToPoint2D(sp[2]),
                                                 stringToColor(sp[3]), stringToStroke(sp[4]))
@@ -51,4 +56,6 @@ class DrawLine(private val myLevel: Int, @SwingCoordinate private val myFrom: Po
     val line = Line2D.Float(myFrom, myTo)
     g.draw(line)
   }
+
+  override fun toString() = "DrawLine[${myFrom.x}, ${myFrom.y}, ${myTo.x}, ${myTo.y}]"
 }
