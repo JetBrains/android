@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
@@ -131,7 +130,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     if (config instanceof AndroidTestRunConfiguration) {
       // The application is always force stopped when running `am instrument`. See AndroidTestRunConfiguration#getLaunchOptions().
       myForceStopRunningApplicationCheckBox.setVisible(false);
-    } else {
+    }
+    else {
       mySkipNoOpApkInstallation.addActionListener(e -> {
         if (mySkipNoOpApkInstallation == e.getSource()) {
           myForceStopRunningApplicationCheckBox.setEnabled(mySkipNoOpApkInstallation.isSelected());
@@ -217,7 +217,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
-  protected void applyEditorTo(@NotNull T configuration) throws ConfigurationException {
+  protected void applyEditorTo(@NotNull T configuration) {
     myModuleSelector.applyTo(configuration);
 
     DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
@@ -284,20 +284,21 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       setSyncLinkMessage("(Syncing)");
       Futures.addCallback(projectSystem.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false),
                           new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
-          @Override
-          public void onSuccess(ProjectSystemSyncManager.SyncResult result) {
-            if (!result.isSuccessful()) {
-              setSyncLinkMessage("(Sync Failed)");
-            }
-            syncFinished();
-          }
+                            @Override
+                            public void onSuccess(ProjectSystemSyncManager.SyncResult result) {
+                              if (!result.isSuccessful()) {
+                                setSyncLinkMessage("(Sync Failed)");
+                              }
+                              syncFinished();
+                            }
 
-          @Override
-          public void onFailure(@NotNull Throwable t) {
-            syncFinished();
-          }
-        }, EdtExecutor.INSTANCE);
-    } else {
+                            @Override
+                            public void onFailure(@NotNull Throwable t) {
+                              syncFinished();
+                            }
+                          }, EdtExecutor.INSTANCE);
+    }
+    else {
       showFailureMessage();
     }
   }
