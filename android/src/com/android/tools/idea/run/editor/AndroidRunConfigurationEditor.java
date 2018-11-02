@@ -16,35 +16,34 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor,
                                                                                                                        ActionListener {
@@ -56,9 +55,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   // application run parameters or test run parameters
   private JPanel myConfigurationSpecificPanel;
 
-  // deploy options
-  private ConfigurableCardPanel myDeployTargetConfigurableCardPanel;
-  private ComboBox myDeploymentTargetCombo;
+  private final DeploymentTargetOptions myDeploymentTargetOptions;
 
   // Misc. options tab
   private JCheckBox myClearLogCheckBox;
@@ -71,9 +68,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   private final ConfigurationModuleSelector myModuleSelector;
   private ConfigurationSpecificEditor<T> myConfigurationSpecificEditor;
-
-  private final ImmutableMap<String, DeployTargetConfigurableWrapper> myDeployTargetConfigurables;
-  private final List<DeployTargetProvider> myApplicableDeployTargetProviders;
 
   private AndroidDebuggerPanel myAndroidDebuggerPanel;
   private final AndroidProfilersPanel myAndroidProfilersPanel;
@@ -97,25 +91,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     };
     myModulesComboBox.addActionListener(this);
 
-    myApplicableDeployTargetProviders = ImmutableList.copyOf(config.getApplicableDeployTargetProviders());
-    DeployTargetConfigurableContext context = new RunConfigurationEditorContext(myModuleSelector, myModulesComboBox);
-    ImmutableMap.Builder<String, DeployTargetConfigurableWrapper> builder = ImmutableMap.builder();
-    for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      builder.put(target.getId(), new DeployTargetConfigurableWrapper(project, this, context, target));
+    if (StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      myDeploymentTargetOptions = null;
     }
-    myDeployTargetConfigurables = builder.build();
-
-    myDeploymentTargetCombo.setModel(new CollectionComboBoxModel(myApplicableDeployTargetProviders));
-    myDeploymentTargetCombo.setRenderer(new DeployTargetProvider.Renderer());
-    myDeploymentTargetCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        DeployTargetProvider target = (DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem();
-        if (target != null) {
-          myDeployTargetConfigurableCardPanel.select(myDeployTargetConfigurables.get(target.getId()), true);
-        }
-      }
-    });
+    else {
+      myDeploymentTargetOptions = new DeploymentTargetOptions(config, this, project);
+      myDeploymentTargetOptions.addTo((Container)myTabbedPane.getComponentAt(0));
+    }
 
     if (config instanceof AndroidTestRunConfiguration) {
       // The application is always force stopped when running `am instrument`. See AndroidTestRunConfiguration#getLaunchOptions().
@@ -186,11 +168,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
     myModuleSelector.reset(configuration);
 
-    DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
-    myDeploymentTargetCombo.setSelectedItem(deployTargetContext.getCurrentDeployTargetProvider());
-    for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      DeployTargetState state = deployTargetContext.getDeployTargetState(target);
-      myDeployTargetConfigurables.get(target.getId()).resetFrom(state, configuration.getUniqueID());
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      myDeploymentTargetOptions.resetFrom(configuration);
     }
 
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
@@ -210,13 +189,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   protected void applyEditorTo(@NotNull T configuration) {
     myModuleSelector.applyTo(configuration);
 
-    DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
-    deployTargetContext.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
-    for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      DeployTargetState state = deployTargetContext.getDeployTargetState(target);
-      if (target != null) {
-        myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
-      }
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      myDeploymentTargetOptions.applyTo(configuration);
     }
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
@@ -240,6 +214,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   public ConfigurationModuleSelector getModuleSelector() {
     return myModuleSelector;
+  }
+
+  @NotNull
+  JComboBox getModuleComboBox() {
+    return myModulesComboBox;
   }
 
   @Override
