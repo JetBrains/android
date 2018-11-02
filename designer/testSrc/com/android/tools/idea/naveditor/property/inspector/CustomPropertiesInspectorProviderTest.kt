@@ -24,6 +24,7 @@ import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
+import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
 import com.intellij.openapi.command.WriteCommandAction
 
 class CustomPropertiesInspectorProviderTest : NavTestCase() {
@@ -81,9 +82,9 @@ class CustomPropertiesInspectorProviderTest : NavTestCase() {
     assertFalse(activityInspectorProvider.isApplicable(components, properties, propertiesManager))
     var inspector = inspectorProvider.createCustomInspector(components, properties, propertiesManager)
 
-    assertSameElements(inspector.editors.map { it.property.name }, listOf("myString", "myBoolean", "myInteger"))
+    assertSameElements(inspector.editors.map { it.property.name }, listOf("layout", "myString", "myBoolean", "myInteger"))
     assertSameElements(inspector.editors.map { it.javaClass },
-                       listOf(TextEditor::class.java, NlBooleanEditor::class.java, TextEditor::class.java))
+                       listOf(NlReferenceEditor::class.java, TextEditor::class.java, NlBooleanEditor::class.java, TextEditor::class.java))
     assertEquals("true", inspector.editors.find { it.property.name == "myBoolean" }!!.value)
 
     components = listOf(model.find("mycustomactivity")!!)
