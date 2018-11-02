@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
 
@@ -25,6 +26,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property2.api.PropertiesTable;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
@@ -82,7 +84,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   public PropertiesTable<NelePropertyItem> getProperties(@NotNull NelePropertiesModel model,
                                                          @Nullable Object optionalValue,
                                                          @NotNull List<? extends NlComponent> components) {
-    assert(!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode());
+    assert (!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode());
 
     @SuppressWarnings("unchecked")
     SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)optionalValue;
@@ -139,7 +141,31 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       NelePropertyItem property = createProperty(namespaceUri, name, attrDef, model, tagPointer, components);
       properties.put(namespaceUri, name, property);
     }
+    for (XmlTag custom : tag.findSubTags(MotionSceneString.KeyAttributes_customAttribute)) {
+      String name = custom.getAttributeValue(MotionSceneString.CustomAttributes_attributeName, AUTO_URI);
+      if (name == null) {
+        continue;
+      }
+      for (String customType : MotionSceneString.CustomAttributes_types) {
+        String customValue = custom.getAttributeValue(customType, AUTO_URI);
+        if (customValue != null) {
+          properties.put("", name, createCustomProperty(name, customType, custom, model, components));
+          break;
+        }
+      }
+    }
     return properties;
+  }
+
+  public static NelePropertyItem createCustomProperty(@NotNull String name,
+                                                      @NotNull String customType,
+                                                      @NotNull XmlTag customTag,
+                                                      @NotNull NelePropertiesModel model,
+                                                      @NotNull List<? extends NlComponent> components) {
+    NelePropertyType type = mapFromCustomType(customType);
+    SmartPsiElementPointer<XmlTag> tagPointer =
+      SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(customTag);
+    return new NelePropertyItem("", name, type, null, "", model, tagPointer, components);
   }
 
   private static NelePropertyItem createProperty(@NotNull String namespace,
@@ -149,7 +175,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
                                                  @NotNull SmartPsiElementPointer<XmlTag> tagPointer,
                                                  @NotNull List<? extends NlComponent> components) {
     NelePropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
-    String libraryName = StringUtil.notNullize(attr !=null ? attr.getLibraryName() : null);
+    String libraryName = StringUtil.notNullize(attr != null ? attr.getLibraryName() : null);
     if (namespace == ANDROID_URI && name == ATTR_ID) {
       return new NeleIdPropertyItem(model, attr, tagPointer, components);
     }
@@ -180,5 +206,57 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(context);
     }
     return namespace != null ? namespace : ANDROID_URI;
+  }
+
+  @NotNull
+  static NelePropertyType mapFromCustomType(@NotNull String customType) {
+    switch (customType) {
+      case MotionSceneString.CustomAttributes_customColorValue:
+        return NelePropertyType.COLOR;
+
+      case MotionSceneString.CustomAttributes_customIntegerValue:
+        return NelePropertyType.INTEGER;
+
+      case MotionSceneString.CustomAttributes_customFloatValue:
+        return NelePropertyType.FLOAT;
+
+      case MotionSceneString.CustomAttributes_customStringValue:
+        return NelePropertyType.STRING;
+
+      case MotionSceneString.CustomAttributes_customDimensionValue:
+        return NelePropertyType.DIMENSION;
+
+      case MotionSceneString.CustomAttributes_customBooleanValue:
+        return NelePropertyType.BOOLEAN;
+
+      default:
+        return NelePropertyType.STRING;
+    }
+  }
+
+  @NotNull
+  static String mapToCustomType(@NotNull NelePropertyType type) {
+    switch (type) {
+      case COLOR:
+        return MotionSceneString.CustomAttributes_customColorValue;
+
+      case INTEGER:
+        return MotionSceneString.CustomAttributes_customIntegerValue;
+
+      case FLOAT:
+        return MotionSceneString.CustomAttributes_customFloatValue;
+
+      case STRING:
+        return MotionSceneString.CustomAttributes_customStringValue;
+
+      case DIMENSION:
+        return MotionSceneString.CustomAttributes_customDimensionValue;
+
+      case BOOLEAN:
+        return MotionSceneString.CustomAttributes_customBooleanValue;
+
+      default:
+        return MotionSceneString.CustomAttributes_customStringValue;
+    }
   }
 }

@@ -15,18 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider.mapToCustomType;
+
+import com.android.SdkConstants;
 import com.android.tools.idea.common.property2.api.PropertiesModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +58,9 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     if (tag == null) {
       return null;
     }
+    if (tag.getLocalName().equals(MotionSceneString.KeyAttributes_customAttribute)) {
+      return tag.getAttributeValue(mapToCustomType(property.getType()), SdkConstants.AUTO_URI);
+    }
     return tag.getAttributeValue(property.getName(), property.getNamespace());
   }
 
@@ -60,9 +74,65 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
           getFacet().getModule().getProject(),
           "Set $componentName.$name to $newValue",
           null,
-          () -> tag.setAttribute(property.getName(), property.getNamespace(), newValue));
+          () -> setPropertyValue(tag, property, newValue));
       }
     });
+  }
+
+  private static void setPropertyValue(@NotNull XmlTag tag, @NotNull NelePropertyItem property, @Nullable String newValue) {
+    if (tag.getLocalName().equals(MotionSceneString.KeyAttributes_customAttribute)) {
+      tag.setAttribute(mapToCustomType(property.getType()), SdkConstants.AUTO_URI, newValue);
+    }
+    else {
+      tag.setAttribute(property.getName(), property.getNamespace(), newValue);
+    }
+  }
+
+  public void createCustomXmlTag(@NotNull XmlTag keyFrameOrConstraint,
+                                 @NotNull String attrName,
+                                 @NotNull String value,
+                                 @NotNull MotionSceneModel.CustomAttributes.Type type,
+                                 @NotNull Consumer<XmlTag> operation) {
+    List<XmlTag> oldTags = Arrays.stream(keyFrameOrConstraint.findSubTags(MotionSceneString.KeyAttributes_customAttribute))
+      .filter(tag -> attrName.equals(tag.getAttribute(MotionSceneString.CustomAttributes_attributeName, SdkConstants.AUTO_URI)))
+      .collect(Collectors.toList());
+
+    Runnable transaction = () -> {
+      oldTags.forEach(tag -> tag.delete());
+
+      XmlTag createdTag = keyFrameOrConstraint.createChildTag(MotionSceneString.KeyAttributes_customAttribute, null, null, false);
+      createdTag = keyFrameOrConstraint.addSubTag(createdTag, false);
+      createdTag.setAttribute(MotionSceneString.CustomAttributes_attributeName, SdkConstants.AUTO_URI, attrName);
+      createdTag.setAttribute(type.getTagName(), SdkConstants.AUTO_URI, StringUtil.isNotEmpty(value) ? value : type.getDefaultValue());
+
+      operation.accept(createdTag);
+    };
+
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    TransactionGuard.submitTransaction(this, () ->
+      WriteCommandAction.runWriteCommandAction(
+        getFacet().getModule().getProject(),
+        "Set $componentName.$name to $newValue",
+        null,
+        transaction,
+        keyFrameOrConstraint.getContainingFile()));
+  }
+
+  public void deleteTag(@NotNull XmlTag tag, @NotNull Runnable operation) {
+    PsiFile file = tag.getContainingFile();
+    Runnable transaction = () -> {
+      tag.delete();
+      operation.run();
+    };
+
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    TransactionGuard.submitTransaction(this, () ->
+      WriteCommandAction.runWriteCommandAction(
+        getFacet().getModule().getProject(),
+        "Set $componentName.$name to $newValue",
+        null,
+        transaction,
+        file));
   }
 
   @Override

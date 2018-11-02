@@ -66,6 +66,15 @@ public class MotionSceneString {
   public static final String CustomAttributes_customDimensionValue = "customDimension";
   public static final String CustomAttributes_customBooleanValue = "customBoolean";
 
+  public static final String[] CustomAttributes_types = {
+    CustomAttributes_customColorValue,
+    CustomAttributes_customIntegerValue,
+    CustomAttributes_customFloatValue,
+    CustomAttributes_customStringValue,
+    CustomAttributes_customDimensionValue,
+    CustomAttributes_customBooleanValue,
+  };
+
   public static final String KeyCycle_android_alpha = "alpha";
   public static final String KeyCycle_android_translationX = "translationX";
   public static final String KeyCycle_android_translationY = "translationY";
