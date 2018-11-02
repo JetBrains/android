@@ -37,22 +37,34 @@ import com.android.tools.idea.common.property2.api.InspectorPanel;
 import com.android.tools.idea.common.property2.api.PropertiesTable;
 import com.android.tools.idea.common.property2.api.PropertiesView;
 import com.android.tools.idea.common.property2.api.PropertiesViewTab;
+import com.android.tools.idea.common.property2.api.TableLineModel;
 import com.android.tools.idea.common.property2.api.TableUIProvider;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
+import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.NewCustomAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.model.TargetModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.ui.TargetComponent;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import com.intellij.xml.XmlElementDescriptor;
+import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AttributeComparator;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +91,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     private final AttributeComparator<NelePropertyItem> myAttributeComparator;
     private final TableUIProvider myTableUIProvider;
     private final CustomPanel myCustomLayoutPanel;
+    private final XmlElementDescriptorProvider myDescriptorProvider;
 
     private MotionInspectorBuilder(@NotNull AndroidFacet facet,
                                    @NotNull EditorProvider<NelePropertyItem> editorProvider,
@@ -87,6 +100,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       myAttributeComparator = new AttributeComparator<>(NelePropertyItem::getName);
       myTableUIProvider = tableUIProvider;
       myCustomLayoutPanel = loadCustomLayoutPanel(facet);
+      myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     }
 
     @Override
@@ -130,6 +144,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           addPropertyTable(inspector, label, properties, target, position);
           break;
       }
+      if (hasCustomAttributes(tag)) {
+        addCustomAttributes(inspector, properties);
+      }
     }
 
     @Nullable
@@ -149,6 +166,30 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       }
     }
 
+    private void addCustomAttributes(@NotNull InspectorPanel inspector,
+                                     @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
+      List<NelePropertyItem> attributes = properties.getValues().stream()
+        .filter(item -> item.getNamespace().isEmpty())
+        .sorted(myAttributeComparator)
+        .collect(Collectors.toList());
+
+      NelePropertyItem property = properties.getValues().stream()
+        .filter(item -> !item.getNamespace().isEmpty())
+        .findFirst()
+        .orElse(null);
+
+      if (property == null) {
+        return;
+      }
+
+      CustomPropertyTableModel tableModel = new CustomPropertyTableModel(attributes);
+      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, property);
+      DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction(tableModel);
+      InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
+      TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
+      deleteFieldAction.setLineModel(lineModel);
+    }
+
     private static void addTargetComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component, @NotNull String label) {
       TargetComponent targetComponent = new TargetComponent(new TargetModel(component, label));
       inspector.addComponent(targetComponent, null);
@@ -159,12 +200,25 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                   @NotNull PropertiesTable<? extends NelePropertyItem> properties,
                                   @NotNull NelePropertyItem... excluded) {
       List<NelePropertyItem> attributes = properties.getValues().stream()
-        .filter(item -> ArrayUtil.find(excluded, item) < 0)
+        .filter(item -> !item.getNamespace().isEmpty() && ArrayUtil.find(excluded, item) < 0)
         .sorted(myAttributeComparator)
         .collect(Collectors.toList());
 
       InspectorLineModel title = inspector.addExpandableTitle(titleName, true);
       inspector.addTable(new MotionTableModel(attributes), true, myTableUIProvider, title);
+    }
+
+    private boolean hasCustomAttributes(@NotNull XmlTag tag) {
+      XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(tag);
+      if (elementDescriptor == null) {
+        return false;
+      }
+      for (XmlElementDescriptor childDescriptor : elementDescriptor.getElementsDescriptors(tag)) {
+        if (childDescriptor.getDefaultName().equals(MotionSceneString.KeyAttributes_customAttribute)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override
@@ -205,6 +259,137 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     @Override
     public void addListener(@NotNull PTableModelUpdateListener listener) {
       // items are not updated in this model
+    }
+  }
+
+  private static class CustomPropertyTableModel implements PTableModel {
+    private final List<PTableItem> myItems;
+    private final List<PTableModelUpdateListener> myListeners;
+    private final AttributeComparator<PTableItem> myAttributeComparator;
+
+    private CustomPropertyTableModel(@NotNull List<NelePropertyItem> items) {
+      myAttributeComparator = new AttributeComparator<>(PTableItem::getName);
+      myItems = new ArrayList<>(items);
+      myListeners = new ArrayList<>();
+      myItems.sort(myAttributeComparator);
+    }
+
+    @NotNull
+    @Override
+    public List<PTableItem> getItems() {
+      return myItems;
+    }
+
+    public void remove(@NotNull NelePropertyItem item) {
+      int index = myItems.indexOf(item);
+      if (index < 0) {
+        return;
+      }
+      myItems.remove(index);
+      fireUpdate();
+    }
+
+    public void add(@NotNull NelePropertyItem item) {
+      int index = myItems.indexOf(item);
+      if (index < 0) {
+        myItems.add(item);
+        myItems.sort(myAttributeComparator);
+      }
+      else {
+        myItems.set(index, item);
+      }
+      fireUpdate();
+    }
+
+    @Override
+    public boolean isCellEditable(@NotNull PTableItem item, @NotNull PTableColumn column) {
+      return true;
+    }
+
+    @Override
+    public boolean acceptMoveToNextEditor(@NotNull PTableItem item, @NotNull PTableColumn column) {
+      return true;
+    }
+
+    @Override
+    public void addListener(@NotNull PTableModelUpdateListener listener) {
+      myListeners.add(listener);
+    }
+
+    private void fireUpdate() {
+      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated());
+    }
+  }
+
+  private static class AddCustomFieldAction extends AnAction {
+    private final CustomPropertyTableModel myTableModel;
+    private final NelePropertyItem myProperty;
+    private final MotionLayoutAttributesModel myModel;
+
+    private AddCustomFieldAction(@NotNull CustomPropertyTableModel tableModel, @NotNull NelePropertyItem property) {
+      super(null, "Add Property", StudioIcons.Common.ADD);
+      myTableModel = tableModel;
+      myProperty = property;
+      myModel = (MotionLayoutAttributesModel)myProperty.getModel();
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel();
+      newAttributePanel.show();
+      if (!newAttributePanel.isOK()) {
+        return;
+      }
+      String attributeName = newAttributePanel.getAttributeName();
+      String value = newAttributePanel.getInitialValue();
+      MotionSceneModel.CustomAttributes.Type type = newAttributePanel.getType();
+      if (StringUtil.isEmpty(attributeName)) {
+        return;
+      }
+      XmlTag tag = MotionLayoutAttributesModel.getTag(myProperty);
+      if (tag == null) {
+        return;
+      }
+      Consumer<XmlTag> applyToModel = newCustomTag -> {
+        NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
+          attributeName, type.getTagName(), newCustomTag, myProperty.getModel(), myProperty.getComponents());
+        myTableModel.add(newProperty);
+      };
+
+      myModel.createCustomXmlTag(tag, attributeName, value, type, applyToModel);
+    }
+  }
+
+  private static class DeleteCustomFieldAction extends AnAction {
+    private final CustomPropertyTableModel myTableModel;
+    private TableLineModel myLineModel;
+
+    private DeleteCustomFieldAction(@NotNull CustomPropertyTableModel tableModel) {
+      super(null, "Remove Selected Property", StudioIcons.Common.REMOVE);
+      myTableModel = tableModel;
+    }
+
+    public void setLineModel(@NotNull TableLineModel lineModel) {
+      myLineModel = lineModel;
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      if (myLineModel == null) {
+        return;
+      }
+      NelePropertyItem property = (NelePropertyItem)myLineModel.getSelectedItem();
+      if (property == null) {
+        return;
+      }
+      XmlTag tag = MotionLayoutAttributesModel.getTag(property);
+      if (tag == null) {
+        return;
+      }
+      Runnable applyToModel = () -> myTableModel.remove(property);
+
+      MotionLayoutAttributesModel model = (MotionLayoutAttributesModel)property.getModel();
+      model.deleteTag(tag, applyToModel);
     }
   }
 }

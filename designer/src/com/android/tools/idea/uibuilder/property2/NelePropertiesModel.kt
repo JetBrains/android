@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
@@ -55,6 +56,8 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
  */
 open class NelePropertiesModel(parentDisposable: Disposable, val provider: PropertiesProvider, val facet: AndroidFacet)
   : PropertiesModel<NelePropertyItem>, Disposable {
+  val project: Project = facet.module.project
+
   private val listeners: MutableList<PropertiesModelListener<NelePropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
