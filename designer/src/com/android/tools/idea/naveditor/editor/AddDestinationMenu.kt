@@ -21,6 +21,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
+import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
@@ -28,6 +29,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
 import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -67,7 +69,6 @@ import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
-import java.awt.Point
 import java.awt.event.HierarchyEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -103,7 +104,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val model = surface.model!!
       val classToDestination = LinkedHashMap<PsiClass, Destination>()
       val module = model.module
-      val schema = surface.sceneManager?.schema ?: return listOf()
+      val schema = model.schema
       val parent = surface.currentNavigation
       for (tag in schema.allTags) {
         for (psiClass in schema.getDestinationClassesForTag(tag)) {
@@ -185,18 +186,25 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   @VisibleForTesting
   lateinit var blankDestinationButton: ActionButtonWithText
 
+  private val refreshCallback = {
+    _mainPanel = createSelectionPanel()
+  }
+
   init {
-    val resourceListener = ResourceNotificationManager.ResourceChangeListener { _ -> _mainPanel = null }
+    val resourceListener = ResourceNotificationManager.ResourceChangeListener { _mainPanel = null }
     val notificationManager = ResourceNotificationManager.getInstance(surface.project)
     val facet = surface.model!!.facet
     notificationManager.addListener(resourceListener, facet, null, null)
 
-    val lafListener = { _: LafManager -> _mainPanel = null }
+    val lafListener = LafManagerListener { _mainPanel = null }
     LafManager.getInstance().addLafManagerListener(lafListener)
+
+    surface.model?.module?.let { NavigationSchema.addSchemaRebuildListener(it, refreshCallback) }
 
     Disposer.register(surface, Disposable {
       notificationManager.removeListener(resourceListener, facet, null, null)
       LafManager.getInstance().removeLafManagerListener(lafListener)
+      surface.model?.module?.let { NavigationSchema.removeSchemaRebuildListener(it, refreshCallback) }
     })
   }
 
@@ -335,9 +343,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     createdFiles.clear()
     action.actionPerformed(e)
     val project = e?.project ?: return
-    val sceneManager = surface.sceneManager ?: return
-    val schema = sceneManager.schema
     val model = surface.model ?: return
+    val schema = model.schema
     val resourceManager = LocalResourceManager.getInstance(model.module) ?: return
 
     DumbService.getInstance(project).runWhenSmart {
@@ -396,8 +403,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     show(button)
   }
 
-  override fun update(e: AnActionEvent?) {
-    e?.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
+  override fun update(e: AnActionEvent) {
+    e.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
   }
 
   companion object {

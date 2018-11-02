@@ -24,6 +24,7 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 
 import com.android.SdkConstants;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -38,7 +39,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
@@ -354,6 +354,23 @@ public class NavigationSchema implements Disposable {
    */
   private ImmutableMultimap<String, TypeRef> myTagToStyleables;
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(myModule, myTagToDestinationClass, myTagToDestinationClass, myTagToStyleables);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof NavigationSchema)) {
+      return false;
+    }
+    NavigationSchema otherSchema = (NavigationSchema)obj;
+    return Objects.equals(myModule, otherSchema.myModule) &&
+           Objects.equals(myTypeToDestinationClass, otherSchema.myTypeToDestinationClass) &&
+           Objects.equals(myTagToDestinationClass, otherSchema.myTagToDestinationClass) &&
+           Objects.equals(myTagToStyleables, otherSchema.myTagToStyleables);
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Initialization
@@ -367,6 +384,8 @@ public class NavigationSchema implements Disposable {
   /**
    * Gets the {@code NavigationSchema} for the given {@code module}. {@link #createIfNecessary(Module)} <b>must</b> be called before
    * this method is called.
+   *
+   * The returned object should be considered transient and not kept around, since the schema for a Module may be replaced at any time.
    */
   @NotNull
   public static synchronized NavigationSchema get(@NotNull Module module) {
@@ -650,12 +669,17 @@ public class NavigationSchema implements Disposable {
   //region Cache Invalidation
   /////////////////////////////////////////////////////////////////////////////
 
+  private static final Multimap<Module, Runnable> ourListeners = ArrayListMultimap.create();
+  private static final Object ourListenerLock = new Object();
+
   private CompletableFuture<NavigationSchema> myRebuildTask;
   private final Object myTaskLock = new Object();
 
   @Nullable
   public CompletableFuture<NavigationSchema> getRebuildTask() {
-    return myRebuildTask;
+    synchronized (myTaskLock) {
+      return myRebuildTask;
+    }
   }
 
   public boolean quickValidate() {
@@ -670,12 +694,14 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   public CompletableFuture<NavigationSchema> rebuildSchema() {
+    CompletableFuture<NavigationSchema> task;
     synchronized (myTaskLock) {
       if (myRebuildTask != null) {
         return myRebuildTask;
       }
 
       myRebuildTask = new CompletableFuture<>();
+      task = myRebuildTask;
     }
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       NavigationSchema newVersion = new NavigationSchema(myModule);
@@ -683,17 +709,47 @@ public class NavigationSchema implements Disposable {
         ReadAction.run(() -> newVersion.init());
       }
       catch (Throwable t) {
-        myRebuildTask.completeExceptionally(t);
         synchronized (myTaskLock) {
+          myRebuildTask.completeExceptionally(t);
           myRebuildTask = null;
         }
       }
+      if (equals(newVersion)) {
+        synchronized (myTaskLock) {
+          myRebuildTask.complete(this);
+          myRebuildTask = null;
+        }
+        return;
+      }
       Disposer.register(myModule, newVersion);
       ourSchemas.put(myModule, newVersion);
-      myRebuildTask.complete(newVersion);
+      synchronized (myTaskLock) {
+        myRebuildTask.complete(newVersion);
+      }
+      List<Runnable> listeners;
+      synchronized (ourListenerLock) {
+        listeners = new ArrayList<>(ourListeners.get(myModule));
+      }
+      listeners.forEach(Runnable::run);
       Disposer.dispose(this);
     });
-    return myRebuildTask;
+    return task;
+  }
+
+  /**
+   * Add a listener that will be run on a worker thread when schema rebuild is complete.
+   * The listener will also automatically be propagated to the new NavigationSchema object.
+   */
+  public static void addSchemaRebuildListener(@NotNull Module module, @NotNull Runnable listener) {
+    synchronized (ourListenerLock) {
+      ourListeners.put(module, listener);
+    }
+  }
+
+  public static void removeSchemaRebuildListener(@NotNull Module module, Runnable listener) {
+    synchronized (ourListenerLock) {
+      ourListeners.remove(module, listener);
+    }
   }
 
   //endregion
