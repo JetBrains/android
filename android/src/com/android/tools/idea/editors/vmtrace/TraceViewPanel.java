@@ -258,7 +258,7 @@ public class TraceViewPanel {
     mySearchField = createSearchField();
     myFindFieldWrapper.add(mySearchField);
 
-    myCloseLabel = new JLabel(AllIcons.Actions.Cross);
+    myCloseLabel = new JLabel(AllIcons.Actions.Close);
     myCloseLabel.addMouseListener(l);
 
     myVmStatsTreeTableModel = new VmStatsTreeTableModel();
