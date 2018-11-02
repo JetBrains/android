@@ -190,7 +190,7 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
     }
   }
 
-  private fun useCurrentPanel(surface: DesignSurface?) {
+  protected fun useCurrentPanel(surface: DesignSurface?) {
     usePanel((surface as? NlDesignSurface)?.accessoryPanel?.currentPanel)
   }
 
@@ -206,7 +206,7 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
     new?.addListener(designSurfaceListener)
   }
 
-  private fun setAccessoryPanelListener(old: DesignSurface?, new: DesignSurface?) {
+  protected fun setAccessoryPanelListener(old: DesignSurface?, new: DesignSurface?) {
     (old as? NlDesignSurface)?.accessoryPanel?.removeAccessoryPanelListener(accessoryPanelListener)
     (new as? NlDesignSurface)?.accessoryPanel?.addAccessoryPanelListener(accessoryPanelListener)
   }
