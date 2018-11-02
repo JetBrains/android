@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.intellij.openapi.Disposable
@@ -145,8 +144,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
     super.reInitWholePanelIfNeeded()
     currentModuleSelectorStyle = null
     centerComponent = splitter.secondComponent
-    val splitterLeftcomponent = (splitter.firstComponent as JPanel)
-    toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, splitterLeftcomponent, ToolWindowAnchor.LEFT)
+    val splitterLeftComponent = (splitter.firstComponent as JPanel)
+    toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, splitterLeftComponent, ToolWindowAnchor.LEFT)
       .also {
         it.setPreferredFocusedComponent(myTree)
         it.addMinimizeListener { modulesTreeMinimized() }
@@ -288,29 +287,34 @@ abstract class BasePerspectiveConfigurable protected constructor(
         override fun actionPerformed(e: AnActionEvent) {
           if (!context.project.isModified ||
               Messages.showYesNoDialog(
-                e?.project,
+                e.project,
                 "Pending changes will be applied to the project. Continue?",
                 "Add Module",
                 Messages.getQuestionIcon()) == Messages.YES
           ) {
             var synced = false
             val chooseModuleTypeStep =
-              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, ProjectSyncInvoker { synced = true })
+              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject) { synced = true }
             context.applyRunAndReparse {
               StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
                 .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
                 .build()
                 .show()
               synced  // Tells whether the context needs to reparse the config.
-            };
+            }
           }
         }
       },
       object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
+        override fun update(e: AnActionEvent) {
+          super.update(e)
+          e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
+        }
+
         override fun actionPerformed(e: AnActionEvent) {
-          val module = (selectedObject as PsModule)
+          val module = (selectedObject as? PsModule) ?: return
           if (Messages.showYesNoDialog(
-              e?.project,
+              e.project,
               buildString {
                 append(when {
                          module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
