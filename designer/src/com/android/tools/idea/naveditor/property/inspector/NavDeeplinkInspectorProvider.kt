@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import icons.StudioIcons.NavEditor.Surface.DEEPLINK
+import icons.StudioIcons.NavEditor.Toolbar.DEEPLINK
 import org.jetbrains.annotations.TestOnly
 
 class NavDeeplinkInspectorProvider(

@@ -159,20 +159,14 @@
         <border type="none"/>
         <children/>
       </grid>
-      <component id="dea2f" class="javax.swing.JCheckBox" binding="myNavigationControllerCheck">
+      <vspacer id="45f83">
         <constraints>
-          <grid row="13" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="18" column="1" row-span="2" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <font style="0"/>
-          <label value="Include Navigation Controller"/>
-          <selected value="false"/>
-          <text value="Include Navigation Controller"/>
-        </properties>
-      </component>
+      </vspacer>
       <component id="39004" class="javax.swing.JCheckBox" binding="myInstantAppCheck">
         <constraints>
-          <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="13" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -182,7 +176,7 @@
       </component>
       <component id="25f85" class="javax.swing.JCheckBox" binding="myWearCheck">
         <constraints>
-          <grid row="15" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -192,7 +186,7 @@
       </component>
       <component id="b05d3" class="javax.swing.JCheckBox" binding="myTvCheck">
         <constraints>
-          <grid row="16" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="15" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -200,14 +194,9 @@
           <text value="Pair with companion Phone app"/>
         </properties>
       </component>
-      <vspacer id="45f83">
-        <constraints>
-          <grid row="19" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </vspacer>
       <component id="9af35" class="javax.swing.JCheckBox" binding="myOfflineRepoCheck">
         <constraints>
-          <grid row="17" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="16" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -218,7 +207,7 @@
       </component>
       <component id="9863d" class="javax.swing.JCheckBox" binding="myUseAndroidxCheck">
         <constraints>
-          <grid row="18" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="17" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>

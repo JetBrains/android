@@ -68,5 +68,14 @@ class BackPanelTest : NavTestCase() {
 
     AndroidTestCase.assertTrue(backPanel.isVisible)
     AndroidTestCase.assertEquals("subnav", backPanel.label.text)
+
+    val component = Mockito.mock(NlComponent::class.java)
+    Mockito.`when`(component.parent).thenReturn(null)
+
+    Mockito.`when`(surface.currentNavigation).thenReturn(component)
+    surface.selectionModel.setSelection(ImmutableList.of(component))
+    surface.selectionModel.clear()
+
+    AndroidTestCase.assertFalse(backPanel.isVisible)
   }
 }

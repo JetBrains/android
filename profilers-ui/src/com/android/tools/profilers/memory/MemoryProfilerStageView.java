@@ -126,6 +126,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myCaptureInfoMessage = new JLabel(StudioIcons.Common.WARNING);
     myCaptureInfoMessage.setBorder(TOOLBAR_ICON_BORDER);
+    // preset the minimize size of the info to only show the icon, so the text can be truncated when the user resizes the vertical splitter.
+    myCaptureInfoMessage.setMinimumSize(myCaptureInfoMessage.getPreferredSize());
     myCaptureInfoMessage.setVisible(false);
     myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setOpaque(true);
@@ -394,6 +396,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (infoMessage != null) {
       myCaptureInfoMessage.setVisible(true);
       myCaptureInfoMessage.setText(infoMessage);
+      myCaptureInfoMessage.setToolTipText(infoMessage);
     }
     else {
       myCaptureInfoMessage.setVisible(false);
@@ -727,11 +730,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     }
 
     JPanel headingPanel = new JPanel(new BorderLayout());
-    headingPanel.add(toolbar, BorderLayout.WEST);
-
     JPanel buttonToolbar = new JPanel(createToolbarLayout());
     buttonToolbar.setBorder(new JBEmptyBorder(3, 0, 0, 0));
-    buttonToolbar.setOpaque(false);
     if (!getStage().isMemoryCaptureOnly()) {
       buttonToolbar.add(getSelectionTimeLabel());
     }
@@ -748,7 +748,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
     }
+
+    // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
     headingPanel.add(buttonToolbar, BorderLayout.EAST);
+    headingPanel.add(toolbar, BorderLayout.WEST);
 
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);
