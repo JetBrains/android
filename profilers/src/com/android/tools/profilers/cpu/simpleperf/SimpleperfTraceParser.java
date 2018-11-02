@@ -400,7 +400,7 @@ public class SimpleperfTraceParser implements TraceParser {
     // Node used to traverse the tree when adding new nodes or going up to find the divergent node ancestor.
     CaptureNode traversalNode = lastVisitedNode;
 
-    // Find the node whre the current call chain diverge from the previous one
+    // Find the node where the current call chain diverge from the previous one
     int divergenceIndex = 0;
     while (divergenceIndex < callChain.size() && divergenceIndex < previousCallChain.size() &&
            equals(previousCallChain.get(divergenceIndex), callChain.get(divergenceIndex))) {
@@ -444,7 +444,9 @@ public class SimpleperfTraceParser implements TraceParser {
                                   CaptureNode node, int startIndex, long startTimestamp) {
     assert node != null;
     for (int i = startIndex; i < callChain.size(); i++) {
-      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i)), startTimestamp);
+      // Get the parent function vAddress. That corresponds to the line of the parent function where the current function is called.
+      long parentVAddress = i > 0 ? callChain.get(i - 1).getVaddrInFile() : -1;
+      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i), parentVAddress), startTimestamp);
       node.addChild(child);
       child.setDepth(node.getDepth() + 1);
       node = child;
@@ -453,7 +455,7 @@ public class SimpleperfTraceParser implements TraceParser {
     return node;
   }
 
-  private CaptureNodeModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
+  private CaptureNodeModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry, long parentVAddress) {
     int symbolId = callChainEntry.getSymbolId();
     SimpleperfReport.File symbolFile = myFiles.get(callChainEntry.getFileId());
     if (symbolFile == null) {
@@ -468,7 +470,6 @@ public class SimpleperfTraceParser implements TraceParser {
     // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel. User's code symbols come from
     // files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
     boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
-    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten, symbolFile.getPath(),
-                                        callChainEntry.getVaddrInFile());
+    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten, symbolFile.getPath(), parentVAddress);
   }
 }
