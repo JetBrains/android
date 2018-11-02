@@ -27,10 +27,7 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
-    ],
+    test_runtime_deps = ["//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps"],
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
