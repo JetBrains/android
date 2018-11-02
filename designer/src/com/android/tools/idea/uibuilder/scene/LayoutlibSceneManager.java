@@ -416,12 +416,14 @@ public class LayoutlibSceneManager extends SceneManager {
       parent = getScene().getRoot();
     }
     if (parent == null) {
+      component.updateTargets();
       return;
     }
     ViewHandler parentHandler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
     if (parentHandler instanceof ViewGroupHandler) {
       parent.setTargetProvider(parentHandler);
     }
+    parent.updateTargets();
   }
 
   private class ModelChangeListener implements ModelListener {
@@ -504,7 +506,8 @@ public class LayoutlibSceneManager extends SceneManager {
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       SceneComponent root = getScene().getRoot();
       if (root != null) {
-        clearChildTargets(root);
+        clearChildTargetProviders(root);
+        root.updateTargets();
         // After a new selection, we need to figure out the context
         if (!selection.isEmpty()) {
           NlComponent primary = selection.get(0);
@@ -523,11 +526,10 @@ public class LayoutlibSceneManager extends SceneManager {
       getScene().needsRebuildList();
     }
 
-    void clearChildTargets(SceneComponent component) {
+    void clearChildTargetProviders(SceneComponent component) {
       component.setTargetProvider(null);
       for (SceneComponent child : component.getChildren()) {
-        child.setTargetProvider(null);
-        clearChildTargets(child);
+        clearChildTargetProviders(child);
       }
     }
   }
