@@ -17,16 +17,19 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiClass;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.CollectionQuery;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.util.concurrent.CountDownLatch;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,47 +39,57 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NlPaletteModelTest extends AndroidTestCase {
+@RunWith(JUnit4.class)
+public class NlPaletteModelTest {
+  @Rule
+  public final AndroidProjectRule projectRule = AndroidProjectRule.onDisk().initAndroid(true);
+  private AndroidFacet facet;
+  private JavaCodeInsightTestFixture fixture;
   private NlPaletteModel model;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    model = NlPaletteModel.get(myFacet);
+  @Before
+  public void setUp() throws Exception {
+    fixture = projectRule.getFixture(JavaCodeInsightTestFixture.class);
+    facet = AndroidFacet.getInstance(projectRule.getModule());
+    model = NlPaletteModel.get(facet);
 
     try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
       model.loadPalette(reader, NlLayoutType.LAYOUT);
     }
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
+  @After
+  public void tearDown() throws Exception {
       model = null;
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
-  public void testAddIllegalThirdPartyComponent() {
+  @Test
+  public void addIllegalThirdPartyComponent() {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, LINEAR_LAYOUT, LINEAR_LAYOUT, null, null,
                                                  SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
     assertThat(added).isFalse();
     assertThat(getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP)).isNull();
 
-    ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(LINEAR_LAYOUT);
+    ViewHandler handler = ViewHandlerManager.get(facet).getHandler(LINEAR_LAYOUT);
     assertThat(handler).isInstanceOf(LinearLayoutHandler.class);
   }
 
-  public void testAddThirdPartyComponent() {
+  @Test
+  public void addThirdPartyComponent() {
     registerJavaClasses();
     registerFakeBaseViewHandler();
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
@@ -97,7 +110,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
     assertThat(item.getGradleCoordinateId()).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
     assertThat(item.getXml()).isEqualTo(getXml(tag));
 
-    ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(tag);
+    ViewHandler handler = ViewHandlerManager.get(facet).getHandler(tag);
     assertThat(handler).isNotNull();
     assertThat(handler.getTitle(tag)).isEqualTo("FakeCustomView");
     assertThat(handler.getIcon(tag)).isEqualTo(AndroidIcons.Android);
@@ -108,11 +121,15 @@ public class NlPaletteModelTest extends AndroidTestCase {
     assertThat(handler.getPreferredProperty()).isEqualTo("family");
   }
 
-  public void testProjectComponents() {
+  @Test
+  public void projectComponents() throws InterruptedException {
     registerJavaClasses();
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     Palette.Group projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
     assertThat(projectComponents).isNull();
+
+    CountDownLatch latch = new CountDownLatch(1);
+    model.setUpdateListener(latch::countDown);
 
     model.loadAdditionalComponents(NlLayoutType.LAYOUT, palette, (project) -> {
       PsiClass customView = mock(PsiClass.class);
@@ -120,6 +137,8 @@ public class NlPaletteModelTest extends AndroidTestCase {
       when(customView.getQualifiedName()).thenReturn("com.example.FakeCustomView");
       return new CollectionQuery<>(ImmutableList.of(customView));
     });
+    latch.await();
+
     projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
     assertThat(projectComponents.getItems().size()).isEqualTo(1);
 
@@ -136,7 +155,8 @@ public class NlPaletteModelTest extends AndroidTestCase {
     assertThat(item.getParent()).isEqualTo(projectComponents);
   }
 
-  public void testIdsAreUnique() {
+  @Test
+  public void idsAreUnique() {
     checkIdsAreUniqueInPalette(NlLayoutType.LAYOUT);
     checkIdsAreUniqueInPalette(NlLayoutType.MENU);
     checkIdsAreUniqueInPalette(NlLayoutType.PREFERENCE_SCREEN);
@@ -162,15 +182,15 @@ public class NlPaletteModelTest extends AndroidTestCase {
   }
 
   private void registerFakeBaseViewHandler() {
-    ViewHandlerManager manager = ViewHandlerManager.get(myFacet);
+    ViewHandlerManager manager = ViewHandlerManager.get(facet);
     ViewHandler handler = manager.getHandler(SdkConstants.VIEW);
     assertThat(handler).isNotNull();
     manager.registerHandler("com.example.FakeView", handler);
   }
 
   private void registerJavaClasses() {
-    myFixture.addClass("package android.view; public class View {}");
-    myFixture.addClass("package com.example; public class FakeCustomView extends android.view.View {}");
+    fixture.addClass("package android.view; public class View {}");
+    fixture.addClass("package com.example; public class FakeCustomView extends android.view.View {}");
   }
 
   @Language("XML")

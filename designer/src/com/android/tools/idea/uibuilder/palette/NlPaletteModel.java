@@ -32,8 +32,11 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
@@ -43,7 +46,9 @@ import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
+import java.util.Collection;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -62,7 +67,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 
@@ -126,6 +130,17 @@ public class NlPaletteModel implements Disposable {
     myListener = updateListener;
   }
 
+  public boolean hasUpdateListener() {
+    return myListener != null;
+  }
+
+  private void notifyUpdateListener() {
+    UpdateListener listener = myListener;
+    if (listener != null) {
+      ApplicationManager.getApplication().invokeLater(listener::update);
+    }
+  }
+
   private void loadPalette(@NotNull NlLayoutType type) {
 
     try {
@@ -137,6 +152,7 @@ public class NlPaletteModel implements Disposable {
       try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
         palette = loadPalette(reader, type);
       }
+      notifyUpdateListener();
 
       loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY);
       // Reload the additional components after every build to find new custom components
@@ -157,26 +173,48 @@ public class NlPaletteModel implements Disposable {
                                 @NotNull Palette palette,
                                 @NotNull Function<Project, Query<PsiClass>> viewClasses) {
     Project project = myModule.getProject();
-    DumbService dumbService = DumbService.getInstance(project);
-    if (dumbService.isDumb()) {
-      dumbService.runWhenSmart(() -> loadAdditionalComponents(type, palette, viewClasses));
-    }
-    else {
-      // Clean-up the existing items
-      palette.getItems().stream()
-        .filter(Palette.Group.class::isInstance)
-        .map(Palette.Group.class::cast)
-        .filter(g -> PROJECT_GROUP.equals(g.getName()) || THIRD_PARTY_GROUP.equals(g.getName()))
-        .map(Palette.Group::getItems)
-        .forEach(List::clear);
+    ReadAction
+      .nonBlocking(() -> viewClasses.apply(project).findAll())
+      .expireWhen(() -> Disposer.isDisposed(this))
+      .inSmartMode(project)
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess(psiClasses -> replaceProjectComponents(type, palette, psiClasses))
+      .onError(error -> {
+        if (error instanceof ProcessCanceledException) {
+          ProgressIndicatorUtils.yieldToPendingWriteActions();
+          loadAdditionalComponents(type, palette, viewClasses);
+        }
+        else {
+          getLogger().error(error);
+        }
+      });
+  }
 
-      loadProjectComponents(type, palette, viewClasses);
-    }
+  private void replaceProjectComponents(@NotNull NlLayoutType type, Palette palette, Collection<PsiClass> psiClasses) {
+    // Clean-up the existing items
+    palette.getItems().stream()
+      .filter(Palette.Group.class::isInstance)
+      .map(Palette.Group.class::cast)
+      .filter(g -> PROJECT_GROUP.equals(g.getName()) || THIRD_PARTY_GROUP.equals(g.getName()))
+      .map(Palette.Group::getItems)
+      .forEach(List::clear);
 
-    UpdateListener listener = myListener;
-    if (listener != null) {
-      ApplicationManager.getApplication().invokeLater(listener::update);
-    }
+    psiClasses.forEach(psiClass -> {
+      String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+      String tagName = psiClass.getQualifiedName();
+      String className = PackageClassConverter.getQualifiedName(psiClass);
+
+      if (description == null || tagName == null || className == null) {
+        // Currently we ignore anonymous views
+        return;
+      }
+
+      addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
+                             tagName, className, null, null, "",
+                             null, Collections.emptyList(), Collections.emptyList());
+    });
+
+    notifyUpdateListener();
   }
 
   @VisibleForTesting
@@ -185,28 +223,6 @@ public class NlPaletteModel implements Disposable {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
     myTypeToPalette.put(type, palette);
     return palette;
-  }
-
-  private void loadProjectComponents(@NotNull NlLayoutType type,
-                                     @NotNull Palette palette,
-                                     @NotNull Function<Project, Query<PsiClass>> viewClasses) {
-    Project project = myModule.getProject();
-    viewClasses.apply(project).forEach(psiClass -> {
-      String description = psiClass.getName(); // We use the "simple" name as description on the preview.
-      String tagName = psiClass.getQualifiedName();
-      String className = PackageClassConverter.getQualifiedName(psiClass);
-
-      if (description == null || tagName == null || className == null) {
-        // Currently we ignore anonymous views
-        return false;
-      }
-
-      addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             tagName, className, null, null, "",
-                             null, Collections.emptyList(), Collections.emptyList());
-
-      return true;
-    });
   }
 
   /**
@@ -290,6 +306,6 @@ public class NlPaletteModel implements Disposable {
   }
 
   private static Logger getLogger() {
-    return Logger.getLogger(NlPaletteModel.class.getSimpleName());
+    return Logger.getInstance(NlPaletteModel.class);
   }
 }
