@@ -98,6 +98,7 @@ class AndroidProjectRule private constructor(
      * using a [JavaTestFixtureFactory]
      */
     @JvmStatic
+    @JvmOverloads
     fun onDisk(fixtureName: String? = null) = AndroidProjectRule(
         lightFixture = false,
         fixtureName = fixtureName)
@@ -129,6 +130,10 @@ class AndroidProjectRule private constructor(
 
   fun <T> registerExtension(epName: ExtensionPointName<T>, extension: T) =
     PlatformTestUtil.registerExtension<T>(Extensions.getArea(project), epName, extension, fixture.projectDisposable)
+
+  fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
+    return if (type.isInstance(fixture)) fixture as T else null
+  }
 
   override fun before(description: Description) {
     fixture = if (lightFixture) {

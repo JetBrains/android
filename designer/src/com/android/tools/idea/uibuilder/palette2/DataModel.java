@@ -107,7 +107,12 @@ public class DataModel {
     if (myLayoutType.equals(layoutType)) {
       return;
     }
+
     NlPaletteModel paletteModel = NlPaletteModel.get(facet);
+    if (!paletteModel.hasUpdateListener()) {
+      paletteModel.setUpdateListener(this::update);
+    }
+
     myPalette = paletteModel.getPalette(layoutType);
     myLayoutType = layoutType;
     myDependencyManager.setPalette(myPalette, facet.getModule());
