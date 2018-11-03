@@ -21,14 +21,22 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;
 import java.util.Iterator;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is a thread safe class to poll events from a grpc service. This class cannot be restarted once
+ * stop is called it is guaranteed that run will not be executing.
+ */
 public class UnifiedEventsDataPoller implements Runnable {
-
   private final long myStreamId;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myEventPollingService;
-  private boolean myIsRunning;
+  @NotNull private final CountDownLatch myRunningLatch;
+  @NotNull private final AtomicBoolean myIsRunning = new AtomicBoolean(false);
+  @NotNull private final AtomicBoolean myIsStopCalled = new AtomicBoolean(false);
 
   public UnifiedEventsDataPoller(long streamId,
                                  @NotNull UnifiedEventsTable unifiedEventsTable,
@@ -36,24 +44,34 @@ public class UnifiedEventsDataPoller implements Runnable {
     myEventPollingService = pollingService;
     myStreamId = streamId;
     myTable = unifiedEventsTable;
-    // Default to true, if stop is called before the thread is run we will stop the thread immediately.
-    myIsRunning = true;
+    myRunningLatch = new CountDownLatch(1);
   }
 
   public void stop() {
-    myIsRunning = false;
+    try {
+      // Request the running thread to stop.
+      myIsStopCalled.set(true);
+      // Block stop method until the run function has completed.
+      if (myIsRunning.get()) {
+        myRunningLatch.await();
+      }
+    }
+    catch (InterruptedException ignored) {
+    }
   }
 
   @Override
   public void run() throws StatusRuntimeException {
+    myIsRunning.set(true);
     // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
     Iterator<Common.Event> events = myEventPollingService.getEvents(Profiler.GetEventsRequest.getDefaultInstance());
-    while (myIsRunning && events.hasNext()) {
+    while (!myIsStopCalled.get() && events.hasNext()) {
       Common.Event event = events.next();
       if (event != null) {
         myTable.insertUnifiedEvent(myStreamId, event);
       }
     }
-    myIsRunning = false;
+    // Signal end of run.
+    myRunningLatch.countDown();
   }
 }
