@@ -79,6 +79,8 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -125,6 +127,14 @@ public class NavDesignSurface extends DesignSurface {
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;
+
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        removeComponentListener(this);
+        requestRender();
+      }
+    });
   }
 
   @Override
