@@ -100,16 +100,16 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
     @Override
     public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
+      myServer.addProfiledProcess(request.getSession());
       response.onNext(EventStartResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
+      myServer.removeProfiledProcess(request.getSession());
       response.onNext(EventStopResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -130,16 +130,16 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
     @Override
     public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> response) {
+      myServer.addProfiledProcess(request.getSession());
       response.onNext(MemoryStartResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> response) {
+      myServer.removeProfiledProcess(request.getSession());
       response.onNext(MemoryStopResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -167,16 +167,16 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
     @Override
     public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
+      myServer.addProfiledProcess(request.getSession());
       response.onNext(NetworkStartResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
+      myServer.removeProfiledProcess(request.getSession());
       response.onNext(NetworkStopResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -207,16 +207,16 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
     @Override
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
+      myServer.addProfiledProcess(request.getSession());
       response.onNext(CpuStartResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
+      myServer.removeProfiledProcess(request.getSession());
       response.onNext(CpuStopResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -255,17 +255,17 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     @Override
     public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
                                    StreamObserver<EnergyProfiler.EnergyStartResponse> response) {
+      myServer.addProfiledProcess(request.getSession());
       response.onNext(EnergyProfiler.EnergyStartResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(EnergyProfiler.EnergyStopRequest request,
                                   StreamObserver<EnergyProfiler.EnergyStopResponse> response) {
+      myServer.removeProfiledProcess(request.getSession());
       response.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
       response.onCompleted();
-      myServer.removeProfiledProcess(request.getSession());
     }
 
     @Override
