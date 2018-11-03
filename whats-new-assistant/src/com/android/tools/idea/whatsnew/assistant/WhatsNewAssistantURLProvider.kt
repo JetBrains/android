@@ -41,17 +41,11 @@ open class WhatsNewAssistantURLProvider {
   }
 
   /**
-   * Gets URL for config xml for the current version on disk. The file may or may not exist.
+   * Gets path for config xml for the current version on disk. The file may or may not exist.
    * @return URL for the local config file where xml will be stored
    */
-  open fun getLocalConfig(version: String): URL {
-    val localConfigPath = getConfigCacheDir().resolve("$version.xml")
-    try {
-      return localConfigPath.toUri().toURL()
-    }
-    catch (e: MalformedURLException) {
-      throw RuntimeException("Could not get path for local WNA xml file")
-    }
+  open fun getLocalConfig(version: String): Path {
+    return getConfigCacheDir().resolve("$version.xml")
   }
 
   open fun getResourceFileAsStream(bundleCreator: WhatsNewAssistantBundleCreator?, version: String): InputStream? {

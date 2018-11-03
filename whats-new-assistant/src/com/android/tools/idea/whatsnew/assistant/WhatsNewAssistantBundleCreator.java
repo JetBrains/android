@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +36,8 @@ import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -84,8 +87,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     updateConfig();
 
     // Parse and return the new bundle
-    URL localConfig = myURLProvider.getLocalConfig(getVersion());
-    return parseBundle(localConfig);
+    return parseBundle(myURLProvider.getLocalConfig(getVersion()));
   }
 
   /**
@@ -102,9 +104,8 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    */
   public boolean isNewConfigVersion() {
     // Check the current version
-    URL localConfig = myURLProvider.getLocalConfig(getVersion());
-    File localConfigFile = new File(localConfig.getPath());
-    if (localConfigFile.exists()) {
+    Path localConfig = myURLProvider.getLocalConfig(getVersion());
+    if (Files.exists(localConfig)) {
       WhatsNewAssistantBundle oldBundle = parseBundle(localConfig);
       if (oldBundle != null) {
         lastSeenVersion = oldBundle.getVersion();
@@ -123,17 +124,42 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   }
 
   /**
-   * Parse and return bundle from URL
-   * @param url
+   * Parse and return bundle from URL, retrying once after deleting local
+   * cache if the first try results in an error.
+   * @param path
    * @return the bundle, or {@code null} if there is an error while parsing
    */
   @Nullable
-  private static WhatsNewAssistantBundle parseBundle(@NotNull URL url) {
-    try (InputStream configStream = url.openStream()){
+  private WhatsNewAssistantBundle parseBundle(@NotNull Path path) {
+    WhatsNewAssistantBundle bundle = parseBundleWorker(path);
+    if (bundle != null)
+      return bundle;
+
+    // Error can be caused by corrupt/empty .xml config. First delete the local file, then retry.
+    try {
+      Files.delete(path);
+    } catch (IOException e) {
+      getLog().warn("Error deleting cached file", e);
+      return null;
+    }
+
+    getLog().info("Retrying WNA parseBundle after deleting possibly corrupt file.");
+    updateConfig();
+    return parseBundleWorker(path);
+  }
+
+  /**
+   * Parse and return bundle from URL
+   * @param path
+   * @return the bundle, or {@code null} if there is an error while parsing
+   */
+  @Nullable
+  private static WhatsNewAssistantBundle parseBundleWorker(@NotNull Path path) {
+    try (InputStream configStream = new FileInputStream(path.toFile())){
       return DefaultTutorialBundle.parse(configStream, WhatsNewAssistantBundle.class);
     }
     catch (Exception e) {
-      getLog().warn(String.format("Error parsing bundle from \"%s\"", url), e);
+      getLog().warn(String.format("Error parsing bundle from \"%s\"", path), e);
       return null;
     }
   }
@@ -143,7 +169,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    */
   private void updateConfig() {
     URL webConfig = myURLProvider.getWebConfig(getVersion());
-    URL localConfigPath = myURLProvider.getLocalConfig(getVersion());
+    Path localConfigPath = myURLProvider.getLocalConfig(getVersion());
 
     // Download XML from server and overwrite the local file
     if (StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.get()) {
@@ -151,8 +177,8 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     }
 
     // If downloading doesn't work and file doesn't already exist, unpack it from resources
-    File localConfigFile = new File(localConfigPath.getPath());
-    if (!localConfigFile.exists()) {
+    File localConfigFile = localConfigPath.toFile();
+    if (!Files.exists(localConfigPath)) {
       try (InputStream configResource = myURLProvider.getResourceFileAsStream(this, getVersion());
            OutputStream destinationStream = new FileOutputStream(localConfigFile)) {
         if (configResource != null) {
@@ -171,7 +197,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   /**
    * Download config xml from the web, using a temporary file and then moving it to the fixed location
    */
-  private boolean downloadConfig(@NotNull URL sourceUrl, @NotNull URL destinationFileUrl) {
+  private boolean downloadConfig(@NotNull URL sourceUrl, @NotNull Path destinationFilePath) {
     ReadableByteChannel byteChannel;
     try {
       // If timeout is not > 0, the default values are used: 60s read and 10s connect
@@ -193,7 +219,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
           FileChannel fileChannel = outputStream.getChannel()
         ) {
           fileChannel.transferFrom(byteChannel, 0, Long.MAX_VALUE);
-          FileUtil.copy(temporaryConfig, new File(destinationFileUrl.getPath()));
+          FileUtil.copy(temporaryConfig, destinationFilePath.toFile());
           return true;
         }
       }

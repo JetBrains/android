@@ -21,6 +21,7 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.util.io.FileUtil
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
@@ -29,10 +30,12 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 import java.net.URL
+import java.nio.file.Path
 import java.util.concurrent.TimeoutException
 
 class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
   private lateinit var mockUrlProvider: WhatsNewAssistantURLProvider
+  private lateinit var localPath: Path
 
   override fun setUp() {
     super.setUp()
@@ -50,8 +53,8 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
       .thenReturn(URL("file:" + resourceFile.path).openStream())
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
-    val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
-    `when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + localPath.toString()))
+    localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
+    `when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
   }
 
   override fun tearDown() {
@@ -176,6 +179,26 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
 
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, mockConnectionOpener)
+    val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
+    TestCase.assertNotNull(bundle)
+    if (bundle != null) {
+      TestCase.assertEquals(100, bundle.version)
+      TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
+    }
+  }
+
+  /**
+   * Test that parseBundle correctly deletes local cache and retries once when the parse fails
+   */
+  @Test
+  fun testParseBundleRetry() {
+    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
+    // Trying to read empty xml will cause parser to throw exception...
+    val emptyFile = File(myFixture.testDataPath).resolve("whatsnewassistant/empty.xml")
+    FileUtil.copy(emptyFile, localPath.toFile())
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider)
+
+    // So parseBundle should delete the empty file and retry, resulting in defaultresource-3.3.0.xml
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     TestCase.assertNotNull(bundle)
     if (bundle != null) {
