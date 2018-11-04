@@ -201,9 +201,10 @@ object CommonControlPortfolio {
   }
 }
 
-class TestEditingSupport: EditingSupport {
-  override val validation = fun(editedValue: String): Pair<EditingErrorCategory, String> {
-    return when (editedValue) {
+class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
+  override val validation = fun(editedValue: String?): Pair<EditingErrorCategory, String> {
+    val testValue = editedValue ?: model.value
+    return when (testValue) {
       "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
       "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
       else -> EDITOR_NO_ERROR
@@ -251,10 +252,10 @@ class TestEditingSupport: EditingSupport {
 }
 
 class TestCommonTextFieldModel(initialValue: String) : DefaultCommonTextFieldModel(initialValue) {
-  override val editingSupport = TestEditingSupport()
+  override val editingSupport = TestEditingSupport(this)
 }
 
 class TestCommonComboBoxModel(initialValue: String, elements: List<String>)
   : DefaultCommonComboBoxModel<String>(initialValue, elements) {
-  override val editingSupport = TestEditingSupport()
+  override val editingSupport = TestEditingSupport(this)
 }
