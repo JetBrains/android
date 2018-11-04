@@ -153,6 +153,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     val (propertyNamespace, propertyName) = parseName(value)
     val property = findDelegate(propertyNamespace, propertyName)
     return when {
+      value.isEmpty() -> EDITOR_NO_ERROR
       property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
       property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
       else -> EDITOR_NO_ERROR

@@ -18,11 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.Key_framePosition;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.Key_frameTarget;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneTransition;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
@@ -107,23 +102,23 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       NlComponent component = any.getComponents().get(0);
       String label = tag.getLocalName();
       switch (label) {
-        case ConstraintSetConstraint:
+        case MotionSceneString.ConstraintSetConstraint:
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
-          label = MotionSceneConstraintSet;
+          label = MotionSceneString.MotionSceneConstraintSet;
           addTargetComponent(inspector, component, label);
           addCustomLayoutComponent(inspector, component);
           addPropertyTable(inspector, label, properties, targetId);
           break;
 
-        case MotionSceneTransition:
+        case MotionSceneString.MotionSceneTransition:
           addTargetComponent(inspector, component, label);
           addPropertyTable(inspector, label, properties);
           break;
 
         default:
           // This should be some kind of KeyFrame
-          NelePropertyItem target = properties.getOrNull(AUTO_URI, Key_frameTarget);
-          NelePropertyItem position = properties.getOrNull(AUTO_URI, Key_framePosition);
+          NelePropertyItem target = properties.getOrNull(AUTO_URI, MotionSceneString.Key_frameTarget);
+          NelePropertyItem position = properties.getOrNull(AUTO_URI, MotionSceneString.Key_framePosition);
           if (target == null || position == null) {
             // All KeyFrames should have target and position.
             Logger.getInstance(NelePropertyItem.class).warn("KeyFrame without target and position");

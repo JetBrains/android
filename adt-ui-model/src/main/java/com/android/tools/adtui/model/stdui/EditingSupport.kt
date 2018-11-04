@@ -68,8 +68,12 @@ enum class EditingErrorCategory(val outline: String?) {
   WARNING("warning");
 }
 
-/** A validation method for a text editor */
-typealias EditingValidation = (editedValue: String) -> Pair<EditingErrorCategory, String>
+/**
+ * A validation method for a text editor
+ *
+ * An editor should pass the string being edited or null if the editor doesn't have focus.
+ */
+typealias EditingValidation = (editedValue: String?) -> Pair<EditingErrorCategory, String>
 
 /** Completion callback */
 typealias EditorCompletion = () -> List<String>
