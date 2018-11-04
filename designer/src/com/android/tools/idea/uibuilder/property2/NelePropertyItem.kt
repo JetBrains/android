@@ -42,6 +42,7 @@ import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
+import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.utils.HashCodes
@@ -377,7 +378,7 @@ open class NelePropertyItem(
 
   private fun createBrowseButton(): ActionIconButton? {
     if (name == ATTR_ID || type.resourceTypes.isEmpty()) {
-      return null
+      return EmptyBrowseActionIconButton
     }
     return BrowseActionIconButton()
   }
