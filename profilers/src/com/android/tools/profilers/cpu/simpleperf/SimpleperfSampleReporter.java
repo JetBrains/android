@@ -22,6 +22,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,20 +40,20 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   private final String myHomePath;
 
   /**
-   * Directory where the .so files are located. It's passed to simpleperf report-sample command following the --symdir flag.
-   * Although this {@link Supplier} can't be null, it can return null and in this case we don't pass the --symdir flag at all.
+   * Directories where the .so files are located. They're passed to simpleperf report-sample command using the --symdir flag.
+   * One --symdir flag should be passed for each directory provided. If the returned {@link Set} is empty, the --symdir flag is not passed.
    */
   @NotNull
-  private Supplier<String> mySymbolsDir;
+  private Supplier<Set<File>> mySymbolsDirs;
 
-  public SimpleperfSampleReporter(@NotNull Supplier<String> symbolsDir) {
-    this(PathManager.getHomePath(), symbolsDir);
+  public SimpleperfSampleReporter(@NotNull Supplier<Set<File>> symbolsDirs) {
+    this(PathManager.getHomePath(), symbolsDirs);
   }
 
   @VisibleForTesting
-  SimpleperfSampleReporter(@NotNull String homePath, @NotNull Supplier<String> symbolsDir) {
+  SimpleperfSampleReporter(@NotNull String homePath, @NotNull Supplier<Set<File>> symbolsDirs) {
     myHomePath = homePath;
-    mySymbolsDir = symbolsDir;
+    mySymbolsDirs = symbolsDirs;
   }
 
   private static Logger getLogger() {
@@ -95,11 +97,15 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
 
   @VisibleForTesting
   String getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace) throws IOException {
-    String symbolsDir = mySymbolsDir.get();
-    String symDirFlag = symbolsDir == null ? "" : "--symdir " + symbolsDir;
+    Iterator<File> symbolsDirs = mySymbolsDirs.get().iterator();
+    StringBuilder symDirFlags = new StringBuilder();
+    while (symbolsDirs.hasNext()) {
+      symDirFlags.append(" --symdir ");
+      symDirFlags.append(symbolsDirs.next().getAbsolutePath());
+    }
     return String.format("%s report-sample --protobuf --show-callchain -i %s -o %s %s",
                          getSimpleperfBinaryPath(), tempFileFromByteString(trace).getAbsolutePath(),
-                         processedTrace.getAbsolutePath(), symDirFlag);
+                         processedTrace.getAbsolutePath(), symDirFlags.toString());
   }
 
   @VisibleForTesting
