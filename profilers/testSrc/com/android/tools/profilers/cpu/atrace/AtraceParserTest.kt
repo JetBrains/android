@@ -62,15 +62,15 @@ class AtraceParserTest {
   }
 
   companion object {
-    private val DELTA = .00000001
+    private const val DELTA = .00000001
 
     // Setting const for atrace file in one location so if we update file we can update const in one location.
-    private val EXPECTED_MIN_RANGE = 1.1008678125E11
-    private val EXPECTED_MAX_RANGE = 1.10097111995E11
-    private val SINGLE_CHILD_EXPECTED_START = 110091892263
-    private val SINGLE_CHILD_EXPECTED_END = 110091912914
-    private val EXPECTED_CHILD_COUNT = 3
-    private val EXPECTED_METHOD_NAME = "activityDestroy"
-    private val TEST_PID = 23340
+    private const val EXPECTED_MIN_RANGE = 1.1008678125E11
+    private const val EXPECTED_MAX_RANGE = 1.10097111995E11
+    private const val SINGLE_CHILD_EXPECTED_START = 110091892263
+    private const val SINGLE_CHILD_EXPECTED_END = 110091912914
+    private const val EXPECTED_CHILD_COUNT = 3
+    private const val EXPECTED_METHOD_NAME = "activityDestroy"
+    private const val TEST_PID = 23340
   }
 }

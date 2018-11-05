@@ -100,6 +100,6 @@ class LinearLayoutDecorator : SceneDecorator() {
   }
 
   companion object {
-    val GRADIENT_SIZE: Float = 12f
+    const val GRADIENT_SIZE: Float = 12f
   }
 }

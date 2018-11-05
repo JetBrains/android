@@ -60,6 +60,6 @@ class EnergyProfilerTest {
   }
 
   companion object {
-    private val FAKE_PID = 111
+    private const val FAKE_PID = 111
   }
 }

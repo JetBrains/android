@@ -137,9 +137,9 @@ class DragCreateActionTest : NavTestCase() {
   }
 
   companion object {
-    private val FRAGMENT1 = "fragment1"
-    private val FRAGMENT2 = "fragment2"
-    private val ACTION = "action1"
+    private const val FRAGMENT1 = "fragment1"
+    private const val FRAGMENT2 = "fragment2"
+    private const val ACTION = "action1"
 
     private fun initializeNavDesignSurface(model: SyncNlModel): NavDesignSurface {
       val surface = model.surface as NavDesignSurface

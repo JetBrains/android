@@ -17,9 +17,8 @@ package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
-
 import org.junit.Before
+import org.junit.Test
 
 class AtraceDecompressorTest {
 
@@ -83,6 +82,6 @@ class AtraceDecompressorTest {
 
   companion object {
     // Setting const for atrace file in one location so if we update file we can update const in one location.
-    private val KNOWN_TIMESTAMP = "189393.076368"
+    private const val KNOWN_TIMESTAMP = "189393.076368"
   }
 }

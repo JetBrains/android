@@ -40,8 +40,7 @@ import javax.swing.JComponent
 class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
     AnAction(ACTION_ID, "Overlay Image", StudioIcons.LayoutInspector.LOAD_OVERLAY), CustomComponentAction {
   companion object {
-    @JvmField
-    val ACTION_ID = "Load Overlay"
+    const val ACTION_ID = "Load Overlay"
 
     @JvmField
     val LOG = Logger.getInstance(LoadOverlayAction.javaClass)

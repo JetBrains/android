@@ -120,6 +120,6 @@ class EventActivityTooltipViewTest {
 
   companion object {
     private val TEST_START_TIME_NS = TimeUnit.SECONDS.toNanos(1)
-    private val ACTIVITY_NAME = "TestActivity"
+    private const val ACTIVITY_NAME = "TestActivity"
   }
 }
