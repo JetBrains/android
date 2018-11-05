@@ -20,6 +20,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
+import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,15 +43,22 @@ public class JavaModuleDependency implements Serializable {
   private final boolean myExported;
 
   @Nullable
-  public static JavaModuleDependency copy(IdeaModuleDependency original) {
-    IdeaModule module = original.getDependencyModule();
-    if (module != null && isNotEmpty(module.getName())) {
+  public static JavaModuleDependency copy(IdeaProject project, IdeaModuleDependency original) {
+    IdeaModule targetModule = null;
+    for (IdeaModule module : project.getModules()) {
+      if (module.getName().equals(original.getTargetModuleName())) {
+         targetModule= module;
+      }
+    }
+
+    if (targetModule != null && isNotEmpty(targetModule.getName())) {
       String scope = null;
       IdeaDependencyScope originalScope = original.getScope();
       if (originalScope != null) {
         scope = originalScope.getScope();
       }
-      GradleProject gradleProject = module.getGradleProject();
+      GradleProject gradleProject = targetModule.getGradleProject();
+
       File projectFolder;
       try {
         projectFolder = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
@@ -64,7 +72,7 @@ public class JavaModuleDependency implements Serializable {
         projectFolder = rootGradleProject.getProjectDirectory();
       }
       String moduleId = createUniqueModuleId(projectFolder, gradleProject.getPath());
-      return new JavaModuleDependency(module.getName(), moduleId, scope, original.getExported());
+      return new JavaModuleDependency(targetModule.getName(), moduleId, scope, original.getExported());
     }
     return null;
   }
