@@ -41,11 +41,12 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     super(NlDesignSurfaceFixture.class, robot, designSurface);
   }
 
-  @Override
-  public void waitForRenderToFinish() {
-    super.waitForRenderToFinish();
 
-    Wait.seconds(10).expecting("render to finish").until(() -> {
+  @Override
+  public void waitForRenderToFinish(@NotNull Wait wait) {
+    super.waitForRenderToFinish(wait);
+
+    wait.expecting("render to finish").until(() -> {
       LayoutlibSceneManager sceneManager = target().getSceneManager();
       RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
       if (result == null) {

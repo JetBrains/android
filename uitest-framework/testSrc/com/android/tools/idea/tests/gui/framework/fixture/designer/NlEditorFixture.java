@@ -139,6 +139,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
       return myDesignSurfaceFixture.target().isShowing();
     });
 
+    waitForRenderToFinish(Wait.seconds(90));
+
     return this;
   }
 

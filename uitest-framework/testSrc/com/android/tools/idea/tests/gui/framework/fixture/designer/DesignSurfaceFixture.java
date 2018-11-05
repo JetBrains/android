@@ -46,7 +46,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
     myIssuePanelFixture = new IssuePanelFixture(robot, designSurface.getIssuePanel());
   }
 
-  public void waitForRenderToFinish() {
+  public final void waitForRenderToFinish() {
     waitForRenderToFinish(Wait.seconds(10));
   }
 
