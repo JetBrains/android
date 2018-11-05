@@ -134,8 +134,8 @@ class ResourceExplorerView(
     addMouseWheelListener { event ->
       val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
       val modifierPressed = (event.modifiers and modifierKey) == modifierKey
-      if (modifierPressed) {
-        previewSize = (previewSize * (1 - event.preciseWheelRotation * 0.1)).roundToInt()
+      if (modifierPressed && gridMode) {
+        previewSize = max(MIN_CELL_WIDTH, min(MAX_CELL_WIDTH, (previewSize * (1 - event.preciseWheelRotation * 0.1)).roundToInt()))
       }
     }
   }
