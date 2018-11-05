@@ -54,7 +54,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
-import static com.android.tools.idea.templates.GradleFileMergers.removeExistingDependencies;
+import static com.android.tools.idea.templates.GradleFileMergers.updateExistingDependencies;
 
 /**
  * Utility class to help with merging Gradle files into one another
@@ -173,16 +173,17 @@ public class GradleFilePsiMerger {
 
     // Load existing dependencies into a map for the existing build.gradle
     Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
+    Map<GradleCoordinate, PsiElement> psiGradleCoordinate = Maps.newHashMap();
     final List<String> originalUnparsedDependencies = Lists.newArrayList();
-    pullDependenciesIntoMap(toRoot, originalDependencies, originalUnparsedDependencies);
+    pullDependenciesIntoMap(toRoot, originalDependencies, originalUnparsedDependencies, psiGradleCoordinate);
 
     // Load dependencies into a map for the new build.gradle
-    pullDependenciesIntoMap(fromRoot, dependencies, unparsedDependencies);
-
-    // filter out dependencies already met by existing build.gradle
-    removeExistingDependencies(dependencies, originalDependencies);
+    pullDependenciesIntoMap(fromRoot, dependencies, unparsedDependencies, null);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
+
+    // filter out dependencies already met by existing build.gradle
+    updateExistingDependencies(dependencies, originalDependencies, psiGradleCoordinate, factory);
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
@@ -339,7 +340,8 @@ public class GradleFilePsiMerger {
    */
   private static void pullDependenciesIntoMap(@NotNull PsiElement root,
                                               @NotNull Map<String, Multimap<String, GradleCoordinate>> allConfigurations,
-                                              @Nullable List<String> unparsedDependencies) {
+                                              @NotNull List<String> unparsedDependencies,
+                                              @Nullable Map<GradleCoordinate, PsiElement> psiGradleCoordinate) {
     for (PsiElement existingElem : root.getChildren()) {
       if (existingElem instanceof GrCall) {
         PsiElement reference = existingElem.getFirstChild();
@@ -362,6 +364,9 @@ public class GradleFilePsiMerger {
                     allConfigurations.computeIfAbsent(configurationName, k -> LinkedListMultimap.create());
                   if (!map.get(coordinate.getId()).contains(coordinate)) {
                     map.put(coordinate.getId(), coordinate);
+                    if (psiGradleCoordinate != null) {
+                      psiGradleCoordinate.put(coordinate, reference);
+                    }
                   }
                 }
               }

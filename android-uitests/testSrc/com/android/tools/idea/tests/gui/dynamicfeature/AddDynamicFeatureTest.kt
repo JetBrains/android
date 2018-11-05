@@ -305,12 +305,20 @@ class AddDynamicFeatureTest {
    * 1. The new Dynamic Feature Module is shown in the project explorer pane.
    * 2. Open the "dynamic_feature" module build.gradle check that play-services-maps was not added.
    * 3. Open the "app" module build.gradle and check that play-services-maps was added with "api" dependency.
+   * 4. "com.android.support" base dependencies, should be re-written from "implementation" to "api"
    * </pre>
    */
   @Test
   @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
     val ideFrame = guiTest.importSimpleLocalApplication()
+
+    ideFrame.editor
+      .open("app/build.gradle")
+      .currentFileContents.run {
+      assertThat(this).contains("implementation 'com.android.support:appcompat-v7:")
+      assertThat(this).contains("implementation 'com.android.support.constraint:constraint-layout:")
+    }
 
     createDefaultDynamicModule(ideFrame)
       .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
@@ -328,6 +336,8 @@ class AddDynamicFeatureTest {
       .open("app/build.gradle")
       .currentFileContents.run {
       assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
+      assertThat(this).contains("api 'com.android.support:appcompat-v7:")  // "implementation" re-written as "api"
+      assertThat(this).contains("api 'com.android.support.constraint:constraint-layout:")
     }
   }
 

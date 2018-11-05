@@ -169,7 +169,7 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
     Map<String, Multimap<String, GradleCoordinate>> srcAllConfigs = new HashMap<>();
     srcAllConfigs.put(srcConfigName, srcConfigs);
 
-    GradleFileMergers.removeExistingDependencies(srcAllConfigs, dstAllConfigs);
+    GradleFileMergers.updateExistingDependencies(srcAllConfigs, dstAllConfigs, null, null);
 
     assertThat(dstConfigs).hasSize(1);
     assertThat(srcConfigs).hasSize(0);
