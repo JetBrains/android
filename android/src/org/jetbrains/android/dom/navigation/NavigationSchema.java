@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 import static com.android.SdkConstants.TAG_INCLUDE;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.ACTIVITY;
@@ -34,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -439,6 +441,10 @@ public class NavigationSchema implements Disposable {
     for (PsiClass navClass : ClassInheritorsSearch.search(navigatorRoot, scope, true)) {
       if (navClass.equals(navigatorRoot)) {
         // Don't keep the root navigator
+        continue;
+      }
+      String qName = navClass.getQualifiedName();
+      if (qName != null && qName.startsWith(ANDROIDX_PKG_PREFIX) && !navClass.hasModifier(JvmModifier.PUBLIC)) {
         continue;
       }
       collectDestinationsForNavigator(navigatorRoot, navClass, navigatorToDestinationClass);
