@@ -126,6 +126,9 @@ public class StudioIcons {
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.png"); // 16x16
       public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.png"); // 16x16
       public static final Icon SLOW_MOTION = load("/studio/icons/layout-editor/motion/slow-motion.png"); // 16x16
+      public static final Icon END_CONSTRAINT = load("/studio/icons/layout-editor/motion/end-constraint.png"); // 16x16
+      public static final Icon START_CONSTRAINT = load("/studio/icons/layout-editor/motion/start-constraint.png"); // 16x16
+
     }
 
     public static class Palette {

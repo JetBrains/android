@@ -18,14 +18,18 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider.mapToCustomType;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property2.api.PropertiesModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -86,6 +90,8 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     else {
       tag.setAttribute(property.getName(), property.getNamespace(), newValue);
     }
+
+    MotionSceneModel.saveAndNotify(tag.getContainingFile(), property.getComponents().get(0).getModel());
   }
 
   public void createCustomXmlTag(@NotNull XmlTag keyFrameOrConstraint,

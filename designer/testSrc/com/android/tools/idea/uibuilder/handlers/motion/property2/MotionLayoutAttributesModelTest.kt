@@ -61,7 +61,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     Mockito.verifyZeroInteractions(listener)
 
     val textView = nlModel.components[0].getChild(0)
-    val scene = MotionSceneModel.parse(nlModel, project, file, xmlFile)
+    val scene = MotionSceneModel.parse(textView, project, file, xmlFile)
     timeline.select(scene.getTransitionTag(0).tag, textView)
     waitUntilEventsProcessed(model)
     Mockito.verify(listener).propertiesGenerated(model)
@@ -83,7 +83,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val timelineB = retrieveTimeline(nlModelB)
     val textViewA = nlModelA.find("widget")!!
     val textViewB = nlModelB.find("widget")!!
-    val scene = MotionSceneModel.parse(nlModelB, project, file, xmlFile)
+    val scene = MotionSceneModel.parse(textViewB, project, file, xmlFile)
 
     // test
     model.surface = nlModelA.surface
@@ -110,11 +110,11 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     val nlModel = createNlModel()
+    val textView = nlModel.components[0].getChild(0)
     val timeline = retrieveTimeline(nlModel)
     model.addListener(listener)
-    val scene = MotionSceneModel.parse(nlModel, project, file, xmlFile)
+    val scene = MotionSceneModel.parse(textView, project, file, xmlFile)
     model.surface = nlModel.surface
-    val textView = nlModel.components[0].getChild(0)
     nlModel.surface.selectionModel.setSelection(nlModel.components)
 
     // test
