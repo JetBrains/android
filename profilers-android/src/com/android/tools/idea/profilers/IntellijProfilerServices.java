@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -28,6 +26,7 @@ import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.nativeSymbolizer.SymbolFilesLocatorKt;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
@@ -52,7 +51,8 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +92,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
-    mySimpleperfSampleReporter = new SimpleperfSampleReporter(() -> getNativeSymbolsDirectory());
+    mySimpleperfSampleReporter = new SimpleperfSampleReporter(() -> getNativeSymbolsDirectories());
   }
 
   @NotNull
@@ -356,27 +356,13 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   /**
-   * Gets the directory containing the symbol files corresponding to the architecture of the process currently selected.
+   * Gets a {@link Set} of directories containing the symbol files corresponding to the architecture of the process currently selected.
    */
-  @Nullable
-  private String getNativeSymbolsDirectory() {
-    // First, try to get the directory from the ApkFacet, in case we're profiling an APK.
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      ApkFacet apkFacet = ApkFacet.getInstance(module);
-      if (apkFacet != null) {
-        List<Abi> supportedAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARM64_V8A, Abi.X86, Abi.X86_64);
-        Abi target =
-          supportedAbis.stream().filter(abi -> abi.getCpuArch().equals(myCodeNavigator.getCpuAbiArch())).findFirst().orElse(null);
-        Collection<String> matches = apkFacet.getConfiguration().getDebugSymbolFolderPaths(Collections.singletonList(target));
-        if (matches.isEmpty()) {
-          return null;
-        }
-        assert matches.size() == 1;
-        return matches.iterator().next();
-      }
-    }
-    // TODO(b/118759303): get the paths for projects built using Android Studio.
-    return null;
+  @NotNull
+  private Set<File> getNativeSymbolsDirectories() {
+    String arch = myCodeNavigator.getCpuAbiArch();
+    Map<String, Set<File>> archToDirectories = SymbolFilesLocatorKt.getArchToSymDirsMap(myProject);
+    return archToDirectories.containsKey(arch) ? archToDirectories.get(myCodeNavigator.getCpuAbiArch()) : Collections.emptySet();
   }
 
   @Override
