@@ -21,6 +21,7 @@ import com.android.tools.idea.resourceExplorer.widget.RowAssetView
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
 import com.intellij.ui.CollectionListModel
 import com.intellij.util.ui.JBUI
+import java.awt.event.MouseEvent
 import javax.swing.JList
 import kotlin.properties.Delegates
 
@@ -75,4 +76,8 @@ class AssetListView(
     revalidate()
     repaint()
   }
+
+  // The default implementation will will generate the tooltip from the
+  // list renderer, which is quite expensive in our case, and not needed.
+  override fun getToolTipText(event: MouseEvent?): String? = null
 }
