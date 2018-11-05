@@ -118,7 +118,9 @@ public class IdeaJavaModuleModelFactory {
           if (equalsIgnoreCase(dependency.getScope().getScope(), "RUNTIME")) {
             continue;
           }
-          JavaModuleDependency moduleDependency = JavaModuleDependency.copy((IdeaModuleDependency)dependency);
+          JavaModuleDependency moduleDependency = JavaModuleDependency.copy(
+            ideaModule.getProject(),
+            (IdeaModuleDependency)dependency);
           if (moduleDependency != null) {
             javaModuleDependencies.add(moduleDependency);
           }
