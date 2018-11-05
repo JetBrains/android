@@ -314,19 +314,19 @@ public final class StudioFlags {
     "Show the Select Device/Snapshot combo box next to the Select Run/Debug Configuration one in the toolbar",
     false);
 
-  public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
-    RUNDEBUG,
-    "select.device.snapshot.combo.box.snapshots.enabled",
-    "Enable Select Device/Snapshot combo box snapshots",
-    "So the new Instant Run can use the combo box",
-    false);
-
   public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(
     RUNDEBUG,
     "jvmti.refresh",
     "Application refresh with JVMTI",
     "Use JVMTI to support application refresh. This implies incremental deployment",
     false);
+
+  public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
+    RUNDEBUG,
+    "select.device.snapshot.combo.box.snapshots.enabled",
+    "Enable Select Device/Snapshot combo box snapshots",
+    "So the new Instant Run can use the combo box",
+    JVMTI_REFRESH.get());
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
