@@ -82,11 +82,6 @@ public final class StudioFlags {
     "Checkbox mark adds a path to shipped offline repo to local.properties and references it in build.gradle's dependencies",
     false);
 
-  public static final Flag<Boolean> NPW_NAVIGATION_SUPPORT = Flag.create(
-    NPW, "navigation.support", "Add a navigation support for each template",
-    "Add a option what type of Navigation is added in the created Activity in the selected template",
-    false);
-
   public static final Flag<Boolean> NPW_USE_NAV_CONTROLLER = Flag.create(
     NPW, "use.nav.controller", "Use Navigation Controller",
     "Use Navigation Controller in a project that has multiple destinations, " +
