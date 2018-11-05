@@ -133,7 +133,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_SIMPLEPERF_HOST = Flag.create(
     PROFILER, "cpu.simpleperf.host", "Enable simpleperf report-sample to be run on the host.",
     "If enabled, simpleperf report-sample commands are going to be run on the host instead of the device.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
     PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
