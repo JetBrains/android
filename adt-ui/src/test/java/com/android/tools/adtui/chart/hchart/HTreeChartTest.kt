@@ -18,12 +18,10 @@ package com.android.tools.adtui.chart.hchart
 import com.android.tools.adtui.model.DefaultHNode
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeUi
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-
-import java.awt.*
-
-import com.google.common.truth.Truth.assertThat
+import java.awt.Dimension
 
 class HTreeChartTest {
   private lateinit var myUi: FakeUi
@@ -303,6 +301,6 @@ class HTreeChartTest {
   }
 
   companion object {
-    private val EPSILON = 1e-3
+    private const val EPSILON = 1e-3
   }
 }

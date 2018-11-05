@@ -89,7 +89,7 @@ abstract class NavTestCase : AndroidTestCase() {
 
   companion object {
 
-    val TAG_NAVIGATION = "navigation"
+    const val TAG_NAVIGATION = "navigation"
     private val PREBUILT_AAR_PATHS = arrayOf(
         "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1/runtime-0.6.0-alpha1.aar",
         "../../prebuilts/tools/common/m2/repository/com/android/support/support-fragment/27.0.2/support-fragment-27.0.2.aar")

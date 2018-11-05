@@ -21,7 +21,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.AndroidIcons
 import javax.swing.Icon
 
-val ROOM_SQL_DESCRIPTION = "Android Room SQL"
+const val ROOM_SQL_DESCRIPTION = "Android Room SQL"
 
 object ROOM_SQL_FILE_TYPE : LanguageFileType(RoomSqlLanguage.INSTANCE) {
   override fun getName(): String = ROOM_SQL_DESCRIPTION

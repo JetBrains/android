@@ -45,8 +45,8 @@ import java.util.function.Function
  * Descriptors used for building navigation [com.android.tools.idea.common.model.NlModel]s
  */
 object NavModelBuilderUtil {
-  private val TAG_FRAGMENT = "fragment"
-  private val TAG_NAVIGATION = "navigation"
+  private const val TAG_FRAGMENT = "fragment"
+  private const val TAG_NAVIGATION = "navigation"
 
   fun model(name: String, facet: AndroidFacet, fixture: JavaCodeInsightTestFixture, f: () -> ComponentDescriptor): ModelBuilder {
     val managerFactory = Function<SyncNlModel, SceneManager> { model ->
