@@ -292,7 +292,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
 
-    MotionSceneModel motionSceneModel = MotionSceneModel.parse(component.getModel(), project, virtualFile, xmlFile);
+    MotionSceneModel motionSceneModel = MotionSceneModel.parse(component, project, virtualFile, xmlFile);
     myPanel.setMotionScene(motionSceneModel);
     myMotionSceneModel = motionSceneModel;
 

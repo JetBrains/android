@@ -30,8 +30,8 @@ import java.util.ArrayList;
 public class Chart {
   public float myPlayBackSpeed = 1;
   Gantt myGantt;
-  int myChartLeftInset = JBUI.scale(20);
-  int myChartRightInset = JBUI.scale(20);
+  int myChartLeftInset = JBUI.scale(40);
+  int myChartRightInset = JBUI.scale(25);
   public int myBottomInsert = JBUI.scale(20);
   static final int ourViewListWidth = JBUI.scale(150);
 

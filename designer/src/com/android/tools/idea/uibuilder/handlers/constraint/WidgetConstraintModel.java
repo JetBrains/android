@@ -47,6 +47,7 @@ import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VALUE_ZERO_DP;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -551,7 +552,9 @@ public class WidgetConstraintModel {
       return;
     }
     String width = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
-    assert width != null;
+    if (width == null) {
+      width = SdkConstants.VALUE_WRAP_CONTENT;
+    }
 
     if (width.endsWith("dp") && !width.equals("0dp")) {
       myComponent.putClientProperty(ATTR_LAYOUT_WIDTH, width);
@@ -578,7 +581,9 @@ public class WidgetConstraintModel {
       return;
     }
     String height = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    assert height != null;
+    if (height == null) {
+      height = SdkConstants.VALUE_WRAP_CONTENT;
+    }
 
     if (height.endsWith("dp") && !height.equals("0dp")) {
       myComponent.putClientProperty(ATTR_LAYOUT_HEIGHT, height);

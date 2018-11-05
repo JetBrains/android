@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
@@ -438,12 +439,10 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
       }
     }.execute();
 
-    // A bit heavy handed, but that's what LayoutLib needs...
-    LayoutPullParsers.saveFileIfNecessary(file);
 
     // Let's warn we edited the model.
-    NlModel model = component.getModel();
-    model.notifyModified(NlModel.ChangeType.EDIT);
+    MotionSceneModel.saveAndNotify(file, component.getModel());
+
     clearCache(component);
   }
 

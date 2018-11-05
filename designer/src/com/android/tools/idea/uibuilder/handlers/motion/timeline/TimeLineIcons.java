@@ -32,4 +32,7 @@ public class TimeLineIcons {
   public static final Icon REMOVE_KEYFRAME = StudioIcons.Common.REMOVE;
   public static final Icon REMOVE_TAG = StudioIcons.Common.DELETE;
   public static final Icon PAUSE = StudioIcons.LayoutEditor.Motion.PAUSE;
+  public static final Icon END_CONSTRAINT = StudioIcons.LayoutEditor.Motion.END_CONSTRAINT;
+  public static final Icon START_CONSTRAINT = StudioIcons.LayoutEditor.Motion.START_CONSTRAINT;
+
 }
