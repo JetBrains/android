@@ -22,6 +22,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.awt.Image
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import kotlin.math.pow
+
+private val MAXIMUM_CACHE_WEIGHT_BYTES = (200 * 1024.0.pow(2)).toLong() // 200 MB
 
 /**
  * Helper class that caches the result of a computation of an [Image].
@@ -35,10 +38,12 @@ class ImageCache(cacheExpirationTime: Long = 5,
                  timeUnit: TimeUnit = TimeUnit.MINUTES) {
 
   private val objectToImage: Cache<DesignAsset, Image> = CacheBuilder.newBuilder()
-    .softValues()
-    .expireAfterWrite(cacheExpirationTime, timeUnit)
-    .maximumSize(500)
+    .expireAfterAccess(cacheExpirationTime, timeUnit)
+    .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
+    .maximumWeight(MAXIMUM_CACHE_WEIGHT_BYTES)
     .build<DesignAsset, Image>()
+
+  private fun imageWeigher(image: Image) = image.getWidth(null) * image.getHeight(null)
 
   /**
    * Return the value identified by [key] in the cache if it exists, otherwise returns the [placeholder] image

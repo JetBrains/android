@@ -27,9 +27,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 private class DebugFakeImage(private val identifier: String) : Image() {
-  override fun getHeight(observer: ImageObserver?) = throw NotImplementedError()
+  override fun getHeight(observer: ImageObserver?) = 10
   override fun getSource() = throw NotImplementedError()
-  override fun getWidth(observer: ImageObserver?) = throw NotImplementedError()
+  override fun getWidth(observer: ImageObserver?) = 10
   override fun getProperty(name: String?, observer: ImageObserver?) = throw NotImplementedError()
   override fun getGraphics() = throw NotImplementedError()
   override fun toString() = identifier
