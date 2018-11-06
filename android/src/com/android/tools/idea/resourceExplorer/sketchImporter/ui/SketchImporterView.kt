@@ -28,6 +28,7 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.update.MergingUpdateQueue
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -72,7 +73,8 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
   lateinit var presenter: SketchImporterPresenter
   private val pageViews = mutableListOf<PageView>()
   private lateinit var documentView: DocumentView
-  private val renderHelper = ImageCache()
+  private val renderHelper = ImageCache(
+    mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
   private val resourcesPanel = JPanel(VerticalFlowLayout())
 

@@ -19,12 +19,14 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
+import org.junit.Rule
 import org.junit.Test
 import java.awt.Image
 import java.awt.image.ImageObserver
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertTrue
 
 private class DebugFakeImage(private val identifier: String) : Image() {
   override fun getHeight(observer: ImageObserver?) = 10
@@ -43,9 +45,12 @@ class ImageCacheTest {
 
   private val placeholder = DebugFakeImage("Placeholder")
 
+  @get:Rule
+  val imageCacheRule = ImageCacheRule()
+
   @Test
   fun storeImage() {
-    val helper = ImageCache()
+    val helper = imageCacheRule.imageCache
     val key = fakeAsset()
     val latch = CountDownLatch(1)
     val res = helper.computeAndGet(key, placeholder, false) {
@@ -61,7 +66,7 @@ class ImageCacheTest {
    */
   @Test
   fun valueOverridden() {
-    val helper = ImageCache()
+    val helper = imageCacheRule.imageCache
     val key = fakeAsset()
     val latch = CountDownLatch(1)
     val latch2 = CountDownLatch(1)
@@ -72,14 +77,13 @@ class ImageCacheTest {
 
     // Checks that the previously cached image is returned and not the placeholder
     val res2 = helper.computeAndGet(key, placeholder, true) {
-      Thread.sleep(10)
-      CompletableFuture.completedFuture(imageB).also {
+      CompletableFuture.completedFuture(imageB).whenComplete { t, u ->
         latch2.countDown()
       }
     }
     assertThat(res2).isEqualTo(imageA)
 
-    latch2.await(1, TimeUnit.SECONDS)
+    assertTrue(latch2.await(1, TimeUnit.SECONDS), "Latch2 was not decremented.")
     val res3 = helper.computeAndGet(key, placeholder, true) {
       CompletableFuture.completedFuture(null)
     }
