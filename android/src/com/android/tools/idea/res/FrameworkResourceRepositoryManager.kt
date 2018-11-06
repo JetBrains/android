@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.res.aar.FrameworkResourceRepository
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache

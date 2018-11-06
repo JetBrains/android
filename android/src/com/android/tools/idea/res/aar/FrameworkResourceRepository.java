@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res.aar;
 
 import static com.android.SdkConstants.TAG_ATTR;
 import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
@@ -34,7 +34,7 @@ import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.res.aar.AarSourceResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableListMultimap;

@@ -66,6 +66,7 @@ import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.aar.AarProtoResourceRepository
+import com.android.tools.idea.res.aar.FrameworkResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.computeResourcePrefix

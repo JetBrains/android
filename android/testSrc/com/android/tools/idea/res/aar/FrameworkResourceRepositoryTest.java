@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res.aar;
+
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -26,14 +28,16 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FrameworkResourceRepository}.
