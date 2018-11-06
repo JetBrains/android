@@ -1488,42 +1488,6 @@ public class GradleImport {
     return myHandledJars.contains(file.getName());
   }
 
-  private boolean haveLocalRepository(@NonNull SdkMavenRepository repository) {
-    if (repository.isInstalled(AndroidSdkHandler.getInstance(mySdkLocation))) {
-      return true;
-    }
-
-    return repository.isInstalled(mySdkLocation, FileOpUtils.create());
-  }
-
-  public boolean needSupportRepository() {
-    return haveArtifact("com.android.support");
-  }
-
-  public boolean needGoogleRepository() {
-    return haveArtifact("com.google.android.gms");
-  }
-
-  private boolean haveArtifact(String groupId) {
-    for (ImportModule module : getModulesToImport()) {
-      for (GradleCoordinate dependency : module.getDependencies()) {
-        if (groupId.equals(dependency.getGroupId())) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  public boolean isMissingSupportRepository() {
-    return !haveLocalRepository(SdkMavenRepository.ANDROID);
-  }
-
-  public boolean isMissingGoogleRepository() {
-    return !haveLocalRepository(SdkMavenRepository.GOOGLE);
-  }
-
   /**
    * Interface used by the {@link #copyDir} handler
    */

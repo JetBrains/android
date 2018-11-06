@@ -1677,9 +1677,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  + "android-support-v4.jar => com.android.support:support-v4:22.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
-                                 + MSG_MISSING_REPO_1
-                                 + "$ROOT_PARENT/sdk\n"
-                                 + MSG_MISSING_REPO_2
                                  + MSG_FOOTER,
                                  false /* checkBuild */, importer -> importer.setSdkLocation(sdkLocation));
 
@@ -1706,9 +1703,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  + "gcm.jar => com.google.android.gms:play-services:+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
-                                 + MSG_MISSING_GOOGLE_REPOSITORY_1
-                                 + "$ROOT_PARENT/sdk\n"
-                                 + MSG_MISSING_GOOGLE_REPOSITORY_2
                                  + MSG_FOOTER,
                                  false /* checkBuild */, importer -> importer.setSdkLocation(sdkLocation));
 
