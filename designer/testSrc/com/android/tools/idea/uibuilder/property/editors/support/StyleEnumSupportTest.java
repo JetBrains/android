@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -186,10 +185,10 @@ public class StyleEnumSupportTest {
   }
 
   static StyleResourceValue createFrameworkStyle(@NotNull String name) {
-    return new StyleResourceValueImpl(ResourceNamespace.ANDROID, ResourceType.STYLE, name, null, null);
+    return new StyleResourceValueImpl(ResourceNamespace.ANDROID, name, null, null);
   }
 
   static StyleResourceValue createStyle(@NotNull String name, @Nullable String libraryName) {
-    return new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STYLE, name, null, libraryName);
+    return new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, name, null, libraryName);
   }
 }

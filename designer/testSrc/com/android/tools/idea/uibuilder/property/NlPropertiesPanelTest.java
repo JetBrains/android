@@ -28,10 +28,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.TextResourceValueImpl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -349,9 +348,8 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
 
     List<NlComponent> components = Collections.singletonList(myTextView);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
-    ResourceReference reference = ResourceReference.attr(ResourceNamespace.ANDROID, "text");
-    ResourceValue value = new TextResourceValueImpl(reference, "defaultValue", "defaultValue", null);
-    myDesignSurface.getSceneManager().getDefaultProperties().put(myTextView.getSnapshot(), ImmutableMap.of(reference, value));
+    ResourceValue value = new AttrResourceValueImpl(ResourceNamespace.ANDROID, "text", null);
+    myDesignSurface.getSceneManager().getDefaultProperties().put(myTextView.getSnapshot(), ImmutableMap.of(value.asReference(), value));
     myPanel.setItems(components, properties);
     myModel.delete(components);
     myPanel.modelRendered();

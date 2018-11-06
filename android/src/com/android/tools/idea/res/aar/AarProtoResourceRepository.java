@@ -369,7 +369,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       myUrlParser.parseResourceUrl(url);
       String packageName = myUrlParser.getPackageName();
       ResourceNamespace namespace = packageName == null ? myNamespace : ResourceNamespace.fromPackageName(packageName);
-      AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, ResourceType.ATTR, myUrlParser.getName(), myLibraryName);
+      AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, myUrlParser.getName(), myLibraryName);
       attrs.add(attrValue);
     }
     return new AarStyleableResourceItem(resourceName, sourceFile, visibility, attrs);
