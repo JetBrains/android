@@ -47,11 +47,13 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
 
-private val EMPTY_ICON = createIcon(if (RESOURCE_DEBUG) JBColor.GREEN else Color(0, 0, 0, 0))
-private val ERROR_ICON = if (RESOURCE_DEBUG) createIcon(JBColor.RED) else EMPTY_ICON
+val EMPTY_ICON = createIcon(if (RESOURCE_DEBUG) JBColor.GREEN else Color(0, 0, 0, 0))
+val ERROR_ICON = if (RESOURCE_DEBUG) createIcon(JBColor.RED) else EMPTY_ICON
 
 private const val VERSION = "version"
 
