@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.model.FilterOptions
 import com.android.tools.idea.resourceExplorer.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.IdeView
@@ -47,6 +48,7 @@ import org.jetbrains.android.facet.ResourceFolderManager
 class ResourceExplorerToolbarViewModel(
   facet: AndroidFacet,
   private val importersProvider: ImportersProvider,
+  private val filterOptions: FilterOptions,
   private val facetUpdaterCallback: (AndroidFacet) -> Unit)
   : DataProvider, IdeView {
 
@@ -110,6 +112,12 @@ class ResourceExplorerToolbarViewModel(
   }
 
   private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
+
+  var isShowDependencies: Boolean
+    get() = filterOptions.isShowLibraries
+    set(value) {
+      filterOptions.isShowLibraries = value
+    }
 
   /**
    * Implementation of [IdeView.getDirectories] that returns the resource directories of

@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.model.FilterOptions
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -35,7 +36,7 @@ class ResourceExplorerToolbarViewModelTest {
 
   @Before
   fun setUp() {
-    viewModel = ResourceExplorerToolbarViewModel(rule.module.androidFacet!!, ImportersProvider()) {}
+    viewModel = ResourceExplorerToolbarViewModel(rule.module.androidFacet!!, ImportersProvider(), FilterOptions()) {}
     rule.fixture.testDataPath = getTestDataDirectory()
   }
 

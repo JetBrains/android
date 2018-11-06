@@ -54,8 +54,14 @@ class ResourceExplorer private constructor(
 
   private val synchronizationManager = SynchronizationManager(facet)
   private val importersProvider = ImportersProvider()
+
   private val projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(facet)
-  private val toolbarViewModel = ResourceExplorerToolbarViewModel(facet, importersProvider) { newFacet -> this.facet = newFacet }
+  private val toolbarViewModel = ResourceExplorerToolbarViewModel(
+    facet,
+    importersProvider,
+    projectResourcesBrowserViewModel.filterOptions
+  ) { newFacet -> this.facet = newFacet }
+
   private val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
   private val toolbar = ResourceExplorerToolbar(toolbarViewModel)
   private val resourceExplorerView = ResourceExplorerView(projectResourcesBrowserViewModel, resourceImportDragTarget)

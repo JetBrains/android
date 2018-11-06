@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
@@ -30,9 +31,11 @@ import com.android.tools.idea.res.aar.AarResourceRepository
 import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.model.FilterOptions
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
@@ -48,11 +51,11 @@ private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.CO
  */
 class ProjectResourcesBrowserViewModel(
   facet: AndroidFacet
-) : Disposable {
+) : Disposable, ResourceExplorerViewModel {
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
    */
-  var resourceChangedCallback: (() -> Unit)? = null
+  override var resourceChangedCallback: (() -> Unit)? = null
 
   var facet by Delegates.observable(facet) { _, oldFacet, newFacet -> facetUpdated(newFacet, oldFacet) }
 
@@ -81,7 +84,7 @@ class ProjectResourcesBrowserViewModel(
   /**
    * The index in [resourceTypes] of the resource type being used.
    */
-  var resourceTypeIndex = 0
+  override var resourceTypeIndex = 0
     set(value) {
       if (value in 0 until resourceTypes.size) {
         field = value
@@ -89,7 +92,9 @@ class ProjectResourcesBrowserViewModel(
       }
     }
 
-  val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
+  override val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
+
+  val filterOptions: FilterOptions = FilterOptions({ resourceChangedCallback?.invoke() })
 
   init {
     subscribeListener(facet)
@@ -116,7 +121,7 @@ class ProjectResourcesBrowserViewModel(
   /**
    * Returns a preview of the [DesignAsset].
    */
-  fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> {
+  override fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> {
     val resolveValue = designAsset.resolveValue() ?: return CompletableFuture.completedFuture(null)
     val file = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
                ?: designAsset.file
@@ -124,24 +129,28 @@ class ProjectResourcesBrowserViewModel(
       .getImage(file, facet.module, dimension)
   }
 
-  private fun getModuleResources(type: ResourceType): List<ResourceItem> {
+  private fun getModuleResources(type: ResourceType): ResourceSection {
     val moduleRepository = ResourceRepositoryManager.getModuleResources(facet)
-    return moduleRepository.namespaces
+    val sortedResources = moduleRepository.namespaces
       .flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
       .sortedBy { it.name }
+    return createResourceSection(type, facet.module.name, sortedResources)
   }
 
   /**
    * Returns a map from the library name to its resource items
    */
-  private fun getLibraryResources(type: ResourceType): List<Pair<String, List<ResourceItem>>> {
+  private fun getLibraryResources(type: ResourceType): List<ResourceSection> {
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
-    return repoManager.libraryResources
-      .map { lib ->
-        (userReadableLibraryName(lib)) to lib.namespaces
-          .flatMap { namespace -> lib.getResources(namespace, type).values() }
-          .sortedBy { it.name }
+    return repoManager.libraryResources.asSequence()
+      .flatMap { lib ->
+        // Create a section for each library
+        lib.namespaces.asSequence()
+          .map { namespace -> lib.getResources(namespace, type).values() }
+          .filter { it.isNotEmpty() }
+          .map { createResourceSection(type, userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }
       }
+      .toList()
   }
 
   private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
@@ -164,15 +173,13 @@ class ProjectResourcesBrowserViewModel(
     return resolvedValue
   }
 
-  fun getResourcesLists(): List<ResourceSection> {
+  override fun getResourcesLists(): List<ResourceSection> {
     val resourceType = resourceTypes[resourceTypeIndex]
-    val moduleResources = createResourceSection(resourceType, facet.module.name, getModuleResources(resourceType))
-    val librariesResources = getLibraryResources(resourceType)
-      .asSequence()
-      .filter { (_, items) -> items.isNotEmpty() }
-      .map { (libName, resourceItems) -> createResourceSection(resourceType, libName, resourceItems) }
-      .toList()
-    return listOf(moduleResources) + librariesResources
+    var resources = listOf(getModuleResources(resourceType))
+    if (filterOptions.isShowLibraries) {
+      resources += getLibraryResources(resourceType)
+    }
+    return resources
   }
 
   override fun dispose() {

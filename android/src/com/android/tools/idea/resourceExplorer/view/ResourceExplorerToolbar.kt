@@ -16,12 +16,14 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
@@ -31,6 +33,7 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -46,6 +49,7 @@ class ResourceExplorerToolbar(
 
   init {
     add(createLeftToolbar().component, BorderLayout.WEST)
+    add(createRightToolbar().component, BorderLayout.EAST)
     border = JBUI.Borders.merge(JBUI.Borders.empty(4, 2), JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
   }
 
@@ -53,6 +57,10 @@ class ResourceExplorerToolbar(
     "resourceExplorer",
     DefaultActionGroup(AddAction(toolbarViewModel), Separator(), moduleSelectionAction),
     true)
+
+
+  private fun createRightToolbar() = ActionManager.getInstance().createActionToolbar(
+    "resourceExplorer", DefaultActionGroup(FilterAction(toolbarViewModel)), true)
 }
 
 /**
@@ -74,11 +82,7 @@ private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewMo
 /**
  * Button to add new resources
  */
-private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) : AnAction(), DumbAware {
-  init {
-    val presentation = templatePresentation
-    presentation.icon = StudioIcons.Common.ADD
-  }
+private abstract class PopupAction internal constructor(val icon: Icon?) : AnAction(icon), DumbAware {
 
   override fun actionPerformed(e: AnActionEvent) {
     var x = 0
@@ -98,16 +102,32 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
       .component.show(component, x, y)
   }
 
-  private fun createAddPopupGroup() = object : DefaultActionGroup() {
-    init {
-      addAll(viewModel.addActions)
-      val importersActions = viewModel.getImportersActions()
-      if (importersActions.isNotEmpty()) {
-        add(Separator())
-        addAll(importersActions)
-      }
-    }
+  protected abstract fun createAddPopupGroup(): ActionGroup
+}
 
-    override fun isDumbAware() = true
+private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : PopupAction(StudioIcons.Common.ADD) {
+
+  override fun createAddPopupGroup() = DefaultActionGroup().apply {
+    addAll(viewModel.addActions)
+    val importersActions = viewModel.getImportersActions()
+    if (importersActions.isNotEmpty()) {
+      add(Separator())
+      addAll(importersActions)
+    }
+  }
+}
+
+private class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) : PopupAction(StudioIcons.Common.FILTER) {
+  override fun createAddPopupGroup() = DefaultActionGroup().apply {
+    add(ShowDependenciesAction(viewModel))
+  }
+}
+
+private class ShowDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show libraries") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowDependencies
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowDependencies = state
   }
 }
