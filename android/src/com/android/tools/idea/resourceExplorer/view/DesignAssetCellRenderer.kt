@@ -30,8 +30,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
+import com.intellij.ui.ScrollingUtil
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
@@ -85,7 +85,7 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     val thumbnailSize = assetView.thumbnailSize
     assetView.withChessboard = true
     assetView.selected = isSelected
-    customizeComponent(assetView, value, thumbnailSize.width, thumbnailSize.height, isSelected, index)
+    customizeComponent(assetView, value, list, thumbnailSize.width, thumbnailSize.height, isSelected, index)
     if (RESOURCE_DEBUG) {
       assetView.issueLevel = IssueLevel.ERROR
       assetView.isNew = true
@@ -96,6 +96,7 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
   abstract fun customizeComponent(
     assetView: AssetView,
     designAssetSet: DesignAssetSet,
+    list: JList<out DesignAssetSet>,
     width: Int,
     height: Int,
     isSelected: Boolean,
@@ -112,6 +113,7 @@ class ColorResourceCellRenderer(
   override fun customizeComponent(
     assetView: AssetView,
     designAssetSet: DesignAssetSet,
+    list: JList<out DesignAssetSet>,
     width: Int,
     height: Int,
     isSelected: Boolean,
@@ -154,14 +156,13 @@ class DrawableResourceCellRenderer(
 ) : DesignAssetCellRenderer() {
 
   private val imageIcon = ImageIcon(EMPTY_ICON)
-  private val contentRatio = 0.2
-  private val drawablePreview = JLabel(imageIcon).apply {
-    border = JBUI.Borders.empty(18)
-  }
+  private val contentRatio = 0.1
+  private val drawablePreview = JLabel(imageIcon)
 
   override fun customizeComponent(
     assetView: AssetView,
     designAssetSet: DesignAssetSet,
+    list: JList<out DesignAssetSet>,
     width: Int,
     height: Int,
     isSelected: Boolean,
@@ -169,19 +170,25 @@ class DrawableResourceCellRenderer(
   ) {
     customizeTextData(assetView, designAssetSet)
     val designAsset = designAssetSet.getHighestDensityAsset()
-    val targetSize = (height * (1 - contentRatio * 2)).toInt()
-    if (targetSize > 0) {
-      var image = fetchImage(designAsset, index, targetSize)
+    val targetWidth = (width * (1 - contentRatio)).roundToInt()
+    val targetHeight = (height * (1 - contentRatio)).roundToInt()
+    if (targetHeight > 0 && targetWidth > 0) {
+      val targetSize = Dimension(targetWidth, targetHeight)
+      var image = fetchImage(designAsset, list, index, targetSize)
       // If an image is cached but does not fit into the content (i.e the list cell size was changed)
       // we do a fast rescaling in place and request a higher quality scaled image in the background
+      val imageWidth = image.getWidth(null)
       val imageHeight = image.getHeight(null)
-      val scale = getScale(targetSize, imageHeight)
+      val scale = getScale(targetSize, Dimension(imageWidth, imageHeight))
       if (image != EMPTY_ICON && image != ERROR_ICON && shouldScale(scale)) {
         val bufferedImage = ImageUtil.toBufferedImage(image)
         image = lowQualityFastScale(bufferedImage, scale, scale)
-        fetchImage(designAsset, index, targetSize, true)
+        fetchImage(designAsset, list, index, targetSize, true)
       }
       imageIcon.image = image
+    }
+    else {
+      imageIcon.image = EMPTY_ICON
     }
     assetView.thumbnail = drawablePreview
   }
@@ -205,8 +212,11 @@ class DrawableResourceCellRenderer(
   /**
    * Get the scaling factor from [source] to [target] rounded to 2 digits.
    */
-  private fun getScale(target: Int, source: Int) = Math.round(target * 100 / source.toDouble()) / 100.0
-
+  private fun getScale(target: Dimension, source: Dimension): Double {
+    val xScale = (target.width * 100 / source.getWidth()).roundToInt() / 100.0
+    val yScale = (target.height * 100 / source.getHeight()).roundToInt() / 100.0
+    return min(xScale, yScale)
+  }
 
   /**
    * Returns a rendering of [designAsset] if its already cached otherwise asynchronously render
@@ -217,16 +227,19 @@ class DrawableResourceCellRenderer(
    * @return a placeholder image.
    */
   private fun fetchImage(designAsset: DesignAsset,
+                         list: JList<out DesignAssetSet>,
                          index: Int,
-                         targetSize: Int,
+                         targetSize: Dimension,
                          forceImageRender: Boolean = false): Image {
-
     return imageCache.computeAndGet(designAsset, EMPTY_ICON, forceImageRender) {
-      imageProvider(JBUI.size(targetSize), designAsset).toCompletableFuture()
-        .thenApply { image -> image ?: ERROR_ICON }
-        .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
-        .exceptionally { throwable -> LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON }
-        .whenCompleteAsync(BiConsumer { _, _ -> refreshListCallback(index) }, EdtExecutor.INSTANCE)
+      if (ScrollingUtil.isIndexFullyVisible(list, index)) {
+        imageProvider(targetSize, designAsset)
+          .thenApplyAsync { image -> image ?: ERROR_ICON }
+          .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
+          .exceptionally { throwable -> LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON }
+          .whenCompleteAsync(BiConsumer { _, _ -> refreshListCallback(index) }, EdtExecutor.INSTANCE)
+      }
+      else CompletableFuture.completedFuture(null)
     }
   }
 
@@ -234,12 +247,12 @@ class DrawableResourceCellRenderer(
    * Scale the provided [image] to fit into [targetSize] if needed. It might be converted to a
    * [BufferedImage] before being scaled
    */
-  private fun scaleToFitIfNeeded(image: Image, targetSize: Int): Image {
-    val imageHeight = image.getHeight(null)
-    val scale = getScale(targetSize, imageHeight)
+  private fun scaleToFitIfNeeded(image: Image, targetSize: Dimension): Image {
+    val imageSize = Dimension(image.getWidth(null), image.getHeight(null))
+    val scale = getScale(targetSize, imageSize)
     if (shouldScale(scale)) {
-      val newWidth = (image.getWidth(null) * scale).toInt()
-      val newHeight = (imageHeight * scale).toInt()
+      val newWidth = (imageSize.width * scale).toInt()
+      val newHeight = (imageSize.height * scale).toInt()
       if (newWidth > 0 && newHeight > 0) {
         return ImageUtil.toBufferedImage(image)
           .getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH)

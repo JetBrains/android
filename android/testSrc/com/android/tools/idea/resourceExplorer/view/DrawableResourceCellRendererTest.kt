@@ -99,13 +99,14 @@ class DrawableResourceCellRendererTest {
 
   @Test
   fun nullImage() {
-    val jList = AssetListView(emptyList()).apply {
-      fixedCellHeight = 100
-      fixedCellWidth = 100
+    val jList = AssetListView(
+      listOf(DesignAssetSet("name", listOf(DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE))))).apply {
+      thumbnailWidth = 100
+      setBounds(0, 0, 1000, 1000)
     }
+
     val latch = CountDownLatch(1)
     val renderer = DrawableResourceCellRenderer({ _, _ -> CompletableFuture.completedFuture(null) }, imageCache) {
-      jList.paintImmediately(jList.bounds)
       latch.countDown()
     }
     val designAssetSet = DesignAssetSet("name", listOf(DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)))
