@@ -40,7 +40,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
                                                                        null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "myStyle", null, null);
+    styleResourceValue = new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, "myStyle", null, null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 

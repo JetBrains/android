@@ -321,16 +321,16 @@ public class PsiResourceItem implements ResourceItem {
     switch (myType) {
       case STYLE:
         String parent = getAttributeValue(tag, ATTR_PARENT);
-        value = parseStyleValue(tag, new StyleResourceValueImpl(myNamespace, myType, myName, parent, null));
+        value = parseStyleValue(tag, new StyleResourceValueImpl(myNamespace, myName, parent, null));
         break;
       case STYLEABLE:
-        value = parseDeclareStyleable(tag, new StyleableResourceValueImpl(myNamespace, myType, myName, null, null));
+        value = parseDeclareStyleable(tag, new StyleableResourceValueImpl(myNamespace, myName, null, null));
         break;
       case ATTR:
-        value = parseAttrValue(tag, new AttrResourceValueImpl(myNamespace, myType, myName, null));
+        value = parseAttrValue(tag, new AttrResourceValueImpl(myNamespace, myName, null));
         break;
       case ARRAY:
-        value = parseArrayValue(tag, new ArrayResourceValueImpl(myNamespace, myType, myName, null) {
+        value = parseArrayValue(tag, new ArrayResourceValueImpl(myNamespace, myName, null) {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
@@ -343,7 +343,7 @@ public class PsiResourceItem implements ResourceItem {
         });
         break;
       case PLURALS:
-        value = parsePluralsValue(tag, new PluralsResourceValueImpl(myNamespace, myType, myName, null, null) {
+        value = parsePluralsValue(tag, new PluralsResourceValueImpl(myNamespace, myName, null, null) {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
@@ -359,7 +359,7 @@ public class PsiResourceItem implements ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(tag, new PsiTextResourceValue(myNamespace, myType, myName, null, null, null));
+        value = parseTextValue(tag, new PsiTextResourceValue(myNamespace, myName, null, null, null));
         break;
       default:
         value = parseValue(tag, new ResourceValueImpl(myNamespace, myType, myName, null));
@@ -574,9 +574,9 @@ public class PsiResourceItem implements ResourceItem {
   }
 
   private class PsiTextResourceValue extends TextResourceValueImpl {
-    public PsiTextResourceValue(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, @NotNull String name,
-                                @Nullable String textValue, @Nullable String rawXmlValue, @Nullable String libraryName) {
-      super(namespace, type, name, textValue, rawXmlValue, libraryName);
+    PsiTextResourceValue(@NotNull ResourceNamespace namespace, @NotNull String name,
+                         @Nullable String textValue, @Nullable String rawXmlValue, @Nullable String libraryName) {
+      super(namespace, name, textValue, rawXmlValue, libraryName);
     }
 
     @Override
