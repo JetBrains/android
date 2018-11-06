@@ -159,7 +159,8 @@ public class ClassConverter {
         // We catch the exceptions from any onLayout, onMeasure or onDraw that match the signature from the View methods
         if (("onLayout".equals(name) && "(ZIIII)V".equals(desc) ||
              "onMeasure".equals(name) && "(II)V".equals(desc) ||
-             "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc)) &&
+             "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc) ||
+             "onFinishInflate".equals(name) && "()V".equals(desc)) &&
             ((access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED)) != 0)) {
           wrapMethod(access, name, desc, signature, exceptions);
           // Make the Original method private so that it does not end up calling the inherited method.
