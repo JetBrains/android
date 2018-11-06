@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_TEXT_COLOR
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -41,6 +43,8 @@ class TestDrawNavScreen {
 
     var drawCommand = DrawNavScreen(createRectangle(), RefinableImage())
     drawCommand.paint(graphics, context)
+    verify(graphics).setColor(eq(PLACEHOLDER_BACKGROUND_COLOR))
+    verify(graphics).setColor(eq(PLACEHOLDER_TEXT_COLOR))
     verify(graphics).drawString(eq("Preview"), anyFloat(), anyFloat())
     verify(graphics).drawString(eq("Unavailable"), anyFloat(), anyFloat())
 
@@ -48,6 +52,8 @@ class TestDrawNavScreen {
 
     drawCommand = DrawNavScreen(createRectangle(), RefinableImage(null, CompletableFuture()))
     drawCommand.paint(graphics, context)
+    verify(graphics).setColor(eq(PLACEHOLDER_BACKGROUND_COLOR))
+    verify(graphics).setColor(eq(PLACEHOLDER_TEXT_COLOR))
     verify(graphics).drawString(eq("Loading..."), anyFloat(), anyFloat())
 
     graphics = createGraphics()

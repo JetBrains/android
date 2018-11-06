@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -24,13 +25,16 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import java.util.Collections;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ModuleFinder}.
  */
 public class ModuleFinderTest extends IdeaTestCase {
   private GradleProjectSettings myProjectSettings;
-  private ModuleFinder myModulesByGradlePath;
+  private ModuleFinder myFinder;
 
   @Override
   protected void setUp() throws Exception {
@@ -45,8 +49,8 @@ public class ModuleFinderTest extends IdeaTestCase {
     // Populate projectSettings with empty composite build.
     myProjectSettings.setCompositeBuild(new CompositeBuild());
 
-    myModulesByGradlePath = new ModuleFinder(myProject);
-    assertFalse(myModulesByGradlePath.isCompositeBuild(myModule));
+    myFinder = new ModuleFinder(myProject);
+    assertFalse(myFinder.isCompositeBuild(myModule));
   }
 
   public void testIsCompositeBuildWithCompositeModule() {
@@ -58,7 +62,37 @@ public class ModuleFinderTest extends IdeaTestCase {
     compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
     myProjectSettings.setCompositeBuild(compositeBuild);
 
-    myModulesByGradlePath = new ModuleFinder(myProject);
-    assertTrue(myModulesByGradlePath.isCompositeBuild(myModule));
+    myFinder = new ModuleFinder(myProject);
+    assertTrue(myFinder.isCompositeBuild(myModule));
+  }
+
+  public void testIsCompositeBuildWithBackSlashInPath() {
+    // Set current module as composite build.
+    BuildParticipant participant = new BuildParticipant();
+    participant.setProjects(Collections.singleton(toCanonicalPath("c:\\path\\to\\module")));
+
+    CompositeBuild compositeBuild = new CompositeBuild();
+    compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
+    myProjectSettings.setCompositeBuild(compositeBuild);
+
+    Module module = mock(Module.class);
+    when(module.getModuleFilePath()).thenReturn("c:\\path\\to\\module\\module.iml");
+    myFinder = new ModuleFinder(myProject);
+    assertTrue(myFinder.isCompositeBuild(module));
+  }
+
+  public void testIsCompositeBuildWithSlashInPath() {
+    // Set current module as composite build.
+    BuildParticipant participant = new BuildParticipant();
+    participant.setProjects(Collections.singleton(toCanonicalPath("/path/to/module")));
+
+    CompositeBuild compositeBuild = new CompositeBuild();
+    compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
+    myProjectSettings.setCompositeBuild(compositeBuild);
+
+    Module module = mock(Module.class);
+    when(module.getModuleFilePath()).thenReturn("/path/to/module/module.iml");
+    myFinder = new ModuleFinder(myProject);
+    assertTrue(myFinder.isCompositeBuild(module));
   }
 }

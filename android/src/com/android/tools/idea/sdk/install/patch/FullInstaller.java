@@ -156,4 +156,10 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   public String getNewVersionName() {
     return getPackage().getDisplayName() + " Version " + getPackage().getVersion();
   }
+
+  @Override
+  protected void cleanup(@NotNull ProgressIndicator progress) {
+    super.cleanup(progress);
+    mFop.deleteFileOrFolder(getLocation(progress));
+  }
 }
