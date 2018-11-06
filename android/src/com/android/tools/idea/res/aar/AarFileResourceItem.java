@@ -104,7 +104,8 @@ class AarFileResourceItem extends AbstractAarResourceItem {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
     AarFileResourceItem other = (AarFileResourceItem) obj;
-    return myRelativePath.equals(other.myRelativePath);
+    return myConfiguration.equals(other.myConfiguration)
+        && myRelativePath.equals(other.myRelativePath);
   }
 
   @Override

@@ -55,9 +55,7 @@ import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -66,6 +64,8 @@ import java.io.StreamCorruptedException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private Future myCacheCreatedFuture;
   private boolean myLoadedFromCache;
 
-  private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
+  private FrameworkResourceRepository(@NotNull Path resFolder, boolean withLocaleResources) {
     super(resFolder, ANDROID_NAMESPACE, null, "");
     myWithLocaleResources = withLocaleResources;
   }
@@ -153,7 +153,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   public static FrameworkResourceRepository create(@NotNull File resFolder, boolean withLocaleResources, boolean usePersistentCache) {
     LOG.debug("Creating FrameworkResourceRepository for " + resFolder);
 
-    FrameworkResourceRepository repository = new FrameworkResourceRepository(resFolder, withLocaleResources);
+    FrameworkResourceRepository repository = new FrameworkResourceRepository(resFolder.toPath(), withLocaleResources);
     // Try to load from file cache first. Loading from cache is significantly faster than reading resource files.
     if (usePersistentCache && repository.loadFromPersistentCache()) {
       return repository;
@@ -240,10 +240,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @VisibleForTesting
   @NotNull
-  static File getCacheFile(File resourceDir, boolean withLocaleResources) {
-    String dirHash = Hashing.md5().hashUnencodedChars(resourceDir.getAbsolutePath()).toString();
+  static Path getCacheFile(@NotNull Path resourceDir, boolean withLocaleResources) {
+    String dirHash = Hashing.md5().hashUnencodedChars(resourceDir.toString()).toString();
     String filename = String.format("%s%s.bin", dirHash, withLocaleResources ? "_L" : "");
-    return new File(new File(PathManager.getSystemPath(), CACHE_DIRECTORY), filename);
+    return Paths.get(PathManager.getSystemPath(), CACHE_DIRECTORY, filename);
   }
 
   /**
@@ -378,10 +378,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * Populates {@link #myPublicResources} by parsing res/values/public.xml.
    */
   private void loadPublicResources() {
-    File valuesFolder = new File(myResourceDirectory, SdkConstants.FD_RES_VALUES);
-    File publicXmlFile = new File(valuesFolder, "public.xml");
+    Path valuesFolder = myResourceDirectory.resolve(SdkConstants.FD_RES_VALUES);
+    Path publicXmlFile = valuesFolder.resolve("public.xml");
 
-    try (InputStream stream = new BufferedInputStream(new FileInputStream(publicXmlFile))) {
+    try (InputStream stream = new BufferedInputStream(Files.newInputStream(publicXmlFile))) {
       KXmlParser parser = new KXmlParser();
       parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
       parser.setInput(stream, StandardCharsets.UTF_8.name());
@@ -450,7 +450,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     } catch (FileNotFoundException e) {
       // There is no public.xml. This not considered an error.
     } catch (Exception e) {
-      LOG.error("Can't read and parse public attribute list " + publicXmlFile.getPath(), e);
+      LOG.error("Can't read and parse public attribute list " + publicXmlFile.toString(), e);
     }
 
     // Put unmodifiable list for all resource types in the public resource map.
@@ -495,13 +495,13 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * @see #createPersistentCache()
    */
   private boolean loadFromPersistentCache() {
-    File cacheFile = getCacheFile();
-    if (!cacheFile.exists()) {
+    Path cacheFile = getCacheFile();
+    if (!Files.exists(cacheFile)) {
       return false; // Cache file does not exist.
     }
 
     try (CacheInputStream in = new CacheInputStream(cacheFile)) {
-      if (!in.readUTF().equals(myResourceDirectory.getAbsolutePath())) {
+      if (!in.readUTF().equals(myResourceDirectory.toString())) {
         return false; // The cache is for a different resource directory.
       }
       if (!in.readUTF().equals(getAndroidPluginVersion())) {
@@ -564,9 +564,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
               }
             }
 
-            if (item != null) {
-              map.put(resourceName, item);
-            }
+            map.put(resourceName, item);
           }
         }
       }
@@ -599,7 +597,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       return false; // Cache file format does not match.
     }
     catch (Throwable e) {
-      LOG.warn("Unable to load from cache file " + cacheFile.getAbsolutePath(), e);
+      LOG.warn("Unable to load from cache file " + cacheFile.toString(), e);
       return false;
     } finally {
       if (!myLoadedFromCache) {
@@ -696,21 +694,20 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * </ol>
    */
   private void createPersistentCache() {
-    File cacheFile = getCacheFile();
-    //noinspection ResultOfMethodCallIgnored
-    cacheFile.delete();
+    Path cacheFile = getCacheFile();
 
     // Write to a temporary file first, then rename to to the final name.
-    File tempFile;
+    Path tempFile;
     try {
-      tempFile = FileUtilRt.createTempFile(cacheFile.getParentFile(), cacheFile.getName(), ".tmp");
+      Files.deleteIfExists(cacheFile);
+      tempFile = FileUtilRt.createTempFile(cacheFile.getParent().toFile(), cacheFile.getFileName().toString(), ".tmp").toPath();
     } catch (IOException e) {
-      LOG.error("Unable to create a temporary file in " + cacheFile.getParentFile().getAbsolutePath(), e);
+      LOG.error("Unable to create a temporary file in " + cacheFile.getParent().toString(), e);
       return;
     }
 
     try (CacheOutputStream out = new CacheOutputStream(tempFile)) {
-      out.writeUTF(myResourceDirectory.getAbsolutePath());
+      out.writeUTF(myResourceDirectory.toString());
 
       // Write version of the Android plugin.
       out.writeUTF(getAndroidPluginVersion());
@@ -846,20 +843,25 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       }
     }
     catch (Throwable e) {
-      LOG.error("Unable to create cache file " + tempFile.getAbsolutePath(), e);
-      //noinspection ResultOfMethodCallIgnored
-      tempFile.delete();
+      LOG.error("Unable to create cache file " + tempFile.toString(), e);
+      deleteIgnoringErrors(tempFile);
       return;
     }
 
     try {
-      Files.move(tempFile.toPath(), cacheFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+      Files.move(tempFile, cacheFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     } catch (NoSuchFileException e) {
       // Ignore. This may happen in tests if the "caches" directory was cleaned up by a test tear down.
     } catch (IOException e) {
-      LOG.error("Unable to create cache file " + cacheFile.getAbsolutePath(), e);
-      //noinspection ResultOfMethodCallIgnored
-      tempFile.delete();
+      LOG.error("Unable to create cache file " + cacheFile.toString(), e);
+      deleteIgnoringErrors(tempFile);
+    }
+  }
+
+  private static void deleteIgnoringErrors(@NotNull Path tempFile) {
+    try {
+      Files.deleteIfExists(tempFile);
+    } catch (IOException ignored) {
     }
   }
 
@@ -869,7 +871,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   @NotNull
-  private File getCacheFile() {
+  private Path getCacheFile() {
     return getCacheFile(myResourceDirectory, myWithLocaleResources);
   }
 
@@ -890,8 +892,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   private static class CacheOutputStream extends ObjectOutputStream {
-    CacheOutputStream(@NotNull File file) throws IOException {
-      super(new BufferedOutputStream(new FileOutputStream(file)));
+    CacheOutputStream(@NotNull Path file) throws IOException {
+      super(new BufferedOutputStream(Files.newOutputStream(file)));
     }
 
     @Override
@@ -964,8 +966,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   private static class CacheInputStream extends ObjectInputStream {
-    CacheInputStream(@NotNull File file) throws IOException {
-      super(new BufferedInputStream(new FileInputStream(file)));
+    CacheInputStream(@NotNull Path file) throws IOException {
+      super(new BufferedInputStream(Files.newInputStream(file)));
     }
 
     @Override

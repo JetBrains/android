@@ -26,6 +26,7 @@ import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AarSourceResourceRepository}.
@@ -68,7 +69,7 @@ public class AarSourceResourceRepositoryTest extends TestCase {
     assertResourceValues(ResourcesTestsUtil.getTestAarRepositoryWithResourceFolders("my_aar_lib"));
   }
 
-  private void assertResourceValues(AarSourceResourceRepository repository) {
+  private static void assertResourceValues(@NotNull AarSourceResourceRepository repository) {
     List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(

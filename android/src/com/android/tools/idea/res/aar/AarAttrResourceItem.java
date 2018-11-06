@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item representing an attr resource.
  */
-final class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrResourceValue {
+class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrResourceValue {
   @NotNull private final Set<AttributeFormat> myFormats;
   /** The keys are enum or flag names, the values are corresponding numeric values. */
   @NotNull private final Map<String, Integer> myValueMap;
@@ -67,31 +67,31 @@ final class AarAttrResourceItem extends AbstractAarValueResourceItem implements 
 
   @Override
   @NotNull
-  public Set<AttributeFormat> getFormats() {
+  public final Set<AttributeFormat> getFormats() {
     return myFormats;
   }
 
   @Override
   @Nullable
-  public Map<String, Integer> getAttributeValues() {
+  public final Map<String, Integer> getAttributeValues() {
     return myValueMap.isEmpty() ? null : myValueMap;
   }
 
   @Override
   @Nullable
-  public String getValueDescription(@NotNull String valueName) {
+  public final String getValueDescription(@NotNull String valueName) {
     return myValueDescriptionMap.get(valueName);
   }
 
   @Override
   @Nullable
-  public String getDescription() {
+  public final String getDescription() {
     return myDescription;
   }
 
   @Override
   @Nullable
-  public String getGroupName() {
+  public final String getGroupName() {
     return null;
   }
 

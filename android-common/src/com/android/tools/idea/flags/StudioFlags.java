@@ -368,10 +368,15 @@ public final class StudioFlags {
     "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
     false);
 
+  private static final FlagGroup RESOURCE_REPOSITORIES = new FlagGroup(FLAGS, "res.repo", "Resource Repositories");
+  public static final Flag<Boolean> LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR = Flag.create(
+    RESOURCE_REPOSITORIES, "lightweight.resources.aar", "Use lightweight data structures for AAR resources",
+    "If enabled, use lightweight data structures for AAR resources.", true);
+
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",
-    "If enabled, Show actions to let user choose overlay image on preview.", true);
+    "If enabled, show actions to let user choose overlay image on preview.", true);
   public static final Flag<Boolean> LAYOUT_INSPECTOR_SUB_VIEW_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "sub.view", "Enable the sub view feature",
     "If enabled, changes the preview to focus on a component.", true);
@@ -399,24 +404,24 @@ public final class StudioFlags {
     "If enabled, uninstall IoT launcher apps when installing a new one", false);
 
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
-  public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag
-    .create(NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
-            "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
+  public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag.create(
+    NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
+    "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
   public static final Flag<Boolean> LLDB_ASSEMBLY_DEBUGGING = Flag.create(
     NDK, "debugging.assembly", "Enable assembly debugging",
     "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", false);
 
-  public static final Flag<Boolean> ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT = Flag
-    .create(NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
-            "If enabled, project system view will show a new include node with organized header files", true);
+  public static final Flag<Boolean> ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT = Flag.create(
+    NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
+    "If enabled, project system view will show a new include node with organized header files", true);
 
-  public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag
-    .create(NDK, "clangtidyinspections", "Enable clang-tidy inspections",
-            "If enabled, show inspections derived from clang-tidy.", true);
+  public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag.create(
+    NDK, "clangtidyinspections", "Enable clang-tidy inspections",
+    "If enabled, show inspections derived from clang-tidy.", true);
 
-  public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag
-    .create(NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
-            "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
+  public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
+    NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
+    "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 

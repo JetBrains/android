@@ -27,8 +27,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,12 +48,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   /** Enables printing of repository statistics. */
   private static final boolean PRINT_STATS = false;
 
-  private File myResourceFolder;
+  private Path myResourceFolder;
 
-  private void deleteRepositoryCache() {
+  private void deleteRepositoryCache() throws IOException {
     for (boolean withLocaleResources : new boolean[] {false, true}) {
-      //noinspection ResultOfMethodCallIgnored
-      FrameworkResourceRepository.getCacheFile(myResourceFolder, withLocaleResources).delete();
+      Files.deleteIfExists(FrameworkResourceRepository.getCacheFile(myResourceFolder, withLocaleResources));
     }
   }
 
@@ -59,15 +60,14 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
    * Returns the resource folder of the Android framework resources used by LayoutLib.
    */
   @NotNull
-  private File getSdkResFolder() {
+  private Path getSdkResFolder() {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     IAndroidTarget target = manager.getHighestApiTarget();
     if (target == null) {
       fail();
     }
     CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-    String sdkPlatformPath = Files.simplifyPath(compatibilityTarget.getLocation());
-    return new File(sdkPlatformPath + "/data/res");
+    return Paths.get(compatibilityTarget.getLocation(), "data", "res").normalize();
   }
 
   @Override
@@ -80,7 +80,6 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      //noinspection ResultOfMethodCallIgnored
       deleteRepositoryCache();
     } finally {
       super.tearDown();
@@ -92,17 +91,19 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       // Test loading without cache.
       long start = System.currentTimeMillis();
       if (PRINT_STATS) {
-        FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, false);
+        FrameworkResourceRepository.create(myResourceFolder.toFile(), withLocaleResources, false);
       }
       long loadTimeWithoutCache = System.currentTimeMillis() - start;
-      FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true);
+      FrameworkResourceRepository fromSourceFiles =
+        FrameworkResourceRepository.create(myResourceFolder.toFile(), withLocaleResources, true);
       assertFalse(fromSourceFiles.isLoadedFromCache());
       checkContents(fromSourceFiles);
 
       // Test loading from cache.
       fromSourceFiles.waitUntilPersistentCacheCreated();
       start = System.currentTimeMillis();
-      FrameworkResourceRepository fromCache = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true);
+      FrameworkResourceRepository fromCache =
+        FrameworkResourceRepository.create(myResourceFolder.toFile(), withLocaleResources, true);
       long loadTimeWithCache = System.currentTimeMillis() - start;
       assertTrue(fromCache.isLoadedFromCache());
       checkContents(fromCache);
@@ -221,11 +222,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       assertEquals(ResourceNamespace.ANDROID, item.getNamespace());
     }
     ImmutableMap<ResourceType, Integer> expectations = ImmutableMap.of(
-        ResourceType.STYLE, 700,
-        ResourceType.ATTR, 1200,
-        ResourceType.DRAWABLE, 600,
-        ResourceType.ID, 60,
-        ResourceType.LAYOUT, 20
+      ResourceType.STYLE, 700,
+      ResourceType.ATTR, 1200,
+      ResourceType.DRAWABLE, 600,
+      ResourceType.ID, 60,
+      ResourceType.LAYOUT, 20
     );
     for (ResourceType type : ResourceType.values()) {
       Collection<ResourceItem> publicExpected = repository.getPublicResources(ResourceNamespace.ANDROID, type);
