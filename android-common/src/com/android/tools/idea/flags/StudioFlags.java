@@ -283,12 +283,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_RENDER_HIGH_QUALITY_SHADOW = Flag.create(
     NELE, "high.quality.shadow", "Enable the high quality shadows",
     "Enable the high quality shadow rendering in Layout Editor",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_ENABLE_SHADOW = Flag.create(
     NELE, "enable.shadow", "Enable shadows",
     "Enable the shadow rendering in Layout Editor",
-    false);
+    true);
 
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
