@@ -17,8 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
-import com.android.emulator.SnapshotProtoException;
-import com.android.emulator.SnapshotProtoParser;
+import com.android.emulator.SnapshotOuterClass.Snapshot;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
@@ -32,6 +31,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,13 +93,29 @@ final class VirtualDevice extends Device {
 
   @Nullable
   private static String getName(@NotNull Path snapshot) {
-    try {
-      return new SnapshotProtoParser(snapshot.resolve("snapshot.pb").toFile(), snapshot.getFileName().toString()).getLogicalName();
+    try (InputStream in = Files.newInputStream(snapshot.resolve("snapshot.pb"))) {
+      return getName(Snapshot.parseFrom(in), snapshot.getFileName().toString());
     }
-    catch (SnapshotProtoException exception) {
+    catch (IOException exception) {
       Logger.getInstance(VirtualDevice.class).warn(snapshot.toString(), exception);
       return null;
     }
+  }
+
+  @Nullable
+  @VisibleForTesting
+  static String getName(@NotNull Snapshot snapshot, @NotNull String fallbackName) {
+    if (snapshot.getImagesCount() == 0) {
+      return null;
+    }
+
+    String name = snapshot.getLogicalName();
+
+    if (name.isEmpty()) {
+      return fallbackName;
+    }
+
+    return name;
   }
 
   VirtualDevice(@NotNull VirtualDevice virtualDevice, @NotNull IDevice ddmlibDevice) {
