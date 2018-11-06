@@ -84,7 +84,7 @@ class CpuFrameTooltipViewTest {
     assertThat(labels[2].text).contains("Main Thread")
     assertThat(labels[3].text).contains("CPU Time:")
     assertThat(labels[4].text).contains("Wall Time:")
-    assertThat(labels[5].text).contains("Render Thread")
+    assertThat(labels[5].text).contains("RenderThread")
     assertThat(labels[6].text).contains("CPU Time:")
     assertThat(labels[7].text).contains("Wall Time:")
 
