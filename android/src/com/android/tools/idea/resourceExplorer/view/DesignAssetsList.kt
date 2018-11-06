@@ -25,7 +25,6 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Image
-import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
@@ -39,9 +38,6 @@ import javax.swing.ListModel
 
 private val ICON_SIZE = JBUI.size(64)
 private const val ITEM_BORDER_WIDTH = 1
-private val EMPTY_ICON = UIUtil.createImage(
-  ICON_SIZE.width, ICON_SIZE.height, BufferedImage.TYPE_INT_ARGB
-) // TODO Get an error/loading image
 
 /**
  * A JList that display [DesignAssetSet].
