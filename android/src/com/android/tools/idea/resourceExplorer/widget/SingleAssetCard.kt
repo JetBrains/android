@@ -42,16 +42,10 @@ import kotlin.properties.Delegates
 // Graphic constant for the view
 
 /**
- * Ratio of the height on the width of the whole view.
- * These values come from the UI specs.
- */
-private const val VIEW_HEIGHT_WIDTH_RATIO = 26 / 23f
-
-/**
  * Ratio of the height on the width of the thumbnail
  * These values come from the UI specs.
  */
-private const val THUMBNAIL_HEIGHT_WIDTH_RATIO = 115 / 130f
+private const val THUMBNAIL_HEIGHT_WIDTH_RATIO = 23 / 26f
 
 private val LARGE_MAIN_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(10),
@@ -113,12 +107,12 @@ abstract class AssetView : JPanel(BorderLayout()) {
   /**
    * The size of the [thumbnail] container that should be used to compute the size of the thumbnail component
    */
-  val thumbnailSize: Dimension get() = contentWrapper.preferredSize
+  val thumbnailSize: Dimension get() = contentWrapper.size
 
   /**
-   * Set the width of the whole view. The height is computed using a fixed ratio of [VIEW_HEIGHT_WIDTH_RATIO].
+   * Set the width of the whole view.
    */
-  abstract var viewWidth: Int
+  var viewWidth: Int by Delegates.observable(DEFAULT_WIDTH) { _, _, newValue -> onViewWidthChanged(newValue) }
 
   /**
    * Set the title label of this card
@@ -147,7 +141,9 @@ abstract class AssetView : JPanel(BorderLayout()) {
 
   abstract var selected: Boolean
 
-  protected var contentWrapper = ChessBoardPanel(BorderLayout()).apply { showChessboard = withChessboard }
+  protected var contentWrapper = ChessBoardPanel(BorderLayout()).apply {
+    showChessboard = withChessboard
+  }
 
   var issueLevel: IssueLevel by Delegates.observable(IssueLevel.NONE) { _, _, level -> issueIcon.icon = level.icon }
 
@@ -172,6 +168,22 @@ abstract class AssetView : JPanel(BorderLayout()) {
       super.paintComponent(g)
     }
   }
+
+  /**
+   * Called when [viewWidth] is changed
+   */
+  private fun onViewWidthChanged(width: Int) {
+    val thumbnailSize = computeThumbnailSize(width)
+    contentWrapper.preferredSize = thumbnailSize
+    contentWrapper.size = thumbnailSize
+    validate()
+  }
+
+  /**
+   * Subclass implement this method to specify the size of the [thumbnail] giving the
+   * desired [width]
+   */
+  protected abstract fun computeThumbnailSize(width: Int): Dimension
 }
 
 /**
@@ -179,18 +191,11 @@ abstract class AssetView : JPanel(BorderLayout()) {
  * and some textual info below.
  */
 class SingleAssetCard : AssetView() {
-
   override var selected by Delegates.observable(false) { _, _, selected ->
     border = if (selected) LARGE_MAIN_CELL_BORDER_SELECTED else LARGE_MAIN_CELL_BORDER
   }
 
-  override var viewWidth by Delegates.observable(DEFAULT_WIDTH) { _, _, newValue ->
-    contentWrapper.preferredSize = Dimension(newValue, (newValue * THUMBNAIL_HEIGHT_WIDTH_RATIO).toInt())
-    preferredSize = Dimension(newValue, (newValue * VIEW_HEIGHT_WIDTH_RATIO).toInt())
-    maximumSize = preferredSize
-    minimumSize = preferredSize
-    validate()
-  }
+  override fun computeThumbnailSize(width: Int) = Dimension(width, (width * THUMBNAIL_HEIGHT_WIDTH_RATIO).toInt())
 
   private val bottomPanel = JPanel(BorderLayout(2, 8)).apply {
     background = secondaryPanelBackground
@@ -210,6 +215,7 @@ class SingleAssetCard : AssetView() {
       })
       add(issueIcon, BorderLayout.EAST)
     }
+    viewWidth = DEFAULT_WIDTH
   }
 }
 
@@ -218,14 +224,8 @@ class SingleAssetCard : AssetView() {
  * and some textual info below.
  */
 class RowAssetView : AssetView() {
-
   override var selected by Delegates.observable(false) { _, _, selected ->
     border = if (selected) ROW_CELL_BORDER_SELECTED else ROW_CELL_BORDER
-  }
-
-  override var viewWidth by Delegates.observable(DEFAULT_WIDTH) { _, _, newValue ->
-    contentWrapper.preferredSize = Dimension(newValue, newValue)
-    validate()
   }
 
   private val centerPanel = JPanel(BorderLayout()).apply {
@@ -244,7 +244,7 @@ class RowAssetView : AssetView() {
 
   init {
     contentWrapper.border = JBUI.Borders.customLine(JBColor.border(), 1)
-
+    viewWidth = DEFAULT_WIDTH
     with(centerPanel) {
       add(JPanel(BorderLayout()).apply {
         add(titleLabel)
@@ -264,6 +264,8 @@ class RowAssetView : AssetView() {
     add(contentWrapper, BorderLayout.WEST)
     add(centerPanel)
   }
+
+  override fun computeThumbnailSize(width: Int) = Dimension(width, width)
 }
 
 private fun separator() = object : JComponent() {
