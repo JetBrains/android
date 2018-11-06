@@ -80,7 +80,9 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     @Override
     public boolean isApplicationRunningOnDeployable() {
       IDevice device = myDevice.getDdmlibDevice();
-      assert device != null;
+      if (device == null) {
+        return false;
+      }
       return myDevice.isConnected() && device.getClient(myPackageName) != null;
     }
   }
