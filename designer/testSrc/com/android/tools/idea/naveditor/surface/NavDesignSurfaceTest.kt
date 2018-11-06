@@ -32,13 +32,16 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito
 import org.mockito.Mockito.*
 import java.awt.Dimension
 import java.awt.Point
@@ -360,6 +363,62 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertNotEquals(orig, newVersion)
     surface.refreshRoot()
     assertEquals(newVersion, surface.currentNavigation)
+  }
+
+  // TODO: Add a similar test that manipulates the NlModel directly instead of changing the XML
+  fun testUpdateXml() {
+    val model = model("nav.xml") {
+      navigation {
+        navigation("navigation1") {
+          fragment("fragment1")
+        }
+      }
+    }
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+
+    var root = model.components[0]
+    assertEquals(root, surface.currentNavigation)
+
+    var navigation1 = model.find("navigation1")!!
+    surface.currentNavigation = navigation1
+    assertEquals(navigation1, surface.currentNavigation)
+
+    // Paste in the same xml and verify that the current navigation is unchanged
+    WriteCommandAction.runWriteCommandAction(project) {
+      val manager = PsiDocumentManager.getInstance(project)
+      val document = manager.getDocument(model.file)!!
+      document.setText("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                       "    <navigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
+                       "        <fragment android:id=\"@+id/fragment1\"/>\n" +
+                       "    </navigation>\n" +
+                       "</navigation>")
+      manager.commitAllDocuments()
+    }
+
+    navigation1 = model.find("navigation1")!!
+    assertEquals(navigation1, surface.currentNavigation)
+
+    // Paste in xml that invalidates the current navigation and verify that the current navigation gets reset to the root
+    WriteCommandAction.runWriteCommandAction(project) {
+      val manager = PsiDocumentManager.getInstance(project)
+      val document = manager.getDocument(model.file)!!
+      document.setText("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                       "    <xnavigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
+                       "        <fragment android:id=\"@+id/fragment1\"/>\n" +
+                       "    </xnavigation>\n" +
+                       "</navigation>")
+      manager.commitAllDocuments()
+    }
+
+    NavSceneManager.updateHierarchy(model, model)
+
+    root = model.components[0]
+    val component = surface.currentNavigation
+    assertEquals(root, component)
   }
 
   fun testConfiguration() {

@@ -33,6 +33,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ModuleFinder {
@@ -88,7 +89,7 @@ public class ModuleFinder {
   private File getProjectRootFolder(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
     if (moduleFolder != null) {
-      String modulePath = moduleFolder.getPath();
+      String modulePath = toCanonicalPath(moduleFolder.getPath());
       if (myIncludedProjectFolderByModuleFolder.containsKey(modulePath)) {
         return myIncludedProjectFolderByModuleFolder.get(modulePath);
       }
@@ -151,7 +152,7 @@ public class ModuleFinder {
   public boolean isCompositeBuild(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
     if (moduleFolder != null) {
-      return myIncludedProjectFolderByModuleFolder.containsKey(moduleFolder.getPath());
+      return myIncludedProjectFolderByModuleFolder.containsKey(toCanonicalPath(moduleFolder.getPath()));
     }
     return false;
   }
