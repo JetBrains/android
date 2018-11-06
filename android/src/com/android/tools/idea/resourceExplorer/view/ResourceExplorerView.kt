@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -42,6 +43,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -114,7 +116,8 @@ class ResourceExplorerView(
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
   private val dragHandler = resourceDragHandler()
-  private val imageCache = ImageCache()
+  private val imageCache = ImageCache(
+    mergingUpdateQueue = MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
   private val headerPanel = JTabbedPane(JTabbedPane.NORTH).apply {
     tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
@@ -182,6 +185,7 @@ class ResourceExplorerView(
     add(headerPanel, BorderLayout.NORTH)
     add(listPanel)
     add(footerPanel, BorderLayout.SOUTH)
+    Disposer.register(this, imageCache)
   }
 
   private fun populateResourcesLists() {
