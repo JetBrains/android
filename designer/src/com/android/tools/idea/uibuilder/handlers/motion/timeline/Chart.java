@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class contains all data common to the timeline chart
@@ -50,6 +51,7 @@ public class Chart {
   Selection mySelection = Selection.NONE;
   MotionSceneModel myModel;
   MotionSceneModel.KeyFrame mySelectedKeyFrame;
+  SmartPsiElementPointer<XmlTag> mySelectedKeyFrameTag;
   ArrayList<Gantt.ChartElement> myChartElements = new ArrayList<>();
   ArrayList<Gantt.ViewElement> myViewElements = new ArrayList<>();
 
@@ -67,9 +69,6 @@ public class Chart {
   static int ourGraphHeight = JBUI.scale(60);
 
   GraphElements myGraphElements;
-  private String myDelayedKeyFrameId;
-  private int myDelayedKeyFramePos;
-  private String myDelayedKeyType;
 
   public float getTimeCursorMs() {
     return myTimeCursorMs;
@@ -96,52 +95,19 @@ public class Chart {
       setAnimationTotalTimeMs(duration);
       myGantt.setDurationMs(duration);
     }
-    if (myDelayedKeyFrameId == null && mySelectedKeyFrame != null) {
-      myDelayedKeyFrameId = mySelectedKeyFrame.target;
-      myDelayedKeyType = mySelectedKeyFrame.mType;
-      myDelayedKeyFramePos = mySelectedKeyFrame.framePosition;
+    if (mySelectedKeyFrameTag != null && mySelectedKeyView != null) {
+      MotionSceneModel.MotionSceneView m = myModel.getMotionSceneView(mySelectedKeyView);
+      m.myKeyPositions.stream()
+        .filter(keyframe -> keyframe.getTag() == mySelectedKeyFrameTag)
+        .forEach(keyframe -> mySelectedKeyFrame = keyframe);
+      m.myKeyAttributes.stream()
+        .filter(keyframe -> keyframe.getTag() == mySelectedKeyFrameTag)
+        .forEach(keyframe -> mySelectedKeyFrame = keyframe);
+      m.myKeyCycles.stream()
+        .filter(keyframe -> keyframe.getTag() == mySelectedKeyFrameTag)
+        .forEach(keyframe -> mySelectedKeyFrame = keyframe);
     }
-    if (myDelayedKeyFrameId != null) {
-      MotionSceneModel.MotionSceneView m = myModel.getMotionSceneView(myDelayedKeyFrameId);
-      switch (myDelayedKeyType) {
-
-        case "KeyPosition":
-          for (MotionSceneModel.KeyPos position : m.myKeyPositions) {
-            if (position.framePosition == myDelayedKeyFramePos) {
-              mySelectedKeyFrame = position;
-            }
-          }
-          break;
-        case "KeyAttributes":
-          for (MotionSceneModel.KeyAttributes attr : m.myKeyAttributes) {
-            if (attr.framePosition == myDelayedKeyFramePos) {
-              mySelectedKeyFrame = attr;
-            }
-          }
-          break;
-        case "KeyCycle":
-          for (MotionSceneModel.KeyCycle cycle : m.myKeyCycles) {
-            if (cycle.framePosition == myDelayedKeyFramePos) {
-              mySelectedKeyFrame = cycle;
-            }
-          }
-          break;
-      }
-      update(Gantt.ChartElement.Reason.SELECTION_CHANGED);
-      myDelayedKeyFrameId = null;
-    }
-  }
-
-  /**
-   * Select this key frame when scene gets updated
-   *
-   * @param name
-   * @param fpos
-   */
-  public void delayedSelectKeyFrame(String type, String name, int fpos) {
-    myDelayedKeyFrameId = name;
-    myDelayedKeyFramePos = fpos;
-    myDelayedKeyType = type;
+    update(Gantt.ChartElement.Reason.SELECTION_CHANGED);
   }
 
   public static Color getColorForPosition(int position) {

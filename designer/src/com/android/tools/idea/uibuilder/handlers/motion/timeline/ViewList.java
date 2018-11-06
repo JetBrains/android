@@ -222,8 +222,8 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     }
     String type = (new String[]{KeyTypePosition, KeyTypeAttribute, KeyTypeCycle})[frameType];
 
-    v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
-    myChart.delayedSelectKeyFrame(type, name, fpos);
+    myChart.mySelectedKeyFrameTag = v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
+    myChart.mySelectedKeyView = name;
   }
 
   void treeSelection(TreeSelectionEvent e) {
