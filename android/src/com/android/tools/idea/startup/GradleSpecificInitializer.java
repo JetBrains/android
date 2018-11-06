@@ -20,7 +20,6 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.fd.actions.HotswapAction;
-import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.npw.PathValidationResult;
@@ -32,8 +31,6 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.intellij.execution.actions.EditRunConfigurationsAction;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectStructureAction;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
@@ -211,21 +208,7 @@ public class GradleSpecificInitializer implements Runnable {
         if (child instanceof TemplateProjectStructureAction) {
           settingsGroup.replaceAction(child, new AndroidTemplateProjectStructureAction());
         }
-        else if (child instanceof EditRunConfigurationsAction) {
-          settingsGroup.replaceAction(child, new AndroidEditRunConfigurationsAction());
-        }
-        else if (child instanceof EditRunConfigurationsAction) {
-          settingsGroup.replaceAction(child, new AndroidEditRunConfigurationsAction());
-        }
       }
-    }
-  }
-
-  private static class AndroidEditRunConfigurationsAction extends EditRunConfigurationsAction {
-    AndroidEditRunConfigurationsAction() {
-      Presentation p = getTemplatePresentation();
-      p.setText("Run Configurations");
-      p.setIcon(AllIcons.ToolbarDecorator.Import);
     }
   }
 
