@@ -23,7 +23,9 @@ import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
   private DeviceAndSnapshotComboBoxTargetProvider() {
@@ -38,7 +40,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @NotNull
   @Override
   public String getDisplayName() {
-    throw new UnsupportedOperationException();
+    return "Use the device/snapshot drop down";
   }
 
   @NotNull
@@ -50,13 +52,31 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   private static final class State extends DeployTargetState {
   }
 
+  @NotNull
   @Override
   public DeployTargetConfigurable createConfigurable(@NotNull Project project,
                                                      @NotNull Disposable parent,
                                                      @NotNull DeployTargetConfigurableContext context) {
-    throw new UnsupportedOperationException();
+    return new Configurable();
   }
 
+  private static final class Configurable implements DeployTargetConfigurable {
+    @Nullable
+    @Override
+    public JComponent createComponent() {
+      return null;
+    }
+
+    @Override
+    public void resetFrom(@NotNull Object state, int id) {
+    }
+
+    @Override
+    public void applyTo(@NotNull Object state, int id) {
+    }
+  }
+
+  @NotNull
   @Override
   public DeployTarget getDeployTarget() {
     return new DeviceAndSnapshotComboBoxTarget();
