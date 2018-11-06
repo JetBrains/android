@@ -185,7 +185,9 @@ public class Gantt extends JPanel implements GanttCommands {
   }
 
   public void clearSelectedKey() {
+    myChart.mySelectedKeyView = null;
     myChart.mySelectedKeyFrame = null;
+    myChart.mySelectedKeyFrameTag = null;
   }
 
   public MotionSceneModel.TransitionTag getTransitionTag() {

@@ -427,49 +427,64 @@ public class MotionSceneModel {
    * @param framePosition
    * @param id
    */
-  public void createKeyFrame(String type, int framePosition, String id) {
+  @Nullable
+  public SmartPsiElementPointer<XmlTag> createKeyFrame(String type, int framePosition, String id) {
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
     switch (type) {
       case KeyTypePosition:
         for (KeyPos keys : myCurrentTransition.mViewsMap.get(id).myKeyPositions) {
           if (keys.framePosition == framePosition) {
-            return;
+            return null;
           }
         }
         break;
       case KeyTypeAttribute:
         for (KeyAttributes keys : myCurrentTransition.mViewsMap.get(id).myKeyAttributes) {
           if (keys.framePosition == framePosition) {
-            return;
+            return null;
           }
         }
         break;
-      case KeyTypeCycle:
-        for (KeyCycle keys : myCurrentTransition.mViewsMap.get(id).myKeyCycles) {
-          if (keys.framePosition == framePosition) {
-            return;
-          }
-        }
     }
-    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        XmlTag keyFrame = getKeyFrameForTransition(xmlFile, myCurrentTransition);
-        XmlTag createdTag = keyFrame.createChildTag(type, null, null, false);
-        createdTag = keyFrame.addSubTag(createdTag, false);
-        createdTag.setAttribute(KeyAttributes_framePosition, AUTO_URI, Integer.toString(framePosition));
-        createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
-        //  createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
-        if (type.equals(KeyTypePosition)) {
-          createdTag.setAttribute(KeyPosition_type, AUTO_URI, KeyPosition_type_cartesian);
+    XmlTag createdTag = WriteCommandAction.<XmlTag>runWriteCommandAction(myProject, () -> {
+      if (myTransition.isEmpty()) {
+        return null;
+      }
+      XmlTag transition = getTransitionTag(0).getTag().getElement();
+      if (transition == null) {
+        return null;
+      }
+      XmlTag keyFrame = null;
+      XmlTag[] tags = transition.getSubTags();
+      for (int i = 0; i < tags.length; i++) {
+        XmlTag tag = tags[i];
+        String keyNodeName = tag.getName();
+        if (keyNodeName.equals(MotionSceneKeyFrameSet)) {
+          keyFrame = tag;
+          break;
         }
       }
+      if (keyFrame == null) { // no keyframes need to create
+        keyFrame =
+          xmlFile.getRootTag().createChildTag(MotionSceneKeyFrameSet, null, null, false);
+        keyFrame = xmlFile.getRootTag().addSubTag(keyFrame, false);
+      }
+
+      XmlTag createdTag1 = keyFrame.createChildTag(type, null, null, false);
+      createdTag1 = keyFrame.addSubTag(createdTag1, false);
+      createdTag1.setAttribute(KeyAttributes_framePosition, AUTO_URI, Integer.toString(framePosition));
+      createdTag1.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
+      if (type.equals(KeyTypePosition)) {
+        createdTag1.setAttribute(KeyPosition_type, AUTO_URI, KeyPosition_type_cartesian);
+      }
+      return createdTag1;
     });
     if (myNlModel != null) {
       // TODO: we may want to do live edits instead, but LayoutLib needs
       // anyway to save the file to disk, so...
       saveAndNotify(xmlFile, myNlModel);
     }
+    return SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(createdTag);
   }
 
   /**

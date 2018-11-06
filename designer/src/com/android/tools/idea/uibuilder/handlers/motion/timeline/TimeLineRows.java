@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 import static com.intellij.openapi.ui.VerticalFlowLayout.TOP;
 
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -32,6 +34,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
@@ -194,9 +197,9 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       addPoint++;
     }
 
-    MotionSceneModel.KeyFrame find(int x, int y, int max) {
+    MotionSceneModel.KeyFrame find(int x, int y, int max, SmartPsiElementPointer<XmlTag> previousKeyFrameTag) {
       int closeSq = Integer.MAX_VALUE;
-      MotionSceneModel.KeyFrame keyFrame = null;
+      List<MotionSceneModel.KeyFrame> possibleFrames = new ArrayList<>();
       int maxSq = max * max;
       for (int i = 0; i < keyFrames.length; i++) {
         int kf_x = location[i * 2];
@@ -207,12 +210,23 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         int dy = Math.abs(kf_y - y);
         dy *= dy;
         if (dy > maxSq) continue;
-        if (closeSq > dy + dx) {
-          keyFrame = keyFrames[i];
+        if (closeSq >= dy + dx && !possibleFrames.contains(keyFrames[i])) {
+          possibleFrames.add(keyFrames[i]);
           closeSq = dy + dx;
         }
       }
-      return keyFrame;
+      if (possibleFrames.isEmpty()) {
+        return null;
+      }
+      int foundIndex = -1;
+      for (int i=0; i < possibleFrames.size(); i++) {
+        if (possibleFrames.get(i).getTag() == previousKeyFrameTag) {
+          foundIndex = i;
+          break;
+        }
+      }
+      int nextIndex = (foundIndex + 1) % possibleFrames.size();
+      return possibleFrames.get(nextIndex);
     }
   }
 
@@ -238,15 +252,18 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
     }
 
     private void select(int x, int y) {
-      MotionSceneModel.KeyFrame keyFrame = myLocationTable.find(x, y, 20);
+      MotionSceneModel.KeyFrame keyFrame = myLocationTable.find(x, y, 20, myChart.mySelectedKeyFrameTag);
       if (keyFrame != myChart.mySelectedKeyFrame) {
         myChart.mySelectedKeyFrame = keyFrame;
+        myChart.mySelectedKeyFrameTag = null;
+        myChart.mySelectedKeyView = null;
         myChart.mySelection = Chart.Selection.KEY;
         myChart.update(Reason.SELECTION_CHANGED);
         if (keyFrame != null) {
           float position = keyFrame.getFramePosition() / 100f;
           myChart.setCursorPosition(position);
           myChart.mySelectedKeyView = keyFrame.target;
+          myChart.mySelectedKeyFrameTag = keyFrame.getTag();
         }
       }
       else {
