@@ -17,7 +17,6 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.resourceExplorer.getPNGFile
@@ -84,6 +83,7 @@ class ProjectResourcesBrowserViewModelTest {
     val viewModel = createViewModel(projectRule.module)
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+    viewModel.filterOptions.isShowLibraries = true
     val colorSection = viewModel.getResourcesLists()
     Truth.assertThat(colorSection).hasSize(2)
     Truth.assertThat(colorSection[0].assets).isEmpty()
