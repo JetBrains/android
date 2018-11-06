@@ -111,33 +111,6 @@ public class ImportSummary {
           + "Android Gradle projects use a different directory structure than ADT\n"
           + "Eclipse projects. Here's how the projects were restructured:\n\n";
 
-  static final String MSG_MISSING_REPO_1 = "\n"
-          + "Missing Android Support Repository:\n"
-          + "-----------------------------------\n"
-          + "Some useful libraries, such as the Android Support Library, are\n"
-          + "installed from a special Maven repository, which should be installed\n"
-          + "via the SDK manager.\n"
-          + "\n"
-          + "It looks like this library is missing from your SDK installation at:\n";
-
-  static final String MSG_MISSING_REPO_2 = "\n"
-          + "To install it, open the SDK manager, and in the Extras category,\n"
-          + "select \"Android Support Repository\". You may also want to install the\n"
-          + "\"Google Repository\" if you want to use libraries like Google Play\n"
-          + "Services.\n";
-
-  static final String MSG_MISSING_GOOGLE_REPOSITORY_1 = "\n"
-          + "Missing Google Repository:\n"
-          + "--------------------------\n"
-          + "The Google Play Services library is installed from a special Maven\n"
-          + "Repository, which should be installed via the SDK manager.\n"
-          + "\n"
-          + "It looks like this library is missing from your SDK installation at:\n";
-
-  static final String MSG_MISSING_GOOGLE_REPOSITORY_2 = "\n"
-          + "To install it, open the SDK manager, and in the Extras category,\n"
-          + "select \"Google Repository\".\n";
-
   static final String MSG_BUILD_TOOLS_VERSION = "\n"
           + "Old Build Tools:\n"
           + "----------------\n"
@@ -418,18 +391,6 @@ public class ImportSummary {
           sb.append("\n");
         }
       }
-    }
-
-    if (myImporter.needSupportRepository() && myImporter.isMissingSupportRepository()) {
-      sb.append(MSG_MISSING_REPO_1);
-      sb.append(myImporter.getSdkLocation()).append("\n");
-      sb.append(MSG_MISSING_REPO_2);
-    }
-
-    if (myImporter.needGoogleRepository() && myImporter.isMissingGoogleRepository()) {
-      sb.append(MSG_MISSING_GOOGLE_REPOSITORY_1);
-      sb.append(myImporter.getSdkLocation()).append("\n");
-      sb.append(MSG_MISSING_GOOGLE_REPOSITORY_2);
     }
 
     if (Revision.parseRevision(myImporter.getBuildToolsVersion()).getMajor() < 19) {
