@@ -426,11 +426,11 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable
   public String getLiveAttribute(@Nullable String namespace, @NotNull String attribute) {
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      return myDelegate.getAttribute(this, namespace, attribute);
-    }
     if (myCurrentTransaction != null) {
       return myCurrentTransaction.getAttribute(namespace, attribute);
+    }
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      return myDelegate.getAttribute(this, namespace, attribute);
     }
     return getAttribute(namespace, attribute);
   }

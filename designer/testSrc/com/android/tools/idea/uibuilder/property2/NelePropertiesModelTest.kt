@@ -23,10 +23,10 @@ import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
@@ -86,7 +86,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     verify(listener).propertiesGenerated(model)
   }
 
-  fun testPropertiesChangedEventAfterRendering() {
+  fun testPropertyValuesChangedEventAfterModelChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
@@ -96,13 +96,21 @@ class NelePropertiesModelTest: LayoutTestCase() {
     waitUntilEventsProcessed(model)
     model.addListener(listener)
 
-    // test emulate the completion of rendering in the current scene
-    val manager = nlModel.surface.currentSceneView?.sceneManager!!
-    val method = LayoutlibSceneManager::class.java.getDeclaredMethod("fireRenderListeners")
-    method.isAccessible = true
-    method.invoke(manager)
-    UIUtil.dispatchAllInvocationEvents()
+    nlModel.notifyModified(NlModel.ChangeType.EDIT)
+    verify(listener).propertyValuesChanged(model)
+  }
 
+  fun testPropertyValuesChangedEventAfterLiveModelChange() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    model.surface = nlModel.surface
+    waitUntilEventsProcessed(model)
+    model.addListener(listener)
+
+    nlModel.notifyLiveUpdate(false)
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -181,7 +189,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // This code makes sure that the last scheduled worker thread is finished,
     // then we also need to wait for events on the UI thread.
     fun waitUntilEventsProcessed(model: NelePropertiesModel) {
-      if (model.lastSelectionUpdate!!.get()) {
+      if (model.lastSelectionUpdate.get()) {
         while (!model.lastUpdateCompleted) {
           UIUtil.dispatchAllInvocationEvents()
         }

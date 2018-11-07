@@ -20,7 +20,9 @@ import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager
 import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.common.property2.api.PropertiesTable
@@ -29,10 +31,8 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.AccessoryPanelListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -54,22 +54,24 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 /**
  * [PropertiesModel] for Nele design surface properties.
  */
-open class NelePropertiesModel(parentDisposable: Disposable, val provider: PropertiesProvider, val facet: AndroidFacet)
-  : PropertiesModel<NelePropertyItem>, Disposable {
+open class NelePropertiesModel(parentDisposable: Disposable,
+                               val provider: PropertiesProvider,
+                               val facet: AndroidFacet,
+                               private val updateOnComponentSelectionChanges: Boolean) : PropertiesModel<NelePropertyItem>, Disposable {
   val project: Project = facet.module.project
 
   private val listeners: MutableList<PropertiesModelListener<NelePropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
+  private val modelListener = NlModelListener()
   private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
   private val accessorySelectionListener = AccessorySelectionListener { panel, selection -> handlePanelSelectionUpdate(panel, selection) }
-  private val renderListener = RenderListener { renderCompleted() }
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
   private var defaultValueProvider: NeleDefaultPropertyProvider? = null
 
   constructor(parentDisposable: Disposable, facet: AndroidFacet) :
-    this(parentDisposable, NelePropertiesProvider(facet), facet)
+    this(parentDisposable, NelePropertiesProvider(facet), facet, true)
 
   var surface: DesignSurface?
     get() = activeSurface
@@ -137,7 +139,7 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
     ApplicationManager.getApplication().assertIsDispatchThread()
     var prev: String? = null
     for (component in property.components) {
-      val value = component.getAttribute(property.namespace, property.name) ?: return null
+      val value = component.getLiveAttribute(property.namespace, property.name) ?: return null
       prev = prev ?: value
       if (value != prev) return null
     }
@@ -173,24 +175,23 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
     if (surface != activeSurface) {
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
+      activeSceneView = surface?.currentSceneView
     }
     if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {
       scheduleSelectionUpdate(surface, activeSceneView?.selectionModel?.selection ?: emptyList())
     }
   }
 
-  protected open fun updateDesignSurface(old: DesignSurface?, new: DesignSurface?) {
-    setDesignSurfaceListener(old, new)
-    setAccessoryPanelListener(old, new)
-    useSceneView(new?.currentSceneView)
-    useCurrentPanel(new)
-  }
-
-  private fun useSceneView(sceneView: SceneView?) {
-    if (sceneView != activeSceneView) {
-      setRenderListener(activeSceneView, sceneView)
-      activeSceneView = sceneView
+  private fun updateDesignSurface(old: DesignSurface?, new: DesignSurface?) {
+    old?.model?.removeListener(modelListener)
+    new?.model?.addListener(modelListener)
+    if (updateOnComponentSelectionChanges) {
+      old?.removeListener(designSurfaceListener)
+      new?.addListener(designSurfaceListener)
     }
+    (old as? NlDesignSurface)?.accessoryPanel?.removeAccessoryPanelListener(accessoryPanelListener)
+    (new as? NlDesignSurface)?.accessoryPanel?.addAccessoryPanelListener(accessoryPanelListener)
+    useCurrentPanel(new)
   }
 
   protected fun useCurrentPanel(surface: DesignSurface?) {
@@ -202,21 +203,6 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
       setAccessorySelectionListener(activePanel, panel)
       activePanel = panel
     }
-  }
-
-  private fun setDesignSurfaceListener(old: DesignSurface?, new: DesignSurface?) {
-    old?.removeListener(designSurfaceListener)
-    new?.addListener(designSurfaceListener)
-  }
-
-  protected fun setAccessoryPanelListener(old: DesignSurface?, new: DesignSurface?) {
-    (old as? NlDesignSurface)?.accessoryPanel?.removeAccessoryPanelListener(accessoryPanelListener)
-    (new as? NlDesignSurface)?.accessoryPanel?.addAccessoryPanelListener(accessoryPanelListener)
-  }
-
-  private fun setRenderListener(old: SceneView?, new: SceneView?) {
-    (old as? ScreenView)?.sceneManager?.removeRenderListener(renderListener)
-    (new as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
   }
 
   private fun setAccessorySelectionListener(old: AccessoryPanelInterface?, new: AccessoryPanelInterface?) {
@@ -290,14 +276,6 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
     return true
   }
 
-  private fun renderCompleted() {
-    UIUtil.invokeLaterIfNeeded {
-      // The default properties comes from layoutlib, so they may have changed:
-      defaultValueProvider = createNeleDefaultPropertyProvider()
-      firePropertyValueChange()
-    }
-  }
-
   @VisibleForTesting
   fun firePropertiesGenerated() {
     listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
@@ -316,6 +294,16 @@ open class NelePropertiesModel(parentDisposable: Disposable, val provider: Prope
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
     override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
       scheduleSelectionUpdate(surface, newSelection)
+    }
+  }
+
+  private inner class NlModelListener : ModelListener {
+    override fun modelChanged(model: NlModel) {
+      firePropertyValueChange()
+    }
+
+    override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
+      firePropertyValueChange()
     }
   }
 }
