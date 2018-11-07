@@ -230,7 +230,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @Override
-  public boolean executeTask(DataContext context, @NotNull RunConfiguration configuration, @NotNull ExecutionEnvironment env, @NotNull MakeBeforeRunTask task) {
+  public boolean executeTask(@NotNull DataContext context, @NotNull RunConfiguration configuration, @NotNull ExecutionEnvironment env, @NotNull MakeBeforeRunTask task) {
     if (!myAndroidProjectInfo.requiresAndroidModel() || !myGradleProjectInfo.isDirectGradleBuildEnabled()) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
