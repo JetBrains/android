@@ -86,6 +86,18 @@ public class DrawNlComponentFrame extends DrawRegion {
       g.drawRect(x, y, width, height);
     }
     else {
+      Shape clipping = g.getClip();
+      if (!clipping.contains(x, y, x + width, x + height)) {
+        // Draw dot line
+        g.setClip(sceneContext.getBounds());
+        g.setStroke(ColorSet.sDashedStroke);
+        g.drawLine(x, y, x, y + height);
+        g.drawLine(x + width, y, x + width, y + height);
+        g.drawLine(x, y, x + width, y);
+        g.drawLine(x, y + height, x + width, y + height);
+        g.setClip(clipping);
+      }
+
       g.setStroke(getStroke(myLayoutHeight));
       g.drawLine(x, y, x, y + height);
       g.drawLine(x + width, y, x + width, y + height);
