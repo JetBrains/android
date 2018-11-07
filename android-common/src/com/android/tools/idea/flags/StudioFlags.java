@@ -416,7 +416,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag
     .create(NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
-            "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", false);
+            "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
