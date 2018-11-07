@@ -32,6 +32,7 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.observable.collections.ObservableList;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
@@ -63,6 +64,8 @@ public class DynamicFeatureModel extends WizardModel {
     new OptionalValueProperty<>(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
   @NotNull private final BoolProperty myInstantModule = new BoolValueProperty(false);
+  @NotNull private final BoolProperty myConditionalMinSdk = new BoolValueProperty(true);
+  @NotNull private final ObservableList<DeviceFeatureModel> myDeviceFeatures = new ObservableList<>();
 
   public DynamicFeatureModel(@NotNull Project project,
                              @NotNull TemplateHandle templateHandle,
@@ -118,12 +121,20 @@ public class DynamicFeatureModel extends WizardModel {
   }
 
   @NotNull
+  public ObservableList<DeviceFeatureModel> deviceFeatures() {
+    return myDeviceFeatures;
+  }
+
+  @NotNull
   public BoolProperty featureFusing() {
     return myFeatureFusing;
   }
 
   @NotNull
   public BoolProperty instantModule() { return myInstantModule; }
+
+  @NotNull
+  public BoolProperty conditionalMinSdk() { return myConditionalMinSdk; }
 
   @Override
   protected void handleFinished() {
