@@ -28,6 +28,8 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.expressions.bool.IsEqualToExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
@@ -35,6 +37,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
+import java.util.Optional;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -55,7 +58,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   private JPanel myRootPanel;
   @SuppressWarnings("unused") private JBLabel myFeatureTitleLabel;
   private JTextField myFeatureTitle;
-  @SuppressWarnings("unused") private JCheckBox myFusingCheckBox;
+  private JCheckBox myFusingCheckBox;
   private ModuleDownloadConditions myDownloadConditionsForm;
   private JComboBox<DownloadInstallKind> myInstallationOptionCombo;
 
@@ -76,6 +79,12 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
     myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myInstallationOptionCombo), getModel().downloadInstallKind());
     myBindings.bindTwoWay(new SelectedProperty(myDownloadConditionsForm.myMinimumSDKLevelCheckBox), getModel().conditionalMinSdk());
+
+    // Initialize "conditions" sub-form
+    BooleanExpression isConditionalPanelActive =
+      new IsEqualToExpression<>(getModel().downloadInstallKind(), Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS));
+    myDownloadConditionsForm
+      .init(getModel().getProject(), this, getModel().conditionalMinSdkInfo(), myValidatorPanel, isConditionalPanelActive);
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
     myListeners.receiveAndFire(getModel().downloadInstallKind(), value ->
