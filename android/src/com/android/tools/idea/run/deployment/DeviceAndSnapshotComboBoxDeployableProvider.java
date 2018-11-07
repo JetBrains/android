@@ -23,14 +23,17 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployableProvider {
+  @NotNull private final Project myProject;
   @NotNull private final ApplicationIdProvider myApplicationIdProvider;
 
-  public DeviceAndSnapshotComboBoxDeployableProvider(@NotNull ApplicationIdProvider applicationIdProvider) {
+  public DeviceAndSnapshotComboBoxDeployableProvider(@NotNull Project project, @NotNull ApplicationIdProvider applicationIdProvider) {
     myApplicationIdProvider = applicationIdProvider;
+    myProject = project;
   }
 
   @Override
@@ -42,9 +45,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
   @Override
   public Deployable getDeployable() throws ApkProvisionException {
     ActionManager manager = ActionManager.getInstance();
-    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
+    Device device = ((DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox")).getSelectedDevice(myProject);
 
-    Device device = action.getSelectedDevice();
     if (device == null) {
       return null;
     }

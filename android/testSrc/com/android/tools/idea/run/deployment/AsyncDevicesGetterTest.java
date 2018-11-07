@@ -37,7 +37,7 @@ public final class AsyncDevicesGetterTest {
 
   @Before
   public void newVirtualDevice() {
-    myVirtualDevice = new VirtualDevice(new AvdInfo(
+    myVirtualDevice = VirtualDevice.newDisconnectedVirtualDevice(new AvdInfo(
       "Pixel_2_XL_API_27",
       new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.ini"),
       "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.avd",
@@ -58,7 +58,7 @@ public final class AsyncDevicesGetterTest {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
 
     Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
-    assertEquals(new VirtualDevice(myVirtualDevice, myConnectedDevice), device);
+    assertEquals(VirtualDevice.newConnectedVirtualDevice(myVirtualDevice, myConnectedDevice), device);
 
     assertEquals(Collections.emptyList(), myConnectedDevices);
   }

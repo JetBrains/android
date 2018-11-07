@@ -76,7 +76,7 @@ class AsyncDevicesGetter {
 
       if (Objects.equals(device.getAvdName(), name)) {
         i.remove();
-        return new VirtualDevice(virtualDevice, device);
+        return VirtualDevice.newConnectedVirtualDevice(virtualDevice, device);
       }
     }
 

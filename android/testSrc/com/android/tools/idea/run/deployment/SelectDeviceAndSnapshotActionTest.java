@@ -34,24 +34,50 @@ public final class SelectDeviceAndSnapshotActionTest {
 
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsIsEmpty() {
-    Device device = new VirtualDevice(false, Devices.PIXEL_2_XL_API_28);
-    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction(myComboBoxAction, device, () -> true);
+    Device device = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of())
+      .build();
+
+    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
+      .setComboBoxAction(myComboBoxAction)
+      .setDevice(device)
+      .build();
+
     assertNull(action.getSnapshot());
   }
 
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsEqualsDefaultSnapshotCollection() {
-    Device device = new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
-    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction(myComboBoxAction, device, () -> true);
+    Device device = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
+      .build();
+
+    SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
+      .setComboBoxAction(myComboBoxAction)
+      .setDevice(device)
+      .build();
+
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSnapshot());
   }
 
   @Test
   public void selectDeviceAndSnapshotActionThrowsIllegalArgumentException() {
-    Device device = new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, ImmutableList.of("snap_2018-08-07_16-27-58"));
+    Device device = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
+      .build();
 
     try {
-      new SelectDeviceAndSnapshotAction(myComboBoxAction, device, () -> true);
+      new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(myComboBoxAction)
+        .setDevice(device)
+        .build();
+
       fail();
     }
     catch (IllegalArgumentException ignored) {

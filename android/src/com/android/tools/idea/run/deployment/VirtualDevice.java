@@ -57,28 +57,29 @@ final class VirtualDevice extends Device {
 
   private final AvdInfo myAvdInfo;
 
-  VirtualDevice(@NotNull AvdInfo avdInfo) {
-    super(AvdManagerConnection.getAvdDisplayName(avdInfo), null);
-
-    myConnected = false;
-    myAvdInfo = avdInfo;
-
-    initSnapshots();
+  @NotNull
+  static VirtualDevice newDisconnectedVirtualDevice(@NotNull AvdInfo avdInfo) {
+    return new Builder()
+      .setName(AvdManagerConnection.getAvdDisplayName(avdInfo))
+      .setKey(avdInfo.getName())
+      .setSnapshots(getSnapshots(avdInfo))
+      .setAvdInfo(avdInfo)
+      .build();
   }
 
-  private void initSnapshots() {
-    Path snapshots = Paths.get(myAvdInfo.getDataFolderPath(), "snapshots");
+  @NotNull
+  private static ImmutableCollection<String> getSnapshots(@NotNull AvdInfo avdInfo) {
+    Path snapshots = Paths.get(avdInfo.getDataFolderPath(), "snapshots");
 
     if (!Files.isDirectory(snapshots)) {
-      mySnapshots = ImmutableList.of();
-      return;
+      return ImmutableList.of();
     }
 
     try {
       @SuppressWarnings("UnstableApiUsage")
       Collector<String, ?, ImmutableList<String>> collector = ImmutableList.toImmutableList();
 
-      mySnapshots = Files.list(snapshots)
+      return Files.list(snapshots)
         .filter(Files::isDirectory)
         .map(VirtualDevice::getName)
         .filter(Objects::nonNull)
@@ -87,7 +88,7 @@ final class VirtualDevice extends Device {
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevice.class).warn(snapshots.toString(), exception);
-      mySnapshots = ImmutableList.of();
+      return ImmutableList.of();
     }
   }
 
@@ -118,26 +119,75 @@ final class VirtualDevice extends Device {
     return name;
   }
 
-  VirtualDevice(@NotNull VirtualDevice virtualDevice, @NotNull IDevice ddmlibDevice) {
-    super(virtualDevice.getName(), ddmlibDevice);
-
-    myConnected = true;
-    mySnapshots = virtualDevice.mySnapshots;
-    myAvdInfo = virtualDevice.myAvdInfo;
+  @NotNull
+  static VirtualDevice newConnectedVirtualDevice(@NotNull VirtualDevice virtualDevice, @NotNull IDevice ddmlibDevice) {
+    return new Builder()
+      .setName(virtualDevice.getName())
+      .setKey(virtualDevice.getKey())
+      .setDdmlibDevice(ddmlibDevice)
+      .setConnected(true)
+      .setSnapshots(virtualDevice.mySnapshots)
+      .setAvdInfo(virtualDevice.myAvdInfo)
+      .build();
   }
 
-  @VisibleForTesting
-  VirtualDevice(boolean connected, @NotNull String name) {
-    this(connected, name, ImmutableList.of());
+  static final class Builder {
+    private String myName;
+    private String myKey;
+    private IDevice myDdmlibDevice;
+
+    private boolean myConnected;
+    private ImmutableCollection<String> mySnapshots;
+    private AvdInfo myAvdInfo;
+
+    @NotNull
+    Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    @NotNull
+    Builder setKey(@NotNull String key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    Builder setDdmlibDevice(@Nullable IDevice ddmlibDevice) {
+      myDdmlibDevice = ddmlibDevice;
+      return this;
+    }
+
+    @NotNull
+    Builder setConnected(boolean connected) {
+      myConnected = connected;
+      return this;
+    }
+
+    @NotNull
+    Builder setSnapshots(@NotNull ImmutableCollection<String> snapshots) {
+      mySnapshots = snapshots;
+      return this;
+    }
+
+    @NotNull
+    Builder setAvdInfo(@Nullable AvdInfo avdInfo) {
+      myAvdInfo = avdInfo;
+      return this;
+    }
+
+    @NotNull
+    VirtualDevice build() {
+      return new VirtualDevice(this);
+    }
   }
 
-  @VisibleForTesting
-  VirtualDevice(boolean connected, @NotNull String name, @NotNull ImmutableCollection<String> snapshots) {
-    super(name, null);
+  private VirtualDevice(@NotNull Builder builder) {
+    super(builder.myName, builder.myKey, builder.myDdmlibDevice);
 
-    myConnected = connected;
-    mySnapshots = snapshots;
-    myAvdInfo = null;
+    myConnected = builder.myConnected;
+    mySnapshots = builder.mySnapshots;
+    myAvdInfo = builder.myAvdInfo;
   }
 
   boolean isConnected() {
@@ -173,6 +223,8 @@ final class VirtualDevice extends Device {
       androidDevice = new ConnectedAndroidDevice(ddmlibDevice, Collections.singletonList(myAvdInfo));
     }
     else {
+      assert myAvdInfo != null;
+
       androidDevice = new LaunchableAndroidDevice(myAvdInfo);
       androidDevice.launch(project, snapshot);
     }
@@ -188,21 +240,23 @@ final class VirtualDevice extends Device {
 
     VirtualDevice device = (VirtualDevice)object;
 
-    return myConnected == device.myConnected &&
-           getName().equals(device.getName()) &&
+    return getName().equals(device.getName()) &&
+           getKey().equals(device.getKey()) &&
+           Objects.equals(getDdmlibDevice(), device.getDdmlibDevice()) &&
+           myConnected == device.myConnected &&
            mySnapshots.equals(device.mySnapshots) &&
-           Objects.equals(myAvdInfo, device.myAvdInfo) &&
-           Objects.equals(getDdmlibDevice(), device.getDdmlibDevice());
+           Objects.equals(myAvdInfo, device.myAvdInfo);
   }
 
   @Override
   public int hashCode() {
-    int hashCode = Boolean.hashCode(myConnected);
+    int hashCode = getName().hashCode();
 
-    hashCode = 31 * hashCode + getName().hashCode();
+    hashCode = 31 * hashCode + getKey().hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
+    hashCode = 31 * hashCode + Boolean.hashCode(myConnected);
     hashCode = 31 * hashCode + mySnapshots.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(myAvdInfo);
-    hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
 
     return hashCode;
   }
