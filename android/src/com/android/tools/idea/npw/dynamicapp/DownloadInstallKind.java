@@ -21,7 +21,7 @@
  /**
   * Enum defining the download options for a dynamic feature module.
   */
- public enum DownloadInstallType {
+ public enum DownloadInstallKind {
    INCLUDE_AT_INSTALL_TIME("Include module at install time"),
 
    ON_DEMAND_ONLY("Do not include module at install time (on-demand only)"),
@@ -31,7 +31,7 @@
    @NotNull
    private String myDisplayName;
 
-   DownloadInstallType(@NotNull String displayName) {
+   DownloadInstallKind(@NotNull String displayName) {
      this.myDisplayName = displayName;
    }
 

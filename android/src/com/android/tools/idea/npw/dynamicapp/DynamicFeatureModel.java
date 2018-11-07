@@ -59,6 +59,8 @@ public class DynamicFeatureModel extends WizardModel {
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final OptionalProperty<Module> myBaseApplication = new OptionalValueProperty<>();
   @NotNull private final BoolProperty myFeatureOnDemand = new BoolValueProperty(true);
+  @NotNull private final OptionalProperty<DownloadInstallKind> myDownloadInstallKind =
+    new OptionalValueProperty<>(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
   @NotNull private final BoolProperty myInstantModule = new BoolValueProperty(false);
 
@@ -95,22 +97,32 @@ public class DynamicFeatureModel extends WizardModel {
     return myPackageName;
   }
 
+  @NotNull
   public OptionalProperty<Module> baseApplication() {
     return myBaseApplication;
   }
 
+  @NotNull
   public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
     return myAndroidSdkInfo;
   }
 
+  @NotNull
   public BoolProperty featureOnDemand() {
     return myFeatureOnDemand;
   }
 
+  @NotNull
+  public OptionalProperty<DownloadInstallKind> downloadInstallKind() {
+    return myDownloadInstallKind;
+  }
+
+  @NotNull
   public BoolProperty featureFusing() {
     return myFeatureFusing;
   }
 
+  @NotNull
   public BoolProperty instantModule() { return myInstantModule; }
 
   @Override
