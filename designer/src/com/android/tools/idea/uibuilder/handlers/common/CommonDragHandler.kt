@@ -89,6 +89,7 @@ internal class CommonDragHandler(editor: ViewEditor,
     if (dragTarget == null) {
       return
     }
+    dragTarget.insertType = insertType
     @AndroidDpCoordinate val dx = editor.pxToDp(x)
     @AndroidDpCoordinate val dy = editor.pxToDp(y)
     dragTarget.mouseRelease(dx, dy, emptyList())

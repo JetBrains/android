@@ -75,6 +75,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   private var currentSnappedPlaceholder: Placeholder? = null
 
+  var insertType: InsertType = InsertType.MOVE_WITHIN
+
   init {
     myComponent = sceneComponent
 
@@ -327,7 +329,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       if (commit) {
         NlWriteCommandAction.run(componentsToAdd, "Drag ${primaryNlComponent.tagName}") {
           attributesTransactions.forEach { it.commit() }
-          model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, myComponent.scene.designSurface)
+          model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface)
         }
       }
       else {
