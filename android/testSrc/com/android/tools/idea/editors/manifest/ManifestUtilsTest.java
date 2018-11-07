@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
 import com.android.manifmerger.Actions;
+import com.android.manifmerger.ManifestModel;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.Lint;
@@ -287,7 +288,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
         "</manifest>\n");
 
     Element intentFilterElement = (Element) mergedManifest.getActivities().get(0).getElementsByTagName("intent-filter").item(0);
-    XmlNode.NodeKey nodeKey = XmlNode.NodeKey.fromXml(intentFilterElement);
+    XmlNode.NodeKey nodeKey = XmlNode.NodeKey.fromXml(intentFilterElement, new ManifestModel());
     Set<XmlNode.NodeKey> nodeKeySet = new HashSet<>(Collections.singletonList(nodeKey));
 
     MergedManifest mockMergedManifest = spy(mergedManifest);
