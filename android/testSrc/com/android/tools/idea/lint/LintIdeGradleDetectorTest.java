@@ -107,7 +107,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testBadPlayServicesVersion() throws Exception {
     AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-    doTest(inspection, "Change to 9.6.1");
+    doTest(inspection, "Change to 12.0.1");
   }
 
   public void testStringInt() throws Exception {
