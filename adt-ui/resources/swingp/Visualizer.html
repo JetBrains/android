@@ -19,24 +19,48 @@ The basic architecture is based on a cooperative multithreading model, with the 
 <head>
     <script type="text/javascript" src="Visualizer.js"></script>
     <script type="text/javascript" src="SwingPPoller.js"></script>
+    <script type="text/javascript" src="FrameManager.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
+        var poller;
+        var visualizer;
         window.onload = function () {
-            var poller = new SwingPPoller(false);
-            var visualizer = new Visualizer(document.getElementById("canvas"),
+            poller = new SwingPPoller(false);
+            visualizer = new Visualizer(document.getElementById("canvas"),
                 document.getElementById("root_filter_element"),
                 document.getElementById("components_rendered"));
+            frameManager = new FrameManager(document.getElementById("perf_chart"), document.getElementById("frame_tree_canvas"));
             poller.addInputHandler(visualizer.processInput);
-            setInterval(visualizer.draw, 17);
+            poller.addInputHandler(frameManager.processInput);
+            setInterval(() => {
+                visualizer.draw();
+                frameManager.draw();
+            }, 17);
+        }
+        function resizeCanvas() {
+            document.getElementById("canvas").width = window.innerWidth;
+            document.getElementById("frame_tree_canvas").width = window.innerWidth;
         }
     </script>
 </head>
 
-<body>
+<body onresize="resizeCanvas()">
 <form>
-    Filter Root: <input type="text" id="root_filter_element" placeholder="e.g. SomeAwtOrSwingComponentType"><br>
+    <fieldset>
+        <legend>Render:</legend>
+        Filter Root: <input type="text" id="root_filter_element" placeholder="e.g. SomeAwtOrSwingComponentType"><br>
+        <p id="components_rendered"></p>
+        <canvas id="canvas" />
+    </fieldset>
+    <fieldset>
+        <legend>Frames:</legend>
+        Cached Frames: <input type="range" min="10" max="250" value="75" class="slider" id="cahced_frames_element"
+                              oninput="frameManager.setMaxFrames(this.value)" onchange="frameManager.setMaxFrames(this.value)"><br />
+        Pause: <input type="checkbox" onclick="frameManager.togglePause()" />
+        <div id="perf_chart"></div>
+        <canvas id="frame_tree_canvas" />
+    </fieldset>
 </form>
-<p id="components_rendered"></p>
-<canvas width="1280" height="1024" id="canvas" />
 </body>
 
 </html>
