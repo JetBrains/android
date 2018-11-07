@@ -65,6 +65,7 @@ public class DynamicFeatureModel extends WizardModel {
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
   @NotNull private final BoolProperty myInstantModule = new BoolValueProperty(false);
   @NotNull private final BoolProperty myConditionalMinSdk = new BoolValueProperty(true);
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myConditionalMinSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObservableList<DeviceFeatureModel> myDeviceFeatures = new ObservableList<>();
 
   public DynamicFeatureModel(@NotNull Project project,
@@ -135,6 +136,11 @@ public class DynamicFeatureModel extends WizardModel {
 
   @NotNull
   public BoolProperty conditionalMinSdk() { return myConditionalMinSdk; }
+
+  @NotNull
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> conditionalMinSdkInfo() {
+    return myConditionalMinSdkInfo;
+  }
 
   @Override
   protected void handleFinished() {

@@ -21,10 +21,14 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.FormFactorSdkControls;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.collections.ObservableList;
+import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.expressions.bool.AndExpression;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.labels.LinkLabel;
+import com.intellij.ui.components.labels.LinkListener;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -48,6 +52,14 @@ public class ModuleDownloadConditions {
     myDeviceFeaturesContainer.setLayout(new BoxLayout(myDeviceFeaturesContainer, BoxLayout.Y_AXIS));
 
     myAddDeviceFeatureLinkLabel.setIcon(null); // Clear default icon
+
+    // Handle the "+ device-feature" button
+    myAddDeviceFeatureLinkLabel.setListener(new LinkListener<Void>() {
+      @Override
+      public void linkSelected(LinkLabel aSource, Void aLinkData) {
+        addDeviceFeatureRow();
+      }
+    }, null);
   }
 
   public void init(@NotNull Project project,
@@ -71,6 +83,47 @@ public class ModuleDownloadConditions {
 
   public void setSdkControlEnabled(Boolean enabled) {
     myFormFactorSdkControls.setEnabled(enabled);
+  }
+
+  private void addDeviceFeatureRow() {
+    if (myModel != null) {
+      // Create model and form for new device feature
+      DeviceFeatureModel deviceFeature = new DeviceFeatureModel();
+      myModel.add(deviceFeature);
+
+      BoolValueProperty isFeatureActive = new BoolValueProperty(true);
+      BooleanExpression isFeatureActiveExpression = new AndExpression(isFeatureActive, myIsPanelActive);
+      ModuleDownloadDeviceFeature deviceFeatureForm =
+        new ModuleDownloadDeviceFeature(myProject, deviceFeature, isFeatureActiveExpression, myValidatorPanel);
+      deviceFeatureForm.addListener(new ModuleDownloadDeviceFeatureListener() {
+        @Override
+        public void removeFeatureInvoked() {
+          isFeatureActive.set(false);
+          removeDeviceFeatureRow(deviceFeature);
+        }
+      });
+
+      // Add new component at bottom of layout
+      myDeviceFeaturesContainer.add(deviceFeatureForm.getComponent(), -1);
+      myDeviceFeaturesContainer.revalidate();
+      myDeviceFeaturesContainer.repaint();
+    }
+  }
+
+  private void removeDeviceFeatureRow(@NotNull DeviceFeatureModel deviceFeatureModel) {
+    int rowIndex = myModel.indexOf(deviceFeatureModel);
+    if (rowIndex < 0) {
+      //TODO: warning
+      return;
+    }
+
+    // Remove from model
+    myModel.remove(rowIndex);
+
+    // Remove component at [rowIndex] from container
+    myDeviceFeaturesContainer.remove(rowIndex);
+    myDeviceFeaturesContainer.revalidate();
+    myDeviceFeaturesContainer.repaint();
   }
 
   private void createUIComponents() {
