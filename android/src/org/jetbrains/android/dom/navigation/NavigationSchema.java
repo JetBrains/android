@@ -98,8 +98,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * It also provides a mapping from tag name to styleable, which is needed to
  * find attribute definitions during setup.
- *
- * TODO: support updates (e.g. custom navigator created)
  */
 public class NavigationSchema implements Disposable {
 
@@ -296,28 +294,11 @@ public class NavigationSchema implements Disposable {
         return false;
       }
       PsiClass otherDestination = null;
-      // TODO: remove this once the corresponding annotations are in the library
       PsiClass otherOrParent = otherClass;
       while (otherDestination == null && otherOrParent != null && otherOrParent.isInheritor(rootNavigator, true)) {
-        if (ROOT_ACTIVITY_NAVIGATOR.equals(otherOrParent.getQualifiedName())) {
-          otherDestination = schema.getClass(SdkConstants.CLASS_ACTIVITY);
-        }
-        else if (ROOT_FRAGMENT_NAVIGATOR.equals(otherOrParent.getQualifiedName())) {
-          otherDestination = schema.getClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
-          if (otherDestination == null) {
-            otherDestination = schema.getClass(SdkConstants.CLASS_V4_FRAGMENT.newName());
-          }
-        }
-        else if (ROOT_NAV_GRAPH_NAVIGATOR.equals(otherOrParent.getQualifiedName())) {
-          otherDestination = schema.getClass(NAV_GRAPH_DESTINATION);
-        }
-        else {
-          // TODO: keep this
-          otherDestination = getDestinationClassAnnotationValue(otherOrParent, rootNavigator);
-        }
+        otherDestination = getDestinationClassAnnotationValue(otherOrParent, rootNavigator);
         otherOrParent = otherOrParent.getSuperClass();
       }
-      // end TODO
       PsiClass destinationClass = myDestinationClassRef == null ? null : myDestinationClassRef.dereference();
 
       String destinationName = (destinationClass == null) ? null : destinationClass.getQualifiedName();
