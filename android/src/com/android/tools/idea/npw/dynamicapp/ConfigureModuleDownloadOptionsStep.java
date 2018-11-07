@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -46,21 +54,33 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   @SuppressWarnings("unused") private JBLabel myFeatureTitleLabel;
   private JTextField myFeatureTitle;
   @SuppressWarnings("unused") private JCheckBox myFusingCheckBox;
-  private JComboBox<DownloadInstallType> myInstallationOptionCombo;
+  private JComboBox<DownloadInstallKind> myInstallationOptionCombo;
 
   public ConfigureModuleDownloadOptionsStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.new.dynamic.download.options"));
 
-    myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallType.values()));
+    myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallKind.values()));
 
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myRootPanel));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
+  @Override
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    super.onWizardStarting(wizard);
+
+    myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle());
+    myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myInstallationOptionCombo), getModel().downloadInstallKind());
+
+    myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
+      StringUtil.isEmptyOrSpaces(value) ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
+    }
+
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @Nullable
