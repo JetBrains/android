@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-// This file defines the grammar and most of the tokens for data-binding expressions
-// used inside layout files.
-// To code from this bnf file, install the grammar-kit plugin first.
-// After edits, generate the lexer (only if tokens changed).
-//   - right click anywhere and "Generate JFlex Lexer" and overwrite _DbLexer.flex
-//   - Open the flex file and re-add the custom tokens that only exist in flex file
-//       Use "git diff" to make sure only changes you intended are in the flex file.
-//   - Run runflex.sh to generate _DbLexer.java
-//
-// After lexer, to generate the parser, right click on file and click "Generate Parser Code".
-//
+// Modify databinding expression grammar to allow calls to unqualified methods. See b/37137454.
 // See https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
 // and https://github.com/JetBrains/Grammar-Kit/blob/master/testData/generator/ExprParser.bnf
 
