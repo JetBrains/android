@@ -40,6 +40,7 @@ public class NewKotlinModuleTest {
   private static final String APP_NAME = "app";
   private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/118856125
   @Test
   public void addNewKotlinModuleToNonKotlinProject() throws Exception {
     createNewBasicProject(false);
