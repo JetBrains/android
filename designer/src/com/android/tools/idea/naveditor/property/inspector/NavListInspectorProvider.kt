@@ -122,6 +122,8 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
     fun addAttachListener(listener: (JBList<NlProperty>) -> Unit) = attachListeners.add(listener)
 
+    fun removeAttachListener(listener: (JBList<NlProperty>) -> Unit) = attachListeners.remove(listener)
+
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
                                   propertiesManager: NavPropertiesManager) {
@@ -191,7 +193,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
         it.appendText(" to add ${objectName}s")
       }
 
-      attachListeners.forEach { it.invoke(list) }
+      listOf(*attachListeners.toTypedArray()).forEach { it.invoke(list) }
 
       panel.add(list, BorderLayout.CENTER)
 
