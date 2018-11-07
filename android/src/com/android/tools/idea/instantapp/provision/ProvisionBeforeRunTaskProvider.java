@@ -144,7 +144,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   @Override
-  public boolean executeTask(DataContext context, @NotNull RunConfiguration configuration, @NotNull ExecutionEnvironment env, @NotNull ProvisionBeforeRunTask task) {
+  public boolean executeTask(@NotNull DataContext context, @NotNull RunConfiguration configuration, @NotNull ExecutionEnvironment env, @NotNull ProvisionBeforeRunTask task) {
     if (!isInstantAppContext((AndroidRunConfigurationBase)configuration)) {
       // If the run configuration is not running an Instant App, there's no need to provision the device. Return early.
       return true;

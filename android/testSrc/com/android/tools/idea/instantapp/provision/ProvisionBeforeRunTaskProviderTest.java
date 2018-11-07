@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.testFramework.MapDataContext;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -88,7 +89,7 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
       boolean isInstantAppContext(@NotNull AndroidRunConfigurationBase runConfiguration) {
         return false;
       }
-    }.executeTask(null, myRunConfiguration, new ExecutionEnvironment(), new ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask(getProject())));
+    }.executeTask(new MapDataContext(), myRunConfiguration, new ExecutionEnvironment(), new ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask(getProject())));
   }
 
   public void testTaskReadExternalXmlWithNoTimestamp() throws Exception {
