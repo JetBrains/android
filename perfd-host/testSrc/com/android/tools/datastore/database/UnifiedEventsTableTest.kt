@@ -184,6 +184,13 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                      .setToTimestamp(3).build())
   }
 
+  @Test
+  fun queryReturnsSameStatement() {
+    val results = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
+    val repeatedResults = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
+    assertThat(results.statement).isSameAs(repeatedResults.statement)
+  }
+
   private fun validateFilter(request: Profiler.GetEventGroupsRequest) {
     val results = mutableListOf<List<Common.Event>>()
     for (eventGroup in events) {

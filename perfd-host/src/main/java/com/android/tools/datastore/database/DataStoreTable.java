@@ -32,6 +32,9 @@ public abstract class DataStoreTable<T extends Enum> {
   private Connection myConnection;
   private final ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
 
+  // Cache custom queries we have a limited number and we call the same query multiple times.
+  private final ThreadLocal<Map<String, PreparedStatement>> myCustomQueryCache = new ThreadLocal<>();
+
   public interface DataStoreTableErrorCallback {
     void onDataStoreError(Throwable t);
   }
@@ -188,7 +191,16 @@ public abstract class DataStoreTable<T extends Enum> {
     if (isClosed()) {
       return new EmptyResultSet();
     }
-    PreparedStatement statement = myConnection.prepareStatement(sql);
+    if (myCustomQueryCache.get() == null) {
+      myCustomQueryCache.set(new HashMap<>());
+    }
+
+    Map<String, PreparedStatement> queryCache = myCustomQueryCache.get();
+    if (!queryCache.containsKey(sql)) {
+      queryCache.put(sql, myConnection.prepareStatement(sql));
+    }
+
+    PreparedStatement statement = queryCache.get(sql);
     applyParams(statement, params);
     return statement.executeQuery();
   }
