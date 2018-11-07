@@ -26,7 +26,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -49,7 +48,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
-    "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
+    "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2", "duplicate"
   };
   private static final String[] ACTIVITIES = new String[] {"activity", "activity_sub"};
   private static final String[] EMPTIES = new String[] {"include" };
@@ -114,7 +113,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     PsiClass activity = findClass(SdkConstants.CLASS_ACTIVITY);
     PsiClass fragment = findClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
     PsiClass navGraph = findClass("androidx.navigation.NavGraph");
-    // TODO: update custom navs so some have custom destination classes in the release after alpha06
+    PsiClass custom = findClass("OtherNavigatorWithDestination.MyActualDestination");
 
     assertSameElements(schema.getDestinationClassesForTag("activity"), activity);
     assertSameElements(schema.getDestinationClassesForTag("activity_sub"), activity);
@@ -125,6 +124,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertSameElements(schema.getDestinationClassesForTag("navigation_sub"), navGraph);
     assertEmpty(schema.getDestinationClassesForTag("other_1"));
     assertEmpty(schema.getDestinationClassesForTag("other_2"));
+    assertSameElements(schema.getDestinationClassesForTag("duplicate"), fragment, custom);
   }
 
   @NotNull
@@ -134,7 +134,6 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDestinationType() {
-    // TODO: update custom navs so some have multiple types in the release after alpha06
     NavigationSchema schema = NavigationSchema.get(myModule);
     assertSameElements(schema.getDestinationTypesForTag("activity"), NavigationSchema.DestinationType.ACTIVITY);
     assertSameElements(schema.getDestinationTypesForTag("activity_sub"), NavigationSchema.DestinationType.ACTIVITY);
@@ -145,10 +144,11 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertSameElements(schema.getDestinationTypesForTag("navigation_sub"), NavigationSchema.DestinationType.NAVIGATION);
     assertSameElements(schema.getDestinationTypesForTag("other_1"), NavigationSchema.DestinationType.OTHER);
     assertSameElements(schema.getDestinationTypesForTag("other_2"), NavigationSchema.DestinationType.OTHER);
+    assertSameElements(schema.getDestinationTypesForTag("duplicate"), NavigationSchema.DestinationType.OTHER,
+                       NavigationSchema.DestinationType.FRAGMENT);
   }
 
   public void testTagByType() {
-    // TODO: update custom navs so some have "OTHER" type in the release after alpha06
     NavigationSchema schema = NavigationSchema.get(myModule);
     assertEquals("activity", schema.getDefaultTag(NavigationSchema.DestinationType.ACTIVITY));
     assertEquals("navigation", schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION));
@@ -156,7 +156,6 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testTagLabel() {
-    // TODO: update custom navs so some have multiple types in the release after alpha06
     NavigationSchema schema = NavigationSchema.get(myModule);
     assertEquals("Activity", schema.getTagLabel("activity"));
     assertEquals("Activity (activity_sub)", schema.getTagLabel("activity_sub"));
@@ -171,6 +170,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertEquals("other_2", schema.getTagLabel("other_2"));
     assertEquals("Include Graph", schema.getTagLabel("include"));
     assertEquals("Action", schema.getTagLabel("action"));
+    assertEquals("Ambiguous Type", schema.getTagLabel("duplicate"));
   }
 
   private PsiClass addClass(@Language("JAVA") @NotNull String content) {
