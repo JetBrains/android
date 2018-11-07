@@ -23,6 +23,8 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -54,13 +56,14 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   @SuppressWarnings("unused") private JBLabel myFeatureTitleLabel;
   private JTextField myFeatureTitle;
   @SuppressWarnings("unused") private JCheckBox myFusingCheckBox;
+  private ModuleDownloadConditions myDownloadConditionsForm;
   private JComboBox<DownloadInstallKind> myInstallationOptionCombo;
 
   public ConfigureModuleDownloadOptionsStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.new.dynamic.download.options"));
 
     myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallKind.values()));
-
+    myDownloadConditionsForm.setModel(model.deviceFeatures());
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myRootPanel));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
@@ -72,10 +75,28 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
     myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle());
     myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myInstallationOptionCombo), getModel().downloadInstallKind());
+    myBindings.bindTwoWay(new SelectedProperty(myDownloadConditionsForm.myMinimumSDKLevelCheckBox), getModel().conditionalMinSdk());
+
+    // Show the "conditions" panel only if the dropdown selection is "with conditions"
+    myListeners.receiveAndFire(getModel().downloadInstallKind(), value ->
+      setVisible(value.isPresent() && value.get() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS,
+                 myDownloadConditionsForm.myRootPanel));
+
+    // Disable the SDK dropdown if the "min sdk" condition is inactive
+    myListeners.receiveAndFire(getModel().conditionalMinSdk(), value ->
+      myDownloadConditionsForm.setSdkControlEnabled(value));
 
     myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
       StringUtil.isEmptyOrSpaces(value) ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
     }
+
+  @Override
+  protected void onEntering() {
+    // Start downloading list of SDKs
+    FormFactor formFactor = FormFactor.MOBILE;
+    TemplateHandle templateHandle = getModel().getTemplateHandle();
+    myDownloadConditionsForm.startSdkDataLoading(formFactor, templateHandle.getMetadata().getMinSdk());
+  }
 
   @NotNull
   @Override
@@ -104,5 +125,11 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   @Override
   protected boolean shouldShow() {
     return !getModel().instantModule().get();
+  }
+
+  private static void setVisible(boolean isVisible, JComponent... components) {
+    for (JComponent component : components) {
+      component.setVisible(isVisible);
+    }
   }
 }

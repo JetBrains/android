@@ -165,6 +165,10 @@ public class FormFactorSdkControls implements Disposable {
     }
   }
 
+  public void setEnabled(boolean enabled) {
+    myMinSdkCombobox.setEnabled(enabled);
+  }
+
   private static String getApiHelpText(int selectedApi) {
     double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
     String percentageStr = percentage < 1 ? "<b>&lt; 1%</b>" :
