@@ -18,18 +18,16 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider.mapToCustomType;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.property2.api.PropertiesModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -52,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 public class MotionLayoutAttributesModel extends NelePropertiesModel {
 
   public MotionLayoutAttributesModel(@NotNull Disposable parentDisposable, @NotNull AndroidFacet facet) {
-    super(parentDisposable, new MotionLayoutPropertyProvider(facet), facet);
+    super(parentDisposable, new MotionLayoutPropertyProvider(facet), facet, false);
   }
 
   @Override
@@ -61,6 +59,14 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     XmlTag tag = getTag(property);
     if (tag == null) {
       return null;
+    }
+    NlComponent component = getComponent(property);
+    if (component == null ) {
+      return null;
+    }
+    NlComponentDelegate delegate = component.getDelegate();
+    if (delegate != null && delegate.handlesAttribute(component, property.getNamespace(), property.getName())) {
+      return component.getLiveAttribute(property.getNamespace(), property.getName());
     }
     if (tag.getLocalName().equals(MotionSceneString.KeyAttributes_customAttribute)) {
       return tag.getAttributeValue(mapToCustomType(property.getType()), SdkConstants.AUTO_URI);
@@ -73,24 +79,39 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     ApplicationManager.getApplication().assertIsDispatchThread();
     TransactionGuard.submitTransaction(this, () -> {
       XmlTag tag = getTag(property);
-      if (tag != null) {
+      NlComponent component = getComponent(property);
+      if (tag != null && component != null) {
         WriteCommandAction.runWriteCommandAction(
           getFacet().getModule().getProject(),
           "Set $componentName.$name to $newValue",
           null,
-          () -> setPropertyValue(tag, property, newValue));
+          () -> setPropertyValue(tag, component, property, newValue));
       }
     });
   }
 
-  private static void setPropertyValue(@NotNull XmlTag tag, @NotNull NelePropertyItem property, @Nullable String newValue) {
+  @Nullable
+  private static NlComponent getComponent(@NotNull NelePropertyItem property) {
+    List<NlComponent> components = property.getComponents();
+    return components.isEmpty() ? null : components.get(0);
+  }
+
+  private static void setPropertyValue(@NotNull XmlTag tag,
+                                       @NotNull NlComponent component,
+                                       @NotNull NelePropertyItem property,
+                                       @Nullable String newValue) {
+    NlComponentDelegate delegate = component.getDelegate();
+    component.clearTransaction();
+    if (delegate != null && delegate.handlesAttribute(component, property.getNamespace(), property.getName())) {
+      component.setAttribute(property.getNamespace(), property.getName(), newValue);
+      return;
+    }
     if (tag.getLocalName().equals(MotionSceneString.KeyAttributes_customAttribute)) {
       tag.setAttribute(mapToCustomType(property.getType()), SdkConstants.AUTO_URI, newValue);
     }
     else {
       tag.setAttribute(property.getName(), property.getNamespace(), newValue);
     }
-
     MotionSceneModel.saveAndNotify(tag.getContainingFile(), property.getComponents().get(0).getModel());
   }
 
@@ -139,12 +160,6 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
         null,
         transaction,
         file));
-  }
-
-  @Override
-  protected void updateDesignSurface(@Nullable DesignSurface oldSurface, @Nullable DesignSurface newSurface) {
-    setAccessoryPanelListener(oldSurface, newSurface);
-    useCurrentPanel(newSurface);
   }
 
   @Override
