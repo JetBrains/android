@@ -20,11 +20,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,8 +45,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   private AsyncDevicesGetter myDevicesGetter;
 
+  private Project myProject;
   private Presentation myPresentation;
   private AnActionEvent myEvent;
+
+  private DataContext myContext;
 
   @Before
   public void mockDevicesGetter() {
@@ -50,33 +58,49 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Before
   public void mockEvent() {
+    myProject = myRule.getProject();
     myPresentation = new Presentation();
 
     myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+
+    Mockito.when(myEvent.getProject()).thenReturn(myProject);
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
+  }
+
+  @Before
+  public void mockContext() {
+    myContext = Mockito.mock(DataContext.class);
+    Mockito.when(myContext.getData(CommonDataKeys.PROJECT)).thenReturn(myRule.getProject());
   }
 
   @Test
   public void createPopupActionGroupActionsIsEmpty() {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null));
+    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     assertEquals(actualChildren, Collections.singletonList(action.getOpenAvdManagerAction()));
   }
 
   @Test
   public void createPopupActionGroupDeviceIsVirtual() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of());
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null));
+    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new SelectDeviceAndSnapshotAction(action, new VirtualDevice(false, Devices.PIXEL_2_XL_API_28), () -> true),
+      new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(action)
+        .setProject(myProject)
+        .setDevice(builder.build())
+        .build(),
       Separator.getInstance(),
       action.getOpenAvdManagerAction());
 
@@ -85,14 +109,22 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void createPopupActionGroupDeviceIsPhysical() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(new PhysicalDevice(Devices.LGE_NEXUS_5X)));
+    IDevice ddmlibDevice = Mockito.mock(IDevice.class);
+    Mockito.when(ddmlibDevice.getSerialNumber()).thenReturn("00fff9d2279fa601");
+
+    Device physicalDevice = new PhysicalDevice(new DeviceNameProperties(null, null, null, null), ddmlibDevice);
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(physicalDevice));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null));
+    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new SelectDeviceAndSnapshotAction(action, new PhysicalDevice(Devices.LGE_NEXUS_5X), () -> true),
+      new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(action)
+        .setProject(myProject)
+        .setDevice(new PhysicalDevice(new DeviceNameProperties(null, null, null, null), ddmlibDevice))
+        .build(),
       Separator.getInstance(),
       action.getOpenAvdManagerAction());
 
@@ -101,18 +133,33 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void createPopupActionGroupDevicesAreVirtualAndPhysical() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Arrays.asList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28),
-      new PhysicalDevice(Devices.LGE_NEXUS_5X)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of());
+
+    IDevice ddmlibDevice = Mockito.mock(IDevice.class);
+    Mockito.when(ddmlibDevice.getSerialNumber()).thenReturn("00fff9d2279fa601");
+
+    Device physicalDevice = new PhysicalDevice(new DeviceNameProperties(null, null, null, null), ddmlibDevice);
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Arrays.asList(builder.build(), physicalDevice));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null));
+    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new SelectDeviceAndSnapshotAction(action, new VirtualDevice(false, Devices.PIXEL_2_XL_API_28), () -> true),
+      new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(action)
+        .setProject(myProject)
+        .setDevice(builder.build())
+        .build(),
       Separator.getInstance(),
-      new SelectDeviceAndSnapshotAction(action, new PhysicalDevice(Devices.LGE_NEXUS_5X), () -> true),
+      new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(action)
+        .setProject(myProject)
+        .setDevice(new PhysicalDevice(new DeviceNameProperties(null, null, null, null), ddmlibDevice))
+        .build(),
       Separator.getInstance(),
       action.getOpenAvdManagerAction());
 
@@ -121,18 +168,24 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void createPopupActionGroupDeviceSnapshotIsDefault() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null));
+    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new SelectDeviceAndSnapshotAction(
-        action,
-        new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION),
-        VirtualDevice.DEFAULT_SNAPSHOT),
+      new SelectDeviceAndSnapshotAction.Builder()
+        .setComboBoxAction(action)
+        .setProject(myProject)
+        .setDevice(builder.build())
+        .setSnapshot(VirtualDevice.DEFAULT_SNAPSHOT)
+        .build(),
       Separator.getInstance(),
       action.getOpenAvdManagerAction());
 
@@ -141,15 +194,19 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void createPopupActionGroupSnapshotIsntDefault() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, ImmutableList.of("snap_2018-08-07_16-27-58"))));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"));
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class)).getChildren(null));
+    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new SnapshotActionGroup(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, ImmutableList.of("snap_2018-08-07_16-27-58")), action),
+      new SnapshotActionGroup(builder.build(), action, myProject),
       Separator.getInstance(),
       action.getOpenAvdManagerAction());
 
@@ -169,7 +226,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertTrue(myPresentation.isVisible());
     assertEquals(Collections.emptyList(), action.getDevices());
-    assertNull(action.getSelectedDevice());
+    assertNull(action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertNull(myPresentation.getIcon());
     assertEquals("No devices", myPresentation.getText());
@@ -177,15 +234,19 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateSelectedDeviceIsNull() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of());
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)), action.getDevices());
-    assertEquals(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28), action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
@@ -193,16 +254,20 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateDevicesContainSelectedDevice() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of());
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
-    action.setSelectedDevice(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28));
+    action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)), action.getDevices());
-    assertEquals(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28), action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
@@ -210,16 +275,26 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateDevicesDontContainSelectedDevice() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of());
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel XL API 28")
+      .setKey("Pixel_XL_API_28")
+      .setSnapshots(ImmutableList.of())
+      .build();
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
-    action.setSelectedDevice(new VirtualDevice(false, "Pixel XL API 28"));
+    action.setSelectedDevice(myProject, device);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)), action.getDevices());
-    assertEquals(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28), action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
@@ -227,20 +302,20 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateSelectedSnapshotIsNull() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
-    action.setSelectedDevice(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION));
+    action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(
-      Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)),
-      action.getDevices());
-    assertEquals(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION),
-      action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
@@ -248,21 +323,21 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateSnapshotsContainSelectedSnapshot() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
-    action.setSelectedDevice(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION));
+    action.setSelectedDevice(myProject, builder.build());
     action.setSelectedSnapshot(VirtualDevice.DEFAULT_SNAPSHOT);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(
-      Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)),
-      action.getDevices());
-    assertEquals(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION),
-      action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
@@ -270,21 +345,21 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateSelectedDeviceHasSnapshot() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
-    action.setSelectedDevice(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION));
+    action.setSelectedDevice(myProject, builder.build());
     action.setSelectedSnapshot("snap_2018-08-07_16-27-58");
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(
-      Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)),
-      action.getDevices());
-    assertEquals(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28, VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION),
-      action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
@@ -292,17 +367,21 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateSelectedDeviceDoesntHaveSnapshot() {
-    Mockito.when(myDevicesGetter.get(myRule.getProject())).thenReturn(Collections.singletonList(
-      new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)));
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(Devices.PIXEL_2_XL_API_28)
+      .setKey("Pixel_2_XL_API_28")
+      .setSnapshots(ImmutableList.of());
+
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter);
-    action.setSelectedDevice(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28));
+    action.setSelectedDevice(myProject, builder.build());
     action.setSelectedSnapshot(VirtualDevice.DEFAULT_SNAPSHOT);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28)), action.getDevices());
-    assertEquals(new VirtualDevice(false, Devices.PIXEL_2_XL_API_28), action.getSelectedDevice());
+    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
+    assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());

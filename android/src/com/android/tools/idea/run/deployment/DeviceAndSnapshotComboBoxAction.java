@@ -17,10 +17,12 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -45,6 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
+  private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
+
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
@@ -52,8 +56,6 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final AnAction myOpenAvdManagerAction;
 
   private List<Device> myDevices;
-
-  private Device mySelectedDevice;
   private String mySelectedSnapshot;
 
   @SuppressWarnings("unused")
@@ -81,6 +83,10 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myDevices = Collections.emptyList();
   }
 
+  boolean areSnapshotsEnabled() {
+    return mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get();
+  }
+
   @NotNull
   @VisibleForTesting
   AnAction getOpenAvdManagerAction() {
@@ -94,12 +100,29 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
-  Device getSelectedDevice() {
-    return mySelectedDevice;
+  Device getSelectedDevice(@NotNull Project project) {
+    if (myDevices.isEmpty()) {
+      return null;
+    }
+
+    Object key = PropertiesComponent.getInstance(project).getValue(SELECTED_DEVICE);
+
+    Optional<Device> selectedDevice = myDevices.stream()
+      .filter(device -> device.getKey().equals(key))
+      .findFirst();
+
+    return selectedDevice.orElse(myDevices.get(0));
   }
 
-  void setSelectedDevice(@Nullable Device selectedDevice) {
-    mySelectedDevice = selectedDevice;
+  void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+
+    if (selectedDevice == null) {
+      properties.unsetValue(SELECTED_DEVICE);
+      return;
+    }
+
+    properties.setValue(SELECTED_DEVICE, selectedDevice.getKey());
   }
 
   @Nullable
@@ -135,9 +158,18 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
+  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    Collection<AnAction> actions = newSelectDeviceAndSnapshotActions();
+    Project project = context.getData(CommonDataKeys.PROJECT);
+    assert project != null;
+
+    Collection<AnAction> actions = newSelectDeviceAndSnapshotActions(project);
     group.addAll(actions);
 
     if (!actions.isEmpty()) {
@@ -158,7 +190,7 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  private Collection<AnAction> newSelectDeviceAndSnapshotActions() {
+  private Collection<AnAction> newSelectDeviceAndSnapshotActions(@NotNull Project project) {
     Collection<VirtualDevice> virtualDevices = new ArrayList<>(myDevices.size());
     Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
 
@@ -177,7 +209,7 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
 
     virtualDevices.stream()
-      .map(this::newSelectDeviceAndSnapshotAction)
+      .map(device -> newSelectDeviceAndSnapshotActionOrSnapshotActionGroup(project, device))
       .forEach(actions::add);
 
     if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
@@ -185,23 +217,32 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     physicalDevices.stream()
-      .map(device -> new SelectDeviceAndSnapshotAction(this, device, mySelectDeviceSnapshotComboBoxSnapshotsEnabled))
+      .map(device -> newSelectDeviceAndSnapshotAction(project, device))
       .forEach(actions::add);
 
     return actions;
   }
 
   @NotNull
-  private AnAction newSelectDeviceAndSnapshotAction(@NotNull VirtualDevice device) {
+  private AnAction newSelectDeviceAndSnapshotActionOrSnapshotActionGroup(@NotNull Project project, @NotNull VirtualDevice device) {
     Collection<String> snapshots = device.getSnapshots();
 
     if (snapshots.isEmpty() ||
         snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION) ||
         !mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
-      return new SelectDeviceAndSnapshotAction(this, device, mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
+      return newSelectDeviceAndSnapshotAction(project, device);
     }
 
-    return new SnapshotActionGroup(device, this);
+    return new SnapshotActionGroup(device, this, project);
+  }
+
+  @NotNull
+  private AnAction newSelectDeviceAndSnapshotAction(@NotNull Project project, @NotNull Device device) {
+    return new SelectDeviceAndSnapshotAction.Builder()
+      .setComboBoxAction(this)
+      .setProject(project)
+      .setDevice(device)
+      .build();
   }
 
   @Nullable
@@ -239,7 +280,6 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myDevices = myDevicesGetter.get(project);
 
     if (myDevices.isEmpty()) {
-      mySelectedDevice = null;
       mySelectedSnapshot = null;
 
       presentation.setIcon(null);
@@ -248,34 +288,24 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    updateSelectedDevice();
-    updateSelectedSnapshot();
+    updateSelectedSnapshot(project);
 
-    presentation.setIcon(mySelectedDevice.getIcon());
-    presentation.setText(mySelectedSnapshot == null ? mySelectedDevice.getName() : mySelectedDevice + " - " + mySelectedSnapshot);
+    Device device = getSelectedDevice(project);
+    assert device != null;
+
+    presentation.setIcon(device.getIcon());
+    presentation.setText(mySelectedSnapshot == null ? device.getName() : device + " - " + mySelectedSnapshot);
   }
 
-  private void updateSelectedDevice() {
-    if (mySelectedDevice == null) {
-      mySelectedDevice = myDevices.get(0);
-      return;
-    }
-
-    Object selectedDeviceName = mySelectedDevice.getName();
-
-    Optional<Device> selectedDevice = myDevices.stream()
-      .filter(device -> device.getName().equals(selectedDeviceName))
-      .findFirst();
-
-    mySelectedDevice = selectedDevice.orElseGet(() -> myDevices.get(0));
-  }
-
-  private void updateSelectedSnapshot() {
+  private void updateSelectedSnapshot(@NotNull Project project) {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
       return;
     }
 
-    Collection<String> snapshots = mySelectedDevice.getSnapshots();
+    Device device = getSelectedDevice(project);
+    assert device != null;
+
+    Collection<String> snapshots = device.getSnapshots();
 
     if (mySelectedSnapshot == null) {
       Optional<String> selectedDeviceSnapshot = snapshots.stream().findFirst();

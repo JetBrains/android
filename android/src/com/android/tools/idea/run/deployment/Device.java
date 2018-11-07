@@ -25,10 +25,12 @@ import org.jetbrains.annotations.Nullable;
 
 abstract class Device {
   private final String myName;
+  private final String myKey;
   private final IDevice myDdmlibDevice;
 
-  Device(@NotNull String name, @Nullable IDevice ddmlibDevice) {
+  Device(@NotNull String name, @NotNull String key, @Nullable IDevice ddmlibDevice) {
     myName = name;
+    myKey = key;
     myDdmlibDevice = ddmlibDevice;
   }
 
@@ -43,6 +45,11 @@ abstract class Device {
   @NotNull
   abstract ImmutableCollection<String> getSnapshots();
 
+  @NotNull
+  final String getKey() {
+    return myKey;
+  }
+
   @Nullable
   final IDevice getDdmlibDevice() {
     return myDdmlibDevice;
@@ -53,7 +60,7 @@ abstract class Device {
 
   @NotNull
   @Override
-  public String toString() {
+  public final String toString() {
     return myName;
   }
 }

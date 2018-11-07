@@ -35,7 +35,7 @@ final class PhysicalDevice extends Device {
   private static final Icon ourIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.RealDevice);
 
   PhysicalDevice(@NotNull DeviceNameProperties properties, @NotNull IDevice ddmlibDevice) {
-    super(getName(properties), ddmlibDevice);
+    super(getName(properties), ddmlibDevice.getSerialNumber(), ddmlibDevice);
   }
 
   @NotNull
@@ -57,11 +57,6 @@ final class PhysicalDevice extends Device {
     }
 
     return manufacturer + ' ' + model;
-  }
-
-  @VisibleForTesting
-  PhysicalDevice(@NotNull String name) {
-    super(name, null);
   }
 
   @NotNull
@@ -91,12 +86,20 @@ final class PhysicalDevice extends Device {
       return false;
     }
 
-    PhysicalDevice device = (PhysicalDevice)object;
-    return getName().equals(device.getName()) && Objects.equals(getDdmlibDevice(), device.getDdmlibDevice());
+    Device device = (Device)object;
+
+    return getName().equals(device.getName()) &&
+           getKey().equals(device.getKey()) &&
+           Objects.equals(getDdmlibDevice(), device.getDdmlibDevice());
   }
 
   @Override
   public int hashCode() {
-    return 31 * getName().hashCode() + Objects.hashCode(getDdmlibDevice());
+    int hashCode = getName().hashCode();
+
+    hashCode = 31 * hashCode + getKey().hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
+
+    return hashCode;
   }
 }

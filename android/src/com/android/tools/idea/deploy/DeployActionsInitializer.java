@@ -126,7 +126,7 @@ public class DeployActionsInitializer {
     }
     else if (currentTargetProvider instanceof DeviceAndSnapshotComboBoxTargetProvider) {
       ApplicationIdProvider applicationIdProvider = androidRunConfig.getApplicationIdProvider(facet);
-      return new DeviceAndSnapshotComboBoxDeployableProvider(applicationIdProvider);
+      return new DeviceAndSnapshotComboBoxDeployableProvider(module.getProject(), applicationIdProvider);
     }
     else {
       return null;
