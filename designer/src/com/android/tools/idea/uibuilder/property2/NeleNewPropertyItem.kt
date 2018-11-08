@@ -53,6 +53,11 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       model.firePropertyValueChange()
     }
 
+  override fun isSameProperty(qualifiedName: String): Boolean {
+    val (propertyNamespace, propertyName) = parseName(qualifiedName)
+    return name == propertyName && namespace == propertyNamespace
+  }
+
   // There should only be one instance of NeleNewPropertyItem per Property panel.
   override fun equals(other: Any?) = other is NeleNewPropertyItem
   // The hashCode can be an arbitrary number since we only have 1 instance

@@ -143,6 +143,16 @@ class NeleNewPropertyItemTest {
       .isEqualTo(Pair(ERROR, "A property by the name: 'android:text' is already specified"))
   }
 
+  @Test
+  fun testIsSameProperty() {
+    val properties = createTable()
+    val model = properties.first!!.model
+    val property = NeleNewPropertyItem(model, properties)
+    property.name = PREFIX_ANDROID + ATTR_TEXT
+    assertThat(property.isSameProperty("android:text")).isTrue()
+    assertThat(property.isSameProperty("android:backgroundHint")).isFalse()
+  }
+
   private fun createTable(): PropertiesTable<NelePropertyItem> {
     val util = SupportTestUtil(projectRule, IMAGE_BUTTON, LINEAR_LAYOUT)
     val property0 = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)

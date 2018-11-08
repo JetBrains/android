@@ -25,4 +25,8 @@ class TestNewPropertyItem : TestPropertyItem("", "", null, null, null), NewPrope
   override fun equals(other: Any?) = other is TestNewPropertyItem
 
   override fun hashCode() = 12345
+
+  override fun isSameProperty(qualifiedName: String): Boolean {
+    return qualifiedName == name
+  }
 }

@@ -38,4 +38,9 @@ interface NewPropertyItem: PropertyItem {
    */
   val nameEditingSupport: EditingSupport
     get() = EditingSupport.INSTANCE
+
+  /**
+   * Return true if the qualified name is the same as the property specified.
+   */
+  fun isSameProperty(qualifiedName: String): Boolean
 }
