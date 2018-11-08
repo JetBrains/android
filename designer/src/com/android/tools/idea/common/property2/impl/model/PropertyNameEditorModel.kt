@@ -36,4 +36,8 @@ class PropertyNameEditorModel(private val newProperty: NewPropertyItem) :
 
   override val editingSupport: EditingSupport
     get() = newProperty.nameEditingSupport
+
+  override fun isCurrentValue(text: String): Boolean {
+    return newProperty.isSameProperty(text)
+  }
 }

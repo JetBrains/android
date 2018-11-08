@@ -65,9 +65,16 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
     if (pendingValueChange || text == value) {
       return !pendingValueChange
     }
-    pendingValueChange = value != text
+    pendingValueChange = !isCurrentValue(text)
     value = text
-    pendingValueChange = value != text
+    pendingValueChange = !isCurrentValue(text)
     return !pendingValueChange
+  }
+
+  /**
+   * Return true if the specified text represents the current value of the property.
+   */
+  protected open fun isCurrentValue(text: String): Boolean {
+    return value == text
   }
 }
