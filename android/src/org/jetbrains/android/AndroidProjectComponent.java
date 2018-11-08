@@ -29,9 +29,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class AndroidProjectComponent implements ProjectComponent {
+public class AndroidProjectComponent implements ProjectComponent, Disposable {
   private final Project myProject;
-  private Disposable myDisposable;
 
   private static boolean ourDynamicTemplateMenuCreated;
 
@@ -44,8 +43,6 @@ public class AndroidProjectComponent implements ProjectComponent {
     final CompilerManager manager = CompilerManager.getInstance(myProject);
     manager.addBeforeTask(new AndroidPrecompileTask());
 
-    myDisposable = Disposer.newDisposable(getClass().getName());
-
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
         !ApplicationManager.getApplication().isHeadlessEnvironment()) {
 
@@ -53,7 +50,7 @@ public class AndroidProjectComponent implements ProjectComponent {
         createAndroidSpecificComponents();
       }
       else {
-        final MessageBusConnection connection = myProject.getMessageBus().connect(myDisposable);
+        final MessageBusConnection connection = myProject.getMessageBus().connect();
 
         connection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
           @Override
@@ -68,19 +65,19 @@ public class AndroidProjectComponent implements ProjectComponent {
     }
   }
 
-  @Override
-  public void projectClosed() {
-    Disposer.dispose(myDisposable);
-  }
-
   private void createAndroidSpecificComponents() {
     final AndroidResourceFilesListener listener = new AndroidResourceFilesListener(myProject);
-    Disposer.register(myDisposable, listener);
+    Disposer.register(this, listener);
 
     createDynamicTemplateMenu();
 
     // TODO: for external build systems, this alarm is unnecessary and should not be added
     createAlarmForAutogeneration();
+  }
+
+  @Override
+  public void dispose() {
+
   }
 
   private static void createDynamicTemplateMenu() {
@@ -98,7 +95,7 @@ public class AndroidProjectComponent implements ProjectComponent {
   }
 
   private void createAlarmForAutogeneration() {
-    final Alarm alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, myDisposable);
+    final Alarm alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
     alarm.addRequest(new Runnable() {
       @Override
       public void run() {
