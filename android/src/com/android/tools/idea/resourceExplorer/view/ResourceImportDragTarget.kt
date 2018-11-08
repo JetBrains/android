@@ -74,7 +74,7 @@ class ResourceImportDragTarget(
 
   override fun drop(event: DnDEvent) {
     val assetSets = toDesignAssetSets(getFiles(event))
-    ResourceImportDialog(assetSets, facet).show()
+    ResourceImportDialog(facet, assetSets).show()
   }
 
   private fun toDesignAssetSets(files: List<File>): List<DesignAssetSet> {
