@@ -150,4 +150,35 @@ class QualifierConfigurationViewModelTest {
     assertTrue { callbackCalled }
     assertEquals("drawable-fr-rBE-260dpi", folderConfiguration.getFolderName(ResourceFolderType.DRAWABLE))
   }
+
+  @Test
+  fun defaults() {
+    val folderConfiguration = FolderConfiguration()
+
+    val densityInit = DensityQualifier(Density.DPI_260)
+    val localeInit = LocaleQualifier(null, "fr", "US", null)
+    val networkInit = NetworkCodeQualifier(123)
+    val screenDimensionInit = ScreenDimensionQualifier(12, 34)
+
+    folderConfiguration.addQualifier(densityInit)
+    folderConfiguration.addQualifier(localeInit)
+    folderConfiguration.addQualifier(networkInit)
+    folderConfiguration.addQualifier(screenDimensionInit)
+
+    val viewModel = QualifierConfigurationViewModel(folderConfiguration)
+    val densityConfiguration = viewModel.getQualifierConfiguration(densityInit)
+    val localeConfiguration = viewModel.getQualifierConfiguration(localeInit)
+    val networkConfiguration = viewModel.getQualifierConfiguration(networkInit)
+    val screenSizeConfiguration = viewModel.getQualifierConfiguration(screenDimensionInit)
+
+    assertEquals(Density.DPI_260, densityConfiguration!!.parameters[0].paramValue)
+
+    assertEquals("fr", localeConfiguration!!.parameters[0].paramValue)
+    assertEquals("US", localeConfiguration.parameters[1].paramValue)
+
+    assertEquals(123, networkConfiguration!!.parameters[0].paramValue)
+
+    assertEquals(12, screenSizeConfiguration!!.parameters[0].paramValue)
+    assertEquals(34, screenSizeConfiguration.parameters[1].paramValue)
+  }
 }

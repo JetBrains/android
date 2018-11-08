@@ -106,29 +106,29 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
    */
   fun getQualifierConfiguration(qualifier: ResourceQualifier): QualifierConfiguration? {
     val qualifierConfiguration: QualifierConfiguration? = when (qualifier) {
-      is LocaleQualifier -> LocaleQualifierConfiguration()
-      is CountryCodeQualifier -> IntConfiguration(::CountryCodeQualifier, COUNTRY_CODE_RANGE)
-      is DensityQualifier -> enumConfiguration(::DensityQualifier)
-      is HighDynamicRangeQualifier -> enumConfiguration(::HighDynamicRangeQualifier)
-      is KeyboardStateQualifier -> enumConfiguration(::KeyboardStateQualifier)
-      is LayoutDirectionQualifier -> enumConfiguration(::LayoutDirectionQualifier)
-      is NavigationMethodQualifier -> enumConfiguration(::NavigationMethodQualifier)
-      is NavigationStateQualifier -> enumConfiguration(::NavigationStateQualifier)
-      is NetworkCodeQualifier -> IntConfiguration(::NetworkCodeQualifier, NETWORK_CODE_RANGE)
-      is NightModeQualifier -> enumConfiguration(::NightModeQualifier)
-      is ScreenDimensionQualifier -> ScreenDimensionConfiguration()
-      is ScreenHeightQualifier -> IntConfiguration(::ScreenWidthQualifier, SCREEN_SIZE_RANGE)
-      is ScreenOrientationQualifier -> enumConfiguration(::ScreenOrientationQualifier)
-      is ScreenRatioQualifier -> enumConfiguration(::ScreenRatioQualifier)
-      is ScreenRoundQualifier -> enumConfiguration(::ScreenRoundQualifier)
-      is ScreenSizeQualifier -> enumConfiguration(::ScreenSizeQualifier)
-      is ScreenWidthQualifier -> IntConfiguration(::ScreenWidthQualifier, SCREEN_SIZE_RANGE)
-      is SmallestScreenWidthQualifier -> IntConfiguration(::SmallestScreenWidthQualifier, SCREEN_SIZE_RANGE)
-      is TextInputMethodQualifier -> enumConfiguration(::TextInputMethodQualifier)
-      is TouchScreenQualifier -> enumConfiguration(::TouchScreenQualifier)
-      is UiModeQualifier -> enumConfiguration(::UiModeQualifier)
-      is VersionQualifier -> VersionQualifierConfiguration()
-      is WideGamutColorQualifier -> enumConfiguration(::WideGamutColorQualifier)
+      is LocaleQualifier -> LocaleQualifierConfiguration(qualifier.language, qualifier.region)
+      is CountryCodeQualifier -> IntConfiguration(::CountryCodeQualifier, COUNTRY_CODE_RANGE, qualifier.code)
+      is DensityQualifier -> enumConfiguration(::DensityQualifier, qualifier.value)
+      is HighDynamicRangeQualifier -> enumConfiguration(::HighDynamicRangeQualifier, qualifier.value)
+      is KeyboardStateQualifier -> enumConfiguration(::KeyboardStateQualifier, qualifier.value)
+      is LayoutDirectionQualifier -> enumConfiguration(::LayoutDirectionQualifier, qualifier.value)
+      is NavigationMethodQualifier -> enumConfiguration(::NavigationMethodQualifier, qualifier.value)
+      is NavigationStateQualifier -> enumConfiguration(::NavigationStateQualifier, qualifier.value)
+      is NetworkCodeQualifier -> IntConfiguration(::NetworkCodeQualifier, NETWORK_CODE_RANGE, qualifier.code)
+      is NightModeQualifier -> enumConfiguration(::NightModeQualifier, qualifier.value)
+      is ScreenDimensionQualifier -> ScreenDimensionConfiguration(qualifier.value1, qualifier.value2)
+      is ScreenHeightQualifier -> IntConfiguration(::ScreenWidthQualifier, SCREEN_SIZE_RANGE, qualifier.value)
+      is ScreenOrientationQualifier -> enumConfiguration(::ScreenOrientationQualifier, qualifier.value)
+      is ScreenRatioQualifier -> enumConfiguration(::ScreenRatioQualifier, qualifier.value)
+      is ScreenRoundQualifier -> enumConfiguration(::ScreenRoundQualifier, qualifier.value)
+      is ScreenSizeQualifier -> enumConfiguration(::ScreenSizeQualifier, qualifier.value)
+      is ScreenWidthQualifier -> IntConfiguration(::ScreenWidthQualifier, SCREEN_SIZE_RANGE, qualifier.value)
+      is SmallestScreenWidthQualifier -> IntConfiguration(::SmallestScreenWidthQualifier, SCREEN_SIZE_RANGE, qualifier.value)
+      is TextInputMethodQualifier -> enumConfiguration(::TextInputMethodQualifier, qualifier.value)
+      is TouchScreenQualifier -> enumConfiguration(::TouchScreenQualifier, qualifier.value)
+      is UiModeQualifier -> enumConfiguration(::UiModeQualifier, qualifier.value)
+      is VersionQualifier -> VersionQualifierConfiguration(qualifier.version)
+      is WideGamutColorQualifier -> enumConfiguration(::WideGamutColorQualifier, qualifier.value)
       else -> null
     }
     lastRequestedQualifier = qualifier to qualifierConfiguration
@@ -156,18 +156,22 @@ interface QualifierConfiguration {
 /**
  * [QualifierConfiguration] to build a [LocaleQualifier]
  */
-internal class LocaleQualifierConfiguration : QualifierConfiguration {
+internal class LocaleQualifierConfiguration(language: String?, region: String?) : QualifierConfiguration {
+
+  /**
+   * List of the available region for the selected language
+   */
+  private val regionList = CollectionParam<String?>(listOf(null), "Any region").apply {
+    paramValue = region
+  }
 
   private val languageList = CollectionParam(LocaleManager.getLanguageCodes(true), "Language").apply {
     // Add an observer to update the region list each time the language list is updated
     addObserver { _, selectedLanguage -> regionList.values = getAvailableRegion(selectedLanguage as String?) }
     parser = { code -> code?.let { LocaleManager.getLanguageName(it) } }
+    paramValue = language
   }
 
-  /**
-   * List of the available region for the selected language
-   */
-  private val regionList = CollectionParam<String?>(listOf(null), "Any region")
   override val parameters: List<InputParam<String?>> = listOf(languageList, regionList)
 
   /**
@@ -188,18 +192,22 @@ internal class LocaleQualifierConfiguration : QualifierConfiguration {
  * Utility method to build an [EnumBasedResourceQualifier]
  */
 private inline fun <Qualifier : EnumBasedResourceQualifier, reified E> enumConfiguration(
-  noinline factory: (E) -> Qualifier
+  noinline factory: (E) -> Qualifier,
+  default: E?
 ): EnumQualifierConfiguration<E, Qualifier> where E : ResourceEnum, E : Enum<E> =
-  EnumQualifierConfiguration(EnumSet.allOf(E::class.java), factory)
+  EnumQualifierConfiguration(EnumSet.allOf(E::class.java), factory, default)
 
 /**
  * Configuration to build all subclass of [EnumBasedResourceQualifier].
  */
 internal class EnumQualifierConfiguration<E : ResourceEnum, out Qualifier : EnumBasedResourceQualifier>(
   enumSet: Collection<E>,
-  private val qualifierFactory: (E) -> Qualifier
+  private val qualifierFactory: (E) -> Qualifier,
+  default: E?
 ) : QualifierConfiguration {
-  override val parameters = listOf(CollectionParam(enumSet, null) { enum -> enum?.longDisplayValue })
+
+  override val parameters = listOf(CollectionParam(enumSet) { enum -> enum?.longDisplayValue }.apply { paramValue = default })
+
   override fun buildQualifier(): Qualifier? = parameters.first().paramValue?.let { qualifierFactory(it) }
 }
 
@@ -208,9 +216,10 @@ internal class EnumQualifierConfiguration<E : ResourceEnum, out Qualifier : Enum
  */
 internal class IntConfiguration(
   private val qualifierFactory: (Int) -> ResourceQualifier,
-  range: IntRange
+  range: IntRange,
+  default: Int?
 ) : QualifierConfiguration {
-  override val parameters: List<IntParam> = listOf(IntParam(range))
+  override val parameters: List<IntParam> = listOf(IntParam(range).apply { paramValue = default })
   override fun buildQualifier(): ResourceQualifier? = parameters.first().paramValue?.let { qualifierFactory(it) }
 }
 
@@ -218,11 +227,13 @@ internal class IntConfiguration(
  * A [QualifierConfiguration] to build a [VersionQualifier]. The available versions are provided using a
  * [CollectionParam] which contains Api version from [SdkVersionInfo.LOWEST_ACTIVE_API] to [SdkVersionInfo.HIGHEST_KNOWN_API]
  */
-internal class VersionQualifierConfiguration : QualifierConfiguration {
+internal class VersionQualifierConfiguration(version: Int) : QualifierConfiguration {
   override val parameters = listOf(
     CollectionParam((SdkVersionInfo.LOWEST_ACTIVE_API..SdkVersionInfo.HIGHEST_KNOWN_API)
                       .toSortedSet()
-                      .reversed()))
+                      .reversed())
+      .apply { paramValue = version }
+  )
 
   override fun buildQualifier(): VersionQualifier? = parameters.first().paramValue?.let { VersionQualifier(it) }
 }
@@ -230,9 +241,9 @@ internal class VersionQualifierConfiguration : QualifierConfiguration {
 /**
  * A [QualifierConfiguration] to build a [ScreenDimensionConfiguration] if both width and height are provided.
  */
-internal class ScreenDimensionConfiguration : QualifierConfiguration {
-  private val widthParam = IntParam(SCREEN_SIZE_RANGE)
-  private val heightParam = IntParam(SCREEN_SIZE_RANGE)
+internal class ScreenDimensionConfiguration(value1: Int, value2: Int) : QualifierConfiguration {
+  private val widthParam = IntParam(SCREEN_SIZE_RANGE).apply { paramValue = value1 }
+  private val heightParam = IntParam(SCREEN_SIZE_RANGE).apply { paramValue = value2 }
   override val parameters = listOf(widthParam, heightParam)
   override fun buildQualifier(): ScreenDimensionQualifier? {
     val width = widthParam.paramValue ?: return null
