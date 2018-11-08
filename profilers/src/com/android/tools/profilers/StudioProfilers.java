@@ -304,7 +304,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     try {
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
-      if (myIdeServices.getFeatureConfig().isEventsPipelineEnabled()) {
+      if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
         // Get all streams of all types.
         GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
                                                              .setKind(Event.Kind.STREAM)
@@ -486,7 +486,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // In the case the device becomes null, keeps the previously stopped session.
       // This happens when the user explicitly stops an ongoing session or the profiler.
       if (myDevice != null) {
-        if (myIdeServices.getFeatureConfig().isEventsPipelineEnabled()) {
+        if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
           mySessionsManager.beginSession(myStreamIds.get(myDevice), myDevice, myProcess);
         }
         else {

@@ -317,7 +317,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isEventsPipelineEnabled() {
+      public boolean isUnifiedPipelineEnabled() {
         return myEventsPipelineEnabled;
       }
     };

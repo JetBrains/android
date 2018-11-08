@@ -376,7 +376,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testImportedSessionDoesNotHaveChildren() {
-    Assume.assumeFalse(ideProfilerServices.featureConfig.isEventsPipelineEnabled)
+    Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     myManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
@@ -426,7 +426,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testDeleteProfilingSession() {
-    Assume.assumeFalse(ideProfilerServices.featureConfig.isEventsPipelineEnabled)
+    Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
@@ -482,7 +482,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   }
   @Test
   fun testGetAllSessions() {
-    Assume.assumeTrue(ideProfilerServices.featureConfig.isEventsPipelineEnabled)
+    Assume.assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device1 = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setDeviceId(1).setPid(10).setState(Common.Process.State.ALIVE).build()
     val device2 = Common.Device.newBuilder().setDeviceId(2).setState(Common.Device.State.ONLINE).build()
@@ -507,7 +507,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testDeleteUnselectedSession() {
-    Assume.assumeFalse(ideProfilerServices.featureConfig.isEventsPipelineEnabled)
+    Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()

@@ -278,7 +278,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isEventsPipelineEnabled() {
+      public boolean isUnifiedPipelineEnabled() {
         return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
       }
     };

@@ -37,7 +37,7 @@ public interface FeatureConfig {
   boolean isSessionsEnabled();
   boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
-  boolean isEventsPipelineEnabled();
+  boolean isUnifiedPipelineEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }
