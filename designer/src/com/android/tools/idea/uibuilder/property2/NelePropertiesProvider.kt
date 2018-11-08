@@ -117,7 +117,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
         }
         val attrDefs = if (NS_RESOURCES == namespaceUri) systemAttrDefs else localAttrDefs
         val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
-        val attrDef = namespace?.let { attrDefs.getAttrDefinition(ResourceReference.attr(it, name)) }
+        val attrDef = namespace?.let { attrDefs?.getAttrDefinition(ResourceReference.attr(it, name)) }
         val property = createProperty(namespaceUri, name, attrDef, model, components)
         properties.put(namespaceUri, name, property)
       }
@@ -141,7 +141,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       if (tag.name == AUTO_COMPLETE_TEXT_VIEW) {
         // An AutoCompleteTextView has a popup that is created at runtime.
         // Properties for this popup can be added to the AutoCompleteTextView tag.
-        val attr = systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND)
+        val attr = systemAttrDefs?.getAttrDefByName(ATTR_POPUP_BACKGROUND)
         val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, model, components)
         properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, property)
       }
