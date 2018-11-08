@@ -18,23 +18,29 @@ package com.android.tools.idea.resourceExplorer.view
 import com.android.tools.adtui.ui.ClickableLabel
 import com.android.tools.idea.resourceExplorer.viewmodel.FileImportRowViewModel
 import com.android.tools.idea.resourceExplorer.widget.ChessBoardPanel
+import com.android.tools.idea.resourceExplorer.widget.Separator
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-private val PREVIEW_SIZE = JBUI.size(150)
+private val PREVIEW_SIZE = JBUI.size(100)
 
 class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout()) {
 
-  private val preview = JBLabel().apply {
-    preferredSize = PREVIEW_SIZE
+  val preview = JBLabel().apply {
+    horizontalAlignment = JBLabel.CENTER
   }
+
   private val previewWrapper = ChessBoardPanel(BorderLayout()).apply {
     preferredSize = PREVIEW_SIZE
+    maximumSize = PREVIEW_SIZE
+    border = JBUI.Borders.customLine(JBColor.border(), 1)
     add(preview)
   }
 
@@ -46,20 +52,30 @@ class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout
   private val doNotImportButton = ClickableLabel("Do not import", StudioIcons.Common.CLOSE, SwingConstants.LEFT)
 
   private val middlePane = JPanel(BorderLayout()).apply {
-    add(JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+    add(JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
       add(fileName)
+      add(separator())
       add(folderConfiguration)
+      add(separator())
       add(fileSize)
+      add(separator())
       add(fileDimension)
-      add(doNotImportButton)
-    }, BorderLayout.NORTH)
+    }, BorderLayout.WEST)
+    add(doNotImportButton, BorderLayout.EAST)
 
-    add(QualifierConfigurationPanel(viewModel.qualifierViewModel))
+    add(QualifierConfigurationPanel(viewModel.qualifierViewModel), BorderLayout.SOUTH)
   }
 
+  private fun separator() = Separator(8, 4)
+
   init {
-    add(previewWrapper, BorderLayout.WEST)
+    add(JPanel().apply {
+      add(previewWrapper)
+    }, BorderLayout.WEST)
     add(middlePane)
+    border = BorderFactory.createCompoundBorder(
+      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+      JBUI.Borders.empty(0, 4, 2, 4))
     viewModel.updateCallback = ::update
     update()
   }

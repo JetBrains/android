@@ -42,19 +42,21 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-private val QUALIFIER_TYPE_COMBO_SIZE = JBUI.size(250, 30)
-private val QUALIFIER_VALUE_COMBO_SIZE = JBUI.size(220, QUALIFIER_TYPE_COMBO_SIZE.height)
-private val QUALIFIER_VALUE_GAP = JBUI.scale(4)
+private val QUALIFIER_TYPE_COMBO_SIZE = JBUI.size(330, 30)
+private val QUALIFIER_VALUE_COMBO_SIZE = JBUI.size(390, QUALIFIER_TYPE_COMBO_SIZE.height)
+private val FLOW_LAYOUT_GAP = JBUI.scale(4)
+private val ADD_BUTTON_BORDER = JBUI.Borders.empty(4, 12, 4, 0)
 
 /**
  * View to manipulate the [QualifierConfigurationViewModel]. It represents the qualifiers that will be
  * add to a resource.
  */
 class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationViewModel) : JPanel(
-  BorderLayout()) {
+  BorderLayout(1, 0)) {
 
   private val addQualifierButton = ClickableLabel("Add another qualifier", StudioIcons.Common.ADD,
                                                   SwingConstants.LEFT).apply {
+    border = ADD_BUTTON_BORDER
     addActionListener {
       if (viewModel.canAddQualifier()) {
         viewModel.applyConfiguration()
@@ -65,8 +67,12 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
 
   private val qualifierTypeLabel = JBLabel("QUALIFIER TYPE").apply {
     preferredSize = QUALIFIER_TYPE_COMBO_SIZE
+    font = JBUI.Fonts.smallFont()
   }
-  private val qualifierValueLabel = JBLabel("VALUE")
+  private val qualifierValueLabel = JBLabel("VALUE").apply {
+    border = JBUI.Borders.emptyLeft(FLOW_LAYOUT_GAP)
+    font = JBUI.Fonts.smallFont()
+  }
   private val qualifierContainer = JPanel(VerticalLayout(0, SwingConstants.LEFT))
 
   init {
@@ -74,7 +80,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
   }
 
   init {
-    add(JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+    add(JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)).apply {
       add(qualifierTypeLabel)
       add(qualifierValueLabel)
     }, BorderLayout.NORTH)
@@ -93,7 +99,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
 private class ConfigurationRow(viewModel: QualifierConfigurationViewModel) : JPanel(
   FlowLayout(FlowLayout.LEFT)) {
 
-  private val valuePanel = JPanel(FlowLayout(FlowLayout.LEFT, QUALIFIER_VALUE_GAP, 0)).apply {
+  private val valuePanel = JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)).apply {
     add(ComboBox<Any>().apply {
       isEnabled = false
       isEditable = false
@@ -174,7 +180,7 @@ private class ConfigurationRow(viewModel: QualifierConfigurationViewModel) : JPa
    * Returns the dimension that each component should have so they all fit within [QUALIFIER_VALUE_COMBO_SIZE]
    */
   private fun computeFieldSize(paramNumber: Int) = Dimension(
-    QUALIFIER_VALUE_COMBO_SIZE.width() / paramNumber - (QUALIFIER_VALUE_GAP / 2 * (paramNumber - 1)),
+    QUALIFIER_VALUE_COMBO_SIZE.width() / paramNumber - (FLOW_LAYOUT_GAP / 2 * (paramNumber - 1)),
     QUALIFIER_VALUE_COMBO_SIZE.height()
   )
 
