@@ -183,7 +183,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * Perform an update to retrieve all session instances.
    */
   public void update() {
-    if (myProfilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       updateSessions();
     }
     else {
@@ -194,7 +194,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   private void updateSessions() {
-    assert myProfilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled();
+    assert myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled();
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
                                                          .setKind(Event.Kind.SESSION)
                                                          .build();
@@ -336,7 +336,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       return;
     }
 
-    if (myProfilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       assert streamId != 0;
       myProfilingSessionStreamId = streamId;
       BeginSession.Builder requestBuilder = BeginSession.newBuilder()
@@ -403,7 +403,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     boolean selectedSessionIsProfilingSession = myProfilingSession.equals(mySelectedSession);
     setProfilingSession(Common.Session.getDefaultInstance());
 
-    if (myProfilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Command command = Command.newBuilder()
                                .setStreamId(myProfilingSessionStreamId)
                                .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
@@ -466,7 +466,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                                            .setStartTimestamp(startTimestampNs)
                                            .setEndTimestamp(endTimestampNs)
                                            .build();
-    if (myProfilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       // TODO (b/73538507): Move over to new events pipeline.
     }
     else {
@@ -531,7 +531,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       SessionItem sessionItem = mySessionItems.get(session.getSessionId());
       if (sessionItem == null) {
         // The event pipeline does not need to request metadata as it comes back in the session started event.
-        if (!myProfilers.getIdeServices().getFeatureConfig().isEventsPipelineEnabled()) {
+        if (!myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
           Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
                                                                     .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder()
                                                                                                                           .setSessionId(
