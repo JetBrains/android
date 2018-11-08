@@ -124,7 +124,8 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       HashMap<Long, Profiler.EventGroup.Builder> builderGroups = new HashMap<>();
       while (results.next()) {
         Common.Event event = Common.Event.parser().parseFrom(results.getBytes(1));
-        Profiler.EventGroup.Builder group = builderGroups.computeIfAbsent(event.getGroupId(), key -> Profiler.EventGroup.newBuilder());
+        Profiler.EventGroup.Builder group =
+          builderGroups.computeIfAbsent(event.getGroupId(), key -> Profiler.EventGroup.newBuilder().setGroupId(event.getGroupId()));
         group.addEvents(event);
       }
       builderGroups.values().stream().forEach((builder) -> {

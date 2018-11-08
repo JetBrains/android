@@ -298,6 +298,17 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   }
 
   @Test
+  fun testEndSessionIsNotAlive() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val session1Timestamp = 1L
+    myProfilerService.setTimestampNs(session1Timestamp)
+    beginSessionHelper(device, process1)
+    endSessionHelper()
+    assertThat(SessionsManager.isSessionAlive(myManager.profilingSession)).isFalse()
+  }
+
+  @Test
   fun testSessionArtifactsUpToDate() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
