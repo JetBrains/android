@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property2.model
 
-import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
+import com.android.SdkConstants.TextAlignment
+import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.uibuilder.property2.ui.HorizontalEditorPanel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -26,7 +28,7 @@ import org.junit.Test
 class HorizontalEditorPanelModelTest {
 
   private fun createTestData(): TestData {
-    val property = makeProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, TextAlignment.CENTER)
+    val property = TestPropertyItem(ANDROID_URI, ATTR_TEXT_ALIGNMENT, TextAlignment.CENTER)
     val toggle1 = FakeEditorModel(property)
     val toggle2 = FakeEditorModel(property)
     val toggle3 = FakeEditorModel(property)

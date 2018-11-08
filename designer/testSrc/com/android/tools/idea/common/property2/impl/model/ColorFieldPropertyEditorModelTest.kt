@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.tools.idea.common.property2.api.ActionIconButton
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import icons.StudioIcons
@@ -34,7 +34,7 @@ class ColorFieldPropertyEditorModelTest {
       override fun getActionIcon(focused: Boolean) = StudioIcons.LayoutEditor.Properties.FAVORITES
       override val action = action
     }
-    val property = PropertyModelTestUtil.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, "#330066", null, actionButton)
+    val property = TestPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, "#330066", null, actionButton)
     val model = ColorFieldPropertyEditorModel(property)
     return Pair(model, action)
   }

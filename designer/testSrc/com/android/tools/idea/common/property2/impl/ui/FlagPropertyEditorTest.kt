@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.tools.adtui.ptable2.DefaultPTableCellRendererProvider
 import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableItem
@@ -22,7 +24,7 @@ import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.impl.PTableImpl
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeFlagsProperty
+import com.android.tools.idea.common.property2.impl.model.util.TestFlagsPropertyItem
 import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
 import com.android.tools.idea.common.property2.impl.table.EditorPanel
 import com.android.tools.idea.common.property2.impl.table.PTableCellEditorProviderImpl
@@ -71,9 +73,10 @@ class FlagPropertyEditorTest {
   }
 
   private fun createTableWithFlagEditors(): TableEditor {
-    val flag1 = makeFlagsProperty("inputType", listOf("text", "date", "datetime"), listOf(1, 6, 2))
-    val flag2 = makeFlagsProperty("autoLink", listOf("none", "web", "email", "phone", "all"), listOf(0, 1, 2, 4, 7))
-    val flag3 = makeFlagsProperty(
+    val flag1 = TestFlagsPropertyItem(ANDROID_URI, ATTR_INPUT_TYPE, listOf("text", "date", "datetime"), listOf(1, 6, 2))
+    val flag2 = TestFlagsPropertyItem(ANDROID_URI, "autoLink", listOf("none", "web", "email", "phone", "all"), listOf(0, 1, 2, 4, 7))
+    val flag3 = TestFlagsPropertyItem(
+      ANDROID_URI,
       "long",
       listOf("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"),
       listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))

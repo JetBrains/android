@@ -18,9 +18,18 @@ package com.android.tools.idea.common.property2.impl.ui
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.ptable2.PTableModel
-import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.*
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.api.ControlTypeProvider
+import com.android.tools.idea.common.property2.api.EditorProvider
+import com.android.tools.idea.common.property2.api.InspectorLineModel
+import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.idea.common.property2.api.TableLineModel
+import com.android.tools.idea.common.property2.api.TableUIProvider
+import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
+import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.SeparatorLineModel
+import com.android.tools.idea.common.property2.impl.model.TitleLineModel
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -229,7 +238,7 @@ class PropertiesPageTest {
   private fun makeEditor(): Pair<PropertyEditorModel, JComponent> {
     val model = mock(PropertyEditorModel::class.java)
     val editor = JLabel()
-    val property = PropertyModelTestUtil.makeProperty(ANDROID_URI, ATTR_TEXT, "Hello")
+    val property = TestPropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
     `when`(model.property).thenReturn(property)
     return Pair(model, editor)
   }

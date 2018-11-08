@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.common.property2.impl.ui.PropertyCheckBox
 import com.google.common.truth.Truth
 import org.junit.Test
@@ -24,7 +24,7 @@ import org.junit.Test
 class BooleanPropertyEditorModelTest {
 
   private fun createModel(): BooleanPropertyEditorModel {
-    val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, SdkConstants.VALUE_TRUE)
+    val property = TestPropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, SdkConstants.VALUE_TRUE)
     property.resolvedValue = SdkConstants.VALUE_TRUE
     return BooleanPropertyEditorModel(property)
   }

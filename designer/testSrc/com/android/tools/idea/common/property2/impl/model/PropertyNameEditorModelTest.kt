@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth
@@ -26,7 +26,7 @@ import org.mockito.Mockito
 class PropertyNameEditorModelTest {
 
   private fun createModel(): Pair<PropertyNameEditorModel, ValueChangedListener> {
-    val property = PropertyModelTestUtil.makeProperty("", "", "")
+    val property = TestNewPropertyItem()
     val model = PropertyNameEditorModel(property)
     val listener = Mockito.mock(ValueChangedListener::class.java)
     model.addListener(listener)

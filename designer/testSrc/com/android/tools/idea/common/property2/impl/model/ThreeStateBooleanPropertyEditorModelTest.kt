@@ -16,16 +16,18 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.common.property2.impl.ui.PropertyThreeStateCheckBox
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.ui.ThreeStateCheckBox.State.*
+import com.intellij.util.ui.ThreeStateCheckBox.State.DONT_CARE
+import com.intellij.util.ui.ThreeStateCheckBox.State.NOT_SELECTED
+import com.intellij.util.ui.ThreeStateCheckBox.State.SELECTED
 import org.junit.Test
 
 class ThreeStateBooleanPropertyEditorModelTest {
 
   private fun createModel(): ThreeStateBooleanPropertyEditorModel {
-    val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")
+    val property = TestPropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")
     property.resolvedValue = "true"
     return ThreeStateBooleanPropertyEditorModel(property)
   }

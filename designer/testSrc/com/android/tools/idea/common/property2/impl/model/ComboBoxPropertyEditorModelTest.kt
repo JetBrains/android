@@ -16,8 +16,10 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestEnumSupport
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
@@ -29,8 +31,8 @@ import javax.swing.event.ListDataListener
 class ComboBoxPropertyEditorModelTest {
 
   private fun createModel(): ComboBoxPropertyEditorModel {
-    val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "visibility", "visible")
-    val enumSupport = PropertyModelTestUtil.makeEnumSupport("visible", "invisible", "gone")
+    val property = TestPropertyItem(SdkConstants.ANDROID_URI, ATTR_VISIBILITY, "visible")
+    val enumSupport = TestEnumSupport("visible", "invisible", "gone")
     return ComboBoxPropertyEditorModel(property, enumSupport, true)
   }
 

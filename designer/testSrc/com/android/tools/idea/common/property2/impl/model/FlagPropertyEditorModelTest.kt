@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_GRAVITY
 import com.android.tools.idea.common.property2.api.FlagPropertyItem
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestFlagsPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -267,7 +269,8 @@ class FlagPropertyEditorModelTest {
   }
 
   private fun createAutoLink(initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
-    return PropertyModelTestUtil.makeFlagsProperty(
+    return TestFlagsPropertyItem(
+        ANDROID_URI,
         "autoLink",
         listOf("none", "phone", "map", "perm", "all"),
         listOf(0, 1, 2, 4, 7),
@@ -275,8 +278,9 @@ class FlagPropertyEditorModelTest {
   }
 
   private fun createGravity(initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
-    return PropertyModelTestUtil.makeFlagsProperty(
-        "gravity",
+    return TestFlagsPropertyItem(
+        ANDROID_URI,
+        ATTR_GRAVITY,
         listOf("left", "center", "right"),
         listOf(1, 2, 4),
         initialValue)

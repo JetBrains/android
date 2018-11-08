@@ -16,8 +16,9 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_COLOR
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
@@ -27,7 +28,7 @@ import org.mockito.Mockito.*
 class BasePropertyEditorModelTest {
 
   private fun createModel(): BasePropertyEditorModel {
-    val property = makeProperty(ANDROID_URI, "color", "#00FF00")
+    val property = TestPropertyItem(ANDROID_URI, ATTR_COLOR, "#00FF00")
     return object : BasePropertyEditorModel(property) {}
   }
 

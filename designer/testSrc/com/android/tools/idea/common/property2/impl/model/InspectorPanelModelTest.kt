@@ -16,9 +16,14 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT
+import com.android.SdkConstants.ATTR_COLOR
+import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -29,25 +34,25 @@ class InspectorPanelModelTest {
   class Inspector {
     val model = InspectorPanelModel()
 
-    private val colorProperty = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "color", "#00FF00")
-    private val backgroundProperty = PropertyModelTestUtil.makeProperty(SdkConstants.TOOLS_URI, "background", "#00FF00")
-    private val textProperty = PropertyModelTestUtil.makeProperty(SdkConstants.AUTO_URI, "text", "hello")
-    private val textAppProperty = PropertyModelTestUtil.makeProperty(SdkConstants.AUTO_URI, "textApp", "")
-    private val someProperty = PropertyModelTestUtil.makeProperty("SomeNamespace", "some", "world")
+    private val colorProperty = TestPropertyItem(SdkConstants.ANDROID_URI, ATTR_COLOR, "#00FF00")
+    private val backgroundProperty = TestPropertyItem(SdkConstants.TOOLS_URI, ATTR_BACKGROUND, "#00FF00")
+    private val textProperty = TestPropertyItem(SdkConstants.AUTO_URI, ATTR_TEXT, "hello")
+    private val textAppProperty = TestPropertyItem(SdkConstants.AUTO_URI, "textApp", "")
+    private val someProperty = TestPropertyItem("SomeNamespace", "some", "world")
 
-    private val colorEditor = PropertyModelTestUtil.makePropertyEditorModel(colorProperty)
-    private val backgroundEditor = PropertyModelTestUtil.makePropertyEditorModel(backgroundProperty)
-    val textEditor = PropertyModelTestUtil.makePropertyEditorModel(textProperty)
-    val textAppEditor = PropertyModelTestUtil.makePropertyEditorModel(textAppProperty)
-    val someEditor = PropertyModelTestUtil.makePropertyEditorModel(someProperty)
+    private val colorEditor = TestPropertyEditorModel(colorProperty)
+    private val backgroundEditor = TestPropertyEditorModel(backgroundProperty)
+    val textEditor = TestPropertyEditorModel(textProperty)
+    val textAppEditor = TestPropertyEditorModel(textAppProperty)
+    val someEditor = TestPropertyEditorModel(someProperty)
 
     private val properties = PropertiesComponentMock()
 
     val outerGroup = CollapsibleLabelModel("OuterGroup", null, properties)
-    val colorItem = CollapsibleLabelModel("color", colorEditor, properties)
+    val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, properties)
     val innerGroup = CollapsibleLabelModel("textApp", textAppEditor, properties)
-    val backgroundItem = CollapsibleLabelModel("backgroundTint", backgroundEditor, properties)
-    val textItem = CollapsibleLabelModel("text", textEditor, properties)
+    val backgroundItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundEditor, properties)
+    val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, properties)
     val someItem = CollapsibleLabelModel("some", someEditor, properties)
     val genericLine = GenericInspectorLineModel()
 
