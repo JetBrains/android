@@ -228,9 +228,7 @@ public class GradleSyncState {
     syncPublisher(
       () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
-    UsageTracker.log(event);
-
+    logSyncEvent(GRADLE_SYNC_STARTED);
     return true;
   }
 
@@ -277,8 +275,7 @@ public class GradleSyncState {
 
     enableNotifications();
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SKIPPED);
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_SKIPPED);
   }
 
   public void invalidateLastSync(@NotNull String error) {
@@ -309,8 +306,7 @@ public class GradleSyncState {
     addToEventLog(msg, ERROR);
     LOG.info(msg);
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_FAILURE);
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_FAILURE);
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
@@ -337,13 +333,7 @@ public class GradleSyncState {
     // an older model. TODO: Remove this when we no longer support models older than 0.10.
     Lint.setTryPrefixLookup(true);
 
-    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
-    String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
-
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED)
-      .setGradleVersion(gradleVersionString)
-      .setKotlinSupport(generateKotlinSupportProto());
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_ENDED);
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
@@ -474,8 +464,7 @@ public class GradleSyncState {
     addInfoToEventLog("Project setup started");
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SETUP_STARTED);
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_SETUP_STARTED);
   }
 
   public void setExternalSystemTaskId(@Nullable ExternalSystemTaskId externalSystemTaskId) {
@@ -527,6 +516,28 @@ public class GradleSyncState {
         BuildVariantView.getInstance(myProject).updateContents();
       });
     }
+  }
+
+  /**
+   * Logs a syn event using {@link UsageTracker#log(AndroidStudioEvent.Builder)}.
+   *
+   * @param event the type of event to log.
+   */
+  private void logSyncEvent(@NotNull AndroidStudioEvent.EventKind event) {
+    // Do not log an event if the project has been closed, working out the sync type for a disposed project results in
+    // an error.
+    if (myProject.isDisposed()) {
+      return;
+    }
+
+    AndroidStudioEvent.Builder eventBuilder = generateSyncEvent(event);
+    if (event == GRADLE_SYNC_ENDED) {
+      GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
+      String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
+      eventBuilder.setGradleVersion(gradleVersionString)
+                  .setKotlinSupport(generateKotlinSupportProto());
+    }
+    UsageTracker.log(eventBuilder);
   }
 
   @NotNull
