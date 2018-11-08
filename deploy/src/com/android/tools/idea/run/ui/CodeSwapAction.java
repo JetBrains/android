@@ -31,7 +31,7 @@ public class CodeSwapAction extends BaseAction {
 
   public static final Key<Boolean> KEY = Key.create(ID);
 
-  public static final String NAME = "Code Swap";
+  public static final String NAME = "Apply Code Changes";
 
   // TODO: Control Alt F10 is almost always going to get your xserver to send you to
   //       your 10th virtual console.....
