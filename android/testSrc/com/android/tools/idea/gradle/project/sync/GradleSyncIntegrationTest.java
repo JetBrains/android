@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -27,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -86,6 +88,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.*;
 
@@ -566,5 +569,27 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
                                                            new ExternalSystemTaskNotificationListenerAdapter() {
                                                            }));
+  }
+
+  public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
+    loadProject(HELLO_JNI);
+    // Verify artifacts is not empty.
+    assertThat(getArtifacts()).isNotEmpty();
+
+    // Write empty CMakeLists file so that no artifacts can be built.
+    File cmakeFile = new File(getProjectFolderPath(), join("app", "src", "main", "cpp", "CMakeLists.txt"));
+    writeToFile(cmakeFile, "");
+    requestSyncAndWait();
+
+    // Verify Ndk model doesn't contain any artifact.
+    assertThat(getArtifacts()).isEmpty();
+  }
+
+  @NotNull
+  private List<NativeArtifact> getArtifacts() {
+    return NdkModuleModel.get(getModule("app")).getVariants().stream()
+      .map(it -> it.getArtifacts())
+      .flatMap(Collection::stream)
+      .collect(toList());
   }
 }
