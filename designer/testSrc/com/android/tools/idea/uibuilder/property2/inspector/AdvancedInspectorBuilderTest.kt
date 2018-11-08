@@ -30,6 +30,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 
 @RunsInEdt
@@ -159,8 +160,8 @@ class AdvancedInspectorBuilderTest {
     val listener = mock(PTableModelUpdateListener::class.java)
     declared.addListener(listener)
 
-    forcePropertyValueChangedNotification(util)
-    verifyZeroInteractions(listener)
+    util.inspector.refresh()
+    verify(listener).itemsUpdated(ArgumentMatchers.eq(false), ArgumentMatchers.any())
   }
 
   @Test
@@ -176,8 +177,8 @@ class AdvancedInspectorBuilderTest {
     declared.addListener(listener)
 
     util.properties[ANDROID_URI, ATTR_TEXT_SIZE].value = "12sp"
-    forcePropertyValueChangedNotification(util)
-    verify(listener).itemsUpdated(true, null)
+    util.inspector.refresh()
+    verify(listener).itemsUpdated(ArgumentMatchers.eq(true), ArgumentMatchers.any())
   }
 
   @Test
@@ -266,10 +267,5 @@ class AdvancedInspectorBuilderTest {
     val addNewPropertyAction = util.inspector.lines[0].actions[1]
     val event = mock(AnActionEvent::class.java)
     addNewPropertyAction.actionPerformed(event)
-  }
-
-  private fun forcePropertyValueChangedNotification(util: InspectorTestUtil) {
-    // This line will cause the model to dispatch a properties changed event
-    util.model.showResolvedValues = false
   }
 }

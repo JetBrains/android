@@ -128,6 +128,10 @@ class FakeTableLine(override val tableModel: PTableModel) : FakeInspectorLine(Li
   override fun stopEditing() {
     selectedItem = null
   }
+
+  override fun refresh() {
+    tableModel.refresh()
+  }
 }
 
 class FakeInspectorPanel : InspectorPanel {
@@ -165,6 +169,10 @@ class FakeInspectorPanel : InspectorPanel {
     lines.add(line)
     addAsChild(line, parent)
     return line
+  }
+
+  fun refresh() {
+    lines.forEach { it.refresh() }
   }
 
   private fun addAsChild(child: FakeInspectorLine, parent: InspectorLineModel?) {
