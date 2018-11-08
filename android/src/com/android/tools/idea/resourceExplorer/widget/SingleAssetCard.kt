@@ -238,7 +238,7 @@ class RowAssetView : AssetView() {
 
   private val metadataPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
     add(secondLineLabel)
-    add(separator())
+    add(Separator())
     add(thirdLineLabel)
   }
 
@@ -268,25 +268,3 @@ class RowAssetView : AssetView() {
   override fun computeThumbnailSize(width: Int) = Dimension(width, width)
 }
 
-private fun separator() = object : JComponent() {
-
-  private val lineWidth = JBUI.scale(1)
-
-  init {
-    background = PREVIEW_BORDER_COLOR
-    border = JBUI.Borders.empty(0, 4)
-  }
-
-  override fun paint(g: Graphics) {
-    g.color = background
-    val insets = insets
-    g.fillRect(insets.left, insets.top, lineWidth, height - insets.top - insets.bottom)
-  }
-
-  override fun getPreferredSize(): Dimension {
-    val insets = insets
-    val width = lineWidth + insets.left + insets.right
-    val height = parent.height - insets.top + insets.bottom
-    return Dimension(width, height)
-  }
-}
