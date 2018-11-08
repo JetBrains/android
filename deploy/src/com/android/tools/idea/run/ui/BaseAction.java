@@ -20,14 +20,16 @@ import static com.android.tools.idea.run.tasks.UnifiedDeployTask.MIN_API_VERSION
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
-import com.android.tools.idea.run.ui.model.ProjectExecutionState;
 import com.intellij.execution.Executor;
+import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -82,8 +84,25 @@ public abstract class BaseAction extends AnAction {
       return;
     }
 
-    boolean currentlyExecuting = ProjectExecutionState.getInstance(project).isAnyExecutorInScheduledState();
-    presentation.setEnabled(!currentlyExecuting && checkCompatibility(project));
+    // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
+    boolean canRun = true;
+    RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
+    if (configSettings == null) {
+      canRun = false;
+    }
+    else {
+      RunConfiguration config = configSettings.getConfiguration();
+      Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
+      for (Executor executor : executors) {
+        ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), config);
+        if (programRunner == null) {
+          continue;
+        }
+        canRun &= !ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId());
+      }
+    }
+
+    presentation.setEnabled(canRun && checkCompatibility(project));
   }
 
   @Override
