@@ -82,7 +82,7 @@ class QualifierConfigurationViewModelTest {
   fun constructAllQualifiers() {
     val fileImportRowViewModel = QualifierConfigurationViewModel()
     qualifiersUnderTest.forEach { qualifier ->
-      val qualifierConfiguration = fileImportRowViewModel.getQualifierConfiguration(qualifier)
+      val qualifierConfiguration = fileImportRowViewModel.createQualifierConfiguration(qualifier)
       assertNotNull(qualifierConfiguration)
       qualifierConfiguration!!.parameters.forEach { qualifierParam ->
         when (qualifierParam) {
@@ -103,7 +103,7 @@ class QualifierConfigurationViewModelTest {
     val viewModel = QualifierConfigurationViewModel(folderConfiguration)
     val availableQualifiers = viewModel.getAvailableQualifiers()
     assertEquals(folderConfiguration.qualifiers.size, availableQualifiers.size)
-    val qualifierConfiguration = viewModel.getQualifierConfiguration(availableQualifiers.first { it is DensityQualifier })
+    val qualifierConfiguration = viewModel.createQualifierConfiguration(availableQualifiers.first { it is DensityQualifier })
     assertNotNull(qualifierConfiguration)
     assertEquals(1, qualifierConfiguration!!.parameters.size)
     assertTrue { qualifierConfiguration.parameters[0] is CollectionParam<*> }
@@ -127,10 +127,10 @@ class QualifierConfigurationViewModelTest {
     assertFalse { viewModel.canAddQualifier() }
 
     // We now request the configuration for DensityQualifier and we should be able to request a new one
-    val qualifierConfiguration = viewModel.getQualifierConfiguration(availableQualifiers.first { it is DensityQualifier })
+    val qualifierConfiguration = viewModel.createQualifierConfiguration(availableQualifiers.first { it is DensityQualifier })
     assertTrue { viewModel.canAddQualifier() }
 
-    val localQualifierConfiguration = viewModel.getQualifierConfiguration(
+    val localQualifierConfiguration = viewModel.createQualifierConfiguration(
       viewModel.getAvailableQualifiers().first { it is LocaleQualifier })
     val language = localQualifierConfiguration!!.parameters[0] as CollectionParam<String?>
     val region = localQualifierConfiguration.parameters[1] as CollectionParam<String?>
@@ -166,11 +166,10 @@ class QualifierConfigurationViewModelTest {
     folderConfiguration.addQualifier(screenDimensionInit)
 
     val viewModel = QualifierConfigurationViewModel(folderConfiguration)
-    val densityConfiguration = viewModel.getQualifierConfiguration(densityInit)
-    val localeConfiguration = viewModel.getQualifierConfiguration(localeInit)
-    val networkConfiguration = viewModel.getQualifierConfiguration(networkInit)
-    val screenSizeConfiguration = viewModel.getQualifierConfiguration(screenDimensionInit)
-
+    val densityConfiguration = viewModel.selectQualifier(densityInit)
+    val localeConfiguration = viewModel.selectQualifier(localeInit)
+    val networkConfiguration = viewModel.selectQualifier(networkInit)
+    val screenSizeConfiguration = viewModel.selectQualifier(screenDimensionInit)
     assertEquals(Density.DPI_260, densityConfiguration!!.parameters[0].paramValue)
 
     assertEquals("fr", localeConfiguration!!.parameters[0].paramValue)
@@ -180,5 +179,21 @@ class QualifierConfigurationViewModelTest {
 
     assertEquals(12, screenSizeConfiguration!!.parameters[0].paramValue)
     assertEquals(34, screenSizeConfiguration.parameters[1].paramValue)
+  }
+
+  @Test
+  fun availableQualifiers() {
+    val folderConfiguration = FolderConfiguration()
+    folderConfiguration.addQualifier(DensityQualifier(Density.DPI_260))
+    folderConfiguration.addQualifier(LocaleQualifier(null, "fr", "US", null))
+    val networkCodeQualifier = NetworkCodeQualifier(123)
+    folderConfiguration.addQualifier(networkCodeQualifier)
+    folderConfiguration.addQualifier(ScreenDimensionQualifier(12, 34))
+    val viewModel = QualifierConfigurationViewModel(folderConfiguration)
+    val names = listOf("Density", "Locale", "Mobile Network Code", "Screen Dimension")
+    viewModel.getInitialConfigurations()
+    assertThat(viewModel.getAvailableQualifiers().map { it.name }).containsNoneIn(names)
+    viewModel.deselectQualifier(networkCodeQualifier)
+    assertThat(viewModel.getAvailableQualifiers().map { it.name }).contains("Mobile Network Code")
   }
 }
