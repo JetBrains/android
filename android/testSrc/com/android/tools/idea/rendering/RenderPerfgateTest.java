@@ -64,8 +64,12 @@ public class RenderPerfgateTest extends AndroidTestCase {
   private static final int MAX_PRUNED_SAMPLES = NUMBER_OF_SAMPLES / 4;
 
   // This is the name that appears on perfgate dashboard.
-  private static final Benchmark sBenchMark = new Benchmark.Builder("DesignTools Render Time Benchmark")
-    .setDescription("Base line for RenderTask inflate time (mean) after " + NUMBER_OF_SAMPLES + " samples.")
+  private static final Benchmark sRenderTimeBenchMark = new Benchmark.Builder("DesignTools Render Time Benchmark")
+    .setDescription("Base line for RenderTask inflate & render time (mean) after " + NUMBER_OF_SAMPLES + " samples.")
+    .build();
+
+  private static final Benchmark sRenderMemoryBenchMark = new Benchmark.Builder("DesignTools Memory Usage Benchmark")
+    .setDescription("Base line for RenderTask memory usage (mean) after " + NUMBER_OF_SAMPLES + " samples.")
     .build();
 
   @Override
@@ -88,14 +92,14 @@ public class RenderPerfgateTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    ThrowableComputable<MetricSample, Exception> computable = () -> {
+    ThrowableComputable<RenderMetric, Exception> computable = () -> {
       RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-      MetricSample sample = getInflateSamples(task);
+      RenderMetric metric = getInflateMetric(task);
       task.dispose().get(5, TimeUnit.SECONDS);
-      return sample;
+      return metric;
     };
 
-    computeAndRecordMetric("inflate_time_base", computable);
+    computeAndRecordMetric("inflate_time_base", "inflate_memory_base", computable);
   }
 
   public void testBaseRender() throws Exception {
@@ -103,20 +107,21 @@ public class RenderPerfgateTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    ThrowableComputable<MetricSample, Exception> computable = () -> {
+    ThrowableComputable<RenderMetric, Exception> computable = () -> {
       RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-      MetricSample sample = getRenderSamples(task);
+      RenderMetric metric = getRenderMetric(task);
       task.dispose().get(5, TimeUnit.SECONDS);
-      return sample;
+      return metric;
     };
 
-    computeAndRecordMetric("render_time_base", computable);
+    computeAndRecordMetric("render_time_base", "render_memory_base", computable);
   }
 
   private static void computeAndRecordMetric(
-    String metricName, ThrowableComputable<MetricSample, Exception> computable) throws Exception {
+    String renderMetricName, String memoryMetricName, ThrowableComputable<RenderMetric, Exception> computable) throws Exception {
 
-    Metric metric = new Metric(metricName);
+    System.gc();
+
     // LayoutLib has a large static initialization that would trigger on the first render.
     // Warm up by inflating few times before measuring.
     for (int i = 0; i < NUMBER_OF_WARM_UP; i++) {
@@ -124,35 +129,48 @@ public class RenderPerfgateTest extends AndroidTestCase {
     }
 
     // baseline samples
-    List<MetricSample> elapsedList = new ArrayList<>();
+    List<MetricSample> renderTimes = new ArrayList<>();
+    List<MetricSample> memoryUsages = new ArrayList();
     for (int i = 0; i < NUMBER_OF_SAMPLES; i++) {
-      elapsedList.add(computable.compute());
+
+      RenderMetric metric = computable.compute();
+
+      renderTimes.add(metric.getRenderTimeMetricSample());
+      memoryUsages.add(metric.getMemoryMetricSample());
     }
 
-    List<MetricSample> result = pruneOutliers(elapsedList);
-    metric.addSamples(sBenchMark, result.toArray(new MetricSample[0]));
-    metric.commit();
+    Metric renderMetric = new Metric(renderMetricName);
+    List<MetricSample> result = pruneOutliers(renderTimes);
+    renderMetric.addSamples(sRenderTimeBenchMark, result.toArray(new MetricSample[0]));
+    renderMetric.commit();
+
+    // Let's start without pruning to see how bad it is.
+    Metric memMetric = new Metric(memoryMetricName);
+    memMetric.addSamples(sRenderMemoryBenchMark, memoryUsages.toArray(new MetricSample[0]));
+    memMetric.commit();
   }
 
-  private static MetricSample getInflateSamples(RenderTask task) {
-    long startTime = System.currentTimeMillis();
+  private static RenderMetric getInflateMetric(RenderTask task) {
+    RenderMetric renderMetric = new RenderMetric();
+
+    renderMetric.beforeTest();
     RenderResult result = Futures.getUnchecked(task.inflate());
-    long elapsedTime = System.currentTimeMillis() - startTime;
+    renderMetric.afterTest();
 
     checkSimpleLayoutResult(result);
-    return new MetricSample(Instant.now().toEpochMilli(), elapsedTime);
+    return renderMetric;
   }
 
-  private static MetricSample getRenderSamples(RenderTask task) {
+  private static RenderMetric getRenderMetric(RenderTask task) {
     checkSimpleLayoutResult(Futures.getUnchecked(task.inflate()));
+    RenderMetric renderMetric = new RenderMetric();
 
-    long startTime = System.currentTimeMillis();
-    CompletableFuture<RenderResult> resultsFuture = task.render();
-    RenderResult result = Futures.getUnchecked(resultsFuture);
-    long elapsedTime = System.currentTimeMillis() - startTime;
+    renderMetric.beforeTest();
+    RenderResult result = Futures.getUnchecked(task.render());
+    renderMetric.afterTest();
 
     checkSimpleLayoutResult(result);
-    return new MetricSample(Instant.now().toEpochMilli(), elapsedTime);
+    return renderMetric;
   }
 
   /**
@@ -212,5 +230,36 @@ public class RenderPerfgateTest extends AndroidTestCase {
       sum += sample.getSampleData();
     }
     return sum / list.size();
+  }
+
+  private static class RenderMetric {
+
+    private long mTimestamp;
+
+    private long mPrevUsedMem;
+    private long mMemoryUsage;
+
+    private long mStartTime;
+    private long mElapsedTime;
+
+    public void beforeTest() {
+      mPrevUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+      mStartTime = System.currentTimeMillis();
+    }
+
+    public void afterTest() {
+      mElapsedTime = System.currentTimeMillis() - mStartTime;
+      mMemoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - mPrevUsedMem;
+
+      mTimestamp = Instant.now().toEpochMilli();
+    }
+
+    public MetricSample getRenderTimeMetricSample() {
+      return new MetricSample(mTimestamp, mElapsedTime);
+    }
+
+    public MetricSample getMemoryMetricSample() {
+      return new MetricSample(mTimestamp, mMemoryUsage);
+    }
   }
 }
