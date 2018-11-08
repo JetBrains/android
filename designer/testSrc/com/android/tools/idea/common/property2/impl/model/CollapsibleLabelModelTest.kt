@@ -17,8 +17,8 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants.*
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makePropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher
@@ -33,25 +33,25 @@ private const val INNER_GROUP_NAME = "InnerGroup"
 class CollapsibleLabelModelTest {
 
   class Labels(val properties: PropertiesComponent = PropertiesComponentMock()) {
-    private val colorProperty = makeProperty(ANDROID_URI, "color", "#00FF00")
-    private val backgroundTintProperty = makeProperty(TOOLS_URI, "backgroundTint", "#00FF00")
-    private val textProperty = makeProperty(AUTO_URI, "text", "hello")
-    private val someProperty = makeProperty("SomeNamespace", "some", "world")
-    private val styleProperty = makeProperty("", "style", null)
+    private val colorProperty = TestPropertyItem(ANDROID_URI, ATTR_COLOR, "#00FF00")
+    private val backgroundTintProperty = TestPropertyItem(TOOLS_URI, ATTR_BACKGROUND_TINT, "#00FF00")
+    private val textProperty = TestPropertyItem(AUTO_URI, ATTR_TEXT, "hello")
+    private val someProperty = TestPropertyItem("SomeNamespace", "some", "world")
+    private val styleProperty = TestPropertyItem("", ATTR_STYLE, null)
 
-    private val colorEditor = makePropertyEditorModel(colorProperty)
-    private val backgroundTintEditor = makePropertyEditorModel(backgroundTintProperty)
-    private val textEditor = makePropertyEditorModel(textProperty)
-    private val someEditor = makePropertyEditorModel(someProperty)
-    private val styleEditor = makePropertyEditorModel(styleProperty)
+    private val colorEditor = TestPropertyEditorModel(colorProperty)
+    private val backgroundTintEditor = TestPropertyEditorModel(backgroundTintProperty)
+    private val textEditor = TestPropertyEditorModel(textProperty)
+    private val someEditor = TestPropertyEditorModel(someProperty)
+    private val styleEditor = TestPropertyEditorModel(styleProperty)
 
     val outerGroup = CollapsibleLabelModel(OUTER_GROUP_NAME, null, properties)
-    val colorItem = CollapsibleLabelModel("color", colorEditor, properties)
+    val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, properties)
     val innerGroup = CollapsibleLabelModel(INNER_GROUP_NAME, null, properties)
-    val backgroundTintItem = CollapsibleLabelModel("backgroundTint", backgroundTintEditor, properties)
-    val textItem = CollapsibleLabelModel("text", textEditor, properties)
+    val backgroundTintItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundTintEditor, properties)
+    val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, properties)
     val someItem = CollapsibleLabelModel("some", someEditor, properties)
-    val styleItem = CollapsibleLabelModel("style", styleEditor, properties)
+    val styleItem = CollapsibleLabelModel(ATTR_STYLE, styleEditor, properties)
 
     init {
       outerGroup.makeExpandable(OUTER_EXPANDED_BY_DEFAULT)
