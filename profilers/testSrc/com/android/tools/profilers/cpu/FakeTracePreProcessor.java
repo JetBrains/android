@@ -22,13 +22,19 @@ public class FakeTracePreProcessor implements TracePreProcessor {
 
   private boolean myTracePreProcessed = false;
 
+  private boolean myFailedToPreProcess = false;
+
   @Override
   public ByteString preProcessTrace(@NotNull ByteString trace) {
     myTracePreProcessed = true;
-    return trace;
+    return myFailedToPreProcess ? TracePreProcessor.FAILURE : trace;
   }
 
   public boolean isTracePreProcessed() {
     return myTracePreProcessed;
+  }
+
+  public void setFailedToPreProcess(boolean failedToPreProcess) {
+    myFailedToPreProcess = failedToPreProcess;
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.simpleperf
 import com.android.testutils.TestUtils
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.TracePreProcessor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
@@ -51,7 +52,7 @@ class SimpleperfSampleReporterTest {
   @Test
   fun preProcessingInvalidTraceReturnsFailure() {
     val processedTrace = sampleReporter.preProcessTrace(ByteString.copyFromUtf8("bad trace"))
-    assertThat(processedTrace).isEqualTo(SimpleperfSampleReporter.FAILURE)
+    assertThat(processedTrace).isEqualTo(TracePreProcessor.FAILURE)
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
     FileOutputStream(trace).use { out -> out.write(processedTrace.toByteArray()) }
@@ -64,7 +65,7 @@ class SimpleperfSampleReporterTest {
   @Test
   fun preProcessingRawTraceReturnsValidTrace() {
     val processedTrace = sampleReporter.preProcessTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf_raw_trace.trace"))
-    assertThat(processedTrace).isNotEqualTo(SimpleperfSampleReporter.FAILURE)
+    assertThat(processedTrace).isNotEqualTo(TracePreProcessor.FAILURE)
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
     FileOutputStream(trace).use { out -> out.write(processedTrace.toByteArray()) }

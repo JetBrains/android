@@ -23,5 +23,8 @@ import org.jetbrains.annotations.NotNull;
  * the resulting trace, which can be parsed by a {@link TraceParser}.
  */
 public interface TracePreProcessor {
+
+  ByteString FAILURE = ByteString.copyFromUtf8("Failure");
+
   ByteString preProcessTrace(@NotNull ByteString trace);
 }
