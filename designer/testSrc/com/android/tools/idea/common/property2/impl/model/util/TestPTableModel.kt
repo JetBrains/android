@@ -22,6 +22,7 @@ import com.android.tools.adtui.ptable2.PTableModel
 class TestPTableModel(expanded: Boolean,
                       values: Map<String, String>,
                       groups: List<PTableGroupItem>): PTableModel {
+  override var editedItem: PTableItem? = null
   override val items = mutableListOf<PTableItem>()
   var refreshCalled = false
 

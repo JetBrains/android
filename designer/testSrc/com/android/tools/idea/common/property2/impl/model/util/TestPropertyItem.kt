@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property2.impl.model.util
 import com.android.SdkConstants
 import com.android.tools.idea.common.property2.api.ActionIconButton
 import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.utils.HashCodes
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -48,4 +49,12 @@ open class TestPropertyItem(
 
   var updateCount = 0
     protected set
+
+  override fun equals(other: Any?) =
+    when (other) {
+      is TestPropertyItem -> namespace == other.namespace && name == other.name
+      else -> false
+    }
+
+  override fun hashCode() = HashCodes.mix(namespace.hashCode(), name.hashCode())
 }

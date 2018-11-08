@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
-import com.android.tools.idea.common.property2.api.NewPropertyItem
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModelUpdateListener
 
-class TestNewPropertyItem : TestPropertyItem("", "", null, null, null), NewPropertyItem {
+class TestPTableModelUpdateListener : PTableModelUpdateListener {
+  var updateCount = 0
+  var nextEditedItem: PTableItem? = null
+  var modelWasChanged = false
 
-  override var delegate: TestPropertyItem? = null
-
-  // All "New" properties are considered equal, since only 1 should appear in a model
-  override fun equals(other: Any?) = other is TestNewPropertyItem
-
-  override fun hashCode() = 12345
+  override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
+    this.nextEditedItem = nextEditedItem
+    modelWasChanged = modelWasChanged or modelChanged
+    updateCount++
+  }
 }

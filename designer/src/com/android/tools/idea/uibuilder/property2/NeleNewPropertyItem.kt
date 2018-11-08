@@ -62,7 +62,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
    * When the property name is set to something valid, the [delegate] will be not null.
    * All remaining properties and functions should delegate to this [delegate] if present.
    */
-  var delegate: NelePropertyItem? = null
+  override var delegate: NelePropertyItem? = null
     private set
 
   override val nameEditingSupport = object : EditingSupport {

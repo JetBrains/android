@@ -108,6 +108,7 @@ class AdvancedInspectorBuilder(model: NelePropertiesModel, private val tableUIPr
 }
 
 private class NeleTableModel(override val items: MutableList<NelePropertyItem>) : PTableModel {
+  override var editedItem: PTableItem? = null
   private val listeners = mutableListOf<PTableModelUpdateListener>()
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
@@ -140,7 +141,7 @@ private class NeleTableModel(override val items: MutableList<NelePropertyItem>) 
   }
 
   private fun fireUpdate(modelChange: Boolean) {
-    listeners.toTypedArray().forEach { it.itemsUpdated(modelChange) }
+    listeners.toTypedArray().forEach { it.itemsUpdated(modelChange, null) }
   }
 
   /**

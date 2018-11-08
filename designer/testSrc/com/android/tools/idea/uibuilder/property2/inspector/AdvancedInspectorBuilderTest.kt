@@ -177,7 +177,7 @@ class AdvancedInspectorBuilderTest {
 
     util.properties[ANDROID_URI, ATTR_TEXT_SIZE].value = "12sp"
     forcePropertyValueChangedNotification(util)
-    verify(listener).itemsUpdated(true)
+    verify(listener).itemsUpdated(true, null)
   }
 
   @Test
@@ -230,7 +230,7 @@ class AdvancedInspectorBuilderTest {
   private class RecursiveUpdateListener(private val model: PTableModel) : PTableModelUpdateListener {
     var called = false
 
-    override fun itemsUpdated(modelChanged: Boolean) {
+    override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
       model.addListener(RecursiveUpdateListener(model))
       called = true
     }
