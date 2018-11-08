@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.property2.api
+package com.android.tools.adtui.ptable2.impl
 
-import com.android.tools.adtui.model.stdui.EditingSupport
+import javax.swing.event.TableModelEvent
+import javax.swing.table.TableModel
 
 /**
- * Defines basic information about a property which name can be edited in a table.
+ * A [TableModelEvent] that includes a hint to the table about which row to edit
+ * after updating the table with this model change.
  */
-interface NewPropertyItem: PropertyItem {
-
-  /**
-   * The property name can be overridden.
-   */
-  override var name: String
-
-  /**
-   * The [PropertyItem] designated with the [namespace] and [name] of this new property.
-   */
-  val delegate: PropertyItem?
-    get() = null
-
-  /**
-   * Editing support while editing this properties name.
-   */
-  val nameEditingSupport: EditingSupport
-    get() = EditingSupport.INSTANCE
-}
+class PTableModelEvent(source: TableModel, val nextEditedRow: Int) : TableModelEvent(source)

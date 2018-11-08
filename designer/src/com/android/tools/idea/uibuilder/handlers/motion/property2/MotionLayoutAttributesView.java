@@ -248,6 +248,17 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       return myItems;
     }
 
+
+    @Nullable
+    @Override
+    public PTableItem getEditedItem() {
+      return null;
+    }
+
+    @Override
+    public void setEditedItem(@Nullable PTableItem item) {
+    }
+
     @Override
     public boolean isCellEditable(@NotNull PTableItem item, @NotNull PTableColumn column) {
       return true;
@@ -265,7 +276,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     @Override
     public void refresh() {
-      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated(false));
+      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated(false, null));
     }
   }
 
@@ -285,6 +296,17 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     @Override
     public List<PTableItem> getItems() {
       return myItems;
+    }
+
+
+    @Nullable
+    @Override
+    public PTableItem getEditedItem() {
+      return null;
+    }
+
+    @Override
+    public void setEditedItem(@Nullable PTableItem item) {
     }
 
     public void remove(@NotNull NelePropertyItem item) {
@@ -329,7 +351,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     }
 
     private void fireUpdate(boolean modelChange) {
-      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated(modelChange));
+      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated(modelChange, null));
     }
   }
 

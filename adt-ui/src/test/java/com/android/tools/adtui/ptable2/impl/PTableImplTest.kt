@@ -20,6 +20,7 @@ import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableCellEditor
 import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.item.Group
@@ -43,7 +44,8 @@ class PTableTest {
   @Before
   fun setUp() {
     editorProvider = SimplePTableCellEditorProvider()
-    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")), Item("new"))
+    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")),
+                        Item("new"))
     table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!)
   }
 
@@ -148,6 +150,7 @@ class PTableTest {
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(1)
     assertThat(table!!.editingRow).isEqualTo(3)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
   }
 
   @Test
@@ -156,6 +159,7 @@ class PTableTest {
     dispatchAction("toggleEditor")
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(table!!.editingColumn).isEqualTo(-1)
+    assertThat(model!!.editedItem).isNull()
   }
 
   @Test
@@ -164,6 +168,7 @@ class PTableTest {
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(5)
     assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
 
   @Test
@@ -172,6 +177,7 @@ class PTableTest {
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
   }
 
   @Test
@@ -181,6 +187,7 @@ class PTableTest {
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(0)
     assertThat(table!!.editingRow).isEqualTo(3)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
   }
 
   @Test
@@ -189,9 +196,11 @@ class PTableTest {
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
   }
 
   @Test
@@ -199,9 +208,11 @@ class PTableTest {
     table!!.setRowSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(3)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
   }
 
   @Test
@@ -211,12 +222,15 @@ class PTableTest {
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
     assertThat(table!!.startNextEditor()).isFalse()
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(table!!.editingColumn).isEqualTo(-1)
+    assertThat(model!!.editedItem).isNull()
   }
 
   @Test
@@ -225,9 +239,11 @@ class PTableTest {
     table!!.setRowSelectionInterval(6, 6)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(6)
+    assertThat(model!!.editedItem).isEqualTo((model!!.items[4] as PTableGroupItem).children[1])
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
 
   @Test
@@ -236,9 +252,11 @@ class PTableTest {
     table!!.setRowSelectionInterval(7, 7)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
 
   @Test
@@ -246,9 +264,11 @@ class PTableTest {
     table!!.setRowSelectionInterval(0, 0)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
     table!!.editingCanceled(ChangeEvent(table!!))
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(editorProvider!!.editor.cancelCount).isEqualTo(1)
+    assertThat(model!!.editedItem).isNull()
   }
 
   @Test
@@ -260,10 +280,12 @@ class PTableTest {
     table!!.setRowSelectionInterval(1, 1)
     dispatchAction("smartEnter")
     assertThat(table!!.editingRow).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
     table!!.editingCanceled(ChangeEvent(table!!))
     assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(editorProvider!!.editor.cancelCount).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
   }
 
   @Test
@@ -274,6 +296,7 @@ class PTableTest {
     table!!.dispatchEvent(event)
     assertThat(table!!.editingRow).isEqualTo(5)
     assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
 
   @Test
@@ -283,6 +306,7 @@ class PTableTest {
     imitateFocusManagerIsDispatching(event)
     table!!.dispatchEvent(event)
     assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(model!!.editedItem).isNull()
   }
 
   @Test
@@ -293,6 +317,30 @@ class PTableTest {
     table!!.dispatchEvent(event)
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+  }
+
+  @Test
+  fun tableChangedWithEditingChangeSpec() {
+    table!!.setRowSelectionInterval(0, 0)
+    dispatchAction("smartEnter")
+    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+
+    table!!.tableChanged(PTableModelEvent(table!!.model, 3))
+    assertThat(table!!.editingRow).isEqualTo(3)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
+  }
+
+  @Test
+  fun tableChangedWithoutEditing() {
+    assertThat(model!!.editedItem).isNull()
+
+    table!!.tableChanged(PTableModelEvent(table!!.model, 3))
+
+    // Since no row was being edited before the update, make sure no row is being edited after the update:
+    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(model!!.editedItem).isNull()
   }
 
   private fun dispatchAction(action: String) {

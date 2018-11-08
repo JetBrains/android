@@ -50,6 +50,7 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
 import javax.swing.event.ChangeEvent
+import javax.swing.event.TableModelEvent
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
@@ -177,6 +178,34 @@ class PTableImpl(override val tableModel: PTableModel,
   override fun updateUI() {
     super.updateUI()
     customizeKeyMaps()
+  }
+
+  /**
+   * The [TableModel] notification to update the table content.
+   *
+   * The editor must be removed before updating the content,
+   * otherwise the editor may show up at the wrong row after the update.
+   *
+   * Also add logic to continue editing after the update.
+   */
+  override fun tableChanged(event: TableModelEvent) {
+    val wasEditing = isEditing
+    if (wasEditing) {
+      removeEditor()
+    }
+    super.tableChanged(event)
+
+    if (wasEditing) {
+      val modelEvent = event as? PTableModelEvent ?: return
+      val modelRow = modelEvent.nextEditedRow
+      val row = if (modelRow < 0) -1 else convertRowIndexToView(modelRow)
+      if (row >= 0) {
+        startEditing(row, 0)
+        if (!isEditing) {
+          startEditing(row, 1)
+        }
+      }
+    }
   }
 
   private fun updateColumnWidths() {
@@ -334,6 +363,8 @@ class PTableImpl(override val tableModel: PTableModel,
   }
 
   override fun removeEditor() {
+    tableModel.editedItem = null
+
     // b/37132037 Move focus back to table before hiding the editor
     val editor = editorComponent
     if (editor != null && IJSwingUtilities.hasFocus(editor)) {
@@ -354,6 +385,7 @@ class PTableImpl(override val tableModel: PTableModel,
     }
     repaintOtherCellInRow()
     selectRow(row)
+    tableModel.editedItem = item(row)
     return true
   }
 

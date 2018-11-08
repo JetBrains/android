@@ -28,14 +28,18 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   init {
     items.addAll(tableModel.items)
     tableModel.addListener(object : PTableModelUpdateListener {
-      override fun itemsUpdated(modelChanged: Boolean) {
-        if (modelChanged) {
+      override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
+        if (!modelChanged) {
+          fireTableDataChanged()
+        }
+        else {
           items.clear()
           items.addAll(tableModel.items)
           expandedItems.retainAll { isGroupItem(it) }
           expandedItems.forEach { restoreExpanded(it) }
+          val index = if (nextEditedItem != null) items.indexOf(nextEditedItem) else -1
+          fireTableChanged(PTableModelEvent(this@PTableModelImpl, index))
         }
-        fireTableDataChanged()
       }
     })
   }
