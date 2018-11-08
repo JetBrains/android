@@ -223,6 +223,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     var index = 0
     for (group in result) {
       assertThat(group.eventsList).containsExactlyElementsIn(results[index])
+      group.eventsList.forEach({ assertThat(it.groupId).isEqualTo(group.groupId) })
       index++
     }
   }
