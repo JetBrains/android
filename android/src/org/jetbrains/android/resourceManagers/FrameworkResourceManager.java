@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FrameworkResourceManager extends ResourceManager {
-  private final Module myModule;
+  @NotNull private final Module myModule;
   private final boolean myPublicOnly;
 
   public FrameworkResourceManager(@NotNull Module module, boolean publicOnly) {
@@ -57,7 +57,11 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Override
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    return !myPublicOnly || getPlatform().getSdkData().getTargetData(getPlatform().getTarget()).isResourcePublic(type, name);
+    AndroidPlatform platform = getPlatform();
+    if (platform == null) {
+      return false;
+    }
+    return !myPublicOnly || platform.getSdkData().getTargetData(platform.getTarget()).isResourcePublic(type, name);
   }
 
   @Override
@@ -73,7 +77,11 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Nullable
   private VirtualFile getResourceDir() {
-    String resPath = getPlatform().getTarget().getPath(IAndroidTarget.RESOURCES);
+    AndroidPlatform platform = getPlatform();
+    if (platform == null) {
+      return null;
+    }
+    String resPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
     resPath = FileUtil.toSystemIndependentName(resPath);
     return LocalFileSystem.getInstance().findFileByPath(resPath);
   }
@@ -90,10 +98,6 @@ public class FrameworkResourceManager extends ResourceManager {
     return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 
-  private AndroidPlatform getPlatform() {
-    return AndroidPlatform.getInstance(myModule);
-  }
-
   @Nullable
   public static FrameworkResourceManager getInstance(@NotNull ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
@@ -101,8 +105,17 @@ public class FrameworkResourceManager extends ResourceManager {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public AttributeDefinitions getAttributeDefinitions() {
-    return getPlatform().getSdkData().getTargetData(getPlatform().getTarget()).getPublicAttrDefs(myProject);
+    AndroidPlatform platform = getPlatform();
+    if (platform == null) {
+      return null;
+    }
+    return platform.getSdkData().getTargetData(getPlatform().getTarget()).getPublicAttrDefs(myProject);
+  }
+
+  @Nullable
+  private AndroidPlatform getPlatform() {
+    return AndroidPlatform.getInstance(myModule);
   }
 }
