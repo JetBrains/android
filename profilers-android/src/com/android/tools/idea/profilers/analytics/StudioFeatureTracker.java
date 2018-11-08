@@ -689,6 +689,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           case USER_ABORTED_PARSING:
             captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
             break;
+          case PREPROCESS_FAILURE:
+            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
+            break;
         }
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));

@@ -34,9 +34,6 @@ import java.nio.file.Paths;
 
 public final class SimpleperfSampleReporter implements TracePreProcessor {
 
-  @VisibleForTesting
-  static final ByteString FAILURE = ByteString.copyFromUtf8("Failure");
-
   private final String myHomePath;
 
   /**

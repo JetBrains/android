@@ -1413,6 +1413,28 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void cpuMetadataFailurePreProcess() throws IOException {
+    // Enable SIMPLEPERF_HOST flag to make sure we'll preprocess the trace
+    myServices.enableSimpleperfHost(true);
+    // Make sure the TracePreProcessor fails to pre-process the trace
+    ((FakeTracePreProcessor)myServices.getSimpleperfTracePreProcessor()).setFailedToPreProcess(true);
+    // Select a simpleperf configuration
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                               CpuProfiler.CpuProfilerMode.SAMPLED);
+    // Use a trace that is not a raw simpleperf trace. That should cause pre-process to return a failure.
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+
+    captureSuccessfully();
+
+    CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
+    // We should still log the trace size if we fail to pre-process. As we're using "simpleperf.trace", the size should be greater than 0.
+    assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
+  }
+
+  @Test
   public void parsingFailureIsNotifiedToUi() throws IOException {
     // Start an ART capturing successfully
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
@@ -1630,6 +1652,29 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     assertThat(transitionsCount.get()).isEqualTo(2);
     assertThat(aspectFired.get()).isTrue();
+  }
+
+  @Test
+  public void tracePreProcessingFailureShowsErrorBalloon() throws IOException {
+    // Enable SIMPLEPERF_HOST flag to make sure we'll preprocess the trace
+    myServices.enableSimpleperfHost(true);
+    // Make sure the TracePreProcessor fails to pre-process the trace
+    ((FakeTracePreProcessor)myServices.getSimpleperfTracePreProcessor()).setFailedToPreProcess(true);
+    // Select a simpleperf configuration
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                               CpuProfiler.CpuProfilerMode.SAMPLED);
+    // Use a trace that is not a raw simpleperf trace. That should cause pre-process to return a failure.
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+
+    captureSuccessfully();
+
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.PREPROCESS_FAILURE);
+
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    // Intuitively, capture successfully would set a valid capture. However, failing to pre-process sets the capture to null
+    assertThat(myStage.getCapture()).isNull();
   }
 
   @Test

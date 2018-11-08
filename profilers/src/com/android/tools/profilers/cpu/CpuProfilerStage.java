@@ -633,11 +633,22 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
     else {
       // Capture was successful, pre-process the trace and parse it afterwards.
-      // TODO(b/118620183): Handle errors while pre-processing the trace by adding a special status to CpuCaptureMetadata.
       CompletableFuture
         .supplyAsync(() -> preProcessTrace(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
         .thenAcceptAsync((bytes) -> {
           captureMetadata.setTraceFileSizeBytes(bytes.size());
+          boolean failedToPreProcess = bytes.equals(TracePreProcessor.FAILURE);
+          if (failedToPreProcess) {
+            captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
+            getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
+            getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
+            getLogger().warn("Unable to pre-process trace file.");
+            // Return to IDLE state and set the current capture to null. Parsing should not happen.
+            setCaptureState(CaptureState.IDLE);
+            setCapture(null);
+            return;
+          }
+
           handleCaptureParsing(response.getTraceId(), bytes, captureMetadata);
         }, getStudioProfilers().getIdeServices().getMainExecutor());
     }
