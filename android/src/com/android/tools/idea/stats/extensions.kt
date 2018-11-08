@@ -34,7 +34,7 @@ fun AndroidStudioEvent.Builder.withProjectId(project: Project?) : AndroidStudioE
     }
     else {
       // if this is not an android app, we still want to distinguish the project, so we use the project's path as a key to the anonymziation.
-      this.projectId = AnonymizerUtil.anonymizeUtf8(project.baseDir.path)
+      this.projectId = AnonymizerUtil.anonymizeUtf8(project.toString())
     }
   }
   return this
