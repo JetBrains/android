@@ -86,7 +86,8 @@ private class UpdateLock {
  */
 fun <T, ComboBox : JComboBox<T>> CollectionParam<T>.bind(comboBox: ComboBox): ComboBox {
   val lock = UpdateLock()
-  val comboModel = CollectionComboBoxModel<T>(values.toMutableList(), null)
+  val comboModel = CollectionComboBoxModel<T>(values.toMutableList(), paramValue)
+
   comboBox.model = comboModel
   comboBox.addActionListener {
     lock.update {
@@ -113,6 +114,10 @@ fun <T, ComboBox : JComboBox<T>> CollectionParam<T>.bind(comboBox: ComboBox): Co
 fun TextParam.bind(document: Document) {
   val lock = UpdateLock()
 
+  // Initialize the document with the value of the param
+  document.remove(0, document.length)
+  document.insertString(0, paramValue.toString(), null)
+
   document.addDocumentListener(object : DocumentAdapter() {
     override fun textChanged(e: DocumentEvent) {
       lock.update {
@@ -138,6 +143,10 @@ fun TextParam.bind(document: Document) {
  */
 fun IntParam.bind(document: Document) {
   val lock = UpdateLock()
+
+  // Initialize the document with the value of the param
+  document.remove(0, document.length)
+  document.insertString(0, paramValue.toString(), null)
 
   document.addDocumentListener(object : DocumentAdapter() {
     override fun textChanged(e: DocumentEvent) {
