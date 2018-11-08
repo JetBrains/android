@@ -98,13 +98,22 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
       usedQualifiers[qualifier] = configuration
       lastRequestedQualifier = null
     }
-    return availableQualifiers.toList()
+    return availableQualifiers.sortedBy(ResourceQualifier::getName)
+  }
+
+  fun getInitialConfigurations(): List<Pair<ResourceQualifier, QualifierConfiguration?>> {
+    return folderConfiguration.qualifiers.map { qualifier ->
+      availableQualifiers.removeIf { qualifier.name == it.name }
+      val configuration = createQualifierConfiguration(qualifier)
+      usedQualifiers[qualifier] = configuration
+      qualifier to configuration
+    }
   }
 
   /**
    * Returns the suitable [QualifierConfiguration] for the provided [qualifier].
    */
-  fun getQualifierConfiguration(qualifier: ResourceQualifier): QualifierConfiguration? {
+  fun createQualifierConfiguration(qualifier: ResourceQualifier): QualifierConfiguration? {
     val qualifierConfiguration: QualifierConfiguration? = when (qualifier) {
       is LocaleQualifier -> LocaleQualifierConfiguration(qualifier.language, qualifier.region)
       is CountryCodeQualifier -> IntConfiguration(::CountryCodeQualifier, COUNTRY_CODE_RANGE, qualifier.code)
@@ -133,6 +142,18 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
     }
     lastRequestedQualifier = qualifier to qualifierConfiguration
     return qualifierConfiguration
+  }
+
+  fun deselectQualifier(resourceQualifier: ResourceQualifier) {
+    usedQualifiers.remove(resourceQualifier)
+    availableQualifiers.add(resourceQualifier)
+  }
+
+  fun selectQualifier(resourceQualifier: ResourceQualifier): QualifierConfiguration? {
+    val configuration = createQualifierConfiguration(resourceQualifier)
+    usedQualifiers[resourceQualifier] = configuration
+    availableQualifiers.remove(resourceQualifier)
+    return configuration
   }
 }
 
