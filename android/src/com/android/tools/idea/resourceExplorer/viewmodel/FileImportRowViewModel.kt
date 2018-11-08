@@ -17,20 +17,23 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.intellij.openapi.util.text.StringUtil
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.FileImportRow]
  */
 class FileImportRowViewModel(
+  val asset: DesignAsset,
   val resourceFolderType: ResourceFolderType,
-  val qualifierViewModel: QualifierConfigurationViewModel = QualifierConfigurationViewModel()) {
+  val qualifierViewModel: QualifierConfigurationViewModel = QualifierConfigurationViewModel(folderConfiguration(asset))) {
 
   // TODO get value from actual file
   var updateCallback: (() -> Unit)? = null
   var fileDimension: String = "64x64dp"
-  var fileName: String = "File Name"
+  var fileName: String = asset.name
   var qualifiers: String = ""
-  var fileSize: String = "8 KB"
+  var fileSize: String = StringUtil.formatFileSize(asset.file.length)
 
   init {
     configurationUpdated(qualifierViewModel.applyConfiguration())
@@ -40,5 +43,11 @@ class FileImportRowViewModel(
   private fun configurationUpdated(folderConfiguration: FolderConfiguration) {
     qualifiers = folderConfiguration.getFolderName(resourceFolderType)
     updateCallback?.invoke()
+  }
+}
+
+private fun folderConfiguration(asset: DesignAsset) = FolderConfiguration().apply {
+  for (qualifier in asset.qualifiers) {
+    addQualifier(qualifier)
   }
 }

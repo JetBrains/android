@@ -15,86 +15,119 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.viewmodel.FileImportRowViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceImportDialogViewModel
-import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.FlowLayout
-import java.awt.GridLayout
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.ImageIcon
+import javax.swing.JPanel
 
-private val ASSET_H_GAP = JBUI.scale(50)
-private val ASSET_V_GAP = JBUI.scale(5)
-private val BTN_GAP = JBUI.scale(10)
-private val DIALOG_SIZE = JBUI.size(400, 300)
+private const val DIALOG_TITLE = "Import drawables"
+private val DIALOG_SIZE = JBUI.size(1000, 700)
+
+private val ASSET_GROUP_BORDER = BorderFactory.createCompoundBorder(
+  JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+  JBUI.Borders.empty(12, 0, 8, 0))
+
+private val NORTH_PANEL_BORDER = BorderFactory.createCompoundBorder(
+  JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+  JBUI.Borders.empty(16))
+
+private val CONTENT_PANEL_BORDER = JBUI.Borders.empty(0, 20)
 
 /**
  * Dialog allowing user to edit option before importing resources.
  */
-class ResourceImportDialog(assetSets: List<DesignAssetSet>,
-                           facet: AndroidFacet,
-                           private val viewModel: ResourceImportDialogViewModel = ResourceImportDialogViewModel(facet, assetSets)) {
+class ResourceImportDialog(
+  private val dialogViewModel: ResourceImportDialogViewModel
+) : DialogWrapper(dialogViewModel.facet.module.project, true, DialogWrapper.IdeModalityType.MODELESS) {
 
-  val content = JPanel().apply {
+  constructor(facet: AndroidFacet, assetSets: List<DesignAssetSet>) :
+    this(ResourceImportDialogViewModel(facet, assetSets))
+
+
+  private val content = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    assetSets.forEach {
+    border = CONTENT_PANEL_BORDER
+    dialogViewModel.assetSets.forEach {
       add(designAssetSetView(it))
     }
   }
 
   val root = JBScrollPane(content).apply {
     preferredSize = DIALOG_SIZE
+    border = null
   }
 
-  private fun designAssetSetView(assetSet: DesignAssetSet) = JPanel(GridLayout(0, 1)).apply {
-    border = BorderFactory.createTitledBorder(assetSet.name)
-    assetSet.designAssets.forEach { asset ->
-      add(singleAssetView(asset))
-    }
+  private val northPanel = JPanel(BorderLayout()).apply {
+    border = NORTH_PANEL_BORDER
+    val importedAssetCount = dialogViewModel.fileCount
+    add(JBLabel("$importedAssetCount ${StringUtil.pluralize("resource", importedAssetCount)} ready to be imported"), BorderLayout.WEST)
+    add(JBLabel("Import more assets", AllIcons.Actions.Upload, JBLabel.LEFT), BorderLayout.EAST)
   }
 
-  private fun singleAssetView(asset: DesignAsset) = JPanel(BorderLayout()).apply {
-    val density = viewModel.getAssetDensity(asset)
-    val icon = ImageIcon(viewModel.getAssetPreview(asset))
-    val imageRealSize = viewModel.getRealSize(asset)
-
-    add(JLabel(icon), BorderLayout.WEST)
-    add(JPanel(FlowLayout(FlowLayout.LEFT, ASSET_H_GAP, ASSET_V_GAP)).apply {
-      add(qualifierDetails(density, imageRealSize))
-    })
-    add(buttonsBar(), BorderLayout.EAST)
+  init {
+    setOKButtonText("Import")
+    setSize(DIALOG_SIZE.width(), DIALOG_SIZE.height())
+    setResizable(false)
+    isOKActionEnabled = true
+    title = DIALOG_TITLE
+    init()
   }
 
-  private fun qualifierDetails(primary: String, secondary: String) = Box.createVerticalBox().apply {
-    add(JLabel(primary))
-    add(JLabel(secondary))
+  override fun doOKAction() {
+    dialogViewModel.doImport()
+    super.doOKAction()
   }
 
-  private fun buttonsBar() = JPanel().apply {
-    add(
-      JPanel(GridLayout(1, 2, BTN_GAP, BTN_GAP)).apply {
-        add(JButton(StudioIcons.Common.EDIT))
-        add(JButton(StudioIcons.Common.DELETE))
-      })
-  }
+  override fun createCenterPanel() = root
+  override fun createNorthPanel() = northPanel
+  override fun getStyle() = DialogStyle.COMPACT
 
-  fun show() {
-    with(DialogBuilder()) {
-      centerPanel(root)
-      title("Import drawables")
-      resizable(false)
-      setOkOperation {
-        viewModel.doImport()
-        dialogWrapper.close(0, true)
+  private fun designAssetSetView(assetSet: DesignAssetSet): JPanel {
+    val assetNameLabel = JBLabel(assetSet.name, UIUtil.ComponentStyle.LARGE)
+    val itemNumberLabel = JBLabel(dialogViewModel.getItemNumberString(assetSet),
+                                  UIUtil.ComponentStyle.SMALL,
+                                  UIUtil.FontColor.BRIGHTER)
+    val newAlternativeButton = JBLabel("New alternative", StudioIcons.Common.ADD, JBLabel.RIGHT)
+
+    return JPanel(VerticalFlowLayout(true, false)).apply {
+      add(
+        JPanel(BorderLayout()).apply {
+          border = ASSET_GROUP_BORDER
+          add(JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
+            (layout as FlowLayout).alignOnBaseline = true
+            add(assetNameLabel)
+            add(itemNumberLabel)
+          }, BorderLayout.WEST)
+          add(newAlternativeButton, BorderLayout.EAST)
+        }
+      )
+      assetSet.designAssets.forEach { asset ->
+        add(singleAssetView(asset))
       }
-      showModal(true)
     }
+  }
 
-    content.requestFocus()
+  private fun singleAssetView(asset: DesignAsset): FileImportRow {
+    val fileImportRow = FileImportRow(FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE))
+    fileImportRow.preview.icon = ImageIcon(dialogViewModel.getAssetPreview(asset))
+    return fileImportRow
   }
 }
