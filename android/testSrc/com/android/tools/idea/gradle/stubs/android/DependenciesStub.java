@@ -35,6 +35,7 @@ public class DependenciesStub implements IdeDependencies {
   @NotNull private final List<AndroidLibrary> myLibraries = Lists.newArrayList();
   @NotNull private final List<JavaLibrary> myJavaLibraries = Lists.newArrayList();
   @NotNull private final List<String> myProjects = Lists.newArrayList();
+  @NotNull private final List<File> myRuntimeOnlyClasses = Lists.newArrayList();
 
   public void addLibrary(@NotNull AndroidLibraryStub library) {
     myLibraries.add(library);
@@ -70,6 +71,12 @@ public class DependenciesStub implements IdeDependencies {
   @Override
   public Collection<ProjectIdentifier> getJavaModules() {
     return Collections.emptyList();
+  }
+
+  @NonNull
+  @Override
+  public Collection<File> getRuntimeOnlyClasses() {
+    return myRuntimeOnlyClasses;
   }
 
   @Override
