@@ -367,6 +367,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return myCaptureElapsedTime;
   }
 
+  @VisibleForTesting
+  @NotNull
+  JLabel getCaptureInfoMessage() {
+    return myCaptureInfoMessage;
+  }
+
   private void allocationTrackingChanged() {
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText(STOP_TEXT);

@@ -45,5 +45,6 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
     ],
 )

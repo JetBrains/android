@@ -31,10 +31,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
+  @NotNull private final MemoryProfilerStage myStage;
+
   public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                   @Nullable Common.Session session,
-                                  @NotNull FeatureTracker featureTracker) {
+                                  @NotNull FeatureTracker featureTracker,
+                                  @NotNull MemoryProfilerStage stage) {
     super(client, session, featureTracker);
+    myStage = stage;
   }
 
   @Override
@@ -52,7 +56,7 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker)))));
+            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, myStage)))));
     }
 
     return seriesData;
