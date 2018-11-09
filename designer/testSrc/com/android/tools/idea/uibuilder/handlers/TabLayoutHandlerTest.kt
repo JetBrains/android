@@ -31,6 +31,8 @@ class TabLayoutHandlerTest {
           android:layout_height="wrap_content">
 
           <android.support.design.widget.TabItem
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
               android:text="Monday" />
 
           <android.support.design.widget.TabItem
@@ -56,6 +58,8 @@ class TabLayoutHandlerTest {
           android:layout_height="wrap_content">
 
           <com.google.android.material.tabs.TabItem
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
               android:text="Monday" />
 
           <com.google.android.material.tabs.TabItem
