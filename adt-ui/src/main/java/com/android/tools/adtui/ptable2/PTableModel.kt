@@ -43,6 +43,11 @@ interface PTableModel {
    * A model should notify all its listeners if the [items] have been changed.
    */
   fun addListener(listener: PTableModelUpdateListener) {}
+
+  /**
+   * Refresh the table contents after a property value change.
+   */
+  fun refresh() {}
 }
 
 /**
@@ -51,6 +56,10 @@ interface PTableModel {
 interface PTableModelUpdateListener {
   /**
    * Notifies a listener that the items in the model were changed.
+   *
+   * The [modelChanged] parameter indicates if the items in the model were changed.
+   * If the items were not changed, then a repaint of the table is requested.
+   *
    */
-  fun itemsUpdated()
+  fun itemsUpdated(modelChanged: Boolean)
 }

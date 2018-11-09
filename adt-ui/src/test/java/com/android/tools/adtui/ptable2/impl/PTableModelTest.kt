@@ -24,8 +24,10 @@ import com.android.tools.adtui.ptable2.item.createModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import javax.swing.event.TableModelListener
 
 class PTableModelTest {
 
@@ -89,7 +91,7 @@ class PTableModelTest {
     val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
     val model = PTableModelImpl(tableModel)
     model.expand(2)
-    tableModel.updateTo(Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item4"), Item("item5"))
+    tableModel.updateTo(true, Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item4"), Item("item5"))
 
     assertThat(model.rowCount).isEqualTo(7)
     assertThat(model.getValueAt(0, 0).name).isEqualTo("item1")
@@ -106,8 +108,33 @@ class PTableModelTest {
     val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
     val table = PTableImpl(tableModel, null, DefaultPTableCellRendererProvider(), DummyPTableCellEditorProvider())
     val item = table.item(3)
-    tableModel.updateTo(Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item5"), Item("item4"))
+    tableModel.updateTo(true, Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item5"), Item("item4"))
     val rowIndex = tableModel.items.indexOf(item)
     assertThat(rowIndex).isEqualTo(4)
+  }
+
+  @Test
+  fun testItemsUpdatedWithModelChange() {
+    val tableModel = createModel(Item("item1"), Item("item2"))
+    val model = PTableModelImpl(tableModel)
+    val listener = mock(TableModelListener::class.java)
+    model.addTableModelListener(listener)
+    tableModel.updateTo(true, Item("item3"))
+    assertThat(model.rowCount).isEqualTo(1)
+    assertThat(model.getValueAt(0, 0).name).isEqualTo("item3")
+    verify(listener).tableChanged(ArgumentMatchers.any())
+  }
+
+  @Test
+  fun testItemsUpdatedWithoutModelChange() {
+    val tableModel = createModel(Item("item1"), Item("item2"))
+    val model = PTableModelImpl(tableModel)
+    val listener = mock(TableModelListener::class.java)
+    model.addTableModelListener(listener)
+    tableModel.updateTo(false, Item("item3"))
+    assertThat(model.rowCount).isEqualTo(2)
+    assertThat(model.getValueAt(0, 0).name).isEqualTo("item1")
+    assertThat(model.getValueAt(1, 0).name).isEqualTo("item2")
+    verify(listener).tableChanged(ArgumentMatchers.any())
   }
 }

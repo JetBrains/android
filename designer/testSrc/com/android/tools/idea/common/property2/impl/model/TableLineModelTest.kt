@@ -17,8 +17,8 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableGroupItem
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.idea.common.property2.impl.model.util.TestGroupItem
+import com.android.tools.idea.common.property2.impl.model.util.TestPTableModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -71,37 +71,22 @@ class TableLineModelTest {
     assertThat(test.table.item(5).name).isEqualTo("tone")
   }
 
+  @Test
+  fun testRefresh() {
+    val test = TableTest(true)
+    val model = TableLineModelImpl(test.model, true)
+    model.refresh()
+    assertThat(test.model.refreshCalled).isTrue()
+  }
+
   class TableTest(expanded: Boolean = false) {
-    private val group1: PTableGroupItem = GroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
-    private val group2: PTableGroupItem = GroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
-    val model = makeTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    private val group1: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
+    private val group2: PTableGroupItem = TestGroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
+    val model = TestPTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
     val table = PTable.create(model)
 
     fun applyTableLineModel(tableLineModel: TableLineModelImpl) {
       table.filter = tableLineModel.filter
-    }
-
-    private fun makeTableModel(expanded: Boolean, values: Map<String, String>, groups: List<PTableGroupItem>): PTableModel {
-      return object : PTableModel {
-        override val items = mutableListOf<PTableItem>()
-
-        init {
-          items.addAll(values.map { (name, value) -> TableItem(name, value) })
-          if (!expanded) {
-            items.addAll(groups)
-          }
-          else {
-            groups.forEach { items.add(it); items.addAll(it.children) }
-          }
-        }
-      }
-    }
-
-    private class TableItem(override val name: String, override val value: String?) : PTableItem
-
-    private class GroupItem(override val name: String, items: Map<String, String>): PTableGroupItem {
-      override val value: String? = null
-      override val children = items.map { (name, value) -> TableItem(name, value) }
     }
   }
 }

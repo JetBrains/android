@@ -56,10 +56,10 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
       PTableColumn.VALUE -> item.name != "readonly"
     }
 
-  fun updateTo(vararg newItems: PTableItem) {
+  fun updateTo(modelChanged: Boolean, vararg newItems: PTableItem) {
     items.clear()
     items.addAll(listOf(*newItems))
-    listeners.forEach { it.itemsUpdated() }
+    listeners.forEach { it.itemsUpdated(modelChanged) }
   }
 
   override fun addListener(listener: PTableModelUpdateListener) {

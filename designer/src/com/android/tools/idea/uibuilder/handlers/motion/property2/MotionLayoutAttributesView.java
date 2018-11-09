@@ -234,10 +234,12 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
    */
   private static class MotionTableModel implements PTableModel {
     private final List<PTableItem> myItems;
+    private final List<PTableModelUpdateListener> myListeners;
 
     private MotionTableModel(@NotNull List<NelePropertyItem> items) {
       items.sort(Comparator.comparing(NelePropertyItem::getName).thenComparing(NelePropertyItem::getNamespace));
       myItems = new ArrayList<>(items);
+      myListeners = new ArrayList<>();
     }
 
     @NotNull
@@ -258,7 +260,12 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     @Override
     public void addListener(@NotNull PTableModelUpdateListener listener) {
-      // items are not updated in this model
+      myListeners.add(listener);
+    }
+
+    @Override
+    public void refresh() {
+      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated(false));
     }
   }
 
@@ -286,7 +293,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         return;
       }
       myItems.remove(index);
-      fireUpdate();
+      fireUpdate(true);
     }
 
     public void add(@NotNull NelePropertyItem item) {
@@ -298,7 +305,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       else {
         myItems.set(index, item);
       }
-      fireUpdate();
+      fireUpdate(true);
     }
 
     @Override
@@ -316,8 +323,13 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       myListeners.add(listener);
     }
 
-    private void fireUpdate() {
-      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated());
+    @Override
+    public void refresh() {
+      fireUpdate(false);
+    }
+
+    private void fireUpdate(boolean modelChange) {
+      new ArrayList<>(myListeners).forEach(listener -> listener.itemsUpdated(modelChange));
     }
   }
 
