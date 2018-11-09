@@ -18,16 +18,19 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.Dependencies
 import com.android.builder.model.JavaLibrary
+import java.io.File
 
 data class DependenciesStub(
   private val libraries: Collection<AndroidLibrary> = listOf(),
   private val javaLibraries: Collection<JavaLibrary> = listOf(),
   private val projects: Collection<String> = listOf("project1", "project2"),
-  private val javaModules: Collection<Dependencies.ProjectIdentifier> = listOf()
+  private val javaModules: Collection<Dependencies.ProjectIdentifier> = listOf(),
+  private val runtimeOnlyClasses: Collection<File> = listOf()
 ) : Dependencies {
   override fun getLibraries(): Collection<AndroidLibrary> = libraries
   override fun getJavaLibraries(): Collection<JavaLibrary> = javaLibraries
   @Deprecated("superseded by java modules", ReplaceWith("getJavaModules()"))
   override fun getProjects(): Collection<String> = projects
   override fun getJavaModules(): Collection<Dependencies.ProjectIdentifier> = javaModules
+  override fun getRuntimeOnlyClasses(): Collection<File> = runtimeOnlyClasses
 }
