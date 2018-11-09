@@ -188,16 +188,15 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         else {
           builder.setAction(new InstallAction(myLaunchOptions.getPmInstallOptions()));
         }
-
-        return ImmutableList.of(builder.build());
+        tasks.add(builder.build());
+      } else {
+        InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
+        // Add tasks for each apk (or split-apk) returned by the apk provider
+        tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
+                                       apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
+                                       apkInfo -> new SplitApkDeployTask(myProject,
+                                                                         new DynamicAppDeployTaskContext(apkInfo, disabledFeatures))));
       }
-
-      InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
-      // Add tasks for each apk (or split-apk) returned by the apk provider
-      tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
-                                     apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
-                                     apkInfo -> new SplitApkDeployTask(myProject,
-                                                                       new DynamicAppDeployTaskContext(apkInfo, disabledFeatures))));
     }
     return ImmutableList.copyOf(tasks);
   }
