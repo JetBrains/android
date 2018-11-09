@@ -19,10 +19,9 @@ import com.android.ide.common.rendering.api.TextResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.HashCodes;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * Resource item representing a value resource, e.g. a string or a color.
@@ -56,7 +55,7 @@ class AarTextValueResourceItem extends AarValueResourceItem implements TextResou
   }
 
   @Override
-  public boolean equals(@com.android.annotations.Nullable Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
     AarTextValueResourceItem other = (AarTextValueResourceItem) obj;

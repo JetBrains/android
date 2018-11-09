@@ -140,7 +140,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
 
   @Override
   public int hashCode() {
-    // myVisibilityOrdinal is intentionally not included in hash code because having two resource items
+    // The myVisibilityOrdinal field is intentionally not included in hash code because having two resource items
     // differing only by visibility in the same hash table is extremely unlikely.
     return HashCodes.mix(myTypeOrdinal, myName.hashCode());
   }

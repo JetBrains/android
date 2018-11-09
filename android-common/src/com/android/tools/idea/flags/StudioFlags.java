@@ -371,7 +371,7 @@ public final class StudioFlags {
   private static final FlagGroup RESOURCE_REPOSITORIES = new FlagGroup(FLAGS, "res.repo", "Resource Repositories");
   public static final Flag<Boolean> LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR = Flag.create(
     RESOURCE_REPOSITORIES, "lightweight.resources.aar", "Use lightweight data structures for AAR resources",
-    "If enabled, use lightweight data structures for AAR resources.", true);
+    "If enabled, use lightweight data structures for AAR resources.", false);
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(

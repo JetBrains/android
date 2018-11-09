@@ -145,7 +145,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
           }
           assertTrue("Different ResourceItem at position " + i, previousItem != null && areEquivalent(expectedItem, previousItem));
           assertTrue("Different ResourceValue at position " + i,
-                     areEquivalentResourceValues(expectedItem.getResourceValue(), previousItem.getResourceValue()));
+                     areEquivalentResourceValues(expectedItem.getResourceValue(), previousItem.getResourceValue(), false));
           FolderConfiguration expectedConfiguration = expectedItem.getConfiguration();
           FolderConfiguration previousConfiguration = previousItem.getConfiguration();
           ScreenSizeQualifier expectedQualifier = expectedConfiguration.getScreenSizeQualifier();
@@ -159,7 +159,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       } else {
         assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem));
         assertTrue("Different ResourceValue at position " + i,
-                   areEquivalentResourceValues(expectedItem.getResourceValue(), actualItem.getResourceValue()));
+                   areEquivalentResourceValues(expectedItem.getResourceValue(), actualItem.getResourceValue(), false));
         previousItem = actualItem;
       }
     }
@@ -227,7 +227,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return false;
   }
 
-  private boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2) {
+  private boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2, boolean allowAttrReferences) {
     if (value1 == value2) {
       return true;
     }
@@ -260,7 +260,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return false;
       }
       for (int i = 0; i < attrs1.size(); i++) {
-        if (!areEquivalentResourceValues(attrs1.get(i), attrs2.get(i))) {
+        if (!areEquivalentResourceValues(attrs1.get(i), attrs2.get(i), true)) {
           return false;
         }
       }
@@ -278,7 +278,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return false;
       }
 
-      if (attr1 instanceof AarAttrResourceItem && !(attr2 instanceof AarAttrResourceItem) && attr2.getFormats().isEmpty()) {
+      if (allowAttrReferences && attr1 instanceof AarAttrReference != attr2 instanceof AarAttrReference) {
         // In a proto resource repository a styleable contains attr references, not definitions.
         // Attr references don't include formats or attribute values.
         return true;
@@ -319,7 +319,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       while (it1.hasNext()) {
         StyleItemResourceValue item1 = it1.next();
         StyleItemResourceValue item2 = it2.next();
-        if (!areEquivalentResourceValues(item1, item2)) {
+        if (!areEquivalentResourceValues(item1, item2, true)) {
           return false;
         }
       }
