@@ -1,8 +1,10 @@
 package org.jetbrains.android.dom;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -19,22 +21,31 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiPolyVariantReference;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.ResolveResult;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.containers.HashSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
  * Tests semantic highlighting and completion in layout XML files.
@@ -292,22 +303,23 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("recycler_view_1.xml");
   }
 
+  // TODO b/119441165: Move data binding highlighting tests from AndroidLayoutDomTest out of core module
   public void testDataBindingHighlighting1() throws Throwable {
     // TODO test w/ X
-    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
+    DataBindingUtil.setDataBindingMode(myFacet, DataBindingMode.SUPPORT);
     copyFileToProject("DataBindingHighlighting1.java", "src/p1/p2/DataBindingHighlighting1.java");
     doTestHighlighting("databinding_highlighting1.xml");
   }
 
   public void testDataBindingHighlighting2() throws Throwable {
     // TODO test w/ X
-    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
+    DataBindingUtil.setDataBindingMode(myFacet, DataBindingMode.SUPPORT);
     doTestHighlighting("databinding_highlighting2.xml");
   }
 
   public void testDataBindingHighlighting3() throws Throwable {
     // TODO test w/ X
-    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
+    DataBindingUtil.setDataBindingMode(myFacet, DataBindingMode.SUPPORT);
     copyFileToProject("DataBindingHighlighting3.java", "src/p1/p2/DataBindingHighlighting3.java");
     doTestHighlighting("databinding_highlighting3.xml");
   }
