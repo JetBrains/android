@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class ModuleDataBinding {
   public void setMode(@NotNull DataBindingMode mode) {
     if (myDataBindingMode != mode) {
       myDataBindingMode = mode;
-      DataBindingUtil.incrementModificationCount();
+      InternalDataBindingUtil.incrementModificationCount();
     }
   }
 
@@ -85,10 +85,10 @@ public class ModuleDataBinding {
   }
 
   /**
-   * Set by {@linkplain DataBindingUtil} the first time we need it.
+   * Set by {@linkplain InternalDataBindingUtil} the first time we need it.
    *
    * @param lightBrClass
-   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   * @see InternalDataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
    */
   void setLightBrClass(@NotNull LightBrClass lightBrClass) {
     myLightBrClass = lightBrClass;
@@ -98,7 +98,7 @@ public class ModuleDataBinding {
    * Returns the light BR class for this facet if it is aready set.
    *
    * @return The BR class for this facet, if exists
-   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   * @see InternalDataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
    */
   @Nullable
   LightBrClass getLightBrClass() {
