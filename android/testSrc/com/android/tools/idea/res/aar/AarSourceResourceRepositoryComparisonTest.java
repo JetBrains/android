@@ -405,6 +405,15 @@ public class AarSourceResourceRepositoryComparisonTest extends AndroidTestCase {
     return Pattern.compile(buf.toString());
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      StudioFlags.LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR.clearOverride();
+    } finally {
+      super.tearDown();
+    }
+  }
+
   public void testLoading() throws Exception {
     File resFolder = new File(myAarFolder, SdkConstants.FD_RES);
     long loadTimeWithResourceMerger = 0;
@@ -416,7 +425,7 @@ public class AarSourceResourceRepositoryComparisonTest extends AndroidTestCase {
       AarSourceResourceRepository usingResourceMerger = AarSourceResourceRepository.create(resFolder, LIBRARY_NAME);
       loadTimeWithResourceMerger += System.currentTimeMillis() - start;
 
-      StudioFlags.LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR.clearOverride();;
+      StudioFlags.LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR.override(true);
       start = System.currentTimeMillis();
       AarSourceResourceRepository withoutResourceMerger = AarSourceResourceRepository.create(resFolder, LIBRARY_NAME);
       loadTimeWithoutResourceMerger += System.currentTimeMillis() - start;
