@@ -176,7 +176,7 @@ public class ViewEditorImpl extends ViewEditor {
 
     // Measure unweighted bounds
     return task.measureChildren(parentTag, filter)
-      .whenCompleteAsync((map, ex) -> task.dispose())
+      .whenComplete((map, ex) -> task.dispose())
       .thenApply(map -> {
         if (map == null) {
           return Collections.emptyMap();

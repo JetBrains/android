@@ -65,6 +65,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
@@ -260,7 +261,6 @@ public class LayoutlibSceneManager extends SceneManager {
       getDesignSurface().getSelectionModel().removeListener(mySelectionChangeListener);
       model.getConfiguration().removeListener(myConfigurationChangeListener);
       model.removeListener(myModelChangeListener);
-      model.removeListener(myModelChangeListener);
     }
     myRenderListeners.clear();
 
@@ -422,13 +422,9 @@ public class LayoutlibSceneManager extends SceneManager {
         layout(true);
       }
       else {
-        render(getTriggerFromChangeType(model.getLastChangeType()))
-          .thenAccept(result -> {
-              if (result != null) {
-                mySelectionChangeListener
-                  .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
-              }
-          });
+        render(getTriggerFromChangeType(model.getLastChangeType()));
+        mySelectionChangeListener
+          .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
       }
     }
 
@@ -565,7 +561,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   void doRequestLayoutAndRender(boolean animate) {
     requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
-      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate));
+      .whenComplete((result, ex) -> getModel().notifyListenersModelLayoutComplete(animate));
   }
 
   /**
@@ -592,10 +588,10 @@ public class LayoutlibSceneManager extends SceneManager {
         DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
             try {
-              updateModel().join();
+              updateModel();
             }
             catch (Throwable e) {
-              Logger.getInstance(LayoutlibSceneManager.class).error(e);
+              Logger.getInstance(NlModel.class).error(e);
             }
           }
 
@@ -655,11 +651,11 @@ public class LayoutlibSceneManager extends SceneManager {
 
       if (result != null) {
         updateHierarchy(result);
-        notifyListenersModelLayoutComplete(animate);
+        getModel().notifyListenersModelLayoutComplete(animate);
       }
     }
     catch (InterruptedException | ExecutionException e) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
+      Logger.getInstance(NlModel.class).warn("Unable to run layout()", e);
     }
   }
 
@@ -763,12 +759,12 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param force forces the model to be re-inflated even if a previous version was already inflated
    * @returns whether the model was inflated in this call or not
    */
-  private CompletableFuture<Boolean> inflate(boolean force) {
+  private boolean inflate(boolean force) {
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
     if (project.isDisposed()) {
-      return CompletableFuture.completedFuture(false);
+      return false;
     }
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
 
@@ -777,70 +773,54 @@ public class LayoutlibSceneManager extends SceneManager {
     // disk contents, so we have to push any edits to disk before rendering)
     LayoutPullParsers.saveFileIfNecessary(getModel().getFile());
 
+    RenderResult result = null;
+    RenderTask resultTask;
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
-        return CompletableFuture.completedFuture(false);
+        return false;
       }
-    }
 
-    // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
-    // external changes
-    AndroidFacet facet = getModel().getFacet();
-    myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
+      // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
+      // external changes
+      AndroidFacet facet = getModel().getFacet();
+      myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
-    RenderService renderService = RenderService.getInstance(getModel().getProject());
-    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
-      .withPsiFile(getModel().getFile());
-    RenderTask newTask = setupRenderTaskBuilder(renderTaskBuilder).build();
-    if (newTask != null) {
-      newTask.getLayoutlibCallback()
-        .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
-      return newTask.inflate().whenComplete((result, exception) -> {
-        if (exception != null) {
-          Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
-        }
+      RenderService renderService = RenderService.getInstance(getModel().getProject());
+      if (myRenderTask != null && !myRenderTask.isDisposed()) {
+        myRenderTask.dispose();
+      }
 
+      RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
+        .withPsiFile(getModel().getFile());
+      myRenderTask = setupRenderTaskBuilder(renderTaskBuilder).build();
+      if (myRenderTask != null) {
+        myRenderTask.getLayoutlibCallback()
+          .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
+        result = myRenderTask.inflate();
         if (result == null || !result.getRenderResult().isSuccess()) {
-          newTask.dispose();
-        }
-        else {
-          // Update myRenderTask with the new task
-          synchronized (myRenderingTaskLock) {
-            if (myRenderTask != null && !myRenderTask.isDisposed()) {
-              myRenderTask.dispose();
-            }
-            myRenderTask = newTask;
-          }
-        }
-      })
-        .thenApply(result -> result != null ? result : RenderResult.createBlank(getModel().getFile()))
-        .thenApply(result -> {
-          if (project.isDisposed()) {
-            return false;
-          }
-
-          updateHierarchy(result);
-          myRenderResultLock.writeLock().lock();
-          try {
-            updateCachedRenderResult(result);
-          }
-          finally {
-            myRenderResultLock.writeLock().unlock();
-          }
-
-          return true;
-        });
-    }
-    else {
-      synchronized (myRenderingTaskLock) {
-        if (myRenderTask != null && !myRenderTask.isDisposed()) {
           myRenderTask.dispose();
+          myRenderTask = null;
+
+          if (result == null) {
+            result = RenderResult.createBlank(getModel().getFile());
+          }
         }
       }
+
+      resultTask = myRenderTask;
     }
 
-    return CompletableFuture.completedFuture(false);
+    updateHierarchy(result);
+    myRenderResultLock.writeLock().lock();
+    try {
+      updateCachedRenderResult(result);
+    }
+    finally {
+      myRenderResultLock.writeLock().unlock();
+    }
+
+    return resultTask != null;
   }
 
   @GuardedBy("myRenderResultLock")
@@ -883,26 +863,42 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Asynchronously update the model. This will inflate the layout and notify the listeners using
+   * Synchronously update the model. This will inflate the layout and notify the listeners using
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
    */
-  protected CompletableFuture<Void> updateModel() {
-    return inflate(true)
-      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete())
-      .thenApply(result -> null);
-  }
-
-  protected void notifyListenersModelLayoutComplete(boolean animate) {
-    getModel().notifyListenersModelLayoutComplete(animate);
-  }
-
-  protected void notifyListenersModelUpdateComplete() {
+  protected void updateModel() {
+    inflate(true);
     getModel().notifyListenersModelUpdateComplete();
   }
 
-  private void logConfigurationChange(@NotNull DesignSurface surface) {
-    Configuration configuration = getModel().getConfiguration();
+  /**
+   * Renders the current model synchronously. Once the render is complete, the render callbacks will be called.
+   * <p/>
+   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
+   * <p/>
+   * <b>Do not call this method from the dispatch thread!</b>
+   */
+  protected void render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    try {
+      renderImpl(trigger);
+    }
+    catch (Throwable e) {
+      if (!getModel().getFacet().isDisposed()) {
+        throw e;
+      }
+    } finally {
+      ImmutableList<CompletableFuture<Void>> callbacks;
+      synchronized (myRenderFutures) {
+        callbacks = ImmutableList.copyOf(myRenderFutures);
+        myRenderFutures.clear();
+      }
+      callbacks.forEach(callback -> callback.complete(null));
+    }
+  }
 
+  private void renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    Configuration configuration = getModel().getConfiguration();
+    DesignSurface surface = getDesignSurface();
     if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
@@ -923,97 +919,56 @@ public class LayoutlibSceneManager extends SceneManager {
         NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
       }
     }
-  }
 
-  /**
-   * Renders the current model asynchronously. Once the render is complete, the render callbacks will be called.
-   * <p/>
-   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
-   */
-  @NotNull
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    getModel().resetLastChange();
+    long renderStartTimeMs = System.currentTimeMillis();
+    boolean inflated = inflate(false);
+    long elapsedFrameTimeMs = myElapsedFrameTimeMs;
+
+    Future<RenderResult> futureResult;
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        getDesignSurface().updateErrorDisplay();
+        return;
+      }
+      if (elapsedFrameTimeMs != -1) {
+        myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
+      }
+      futureResult = myRenderTask.render();
+    }
+
+    RenderResult result = Futures.getUnchecked(futureResult);
+    // When the layout was inflated in this same call, we do not have to update the hierarchy again
+    if (result != null && !inflated) {
+      updateHierarchy(result);
+    }
+    myRenderResultLock.writeLock().lock();
     try {
-      DesignSurface surface = getDesignSurface();
-      logConfigurationChange(surface);
-      getModel().resetLastChange();
-
-      long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl()
-        .thenApply(result -> {
-          if (result == null) {
-            return null;
-          }
-
-          myRenderResultLock.writeLock().lock();
-          try {
-            updateCachedRenderResult(result);
-            // Downgrade the write lock to read lock
-            myRenderResultLock.readLock().lock();
-          }
-          finally {
-            myRenderResultLock.writeLock().unlock();
-          }
-          try {
-            long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-            NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                        myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
-            NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
-                                                                       myRenderResult,
-                                                                       renderTimeMs);
-          }
-          finally {
-            myRenderResultLock.readLock().unlock();
-          }
-
-          UIUtil.invokeLaterIfNeeded(() -> {
-            if (!Disposer.isDisposed(this)) {
-              update();
-            }
-          });
-          fireRenderListeners();
-
-          return result;
-        });
+      updateCachedRenderResult(result);
+      // Downgrade the write lock to read lock
+      myRenderResultLock.readLock().lock();
     }
-    catch (Throwable e) {
-      if (!getModel().getFacet().isDisposed()) {
-        throw e;
-      }
-    } finally {
-      ImmutableList<CompletableFuture<Void>> callbacks;
-      synchronized (myRenderFutures) {
-        callbacks = ImmutableList.copyOf(myRenderFutures);
-        myRenderFutures.clear();
-      }
-      callbacks.forEach(callback -> callback.complete(null));
+    finally {
+      myRenderResultLock.writeLock().unlock();
     }
-    return CompletableFuture.completedFuture(null);
-  }
+    try {
+      long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+      NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                  myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
+      NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
+                                                                 myRenderResult,
+                                                                 renderTimeMs);
+    }
+    finally {
+      myRenderResultLock.readLock().unlock();
+    }
 
-  @NotNull
-  private CompletableFuture<RenderResult> renderImpl() {
-    return inflate(false)
-      .thenCompose(inflated -> {
-        long elapsedFrameTimeMs = myElapsedFrameTimeMs;
-
-        synchronized (myRenderingTaskLock) {
-          if (myRenderTask == null) {
-            getDesignSurface().updateErrorDisplay();
-            return CompletableFuture.completedFuture(null);
-          }
-          if (elapsedFrameTimeMs != -1) {
-            myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
-          }
-          return myRenderTask.render().thenApply(result -> {
-            // When the layout was inflated in this same call, we do not have to update the hierarchy again
-            if (result != null && !inflated) {
-              updateHierarchy(result);
-            }
-
-            return result;
-          });
-        }
-      });
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if (!Disposer.isDisposed(this)) {
+        update();
+      }
+    });
+    fireRenderListeners();
   }
 
   public void setElapsedFrameTimeMs(long ms) {

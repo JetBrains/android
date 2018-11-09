@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import com.intellij.testFramework.PlatformTestUtil
 
 class CommonDragTargetTest : SceneTest() {
 
@@ -74,6 +73,7 @@ class CommonDragTargetTest : SceneTest() {
     val textView = myScreen.get("@id/textView").sceneComponent!!
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
 
+    val linearLayout = myScreen.get("@id/linear").sceneComponent!!
     val button = myScreen.get("@id/button").sceneComponent!!
 
     myInteraction.select(textView, textView2)
@@ -90,7 +90,6 @@ class CommonDragTargetTest : SceneTest() {
       assertNull(it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
     }
 
-    val linearLayout = myScreen.get("@id/linear").sceneComponent!!
     assertTrue(linearLayout.children.contains(textView))
     assertTrue(linearLayout.children.contains(textView2))
 

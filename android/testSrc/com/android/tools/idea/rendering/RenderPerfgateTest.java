@@ -136,7 +136,7 @@ public class RenderPerfgateTest extends AndroidTestCase {
 
   private static MetricSample getInflateSamples(RenderTask task) {
     long startTime = System.currentTimeMillis();
-    RenderResult result = Futures.getUnchecked(task.inflate());
+    RenderResult result = task.inflate();
     long elapsedTime = System.currentTimeMillis() - startTime;
 
     checkSimpleLayoutResult(result);
@@ -144,7 +144,7 @@ public class RenderPerfgateTest extends AndroidTestCase {
   }
 
   private static MetricSample getRenderSamples(RenderTask task) {
-    checkSimpleLayoutResult(Futures.getUnchecked(task.inflate()));
+    checkSimpleLayoutResult(task.inflate());
 
     long startTime = System.currentTimeMillis();
     CompletableFuture<RenderResult> resultsFuture = task.render();
