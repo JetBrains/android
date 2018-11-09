@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+
 import com.android.tools.idea.common.actions.IssueNotificationAction;
+import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.common.error.IssuePanel;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.keymap.MacKeymapUtil;
@@ -27,9 +31,6 @@ import com.intellij.openapi.util.SystemInfo;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 /**
  * Fixture representing the right hand side configuration in the first line toolbar above an associated layout editor
@@ -53,7 +54,7 @@ public class NlRhsConfigToolbarFixture {
     new ActionButtonFixture(robot, zoomToFit).click();
   }
 
-  public void openIssuePanel() {
+  public void clickIssuePanelButton() {
     Robot robot = myNlEditorFixture.robot();
     ActionButton button = waitUntilShowing(
       robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
