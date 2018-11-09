@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
@@ -105,12 +105,14 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @NotNull
   @Language("XML")
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    String tabItem = tagName.startsWith(ANDROIDX_PKG_PREFIX) ? TAB_ITEM.newName() : TAB_ITEM.oldName();
+    String tabItem = tagName.startsWith(ANDROID_MATERIAL_PKG) ? TAB_ITEM.newName() : TAB_ITEM.oldName();
     return new XmlBuilder()
       .startTag(tagName)
       .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
       .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
       .startTag(tabItem)
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
       .androidAttribute(ATTR_TEXT, "Monday")
       .endTag(tabItem)
       .startTag(tabItem)
