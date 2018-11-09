@@ -139,17 +139,17 @@ public class ScreenViewLayer extends Layer {
 
     // In some cases, we will try to re-use the previous image to paint on top of it, assuming that it still matches the right dimensions.
     // This way we can save the allocation.
-    BufferedImage previousVisibleImage;
+    BufferedImage previousVisibleImage = myCachedVisibleImage;
     RenderResult renderResult = myScreenView.getResult();
-    previousVisibleImage = myCachedVisibleImage;
-    if (renderResultHasChanged(renderResult)) {
+    boolean drawNewImg = false;
+    if (newRenderImageAvailable(renderResult)) {
       myLastRenderResult = renderResult;
-      myCachedVisibleImage = null;
+      drawNewImg = true;
     }
 
     Graphics2D g = (Graphics2D) graphics2D.create();
-    BufferedImage cachedVisibleImage = myCachedVisibleImage;
-    if (cachedVisibleImage == null || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+    BufferedImage cachedVisibleImage = drawNewImg ? null : previousVisibleImage;
+    if (drawNewImg || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
       if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
         assert renderedImage != null : "Image was already disposed";
@@ -188,12 +188,12 @@ public class ScreenViewLayer extends Layer {
   }
 
   /**
-   * Check whether the provided render result is the same than the previous one
+   * Check whether the provided render result has new image to draw.
    *
    * @param renderResult The renderResult from {@link NlModel#getRenderResult()}
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
    */
-  private boolean renderResultHasChanged(@Nullable RenderResult renderResult) {
+  private boolean newRenderImageAvailable(@Nullable RenderResult renderResult) {
     return renderResult != null && renderResult.hasImage() && renderResult != myLastRenderResult;
   }
 
