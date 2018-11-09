@@ -108,6 +108,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
       .startTag(tagName)
       .withSize(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT)
       .startTag(tabItem)
+      .wrapContent()
       .androidAttribute(ATTR_TEXT, "Monday")
       .endTag(tabItem)
       .startTag(tabItem)
