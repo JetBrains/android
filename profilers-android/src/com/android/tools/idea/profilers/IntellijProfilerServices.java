@@ -360,9 +360,9 @@ public class IntellijProfilerServices implements IdeProfilerServices {
    */
   @NotNull
   private Set<File> getNativeSymbolsDirectories() {
-    String arch = myCodeNavigator.getCpuAbiArch();
+    String arch = myCodeNavigator.fetchCpuAbiArch();
     Map<String, Set<File>> archToDirectories = SymbolFilesLocatorKt.getArchToSymDirsMap(myProject);
-    return archToDirectories.containsKey(arch) ? archToDirectories.get(myCodeNavigator.getCpuAbiArch()) : Collections.emptySet();
+    return archToDirectories.containsKey(arch) ? archToDirectories.get(arch) : Collections.emptySet();
   }
 
   @Override

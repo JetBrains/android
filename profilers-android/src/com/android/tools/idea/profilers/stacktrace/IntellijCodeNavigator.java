@@ -38,6 +38,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,10 +55,29 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   @NotNull
   private final Map<String, String> myApkSrcDirMap;
 
+  /**
+   * Supplier of the target CPU architecture (e.g. arm64, x86, etc) used to build the process currently being profiled. Can be set by
+   * {@link #setCpuAbiArchSupplier(Supplier)}. Although it can't be null, it can return null so the result should be handled accordingly.
+   */
+  @NotNull private Supplier<String> myCpuAbiArchSupplier;
+
   public IntellijCodeNavigator(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
     super(featureTracker);
     myProject = project;
     myApkSrcDirMap = getApkSourceDirMap();
+    myCpuAbiArchSupplier = () -> null;
+  }
+
+  public void setCpuAbiArchSupplier(@NotNull Supplier<String> cpuAbiArch) {
+    myCpuAbiArchSupplier = cpuAbiArch;
+  }
+
+  /**
+   * Fetches the CPU architecture from {@link #myCpuAbiArchSupplier}.
+   */
+  @Nullable
+  public String fetchCpuAbiArch() {
+    return myCpuAbiArchSupplier.get();
   }
 
   @Override
@@ -182,13 +202,14 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   @Nullable
   private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
     ProfilerService service = ProfilerService.getInstance(myProject);
-    if (service == null || location.getFileName() == null || myCpuAbiArch == null) {
+    String arch = fetchCpuAbiArch();
+    if (service == null || location.getFileName() == null || arch == null) {
       return null;
     }
     Symbol symbol;
     try {
       // TODO(b/118482250): Do not run symbolize on UI thread.
-      symbol = service.getNativeSymbolizer().symbolize(myCpuAbiArch, location.getFileName(), location.getNativeVAddress());
+      symbol = service.getNativeSymbolizer().symbolize(arch, location.getFileName(), location.getNativeVAddress());
     }
     catch (IOException e) {
       return null;

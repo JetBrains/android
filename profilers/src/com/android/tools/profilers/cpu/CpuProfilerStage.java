@@ -429,8 +429,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     CodeNavigator navigator = getStudioProfilers().getIdeServices().getCodeNavigator();
     navigator.addListener(this);
-    // Make sure to update the CPU ABI architecture in the code navigator, in case we need to use native symbolize the code location.
-    navigator.setCpuAbiArch(getStudioProfilers().getProcess() == null ? null : getStudioProfilers().getProcess().getAbiCpuArch());
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, myProfilerConfigModel::updateProfilingConfigurations);

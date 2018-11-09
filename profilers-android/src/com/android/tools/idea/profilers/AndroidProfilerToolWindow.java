@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
+import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -264,6 +265,9 @@ public class AndroidProfilerToolWindow implements Disposable {
       service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
       ProfilerClient client = service.getProfilerClient();
       myProfilers = new StudioProfilers(client, ideProfilerServices);
+      IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
+      // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected process.
+      navigator.setCpuAbiArchSupplier(() -> myProfilers.getProcess() == null ? null : myProfilers.getProcess().getAbiCpuArch());
 
       myProfilers.addDependency(this)
                  .onChange(ProfilerAspect.MODE, this::modeChanged)

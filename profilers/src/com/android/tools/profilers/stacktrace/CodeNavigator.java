@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for a service responsible for handling navigations to target {@link CodeLocation}s,
@@ -29,11 +28,6 @@ import org.jetbrains.annotations.Nullable;
 public abstract class CodeNavigator {
   private final List<Listener> myListeners = Lists.newArrayList();
   @NotNull private final FeatureTracker myFeatureTracker;
-  /**
-   * Target CPU architecture (e.g. arm64, x86, etc) used to build the process currently being profiled, if applicable (null otherwise).
-   * TODO(b/118865682): move ownership of this field to somewhere in CPU profiler.
-   */
-  @Nullable protected String myCpuAbiArch;
 
   /**
    * @param featureTracker Tracker used to report how often users navigate to code.
@@ -59,15 +53,6 @@ public abstract class CodeNavigator {
   public abstract boolean isNavigatable(@NotNull CodeLocation location);
 
   protected abstract void handleNavigate(@NotNull CodeLocation location);
-
-  public void setCpuAbiArch(@Nullable String cpuAbiArch) {
-    myCpuAbiArch = cpuAbiArch;
-  }
-
-  @Nullable
-  public String getCpuAbiArch() {
-    return myCpuAbiArch;
-  }
 
   public interface Listener {
     void onNavigated(@NotNull CodeLocation location);
