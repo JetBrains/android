@@ -28,11 +28,13 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   init {
     items.addAll(tableModel.items)
     tableModel.addListener(object : PTableModelUpdateListener {
-      override fun itemsUpdated() {
-        items.clear()
-        items.addAll(tableModel.items)
-        expandedItems.retainAll { isGroupItem(it) }
-        expandedItems.forEach { restoreExpanded(it) }
+      override fun itemsUpdated(modelChanged: Boolean) {
+        if (modelChanged) {
+          items.clear()
+          items.addAll(tableModel.items)
+          expandedItems.retainAll { isGroupItem(it) }
+          expandedItems.forEach { restoreExpanded(it) }
+        }
         fireTableDataChanged()
       }
     })

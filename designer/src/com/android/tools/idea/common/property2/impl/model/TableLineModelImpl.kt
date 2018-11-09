@@ -53,6 +53,10 @@ class TableLineModelImpl(override val tableModel: PTableModel,
     editingRequest(null)
   }
 
+  override fun refresh() {
+    tableModel.refresh()
+  }
+
   private fun editingRequest(item: PTableItem?) {
     updateEditing = true
     rowToEdit = if (item != null) tableModel.items.indexOf(item) else -1
