@@ -138,8 +138,6 @@ public class LayoutlibSceneManager extends SceneManager {
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
   private RenderResult myRenderResult;
-  @GuardedBy("myRenderResultLock")
-  private RenderResult myLastSuccessfulRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private String myPreviousDeviceName;
   private Locale myPreviousLocale;
@@ -283,11 +281,7 @@ public class LayoutlibSceneManager extends SceneManager {
         if (myRenderResult != null) {
           myRenderResult.dispose();
         }
-        if (myLastSuccessfulRenderResult != null) {
-          myLastSuccessfulRenderResult.dispose();
-        }
         myRenderResult = null;
-        myLastSuccessfulRenderResult = null;
       }
       finally {
         myRenderResultLock.writeLock().unlock();
@@ -881,20 +875,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @GuardedBy("myRenderResultLock")
   private void updateCachedRenderResult(RenderResult result) {
-    if (result != null && result.getRenderResult().isSuccess()) {
-      if (myLastSuccessfulRenderResult != null) {
-        myLastSuccessfulRenderResult.dispose();
-      }
-      myLastSuccessfulRenderResult = null;
-      if (myRenderResult != null) {
-        myRenderResult.dispose();
-      }
-    }
-    else if (myRenderResult != null && myRenderResult.getRenderResult().isSuccess()) {
-      if (myLastSuccessfulRenderResult != null) {
-        myLastSuccessfulRenderResult.dispose();
-      }
-      myLastSuccessfulRenderResult = myRenderResult;
+    if (myRenderResult != null && myRenderResult != result) {
+      myRenderResult.dispose();
     }
     myRenderResult = result;
   }
