@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -112,6 +111,6 @@ public class DataBindingPackageFinder extends PsiElementFinder {
   }
 
   private boolean isEnabled() {
-    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }
