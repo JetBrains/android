@@ -15,35 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static junit.framework.TestCase.fail;
-
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.google.common.util.concurrent.Futures;
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandEvent;
 import com.intellij.openapi.command.CommandListener;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.util.Ref;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
@@ -57,78 +46,41 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     myDefaultProperties = new HashMap<>();
   }
 
-  @NotNull
   @Override
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    return runAfterCommandIfNecessary(() -> CompletableFuture.completedFuture(super.render(trigger).join()));
-  }
-
   @NotNull
-  @Override
   public CompletableFuture<Void> requestRender() {
-    return runAfterCommandIfNecessary(() -> CompletableFuture.completedFuture(super.requestRender().join()));
+    CompletableFuture<Void> result = new CompletableFuture<>();
+    runAfterCommandIfNecessary(() -> {
+      render(getTriggerFromChangeType(getModel().getLastChangeType()));
+      result.complete(null);
+    });
+    return result;
   }
 
   @Override
-  protected CompletableFuture<Void> updateModel() {
-    return runAfterCommandIfNecessary(() -> CompletableFuture.completedFuture(super.updateModel().join()));
+  void doRequestLayoutAndRender(boolean animate) {
+    runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
   }
 
   @Override
   protected void requestModelUpdate() {
-    updateModel();
+    runAfterCommandIfNecessary(this::updateModel);
   }
 
-  @Override
-  protected void notifyListenersModelLayoutComplete(boolean animate) {
-    ForkJoinTask<?> task = ForkJoinPool.commonPool().submit(() -> super.notifyListenersModelLayoutComplete(animate));
-    // Since we are the sync version of LayoutlibSceneManager, we add a wait in the UI thread for the asynchronous listeners
-    // to finish.
-    ApplicationManager.getApplication().invokeLater(() -> task.quietlyJoin());
-  }
-
-  @Override
-  protected void notifyListenersModelUpdateComplete() {
-    ForkJoinTask<?> task = ForkJoinPool.commonPool().submit(() -> super.notifyListenersModelUpdateComplete());
-    // Since we are the sync version of LayoutlibSceneManager, we add a wait in the UI thread for the asynchronous listeners
-    // to finish.
-    ApplicationManager.getApplication().invokeLater(() -> task.quietlyJoin());
-  }
-
-  private static <T> T runAfterCommandIfNecessary(Callable<T> runnable) {
-    Ref<T> result = new Ref<>();
-
+  private static void runAfterCommandIfNecessary(Runnable runnable) {
     if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
       CommandProcessor.getInstance().addCommandListener(new CommandListener() {
         @Override
         public void commandFinished(CommandEvent event) {
-          try {
-            result.set(runnable.call());
-          }
-          catch (Exception e) {
-            fail(e.getMessage());
-          }
+          runnable.run();
           CommandProcessor.getInstance().removeCommandListener(this);
-          // Dispatch any events created by the runnable execution
-          UIUtil.dispatchAllInvocationEvents();
         }
       });
-
-      return result.get();
     }
-
-    try {
-      T runnableResult = runnable.call();
-      // Dispatch any events created by the runnable execution
-      UIUtil.dispatchAllInvocationEvents();
-      return runnableResult;
+    else {
+      runnable.run();
     }
-    catch (Exception e) {
-      fail(e.getMessage());
-    }
-    throw new IllegalStateException("Not reachable");
   }
-
 
   @Override
   @NotNull

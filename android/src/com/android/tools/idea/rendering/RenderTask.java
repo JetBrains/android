@@ -64,6 +64,7 @@ import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -624,7 +625,7 @@ public class RenderTask {
       CompletableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
       myRunningFutures.add(newFuture);
       newFuture
-        .whenCompleteAsync((result, ex) -> {
+        .whenComplete((result, ex) -> {
           synchronized (myRunningFutures) {
             myRunningFutures.remove(newFuture);
           }
@@ -638,17 +639,17 @@ public class RenderTask {
    * Inflates the layout but does not render it.
    * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
    */
-  @NotNull
-  public CompletableFuture<RenderResult> inflate() {
+  @Nullable
+  public RenderResult inflate() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 
     XmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
-      return immediateFailedFuture(new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile"));
+      throw new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile");
     }
     if (xmlFile.getProject().isDisposed()) {
-      return CompletableFuture.completedFuture(null);
+      return null;
     }
 
     try {
@@ -662,7 +663,7 @@ public class RenderTask {
 
         //noinspection UndesirableClassUsage
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-      }));
+      })).get();
     }
     catch (Exception e) {
       String message = e.getMessage();
@@ -670,7 +671,7 @@ public class RenderTask {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, xmlFile, myLogger, e));
+      return RenderResult.createSessionInitializationError(this, xmlFile, myLogger, e);
     }
   }
 
@@ -715,53 +716,44 @@ public class RenderTask {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
+    if (myRenderSession == null) {
+      RenderResult renderResult = inflate();
+      Result result = renderResult != null ? renderResult.getRenderResult() : null;
+      if (result == null || !result.isSuccess()) {
+        if (result != null) {
+          if (result.getException() != null) {
+            reportException(result.getException());
+          }
+          myLogger.error(null, result.getErrorMessage(), result.getException(), null, null);
+        }
+        return CompletableFuture.completedFuture(renderResult);
+      }
+    }
+
     PsiFile psiFile = getXmlFile();
     assert psiFile != null;
-
-    CompletableFuture<RenderResult> inflateCompletableResult;
-    if (myRenderSession == null) {
-      inflateCompletableResult = inflate()
-        .whenComplete((renderResult, exception) -> {
-          Result result = renderResult != null ? renderResult.getRenderResult() : null;
-          if (result == null || !result.isSuccess()) {
-            Throwable e = result != null ? result.getException() : exception;
-            if (e != null) {
-              reportException(e);
-            }
-            if (result != null) {
-              myLogger.error(null, result.getErrorMessage(), e, null, null);
-            }
-          }
-        });
-    }
-    else {
-      inflateCompletableResult = CompletableFuture.completedFuture(null);
-    }
-
-    return inflateCompletableResult.thenCompose(ignored -> {
-      try {
-        return runAsyncRenderAction(() -> {
-          myRenderSession.render();
-          RenderResult result =
-            RenderResult.create(this, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
-          Result renderResult = result.getRenderResult();
-          if (renderResult.getException() != null) {
-            reportException(renderResult.getException());
-            myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
-          }
-          return result;
-        });
-      }
-      catch (Exception e) {
-        reportException(e);
-        String message = e.getMessage();
-        if (message == null) {
-          message = e.toString();
+    try {
+      return runAsyncRenderAction(() -> {
+        myRenderSession.render();
+        RenderResult result =
+          RenderResult.create(this, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
+        Result renderResult = result.getRenderResult();
+        if (renderResult.getException() != null) {
+          reportException(renderResult.getException());
+          myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
         }
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-        return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
+        return result;
+      });
+    }
+    catch (Exception e) {
+      reportException(e);
+      String message = e.getMessage();
+      if (message == null) {
+        message = e.toString();
       }
-    });
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
+      return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
+    }
   }
 
   /**
