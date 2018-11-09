@@ -132,10 +132,10 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
   @NotNull
   private static String getExpectedModuleNotificationMessage(@NotNull String moduleName, @Nullable String module2Name) {
     if (module2Name == null) {
-      return "1 APK generated successfully:" + getExpectedModuleLineNotificationMessage(moduleName);
+      return "APK(s) generated successfully for 1 module:" + getExpectedModuleLineNotificationMessage(moduleName);
     }
     else {
-      return "2 APKs generated successfully:" + getExpectedModuleLineNotificationMessage(moduleName) +
+      return "APK(s) generated successfully for 2 modules:" + getExpectedModuleLineNotificationMessage(moduleName) +
              getExpectedModuleLineNotificationMessage(module2Name);
     }
   }
@@ -155,7 +155,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
 
   @NotNull
   private static String getExpectedModuleNotificationMessageNoShowFilePathAction() {
-    return "1 APK generated successfully.";
+    return "APK(s) generated successfully for 1 module.";
   }
 
   @NotNull

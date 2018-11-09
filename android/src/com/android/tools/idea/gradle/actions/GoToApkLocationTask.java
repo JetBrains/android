@@ -104,10 +104,10 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
         if (isShowFilePathActionSupported()) {
           StringBuilder buffer = new StringBuilder();
           int moduleCount = moduleNames.size();
+          buffer.append("APK(s) generated successfully for ");
           buffer.append(moduleCount);
-          buffer.append(" ");
-          buffer.append(moduleCount == 1 ? "APK" : "APKs");
-          buffer.append(" generated successfully:<br/>");
+          buffer.append(moduleCount == 1 ? " module" : " modules");
+          buffer.append(":<br/>");
           for (int i = 0; i < moduleCount; i++) {
             String moduleName = moduleNames.get(i);
             buffer.append("Module '" ).append(moduleName).append("': ");
@@ -125,10 +125,10 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
           // Display file paths in the 'Log' view, since they could be too long to show in a balloon notification.
           StringBuilder buffer = new StringBuilder();
           int moduleCount = moduleNames.size();
+          buffer.append("APK(s) generated successfully for ");
           buffer.append(moduleCount);
-          buffer.append(" ");
-          buffer.append(moduleCount == 1 ? "APK" : "APKs");
-          buffer.append(" generated successfully:\n");
+          buffer.append(moduleCount == 1 ? " module" : " modules");
+          buffer.append(":<br/>");
           for (int i = 0; i < moduleCount; i++) {
             String moduleName = moduleNames.get(i);
             buffer.append(" - ").append(moduleName).append(": ");
@@ -138,10 +138,9 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
             }
           }
           StringBuilder balloonBuffer = new StringBuilder();
+          balloonBuffer.append("APK(s) generated successfully for ");
           balloonBuffer.append(moduleCount);
-          balloonBuffer.append(" ");
-          balloonBuffer.append(moduleCount == 1 ? "APK" : "APKs");
-          balloonBuffer.append(" generated successfully.");
+          balloonBuffer.append(moduleCount == 1 ? " module." : " modules.");
           notification.showBalloon(myNotificationTitle, balloonBuffer.toString(), INFORMATION, new OpenEventLogHyperlink());
           notification.addLogEvent(myNotificationTitle, buffer.toString(), INFORMATION);
         }
