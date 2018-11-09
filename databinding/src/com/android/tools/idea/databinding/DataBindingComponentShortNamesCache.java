@@ -133,6 +133,6 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   }
 
   private boolean isEnabled() {
-    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }

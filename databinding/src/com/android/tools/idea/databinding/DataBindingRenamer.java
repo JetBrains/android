@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.*;
-
 /**
  * Renames resource IDs when Java fields derived from those resources are renamed.
  */
@@ -57,7 +55,7 @@ public class DataBindingRenamer extends AutomaticRenamer {
     if (!(xmlElement instanceof XmlTag)) {
       return null;
     }
-    XmlAttribute xmlAttribute = ((XmlTag)xmlElement).getAttribute(ATTR_ID, ANDROID_URI);
+    XmlAttribute xmlAttribute = ((XmlTag)xmlElement).getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI);
     if (xmlAttribute == null) {
       return null;
     }
@@ -66,7 +64,7 @@ public class DataBindingRenamer extends AutomaticRenamer {
       return null;
     }
     String id = valueElement.getValue();
-    if (!id.startsWith(NEW_ID_PREFIX)) {
+    if (!id.startsWith(SdkConstants.NEW_ID_PREFIX)) {
       return null;
     }
 

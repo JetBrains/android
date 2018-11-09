@@ -14,5 +14,21 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <!-- TODO: Add implementations for extension points as we move code over from tools.idea.databinding -->
+  <extensions defaultExtensionNs="com.intellij">
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
+    <applicationConfigurable groupId="editor" id="android.databinding"
+                             provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <databinding.dataBindingSupport implementation="com.android.tools.idea.databinding.DataBindingSupportImpl"/>
+  </extensions>
 </idea-plugin>

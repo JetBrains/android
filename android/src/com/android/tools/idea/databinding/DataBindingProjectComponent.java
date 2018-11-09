@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,14 +52,14 @@ public class DataBindingProjectComponent implements ModificationTracker {
         if (facet == null) {
           continue;
         }
-        if (ModuleDataBinding.getInstance(facet).isEnabled()) {
+        if (DataBindingUtil.isDataBindingEnabled(facet)) {
           facets.add(facet);
         }
       }
 
       myModificationCount.incrementAndGet();
       return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[0]),
-                                               DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
+                                               DataBindingUtil.getDataBindingEnabledTracker(), ModuleManager.getInstance(project));
     }, false);
 
     myBindingAdapterAnnotations = CachedValuesManager.getManager(project).createParameterizedCachedValue(module -> {
@@ -67,7 +67,7 @@ public class DataBindingProjectComponent implements ModificationTracker {
       final PsiClass adapterClass;
       if (androidFacet != null) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
-        DataBindingMode mode = ModuleDataBinding.getInstance(androidFacet).getDataBindingMode();
+        DataBindingMode mode = DataBindingUtil.getDataBindingMode(androidFacet);
         if (mode == DataBindingMode.NONE) {
           adapterClass = null;
         } else {

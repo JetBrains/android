@@ -7,6 +7,30 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.databinding.iml"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea/xml/relaxng:intellij.relaxng",
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/json:intellij.json",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+    ],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/idea/platform/core-api:intellij.platform.core[module]",
+        "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
+        "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
+        "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
+        "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
+    ],
 )
 
 # managed by go/iml_to_build
@@ -33,18 +57,20 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    test_runtime_deps = [
+    runtime_deps = [
+        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
-    test_srcs = ["testSrc"],
-    visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:JUnit4[test]",
@@ -58,5 +84,6 @@ iml_module(
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/databinding:intellij.android.databinding[module]",
     ],
 )
