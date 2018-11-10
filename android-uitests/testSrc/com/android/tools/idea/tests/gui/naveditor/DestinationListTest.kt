@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -28,8 +29,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.Point
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @RunWith(GuiTestRemoteRunner::class)
 class DestinationListTest {
@@ -74,7 +73,7 @@ class DestinationListTest {
       UIUtil.dispatchAllInvocationEvents()
     }
     val destinationListFixture = DestinationListFixture.create(guiTest.robot())
-    assertEquals(listOf("new_fragment"), destinationListFixture.components.map { it.id })
+    assertThat(destinationListFixture.components.map { it.id }).containsExactly("new_fragment")
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/110924391
@@ -101,8 +100,8 @@ class DestinationListTest {
       .navSurface
       .target().extentSize
     val distance = Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint)
-    assertTrue(distance < 2, distance.toString())
-    assertEquals(1.0, editor.navSurface.scale)
+    assertThat(distance).isLessThan(2.0)
+    assertThat(editor.navSurface.scale).isEqualTo(1.0)
   }
 
 }
