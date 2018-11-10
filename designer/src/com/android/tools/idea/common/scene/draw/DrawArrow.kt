@@ -34,8 +34,8 @@ enum class ArrowDirection {
 }
 
 // TODO: Integrate with DrawConnectionUtils
-class DrawArrow(private val myLevel: Int, private val myDirection: ArrowDirection,
-                @SwingCoordinate private val myRectangle: Rectangle2D.Float, private val myColor: Color) : DrawCommandBase() {
+data class DrawArrow(private val myLevel: Int, private val myDirection: ArrowDirection,
+                     @SwingCoordinate private val myRectangle: Rectangle2D.Float, private val myColor: Color) : DrawCommandBase() {
   private constructor(sp: Array<String>) : this(sp[0].toInt(), ArrowDirection.valueOf(sp[1]), stringToRect2D(sp[2]),
                                                 stringToColor(sp[3]))
 

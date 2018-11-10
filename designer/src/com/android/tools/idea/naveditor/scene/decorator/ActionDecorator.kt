@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.getEffectiveSource
+import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColorSet
@@ -78,8 +79,9 @@ object ActionDecorator : NavBaseDecorator() {
           val targetNlComponent = nlComponent.effectiveDestination ?: return
           val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
           val destRect = Coordinates.getSwingRectDip(view, destinationSceneComponent.fillDrawRect2D(0, null))
+          val isPopAction = nlComponent.popUpTo != null
 
-          DrawAction.buildDisplayList(list, view, actionType, sourceRect, destRect, color)
+          DrawAction.buildDisplayList(list, view, actionType, isPopAction, sourceRect, destRect, color)
         }
       }
     }

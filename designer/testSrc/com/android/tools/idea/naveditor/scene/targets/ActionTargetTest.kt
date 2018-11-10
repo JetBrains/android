@@ -97,7 +97,7 @@ class ActionTargetTest : NavTestCase() {
                               "\n" +
                               "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
                               "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
-                              "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
+                              "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION,null\n" +
                               "DrawPlaceholder,5,491.0x401.0x74.5x126.0\n" +
                               "\n" +
                               "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
@@ -176,7 +176,7 @@ class ActionTargetTest : NavTestCase() {
       "\n" +
       "DrawRectangle,1,650.0x650.0x76.5x128.0,ffa7a7a7,1.0\n" +
       "DrawTruncatedText,3,fragment1,658.0x640.0x68.5x5.0,ff656565,Default:0:9,false\n" +
-      "DrawIcon,650.0x639.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawIcon,650.0x639.0x7.0x7.0,START_DESTINATION,null\n" +
       "DrawPlaceholder,5,651.0x651.0x74.5x126.0\n" +
       "\n" +
       "DrawRectangle,1,650.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
