@@ -215,13 +215,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
   fun testNewConfigVersion() {
     StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
 
-    // Since download is disabled, the current file will be defaultresource-3.3.0.xml -> local-3.3.0.xml, version 100
+    // Since download is disabled, the current file will be defaultresource-3.3.0.xml, version 100
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider)
 
-    // lastSeenVersion starts at -1, so this should be true since 100 > -1
-    TestCase.assertTrue(bundleCreator.isNewConfigVersion)
-
-    // Running this again should be false because last seen is now 100
+    // Disabled download means last seen version is from default resource, so 100 = 100
     TestCase.assertFalse(bundleCreator.isNewConfigVersion)
 
     // After enabling download, the new file will be server-3.3.0.xml, version 150
@@ -229,6 +226,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     TestCase.assertTrue(bundleCreator.isNewConfigVersion)
 
     // And running once again should be false because last seen is now 150
+    TestCase.assertFalse(bundleCreator.isNewConfigVersion)
+
+    // Disabling download again should use local-3.3.0.xml, cached from the download, version 150
+    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
     TestCase.assertFalse(bundleCreator.isNewConfigVersion)
   }
 }

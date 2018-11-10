@@ -120,13 +120,13 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   public boolean isNewConfigVersion() {
     assert ApplicationManager.getApplication().isUnitTestMode() || !ApplicationManager.getApplication().isDispatchThread();
 
-    // Check the current version
-    Path localConfig = myURLProvider.getLocalConfig(getVersion());
-    if (Files.exists(localConfig)) {
-      WhatsNewAssistantBundle oldBundle = parseBundle();
-      if (oldBundle != null) {
-        myLastSeenVersion = oldBundle.getVersion();
-      }
+    // Check the current version. If there is no local config, it is either:
+    //   a) newly installed Android Studio - isNewStudioVersion already takes care of auto-show
+    //   b) no network the last time Studio was opened, so last seen version would have been the
+    //      same as default resource, typically 0.
+    WhatsNewAssistantBundle oldBundle = parseBundle();
+    if (oldBundle != null) {
+      myLastSeenVersion = oldBundle.getVersion();
     }
 
     // Must download any updated xml first
