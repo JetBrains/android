@@ -26,7 +26,7 @@
     <tutorial
         key="whats-new"
         label=" What's New in 3.3"
-        icon="core/whats_new_icon.png"
+        icon="stable/whats_new_icon.png"
         remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
         remoteLinkLabel="Read in a browser">
       <description>
@@ -39,7 +39,7 @@
           from the main menu.
           ]]>
       </description>
-      <step label="Test Step">
+      <step label="Navigation Editor">
         <stepElement>
           <section>
             <![CDATA[
@@ -47,21 +47,193 @@
           <img src="https://d.android.com/studio/releases/assistant/3.2.0/jetpack-overview.gif"
           width="428"
           height="241"
-          alt="">
+          alt="A visual editor in Android Studio helps you manage your apps runtime navigation actions.">
 
            <br><br>
            A visual editor for the XML resource that the new Navigation Architecture Component uses to
            handle navigation actions at runtime.
            <a href="https://d.android.com/topic/libraries/architecture/navigation/navigation-implementing?utm_source=android-studio&utm_medium=studio-assistant">
-           Learn more</a></li>
+           Learn more</a>
            ]]>
           </section>
         </stepElement>
+      </step>
+      <step label="Instant apps in app bundles">
         <stepElement>
           <section>
             <![CDATA[
-            <br><i>Last updated 06/04/2018</i>
-            ]]>
+           You can now build <a href="https://d.android.com/r/studio-wna/aab-overview">Android App Bundles</a> with full support for
+           <a href="https://d.android.com/r/studio-wna/instant-app">Instant Apps</a>. In other words, you can now build and deploy both
+           installed app and Instant App experiences from a single Android Studio project, and include them in a single Android App Bundle.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Optimize Project Sync">
+        <stepElement>
+          <section>
+            <![CDATA[
+           For projects that configure multiple build variants, you can now optimize project syncs to run only on the build variant you
+           currently have selected.
+
+           <br><br>
+           If the IDE doesn't prompt you to enable this optimization, enable it manually by navigating to
+           <b>Settings/Preferences &gt; Experimental &gt; Gradle</b> and checking the box next to <b>Only resolve selected variants</b>.
+           <a href="https://d.android.com/studio/preview/features?utm_source=android-studio&utm_medium=studio-assistant#single_variant_sync">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Profiler updates">
+        <stepElement>
+          <section>
+            <![CDATA[
+           In addition to performance and UI improvements, the Android Studio Profiler includes the following updates.
+            <br><br>
+            <b>Select memory allocation collection rate:</b>
+            To improve app performance while profiling, you can select the rate of data collection for live memory allocation tracking
+            when deploying to devices running API level 26 or higher.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/sampling_rate_dropdown">
+            Learn more</a>
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.3.0/sampling_rate_dropdown.png"
+                 width="428"
+                 height="120"
+                 alt="A new dropdown menu in the memory profiler lets you select the rate of data collection .">
+
+            <br><br>
+            <b>Inspect frames:</b>
+            When you <b>Trace System Calls</b> with the CPU profiler, you can inspect data about how the system rendered each frame to
+            identify bottlenecks that cause UI jank and skipped frames.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/system_trace_frames">
+            Learn more</a>
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.3.0/cpu_frames.png"
+                 width="428"
+                 height="240"
+                 alt="A new frames region in the CPU profiler timeline helps you identify frames that are slow to render.">
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Build system updates">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The Android Gradle plugin 3.3.0 requires Gradle 4.10 and higher, and includes the following updates:
+           <br><br>
+           <ul>
+            <li><b>Improved classpath dependency synchronization:</b>
+            <br>
+            When resolving dependencies on your runtime and compile time classpaths, the plugin attempts to automatically fix certain
+            downstream version conflicts for dependencies that appear across multiple classpaths.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/classpath-sync">
+            Learn more</a>
+            </li>
+            <li><b>Lazy task configuration:</b>
+            The plugin now uses Gradle’s
+            <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html#sec:old_vs_new_configuration_api_overview">
+            new task configuration API</a>, which speeds up the configuration phase by not creating and configuring tasks that are not going
+            to be executed.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/lazy-task-configuration">
+            Learn more</a>
+            </li>
+            <li><b>Improved incremental Java compilation when using annotation processors:</b>
+            Faster build times by improving support for incremental Java compilation when using annotation processors.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/incremental-javac">
+            Learn more</a>
+            </li>
+            <li><b>Better debug info for obsolete API:</b>
+            When the plugin detects that you're using API that's no longer supported, it
+            can now provide more detailed information to help you determine where that API is being
+            used. To see the additional info, you need to include the following in your
+            project's <code>gradle.properties</code> file.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/obsolete_api">
+            Learn more</a>
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android.debug.obsoleteApi=true</pre>
+            </div>
+            </li>
+           </ul>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Improved C/C++ support">
+        <stepElement>
+          <section>
+            <![CDATA[
+           Projects that include C/C++ code can benefit from the following improvements:
+           <br><br>
+           <ul>
+            <li><b>Support for Clang-Tidy:</b> Android Studio now includes support for static code analysis using
+            <a href="http://clang.llvm.org/extra/clang-tidy/">Clang-Tidy</a>. To enable this feature,
+            <a href="https://d.android.com/ndk/guides/#download-ndk">update your NDK</a> to r18 or higher.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/clang-tidy">
+            Learn more</a>
+            </li>
+            <li><b>Updated CMake version:</b>
+            CMake 3.10.2 is now available from the SDK Manager, and you can tell Gradle to use it by including the following
+            in your module's <code>build.gradle</code> file.
+            <a href="https://d.android.com/r/studio-wna/3.3.0/cmake_version">
+            Learn more</a>
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android {
+    ...
+    externalNativeBuild {
+        cmake {
+            ...
+            version "3.10.2"
+        }
+    }
+}</pre>
+            </div>
+           </ul>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Preview R8">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Preview R8, a new code shrinker that also obfuscates, by adding the line below to your project’s
+            <code>gradle.properties</code> file.
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android.enableR8 = true</pre>
+            </div>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Provide quick feedback">
+        <stepElement>
+          <section>
+            <![CDATA[
+           If you've already opted into sharing usage statistics to help improve Android Studio, you'll see these two new icons in the
+           status bar at the bottom of the IDE window:
+           <img src="https://d.android.com/studio/images/buttons/statusbar-feedback_buttons-dark.png" width="40" height="16">
+
+           <br><br>
+           Simply click the icon that best represents your current experience with the IDE. When you do so, the IDE sends usage statistics
+           that allows the Android Studio team to better understand your sentiment.
+           <a href="https://d.android.com/r/studio-wna/3.3.0/feedback-buttons">
+           Learn more</a>
+
+          <br><br><hr><br>
+          <em>Last updated 11/14/2018</em>
+          <br><br>
+           ]]>
           </section>
         </stepElement>
       </step>
