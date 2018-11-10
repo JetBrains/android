@@ -212,7 +212,6 @@ var NlComponent.argumentName: String? by StringAttributeDelegate(ANDROID_URI, AT
 var NlComponent.layout: String? by StringAttributeDelegate(TOOLS_URI, ATTR_LAYOUT)
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
-// TODO: Use IdAutoAttributeDelegate for popUpTo
 var NlComponent.popUpTo: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
 var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
 var NlComponent.popEnterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_ENTER_ANIM)

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getIconRect;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -28,12 +30,11 @@ import com.android.tools.idea.naveditor.scene.ConnectionDirection;
 import com.android.tools.idea.naveditor.scene.CurvePoints;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An Action in the navigation editor
@@ -92,6 +93,11 @@ public class ActionTarget extends BaseTarget {
       CurvePoints points = NavActionHelperKt.getCurvePoints(source, dest, transform);
       picker.addCurveTo(this, 0, (int)points.p1.x, (int)points.p1.y, (int)points.p2.x, (int)points.p2.y, (int)points.p3.x, (int)points.p3.y,
                         (int)points.p4.x, (int)points.p4.y, 10);
+
+      if (NavComponentHelperKt.getPopUpTo(myComponent.getNlComponent()) != null) {
+        Rectangle2D.Float iconRect = getIconRect(source, dest, transform);
+        picker.addRect(this, 0, (int)iconRect.x, (int)iconRect.y, (int)(iconRect.x + iconRect.width), (int)(iconRect.y + iconRect.height));
+      }
     }
   }
 

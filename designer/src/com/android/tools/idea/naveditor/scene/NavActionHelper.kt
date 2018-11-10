@@ -50,6 +50,21 @@ private val CONTROL_POINT_THRESHOLD = JBUI.scale(120)
 @NavCoordinate
 private val ACTION_PADDING = JBUI.scale(8)
 
+// The radius of the circular image in the pop action icon
+@NavCoordinate
+val POP_ICON_RADIUS = JBUI.scale(7)
+
+// The distance from the edge of the circular image in the pop action icon to the closest point on the associated action
+@NavCoordinate
+val POP_ICON_DISTANCE = JBUI.scale(7)
+
+// The maximum distance from the starting point of the action to the closest point to the pop action icon
+@NavCoordinate
+val POP_ICON_RANGE = JBUI.scale(50)
+
+private const val STEP_SIZE = 0.001
+private const val STEP_THRESHOLD = 0.4
+
 /**
  * Returns an array of five points representing the path of the self action
  * start: middle of right side of component
@@ -187,6 +202,55 @@ fun getArrowPoint(context: SceneContext,
                     direction, context.getSwingDimension(shiftY).toFloat())
 }
 
+fun getIconRect(@SwingCoordinate source: Rectangle2D.Float,
+                @SwingCoordinate dest: Rectangle2D.Float,
+                sceneContext: SceneContext): Rectangle2D.Float {
+  val startPoint = getStartPoint(source)
+  val points = getCurvePoints(source, dest, sceneContext)
+
+  var t = 0.0
+  var previousX = 0.0
+  var previousY = 0.0
+  var currentX = getCurveX(points, t)
+  var currentY = getCurveY(points, t)
+  val range = sceneContext.getSwingDimension(POP_ICON_RANGE)
+  val distance = sceneContext.getSwingDimension(POP_ICON_RADIUS + POP_ICON_DISTANCE)
+
+  // Search for the best point to attach the pop icon to.
+  // Four conditions are:
+  //   Don't go past the end of the curve.
+  //   Don't go farther away from the starting point than POP_ICON_RANGE
+  //   Don't stop while the source would obscure the pop icon (if possible)
+  //   Don't go more than STEP_THRESHOLD away from the starting point
+  while (t < 1
+         && Math.hypot(currentX - startPoint.x, currentY - startPoint.y) < range
+         && (currentX - startPoint.x < distance || t < STEP_THRESHOLD)) {
+    t += STEP_SIZE
+    previousX = currentX
+    previousY = currentY
+    currentX = getCurveX(points, t)
+    currentY = getCurveY(points, t)
+  }
+
+  val dx = currentX - previousX
+  val dy = currentY - previousY
+  val ds = Math.hypot(dx, dy)
+
+  var deltaX = dy * distance / ds
+  var deltaY = -dx * distance / ds
+
+  // Choose the counterclockwise normal to the tangent vector unless dx and dy are both negative
+  if (dx < 0 && dy < 0) {
+    deltaX *= -1
+    deltaY *= -1
+  }
+
+  val radius = sceneContext.getSwingDimension(POP_ICON_RADIUS).toFloat()
+  return Rectangle2D.Float((currentX + deltaX).toFloat() - radius,
+                           (currentY + deltaY).toFloat() - radius,
+                           2 * radius, 2 * radius)
+}
+
 private fun getCenterPoint(rectangle: Rectangle2D.Float): Point2D.Float {
   return Point2D.Float(rectangle.centerX.toFloat(), rectangle.centerY.toFloat())
 }
@@ -200,4 +264,18 @@ private fun shiftPoint(p: Point2D.Float,
                        shiftX: Float,
                        shiftY: Float): Point2D.Float {
   return Point2D.Float(p.x + shiftX * direction.deltaX, p.y + shiftY * direction.deltaY)
+}
+
+private fun getCurveX(points: CurvePoints, t: Double): Double {
+  return (Math.pow(1 - t, 3.0) * points.p1.x
+          + 3 * Math.pow(1 - t, 2.0) * t * points.p2.x
+          + 3 * (1 - t) * Math.pow(t, 2.0) * points.p3.x
+          + Math.pow(t, 3.0) * points.p4.x)
+}
+
+private fun getCurveY(points: CurvePoints, t: Double): Double {
+  return (Math.pow(1 - t, 3.0) * points.p1.y
+          + 3 * Math.pow(1 - t, 2.0) * t * points.p2.y
+          + 3 * (1 - t) * Math.pow(t, 2.0) * points.p3.y
+          + Math.pow(t, 3.0) * points.p4.y)
 }

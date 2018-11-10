@@ -16,53 +16,66 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.annotations.VisibleForTesting
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.buildString
+import com.android.tools.idea.common.scene.draw.colorOrNullToString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
+import com.android.tools.idea.common.scene.draw.stringToColorOrNull
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
 import com.android.tools.idea.naveditor.scene.setRenderingHints
-import icons.StudioIcons.NavEditor.Surface
+import icons.StudioIcons.NavEditor.Properties.POP_ACTION
+import icons.StudioIcons.NavEditor.Surface.DEEPLINK
+import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
+import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.geom.Rectangle2D
-import javax.swing.Icon
 
 /**
  * [DrawIcon] is a DrawCommand that draws an icon
  * in the specified rectangle.
  */
-class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float, @VisibleForTesting val iconType: IconType) : DrawCommandBase() {
+data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
+                    @VisibleForTesting val iconType: IconType,
+                    private val color: Color? = null) : DrawCommandBase() {
   enum class IconType {
     START_DESTINATION,
-    DEEPLINK
+    DEEPLINK,
+    POP_ACTION
   }
 
   private val image: Image
 
   init {
-    val icon = when (iconType) {
-      DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
-      DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
+    var icon = when (iconType) {
+      DrawIcon.IconType.START_DESTINATION -> START_DESTINATION
+      DrawIcon.IconType.DEEPLINK -> DEEPLINK
+      DrawIcon.IconType.POP_ACTION -> POP_ACTION
+    }
+
+    if (color != null) {
+      icon = ColoredIconGenerator.generateColoredIcon(icon, color.rgb)
     }
 
     image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
   }
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), IconType.valueOf(sp[1]))
+  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), IconType.valueOf(sp[1]), stringToColorOrNull((sp[2])))
 
-  constructor(s: String) : this(parse(s, 2))
+  constructor(s: String) : this(parse(s, 3))
 
   override fun getLevel(): Int {
     return DRAW_ICON_LEVEL
   }
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, rect2DToString(rectangle), iconType)
+    return buildString(javaClass.simpleName, rect2DToString(rectangle), iconType, colorOrNullToString(color))
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

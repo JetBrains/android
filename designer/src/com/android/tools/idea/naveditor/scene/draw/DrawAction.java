@@ -17,10 +17,11 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.ACTION_STROKE;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.DASHED_ACTION_STROKE;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getArrowPoint;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getCurvePoints;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getDestinationDirection;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getIconRect;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -95,6 +96,7 @@ public class DrawAction extends DrawCommandBase {
   public static void buildDisplayList(@NotNull DisplayList list,
                                       @NotNull SceneView sceneView,
                                       @NotNull ActionType connectionType,
+                                      boolean isPopAction,
                                       @SwingCoordinate Rectangle2D.Float source,
                                       @SwingCoordinate Rectangle2D.Float dest,
                                       @NotNull Color color) {
@@ -108,6 +110,11 @@ public class DrawAction extends DrawCommandBase {
 
 
     list.add(new DrawArrow(DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
+
+    if (isPopAction) {
+      Rectangle2D.Float iconRectangle = getIconRect(source, dest, sceneContext);
+      list.add(new DrawIcon(iconRectangle, DrawIcon.IconType.POP_ACTION, color));
+    }
   }
 
   private static void draw(@NotNull Graphics2D g,

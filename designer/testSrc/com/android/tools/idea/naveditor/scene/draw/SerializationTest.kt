@@ -45,12 +45,15 @@ class SerializationTest : TestCase() {
   fun testDrawIcon() {
     val factory = { s: String -> DrawIcon(s) }
 
-    testSerialization("DrawIcon,10.0x20.0x100.0x200.0,DEEPLINK",
+    testSerialization("DrawIcon,10.0x20.0x100.0x200.0,DEEPLINK,null",
                       DrawIcon(Rectangle2D.Float(10f, 20f, 100f, 200f),
                                DrawIcon.IconType.DEEPLINK), factory)
-    testSerialization("DrawIcon,20.0x10.0x200.0x100.0,START_DESTINATION",
+    testSerialization("DrawIcon,20.0x10.0x200.0x100.0,START_DESTINATION,null",
                       DrawIcon(Rectangle2D.Float(20f, 10f, 200f, 100f),
                                DrawIcon.IconType.START_DESTINATION), factory)
+    testSerialization("DrawIcon,20.0x10.0x200.0x100.0,POP_ACTION,ffff0000",
+                      DrawIcon(Rectangle2D.Float(20f, 10f, 200f, 100f),
+                               DrawIcon.IconType.POP_ACTION, Color.RED), factory)
   }
 
   fun testDrawAction() {
