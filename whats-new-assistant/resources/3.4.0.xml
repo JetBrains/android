@@ -16,16 +16,16 @@
   -->
 <tutorialBundle
     name="What's New"
-    logo="core/whats_new_logo.png"
     resourceRoot="/"
     stepByStep="false"
-    hideStepIndex="true">
+    hideStepIndex="true"
+    version="3402">
   <feature
       name="What's New in 3.4">
     <tutorial
         key="whats-new"
         label=" What's New in 3.4"
-        icon="core/whats_new_icon.png"
+        icon="preview/whats_new_icon.png"
         remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
         remoteLinkLabel="Read in a browser">
       <description>
@@ -46,14 +46,32 @@
            <img src="https://d.android.com/studio/releases/assistant/3.3.0/new-psd.gif"
            width="428"
            height="296"
-           alt="">
+           alt="The new project structure dialog lets you, for example, manage build types,
+                product flavors, and their properties.">
 
            <br><br>
-           Click <b>File &gt; Project Structure</b> to use the improved Project Structure dialog, which now allows you to better manage
-           build variants and their properties; visualize the dependency graph of each module; verify that dependencies are up-to-date; and
-           more.
+           Click <b>File &gt; Project Structure</b> to use the improved Project Structure dialog,
+           which now allows you to better manage build variants and their properties, visualize the
+           dependency graph of each module, verify that dependencies are up-to-date, and more.
            <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
            Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Re-import Gradle project">
+        <stepElement>
+          <section>
+            <![CDATA[
+           If Android Studio fails to download dependencies you've added to your project through
+           Gradle, you can attempt to fix the issue and re-import the Gradle project by selecting
+           <b>File &gt; Re-Import Gradle Project</b> from the menu bar.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/reimport_gradle">
+           Learn more</a></li>
+
+          <br><br><hr><br>
+          <em>Last updated 11/14/2018</em>
+          <br><br>
            ]]>
           </section>
         </stepElement>
