@@ -32,9 +32,11 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.ui.picker.ColorListener
 import java.awt.Color
 import java.awt.Point
+import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.*
+import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
@@ -125,6 +127,9 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
       .addColorListener(ColorListener { color, _ -> property.value = colorToString(color) })
       .focusWhenDisplay(true)
       .setFocusCycleRoot(true)
+      .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true), object : AbstractAction() {
+        override fun actionPerformed(event: ActionEvent) = dialog.close()
+      })
       .build()
 
     dialog.show(panel, null, location)
