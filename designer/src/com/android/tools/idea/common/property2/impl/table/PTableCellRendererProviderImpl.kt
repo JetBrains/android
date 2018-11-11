@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.table
 
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.*
+import com.intellij.util.ui.UIUtil
 
 /**
  * Standard table cell renderer provider.
@@ -33,8 +34,10 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
 
   private val defaultNameRenderer = DefaultNameTableCellRenderer()
   private val defaultValueRenderer = DefaultValueTableCellRenderer()
-  private val nameRenderer = EditorBasedTableCellRenderer(nameType, nameControlTypeProvider, nameEditorProvider, defaultNameRenderer)
-  private val valueRenderer = EditorBasedTableCellRenderer(valueType, valueControlTypeProvider, valueEditorProvider, defaultValueRenderer)
+  private val nameRenderer = EditorBasedTableCellRenderer(
+    nameType, nameControlTypeProvider, nameEditorProvider, UIUtil.FontSize.SMALL, defaultNameRenderer)
+  private val valueRenderer = EditorBasedTableCellRenderer(
+    valueType, valueControlTypeProvider, valueEditorProvider, UIUtil.FontSize.NORMAL, defaultValueRenderer)
 
   override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellRenderer {
     return when (column) {

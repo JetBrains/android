@@ -20,6 +20,7 @@ import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
 import com.google.common.html.HtmlEscapers
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
@@ -47,6 +48,7 @@ class CollapsibleLabel(val model: CollapsibleLabelModel) : JBLabel(model.name) {
 
   init {
     model.addValueChangedListener(ValueChangedListener { valueChanged() })
+    font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     valueChanged()
   }
 
