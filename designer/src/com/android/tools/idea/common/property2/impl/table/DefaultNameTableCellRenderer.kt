@@ -41,6 +41,7 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
     append(item.name)
     setPaintFocusBorder(false)
     setFocusBorderAroundIcon(true)
+    font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     myBorder = JBUI.Borders.empty()
     var indent = leftIconArea
     if (item is PTableGroupItem) {

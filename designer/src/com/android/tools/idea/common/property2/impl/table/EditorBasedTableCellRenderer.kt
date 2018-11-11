@@ -38,6 +38,7 @@ import javax.swing.border.Border
 class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: Class<P>,
                                                         private val controlTypeProvider: ControlTypeProvider<P>,
                                                         private val editorProvider: EditorProvider<P>,
+                                                        private val fontSize: UIUtil.FontSize,
                                                         private val defaultRenderer: PTableCellRenderer) : PTableCellRenderer {
   private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
 
@@ -68,6 +69,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val panel = CellPanel()
     panel.add(editor, BorderLayout.CENTER)
     panel.border = createBorder(column, editor, gridLineColor)
+    editor.font = UIUtil.getLabelFont(fontSize)
 
     val result = Pair(model, panel)
     componentCache[key] = result
