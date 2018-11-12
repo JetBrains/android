@@ -289,10 +289,11 @@ class ResourceExplorerView(
       list.repaint(list.getCellBounds(index, index))
     }
     return when (type) {
-      ResourceType.DRAWABLE -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, imageCache, refreshCallBack)
+      ResourceType.DRAWABLE, ResourceType.LAYOUT -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getPreview, imageCache,
+                                                                                 refreshCallBack)
       ResourceType.COLOR -> ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project,
                                                       resourcesBrowserViewModel.resourceResolver)
-      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getDrawablePreview, imageCache, refreshCallBack)
+      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getPreview, imageCache, refreshCallBack)
       else -> ListCellRenderer { _, value, _, _, _ ->
         JLabel(value.name)
       }

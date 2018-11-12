@@ -70,7 +70,7 @@ class ProjectResourcesBrowserViewModelTest {
   fun getDrawablePreview() {
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module)
-    val drawableFuture = viewModel.getDrawablePreview(Dimension(32, 32), DesignAsset(pngDrawable))
+    val drawableFuture = viewModel.getPreview(Dimension(32, 32), DesignAsset(pngDrawable))
     val image = drawableFuture.get(1, TimeUnit.SECONDS) as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
   }

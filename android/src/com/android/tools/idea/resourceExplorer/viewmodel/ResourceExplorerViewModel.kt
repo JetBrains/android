@@ -45,7 +45,7 @@ interface ResourceExplorerViewModel {
   /**
    * Returns a preview of the [DesignAsset].
    */
-  fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>
+  fun getPreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>
 
   /**
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the

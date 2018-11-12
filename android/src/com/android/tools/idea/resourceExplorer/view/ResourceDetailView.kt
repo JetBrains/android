@@ -149,7 +149,7 @@ class ResourceDetailView(
     metadata = viewModel.getSize(asset)
 
     val image = imageCache.computeAndGet(asset, EMPTY_ICON, false) {
-      viewModel.getDrawablePreview(thumbnailSize, asset)
+      viewModel.getPreview(thumbnailSize, asset)
         .whenComplete { image, _ ->
           thumbnail = JBLabel(ImageIcon(image))
           repaint()
