@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFe
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
@@ -417,7 +416,6 @@ class AddDynamicFeatureTest {
   private fun writeDistModuleToBaseManifest(isInstant: Boolean) {
     var editor = guiTest.ideFrame().getEditor()
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
     editor.moveBetween("\"http://schemas.android.com/apk/res/android\"", "")
     editor.enterText("\nxmlns:dist=\"http://schemas.android.com/apk/distribution\"")
     editor.moveBetween("google.simpleapplication\" >", "")
@@ -427,8 +425,6 @@ class AddDynamicFeatureTest {
     else {
       editor.enterText("""<dist:module dist:instant="false" />""")
     }
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0)
-
   }
 
   private fun createDefaultDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
