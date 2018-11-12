@@ -386,11 +386,11 @@ class ImagePoolImpl implements ImagePool {
       try {
 
         if (x + w > myWidth) {
-          throw new IndexOutOfBoundsException(String.format("x + y is out bounds (image width is = %d)", h));
+          throw new IndexOutOfBoundsException(String.format("x (%d) + y (%d) is out bounds (image width is = %d)", x, y, myWidth));
         }
 
         if (y + h > myHeight) {
-          throw new IndexOutOfBoundsException(String.format("y + h is out bounds (image height is = %d)", h));
+          throw new IndexOutOfBoundsException(String.format("y (%d) + h (%d) is out bounds (image height is = %d)", y, h, myHeight));
         }
 
         BufferedImage newImage;
