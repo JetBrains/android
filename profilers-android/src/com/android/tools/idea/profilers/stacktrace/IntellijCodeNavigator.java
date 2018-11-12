@@ -25,6 +25,7 @@ import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.base.Strings;
 import com.intellij.build.FileNavigatable;
 import com.intellij.build.FilePosition;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,14 +84,20 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
   @Override
   protected void handleNavigate(@NotNull CodeLocation location) {
-    Navigatable nav = getNavigatable(location);
-    if (nav != null) {
-      nav.navigate(true);
-    }
+    // Gets the navigatable in another thread, so we don't block the UI while potentially performing heavy operations, such as searching for
+    // the java class/method in the PSI tree or using llvm-symbolizer to get a native function name.
+    CompletableFuture.supplyAsync(
+      () -> getNavigatable(location), ApplicationManager.getApplication()::executeOnPooledThread)
+      .thenAcceptAsync(nav -> {
+        if (nav != null) {
+          nav.navigate(true);
+        }
+      }, ApplicationManager.getApplication()::invokeLater);
   }
 
   @Override
   public boolean isNavigatable(@NotNull CodeLocation location) {
+    // TODO(b/119398387): consider caching the call to getNavigatable to reuse it in the following call to handleNavigate
     return getNavigatable(location) != null;
   }
 

@@ -295,7 +295,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
         protected boolean onDoubleClick(MouseEvent event) {
           setLastPopupPoint(event);
           CodeLocation codeLocation = getCodeLocation();
-          if (codeLocation != null && navigator.isNavigatable(codeLocation)) {
+          if (codeLocation != null) {
             navigator.navigate(codeLocation);
           }
           return false;
