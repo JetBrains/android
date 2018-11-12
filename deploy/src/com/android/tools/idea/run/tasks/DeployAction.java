@@ -18,16 +18,10 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
-import com.android.tools.idea.run.ApkFileUnit;
-import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class DeployAction {
   /**
@@ -45,7 +39,7 @@ public abstract class DeployAction {
    * @param apkFiles      the apk files to deploy.
    */
   abstract void deploy(Project project, IDevice device, Deployer deployer, String applicationId, List<File> apkFiles)
-    throws IOException, DeployerException;
+    throws DeployerException;
 
   // TODO: Update some interfaces to properly take File or ApkFileUnit in place of String, so we don't need to do this.
   protected static final List<String> getPathsToInstall(List<File> apkFiles) {
