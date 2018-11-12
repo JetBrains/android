@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.details.JarDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.MultipleLibraryDependenciesDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.*;
@@ -213,6 +214,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   private void initializeDependencyDetails() {
     addDetails(new MultipleLibraryDependenciesDetails());
+    addDetails(new JarDependencyDetails(getContext()));
     addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 

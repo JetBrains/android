@@ -25,12 +25,14 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedJarDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.SimpleNode
+import java.io.File
 
 
 fun <T> createResolvedLibraryDependencyNode(
@@ -147,6 +149,23 @@ class ResolvedLibraryDependencyNode(
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     if (spec.group != null) {
       presentation.addText(" (${spec.group})", SimpleTextAttributes.GRAY_ATTRIBUTES)
+    }
+  }
+}
+
+class JarDependencyNode(
+  parent: AbstractPsNode,
+  val dependency: PsResolvedJarDependency
+) : AbstractDependencyNode<PsResolvedJarDependency>(parent, dependency) {
+  override fun getChildren(): Array<SimpleNode> = arrayOf()
+
+  override fun update(presentation: PresentationData) {
+    super.update(presentation)
+    val file = File(dependency.filePath)
+    presentation.clearText()
+    presentation.addText(file.name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    if (!file.parentFile?.path.isNullOrEmpty()) {
+      presentation.addText(" (${file.parentFile?.path})", SimpleTextAttributes.GRAY_ATTRIBUTES)
     }
   }
 }

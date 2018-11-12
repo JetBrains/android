@@ -148,12 +148,15 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
                 lib3:0.9.1 (com.example.jlib)
                     lib4:0.9.1 (com.example.jlib)
                 lib4:0.9.1 (com.example.jlib)
+                jarlib-1.1.jar (libs)
             jModuleL
                 lib3:1.0 (com.example.jlib)
                     lib4:1.0 (com.example.jlib)
             nestedZ
                 lib4:0.6 (com.example.jlib)
-            lib4:0.6 (com.example.jlib)""".trimIndent()
+            lib4:0.6 (com.example.jlib)
+            libsam1-1.1.jar (../lib)
+            libsam2-1.1.jar (../lib)""".trimIndent()
     val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))

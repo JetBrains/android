@@ -53,6 +53,8 @@ fun createNodesForResolvedDependencies(
     .filter { it -> !allTransitive.contains(it.spec.compactNotation()) }
   declared.addAll(otherUnrecognised)
 
+  declared.addAll(collection.jars)
+
   for (dependency in declared) {
     val child = AbstractDependencyNode.createResolvedNode(parent, dependency)
     if (child != null) {

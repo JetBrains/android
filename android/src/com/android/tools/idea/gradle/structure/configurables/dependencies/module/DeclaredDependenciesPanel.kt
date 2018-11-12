@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.module
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.dependencies.details.JarDependencyDetails
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.ModuleDependencyDetails
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.SingleDeclaredLibraryDependencyDetails
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.DependencySelection
@@ -107,6 +108,7 @@ internal class DeclaredDependenciesPanel(
 
   private fun initializeDependencyDetails() {
     addDetails(SingleDeclaredLibraryDependencyDetails(context))
+    addDetails(JarDependencyDetails(context))
     addDetails(ModuleDependencyDetails(context, true))
   }
 
@@ -198,7 +200,7 @@ internal class DeclaredDependenciesPanel(
     dependenciesTable.selectDependency(toSelect)
   }
 
-  private inner class RemoveDependencyAction internal constructor() : DumbAwareAction("Remove Dependency...", "", AllIcons.Actions.Delete) {
+  private inner class RemoveDependencyAction internal constructor() : DumbAwareAction("Remove Dependency...", "", AllIcons.Actions.Cancel) {
     init {
       registerCustomShortcutSet(CommonShortcuts.getDelete(), dependenciesTable)
     }
