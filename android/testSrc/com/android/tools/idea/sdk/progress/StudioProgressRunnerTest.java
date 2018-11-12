@@ -15,20 +15,33 @@
  */
 package com.android.tools.idea.sdk.progress;
 
+import static com.intellij.testFramework.EdtTestUtil.runInEdtAndWait;
+
 import com.android.repository.api.ProgressRunner;
 import com.android.tools.idea.util.FutureUtils;
 import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.android.AndroidTestCase;
-
+import com.intellij.testFramework.fixtures.BareTestFixtureTestCase;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runners.model.Statement;
 
 /**
  * Tests for {@link StudioProgressRunner}
  */
-public class StudioProgressRunnerTest extends AndroidTestCase {
+public class StudioProgressRunnerTest extends BareTestFixtureTestCase {
+  @Rule public TestRule runInEdt = (base, description) -> new Statement() {
+    @Override
+    public void evaluate() {
+      runInEdtAndWait(() -> base.evaluate());
+    }
+  };
+
+  @Test
   public void testSyncWithProgressNonUi() throws Exception {
     StudioProgressRunner runner = new StudioProgressRunner(true, false, "test", null);
     AtomicBoolean invoked = new AtomicBoolean(false);
@@ -47,6 +60,7 @@ public class StudioProgressRunnerTest extends AndroidTestCase {
     assertTrue(invoked.get());
   }
 
+  @Test
   public void testAsyncWithProgressNonUi() throws Exception {
     StudioProgressRunner runner = new StudioProgressRunner(false, false, "test", null);
     Semaphore lock = new Semaphore(1);
@@ -65,6 +79,7 @@ public class StudioProgressRunnerTest extends AndroidTestCase {
     lock.release();
   }
 
+  @Test
   public void testSyncFromNonUi() throws Exception {
     Future f = ApplicationManager.getApplication().executeOnPooledThread(() -> {
       StudioProgressRunner runner = new StudioProgressRunner(true, false, "test", null);
