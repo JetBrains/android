@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
@@ -28,6 +29,7 @@ import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.aar.AarResourceRepository
 import com.android.tools.idea.res.resolveDrawable
+import com.android.tools.idea.resourceExplorer.plugin.LayoutRenderer
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
@@ -36,6 +38,7 @@ import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
@@ -43,7 +46,7 @@ import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
 private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
-private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.SAMPLE_DATA)
+private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]
@@ -121,12 +124,33 @@ class ProjectResourcesBrowserViewModel(
   /**
    * Returns a preview of the [DesignAsset].
    */
-  override fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> {
-    val resolveValue = designAsset.resolveValue() ?: return CompletableFuture.completedFuture(null)
+  override fun getPreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> =
+    when (designAsset.type) {
+      ResourceType.LAYOUT -> getLayoutPreview(designAsset)
+      ResourceType.DRAWABLE -> getDrawablePreview(dimension, designAsset)
+      else -> null
+    }
+    ?: CompletableFuture.completedFuture(null)
+
+  private fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>? {
+    val resolveValue = designAsset.resolveValue() ?: return null
     val file = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
                ?: designAsset.file
     return DesignAssetRendererManager.getInstance().getViewer(file)
       .getImage(file, facet.module, dimension)
+  }
+
+  /**
+   * Returns a preview of the [DesignAsset].
+   */
+  private fun getLayoutPreview(designAsset: DesignAsset): CompletableFuture<out Image?>? {
+    val file = designAsset.file
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file)
+    return if (psiFile is XmlFile) {
+      val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
+      LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration)
+    }
+    else null
   }
 
   private fun getModuleResources(type: ResourceType): ResourceSection {
@@ -221,4 +245,5 @@ data class ResourceSection(val type: ResourceType,
                            val libraryName: String = "",
                            val assets: List<DesignAssetSet>)
 
-private fun userReadableLibraryName(lib: AarResourceRepository) = GradleCoordinate.parseCoordinateString(lib.libraryName)?.artifactId ?: ""
+private fun userReadableLibraryName(lib: AarResourceRepository) = GradleCoordinate.parseCoordinateString(lib.libraryName)?.artifactId
+                                                                  ?: ""
