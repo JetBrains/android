@@ -15,24 +15,25 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 /**
  * Theme utility class for use with templates.
@@ -86,7 +87,10 @@ public class ThemeHelper {
     }
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    ResourceValue value = resolver.findItemInStyle(theme, "windowActionBar", theme.isFramework());
+
+    // TODO(namespaces): resolve themeName in the context of the right manifest file.
+    ResourceValue value =
+      resolver.resolveResValue(resolver.findItemInStyle(theme, ResourceReference.attr(ResourceNamespace.TODO(), "windowActionBar")));
     if (value == null || value.getValue() == null) {
       return true;
     }
@@ -98,11 +102,17 @@ public class ThemeHelper {
     configuration.setTheme(themeName);
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    boolean isFramework = themeName.startsWith(SdkConstants.PREFIX_ANDROID);
-    if (isFramework) {
-      themeName = themeName.substring(SdkConstants.PREFIX_ANDROID.length());
+
+    ResourceUrl url = ResourceUrl.parse(themeName);
+    if (url == null) {
+      return null;
     }
-    return resolver.getStyle(themeName, isFramework);
+    // TODO(namespaces): resolve themeName in the context of the right manifest file.
+    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    if (reference == null) {
+      return null;
+    }
+    return resolver.getStyle(reference);
   }
 
   @Nullable
