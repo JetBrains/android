@@ -48,7 +48,7 @@ class DependenciesTest : GradleFileModelTestCase() {
       val dep = deps[0] as FileTreeDependencyModel
       assertThat(dep.configurationName(), equalTo("api"))
       assertThat(dep.dir().toString(), equalTo("libs"))
-      assertThat(dep.includes().toList()?.map {it.toString()}, equalTo(listOf("*.jar")))
+      assertThat(dep.includes().toList()?.map { it.toString() }, equalTo(listOf("*.jar")))
       assertThat(dep.excludes().toList(), nullValue())
     }
     run {

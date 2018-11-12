@@ -21,6 +21,6 @@ android {
 
 dependencies {
   api 'com.android.support:appcompat-v7:+'
-  api fileTree(dir: 'libs', include: ['*.jar'])
+  api files('../lib/libsam1-1.1.jar')
   implementation project(":jModuleL")
 }
