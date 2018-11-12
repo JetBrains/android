@@ -68,9 +68,10 @@ class PsDeclaredLibraryJavaDependency(
 
     override fun getParsed(model: PsDeclaredLibraryJavaDependency): ArtifactDependencyModel? = model.parsedModel
 
-    // TODO(solodkyy): Ensure setModified refreshes the resolved dependency collection when required.
+    // TODO(b/118814130): Java resolved dependency collection is not refreshed when requested version changes
     override fun setModified(model: PsDeclaredLibraryJavaDependency) {
       model.isModified = true
+      model.parent.fireDependencyModifiedEvent(model)
     }
 
     private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.

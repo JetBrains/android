@@ -19,6 +19,8 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.google.common.collect.ArrayListMultimap
 import com.intellij.openapi.application.ApplicationManager
@@ -26,6 +28,8 @@ import com.intellij.openapi.application.ApplicationManager
 class PsParsedDependencies(parsedModel: GradleBuildModel?) {
   // Key: module's Gradle path
   private val parsedModuleDependencies = ArrayListMultimap.create<String, ModuleDependencyModel>()
+  private val parsedFileDependencies = ArrayListMultimap.create<String, FileDependencyModel>()
+  private val parsedFileTreeDependencies = ArrayListMultimap.create<String, FileTreeDependencyModel>()
 
   // Key: artifact group ID + ":" + artifact name (e.g. "com.google.guava:guava")
   private val parsedArtifactDependencies = ArrayListMultimap.create<String, ArtifactDependencyModel>()
@@ -37,11 +41,15 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
   fun reset(parsedModel: GradleBuildModel?) {
     parsedArtifactDependencies.clear()
     parsedModuleDependencies.clear()
+    parsedFileTreeDependencies.clear()
+    parsedFileDependencies.clear()
     if (parsedModel != null) {
       ApplicationManager.getApplication().runReadAction {
         for (parsedDependency in parsedModel.dependencies().all()) {
           when (parsedDependency) {
             is ArtifactDependencyModel -> parsedArtifactDependencies.put(createIdFrom(parsedDependency), parsedDependency)
+            is FileDependencyModel -> parsedFileDependencies.put(parsedDependency.file().forceString(), parsedDependency)
+            is FileTreeDependencyModel -> parsedFileTreeDependencies.put(parsedDependency.dir().forceString(), parsedDependency)
             is ModuleDependencyModel -> parsedModuleDependencies.put(parsedDependency.path().forceString(), parsedDependency)
           }
         }
@@ -62,6 +70,22 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
     return potentialMatches.toList()
   }
 
+  fun findFileDependencies(
+    filePath: String
+  ): List<FileDependencyModel> {
+    val potentialMatches = parsedFileDependencies[filePath] ?: return listOf()
+    // Do not return live copy.
+    return potentialMatches.toList()
+  }
+
+  fun findFileTreeDependencies(
+    filePath: String
+  ): List<FileTreeDependencyModel> {
+    val potentialMatches = parsedFileTreeDependencies[filePath] ?: return listOf()
+    // Do not return live copy.
+    return potentialMatches.toList()
+  }
+
   fun findModuleDependency(gradlePath: String, predicate: (ModuleDependencyModel) -> Boolean = { true }): ModuleDependencyModel? =
     parsedModuleDependencies[gradlePath]?.find(predicate)
 
@@ -76,6 +100,14 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
 
   fun forEachLibraryDependency(block: (ArtifactDependencyModel) -> Unit) {
     parsedArtifactDependencies.values().forEach(block)
+  }
+
+  fun forEachFileDependency(block: (FileDependencyModel) -> Unit) {
+    parsedFileDependencies.values().forEach(block)
+  }
+
+  fun forEachFileTreeDependency(block: (FileTreeDependencyModel) -> Unit) {
+    parsedFileTreeDependencies.values().forEach(block)
   }
 
   private fun createIdFrom(group: String?, name: String) =

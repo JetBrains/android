@@ -16,14 +16,24 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
-import com.android.tools.idea.gradle.structure.model.android.*
+import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
+import com.android.tools.idea.gradle.structure.model.android.findModuleDependency
+import com.android.tools.idea.gradle.structure.model.android.findVariant
+import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
-import org.hamcrest.CoreMatchers.*
+import com.intellij.util.containers.nullize
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
+import org.junit.Ignore
 
 class DependencyManagementTest : DependencyTestCase() {
   private lateinit var resolvedProject: Project
@@ -141,6 +151,26 @@ class DependencyManagementTest : DependencyTestCase() {
       assertThat(lib3.testDeclared(), hasItems(true))
       assertThat(lib4old, nullValue())
       assertThat(lib4new.testDeclared(), hasItems(true))
+    }
+  }
+
+  fun testResolvedJarDependencies() {
+    val libModule = project.findModuleByName("moduleA") as PsAndroidModule
+    val jLibModule = project.findModuleByName("jModuleK") as PsJavaModule
+
+    run {
+      val artifact = libModule.findVariant("release")!!.findArtifact(ARTIFACT_MAIN)
+      val dependencies = artifact!!.dependencies
+      val lib1 = dependencies.findJarDependencies("../lib/libsam1-1.1.jar").nullize()
+      val lib2 = dependencies.findJarDependencies("../lib/libsam2-1.1.jar").nullize()
+      assertThat(lib1, notNullValue())
+      assertThat(lib2, notNullValue())
+    }
+
+    run {
+      val dependencies = jLibModule.resolvedDependencies
+      val lib = dependencies.findJarDependencies("libs/jarlib-1.1.jar").nullize()
+      assertThat(lib, notNullValue())
     }
   }
 
@@ -325,6 +355,64 @@ class DependencyManagementTest : DependencyTestCase() {
     }
   }
 
+  fun testRemoveJarDependency() {
+    var module = project.findModuleByName("moduleA") as PsAndroidModule
+    var jModule = project.findModuleByName("jModuleK") as PsJavaModule
+    val libs = module.dependencies.findJarDependencies("../lib").nullize()
+    val lib = jModule.dependencies.findJarDependencies("libs").nullize()
+    assertThat(libs, notNullValue())
+    assertThat(lib, notNullValue())
+    assertThat(libs?.size, equalTo(1))
+    assertThat(lib?.size, equalTo(1))
+    var notifications = 0
+    module.addDependencyChangedListener(testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
+    libs?.forEach {
+      module.removeDependency(it)
+    }
+    assertThat(module.dependencies.findJarDependencies("../lib").nullize(), nullValue())
+    assertThat(notifications, equalTo(1))
+
+    notifications = 0
+    jModule.addDependencyChangedListener(testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
+    lib?.forEach {
+      jModule.removeDependency(it)
+    }
+    assertThat(jModule.dependencies.findJarDependencies("libs/jarlib-1.1.jar").nullize(), nullValue())
+    assertThat(notifications, equalTo(1))
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findJarDependencies("../lib/libsam1-1.1.jar").nullize(), notNullValue())
+      assertThat(resolvedDependencies?.findJarDependencies("../lib/libsam2-1.1.jar").nullize(), notNullValue())
+    }
+
+    run {
+      val resolvedDependencies = jModule.resolvedDependencies
+      assertThat(resolvedDependencies.findJarDependencies("libs/jarlib-1.1.jar").nullize(), notNullValue())
+    }
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("moduleA") as PsAndroidModule
+    assertThat(module.dependencies.findJarDependencies("../lib").nullize(), nullValue())
+
+    jModule = project.findModuleByName("jModuleK") as PsJavaModule
+    assertThat(jModule.dependencies.findJarDependencies("libs/jarlib-1.1.jar").nullize(), nullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findJarDependencies("../lib/libsam1-1.1.jar").nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies("../lib/libsam2-1.1.jar").nullize(), nullValue())
+    }
+
+    run {
+      val resolvedDependencies = jModule.resolvedDependencies
+      assertThat(resolvedDependencies.findJarDependencies("libs/jarlib-1.1.jar").nullize(), nullValue())
+    }
+  }
+
   fun testAddLibraryDependency() {
     var module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
@@ -374,6 +462,76 @@ class DependencyManagementTest : DependencyTestCase() {
     run {
       val resolvedDependencies = jModule.resolvedDependencies
       assertThat(resolvedDependencies.findLibraryDependency("com.example.jlib:lib4:1.0"), notNullValue())
+    }
+  }
+
+  fun testAddJarDependency() {
+    var module = project.findModuleByName("moduleC") as PsAndroidModule
+    var jModule = project.findModuleByName("jModuleM") as PsJavaModule
+    val jarPath = "../lib/libsam1-1.1.jar"
+    val jarPath2 = "../lib/libsam2-1.1.jar"
+    val libDirPath = "../lib"
+
+    assertThat(module.dependencies.findJarDependencies(jarPath).nullize(), nullValue())
+    module.addJarFileDependency(jarPath, "implementation")
+    assertThat(module.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
+    assertThat(module.dependencies.findJarDependencies(jarPath).nullize(), notNullValue())
+
+    assertThat(module.dependencies.findJarDependencies(libDirPath).nullize(), nullValue())
+    module.addJarFileTreeDependency(libDirPath, includes = setOf("*sam2*.jar"), excludes = setOf(), scopeName = "implementation")
+    assertThat(module.dependencies.findJarDependencies(jarPath).nullize(), notNullValue())
+    assertThat(module.dependencies.findJarDependencies(libDirPath).nullize(), notNullValue())
+
+    assertThat(jModule.dependencies.findJarDependencies(libDirPath).nullize(), nullValue())
+    jModule.addJarFileTreeDependency(libDirPath, setOf(), setOf(), "implementation")
+    assertThat(jModule.dependencies.findJarDependencies(libDirPath).nullize(), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findJarDependencies(libDirPath).nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(jarPath).nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(jarPath2).nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(module.rootDir?.resolve(libDirPath)?.canonicalPath!!).nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(module.rootDir?.resolve(jarPath)?.canonicalPath!!).nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(module.rootDir?.resolve(jarPath2)?.canonicalPath!!).nullize(), nullValue())
+    }
+
+    run {
+      val resolvedDependencies = jModule.resolvedDependencies
+      assertThat(resolvedDependencies.findJarDependencies(libDirPath).nullize(), nullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jarPath).nullize(), nullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jarPath2).nullize(), nullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jModule.rootDir?.resolve(libDirPath)?.canonicalPath!!).nullize(), nullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jModule.rootDir?.resolve(jarPath)?.canonicalPath!!).nullize(), nullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jModule.rootDir?.resolve(jarPath2)?.canonicalPath!!).nullize(), nullValue())
+    }
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("moduleC") as PsAndroidModule
+    assertThat(module.dependencies.findJarDependencies(jarPath).nullize(), notNullValue())
+    assertThat(module.dependencies.findJarDependencies(libDirPath).nullize(), notNullValue())
+
+    jModule = project.findModuleByName("jModuleM") as PsJavaModule
+    assertThat(jModule.dependencies.findJarDependencies(libDirPath).nullize(), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      // Note that file tree dependencies are resolved into individual jar library dependencies relative to the module root.
+      assertThat(resolvedDependencies?.findJarDependencies(libDirPath).nullize(), nullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(jarPath).nullize(), notNullValue())
+      assertThat(resolvedDependencies?.findJarDependencies(jarPath2).nullize(), notNullValue())
+    }
+
+    run {
+      val resolvedDependencies = jModule.resolvedDependencies
+      // Note that file tree dependencies are resolved into individual jar library dependencies relative to the module root.
+      assertThat(resolvedDependencies.findJarDependencies(libDirPath).nullize(), nullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jarPath).nullize(), notNullValue())
+      assertThat(resolvedDependencies.findJarDependencies(jarPath2).nullize(), notNullValue())
     }
   }
 
@@ -707,9 +865,42 @@ class DependencyManagementTest : DependencyTestCase() {
               kind = "Declared", isPromoted = true))))
     }
   }
+
+  @Suppress("ReplaceSingleLineLet")
+  fun testReverseJarDependencies() {
+    // TODO(b/119400704) Implement proper reverse dependencies support for Jar dependencies.
+    val lib1JarPath = "../lib/libsam1-1.1.jar"
+    val lib2JarPath = "../lib/libsam2-1.1.jar"
+    val libJarPath = "libs/jarlib-1.1.jar"
+    fun getResolvedDependenciesOfReleaseArtifactFor(name: String) =
+      (project.findModuleByName(name) as? PsAndroidModule)
+        ?.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+
+    fun getResolvedDependenciesFor(name: String) =
+      (project.findModuleByName(name) as? PsJavaModule)
+        ?.resolvedDependencies
+
+    getResolvedDependenciesOfReleaseArtifactFor("moduleA").let { resolvedDependencies ->
+      assertThat(resolvedDependencies?.findJarDependencies(lib1JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
+      assertThat(resolvedDependencies?.findJarDependencies(lib2JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
+    }
+
+    getResolvedDependenciesOfReleaseArtifactFor("moduleB").let { resolvedDependencies ->
+      assertThat(resolvedDependencies?.findJarDependencies(lib1JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
+    }
+
+    getResolvedDependenciesFor("jModuleK").let { resolvedDependencies ->
+      assertThat(resolvedDependencies?.findJarDependencies(libJarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
+    }
+
+    getResolvedDependenciesFor("jModuleZ").let { resolvedDependencies ->
+      assertThat(resolvedDependencies?.findJarDependencies(lib1JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
+      assertThat(resolvedDependencies?.findJarDependencies(lib2JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
+    }
+  }
 }
 
-private fun <T> PsDeclaredDependencyCollection<*, T, *>.findLibraryDependency(
+private fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(
   compactNotation: String,
   configuration: String? = null
 ): List<T>?
@@ -724,7 +915,7 @@ private fun <T> PsDeclaredDependencyCollection<*, T, *>.findLibraryDependency(
       .let { if (it.isEmpty()) null else it }
   }
 
-private fun <T> PsResolvedDependencyCollection<*, *, T, *>.findLibraryDependency(compactNotation: String): List<T>?
+private fun <T> PsResolvedDependencyCollection<*, *, T, *, *>.findLibraryDependency(compactNotation: String): List<T>?
   where T : PsResolvedDependency,
         T : PsLibraryDependency =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
@@ -737,7 +928,7 @@ private fun <T> PsResolvedDependencyCollection<*, *, T, *>.findLibraryDependency
   }
 
 private fun List<PsResolvedDependency>?.testMatchingScopes(): List<String> =
-  orEmpty().map { it.getParsedModels().joinToString(":") { it.configurationName() } }
+  orEmpty().map { resolvedDependency -> resolvedDependency.getParsedModels().joinToString(":") { it.configurationName() } }
 
 private fun List<PsDeclaredDependency>?.testDeclaredScopes(): List<String> = orEmpty().map { it.parsedModel.configurationName() }
 
