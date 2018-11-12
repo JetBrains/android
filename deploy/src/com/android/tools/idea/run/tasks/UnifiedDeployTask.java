@@ -26,6 +26,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.DeploymentService;
+import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -37,7 +38,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -107,17 +107,14 @@ public class UnifiedDeployTask implements LaunchTask {
     AdbClient adb = new AdbClient(device, logger);
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, logger);
     DeploymentService service = DeploymentService.getInstance(myProject);
-    Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer);
+    IdeService ideService = new IdeService(myProject);
+    Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer, ideService);
 
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
       try {
         myAction.deploy(myProject, device, deployer, applicationId, apkFiles);
-      } catch (IOException e) {
-        myDeploymentErrorHandler = new DeploymentErrorHandler("Error deploying APK");
-        LOG.error("Error deploying APK", e);
-        return false;
       } catch (DeployerException e) {
         myDeploymentErrorHandler = new DeploymentErrorHandler(myAction, e);
         return false;

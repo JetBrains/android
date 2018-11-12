@@ -17,12 +17,12 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.deployer.Trace;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public class InstallAction extends DeployAction {
@@ -41,7 +41,7 @@ public class InstallAction extends DeployAction {
 
   @Override
   public void deploy(Project project, IDevice device, Deployer deployer, String applicationId, List<File> apkFiles)
-    throws IOException {
+    throws DeployerException {
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user
@@ -58,7 +58,7 @@ public class InstallAction extends DeployAction {
 
     LOG.info("Installing application: " + applicationId);
     try (Trace trace = Trace.begin("Unified.install")) {
-      deployer.install(getPathsToInstall(apkFiles), options.build());
+      deployer.install(applicationId, getPathsToInstall(apkFiles), options.build());
     }
   }
 }
