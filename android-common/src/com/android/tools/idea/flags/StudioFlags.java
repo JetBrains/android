@@ -309,6 +309,13 @@ public final class StudioFlags {
     "Use JVMTI to support application refresh. This implies incremental deployment",
     false);
 
+  public static final Flag<Boolean> UNIFIED_DEPLOYMENT = Flag.create(
+    RUNDEBUG,
+    "unified.deploy",
+    "Use the 'apply changes' deployment pipeline",
+    "Both split and non-split apks are installed the same way",
+    true);
+
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.visible",
