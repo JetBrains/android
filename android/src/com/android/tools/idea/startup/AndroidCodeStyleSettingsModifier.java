@@ -57,6 +57,9 @@ public class AndroidCodeStyleSettingsModifier {
     table.addEntry(new PackageEntry(false, "android", true));
     table.addEntry(PackageEntry.BLANK_LINE_ENTRY);
 
+    table.addEntry(new PackageEntry(false, "androidx", true));
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY);
+
     table.addEntry(new PackageEntry(false, "com", true));
     table.addEntry(PackageEntry.BLANK_LINE_ENTRY);
 
