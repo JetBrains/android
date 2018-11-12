@@ -45,6 +45,15 @@ class IdInspectorBuilderTest {
   }
 
   @Test
+  fun testNotAvailableForMultipleComponents() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, BUTTON, parentTag = LINEAR_LAYOUT)
+    val builder = IdInspectorBuilder(util.editorProvider)
+    util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).isEmpty()
+  }
+
+  @Test
   fun testNotAvailableWhenIdIsAbsent() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = IdInspectorBuilder(util.editorProvider)

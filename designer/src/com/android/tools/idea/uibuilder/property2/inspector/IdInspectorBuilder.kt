@@ -35,6 +35,6 @@ class IdInspectorBuilder(private val editorProvider: EditorProvider<NeleProperty
   }
 
   private fun isApplicable(property: NelePropertyItem): Boolean {
-    return property.components.none { it.tagName in PreferenceUtils.VALUES || it.tagName in menuTags}
+    return property.components.size == 1 && property.components.none { it.tagName in PreferenceUtils.VALUES || it.tagName in menuTags}
   }
 }
