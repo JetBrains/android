@@ -154,7 +154,7 @@ class NeleNewPropertyItemTest {
   }
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {
-    val util = SupportTestUtil(projectRule, IMAGE_BUTTON, LINEAR_LAYOUT)
+    val util = SupportTestUtil(projectRule, IMAGE_BUTTON, parentTag = LINEAR_LAYOUT)
     val property0 = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
     val property1 = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     val property2 = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.DIMENSION)

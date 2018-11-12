@@ -36,7 +36,7 @@ class LayoutInspectorBuilderTest {
 
   @Test
   fun testLinearLayout() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
     addLayoutProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
