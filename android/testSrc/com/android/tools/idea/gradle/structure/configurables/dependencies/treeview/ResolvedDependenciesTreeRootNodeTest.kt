@@ -128,7 +128,7 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
                         lib2:1.0 (com.example.libs)
                             lib3:1.0 (com.example.jlib)
                                 lib4:1.0 (com.example.jlib)""".trimIndent()
-    val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+    val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
@@ -141,26 +141,27 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
     val expectedProjectStructure = """
     jModuleZ
         testTreeStructure_javaModulejModuleZ
-            lib4:0.6 (com.example.jlib)
             jModuleK
-                lib3:0.9.1 (com.example.jlib)
-                    lib4:0.9.1 (com.example.jlib)
-                lib4:0.9.1 (com.example.jlib)
                 jModuleL
                     lib3:1.0 (com.example.jlib)
                         lib4:1.0 (com.example.jlib)
+                lib3:0.9.1 (com.example.jlib)
+                    lib4:0.9.1 (com.example.jlib)
+                lib4:0.9.1 (com.example.jlib)
             jModuleL
                 lib3:1.0 (com.example.jlib)
                     lib4:1.0 (com.example.jlib)
             nestedZ
-                lib4:0.6 (com.example.jlib)""".trimIndent()
-    val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+                lib4:0.6 (com.example.jlib)
+            lib4:0.6 (com.example.jlib)""".trimIndent()
+    val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
 
   fun testLibraryMatchingStructure() {
     val appModule = project.findModuleByGradlePath(":mainModule") as PsAndroidModule
+    @Suppress("LocalVariableName")
     val lib1_09 = appModule.dependencies.findLibraryDependencies("com.example.libs", "lib1").firstOrNull { it.spec.version == "0.9.1" }
     assumeThat(lib1_09, notNullValue()); lib1_09!!
     val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
