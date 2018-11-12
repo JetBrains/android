@@ -631,7 +631,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
         assertThat(appModule.buildTypes.map { it.name }).containsExactly("debug", "release", "specialRelease")
         assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar", "otherBar")
         assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
-        assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" }).containsExactly("api appcompat-v7")
+        assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" })
+          .containsExactly("api appcompat-v7", "api libs")
       }
       finally {
         Disposer.dispose(disposable)

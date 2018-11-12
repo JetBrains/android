@@ -27,7 +27,7 @@ interface PsModuleDependency : PsBaseDependency {
 interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency
 interface PsResolvedModuleDependency: PsResolvedDependency, PsModuleDependency
 
-val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCollection<*, *, *>?
+val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCollection<*, *, *, *>?
   get() {
     val targetModule = parent.parent.findModuleByGradlePath(gradlePath)
     return when (targetModule) {

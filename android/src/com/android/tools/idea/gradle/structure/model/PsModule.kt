@@ -49,7 +49,8 @@ abstract class PsModule protected constructor(
   private var myVariables: PsVariables? = null
   private val dependenciesChangeEventDispatcher = EventDispatcher.create(DependenciesChangeListener::class.java)
 
-  abstract val dependencies: PsDependencyCollection<PsModule, PsDeclaredLibraryDependency, PsDeclaredModuleDependency>
+  abstract val dependencies: PsDependencyCollection<
+    PsModule, PsDeclaredLibraryDependency, PsDeclaredJarDependency, PsDeclaredModuleDependency>
   val parsedDependencies: PsParsedDependencies
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 
@@ -104,6 +105,29 @@ abstract class PsModule protected constructor(
 
     val spec = PsArtifactDependencySpec.create(compactNotation)!!
     fireLibraryDependencyAddedEvent(spec)
+    isModified = true
+  }
+
+  fun addJarFileDependency(filePath: String, scopeName: String) {
+    addJarFileDependencyToParsedModel(scopeName, filePath)
+
+    resetDependencies()
+
+    fireJarDependencyAddedEvent(filePath, includes = null, excludes = null)
+    isModified = true
+  }
+
+  fun addJarFileTreeDependency(
+    dirPath: String,
+    includes: Collection<String>,
+    excludes: Collection<String>,
+    scopeName: String
+  ) {
+    addJarFileTreeDependencyToParsedModel(scopeName, dirPath, includes, excludes)
+
+    resetDependencies()
+
+    fireJarDependencyAddedEvent(dirPath, includes, excludes)
     isModified = true
   }
 
@@ -201,6 +225,30 @@ abstract class PsModule protected constructor(
     } ?: noParsedModel()
   }
 
+  private fun addJarFileTreeDependencyToParsedModel(
+    configurationName: String,
+    dirPath: String,
+    includes: Collection<String>,
+    excludes: Collection<String>
+  ) {
+    parsedModel?.let { parsedModel ->
+      val dependencies = parsedModel.dependencies()
+      dependencies.addFileTree(configurationName, dirPath, includes.toList(), excludes.toList())
+      parsedDependencies.reset(parsedModel)
+    } ?: noParsedModel()
+  }
+
+  private fun addJarFileDependencyToParsedModel(
+    configurationName: String,
+    filePath: String
+  ) {
+    parsedModel?.let { parsedModel ->
+      val dependencies = parsedModel.dependencies()
+      dependencies.addFile(configurationName, filePath)
+      parsedDependencies.reset(parsedModel)
+    } ?: noParsedModel()
+  }
+
   private fun addModuleDependencyToParsedModel(configurationName: String, modulePath: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
@@ -222,6 +270,10 @@ abstract class PsModule protected constructor(
 
   private fun fireLibraryDependencyAddedEvent(spec: PsArtifactDependencySpec) {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(LibraryDependencyAddedEvent(spec))
+  }
+
+  private fun fireJarDependencyAddedEvent(path: String, includes: Collection<String>?, excludes: Collection<String>?) {
+    dependenciesChangeEventDispatcher.multicaster.dependencyChanged(JarDependencyAddedEvent(path, includes, excludes))
   }
 
   private fun fireModuleDependencyAddedEvent(modulePath: String) {
@@ -266,6 +318,12 @@ abstract class PsModule protected constructor(
 
   class LibraryDependencyAddedEvent internal constructor(val spec: PsArtifactDependencySpec) : DependencyChangedEvent
 
+  class JarDependencyAddedEvent internal constructor(
+    val path: String,
+    val includes: Collection<String>?,
+    val excludes: Collection<String>?
+  ) : DependencyChangedEvent
+
   class ModuleDependencyAddedEvent internal constructor(val modulePath: String) : DependencyChangedEvent
 
   class DependencyModifiedEvent internal constructor(val dependency: PsDeclaredDependency) : DependencyChangedEvent
@@ -274,3 +332,6 @@ abstract class PsModule protected constructor(
 
   class DependenciesReloadedEvent internal constructor() : DependencyChangedEvent
 }
+
+fun PsModule.relativeFile(file: File) = rootDir?.let { file.relativeToOrSelf(it) } ?: file
+fun PsModule.resolveFile(file: File) = rootDir?.resolve(file) ?: file

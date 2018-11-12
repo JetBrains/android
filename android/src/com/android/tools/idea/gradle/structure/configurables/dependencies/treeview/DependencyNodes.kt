@@ -25,7 +25,7 @@ import com.intellij.util.containers.SortedList
 
 fun createNodesForResolvedDependencies(
   parent: AbstractPsNode,
-  collection: PsDependencyCollection<*, *, *>
+  collection: PsDependencyCollection<*, *, *, *>
 ): List<AbstractPsModelNode<*>> {
   val allTransitive = Sets.newHashSet<String>()
   val children = Lists.newArrayList<AbstractPsModelNode<*>>()

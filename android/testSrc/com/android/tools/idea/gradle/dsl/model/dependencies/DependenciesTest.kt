@@ -87,4 +87,37 @@ class DependenciesTest : GradleFileModelTestCase() {
       assertThat(dep.name(), equalTo("javalib1"))
     }
   }
+
+  @Test
+  fun testRemoveJarDependencies() {
+    val text = """
+               dependencies {
+                 api fileTree(dir: 'libs', include: ['*.jar'])
+                 implementation 'com.example.libs:lib1:0.+'
+                 compile files('lib1.jar')
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    val deps = buildModel.dependencies().all()
+    assertSize(3, deps)
+    val fileTree = let {
+      val dep = deps[0] as FileTreeDependencyModel
+      assertThat(dep.configurationName(), equalTo("api"))
+      assertThat(dep.dir().toString(), equalTo("libs"))
+      assertThat(dep.includes().toList()?.map {it.toString()}, equalTo(listOf("*.jar")))
+      assertThat(dep.excludes().toList(), nullValue())
+      dep
+    }
+    val files = let {
+      val dep = deps[2] as FileDependencyModel
+      assertThat(dep.configurationName(), equalTo("compile"))
+      assertThat(dep.file().toString(), equalTo("lib1.jar"))
+      dep
+    }
+    buildModel.dependencies().remove(fileTree)
+    buildModel.dependencies().remove(files)
+    assertSize(1, buildModel.dependencies().all())
+  }
 }
