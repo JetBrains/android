@@ -18,9 +18,12 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceActionHandler;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -30,6 +33,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
@@ -79,6 +83,18 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
       @Override
       public ScreenView getCurrentSceneView() {
         return myScreen;
+      }
+
+      @NotNull
+      @Override
+      public CompletableFuture<Void> requestRender() {
+        return CompletableFuture.completedFuture(null);
+      }
+
+      @NotNull
+      @Override
+      protected SceneManager createSceneManager(@NotNull NlModel model) {
+        return new SyncLayoutlibSceneManager((SyncNlModel) model);
       }
     };
     mySurface.setModel(myModel);

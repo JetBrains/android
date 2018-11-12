@@ -20,10 +20,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
@@ -33,6 +36,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 public class MockupTest extends MockupTestCase {
@@ -246,6 +250,12 @@ public class MockupTest extends MockupTestCase {
         // No need for layoutlib render
         return CompletableFuture.completedFuture(null);
       }
+
+      @NotNull
+      @Override
+      protected SceneManager createSceneManager(@NotNull NlModel model) {
+        return new SyncLayoutlibSceneManager((SyncNlModel) model);
+      }
     };
     surface.setModel(model);
     final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
@@ -275,6 +285,12 @@ public class MockupTest extends MockupTestCase {
       public CompletableFuture<Void> requestRender() {
         // No need for layoutlib render
         return CompletableFuture.completedFuture(null);
+      }
+
+      @NotNull
+      @Override
+      protected SceneManager createSceneManager(@NotNull NlModel model) {
+        return new SyncLayoutlibSceneManager((SyncNlModel) model);
       }
     };
     surface.setModel(model);

@@ -45,12 +45,15 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -112,6 +115,12 @@ public class NlComponentTreeTest extends LayoutTestCase {
       public CompletableFuture<Void> requestRender() {
         // We do not need layoutlib renders for these tests
         return CompletableFuture.completedFuture(null);
+      }
+
+      @NotNull
+      @Override
+      protected SceneManager createSceneManager(@NotNull NlModel model) {
+        return new SyncLayoutlibSceneManager((SyncNlModel) model);
       }
     };
     mySurface.setModel(myModel);
