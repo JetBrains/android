@@ -135,13 +135,13 @@ internal class DeclaredDependenciesPanel(
 
   override fun getSelection(): PsBaseDependency? = dependenciesTable.selectionIfSingle
 
-  override fun setSelection(selection: PsBaseDependency?): ActionCallback {
+  override fun setSelection(selection: Collection<PsBaseDependency>?): ActionCallback {
     skipSelectionChangeNotification = true
-    if (selection == null) {
+    if (selection == null || selection.isEmpty()) {
       dependenciesTable.clearSelection()
     }
     else {
-      dependenciesTable.setSelection(setOf(selection))
+      dependenciesTable.setSelection(selection.toSet())
     }
     updateDetailsAndIssues()
     skipSelectionChangeNotification = false

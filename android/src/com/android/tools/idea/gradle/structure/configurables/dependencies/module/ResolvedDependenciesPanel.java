@@ -37,6 +37,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -231,15 +232,15 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   @Override
-  public ActionCallback setSelection(@Nullable PsBaseDependency selection) {
-    if (selection == null) {
+  public ActionCallback setSelection(@Nullable Collection<PsBaseDependency> selection) {
+    if (selection == null || selection.isEmpty()) {
       myTreeBuilder.clearSelection();
       return ActionCallback.DONE;
     }
     else {
       myIgnoreTreeSelectionEvents = true;
       try {
-        return myTreeBuilder.selectMatchingNodes(selection, true);
+        return myTreeBuilder.selectMatchingNodes(selection.stream().findFirst().get(), true);
       }
       finally {
         myIgnoreTreeSelectionEvents = false;

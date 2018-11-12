@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.treev
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +44,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   protected void onAllNodesExpanded() {
     getReady(this).doWhenDone(() -> {
       PsBaseDependency selection = myDependencySelectionSource.getSelection();
-      myDependencySelectionDestination.setSelection(selection);
+      myDependencySelectionDestination.setSelection(ImmutableList.of(selection));
     });
   }
 
@@ -57,6 +58,6 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
 
   private void queueUpdateAndRestoreSelection() {
     PsBaseDependency selected = myDependencySelectionSource.getSelection();
-    queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(selected));
+    queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(ImmutableList.of(selected)));
   }
 }
