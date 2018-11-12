@@ -43,7 +43,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testAdvancedInspector() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -74,7 +74,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testAdvancedInspectorWithAddedNewProperty() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -108,7 +108,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testAcceptMoveToNextEditorWithEmptyNewPropertyValue() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -127,7 +127,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testAcceptMoveToNextEditorWithSpecifiedNewPropertyValue() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -150,7 +150,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testUpdateItemsWhenNoChanges() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -166,7 +166,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testUpdateItemsWhenPropertyAdded() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -183,7 +183,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testDeletePropertyItem() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -201,7 +201,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testDeleteNewlyAddedPropertyItem() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)
@@ -215,7 +215,7 @@ class AdvancedInspectorBuilderTest {
 
   @Test
   fun testListenersAreConcurrentModificationSafe() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
     builder.attachToInspector(util.inspector, util.properties)

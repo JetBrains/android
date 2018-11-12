@@ -27,7 +27,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 class EnumSupportProviderImplTest: AndroidTestCase() {
 
   fun testAttributeWithNoEnumSupport() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, CONSTRAINT_LAYOUT.defaultName())
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     val provider = NeleEnumSupportProvider()
     val enumSupport = provider(property)
@@ -35,7 +35,7 @@ class EnumSupportProviderImplTest: AndroidTestCase() {
   }
 
   fun testFromViewHandlerForConstraintLayout() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, CONSTRAINT_LAYOUT.defaultName())
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
     val provider = NeleEnumSupportProvider()
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
