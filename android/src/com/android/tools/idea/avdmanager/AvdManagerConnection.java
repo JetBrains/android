@@ -200,23 +200,26 @@ public class AvdManagerConnection {
     return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
   }
 
+  @Nullable
   private File getBinaryLocation(String filename) {
     assert mySdkHandler != null;
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
     if (sdkPackage == null) {
-      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, REPO_LOG);
+      return null;
     }
-    if (sdkPackage != null) {
-      return new File(sdkPackage.getLocation(), filename);
+    File binaryFile = new File(sdkPackage.getLocation(), filename);
+    if (!myFileOp.exists(binaryFile)) {
+      return null;
     }
-    // Fallback to old behavior, in the weird case nothing is installed.
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, filename));
+    return binaryFile;
   }
 
+  @Nullable
   public File getEmulatorBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR);
   }
 
+  @Nullable
   public File getEmulatorCheckBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR_CHECK);
   }
@@ -381,7 +384,7 @@ public class AvdManagerConnection {
     }
 
     final File emulatorBinary = getEmulatorBinary();
-    if (!emulatorBinary.isFile()) {
+    if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
@@ -713,7 +716,7 @@ public class AvdManagerConnection {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
     File emulatorBinary = getEmulatorBinary();
-    if (!emulatorBinary.isFile()) {
+    if (emulatorBinary == null) {
       return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
     }
     if (getMemorySize() < Storage.Unit.GiB.getNumberOfBytes()) {
@@ -723,9 +726,9 @@ public class AvdManagerConnection {
     if (!hasQEMU2Installed()) {
       return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
     }
-    File checkBinary = getEmulatorCheckBinary();
     GeneralCommandLine commandLine = new GeneralCommandLine();
-    if (checkBinary.isFile()) {
+    File checkBinary = getEmulatorCheckBinary();
+    if (checkBinary != null) {
       commandLine.setExePath(checkBinary.getPath());
       commandLine.addParameter("accel");
     }
