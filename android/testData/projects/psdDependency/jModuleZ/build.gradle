@@ -17,6 +17,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(dir: '../lib', include: ['*.jar'])
     implementation project (':jModuleK')
     implementation project (':jModuleL')
     implementation project (':jModuleZ:nestedZ')
