@@ -17,7 +17,6 @@
 package com.android.tools.idea;
 
 import com.intellij.application.options.editor.WebEditorOptions;
-import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -121,7 +120,6 @@ public class AndroidInitialConfigurator {
 
       if (!propertiesComponent.getBoolean(CONFIG_V1)) {
         propertiesComponent.setValue(CONFIG_V1, "true");
-        CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
         UISettings.getInstance().setScrollTabLayoutInEditor(true);
         EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
 
