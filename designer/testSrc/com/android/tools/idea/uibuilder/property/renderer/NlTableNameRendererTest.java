@@ -19,9 +19,8 @@ import com.android.tools.adtui.ptable.*;
 import com.android.tools.adtui.ptable.simple.SimpleGroupItem;
 import com.android.tools.adtui.ptable.simple.SimpleItem;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
-import org.jetbrains.android.AndroidTestCase;
+import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -35,9 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class NlTableNameRendererTest extends AndroidTestCase {
-  @Mock
-  private DataContext myContext;
+public class NlTableNameRendererTest extends TestCase {
   @Mock
   private CopyPasteManager myCopyPasteManager;
 
