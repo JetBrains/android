@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -23,13 +23,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -37,11 +35,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class JavaToKotlinConversionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
-
-  private static final Pattern RUN_OUTPUT =
-    Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
-  private static final String APP_NAME = "app";
 
   /**
    * Verifies it can convert Java class to Kotlin Class.
@@ -52,19 +45,19 @@ public class JavaToKotlinConversionTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleApplication project and wait for project sync to finish.
+   *   1. Import SimpleLocalApplication project and wait for project sync to finish.
    *   2. Open up MyActivity.java file.
    *   3. Invoke Code > Convert Java to Kotlin
-   *   4. Build and deploy the app on emulator.
+   *   4. Build the app.
    *   5. Verify 1, 2, 3.
    *   Verify:
    *   1. Ensure the code java class is converted to Kotlin.
    *   2. Check if the Activities are getting converted to Kotlin.
-   *   3. App is running on emulator.
+   *   3. App is built successfully.
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/77635374, fast
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/119499734, fast
   @Test
   public void testJavaToKotlinConversion() throws Exception {
     IdeFrameFixture ideFrameFixture =
@@ -82,12 +75,7 @@ public class JavaToKotlinConversionTest {
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
-    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
-    ideFrameFixture.runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project");
+    ideFrameFixture.waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(120));
   }
 }
