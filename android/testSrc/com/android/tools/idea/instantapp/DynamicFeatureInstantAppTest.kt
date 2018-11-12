@@ -16,6 +16,8 @@
 package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProgramRunner
@@ -53,7 +55,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
 
   private lateinit var launchOptionsBuilder : LaunchOptions.Builder
 
-  private val device = Mockito.mock(IDevice::class.java)
+  private lateinit var device : IDevice
   private val launchStatus = StubLaunchStatus()
   private val consolePrinter = StubConsolePrinter()
 
@@ -72,6 +74,8 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     appIdProvider = GradleApplicationIdProvider(myAndroidFacet)
 
     apkProvider = GradleApkProvider(myAndroidFacet, appIdProvider, false)
+    device = Mockito.mock(IDevice::class.java)
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(26, null))
 
     launchOptionsBuilder = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -158,17 +162,21 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
 
     assertThat(launchTasks.stream().filter{ x -> x is RunInstantAppTask }.findFirst().orElse(null)).isNull()
-    val deployTask = launchTasks.stream().filter{ x -> x is SplitApkDeployTask }.findFirst().orElse(null)
 
-    assertThat(deployTask).isNotNull()
-    assertInstanceOf(deployTask, SplitApkDeployTask::class.java)
-    assertInstanceOf((deployTask as SplitApkDeployTask).context, DynamicAppDeployTaskContext::class.java)
+    // To be removed, this is testing implementation details
+    if (!StudioFlags.UNIFIED_DEPLOYMENT.get()) {
+      val deployTask = launchTasks.stream().filter { x -> x is SplitApkDeployTask }.findFirst().orElse(null)
 
-    val context = deployTask.context
-    assertThat(context.artifacts.size).isEqualTo(3)
-    assertThat(context.artifacts[0].name).isEqualTo("app-debug.apk")
-    assertThat(context.artifacts[1].name).isEqualTo("dynamicfeature-debug.apk")
-    assertThat(context.artifacts[2].name).isEqualTo("instantdynamicfeature-debug.apk")
+      assertThat(deployTask).isNotNull()
+      assertInstanceOf(deployTask, SplitApkDeployTask::class.java)
+      assertInstanceOf((deployTask as SplitApkDeployTask).context, DynamicAppDeployTaskContext::class.java)
+
+      val context = deployTask.context
+      assertThat(context.artifacts.size).isEqualTo(3)
+      assertThat(context.artifacts[0].name).isEqualTo("app-debug.apk")
+      assertThat(context.artifacts[1].name).isEqualTo("dynamicfeature-debug.apk")
+      assertThat(context.artifacts[2].name).isEqualTo("instantdynamicfeature-debug.apk")
+    }
   }
 
   class StubConsolePrinter : ConsolePrinter {

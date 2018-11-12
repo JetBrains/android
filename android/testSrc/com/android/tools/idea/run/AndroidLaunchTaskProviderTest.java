@@ -16,6 +16,8 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -97,6 +99,7 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
       launchOptions);
 
     IDevice device = Mockito.mock(IDevice.class);
+    Mockito.when(device.getVersion()).thenReturn(new AndroidVersion(26, null));
     LaunchStatus launchStatus = new MyLaunchStatus();
     ConsolePrinter consolePrinter = new MyConsolePrinter();
 
@@ -105,18 +108,21 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
 
     // Assert
     launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
-    SplitApkDeployTask deployTask = (SplitApkDeployTask)launchTasks.stream()
-      .filter(x -> x instanceof SplitApkDeployTask)
-      .findFirst()
-      .orElse(null);
-    assertThat(deployTask).isNotNull();
-    assertThat(deployTask.getContext()).isInstanceOf(DynamicAppDeployTaskContext.class);
+    //Update this test to no longer test implementation 
+    if (!StudioFlags.UNIFIED_DEPLOYMENT.get()) {
+      SplitApkDeployTask deployTask = (SplitApkDeployTask)launchTasks.stream()
+        .filter(x -> x instanceof SplitApkDeployTask)
+        .findFirst()
+        .orElse(null);
+      assertThat(deployTask).isNotNull();
+      assertThat(deployTask.getContext()).isInstanceOf(DynamicAppDeployTaskContext.class);
 
-    DynamicAppDeployTaskContext context = (DynamicAppDeployTaskContext)deployTask.getContext();
-    assertThat(context.getApplicationId()).isEqualTo("google.simpleapplication");
-    assertThat(context.getArtifacts().size()).isEqualTo(2);
-    assertThat(context.getArtifacts().get(0).getName()).isEqualTo("app-debug.apk");
-    assertThat(context.getArtifacts().get(1).getName()).isEqualTo("feature1-debug.apk");
+      DynamicAppDeployTaskContext context = (DynamicAppDeployTaskContext)deployTask.getContext();
+      assertThat(context.getApplicationId()).isEqualTo("google.simpleapplication");
+      assertThat(context.getArtifacts().size()).isEqualTo(2);
+      assertThat(context.getArtifacts().get(0).getName()).isEqualTo("app-debug.apk");
+      assertThat(context.getArtifacts().get(1).getName()).isEqualTo("feature1-debug.apk");
+    }
   }
 
   private static class MyConsolePrinter implements ConsolePrinter {
