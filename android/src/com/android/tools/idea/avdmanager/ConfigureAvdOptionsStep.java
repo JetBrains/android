@@ -754,7 +754,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      */
     private boolean launchEmulatorForSnapshotControl(@NotNull File paramFileForEmulator) {
       File emulatorBinary = connection.getEmulatorBinary();
-      if (!emulatorBinary.isFile()) {
+      if (emulatorBinary == null) {
         return false;
       }
       GeneralCommandLine commandLine = new GeneralCommandLine();
