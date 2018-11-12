@@ -20,6 +20,7 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.AndExpression;
@@ -39,7 +40,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -79,37 +79,6 @@ public class ModuleDownloadDeviceFeature {
 
     // Invoke listeners when close button is pressed
     myRemoveFeatureLinkLabel.setListener((aSource, aLinkData) -> myListeners.forEach(x -> x.removeFeatureInvoked()), null);
-
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myFeatureNameCombo), myModel.deviceFeatureType());
-
-    TextFieldProperty deviceFeatureValueComboTextProperty = new TextFieldProperty(myFeatureValueTextField);
-    myBindings.bindTwoWay(deviceFeatureValueComboTextProperty, myModel.deviceFeatureValue());
-
-    // Ensure that each item in the "feature type" combo box has its own
-    // backing (temporary) property, so that when switching item in the combo
-    // box, the associated value is saved and/or restored.
-
-    // Save UI value into temporary property for each "device feature type"
-    List<StringProperty> tempValues = new ArrayList<>();
-    for (DeviceFeatureKind value : DeviceFeatureKind.values()) {
-      StringProperty tempProp = new StringValueProperty();
-      tempValues.add(tempProp);
-      myBindings.bind(tempProp, deviceFeatureValueComboTextProperty, myModel.deviceFeatureType().isEqualTo(Optional.of(value)));
-    }
-
-    // Restore UI value from temporary property when a "device feature type" item is selected
-    myBindingsListeners.receiveAndFire(myModel.deviceFeatureType(), value -> {
-      if (value.isPresent()) {
-        int index = 0;
-        for (DeviceFeatureKind featureType : DeviceFeatureKind.values()) {
-          if (value.get() == featureType) {
-            myFeatureValueTextField.setVariants(getModelForFeatureType(featureType));
-            myFeatureValueTextField.setText(tempValues.get(index).get());
-          }
-          index++;
-        }
-      }
-    });
 
     // isActive && device feature value is empty
     BooleanExpression isInvalidExpression =
@@ -227,7 +196,21 @@ public class ModuleDownloadDeviceFeature {
     myListeners.remove(listener);
   }
 
+  /**
+   * Keeps track of component activation so that listeners/bindings are created and released
+   * when the component is activated or deactivated (respectively).
+   */
   private class ActivationListener implements PropertyChangeListener {
+    @NotNull
+    private TextFieldProperty<String> myDeviceFeatureValueComboTextProperty;
+    @NotNull
+    private ObjectProperty<DeviceFeatureKind> myFeatureNameComboSelectedItem;
+
+    private ActivationListener() {
+      myDeviceFeatureValueComboTextProperty = new TextFieldProperty<>(myFeatureValueTextField);
+      myFeatureNameComboSelectedItem = ObjectProperty.wrap(new SelectedItemProperty<>(myFeatureNameCombo));
+    }
+
     @Override
     public void propertyChange(@NotNull PropertyChangeEvent evt) {
       // Setup/release bindings when ancestor changes
@@ -236,17 +219,41 @@ public class ModuleDownloadDeviceFeature {
         myBindingsListeners.releaseAll();
       }
       else {
-        myBindings.bindTwoWay(new SelectedItemProperty<>(myFeatureNameCombo), myModel.deviceFeatureType());
-        myBindings.bindTwoWay(new TextFieldProperty(myFeatureValueTextField), myModel.deviceFeatureValue());
+        myBindings.bindTwoWay(myFeatureNameComboSelectedItem, myModel.deviceFeatureType());
+        myBindings.bindTwoWay(myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureValue());
+
+        // Ensure that each item in the "feature type" combo box has its own
+        // backing (temporary) property, so that when switching item in the combo
+        // box, the associated value is saved and/or restored.
+
+        // Save UI value into temporary property for each "device feature type"
+        List<StringProperty> tempValues = new ArrayList<>();
+        for (DeviceFeatureKind value : DeviceFeatureKind.values()) {
+          StringProperty tempProp = new StringValueProperty();
+          tempValues.add(tempProp);
+          myBindings.bind(tempProp, myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureType().isEqualTo(value));
+        }
+
+        // Restore UI value from temporary property when a "device feature type" item is selected
+        myBindingsListeners.receiveAndFire(myModel.deviceFeatureType(), value -> {
+          int index = 0;
+          for (DeviceFeatureKind featureType : DeviceFeatureKind.values()) {
+            if (value == featureType) {
+              myFeatureValueTextField.setVariants(getModelForFeatureType(featureType));
+              myFeatureValueTextField.setText(tempValues.get(index).get());
+            }
+            index++;
+          }
+        });
       }
     }
   }
 
-  private static class TextFieldProperty extends StringProperty {
+  private static class TextFieldProperty<T> extends StringProperty {
     @NotNull
-    private TextFieldWithAutoCompletion<String> myTextField;
+    private TextFieldWithAutoCompletion<T> myTextField;
 
-    private TextFieldProperty(@NotNull TextFieldWithAutoCompletion<String> textField) {
+    private TextFieldProperty(@NotNull TextFieldWithAutoCompletion<T> textField) {
       myTextField = textField;
       myTextField.addDocumentListener(new DocumentListener() {
         @Override

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import org.jetbrains.annotations.NotNull;
@@ -25,11 +24,11 @@ import org.jetbrains.annotations.NotNull;
  * Model for a single row of "device-feature"
  */
 public class DeviceFeatureModel {
-  @NotNull private final OptionalProperty<DeviceFeatureKind> myDeviceFeatureType = new OptionalValueProperty<>(DeviceFeatureKind.NAME);
+  @NotNull private final ObjectValueProperty<DeviceFeatureKind> myDeviceFeatureType = new ObjectValueProperty<>(DeviceFeatureKind.NAME);
   @NotNull private final StringProperty myDeviceFeatureValue = new StringValueProperty("");
 
   @NotNull
-  public OptionalProperty<DeviceFeatureKind> deviceFeatureType() {
+  public ObjectValueProperty<DeviceFeatureKind> deviceFeatureType() {
     return myDeviceFeatureType;
   }
 
