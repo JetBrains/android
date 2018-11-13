@@ -31,7 +31,7 @@ class FileImportRowViewModel(
   // TODO get value from actual file
   var updateCallback: (() -> Unit)? = null
   var fileDimension: String = "64x64dp"
-  var fileName: String = asset.name
+  var fileName: String = asset.file.name
   var qualifiers: String = ""
   var fileSize: String = StringUtil.formatFileSize(asset.file.length)
 
