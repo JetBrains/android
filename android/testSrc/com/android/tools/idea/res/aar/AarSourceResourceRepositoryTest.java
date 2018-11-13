@@ -33,7 +33,6 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
 import java.util.List;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AarSourceResourceRepository}.
@@ -70,13 +69,7 @@ public class AarSourceResourceRepositoryTest extends TestCase {
   }
 
   public void testMultipleValues_wholeResourceDirectory() {
-    // when resourceFiles is null
-    assertResourceValues(ResourcesTestsUtil.getTestAarRepository());
-    // when resourceFiles is empty
-    assertResourceValues(ResourcesTestsUtil.getTestAarRepositoryWithResourceFolders("my_aar_lib"));
-  }
-
-  private static void assertResourceValues(@NotNull AarSourceResourceRepository repository) {
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(
