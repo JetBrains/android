@@ -78,6 +78,10 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     inspector.repaint()
   }
 
+  fun addSeparatorBeforeTabs() {
+    addSeparatorBeforeTitle()
+  }
+
   private fun createScrollPane(component: JComponent): JComponent {
     val scrollPane = ScrollPaneFactory.createScrollPane(
       component,

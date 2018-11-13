@@ -29,6 +29,7 @@ package com.android.tools.idea.common.property2.api
  * Each tab will be shown on a separate tab in the properties panel.
  */
 open class PropertiesView<P: PropertyItem>(val id: String, val model: PropertiesModel<P>) {
+  val main = PropertiesViewTab("", model)
   val tabs = mutableListOf<PropertiesViewTab<P>>()
 
   fun addTab(name: String): PropertiesViewTab<P> {
