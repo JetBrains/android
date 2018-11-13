@@ -7,7 +7,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.android.tools.idea.startup.AndroidCodeStyleSettings;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
@@ -144,7 +144,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    AndroidCodeStyleSettingsModifier.modify(mySettings);
+    AndroidCodeStyleSettings.modify(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
