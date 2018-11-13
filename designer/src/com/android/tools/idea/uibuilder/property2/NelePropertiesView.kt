@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBu
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.ProgressBarInspectorBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.TextViewInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.ViewInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
@@ -43,6 +44,7 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
   private val tableUIProvider = TableUIProvider.create(NeleNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
                                                        NelePropertyItem::class.java, controlTypeProvider, editorProvider)
   init {
+    main.builders.add(SelectedComponentBuilder())
     val basic = addTab(BASIC_PAGE)
     basic.searchable = false
     basic.builders.add(IdInspectorBuilder(editorProvider))
