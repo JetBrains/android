@@ -1383,6 +1383,10 @@
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
+  </extensions>
+
   <module-components>
     <component>
       <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>

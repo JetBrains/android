@@ -17,6 +17,9 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.execution.DefaultExecutionTarget;
+import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -39,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import javax.swing.JComponent;
@@ -119,10 +123,12 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     if (selectedDevice == null) {
       properties.unsetValue(SELECTED_DEVICE);
-      return;
+    }
+    else {
+      properties.setValue(SELECTED_DEVICE, selectedDevice.getKey());
     }
 
-    properties.setValue(SELECTED_DEVICE, selectedDevice.getKey());
+    updateExecutionTargetManager(project, selectedDevice);
   }
 
   @Nullable
@@ -280,7 +286,8 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myDevices = myDevicesGetter.get(project);
 
     if (myDevices.isEmpty()) {
-      mySelectedSnapshot = null;
+      setSelectedDevice(project, null);
+      setSelectedSnapshot(null);
 
       presentation.setIcon(null);
       presentation.setText("No devices");
@@ -295,6 +302,8 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setIcon(device.getIcon());
     presentation.setText(mySelectedSnapshot == null ? device.getName() : device + " - " + mySelectedSnapshot);
+
+    updateExecutionTargetManager(project, device);
   }
 
   private void updateSelectedSnapshot(@NotNull Project project) {
@@ -309,7 +318,7 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     if (mySelectedSnapshot == null) {
       Optional<String> selectedDeviceSnapshot = snapshots.stream().findFirst();
-      selectedDeviceSnapshot.ifPresent(snapshot -> mySelectedSnapshot = snapshot);
+      selectedDeviceSnapshot.ifPresent(snapshot -> setSelectedSnapshot(snapshot));
 
       return;
     }
@@ -319,6 +328,21 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     Optional<String> selectedSnapshot = snapshots.stream().findFirst();
-    mySelectedSnapshot = selectedSnapshot.orElse(null);
+    setSelectedSnapshot(selectedSnapshot.orElse(null));
+  }
+
+  private static void updateExecutionTargetManager(@NotNull Project project, @Nullable Device device) {
+    ExecutionTarget target = ExecutionTargetManager.getInstance(project).getActiveTarget();
+
+    // Skip updating ExecutionTargetManager if the Device has not meaningfully changed.
+    if (device == null && target == DefaultExecutionTarget.INSTANCE ||
+        target instanceof DeviceAndSnapshotExecutionTargetProvider.Target &&
+        Objects.equals(device, ((DeviceAndSnapshotExecutionTargetProvider.Target)target).getDevice())) {
+      return;
+    }
+
+    // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
+    // So we'll just make sure the following gets run on the EDT thread and wait for its result.
+    ApplicationManager.getApplication().invokeAndWait(() -> ExecutionTargetManager.getInstance(project).update());
   }
 }

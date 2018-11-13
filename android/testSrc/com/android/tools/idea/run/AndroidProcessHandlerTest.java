@@ -27,6 +27,7 @@ import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
+import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.util.Key;
 import org.easymock.EasyMock;
 import org.jetbrains.android.AndroidTestCase;
@@ -125,7 +126,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     // Prepare
     myExecuteShellCommandLatch = new CountDownLatch(2);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
       .setApplicationId(APPLICATION_ID)
       .build();
     Collection<String> text = new ArrayList<>();
@@ -158,7 +159,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     myExecuteShellCommandLatch = new CountDownLatch(2);
     StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.override(false);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
       .setApplicationId(APPLICATION_ID)
       .build();
 
@@ -188,7 +189,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     LogcatOutputSettings.getInstance().setRunOutputEnabled(false);
     LogcatOutputSettings.getInstance().setDebugOutputEnabled(false);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
       .setApplicationId(APPLICATION_ID)
       .build();
 
