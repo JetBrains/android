@@ -173,15 +173,15 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   /**
-   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository} instead of this
-   * method.
+   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#getSourceRepository}
+   * instead of this method.
    *
-   * @param resourceFolder location where the resource files located. It contains a resource directory and a resource list should be loaded.
-   *                      A null or empty resource list indicates that all files contained in {@code resourceFolder#root} should be loaded
+   * @param resourceFolder specifies the resource files to be loaded. It contains a root resource directory and an optional
+   *     list of files and subdirectories that should be loaded. A null {@code resourceFolder.getResources()} list indicates
+   *     that all files contained in {@code resourceFolder.getRoot()} should be loaded.
    * @param libraryName the name of the library
    * @return the created resource repository
    */
-  // TODO(sprigogin): Change the contract to remove special treatment of an empty resource file list.
   @NotNull
   public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder, @NotNull String libraryName) {
     File resDir = resourceFolder.getRoot().toFile();
@@ -210,9 +210,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         resourceSet.setShouldParseResourceIds(true);
       }
 
-      // The resourceFiles collection contains resource files to be parsed.
-      // If it's null or empty, all files in the resource folder should be parsed.
-      if (resourceFilesAndFolders == null || resourceFilesAndFolders.isEmpty()) {
+      // The resourceFilesAndFolders collection contains resource files to be parsed.
+      // If it is null, all files in the resource folder are parsed.
+      if (resourceFilesAndFolders == null) {
         resourceSet.addSource(myResourceDirectory.toFile());
       }
       else {
@@ -248,7 +248,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     try {
       boolean shouldParseResourceIds = myRTxtIds == null;
 
-      List<Path> sourceFilesAndFolders = resourceFilesAndFolders == null || resourceFilesAndFolders.isEmpty() ?
+      List<Path> sourceFilesAndFolders = resourceFilesAndFolders == null ?
           ImmutableList.of(myResourceDirectory) :
           resourceFilesAndFolders.stream().map(PathString::toPath).collect(Collectors.toList());
       Loader loader = new Loader();
