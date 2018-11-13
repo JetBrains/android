@@ -16,10 +16,12 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.ResourceItem
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
@@ -77,27 +79,30 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
   override fun isCopyEnabled(dataContext: DataContext): Boolean = !selectedItems.isNullOrEmpty()
 
-  private fun assetsToArrayPsiElements(): Array<out PsiElement> {
-    return selectedItems
-             ?.flatMap { it.designAssets }
-             ?.mapNotNull {
-               val resourceItem = it.resourceItem
-               var psiElement: PsiElement? = null
+  private fun assetsToArrayPsiElements(): Array<out PsiElement> =
+    selectedItems
+      ?.flatMap(DesignAssetSet::designAssets)
+      ?.mapNotNull(DesignAsset::resourceItem)
+      ?.mapNotNull(this::findPsiElement)
+      ?.filter { it.manager.isInProject(it) }
+      ?.toTypedArray() ?: emptyArray()
 
-               if (!resourceItem.isFileBased
-                   && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
-                 psiElement = LocalResourceRepository
-                   .getItemTag(facet.module.project, resourceItem)
-                   ?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
-               }
+  /**
+   * Try to find the psi element that this [ResourceItem] represents.
+   */
+  fun findPsiElement(resourceItem: ResourceItem): PsiElement? {
+    var psiElement: PsiElement? = null
+    if (!resourceItem.isFileBased
+        && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
+      psiElement = LocalResourceRepository
+        .getItemTag(facet.module.project, resourceItem)
+        ?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
+    }
 
-               if (psiElement == null) {
-                 psiElement = LocalResourceRepository.getItemPsiFile(facet.module.project, resourceItem)
-               }
-               psiElement
-             }
-             ?.filter { it.manager.isInProject(it) }
-             ?.toTypedArray() ?: emptyArray()
+    if (psiElement == null) {
+      psiElement = LocalResourceRepository.getItemPsiFile(facet.module.project, resourceItem)
+    }
+    return psiElement
   }
 
   private fun assetsToSingleElement(): PsiElement? {

@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
@@ -33,9 +32,10 @@ import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.xml.XmlFile
+import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
@@ -188,6 +188,22 @@ class ProjectResourcesBrowserViewModel(
 
   fun getData(dataId: String?, selectedAssets: List<DesignAssetSet>): Any? {
     return dataManager.getData(dataId, selectedAssets)
+  }
+
+  fun openFile(asset: DesignAsset) {
+    val psiElement = dataManager.findPsiElement(asset.resourceItem)
+    psiElement?.let { NavigationUtil.openFileWithPsiElement(it, true, true) }
+  }
+
+  /**
+   * Returns the file size if the [asset] is a file (e.g layout, drawables)
+   * and not contained in a file (e.g colors).
+   */
+  fun getSize(asset: DesignAsset): String {
+    if (asset.resourceItem.isFileBased) {
+      return StringUtil.formatFileSize(asset.file.length)
+    }
+    return ""
   }
 }
 
