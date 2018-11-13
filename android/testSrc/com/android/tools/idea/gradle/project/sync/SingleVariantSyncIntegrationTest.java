@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
@@ -87,12 +88,12 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
   public void testSingleVariantSyncAfterFailedIdeaSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-    loadProject(HELLO_JNI);
-
     // Write empty CMakeLists file to force empty variants models from AGP.
+    prepareProjectForImport(HELLO_JNI);
     File cmakeFile = new File(getProjectFolderPath(), join("app", "src", "main", "cpp", "CMakeLists.txt"));
     writeToFile(cmakeFile, "");
-    requestSyncAndWait();
+    importProject(getProject().getName(), getBaseDirPath(getProject()), null);
+
     // Verify Ndk model only contains one dummy variant.
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(getModule("app"));
     assertThat(ndkModuleModel.getVariants()).hasSize(1);

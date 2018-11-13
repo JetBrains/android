@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
@@ -27,7 +28,8 @@ import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
-private const val DEFAULT_FONT_NAME = "Default"
+@VisibleForTesting
+const val DEFAULT_FONT_NAME = "Default"
 private val DEFAULT_FONT_SIZE = JBUI.scale(12)
 
 const val DRAW_BACKGROUND_LEVEL = 0

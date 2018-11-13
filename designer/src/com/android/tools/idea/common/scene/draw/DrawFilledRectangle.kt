@@ -21,7 +21,7 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 
-class DrawFilledRectangle(
+data class DrawFilledRectangle(
   private val level: Int,
   @SwingCoordinate private val rectangle: Rectangle2D.Float,
   @SwingCoordinate private val color: Color
@@ -41,4 +41,6 @@ class DrawFilledRectangle(
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.fill(rectangle)
   }
+
+  override fun toString() = "DrawFilledRectangle[${rectangle.x}, ${rectangle.y}, ${rectangle.width}x${rectangle.height}]"
 }

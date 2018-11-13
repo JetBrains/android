@@ -59,6 +59,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
@@ -82,6 +83,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1021,10 +1023,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
-                             () -> handleAddition(toAdd, receiver, before, insertType, surface));
+    NlDependencyManager.Companion.get().addDependencies(
+      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface));
+  }
 
-    notifyModified(ChangeType.ADD_COMPONENTS);
+  @Nullable
+  private Unit addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
+                                          @NotNull NlComponent receiver,
+                                          @Nullable NlComponent before,
+                                          @NotNull InsertType insertType,
+                                          @Nullable DesignSurface surface) {
+    DumbService.getInstance(getProject()).runWhenSmart(() -> {
+      NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
+                               () -> handleAddition(toAdd, receiver, before, insertType, surface));
+
+      notifyModified(ChangeType.ADD_COMPONENTS);
+    });
+    return null;
   }
 
   @NotNull
@@ -1075,8 +1090,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType,
                               @Nullable DesignSurface surface) {
-    NlDependencyManager.Companion.get().addDependencies(added, getFacet());
-
     Set<String> ids = getIds();
 
     for (NlComponent component : added) {

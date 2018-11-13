@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
@@ -47,7 +48,7 @@ private const val FONT_NAME = "Default"
 /**
  * [DrawCommand] that draws a screen in the navigation editor.
  */
-class DrawNavScreen(@SwingCoordinate private val rectangle: Rectangle2D.Float,
+class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
                     private val image: RefinableImage) : DrawCommandBase() {
 
   private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), RefinableImage())
