@@ -38,7 +38,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
@@ -272,7 +271,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(clz);
     assertEquals(name, clz.getName());
     String rAttr = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).reduce((a, b) -> a + "\n" + b).orElse("");
-    assertEquals("public static final int my.test.pkg.R$attr.app_declared_attr", rAttr);
+    assertEquals("public static final int my.test.pkg.R$attr.some_attr\n" +
+                 "public static final int my.test.pkg.R$attr.app_declared_attr", rAttr);
     assertNotNull(clz.newInstance());
   }
 
