@@ -79,7 +79,10 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
               lib1:1.0
           com.example.libs:lib2
               lib2:0.9.1
-              lib2:1.0""".trimIndent()
+              lib2:1.0
+          lib (..)
+          libsam1-1.1.jar (../lib)
+          libs""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))
