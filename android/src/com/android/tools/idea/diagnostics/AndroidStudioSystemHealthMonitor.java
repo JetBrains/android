@@ -18,8 +18,8 @@ package com.android.tools.idea.diagnostics;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
-import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.google.common.base.Charsets;
@@ -60,10 +60,15 @@ import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import java.io.BufferedReader;
@@ -72,6 +77,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.HdrHistogram.Histogram;
 import org.jetbrains.android.util.AndroidBundle;
@@ -141,6 +147,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private static final long TOO_MANY_EXCEPTIONS_THRESHOLD = 10000;
 
   private final StudioReportDatabase myReportsDatabase = new StudioReportDatabase(new File(PathManager.getTempPath(), "reports.dmp"));
+  public static final HProfDatabase ourHProfDatabase = new HProfDatabase(Paths.get(PathManager.getTempPath()));
 
   private static final Object ACTION_INVOCATIONS_LOCK = new Object();
   private static final Lock REPORT_EXCEPTIONS_LOCK = new ReentrantLock();
@@ -161,6 +168,10 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     } else {
       ourInstance = this;
     }
+  }
+
+  public static void addHProfToDatabase(@NotNull Path hprofPath) {
+    ourHProfDatabase.appendHProfPath(hprofPath);
   }
 
   public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
@@ -273,6 +284,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
     trackStudioReports(myReportsDatabase.reapReportDetails());
+    startHProfAnalysis(ourHProfDatabase.getPathsAndCleanupDatabase());
 
     Application application = ApplicationManager.getApplication();
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
@@ -306,6 +318,39 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
     });
     ThreadSamplingReport.startCollectingThreadSamplingReports(this::tryAppendReportToDatabase);
+  }
+
+  private static void startHProfAnalysis(List<Path> paths) {
+    if (paths.isEmpty()) return;
+
+    // Start only one analysis, even if there are more hprof files captured.
+    final Path path = paths.get(0);
+
+    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+
+    AtomicBoolean eventHandled = new AtomicBoolean(false);
+    connection.subscribe(ProjectManager.TOPIC, new ProjectManagerListener()
+    {
+      @Override
+      public void projectOpened(@NotNull Project project) {
+        if (eventHandled.getAndSet(true)) {
+          return;
+        }
+        connection.disconnect();
+        StartupManager.getInstance(project).runWhenProjectIsInitialized(
+          () -> new AnalysisRunnable(path, true).run());
+      }
+    });
+    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+      @Override
+      public void welcomeScreenDisplayed() {
+        if (eventHandled.getAndSet(true)) {
+          return;
+        }
+        connection.disconnect();
+        new AnalysisRunnable(path, true).run();
+      }
+    });
   }
 
   private boolean tryAppendReportToDatabase(DiagnosticReport report) {
@@ -756,20 +801,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       IdeaLoggingEvent e = new AndroidStudioCrashEvents(descriptions);
       reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
       });
-    }
-  }
-
-  private static void reportFreeze(@NotNull FreezeReport report) {
-    if (!AnalyticsSettings.getOptedIn()) {
-      return;
-    }
-
-    try {
-      // Performance reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(report.asCrashReport(), true);
-    }
-    catch (IOException e) {
-      // Ignore
     }
   }
 
