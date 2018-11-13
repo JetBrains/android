@@ -53,12 +53,12 @@ class AsyncDevicesGetter {
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
 
     virtualDevices.stream()
-                  .map(device -> newVirtualDeviceIfItsConnected(device, connectedDevices))
-                  .forEach(devices::add);
+      .map(device -> newVirtualDeviceIfItsConnected(device, connectedDevices))
+      .forEach(devices::add);
 
     connectedDevices.stream()
-                    .map(connectedDevice -> new PhysicalDevice(myDevicePropertiesProvider.get(connectedDevice), connectedDevice))
-                    .forEach(devices::add);
+      .map(connectedDevice -> new PhysicalDevice(myDevicePropertiesProvider.get(connectedDevice), connectedDevice))
+      .forEach(devices::add);
 
     return devices;
   }
