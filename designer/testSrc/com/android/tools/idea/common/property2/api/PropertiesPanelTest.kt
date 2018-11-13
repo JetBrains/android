@@ -25,7 +25,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.*
+import org.mockito.Mockito.atLeastOnce
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
@@ -43,6 +45,8 @@ class PropertiesPanelTest {
   private var tab2a: PropertiesViewTab<FakeProperty>? = null
   private var tab2b: PropertiesViewTab<FakeProperty>? = null
   private var tab2c: PropertiesViewTab<FakeProperty>? = null
+  private var builder1: InspectorBuilder<FakeProperty>? = null
+  private var builder2: InspectorBuilder<FakeProperty>? = null
   private var builder1a: InspectorBuilder<FakeProperty>? = null
   private var builder1b: InspectorBuilder<FakeProperty>? = null
   private var builder2a: InspectorBuilder<FakeProperty>? = null
@@ -63,11 +67,15 @@ class PropertiesPanelTest {
     tab2a = view2!!.addTab("Simple")
     tab2b = view2!!.addTab("Extra")
     tab2c = view2!!.addTab("Last")
+    builder1 = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
+    builder2 = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
     builder1a = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
     builder1b = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
     builder2a = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
     builder2b = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
     builder2c = mock(InspectorBuilder::class.java) as InspectorBuilder<FakeProperty>
+    view1!!.main.builders.add(builder1!!)
+    view2!!.main.builders.add(builder2!!)
     tab1a!!.builders.add(builder1a!!)
     tab1b!!.builders.add(builder1b!!)
     tab2a!!.builders.add(builder2a!!)
@@ -85,8 +93,10 @@ class PropertiesPanelTest {
     tab1b = null
     tab2a = null
     tab2b = null
+    builder1 = null
+    builder2 = null
     builder1a = null
-    builder1b= null
+    builder1b = null
     builder2a = null
     builder2b = null
   }
@@ -141,7 +151,7 @@ class PropertiesPanelTest {
     val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
     panel.addView(view2!!)
     model2!!.propertiesGenerated()
-    val tabs = panel.component.getComponent(0) as JTabbedPane
+    val tabs = panel.component.getComponent(1) as JTabbedPane
 
     tabs.selectedIndex = 2
     assertThat(properties!!.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Last")
@@ -165,8 +175,9 @@ class PropertiesPanelTest {
     assertThat(panel.pages.size).isEqualTo(2)
     verify(builder1a!!).attachToInspector(eq(panel.pages[0]), any())
     verify(builder1b!!).attachToInspector(eq(panel.pages[1]), any())
-    assertThat(panel.component.getComponent(0)).isEqualTo(panel.pages[1].component)
-    val hidden = panel.component.getComponent(1) as JPanel
+    assertThat(panel.component.getComponent(0)).isEqualTo(panel.mainPage.component)
+    assertThat(panel.component.getComponent(1)).isEqualTo(panel.pages[1].component)
+    val hidden = panel.component.getComponent(2) as JPanel
     assertThat(hidden.isVisible).isFalse()
     assertThat(hidden.componentCount).isEqualTo(2)
     assertThat(hidden.getComponent(0)).isEqualTo(panel.pages[0].component)
@@ -175,10 +186,14 @@ class PropertiesPanelTest {
 
   private fun checkBothTabsVisibleInView1(panel: PropertiesPanel) {
     assertThat(panel.pages.size).isEqualTo(2)
+    verify(builder1!!, atLeastOnce()).attachToInspector(eq(panel.mainPage), any())
     verify(builder1a!!, atLeastOnce()).attachToInspector(eq(panel.pages[0]), any())
     verify(builder1b!!, atLeastOnce()).attachToInspector(eq(panel.pages[1]), any())
-    val tabs = panel.component.getComponent(0) as JTabbedPane
-    val hidden = panel.component.getComponent(1) as JPanel
+    val main = panel.component.getComponent(0)
+    val tabs = panel.component.getComponent(1) as JTabbedPane
+    val hidden = panel.component.getComponent(2) as JPanel
+    assertThat(main).isSameAs(panel.mainPage.component)
+    assertThat(main.isVisible).isTrue()
     assertThat(tabs.isVisible).isTrue()
     assertThat(hidden.isVisible).isFalse()
     assertThat(hidden.componentCount).isEqualTo(0)
@@ -189,11 +204,15 @@ class PropertiesPanelTest {
 
   private fun checkAllThreeTabsVisibleInView2(panel: PropertiesPanel) {
     assertThat(panel.pages.size).isEqualTo(3)
+    verify(builder2!!, atLeastOnce()).attachToInspector(eq(panel.mainPage), any())
     verify(builder2a!!).attachToInspector(eq(panel.pages[0]), any())
     verify(builder2b!!).attachToInspector(eq(panel.pages[1]), any())
     verify(builder2c!!).attachToInspector(eq(panel.pages[2]), any())
-    val tabs = panel.component.getComponent(0) as JTabbedPane
-    val hidden = panel.component.getComponent(1) as JPanel
+    val main = panel.component.getComponent(0)
+    val tabs = panel.component.getComponent(1) as JTabbedPane
+    val hidden = panel.component.getComponent(2) as JPanel
+    assertThat(main).isSameAs(panel.mainPage.component)
+    assertThat(main.isVisible).isTrue()
     assertThat(tabs.isVisible).isTrue()
     assertThat(hidden.isVisible).isFalse()
     assertThat(hidden.componentCount).isEqualTo(0)

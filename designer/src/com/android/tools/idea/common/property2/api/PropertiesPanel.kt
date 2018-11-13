@@ -35,7 +35,7 @@ private const val PROPERTY_TAB_NAME = "tab.name"
  * The top level class for creating UI classes and model classes for a properties panel.
  *
  * Creates the main [component] for the properties panel which at this point contains
- * a property inspector. Separate views such as a tabular view may be added at a later
+ * a property inspector. SeparatThe main pagee views such as a tabular view may be added at a later
  * point.
  * The content of the inspector is controlled by a list of [PropertiesView]s which
  * must be added to this class using [addView].
@@ -48,6 +48,9 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   private val tabbedPanel = CommonTabbedPane()
   private val hidden = JPanel()
   private var updatingPageVisibility = false
+
+  @VisibleForTesting
+  val mainPage = PropertiesPage(this)
 
   @VisibleForTesting
   val pages = mutableListOf<PropertiesPage>()
@@ -72,11 +75,15 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
 
   override fun propertyValuesChanged(model: PropertiesModel<*>) {
     if (model == activeModel) {
+      mainPage.propertyValuesChanged()
       pages.forEach { it.propertyValuesChanged() }
     }
   }
 
   fun enterInFilter(): Boolean {
+    if (mainPage.enterInFilter()) {
+      return true
+    }
     return pages.firstOrNull { it.component.isVisible }?.enterInFilter() == true
   }
 
@@ -91,6 +98,11 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
       activeModel?.deactivate()
       activeModel = model
       activeView = view
+    }
+    mainPage.clear()
+    view.main.attachToInspector(mainPage)
+    if (view.tabs.isNotEmpty()) {
+      mainPage.addSeparatorBeforeTabs()
     }
     pages.forEach { it.clear() }
     for (index in view.tabs.indices) {
@@ -144,6 +156,12 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
     try {
       component.removeAll()
       tabbedPanel.removeAll()
+      if (filter.isEmpty() || view.main.searchable) {
+        component.add(mainPage.component, BorderLayout.NORTH)
+      }
+      else {
+        hidden.add(mainPage.component)
+      }
       for (index in view.tabs.indices) {
         val tab = view.tabs[index]
         val page = pages[index]
