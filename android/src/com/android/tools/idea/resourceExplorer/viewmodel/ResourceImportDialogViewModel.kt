@@ -23,6 +23,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
+import java.util.concurrent.CompletableFuture
 
 /**
  * ViewModel for [ResourceImportDialogViewModel]
@@ -39,11 +40,10 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
     designAssetImporter.importDesignAssets(assetSets, facet)
   }
 
-  fun getAssetPreview(asset: DesignAsset): Image? {
+  fun getAssetPreview(asset: DesignAsset): CompletableFuture<out Image?> {
     return rendererManager
       .getViewer(asset.file)
       .getImage(asset.file, facet.module, JBUI.size(50))
-      .get()
   }
 
   fun getItemNumberString(assetSet: DesignAssetSet) =
