@@ -859,8 +859,6 @@ public class SceneComponent {
       return;
     }
     myTargetProvider = targetProvider;
-
-    updateTargets();
   }
 
   /**

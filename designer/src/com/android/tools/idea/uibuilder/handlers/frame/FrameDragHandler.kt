@@ -41,7 +41,8 @@ class FrameDragHandler(editor: ViewEditor,
       val selectedNlCmponent = components[0]
       component = TemporarySceneComponent(layout.scene, selectedNlCmponent)
       component.setSize(editor.pxToDp(selectedNlCmponent.w), editor.pxToDp(selectedNlCmponent.h), false)
-      component.setTargetProvider({ listOf(dragTarget) })
+      component.setTargetProvider { listOf(dragTarget) }
+      component.updateTargets()
       component.setDrawState(SceneComponent.DrawState.DRAG)
       layout.addChild(component)
     }
