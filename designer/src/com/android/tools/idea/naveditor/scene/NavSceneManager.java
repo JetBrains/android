@@ -162,7 +162,6 @@ public class NavSceneManager extends SceneManager {
       sceneComponent.setTargetProvider(sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()
                                        ? myNavigationTargetProvider
                                        : myScreenTargetProvider);
-      sceneComponent.updateTargets();
 
       switch (type) {
         case NAVIGATION:
@@ -208,7 +207,6 @@ public class NavSceneManager extends SceneManager {
     }
     else if (NavComponentHelperKt.isAction(sceneComponent.getNlComponent())) {
       sceneComponent.setTargetProvider(myNavActionTargetProvider);
-      sceneComponent.updateTargets();
     }
   }
 

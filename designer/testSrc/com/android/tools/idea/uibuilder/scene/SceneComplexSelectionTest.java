@@ -49,11 +49,11 @@ public class SceneComplexSelectionTest extends SceneTest {
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp").children(
-                                         component(TEXT_VIEW)
-                                           .id("@id/button")
-                                           .withBounds(100, 100, 100, 20)
-                                           .width("100dp")
-                                           .height("20dp")
+                                       component(TEXT_VIEW)
+                                         .id("@id/button")
+                                         .withBounds(100, 100, 100, 20)
+                                         .width("100dp")
+                                         .height("20dp")
                                      ),
                                      component(TEXT_VIEW)
                                        .id("@id/button2")
@@ -79,6 +79,11 @@ public class SceneComplexSelectionTest extends SceneTest {
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
     assertEquals(1, componentList.size());
     assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease("button", 100, 100);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("linearlayout").getNlComponent(), componentList.get(0));
   }
 
 }

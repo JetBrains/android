@@ -59,7 +59,6 @@ internal class CommonDragHandler(editor: ViewEditor,
     dragTarget = CommonDragTarget(component, fromToolWindow = true)
 
     component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
-    component.updateTargets()
     // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
     // This weird implementation may be fixed in the future, but we just work around here.
     component.setComponentProvider { _ -> components[0] }

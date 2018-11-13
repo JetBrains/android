@@ -68,7 +68,6 @@ class LinearDragHandler extends DragHandler {
     myDragTarget = dragTarget;
     myComponent = component;
     component.setTargetProvider(sceneComponent -> ImmutableList.of(myDragTarget));
-    component.updateTargets();
     myComponent.setDrawState(SceneComponent.DrawState.DRAG);
     layout.addChild(myComponent);
   }
