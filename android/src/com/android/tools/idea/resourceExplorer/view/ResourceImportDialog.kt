@@ -127,7 +127,12 @@ class ResourceImportDialog(
 
   private fun singleAssetView(asset: DesignAsset): FileImportRow {
     val fileImportRow = FileImportRow(FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE))
-    fileImportRow.preview.icon = ImageIcon(dialogViewModel.getAssetPreview(asset))
+    dialogViewModel.getAssetPreview(asset).whenComplete { image, _ ->
+      image?.let {
+        fileImportRow.preview.icon = ImageIcon(it)
+        fileImportRow.preview.repaint()
+      }
+    }
     return fileImportRow
   }
 }
