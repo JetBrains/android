@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
+import java.util.Optional;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -35,6 +38,17 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                                           "        app:layout_constraintEnd_toEndOf=\"@+id/button1\"\n" +
                                           "        app:layout_constraintStart_toStartOf=\"@+id/button1\"\n" +
                                           "        tools:layout_editor_absoluteY=\"15dp\" />");
+  }
+
+  public void testRenderDuringDragging() {
+    myInteraction.select("button2", true);
+    myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
+    myInteraction.mouseDrag(100, 100);
+
+    // The connection between mouse and AnchorTarget should be inside DisplayList.
+    Optional<DrawCommand> command =
+      myInteraction.getDisplayList().getCommands().stream().filter(it -> it instanceof DisplayList.Connection).findAny();
+    assertTrue(command.isPresent());
   }
 
   public void testCancelAnchorWhenCreating() {

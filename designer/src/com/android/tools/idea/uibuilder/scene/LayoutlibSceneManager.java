@@ -383,12 +383,6 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  @Override
-  public void update() {
-    super.update();
-    updateTargets();
-  }
-
   public void updateTargets() {
     SceneComponent root = getScene().getRoot();
     if (root != null) {

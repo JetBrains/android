@@ -57,7 +57,7 @@ public class DisplayList {
   // Drawing Elements
   /////////////////////////////////////////////////////////////////////////////
 
-  static class Connection implements DrawCommand {
+  public static class Connection implements DrawCommand {
     @SwingCoordinate int x1;
     @SwingCoordinate int y1;
     @SwingCoordinate int x2;

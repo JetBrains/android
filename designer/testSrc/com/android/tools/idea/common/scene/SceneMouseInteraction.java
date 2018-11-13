@@ -183,6 +183,36 @@ public class SceneMouseInteraction {
   }
 
   /**
+   * Simulate dragging the mouse to the coordinates (x, y). A series of drag events will be simulated.
+   *
+   * @param x target coordinate for dragging to
+   * @param y target coordinate for dragging to
+   */
+  public void mouseDrag(float x, float y) {
+    // drag first
+    int steps = 10;
+    float dx = x - myLastX;
+    float dy = y - myLastY;
+    float deltaX = dx / (float)steps;
+    float deltaY = dy / (float)steps;
+    dx = myLastX;
+    dy = myLastY;
+    SceneContext transform = SceneContext.get();
+    if (deltaX != 0 || deltaY != 0) {
+      for (int i = 0; i < steps; i++) {
+        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
+        dx += deltaX;
+        dy += deltaY;
+      }
+      myScene.mouseDrag(transform, (int)x, (int)y);
+    }
+    myLastX = x;
+    myLastY = y;
+    repaint();
+  }
+
+  /**
    * Simulate releasing the mouse above the given anchor of the {@link SceneComponent} component
    *
    * @param component   the component we want to click on
