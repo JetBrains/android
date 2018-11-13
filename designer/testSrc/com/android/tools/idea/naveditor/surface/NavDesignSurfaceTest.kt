@@ -16,10 +16,13 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.editor.NlEditorPanel
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
@@ -32,23 +35,37 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doCallRealMethod
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.io.File
 import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -440,6 +457,87 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     assertEquals(navDevice, navConfiguration.device)
     assertEquals(pixelC, defaultConfiguration.device)
+  }
+
+  fun testActivateWithSchemaChange() {
+    NavigationSchema.createIfNecessary(myModule)
+    val editor = mock(NlEditorPanel::class.java)
+    val surface = NavDesignSurface(project, editor, project)
+    surface.model = model("nav.xml") { navigation() }
+    @Suppress("UNCHECKED_CAST")
+    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface>
+    `when`(editor.workBench).thenReturn(workbench)
+    val lock = Semaphore(1)
+    lock.acquire()
+    // This should indicate that the relevant logic is complete
+    `when`(workbench.hideLoading()).then { lock.release() }
+
+    val navigator = addClass("import androidx.navigation.*;\n" +
+                             "@Navigator.Name(\"activity_sub\")\n" +
+                             "public class TestListeners extends ActivityNavigator {}\n")
+    NavigationSchema.get(myModule).rebuildSchema().get()
+    val initialSchema = NavigationSchema.get(myModule)
+
+    updateContent(navigator, "import androidx.navigation.*;\n" +
+                             "@Navigator.Name(\"activity_sub2\")\n" +
+                             "public class TestListeners extends ActivityNavigator {}\n")
+
+    surface.activate()
+    // wait for the relevant logic to complete
+    var completed = false
+    for (i in 0..5) {
+      UIUtil.dispatchAllInvocationEvents()
+      if (lock.tryAcquire(1, TimeUnit.SECONDS)) {
+        completed = true
+        break
+      }
+    }
+    assertTrue("hideLoading never executed", completed)
+    assertNotEquals(initialSchema, NavigationSchema.get(myModule))
+    verify(workbench).showLoading("Refreshing Navigators...")
+    verify(workbench).hideLoading()
+  }
+
+  private fun addClass(@Language("JAVA") content: String): PsiClass {
+    val result = WriteCommandAction.runWriteCommandAction(project, Computable<PsiClass> {
+      myFixture.addClass(content)
+    })
+    WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
+    val dumbService = DumbService.getInstance(project)
+    dumbService.queueTask(UnindexedFilesUpdater(project))
+    dumbService.completeJustSubmittedTasks()
+    return result
+  }
+
+  private fun updateContent(psiClass: PsiClass, @Language("JAVA") newContent: String) {
+    WriteCommandAction.runWriteCommandAction(
+      project) {
+      try {
+        psiClass.containingFile.virtualFile.setBinaryContent(newContent.toByteArray())
+      }
+      catch (e: Exception) {
+        fail(e.message)
+      }
+    }
+    WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
+    val dumbService = DumbService.getInstance(project)
+    dumbService.queueTask(UnindexedFilesUpdater(project))
+    dumbService.completeJustSubmittedTasks()
+  }
+
+  fun testActivateAddNavigator() {
+    NavigationSchema.createIfNecessary(myModule)
+    val surface = NavDesignSurface(project, mock(NlEditorPanel::class.java), project)
+    surface.model = model("nav.xml") { navigation() }
+
+    addClass("import androidx.navigation.*;\n" +
+             "@Navigator.Name(\"activity_sub\")\n" +
+             "public class TestListeners extends ActivityNavigator {}\n")
+    val initialSchema = NavigationSchema.get(myModule)
+
+    surface.activate()
+    initialSchema.rebuildTask?.get()
+    assertNotEquals(initialSchema, NavigationSchema.get(myModule))
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {

@@ -21,7 +21,7 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.RoundRectangle2D
 
-class DrawFilledRoundRectangle(
+data class DrawFilledRoundRectangle(
   private val level: Int,
   @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
   @SwingCoordinate private val color: Color

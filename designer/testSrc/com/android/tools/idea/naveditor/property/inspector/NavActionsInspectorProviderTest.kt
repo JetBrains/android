@@ -54,10 +54,11 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     assertTrue(provider.isApplicable(listOf(component1), mapOf("Actions" to NavActionsProperty(listOf(component1))), manager))
     // One component, actions + other property
     assertTrue(provider.isApplicable(listOf(component1),
-        mapOf("Actions" to NavActionsProperty(listOf(component1)), "foo" to mock(NlProperty::class.java)), manager))
+                                     mapOf("Actions" to NavActionsProperty(listOf(component1)), "foo" to mock(NlProperty::class.java)),
+                                     manager))
     // Two components
     assertFalse(provider.isApplicable(listOf(component1, component2),
-        mapOf("Actions" to NavActionsProperty(listOf(component1, component2))), manager))
+                                      mapOf("Actions" to NavActionsProperty(listOf(component1, component2))), manager))
     // zero components
     assertFalse(provider.isApplicable(listOf(), mapOf("Actions" to NavActionsProperty(listOf())), manager))
     // Non-actions property only
@@ -120,11 +121,11 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     actionsList: JBList<NlProperty>,
     index: Int
   ) = actionsList.cellRenderer.getListCellRendererComponent(
-      actionsList,
-      actionsList.model.getElementAt(index),
-      index,
-      false,
-      false
+    actionsList,
+    actionsList.model.getElementAt(index),
+    index,
+    false,
+    false
   ).toString()
 
   fun testPopupContents() {
@@ -147,11 +148,11 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     `when`(manager.facet).thenReturn(myFacet)
 
     @Suppress("UNCHECKED_CAST")
-    val answer = object: Answer<NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent> {
+    val answer = object : Answer<NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent> {
       var result: NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent? = null
 
       override fun answer(invocation: InvocationOnMock?): NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent =
-          (invocation?.callRealMethod() as NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent).also { result = it }
+        (invocation?.callRealMethod() as NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent).also { result = it }
     }
     doAnswer(answer).`when`(provider).createCustomInspector(any(), any(), any())
     val panel = NavInspectorPanel(myRootDisposable)
@@ -166,8 +167,8 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     actionsList.selectedIndices = intArrayOf(0)
     var group: ActionGroup = answer.result?.createPopupContent(MouseEvent(
-        actionsList, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0,
-        cell0Location.x, cell0Location.y, 1, true))!!
+      actionsList, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0,
+      cell0Location.x, cell0Location.y, 1, true))!!
 
     assertEquals(3, group.getChildren(null).size)
     assertEquals("Edit", group.getChildren(null)[0].templatePresentation.text)
@@ -177,8 +178,8 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     actionsList.selectedIndices = intArrayOf(0, 1)
     group = answer.result?.createPopupContent(MouseEvent(
-        actionsList, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0,
-        cell0Location.x, cell0Location.y, 1, true))!!
+      actionsList, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0,
+      cell0Location.x, cell0Location.y, 1, true))!!
 
     assertEquals(1, group.getChildren(null).size)
     assertEquals("Delete", group.getChildren(null)[0].templatePresentation.text)
@@ -186,8 +187,8 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     actionsList.selectedIndices = intArrayOf(1)
     group = answer.result?.createPopupContent(MouseEvent(
-        actionsList, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0,
-        cell0Location.x, cell0Location.y, 1, true))!!
+      actionsList, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0,
+      cell0Location.x, cell0Location.y, 1, true))!!
 
     assertEquals(3, group.getChildren(null).size)
     assertArrayEquals(intArrayOf(0), actionsList.selectedIndices)
@@ -215,6 +216,9 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     val panel = NavInspectorPanel(myRootDisposable)
     val f1 = model.find("f1")!!
     model.surface.selectionModel.setSelection(listOf(f1))
+    // Initially select something else. See b/113347279.
+    panel.setComponent(listOf(model.find("f2")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
+    // Then select the real one
     panel.setComponent(listOf(f1), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     @Suppress("UNCHECKED_CAST")
@@ -258,6 +262,7 @@ private fun <T> any(): T {
   Mockito.any<T>()
   return uninitialized()
 }
+
 @Suppress("UNCHECKED_CAST")
 private fun <T> uninitialized(): T = null as T
 
