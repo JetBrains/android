@@ -15,19 +15,36 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import static com.intellij.icons.AllIcons.Nodes.Module;
+import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
+import static com.intellij.util.PlatformIcons.JAR_ICON;
+import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
+import com.android.tools.idea.gradle.structure.dependencies.AddJarDependencyDialog;
+import com.android.tools.idea.gradle.structure.dependencies.AddJarDependencyDialogKt;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialogKt;
 import com.android.tools.idea.gradle.structure.dependencies.AddModuleDependencyDialog;
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -44,23 +61,20 @@ import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static com.intellij.icons.AllIcons.Nodes.Module;
-import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
-import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
@@ -79,6 +93,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private History myHistory;
   private IssuesViewer myIssuesViewer;
   private AddLibraryDependencyAction myAddLibraryDependencyAction;
+  private AddJarDependencyAction myAddJarDependencyAction;
 
   protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsModule module) {
     super(new BorderLayout());
@@ -216,8 +231,11 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     if (myAddLibraryDependencyAction == null) {
       myAddLibraryDependencyAction = new AddLibraryDependencyAction();
     }
+    if (myAddJarDependencyAction == null) {
+      myAddJarDependencyAction = new AddJarDependencyAction();
+    }
 
-    List<AbstractPopupAction> actions = Lists.newArrayList(myAddLibraryDependencyAction);
+    List<AbstractPopupAction> actions = Lists.newArrayList(myAddLibraryDependencyAction, myAddJarDependencyAction);
 
     PsProject project = myContext.getProject();
     if (project.getModelCount() > 1) {
@@ -292,9 +310,23 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     }
   }
 
+  private class AddJarDependencyAction extends AbstractAddDependencyAction {
+    AddJarDependencyAction() {
+      super(AddJarDependencyDialogKt.ADD_JAR_DEPENDENCY_DIALOG_TITLE, "Jar Dependency", JAR_ICON, 2);
+    }
+
+    @Override
+    protected void showAddDependencyDialog(@NotNull PsModule module) {
+      AddJarDependencyDialog dialog = new AddJarDependencyDialog(module);
+      if (dialog.showAndGet()) {
+        dialog.addNewDependencies();
+      }
+    }
+  }
+
   private class AddModuleDependencyAction extends AbstractAddDependencyAction {
     AddModuleDependencyAction() {
-      super(AddModuleDependencyDialog.TITLE, "Module Dependency", Module, 2);
+      super(AddModuleDependencyDialog.TITLE, "Module Dependency", Module, 3);
     }
 
     @Override
