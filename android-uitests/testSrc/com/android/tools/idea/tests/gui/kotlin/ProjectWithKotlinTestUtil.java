@@ -16,17 +16,40 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewKotlinClassDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidProjectStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.ProjectManager;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
+import javax.swing.JComponent;
+import javax.swing.text.JTextComponent;
+import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JTextComponentMatcher;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.regex.Pattern;
 
 public class ProjectWithKotlinTestUtil {
 
@@ -112,24 +135,31 @@ public class ProjectWithKotlinTestUtil {
         .until(() -> fileName.equals(ideFrameFixture.getEditor().getCurrentFileName()));
   }
 
-  protected static void createNewBasicKotlinProject(boolean hasCppSupport, GuiTestRule guiTest) {
+  protected static void createKotlinProj(boolean hasCppSupport, GuiTestRule guiTest) throws IOException {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
     if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      newProjectWizard
+      ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> configAndroid = newProjectWizard
         .getChooseAndroidProjectStep()
         .chooseActivity(hasCppSupport ? "Native C++" : "Empty Activity")
         .wizard()
         .clickNext()
         .getConfigureNewAndroidProjectStep()
-        .enterPackageName("android.com")
-        .setSourceLanguage("Kotlin");
+        .enterPackageName("android.com");
+
+      waitForPackageNameToShow("android.com", configAndroid);
+
+      configAndroid.setSourceLanguage("Kotlin");
     }
     else {
-      newProjectWizard.getConfigureAndroidProjectStep()
-                      .enterPackageName("android.com")
-                      .setCppSupport(hasCppSupport)
-                      .setKotlinSupport(true); // Default "App name", "company domain" and "package name"
+      ConfigureAndroidProjectStepFixture<NewProjectWizardFixture> configAndroid =
+        newProjectWizard.getConfigureAndroidProjectStep()
+          .enterPackageName("android.com");
+
+      waitForPackageNameToShow("android.com", configAndroid);
+
+      configAndroid.setCppSupport(hasCppSupport)
+        .setKotlinSupport(true); // Default "App name", "company domain" and "package name"
 
       newProjectWizard.clickNext();
       newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
@@ -140,11 +170,84 @@ public class ProjectWithKotlinTestUtil {
       newProjectWizard.clickNext();
     }
 
-    newProjectWizard.clickFinish();
+    try {
+      newProjectWizard.clickFinish(Wait.seconds(20), Wait.seconds(10), Wait.seconds(120));
+    } catch (WaitTimedOutError setupTimeout) {
+      // We do not care about timeouts if the IDE is indexing and syncing the project,
+      // so we don't actually want to throw an error in case  we get a timeout from
+      // indexing or syncing
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+      // Unfortunately, there are 3 different waits used in the clickFinish() method,
+      // so we have to repeat the checks to throw a more detailed error message
 
-    // Build project after Gradle sync finished.
-    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60));
+      // Check if the dialog is still open
+      if (GuiQuery.getNonNull(() -> newProjectWizard.target().isShowing())) {
+        // dialog still showing
+        throw setupTimeout;
+      }
+
+      // Check if the project is opened
+      if (ProjectManager.getInstance().getOpenProjects().length != 1) {
+        throw setupTimeout;
+      }
+
+      // The only other possibility here is that the project is still indexing
+      // or syncing. Ignore the timeout in this case!
+    }
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(240));
+
+    // TODO remove the following hack: b/110174414
+    File androidSdk = IdeSdks.getInstance().getAndroidSdkPath();
+    File ninja = new File(androidSdk, "cmake/3.10.4819442/bin/ninja");
+
+    AtomicReference<IOException> buildGradleFailure = new AtomicReference<>();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      WriteCommandAction.runWriteCommandAction(ideFrame.getProject(), () -> {
+        ProjectBuildModel pbm = ProjectBuildModel.get(ideFrame.getProject());
+        GradleBuildModel buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"));
+        CMakeOptionsModel cmakeModel = buildModel
+          .android()
+          .defaultConfig()
+          .externalNativeBuild()
+          .cmake();
+
+        ResolvedPropertyModel cmakeArgsModel = cmakeModel.arguments();
+        try {
+          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.getCanonicalPath());
+          buildModel.applyChanges();
+        }
+        catch (IOException failureToWrite) {
+          buildGradleFailure.set(failureToWrite);
+        }
+      });
+    });
+    IOException errorsWhileModifyingBuild = buildGradleFailure.get();
+    if(errorsWhileModifyingBuild != null) {
+      throw errorsWhileModifyingBuild;
+    }
+    // TODO end hack for b/110174414
+
+  }
+
+  /**
+   *
+   * @throws WaitTimedOutError if the package name field does not contain {@code expectedName}
+   */
+  private static <S, W extends AbstractWizardFixture> void waitForPackageNameToShow(
+    @NotNull String expectedName,
+    @NotNull AbstractWizardStepFixture<S, W> configAndroidFixture
+  ) {
+
+    Robot robot = configAndroidFixture.robot();
+    JComponent comp = robot.finder().findByLabel(configAndroidFixture.target(), "Package name", JComponent.class, true);
+    JTextComponent textField = robot.finder().find(comp, JTextComponentMatcher.any());
+
+    Wait.seconds(10)
+      .expecting("Package name field to show " + expectedName)
+      .until(
+        () -> GuiQuery.getNonNull(
+          () -> expectedName.equals(textField.getText())));
   }
 }
