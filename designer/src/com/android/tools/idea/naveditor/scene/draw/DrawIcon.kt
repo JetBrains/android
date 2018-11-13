@@ -23,10 +23,12 @@ import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToRect2D
+import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
 import com.android.tools.idea.naveditor.scene.setRenderingHints
 import icons.StudioIcons.NavEditor.Surface
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.geom.Rectangle2D
 import javax.swing.Icon
 
@@ -40,11 +42,16 @@ class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float, @Visib
     DEEPLINK
   }
 
-  private val icon: Icon =
-      when (iconType) {
-        DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
-        DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
-      }
+  private val image: Image
+
+  init {
+    val icon = when (iconType) {
+      DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
+      DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
+    }
+
+    image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
+  }
 
   private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), IconType.valueOf(sp[1]))
 
@@ -60,11 +67,6 @@ class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float, @Visib
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     setRenderingHints(g)
-
-    val scaleX = rectangle.width.toDouble() / icon.iconWidth
-    val scaleY = rectangle.height.toDouble() / icon.iconHeight
-
-    g.scale(scaleX, scaleY)
-    icon.paintIcon(null, g, (rectangle.x / scaleX).toInt(), (rectangle.y / scaleY).toInt())
+    g.drawImage(image, rectangle.x.toInt(), rectangle.y.toInt(), null)
   }
 }
