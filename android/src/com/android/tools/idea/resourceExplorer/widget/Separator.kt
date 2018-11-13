@@ -46,7 +46,8 @@ class Separator(
   override fun getPreferredSize(): Dimension {
     val insets = insets
     val width = lineWidth + insets.left + insets.right
-    val height = parent.height - insets.top + insets.bottom
+    val parentInset = parent.insets
+    val height = parent.height - parentInset.top - parentInset.bottom
     return Dimension(width, height)
   }
 }

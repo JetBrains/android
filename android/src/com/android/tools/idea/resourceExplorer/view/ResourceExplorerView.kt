@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -49,6 +50,8 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.InputEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -175,6 +178,45 @@ class ResourceExplorerView(
     }
   }
 
+  /**
+   * A mouse listener that opens a [ResourceDetailView] when double clicking
+   * on an item from the list.
+   * @see showDetailView
+   */
+  private val doubleClickListener = object : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+      if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
+        return
+      }
+      val assetListView = e.source as AssetListView
+      val index = assetListView.locationToIndex(e.point)
+      if (index >= 0) {
+        val designAssetSet = assetListView.model.getElementAt(index)
+        showDetailView(designAssetSet)
+      }
+    }
+  }
+
+  /**
+   * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
+   */
+  private fun showDetailView(designAssetSet: DesignAssetSet) {
+    val parent = parent
+    parent.remove(this)
+
+    val detailView = ResourceDetailView(designAssetSet, imageCache, resourcesBrowserViewModel) { detailView ->
+      parent.remove(detailView)
+      parent.add(this@ResourceExplorerView)
+      parent.revalidate()
+      parent.repaint()
+    }
+
+    parent.add(detailView)
+    parent.revalidate()
+    parent.repaint()
+    detailView.requestFocusInWindow()
+  }
+
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
@@ -200,6 +242,7 @@ class ResourceExplorerView(
           cellRenderer = getRendererForType(type, this)
           dragHandler.registerSource(this)
           addMouseListener(popupHandler)
+          addMouseListener(doubleClickListener)
           thumbnailWidth = this@ResourceExplorerView.previewSize
           isGridMode = this@ResourceExplorerView.gridMode
         })
