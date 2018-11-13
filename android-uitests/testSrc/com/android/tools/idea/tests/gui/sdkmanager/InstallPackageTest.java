@@ -74,13 +74,13 @@ public class InstallPackageTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/79522588
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/119505019
   @Test
   public void installPackage() throws Exception {
     guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.openIdeSettings().selectSdkPage();
+    IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.invokeSdkManager();
     findAndClickLabel(ideSettingsDialogFixture, INSTALL_PACKAGE_TAB);
 
     GuiTests.waitUntilFound(guiTest.robot(), ideSettingsDialogFixture.target(), new GenericTypeMatcher<TreeTableView>(TreeTableView.class) {
@@ -100,7 +100,7 @@ public class InstallPackageTest {
         }
         return false;
       }
-    });
+    }, 30);
 
     ideSettingsDialogFixture.clickOK();
     MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change", 60).clickOk();
