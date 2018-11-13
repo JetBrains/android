@@ -23,7 +23,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.escapeProperty
 import java.awt.BorderLayout
-import java.util.*
+import java.util.IdentityHashMap
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.properties.Delegates
@@ -53,12 +53,12 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   val pages = mutableListOf<PropertiesPage>()
 
   val component = JPanel(BorderLayout())
-  var filter: String by Delegates.observable("", { _, oldValue, newValue -> filterChanged(oldValue, newValue) })
+  var filter: String by Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
 
   init {
     hidden.isVisible = false
     Disposer.register(parentDisposable, this)
-    tabbedPanel.addChangeListener({ saveMostRecentTabPage() })
+    tabbedPanel.addChangeListener { saveMostRecentTabPage() }
   }
 
   fun addView(view: PropertiesView<*>) {
