@@ -51,8 +51,7 @@ internal class RelativeDragHandler(editor: ViewEditor,
         setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
       }
 
-      component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
-      component.updateTargets()
+      component.setTargetProvider({ _ -> mutableListOf<Target>(dragTarget) })
       // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
       // This weird implementation may be fixed in the future, but we just work around here.
       component.setComponentProvider { _ -> components[0] }

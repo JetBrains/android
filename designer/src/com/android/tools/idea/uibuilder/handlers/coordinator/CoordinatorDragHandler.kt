@@ -44,8 +44,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     sceneComponent = layout.scene.getSceneComponent(dragged) ?:
         TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false) }
 
-    sceneComponent.setTargetProvider { listOf(dragTarget) }
-    sceneComponent.updateTargets()
+    sceneComponent.setTargetProvider({ listOf(dragTarget) })
     dragTarget.component = sceneComponent
     sceneComponent.isSelected = true
 

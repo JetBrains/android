@@ -37,8 +37,10 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -53,6 +55,7 @@ import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
@@ -210,7 +213,7 @@ public class LayoutlibSceneManager extends SceneManager {
       SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
       updateFromComponent(root, new HashSet<>());
       scene.setRoot(root);
-      updateTargets();
+      addTargets(root);
       scene.setAnimated(previous);
     }
 
@@ -392,24 +395,32 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   public void update() {
     super.update();
-    updateTargets();
-  }
-
-  public void updateTargets() {
-    SceneComponent root = getScene().getRoot();
-    if (root != null) {
-      updateTargetProviders(root);
-      root.updateTargets();
+    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
+    if (getScene().getRoot() != null && selectionModel.isEmpty()) {
+      addTargets(getScene().getRoot());
     }
   }
 
+  /**
+   * Add targets to the given component (by asking the associated
+   * {@linkplain ViewGroupHandler} to do it)
+   */
+  public void addTargets(@NotNull SceneComponent component) {
+    ViewHandler componentHandler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
+    if (componentHandler != null) {
+      component.setTargetProvider(componentHandler);
+    }
 
-  private static void updateTargetProviders(@NotNull SceneComponent component) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
-    component.setTargetProvider(handler);
-
-    for (SceneComponent child : component.getChildren()) {
-      updateTargetProviders(child);
+    SceneComponent parent = component.getParent();
+    if (parent == null) {
+      parent = getScene().getRoot();
+    }
+    if (parent == null) {
+      return;
+    }
+    ViewHandler parentHandler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
+    if (parentHandler instanceof ViewGroupHandler) {
+      parent.setTargetProvider(parentHandler);
     }
   }
 
@@ -495,8 +506,33 @@ public class LayoutlibSceneManager extends SceneManager {
   private class SelectionChangeListener implements SelectionListener {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-      updateTargets();
+      SceneComponent root = getScene().getRoot();
+      if (root != null) {
+        clearChildTargets(root);
+        // After a new selection, we need to figure out the context
+        if (!selection.isEmpty()) {
+          NlComponent primary = selection.get(0);
+          SceneComponent component = getScene().getSceneComponent(primary);
+          if (component != null) { // TODO only add "static" target here (the ones that are not part of any an interaction
+            addTargets(component); // or dependent on a specific state
+          }
+          else {
+            addTargets(root);
+          }
+        }
+        else {
+          addTargets(root);
+        }
+      }
       getScene().needsRebuildList();
+    }
+
+    void clearChildTargets(SceneComponent component) {
+      component.setTargetProvider(null);
+      for (SceneComponent child : component.getChildren()) {
+        child.setTargetProvider(null);
+        clearChildTargets(child);
+      }
     }
   }
 

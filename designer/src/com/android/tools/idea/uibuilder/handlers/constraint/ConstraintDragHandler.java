@@ -59,7 +59,6 @@ public class ConstraintDragHandler extends DragHandler {
         }
       }
       myComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
-      myComponent.updateTargets();
       myComponent.setDrawState(SceneComponent.DrawState.DRAG);
       layout.addChild(myComponent);
     }
