@@ -64,7 +64,9 @@ class PsDeclaredJarJavaDependency private constructor(
       model.isModified = true
       // TODO(solodkyy): Make setModified() customizable at the property level since some properties will need to call resetDependencies().
     // TODO(b/118814130): Java resolved dependency collection is not refreshed when requested version changes
-      model.parent.fireDependencyModifiedEvent(model)
+      model.parent.fireDependencyModifiedEvent(lazy {
+        model.parent.dependencies.findJarDependencies(model.filePath).firstOrNull { it.configurationName == model.configurationName }
+      })
     }
 
     override val properties: Collection<ModelProperty<PsDeclaredJarJavaDependency, *, *, *>> = listOf()

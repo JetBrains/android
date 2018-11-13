@@ -84,12 +84,12 @@ internal class DeclaredDependenciesPanel(
       val oldSelection = dependenciesTable.selection
       dependenciesTableModel.reset()
       var toSelect: PsBaseDependency? = null
-      if (event is PsModule.LibraryDependencyAddedEvent) {
-        dependenciesTable.clearSelection()
-        toSelect = dependenciesTableModel.findDependency(event.spec)
-      }
-      else if (event is PsModule.DependencyModifiedEvent) {
-        toSelect = event.dependency
+      when (event) {
+        is PsModule.DependencyAddedEvent -> {
+          dependenciesTable.clearSelection()
+          toSelect = event.dependency.value
+        }
+        is PsModule.DependencyModifiedEvent -> toSelect = event.dependency.value
       }
       dependenciesTable.selection = toSelect?.let { listOf(it) } ?: oldSelection
     }

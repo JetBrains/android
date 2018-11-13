@@ -18,10 +18,25 @@ package com.android.tools.idea.gradle.structure.model.java
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
 import com.android.tools.idea.gradle.structure.model.helpers.dependencyVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import kotlin.reflect.KProperty
 
 class PsDeclaredLibraryJavaDependency(
@@ -71,7 +86,10 @@ class PsDeclaredLibraryJavaDependency(
     // TODO(b/118814130): Java resolved dependency collection is not refreshed when requested version changes
     override fun setModified(model: PsDeclaredLibraryJavaDependency) {
       model.isModified = true
-      model.parent.fireDependencyModifiedEvent(model)
+      model.parent.fireDependencyModifiedEvent(lazy {
+        model.parent.dependencies.findLibraryDependencies(
+          model.spec.toLibraryKey()).firstOrNull { it.configurationName == model.configurationName }
+      })
     }
 
     private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.

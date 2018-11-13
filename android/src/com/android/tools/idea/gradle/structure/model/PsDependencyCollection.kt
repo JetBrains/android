@@ -43,6 +43,7 @@ interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out JarDep
 
   fun forEachModuleDependency(consumer: (ModuleDependencyT) -> Unit) = modules.forEach(consumer)
   fun forEachLibraryDependency(consumer: (LibraryDependencyT) -> Unit) = libraries.forEach(consumer)
+  fun forEachJarDependency(consumer: (JarDependencyT) -> Unit) = jars.forEach(consumer)
 }
 
 abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(

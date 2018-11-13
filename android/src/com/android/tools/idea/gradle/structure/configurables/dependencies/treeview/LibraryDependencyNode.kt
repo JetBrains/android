@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsD
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
@@ -155,13 +156,13 @@ class ResolvedLibraryDependencyNode(
 
 class JarDependencyNode(
   parent: AbstractPsNode,
-  val dependency: PsResolvedJarDependency
-) : AbstractDependencyNode<PsResolvedJarDependency>(parent, dependency) {
+  val dependency: List<PsJarDependency>
+) : AbstractDependencyNode<PsJarDependency>(parent, dependency) {
   override fun getChildren(): Array<SimpleNode> = arrayOf()
 
   override fun update(presentation: PresentationData) {
     super.update(presentation)
-    val file = File(dependency.filePath)
+    val file = File(dependency.first().filePath)
     presentation.clearText()
     presentation.addText(file.name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     if (!file.parentFile?.path.isNullOrEmpty()) {

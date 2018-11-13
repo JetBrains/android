@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph;
 
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.util.ActionCallback;
@@ -48,7 +51,7 @@ public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   }
 
   @Nullable
-  public LibraryDependencyNode find(@NotNull PsArtifactDependencySpec spec) {
+  public AbstractDependencyNode findDeclaredDependency(@NotNull PsDeclaredDependency dependency) {
     DefaultMutableTreeNode rootNode = getRootNode();
     if (rootNode == null) {
       return null;
@@ -60,12 +63,13 @@ public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
         continue;
       }
       Object userObject = ((DefaultMutableTreeNode)child).getUserObject();
-      if (!(userObject instanceof LibraryDependencyNode)) {
+      if (!(userObject instanceof AbstractDependencyNode)) {
         continue;
       }
-      LibraryDependencyNode node = (LibraryDependencyNode)userObject;
-      for (PsLibraryDependency dependency : node.getModels()) {
-        if (spec.equals(dependency.getSpec())) {
+      AbstractDependencyNode<PsBaseDependency> node = (AbstractDependencyNode)userObject;
+      for (PsBaseDependency model : node.getModels()) {
+        // Checking for reference equality since declared dependencies are always reloaded.
+        if (dependency == model) {
           return node;
         }
       }

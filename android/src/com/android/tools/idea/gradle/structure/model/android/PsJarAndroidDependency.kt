@@ -67,7 +67,9 @@ class PsDeclaredJarAndroidDependency private constructor(
       model.isModified = true
       // TODO(solodkyy): Make setModified() customizable at the property level since some properties will need to call resetDependencies().
       model.parent.resetResolvedDependencies()
-      model.parent.fireDependencyModifiedEvent(model)
+      model.parent.fireDependencyModifiedEvent(lazy {
+        model.parent.dependencies.findJarDependencies(model.filePath).firstOrNull { it.configurationName == model.configurationName }
+      })
     }
 
     override val properties: Collection<ModelProperty<PsDeclaredJarAndroidDependency, *, *, *>> = listOf()

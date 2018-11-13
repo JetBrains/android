@@ -65,7 +65,9 @@ public class MainPanel extends AbstractMainDependenciesPanel {
       @Override
       public void selectionChanged(@Nullable PsBaseDependency newSelection) {
         myQueuedSelectionCounter++;
-        myResolvedDependenciesPanel.setSelection(ImmutableList.of(newSelection)).doWhenProcessed(() -> myQueuedSelectionCounter--);
+        myResolvedDependenciesPanel
+          .setSelection(newSelection != null ? ImmutableList.of(newSelection) : null)
+          .doWhenProcessed(() -> myQueuedSelectionCounter--);
       }
     });
 

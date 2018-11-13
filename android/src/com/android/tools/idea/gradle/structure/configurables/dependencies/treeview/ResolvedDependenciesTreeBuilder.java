@@ -20,10 +20,9 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
+import org.jetbrains.annotations.NotNull;
 
 public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
@@ -44,7 +43,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   protected void onAllNodesExpanded() {
     getReady(this).doWhenDone(() -> {
       PsBaseDependency selection = myDependencySelectionSource.getSelection();
-      myDependencySelectionDestination.setSelection(ImmutableList.of(selection));
+      myDependencySelectionDestination.setSelection(selection != null ? ImmutableList.of(selection) : null);
     });
   }
 
@@ -58,6 +57,6 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
 
   private void queueUpdateAndRestoreSelection() {
     PsBaseDependency selected = myDependencySelectionSource.getSelection();
-    queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(ImmutableList.of(selected)));
+    queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(selected != null ? ImmutableList.of(selected) : null));
   }
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
@@ -126,7 +127,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     }
   }
 
-  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
+  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsBaseDependency>> dependencyNodes) {
     myTreeBuilder.displayTargetModules(dependencyNodes);
   }
 
