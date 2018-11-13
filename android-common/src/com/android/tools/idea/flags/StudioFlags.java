@@ -489,7 +489,7 @@ public final class StudioFlags {
     TESTING, "print.instrumentation.status", "Print instrumentation status information when testing",
     "If enabled, instrumentation output keys (from calling Instrumentation#sendStatus) that begin with 'android.studio.display.' "
     + "will have their values printed after a test has finished running.",
-    false
+    true
   );
 
   private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
