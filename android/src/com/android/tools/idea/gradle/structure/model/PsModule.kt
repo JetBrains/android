@@ -104,7 +104,8 @@ abstract class PsModule protected constructor(
     resetDependencies()
 
     val spec = PsArtifactDependencySpec.create(compactNotation)!!
-    fireLibraryDependencyAddedEvent(spec)
+    fireDependencyAddedEvent(
+      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == scopeName } })
     isModified = true
   }
 
@@ -113,7 +114,7 @@ abstract class PsModule protected constructor(
 
     resetDependencies()
 
-    fireJarDependencyAddedEvent(filePath, includes = null, excludes = null)
+    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(filePath).firstOrNull { it.configurationName == scopeName } })
     isModified = true
   }
 
@@ -127,7 +128,7 @@ abstract class PsModule protected constructor(
 
     resetDependencies()
 
-    fireJarDependencyAddedEvent(dirPath, includes, excludes)
+    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(dirPath).firstOrNull { it.configurationName == scopeName } })
     isModified = true
   }
 
@@ -137,7 +138,7 @@ abstract class PsModule protected constructor(
 
     resetDependencies()
 
-    fireModuleDependencyAddedEvent(modulePath)
+    fireDependencyAddedEvent(lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == scopeName } })
     isModified = true
   }
 
@@ -173,7 +174,9 @@ abstract class PsModule protected constructor(
     if (modified) {
       resetDependencies()
       for (dependency in matchingDependencies) {
-        fireDependencyModifiedEvent(dependency)
+        fireDependencyModifiedEvent(lazy {
+          dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == dependency.configurationName }
+        })
       }
       isModified = true
     }
@@ -195,7 +198,7 @@ abstract class PsModule protected constructor(
     }, parentDisposable)
   }
 
-  fun fireDependencyModifiedEvent(dependency: PsDeclaredDependency) {
+  fun fireDependencyModifiedEvent(dependency: Lazy<PsDeclaredDependency?>) {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependencyModifiedEvent(dependency))
   }
 
@@ -268,16 +271,8 @@ abstract class PsModule protected constructor(
     throw IllegalStateException("Module $name does not have a parsed model.")
   }
 
-  private fun fireLibraryDependencyAddedEvent(spec: PsArtifactDependencySpec) {
-    dependenciesChangeEventDispatcher.multicaster.dependencyChanged(LibraryDependencyAddedEvent(spec))
-  }
-
-  private fun fireJarDependencyAddedEvent(path: String, includes: Collection<String>?, excludes: Collection<String>?) {
-    dependenciesChangeEventDispatcher.multicaster.dependencyChanged(JarDependencyAddedEvent(path, includes, excludes))
-  }
-
-  private fun fireModuleDependencyAddedEvent(modulePath: String) {
-    dependenciesChangeEventDispatcher.multicaster.dependencyChanged(ModuleDependencyAddedEvent(modulePath))
+  private fun fireDependencyAddedEvent(dependency: Lazy<PsDeclaredDependency?>) {
+    dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependencyAddedEvent(dependency))
   }
 
   private fun fireDependenciesReloadedEvent() {
@@ -316,17 +311,9 @@ abstract class PsModule protected constructor(
 
   interface DependencyChangedEvent
 
-  class LibraryDependencyAddedEvent internal constructor(val spec: PsArtifactDependencySpec) : DependencyChangedEvent
+  class DependencyAddedEvent internal constructor(val dependency: Lazy<PsDeclaredDependency?>) : DependencyChangedEvent
 
-  class JarDependencyAddedEvent internal constructor(
-    val path: String,
-    val includes: Collection<String>?,
-    val excludes: Collection<String>?
-  ) : DependencyChangedEvent
-
-  class ModuleDependencyAddedEvent internal constructor(val modulePath: String) : DependencyChangedEvent
-
-  class DependencyModifiedEvent internal constructor(val dependency: PsDeclaredDependency) : DependencyChangedEvent
+  class DependencyModifiedEvent internal constructor(val dependency: Lazy<PsDeclaredDependency?>) : DependencyChangedEvent
 
   class DependencyRemovedEvent internal constructor(val dependency: PsDeclaredDependency) : DependencyChangedEvent
 

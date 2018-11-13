@@ -33,7 +33,7 @@ abstract class AbstractDependencyNode<T : PsBaseDependency> : AbstractPsModelNod
       when (dependency) {
         is PsResolvedLibraryDependency -> createResolvedLibraryDependencyNode(parent, dependency, forceGroupId = false)
         is PsResolvedModuleDependency -> ModuleDependencyNode(parent, dependency)
-        is PsResolvedJarDependency -> JarDependencyNode(parent, dependency)
+        is PsResolvedJarDependency -> JarDependencyNode(parent, listOf(dependency))
         else -> null
       }
 

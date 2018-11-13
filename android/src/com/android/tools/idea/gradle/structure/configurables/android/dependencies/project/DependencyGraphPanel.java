@@ -31,7 +31,8 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.Abs
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
@@ -72,7 +73,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull private final DependenciesTreeBuilder myTreeBuilder;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
-  @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<? extends PsAndroidDependency>>> myEventDispatcher =
+  @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<? extends PsBaseDependency>>> myEventDispatcher =
     new SelectionChangeEventDispatcher<>();
 
   private final MergingUpdateQueue myUpdateIssuesQueue = new MergingUpdateQueue("myUpdateIssuesQueue", 300, true, this, this);
@@ -117,8 +118,8 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     TreeSelectionListener treeSelectionListener = e -> {
       if (!myIgnoreTreeSelectionEvents) {
-        List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getSelection();
-        PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getFirstModel() : null;
+        List<AbstractDependencyNode<? extends PsBaseDependency>> selection = getSelection();
+        PsBaseDependency selected = !selection.isEmpty() ? selection.get(0).getFirstModel() : null;
         if (selected == null) {
           notifySelectionChanged(Collections.emptyList());
         }
@@ -144,10 +145,10 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
 
     PsModule.DependenciesChangeListener dependenciesChangeListener = event -> {
-      if (event instanceof PsModule.LibraryDependencyAddedEvent) {
-        PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
+      if (event instanceof PsModule.DependencyAddedEvent) {
+        PsDeclaredDependency dependency = ((PsModule.DependencyAddedEvent)event).getDependency().getValue();
         myTreeBuilder.reset(() -> {
-          LibraryDependencyNode found = myTreeBuilder.find(spec);
+          AbstractDependencyNode found = myTreeBuilder.findDeclaredDependency(dependency);
           if (found != null) {
             myTreeBuilder.select(found);
           }
@@ -169,8 +170,8 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   @SuppressWarnings("unchecked")
   @NotNull
-  private List<AbstractDependencyNode<? extends PsAndroidDependency>> getSelection() {
-    List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = Lists.newArrayList();
+  private List<AbstractDependencyNode<? extends PsBaseDependency>> getSelection() {
+    List<AbstractDependencyNode<? extends PsBaseDependency>> selection = Lists.newArrayList();
     Set<AbstractDependencyNode> matchingSelection = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
     for (AbstractDependencyNode node : matchingSelection) {
       selection.add(node);
@@ -178,13 +179,13 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     return selection;
   }
 
-  private void updateIssues(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selection) {
+  private void updateIssues(@NotNull List<AbstractDependencyNode<? extends PsBaseDependency>> selection) {
     myUpdateIssuesQueue.queue(new Update(this) {
       @Override
       public void run() {
         Set<PsIssue> issues = Sets.newHashSet();
-        for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
-          for (PsAndroidDependency dependency : node.getModels()) {
+        for (AbstractDependencyNode<? extends PsBaseDependency> node : selection) {
+          for (PsBaseDependency dependency : node.getModels()) {
             issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency.getPath(), null));
           }
         }
@@ -193,7 +194,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     });
   }
 
-  private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
+  private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsBaseDependency>> selected) {
     myEventDispatcher.selectionChanged(selected);
   }
 
@@ -224,7 +225,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     return myTree;
   }
 
-  void add(@NotNull SelectionChangeListener<List<AbstractDependencyNode<? extends PsAndroidDependency>>> listener) {
+  void add(@NotNull SelectionChangeListener<List<AbstractDependencyNode<? extends PsBaseDependency>>> listener) {
     myEventDispatcher.addListener(listener, this);
   }
 
