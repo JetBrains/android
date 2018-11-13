@@ -19,11 +19,18 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collection;
 import java.util.List;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +87,43 @@ public class AarSourceResourceRepositoryTest extends TestCase {
         return value.getValue();
       });
     assertSameElements(helloVariants, "bonjour", "hello", "hola");
+
+    items = repository.getResources(RES_AUTO, ResourceType.STYLE, "MyTheme.Dark");
+    assertThat(items.size()).isEqualTo(1);
+    StyleResourceValue styleValue = (StyleResourceValue)items.get(0).getResourceValue();
+    assertThat(styleValue.getParentStyleName()).isEqualTo("android:Theme.Light");
+    Collection<StyleItemResourceValue> styleItems = styleValue.getDefinedItems();
+    assertThat(styleItems.size()).isEqualTo(2);
+    StyleItemResourceValue textColor = styleValue.getItem(ResourceNamespace.ANDROID, "textColor");
+    assertThat(textColor.getAttrName()).isEqualTo("android:textColor");
+    assertThat(textColor.getValue()).isEqualTo("#999999");
+    StyleItemResourceValue foo = styleValue.getItem(RES_AUTO, "foo");
+    assertThat(foo.getAttrName()).isEqualTo("foo");
+    assertThat(foo.getValue()).isEqualTo("?android:colorForeground");
+
+    items = repository.getResources(RES_AUTO, ResourceType.STYLEABLE, "Styleable1");
+    assertThat(items.size()).isEqualTo(1);
+    StyleableResourceValue styleableValue = (StyleableResourceValue)items.get(0).getResourceValue();
+    List<AttrResourceValue> attributes = styleableValue.getAllAttributes();
+    assertThat(attributes.size()).isEqualTo(1);
+    AttrResourceValue attr = attributes.get(0);
+    assertThat(attr.getName()).isEqualTo("some_attr");
+    assertThat(attr.getFormats()).containsExactly(AttributeFormat.COLOR);
+
+    items = repository.getResources(RES_AUTO, ResourceType.STYLEABLE, "Styleable.with.dots");
+    assertThat(items.size()).isEqualTo(1);
+    styleableValue = (StyleableResourceValue)items.get(0).getResourceValue();
+    attributes = styleableValue.getAllAttributes();
+    assertThat(attributes.size()).isEqualTo(1);
+    attr = attributes.get(0);
+    assertThat(attr.getName()).isEqualTo("some_attr");
+    assertThat(attr.getFormats()).isEmpty();
+
+    items = repository.getResources(RES_AUTO, ResourceType.ATTR, "some_attr");
+    assertThat(items.size()).isEqualTo(1);
+    attr = (AttrResourceValue)items.get(0).getResourceValue();
+    assertThat(attr.getName()).isEqualTo("some_attr");
+    assertThat(attr.getFormats()).containsExactly(AttributeFormat.COLOR);
   }
 
   public void testMultipleValues_partOfResourceDirectories() {

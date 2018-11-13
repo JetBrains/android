@@ -22,10 +22,10 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
  */
 final class AarStyleResourceItem extends AbstractAarValueResourceItem implements StyleResourceValue {
   @Nullable private final String myParentStyle;
-  @NotNull private final List<StyleItemResourceValue> myStyleItems;
   /** Style items keyed by the namespace and the name of the attribute they define. */
   @NotNull private final Table<ResourceNamespace, String, StyleItemResourceValue> myStyleItemTable;
 
@@ -55,11 +54,14 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
                               @NotNull Collection<StyleItemResourceValue> styleItems) {
     super(ResourceType.STYLE, name, sourceFile, visibility);
     myParentStyle = parentStyle;
-    myStyleItems = ImmutableList.copyOf(styleItems);
-    myStyleItemTable = HashBasedTable.create();
+    ImmutableTable.Builder<ResourceNamespace, String, StyleItemResourceValue> tableBuilder = ImmutableTable.builder();
     for (StyleItemResourceValue item : styleItems) {
-      myStyleItemTable.put(item.getNamespace(), item.getAttrName(), item);
+      ResourceReference attr = item.getAttr();
+      if (attr != null) {
+        tableBuilder.put(attr.getNamespace(), attr.getName(), item);
+      }
     }
+    myStyleItemTable = tableBuilder.build();
   }
 
   @Override
@@ -84,7 +86,7 @@ final class AarStyleResourceItem extends AbstractAarValueResourceItem implements
   @Override
   @NotNull
   public Collection<StyleItemResourceValue> getDefinedItems() {
-    return myStyleItems;
+    return myStyleItemTable.values();
   }
 
   @Override

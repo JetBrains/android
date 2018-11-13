@@ -200,7 +200,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     return repository;
   }
 
-
   private void loadUsingResourceMerger(@Nullable Collection<PathString> resourceFilesAndFolders) {
     try {
       ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
@@ -261,7 +260,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   private void addResourceItem(@NotNull ResourceItem item) {
-    ListMultimap<String, ResourceItem> multimap = getFullTable().getOrPutEmpty(myNamespace, item.getType());
+    ListMultimap<String, ResourceItem> multimap = myFullTable.getOrPutEmpty(myNamespace, item.getType());
     multimap.put(item.getName(), item);
   }
 
@@ -498,7 +497,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     private void parseIdGeneratingResourceFile(@NotNull Path file, @NotNull AarConfiguration configuration) {
       AarSourceFile sourceFile = new AarSourceFile(getRelativePath(file), configuration);
 
-      Set<String> idNames = new HashSet<>();
       try (InputStream stream = new BufferedInputStream(Files.newInputStream(file))) {
         XmlPullParser parser = new KXmlParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
@@ -514,7 +512,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
                 String value = parser.getAttributeValue(i);
                 if (value.startsWith(NEW_ID_PREFIX) && value.length() > NEW_ID_PREFIX.length()) {
                   String resourceName = value.substring(NEW_ID_PREFIX.length());
-                  if (idNames.add(resourceName)) {
+                  if (!hasIdenticalItem(ResourceType.ID, resourceName, configuration.getFolderConfiguration())) {
                     ResourceVisibility visibility = getVisibility(ResourceType.ID, resourceName);
                     AarValueResourceItem item = new AarValueResourceItem(ResourceType.ID, resourceName, sourceFile, visibility, null);
                     addResourceItem(item);
@@ -528,6 +526,16 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       catch (IOException | XmlPullParserException e) {
         LOG.warn("Failed to parse " + file.toString(), e);
       }
+    }
+
+    private boolean hasIdenticalItem(@NotNull ResourceType type, @NotNull String name, @NotNull FolderConfiguration configuration) {
+      List<ResourceItem> items = getResources(myNamespace, type, name);
+      for (ResourceItem item : items) {
+        if (item.getConfiguration().equals(configuration)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @NotNull
@@ -739,7 +747,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
             AarAttrResourceItem attr = createAttrItem(attrName, sourceFile);
             attrs.add(attr);
             // Don't create top-level attr resources in a foreign workspace or without any data.
-            if (attr.getNamespace().equals(myNamespace) && !attr.getFormats().isEmpty()) {
+            if (attr.getNamespace().equals(myNamespace) && !attr.getFormats().isEmpty() &&
+                !hasIdenticalItem(ResourceType.ATTR, attrName, sourceFile.getConfiguration().getFolderConfiguration())) {
               addResourceItem(attr);
             }
           }
