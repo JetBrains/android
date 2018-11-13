@@ -27,13 +27,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.intellij.util.Processor
 
 class ProjectSizeUsageTracker(val project: Project) : ProjectComponent {
   override fun projectOpened() {
@@ -123,7 +123,11 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
     else {
       // note that this pauses the current thread until smart mode is available
       return DumbService.getInstance(project).runReadActionInSmartMode(
-        Computable { FileTypeIndex.getFiles(fileType.languageFileType(), searchScope.globalSearchScope(project)).size })
+        Computable {
+          var numFiles = 0
+          FileTypeIndex.processFiles(fileType.languageFileType(), Processor { numFiles++; true }, searchScope.globalSearchScope(project))
+          numFiles;
+        })
     }
   }
 }
