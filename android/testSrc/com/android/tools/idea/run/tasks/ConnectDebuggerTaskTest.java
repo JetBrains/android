@@ -32,6 +32,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +112,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     myDevice = deviceOptional.get();
 
     // Add process handlers for the fake device associated with our test application's application id
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
       .setApplicationId(TEST_APP_ID)
       .build();
 

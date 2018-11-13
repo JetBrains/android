@@ -104,7 +104,7 @@ public class AndroidRunState implements RunProfileState {
         myPreviousSessionProcessHandler.detachProcess();
       }
 
-      processHandler = new AndroidProcessHandler.Builder()
+      processHandler = new AndroidProcessHandler.Builder(myEnv.getProject())
         .setApplicationId(applicationId)
         .monitorRemoteProcesses(launchTasksProvider.monitorRemoteProcess())
         .build();

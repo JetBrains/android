@@ -25,12 +25,18 @@ import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
+import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.execution.DefaultExecutionTarget;
+import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.ExecutionTargetManager;
+import com.intellij.execution.KillableProcess;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +57,7 @@ import java.util.function.BiConsumer;
  * destroyProcess kills the processes (typically by a stop button in the UI). If all the processes die, then this handler terminates as
  * well.
  */
-public class AndroidProcessHandler extends ProcessHandler {
+public class AndroidProcessHandler extends ProcessHandler implements KillableProcess {
   private static final Logger LOG = Logger.getInstance(AndroidProcessHandler.class);
 
   // If the client is not present on the monitored devices after this time, then it is assumed to have died.
@@ -73,6 +79,7 @@ public class AndroidProcessHandler extends ProcessHandler {
   @GuardedBy("deviceClientLock")
   @NotNull private final Set<Client> myClients;
   @NotNull private final LogcatOutputCapture myLogcatOutputCapture;
+  @NotNull private final Project myProject;
 
   @GuardedBy("deviceClientLock")
   private long myDeviceAdded;
@@ -82,7 +89,8 @@ public class AndroidProcessHandler extends ProcessHandler {
   @NotNull private final AndroidDebugBridge.IDeviceChangeListener deviceChangeListener;
   @NotNull private final AndroidDebugBridge.IClientChangeListener clientChangeListener;
 
-  private AndroidProcessHandler(@NotNull String applicationId) {
+  private AndroidProcessHandler(@NotNull Project project, @NotNull String applicationId) {
+    myProject = project;
     deviceClientLock = new Object();
 
     myApplicationId = applicationId;
@@ -188,36 +196,36 @@ public class AndroidProcessHandler extends ProcessHandler {
   }
 
   private void killProcesses() {
-    if (myNoKill) {
-      return;
-    }
-
-    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    AndroidDebugBridge bridge = getBridgeForKill();
     if (bridge == null) {
       return;
     }
 
     for (IDevice device : bridge.getDevices()) {
-      boolean deviceIsContained;
-      synchronized (deviceClientLock) {
-        deviceIsContained = myDevices.contains(device.getSerialNumber());
+      killProcess(device);
+    }
+  }
+
+  private void killProcess(@NotNull IDevice candidateDevice) {
+    boolean shouldStopOnDevice;
+    synchronized (deviceClientLock) {
+      shouldStopOnDevice = myDevices.contains(candidateDevice.getSerialNumber());
+    }
+
+    if (shouldStopOnDevice) {
+      // Workaround https://code.google.com/p/android/issues/detail?id=199342
+      // Sometimes, just calling client.kill() could end up with the app dying and then coming back up
+      // Very likely, this is because of how cold swap restarts the process (maybe it is using some persistent pending intents?)
+      // However, calling am force-stop seems to solve that issue, so we do that first..
+      try {
+        candidateDevice.executeShellCommand("am force-stop " + myApplicationId, new NullOutputReceiver());
+      }
+      catch (Exception ignored) {
       }
 
-      if (deviceIsContained) {
-        // Workaround https://code.google.com/p/android/issues/detail?id=199342
-        // Sometimes, just calling client.kill() could end up with the app dying and then coming back up
-        // Very likely, this is because of how cold swap restarts the process (maybe it is using some persistent pending intents?)
-        // However, calling am force-stop seems to solve that issue, so we do that first..
-        try {
-          device.executeShellCommand("am force-stop " + myApplicationId, new NullOutputReceiver());
-        }
-        catch (Exception ignored) {
-        }
-
-        Client client = device.getClient(myApplicationId);
-        if (client != null) {
-          client.kill();
-        }
+      Client client = candidateDevice.getClient(myApplicationId);
+      if (client != null) {
+        client.kill();
       }
     }
   }
@@ -307,6 +315,55 @@ public class AndroidProcessHandler extends ProcessHandler {
       myClients.clear();
     }
     myLogcatOutputCapture.stopAll();
+  }
+
+  @Override
+  public boolean canKillProcess() {
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      return !isProcessTerminated() && !isProcessTerminating();
+    }
+
+    AndroidDebugBridge bridge = getBridgeForKill();
+    if (bridge == null) {
+      return false;
+    }
+
+    ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
+    if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
+      return false;
+    }
+
+    AndroidExecutionTarget androidTarget = (AndroidExecutionTarget)activeTarget;
+    return getDevices().contains(androidTarget.getIDevice()) && androidTarget.isApplicationRunning();
+  }
+
+  @Override
+  public void killProcess() {
+    AndroidDebugBridge bridge = getBridgeForKill();
+    if (bridge == null) {
+      return;
+    }
+
+    ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
+    if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
+      killProcesses();
+      return;
+    }
+
+    IDevice targetDevice = ((AndroidExecutionTarget)activeTarget).getIDevice();
+    if (targetDevice == null) {
+      return;
+    }
+
+    killProcess(targetDevice);
+  }
+
+  private AndroidDebugBridge getBridgeForKill() {
+    if (myNoKill) {
+      return null;
+    }
+
+    return AndroidDebugBridge.getBridge();
   }
 
   /**
@@ -520,12 +577,17 @@ public class AndroidProcessHandler extends ProcessHandler {
   }
 
   public static class Builder {
+    @NotNull private final Project myProject;
     private String applicationId;
 
     /**
      * By default, we want to add listeners to ADB
      */
     private boolean shouldAddListeners = true;
+
+    public Builder(@NotNull Project project) {
+      myProject = project;
+    }
 
     @NotNull
     public Builder setApplicationId(@NotNull String appId) {
@@ -548,7 +610,7 @@ public class AndroidProcessHandler extends ProcessHandler {
         throw new IllegalStateException("applicationId not set");
       }
 
-      AndroidProcessHandler handler = new AndroidProcessHandler(applicationId);
+      AndroidProcessHandler handler = new AndroidProcessHandler(myProject, applicationId);
       if (shouldAddListeners) {
         handler.addListenersToAdb();
       }
