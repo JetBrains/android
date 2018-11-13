@@ -18,10 +18,13 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.components.ApplicationComponent
 import com.intellij.openapi.util.LowMemoryWatcher
 import java.util.concurrent.TimeUnit
+import javax.swing.SwingUtilities
 
 class LowMemoryReporter : ApplicationComponent {
   private var lowMemoryWatcher: LowMemoryWatcher? = null
@@ -38,6 +41,7 @@ class LowMemoryReporter : ApplicationComponent {
                          .setJavaProcessStats(CommonMetricsData.javaProcessStats))
       if (limiter.tryAcquire()) {
         AndroidStudioSystemHealthMonitor.getInstance()?.addHistogramToDatabase("LowMemoryWatcher")
+        SwingUtilities.invokeLater(HeapDumpSnapshotRunnable(false, SCHEDULE_ON_NEXT_START))
       }
     }
   }
