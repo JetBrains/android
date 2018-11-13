@@ -23,7 +23,9 @@ import com.intellij.psi.codeStyle.PackageEntryTable;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 
-public class AndroidCodeStyleSettingsModifier {
+public class AndroidCodeStyleSettings {
+  private AndroidCodeStyleSettings() {}
+
   public static void modify(CodeStyleSettings settings) {
     // Use Android XML formatter by default
     AndroidXmlCodeStyleSettings.getInstance(settings).USE_CUSTOM_SETTINGS = true;
