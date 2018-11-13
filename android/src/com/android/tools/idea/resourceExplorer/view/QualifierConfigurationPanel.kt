@@ -46,7 +46,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.PopupMenuEvent
 
 private val QUALIFIER_TYPE_COMBO_SIZE = JBUI.size(330, 30)
-private val QUALIFIER_VALUE_COMBO_SIZE = JBUI.size(390, QUALIFIER_TYPE_COMBO_SIZE.height)
+private val QUALIFIER_VALUE_COMBO_SIZE = QUALIFIER_TYPE_COMBO_SIZE.withWidth(390)
 private val FLOW_LAYOUT_GAP = JBUI.scale(4)
 private val ADD_BUTTON_BORDER = JBUI.Borders.empty(4, 12, 4, 0)
 
