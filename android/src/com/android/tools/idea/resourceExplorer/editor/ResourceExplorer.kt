@@ -69,18 +69,6 @@ class ResourceExplorer private constructor(
   companion object {
 
     /**
-     * Create a new instance of [ResourceExplorer] optimized to be used in an Editor tab
-     */
-    @Deprecated("use createForToolWindow instead",
-                replaceWith = ReplaceWith("ResourceExplorer.createForToolWindow(parentDisposable: Disposable, facet: AndroidFacet)"))
-    fun createForEditor(parentDisposable: Disposable, facet: AndroidFacet): ResourceExplorer {
-      return ResourceExplorer(
-        parentDisposable,
-        facet
-      )
-    }
-
-    /**
      * Create a new instance of [ResourceExplorer] optimized to be used in a [com.intellij.openapi.wm.ToolWindow]
      */
     @JvmStatic
