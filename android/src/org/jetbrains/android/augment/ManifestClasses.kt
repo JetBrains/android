@@ -20,7 +20,6 @@ import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.text.StringUtil.getShortName
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -54,8 +53,7 @@ class ManifestClass(
 ) {
 
   init {
-    putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
-    myFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+    setModuleInfo(facet.module, false)
   }
 
   override fun getQualifiedName(): String? = AndroidManifestUtils.getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }

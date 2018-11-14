@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
@@ -44,6 +43,10 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
     @Nullable String getPackageName();
     @NotNull LocalResourceRepository getResourceRepository();
     @NotNull ResourceNamespace getResourceNamespace();
+
+    default boolean isForTest() {
+      return false;
+    }
   }
 
   @NotNull protected final Module myModule;
@@ -54,9 +57,7 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
     super(psiManager, source.getPackageName());
     mySource = source;
     myModule = module;
-    this.putUserData(ModuleUtilCore.KEY_MODULE, module);
-    // Some scenarios move up to the file level and then attempt to get the module from the file.
-    myFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
+    setModuleInfo(module, mySource.isForTest());
   }
 
   @NotNull

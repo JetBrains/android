@@ -38,6 +38,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
@@ -57,6 +59,10 @@ private data class ResourceClasses(
   val testNonNamespaced: PsiClass?
 ) {
   val all = sequenceOf(namespaced, nonNamespaced, testNonNamespaced)
+
+  companion object {
+    val Empty = ResourceClasses(null, null, null)
+  }
 }
 
 /**
@@ -181,25 +187,37 @@ class ProjectLightResourceClassService(
   }
 
   private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
+    val ideaLibrary = findIdeaLibrary(aarLibrary) ?: return ResourceClasses.Empty
+
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
+
       ResourceClasses(
         namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
           NamespacedAarRClass(
             psiManager,
+            ideaLibrary,
             packageName,
             aarResourceRepositoryCache.getProtoRepository(aarLibrary),
             ResourceNamespace.fromPackageName(packageName)
           )
         },
         nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
-          NonNamespacedAarRClass(psiManager, packageName, symbolFile)
+          NonNamespacedAarRClass(psiManager, ideaLibrary, packageName, symbolFile)
         },
 
         testNonNamespaced = null
       )
     }
+  }
+
+  private fun findIdeaLibrary(modelLibrary: ExternalLibrary): Library? {
+    // TODO(b/118485835): Store this mapping at sync time and use it here.
+    return LibraryTablesRegistrar.getInstance()
+      .getLibraryTable(project)
+      .libraries
+      .firstOrNull { it.name?.endsWith(modelLibrary.address) == true }
   }
 
   override fun findRClassPackage(packageName: String): PsiPackage? {
