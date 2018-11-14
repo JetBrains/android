@@ -133,13 +133,19 @@ class SimpleperfSampleReporterTest {
   fun providingMultipleSymDirsResultsInMultipleFlags() {
     val symDir1 = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/cputraces")
     val symDir2 = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData")
-    val reporter = SimpleperfSampleReporter(ideaHome.toString()) { hashSetOf(symDir1, symDir2) }
+    // Passing a linked set is important for this test so we have predictable iteration order and can make the index checks below
+    val reporter = SimpleperfSampleReporter(ideaHome.toString()) { linkedSetOf(symDir1, symDir2) }
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing multiples path to SimpleperfSampleReporter, we should include a --symdir flag in the report-sample command
     // corresponding to each directory passed.
     val command = reporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true))
-    assertThat(command).contains("--symdir " + symDir1.absolutePath)
-    assertThat(command).contains("--symdir " + symDir2.absolutePath)
+    assertThat(command.count {it == "--symdir"}).isEqualTo(2)
+
+    val firstSymDirIndex = command.indexOfFirst { it == "--symdir" }
+    assertThat(command[firstSymDirIndex + 1]).isEqualTo(symDir1.absolutePath)
+
+    val secondSymDirIndex = command.indexOfLast { it == "--symdir" }
+    assertThat(command[secondSymDirIndex + 1]).isEqualTo(symDir2.absolutePath)
   }
 }
