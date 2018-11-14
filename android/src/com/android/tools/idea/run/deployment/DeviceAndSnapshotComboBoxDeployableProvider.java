@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -81,11 +82,15 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
     @Override
     public boolean isApplicationRunningOnDeployable() {
-      IDevice device = myDevice.getDdmlibDevice();
-      if (device == null) {
+      if (!myDevice.isConnected()) {
         return false;
       }
-      return myDevice.isConnected() && device.getClient(myPackageName) != null;
+      IDevice device = myDevice.getDdmlibDevice();
+      if (device == null || !device.isOnline()) {
+        return false;
+      }
+      Client client = Deployable.searchClientsForPackage(device, myPackageName);
+      return client != null && client.isValid();
     }
   }
 
@@ -110,7 +115,11 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     public boolean isApplicationRunningOnDeployable() {
       IDevice device = myPhysicalDevice.getDdmlibDevice();
       assert device != null;
-      return device.isOnline() && device.getClient(myPackageName) != null;
+      if (!device.isOnline()) {
+        return false;
+      }
+      Client client = Deployable.searchClientsForPackage(device, myPackageName);
+      return client != null && client.isValid();
     }
   }
 }

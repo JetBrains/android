@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
@@ -122,8 +123,12 @@ public final class ChooserDeployableProvider implements DeployableProvider {
       try {
         // The get() operation could take a long time and this could get called on the EDT, so we'll only do a quick check.
         IDevice device = myAndroidDevice.getLaunchedDevice().get(0, TimeUnit.NANOSECONDS);
+        if (device == null || !device.isOnline()) {
+          return false;
+        }
+        Client client = Deployable.searchClientsForPackage(device, myPackageName);
         // If the app doesn't have a Client associated with it, it's not running and should return false.
-        return device != null && device.getClient(myPackageName) != null;
+        return client != null && client.isValid();
       }
       catch (InterruptedException | ExecutionException | TimeoutException e) {
         return false;

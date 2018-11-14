@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.run.deployable;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface Deployable {
   /**
@@ -29,4 +32,17 @@ public interface Deployable {
    * Returns whether the current project's application is already running on this {@link Deployable}.
    */
   boolean isApplicationRunningOnDeployable();
+
+  @Nullable
+  static Client searchClientsForPackage(@NotNull IDevice device, @NotNull String packageName) {
+    // The app may potentially have android:process set in the manifest,
+    // so we'll need to go through all the clients to check if the current app is running.
+    for (Client potentialClient : device.getClients()) {
+      if (packageName.equals(potentialClient.getClientData().getPackageName())||
+          packageName.equals(potentialClient.getClientData().getClientDescription())) {
+        return potentialClient;
+      }
+    }
+    return null;
+  }
 }
