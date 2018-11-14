@@ -1,0 +1,8 @@
+# This OWNERS file exists temporarily to reduce the risk of divergence from
+# the code upstream in the Kotlin plugin, since android-kotlin code
+# temporarily lives in both repositories, and JetBrains still wants
+# to make nontrivial changes to it (mostly related to performance
+# and multiplatform project support).
+gharrma@google.com
+ralucas@google.com
+juanch@google.com
