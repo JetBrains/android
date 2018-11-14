@@ -22,7 +22,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -68,8 +69,7 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
       File processedTraceFile = FileUtil.createTempFile(
         String.format("%s%ctrace-%d", FileUtil.getTempDirectory(), File.separatorChar, System.currentTimeMillis()), ".trace", true);
 
-      String cmd = getReportSampleCommand(trace, processedTraceFile);
-      Process reportSample = Runtime.getRuntime().exec(cmd);
+      Process reportSample = new ProcessBuilder(getReportSampleCommand(trace, processedTraceFile)).start();
       reportSample.waitFor();
 
       boolean reportSampleSuccess = reportSample.exitValue() == 0;
@@ -93,16 +93,21 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   }
 
   @VisibleForTesting
-  String getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace) throws IOException {
-    Iterator<File> symbolsDirs = mySymbolsDirs.get().iterator();
-    StringBuilder symDirFlags = new StringBuilder();
-    while (symbolsDirs.hasNext()) {
-      symDirFlags.append(" --symdir ");
-      symDirFlags.append(symbolsDirs.next().getAbsolutePath());
+  List<String> getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace) throws IOException {
+    List<String> command = new ArrayList<>();
+    command.add(getSimpleperfBinaryPath());
+    command.add("report-sample");
+    command.add("--protobuf");
+    command.add("--show-callchain");
+    command.add("-i");
+    command.add(tempFileFromByteString(trace).getAbsolutePath());
+    command.add("-o");
+    command.add(processedTrace.getAbsolutePath());
+    for (File file : mySymbolsDirs.get()) {
+      command.add("--symdir");
+      command.add(file.getAbsolutePath());
     }
-    return String.format("%s report-sample --protobuf --show-callchain -i %s -o %s %s",
-                         getSimpleperfBinaryPath(), tempFileFromByteString(trace).getAbsolutePath(),
-                         processedTrace.getAbsolutePath(), symDirFlags.toString());
+    return command;
   }
 
   @VisibleForTesting
