@@ -28,6 +28,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
