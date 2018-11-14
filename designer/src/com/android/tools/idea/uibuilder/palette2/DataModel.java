@@ -39,7 +39,6 @@ import com.intellij.util.ui.UIUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -63,6 +62,7 @@ public class DataModel {
   private final PatternFilter myFilterPattern;
   private final DependencyManager myDependencyManager;
   private final List<String> myFavoriteItems;
+  private NlPaletteModel myPaletteModel;
   private NlLayoutType myLayoutType;
   private Palette myPalette;
   private Palette.Group myCurrentSelectedGroup;
@@ -104,18 +104,19 @@ public class DataModel {
   }
 
   public void setLayoutType(@NotNull AndroidFacet facet, @NotNull NlLayoutType layoutType) {
-    if (myLayoutType.equals(layoutType)) {
+    NlPaletteModel paletteModel = NlPaletteModel.get(facet);
+    if (myLayoutType.equals(layoutType) && paletteModel == myPaletteModel) {
       return;
     }
 
-    NlPaletteModel paletteModel = NlPaletteModel.get(facet);
-    if (!paletteModel.hasUpdateListener()) {
-      paletteModel.setUpdateListener(this::update);
+    if (myPaletteModel != null) {
+      myPaletteModel.setUpdateListener(null);
     }
-
-    myPalette = paletteModel.getPalette(layoutType);
     myLayoutType = layoutType;
+    myPaletteModel = paletteModel;
+    myPalette = paletteModel.getPalette(layoutType);
     myDependencyManager.setPalette(myPalette, facet.getModule());
+    myPaletteModel.setUpdateListener(this::update);
     update();
   }
 
@@ -178,7 +179,14 @@ public class DataModel {
     return Lists.newArrayList(favorites);
   }
 
+  private void update(@NotNull NlPaletteModel paletteModel, @NotNull NlLayoutType layoutType) {
+    if (myPaletteModel == paletteModel && layoutType == myLayoutType) {
+      update();
+    }
+  }
+
   private void update() {
+    myPalette = myPaletteModel.getPalette(myLayoutType);
     boolean isUserSearch = myFilterPattern.hasPattern();
     List<Palette.Group> groups = new ArrayList<>();
     List<Integer> matchCounts = isUserSearch ? new ArrayList<>() : Collections.emptyList();
