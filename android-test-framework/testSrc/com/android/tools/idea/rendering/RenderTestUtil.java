@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
+import static java.io.File.separatorChar;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.ImageUtils;
@@ -27,19 +33,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static java.io.File.separatorChar;
-import static org.junit.Assert.*;
-
+import javax.imageio.ImageIO;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utilities for tests which perform rendering; these methods can generate configurations and perform
@@ -216,7 +217,6 @@ public class RenderTestUtil {
 
   private static void checkRenderedImage(@NotNull BufferedImage image, @NotNull String fullPath) throws IOException {
     fullPath = fullPath.replace('/', separatorChar);
-
 
     File fromFile = new File(fullPath);
     System.out.println("fromFile=" + fromFile);
