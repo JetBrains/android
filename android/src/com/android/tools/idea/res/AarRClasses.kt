@@ -24,7 +24,7 @@ import com.android.ide.common.symbols.SymbolTable
 import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
@@ -42,10 +42,16 @@ import java.io.IOException
  */
 class NamespacedAarRClass(
   psiManager: PsiManager,
+  library: Library,
   private val packageName: String,
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace
 ) : AndroidRClassBase(psiManager, packageName) {
+
+  init {
+    setModuleInfo(psiManager.project, library)
+  }
+
   override fun getQualifiedName(): String? = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
@@ -85,9 +91,14 @@ private class NamespacedAarInnerRClass(
  */
 class NonNamespacedAarRClass(
   psiManager: PsiManager,
+  library: Library,
   private val packageName: String,
   symbolFile: File
 ) : AndroidRClassBase(psiManager, packageName) {
+
+  init {
+    setModuleInfo(psiManager.project, library)
+  }
 
   override fun getQualifiedName(): String? = "$packageName.R"
 
