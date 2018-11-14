@@ -35,9 +35,9 @@ class AddActionToolbarAction(surface: NavDesignSurface) :
 
   override fun actionPerformed(e: AnActionEvent?) {
     surface.selectionModel.selection.firstOrNull()?.let {
-      WriteCommandAction.runWriteCommandAction(it.model.project) {
-        val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it)
-        if (dialog.showAndGet()) {
+      val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it)
+      if (dialog.showAndGet()) {
+        WriteCommandAction.runWriteCommandAction(it.model.project) {
           val action = dialog.writeUpdatedAction()
           surface.selectionModel.setSelection(listOf(action))
         }
