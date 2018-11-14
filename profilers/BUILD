@@ -5,7 +5,6 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
-    exclude = ["testSrc/com/android/tools/profilers/performance/**"],
     iml_files = ["intellij.android.profilers.iml"],
     tags = ["no_test_mac_psq"],  # b/113099009
     test_data = glob(["testData/**"]),
@@ -16,6 +15,7 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
