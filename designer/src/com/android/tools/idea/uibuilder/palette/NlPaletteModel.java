@@ -99,7 +99,7 @@ public class NlPaletteModel implements Disposable {
   }
 
   public interface UpdateListener {
-    void update();
+    void update(@NotNull NlPaletteModel paletteModel, @NotNull NlLayoutType layoutType);
   }
 
   public static NlPaletteModel get(@NotNull AndroidFacet facet) {
@@ -107,7 +107,7 @@ public class NlPaletteModel implements Disposable {
   }
 
   private NlPaletteModel(@NotNull Module module) {
-    myTypeToPalette = new EnumMap<>(NlLayoutType.class);
+    myTypeToPalette = Collections.synchronizedMap(new EnumMap<>(NlLayoutType.class));
     myModule = module;
     Disposer.register(module, this);
   }
@@ -118,46 +118,48 @@ public class NlPaletteModel implements Disposable {
     Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {
-      loadPalette(type);
-      return myTypeToPalette.get(type);
+      palette = loadPalette(type);
+      saveInPaletteMap(type, palette);
+      registerAdditionalComponents(type);
     }
-    else {
-      return palette;
-    }
+    return palette;
   }
 
-  public void setUpdateListener(@NotNull UpdateListener updateListener) {
+  private void saveInPaletteMap(@NotNull NlLayoutType type, @NotNull Palette palette) {
+    myTypeToPalette.put(type, palette);
+    notifyUpdateListener(type);
+  }
+
+  // Load 3rd party components asynchronously now and whenever a build finishes.
+  private void registerAdditionalComponents(@NotNull NlLayoutType type) {
+    loadAdditionalComponents(type, VIEW_CLASSES_QUERY);
+
+    // Reload the additional components after every build to find new custom components
+    AndroidProjectBuildNotifications
+      .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, VIEW_CLASSES_QUERY));
+  }
+
+  public void setUpdateListener(@Nullable UpdateListener updateListener) {
     myListener = updateListener;
   }
 
-  public boolean hasUpdateListener() {
-    return myListener != null;
-  }
-
-  private void notifyUpdateListener() {
+  private void notifyUpdateListener(@NotNull NlLayoutType layoutType) {
     UpdateListener listener = myListener;
     if (listener != null) {
-      ApplicationManager.getApplication().invokeLater(listener::update);
+      ApplicationManager.getApplication().invokeLater(() -> listener.update(this, layoutType));
     }
   }
 
-  private void loadPalette(@NotNull NlLayoutType type) {
-
+  @NotNull
+  private Palette loadPalette(@NotNull NlLayoutType type) {
     try {
       String metadata = type.getPaletteFileName();
       URL url = NlPaletteModel.class.getResource(metadata);
       URLConnection connection = url.openConnection();
-      Palette palette;
 
       try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
-        palette = loadPalette(reader, type);
+        return loadPalette(reader, type);
       }
-      notifyUpdateListener();
-
-      loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY);
-      // Reload the additional components after every build to find new custom components
-      AndroidProjectBuildNotifications
-        .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY));
     }
     catch (IOException | JAXBException e) {
       throw new RuntimeException(e);
@@ -170,7 +172,6 @@ public class NlPaletteModel implements Disposable {
    */
   @VisibleForTesting
   void loadAdditionalComponents(@NotNull NlLayoutType type,
-                                @NotNull Palette palette,
                                 @NotNull Function<Project, Query<PsiClass>> viewClasses) {
     Project project = myModule.getProject();
     ReadAction
@@ -178,11 +179,11 @@ public class NlPaletteModel implements Disposable {
       .expireWhen(() -> Disposer.isDisposed(this))
       .inSmartMode(project)
       .submit(AppExecutorUtil.getAppExecutorService())
-      .onSuccess(psiClasses -> replaceProjectComponents(type, palette, psiClasses))
+      .onSuccess(psiClasses -> replaceProjectComponents(type, psiClasses))
       .onError(error -> {
         if (error instanceof ProcessCanceledException) {
           ProgressIndicatorUtils.yieldToPendingWriteActions();
-          loadAdditionalComponents(type, palette, viewClasses);
+          loadAdditionalComponents(type, viewClasses);
         }
         else {
           getLogger().error(error);
@@ -190,14 +191,9 @@ public class NlPaletteModel implements Disposable {
       });
   }
 
-  private void replaceProjectComponents(@NotNull NlLayoutType type, Palette palette, Collection<PsiClass> psiClasses) {
-    // Clean-up the existing items
-    palette.getItems().stream()
-      .filter(Palette.Group.class::isInstance)
-      .map(Palette.Group.class::cast)
-      .filter(g -> PROJECT_GROUP.equals(g.getName()) || THIRD_PARTY_GROUP.equals(g.getName()))
-      .map(Palette.Group::getItems)
-      .forEach(List::clear);
+  private void replaceProjectComponents(@NotNull NlLayoutType type, Collection<PsiClass> psiClasses) {
+    // Reload the palette first
+    Palette palette = loadPalette(type);
 
     psiClasses.forEach(psiClass -> {
       String description = psiClass.getName(); // We use the "simple" name as description on the preview.
@@ -214,7 +210,7 @@ public class NlPaletteModel implements Disposable {
                              null, Collections.emptyList(), Collections.emptyList());
     });
 
-    notifyUpdateListener();
+    saveInPaletteMap(type, palette);
   }
 
   @VisibleForTesting
@@ -251,6 +247,7 @@ public class NlPaletteModel implements Disposable {
     ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
     ViewHandler handler = manager.createBuiltInHandler(tagName);
 
+    // For now only support layouts
     if (type != NlLayoutType.LAYOUT ||
         handler instanceof PreferenceHandler ||
         handler instanceof PreferenceCategoryHandler ||
@@ -261,15 +258,6 @@ public class NlPaletteModel implements Disposable {
 
     if (handler == null) { // no built in handler, let's create a delegate
       handler = manager.getHandlerOrDefault(tagName);
-
-      // For now only support layouts
-      if (type != NlLayoutType.LAYOUT ||
-          handler instanceof PreferenceHandler ||
-          handler instanceof PreferenceCategoryHandler ||
-          handler instanceof MenuHandler ||
-          handler instanceof ActionMenuViewHandler) {
-        return false;
-      }
 
       if (handler instanceof ConstraintHelperHandler) {
         return false; // temporary hack

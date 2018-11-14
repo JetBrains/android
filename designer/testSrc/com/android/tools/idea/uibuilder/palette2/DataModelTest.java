@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ide.util.PropertiesComponent;
 import java.util.ArrayList;

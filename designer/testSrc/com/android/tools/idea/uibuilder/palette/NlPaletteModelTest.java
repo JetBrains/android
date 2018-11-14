@@ -124,14 +124,13 @@ public class NlPaletteModelTest {
   @Test
   public void projectComponents() throws InterruptedException {
     registerJavaClasses();
-    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     Palette.Group projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
     assertThat(projectComponents).isNull();
 
     CountDownLatch latch = new CountDownLatch(1);
-    model.setUpdateListener(latch::countDown);
+    model.setUpdateListener((paletteModel, layoutType) -> latch.countDown());
 
-    model.loadAdditionalComponents(NlLayoutType.LAYOUT, palette, (project) -> {
+    model.loadAdditionalComponents(NlLayoutType.LAYOUT, (project) -> {
       PsiClass customView = mock(PsiClass.class);
       when(customView.getName()).thenReturn("FakeCustomView");
       when(customView.getQualifiedName()).thenReturn("com.example.FakeCustomView");
