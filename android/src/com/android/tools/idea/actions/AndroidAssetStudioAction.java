@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -46,12 +49,24 @@ public abstract class AndroidAssetStudioAction extends AnAction {
   protected static boolean isAvailable(DataContext dataContext) {
     final Module module = LangDataKeys.MODULE.getData(dataContext);
     final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    final VirtualFile location = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
     return module != null &&
            view != null &&
+           location != null &&
            view.getDirectories().length > 0 &&
            AndroidFacet.getInstance(module) != null &&
-           ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation();
+           ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation() &&
+           locationHasValidResourceDirectory(module, location);
+  }
+
+  private static boolean locationHasValidResourceDirectory(@NotNull Module module, @NotNull VirtualFile location) {
+    for (NamedModuleTemplate template : ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(location)) {
+      if (!template.getPaths().getResDirectories().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
