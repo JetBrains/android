@@ -137,6 +137,8 @@ public class LightBindingClass extends AndroidLightClassBase {
           return PsiField.EMPTY_ARRAY;
         }
       }, false);
+
+    setModuleInfo(facet.getModule(), false);
   }
 
   /**

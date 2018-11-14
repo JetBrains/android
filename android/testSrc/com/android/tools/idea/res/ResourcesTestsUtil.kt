@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.res.aar.AarSourceResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
@@ -109,16 +108,16 @@ fun addAarDependency(
   }
 
   // See ResourceFolderManager.isAarDependency for what this library must look like to be considered an AAR.
-  ModuleRootModificationUtil.addModuleLibrary(
+  val library = PsiTestUtil.addProjectLibrary(
     module,
     "$libraryName.aar",
     listOf(
-      VfsUtil.getUrlForLibraryRoot(resDir),
-      VfsUtil.getUrlForLibraryRoot(classesJar)
+      resDir.toVirtualFile(refresh = true),
+      classesJar.toVirtualFile(refresh = true)
     ),
-    emptyList<String>(),
-    DependencyScope.COMPILE
+    emptyList()
   )
+  ModuleRootModificationUtil.addDependency(module, library)
 
   createResources(resDir)
   VfsUtil.markDirtyAndRefresh(false, true, true, aarDir.toVirtualFile(refresh = true))
