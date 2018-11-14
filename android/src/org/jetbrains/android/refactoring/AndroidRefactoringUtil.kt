@@ -157,8 +157,6 @@ fun syncBeforeFinishingRefactoring(project: Project) {
 
   GradleSyncInvoker.getInstance().requestProjectSync(
     project,
-    GradleSyncInvoker.Request.projectModified().apply {
-      runInBackground = false // The refactoring is still running, sync needs to happen in the foreground.
-    }
+    GradleSyncInvoker.Request.projectModified()
   )
 }
