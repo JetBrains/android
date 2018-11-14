@@ -156,7 +156,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
     try {
       component.removeAll()
       tabbedPanel.removeAll()
-      if (filter.isEmpty() || view.main.searchable) {
+      if ((filter.isEmpty() || view.main.searchable) && !mainPage.isEmpty) {
         component.add(mainPage.component, BorderLayout.NORTH)
       }
       else {
@@ -165,7 +165,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
       for (index in view.tabs.indices) {
         val tab = view.tabs[index]
         val page = pages[index]
-        val tabVisible = filter.isEmpty() || tab.searchable
+        val tabVisible = (filter.isEmpty() || tab.searchable) && !page.isEmpty
         page.component.isVisible = tabVisible
         when {
           !tabVisible -> hidden.add(page.component)
@@ -198,10 +198,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
 
   private fun findVisibleTabCount(): Int {
     val view = activeView ?: return 0
-    if (filter.isEmpty()) {
-      return view.tabs.size
-    }
-    return view.tabs.count { it.searchable }
+    return view.tabs.indices.count { (filter.isEmpty() || view.tabs[it].searchable) && !pages[it].isEmpty }
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
