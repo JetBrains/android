@@ -16,14 +16,9 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.structure.EditorPanel;
-import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,7 +39,6 @@ import com.intellij.openapi.roots.ui.util.SimpleTextCellAppearance;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
@@ -64,7 +58,6 @@ import java.awt.*;
 import java.util.EnumSet;
 import java.util.List;
 
-import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 import static icons.StudioIcons.Shell.Filetree.*;
 
 /**
@@ -258,54 +251,11 @@ public class ModuleDependenciesPanel extends EditorPanel {
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       String coordinateText = dialog.getSearchText();
-      coordinateText = installRepositoryIfNeeded(coordinateText);
-      if (coordinateText != null) {
-        Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
-        myModel.addItem(new ModuleDependenciesTableItem(
-            new Dependency(scope, Dependency.Type.EXTERNAL, coordinateText)));
-      }
+      Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
+      myModel.addItem(new ModuleDependenciesTableItem(
+          new Dependency(scope, Dependency.Type.EXTERNAL, coordinateText)));
     }
     myModel.fireTableDataChanged();
-  }
-
-  private String installRepositoryIfNeeded(String coordinateText) {
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
-    assert coordinate != null;  // Only allowed to click ok when the string is valid.
-    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.Companion.forCoordinate(coordinate);
-
-    if (!REVISION_ANY.equals(coordinate.getRevision()) || artifactId == null) {
-      // No installation needed, or it's not a local repository.
-      return coordinateText;
-    }
-    String message = "Library " + coordinate.getArtifactId() + " is not installed. Install repository?";
-    if (Messages.showYesNoDialog(myProject, message, "Install Repository", Messages.getQuestionIcon()) != Messages.YES) {
-      // User cancelled installation.
-      return null;
-    }
-    List<String> requested = Lists.newArrayList();
-    SdkMavenRepository repository;
-    if (coordinateText.startsWith("com.android.support")) {
-      repository = SdkMavenRepository.ANDROID;
-    }
-    else if (coordinateText.startsWith("com.google.android")) {
-      repository = SdkMavenRepository.GOOGLE;
-    }
-    else {
-      // Not a local repository.
-      assert false;  // EXTRAS_REPOSITORY.containsKey() should have returned false.
-      return coordinateText + ':' + REVISION_ANY;
-    }
-    requested.add(repository.getPackageId());
-    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
-    if (dialog != null) {
-      dialog.setTitle("Install Missing Components");
-      if (dialog.showAndGet()) {
-        return RepositoryUrlManager.get().getArtifactStringCoordinate(artifactId, true);
-      }
-    }
-
-    // Installation wizard didn't complete - skip adding the dependency.
-    return null;
   }
 
   private void addFileDependency() {
