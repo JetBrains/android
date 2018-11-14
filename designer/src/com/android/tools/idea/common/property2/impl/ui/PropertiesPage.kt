@@ -58,6 +58,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     get() = inspectorModel.filter
     set(value) { inspectorModel.filter = value }
 
+  val isEmpty
+    get() = inspectorModel.lines.isEmpty()
+
   fun enterInFilter():Boolean {
     return inspectorModel.enterInFilter()
   }

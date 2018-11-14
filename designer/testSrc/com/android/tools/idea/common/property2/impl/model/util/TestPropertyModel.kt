@@ -22,6 +22,8 @@ import com.google.common.collect.HashBasedTable
 
 class TestPropertyModel : PropertiesModel<TestPropertyItem> {
 
+  private val listeners = mutableListOf<PropertiesModelListener<TestPropertyItem>>()
+
   val table = HashBasedTable.create<String, String, TestPropertyItem>()!!
 
   override val properties = PropertiesTableImpl<TestPropertyItem>(table)
@@ -34,8 +36,14 @@ class TestPropertyModel : PropertiesModel<TestPropertyItem> {
   }
 
   override fun addListener(listener: PropertiesModelListener<TestPropertyItem>) {
+    listeners.add(listener)
   }
 
   override fun removeListener(listener: PropertiesModelListener<TestPropertyItem>) {
+    listeners.remove(listener)
+  }
+
+  fun propertiesGenerated() {
+    listeners.forEach { it.propertiesGenerated(this) }
   }
 }
