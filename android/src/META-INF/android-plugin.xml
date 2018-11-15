@@ -1382,6 +1382,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.ConnectionTimeService"/>
   </extensions>
 
   <module-components>

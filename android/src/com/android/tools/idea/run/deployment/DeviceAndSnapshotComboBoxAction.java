@@ -35,16 +35,21 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import icons.StudioIcons;
 import java.awt.Dimension;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -52,12 +57,14 @@ import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
+  private static final Key<Instant> SELECTION_TIME = new Key<>("DeviceAndSnapshotComboBoxAction.selectionTime");
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   private final AsyncDevicesGetter myDevicesGetter;
   private final AnAction myOpenAvdManagerAction;
+  private final Clock myClock;
 
   private List<Device> myDevices;
   private String mySelectedSnapshot;
@@ -66,13 +73,15 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private DeviceAndSnapshotComboBoxAction() {
     this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(),
          () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
-         new AsyncDevicesGetter(ApplicationManager.getApplication()));
+         new AsyncDevicesGetter(ApplicationManager.getApplication()),
+         Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
                                   @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
-                                  @NotNull AsyncDevicesGetter devicesGetter) {
+                                  @NotNull AsyncDevicesGetter devicesGetter,
+                                  @NotNull Clock clock) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
@@ -83,6 +92,8 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
     presentation.setText("Open AVD Manager");
+
+    myClock = clock;
 
     myDevices = Collections.emptyList();
   }
@@ -111,11 +122,41 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     Object key = PropertiesComponent.getInstance(project).getValue(SELECTED_DEVICE);
 
-    Optional<Device> selectedDevice = myDevices.stream()
+    Optional<Device> optionalSelectedDevice = myDevices.stream()
       .filter(device -> device.getKey().equals(key))
       .findFirst();
 
-    return selectedDevice.orElse(myDevices.get(0));
+    if (!optionalSelectedDevice.isPresent()) {
+      return myDevices.get(0);
+    }
+
+    Device selectedDevice = optionalSelectedDevice.get();
+
+    if (selectedDevice.isConnected()) {
+      return selectedDevice;
+    }
+
+    Optional<Device> optionalConnectedDevice = myDevices.stream()
+      .filter(Device::isConnected)
+      .findFirst();
+
+    if (optionalConnectedDevice.isPresent()) {
+      Instant selectionTime = project.getUserData(SELECTION_TIME);
+      Device connectedDevice = optionalConnectedDevice.get();
+
+      if (selectionTime == null) {
+        return connectedDevice;
+      }
+
+      Instant connectionTime = connectedDevice.getConnectionTime();
+      assert connectionTime != null;
+
+      if (selectionTime.isBefore(connectionTime)) {
+        return connectedDevice;
+      }
+    }
+
+    return selectedDevice;
   }
 
   void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
@@ -123,9 +164,11 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     if (selectedDevice == null) {
       properties.unsetValue(SELECTED_DEVICE);
+      project.putUserData(SELECTION_TIME, null);
     }
     else {
       properties.setValue(SELECTED_DEVICE, selectedDevice.getKey());
+      project.putUserData(SELECTION_TIME, myClock.instant());
     }
 
     updateExecutionTargetManager(project, selectedDevice);
@@ -197,49 +240,26 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   private Collection<AnAction> newSelectDeviceAndSnapshotActions(@NotNull Project project) {
-    Collection<VirtualDevice> virtualDevices = new ArrayList<>(myDevices.size());
-    Collection<Device> physicalDevices = new ArrayList<>(myDevices.size());
+    Map<Boolean, List<Device>> connectednessToDeviceMap = myDevices.stream().collect(Collectors.groupingBy(Device::isConnected));
 
-    myDevices.forEach(device -> {
-      if (device instanceof VirtualDevice) {
-        virtualDevices.add((VirtualDevice)device);
-      }
-      else if (device instanceof PhysicalDevice) {
-        physicalDevices.add(device);
-      }
-      else {
-        assert false;
-      }
-    });
+    Collection<Device> connectedDevices = connectednessToDeviceMap.getOrDefault(true, Collections.emptyList());
+    Collection<Device> disconnectedDevices = connectednessToDeviceMap.getOrDefault(false, Collections.emptyList());
 
-    Collection<AnAction> actions = new ArrayList<>(virtualDevices.size() + 1 + physicalDevices.size());
+    Collection<AnAction> actions = new ArrayList<>(connectedDevices.size() + 1 + disconnectedDevices.size());
 
-    virtualDevices.stream()
-      .map(device -> newSelectDeviceAndSnapshotActionOrSnapshotActionGroup(project, device))
+    connectedDevices.stream()
+      .map(device -> newSelectDeviceAndSnapshotAction(project, device))
       .forEach(actions::add);
 
-    if (!virtualDevices.isEmpty() && !physicalDevices.isEmpty()) {
+    if (!connectedDevices.isEmpty() && !disconnectedDevices.isEmpty()) {
       actions.add(Separator.create());
     }
 
-    physicalDevices.stream()
+    disconnectedDevices.stream()
       .map(device -> newSelectDeviceAndSnapshotAction(project, device))
       .forEach(actions::add);
 
     return actions;
-  }
-
-  @NotNull
-  private AnAction newSelectDeviceAndSnapshotActionOrSnapshotActionGroup(@NotNull Project project, @NotNull VirtualDevice device) {
-    Collection<String> snapshots = device.getSnapshots();
-
-    if (snapshots.isEmpty() ||
-        snapshots.equals(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION) ||
-        !mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
-      return newSelectDeviceAndSnapshotAction(project, device);
-    }
-
-    return new SnapshotActionGroup(device, this, project);
   }
 
   @NotNull
@@ -283,7 +303,9 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     presentation.setVisible(true);
+
     myDevices = myDevicesGetter.get(project);
+    myDevices.sort(new DeviceComparator());
 
     if (myDevices.isEmpty()) {
       setSelectedDevice(project, null);

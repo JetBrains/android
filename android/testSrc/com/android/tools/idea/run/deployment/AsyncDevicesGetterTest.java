@@ -22,6 +22,8 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import java.io.File;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +36,9 @@ public final class AsyncDevicesGetterTest {
 
   private IDevice myConnectedDevice;
   private Collection<IDevice> myConnectedDevices;
+
+  private Clock myClock;
+  private ConnectionTimeService myService;
 
   @Before
   public void newVirtualDevice() {
@@ -53,12 +58,19 @@ public final class AsyncDevicesGetterTest {
     myConnectedDevices.add(myConnectedDevice);
   }
 
+  @Before
+  public void newService() {
+    myClock = Mockito.mock(Clock.class);
+    myService = new ConnectionTimeService(myClock);
+  }
+
   @Test
   public void newVirtualDeviceIfItsConnectedAvdNamesAreEqual() {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
+    Mockito.when(myClock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
-    assertEquals(VirtualDevice.newConnectedVirtualDevice(myVirtualDevice, myConnectedDevice), device);
+    Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices, myService);
+    assertEquals(VirtualDevice.newConnectedVirtualDevice(myVirtualDevice, myService, myConnectedDevice), device);
 
     assertEquals(Collections.emptyList(), myConnectedDevices);
   }
@@ -67,7 +79,7 @@ public final class AsyncDevicesGetterTest {
   public void newVirtualDeviceIfItsConnected() {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_28");
 
-    assertSame(myVirtualDevice, AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices));
+    assertSame(myVirtualDevice, AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices, myService));
     assertEquals(Collections.singletonList(myConnectedDevice), myConnectedDevices);
   }
 }

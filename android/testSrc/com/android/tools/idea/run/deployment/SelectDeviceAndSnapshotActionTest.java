@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableList;
+import java.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -29,7 +30,11 @@ public final class SelectDeviceAndSnapshotActionTest {
 
   @Before
   public void newComboBoxAction() {
-    myComboBoxAction = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, Mockito.mock(AsyncDevicesGetter.class));
+    myComboBoxAction = new DeviceAndSnapshotComboBoxAction(
+      () -> true,
+      () -> true,
+      Mockito.mock(AsyncDevicesGetter.class),
+      Mockito.mock(Clock.class));
   }
 
   @Test
