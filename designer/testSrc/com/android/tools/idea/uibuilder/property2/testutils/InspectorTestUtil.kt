@@ -102,16 +102,9 @@ open class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   var focusWasRequested = false
     private set
 
-  var gotoNextLineWasRequested = false
-    private set
-
   override fun requestFocus() {
     focusWasRequested = true
   }
-
-  override var gotoNextLine: (InspectorLineModel) -> Unit
-    get() = { gotoNextLineWasRequested = true }
-    set(value) {}
 
   override fun makeExpandable(initiallyExpanded: Boolean) {
     expandable = true

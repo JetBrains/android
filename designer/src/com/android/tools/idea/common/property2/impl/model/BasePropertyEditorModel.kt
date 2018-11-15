@@ -47,8 +47,6 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
       fireValueChanged()
     }
 
-  override var onEnter = { gotoNextLine() }
-
   final override var hasFocus = false
     private set
 
@@ -82,8 +80,6 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     get() = property.tooltipForValue
 
   override var lineModel: InspectorLineModel? = null
-
-  open fun enterKeyPressed() = onEnter()
 
   open fun f1KeyPressed() {
     (property as? HelpSupport)?.help()
@@ -139,10 +135,5 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     if (!blockUpdates) {
       valueChangeListeners.toTypedArray().forEach { it.valueChanged() }
     }
-  }
-
-  private fun gotoNextLine() {
-    val line = lineModel ?: return
-    line.gotoNextLine(line)
   }
 }

@@ -47,7 +47,6 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   @VisibleForTesting
   val inspectorModel = InspectorPanelModel()
   private val inspector = InspectorPanelImpl(inspectorModel, parentDisposable)
-  private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
   private val boldFont = UIUtil.getLabelFont().deriveFont(Font.BOLD)
   private var lastAddedLine: InspectorLineModel? = null
   private var lastTitleLine: CollapsibleLabelModel? = null
@@ -119,7 +118,6 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     addLine(model, null)
     inspector.addLineElement(component)
     component.background = UIUtil.getPanelBackground()
-    model.gotoNextLine = gotoNextLine
     lastTitleLine = model
     return model
   }
@@ -132,7 +130,6 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     editorModel.lineModel = model
     addLine(model, parent)
     inspector.addLineElement(label, editor)
-    model.gotoNextLine = gotoNextLine
     return model
   }
 
@@ -145,7 +142,6 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider)
     addLine(model, parent)
     inspector.addLineElement(editor.component)
-    model.gotoNextLine = gotoNextLine
     return model
   }
 
@@ -155,7 +151,6 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     val wrapper = GenericLinePanel(component, model)
     addLine(model, parent)
     inspector.addLineElement(wrapper)
-    model.gotoNextLine = gotoNextLine
     return model
   }
 

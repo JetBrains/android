@@ -118,26 +118,12 @@ class PTableCellEditorImpl : PTableCellEditor {
 
   fun nowEditing(newTable: PTable, newItem: PTableItem, newColumn: PTableColumn,
                  newControlType: ControlType, newModel: PropertyEditorModel, newEditor: JComponent) {
-    newModel.onEnter = { startNextEditor() }
-
     table = newTable
     item = newItem
     column = newColumn
     model = newModel
     controlType = newControlType
     editorComponent = newEditor
-  }
-
-  private fun startNextEditor() {
-    val currentTable = table ?: return
-    val currentItem = item ?: return
-    val currentColumn = column ?: return
-    val model = currentTable.context as TableLineModelImpl
-    if (model.tableModel.acceptMoveToNextEditor(currentItem, currentColumn)) {
-      if (!currentTable.startNextEditor()) {
-        model.gotoNextLine(model)
-      }
-    }
   }
 }
 

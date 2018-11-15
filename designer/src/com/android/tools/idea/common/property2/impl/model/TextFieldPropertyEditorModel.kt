@@ -40,11 +40,8 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
   override val editingSupport: EditingSupport
     get() = property.editingSupport
 
-  override fun enterKeyPressed() {
-    if (commitChange()) {
-      // This call may navigate away from the editor control.
-      super.enterKeyPressed()
-    }
+  fun enterKeyPressed() {
+    commitChange()
   }
 
   fun escape() {
