@@ -8,6 +8,7 @@ import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
+import com.intellij.database.dataSource.DataObjectColorPanel;
 import com.intellij.database.dataSource.DatabaseNameComponent;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.view.ui.DsUiDefaults;
@@ -37,8 +38,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -92,7 +93,8 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   @Nullable
   @Override
   public JComponent createComponent() {
-    myNameComponent = new DatabaseNameComponent(this, myController);
+    myNameComponent = new DatabaseNameComponent(this, myController,
+                                                new DataObjectColorPanel(myDataSource, myManager, myProject, myController));
     myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
     myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
 
@@ -404,6 +406,6 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     AndroidDataSource tempDataSource = getTempDataSource();
 
     if (!StringUtil.equals(tempDataSource.getName(), myDataSource.getName())) return true;
-    return !tempDataSource.equalConfiguration(myDataSource);
+    return !tempDataSource.equalConfiguration(myDataSource) || myNameComponent.isModified();
   }
 }
