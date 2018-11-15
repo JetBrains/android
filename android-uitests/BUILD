@@ -300,7 +300,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.java8.CompileWithJava8Test"],
     tags = COMMON_TAGS + [
         "no_psq",
-        "qa_sanity",
+        "qa_sanity",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -606,8 +606,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  #b/116752977
+        "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -641,8 +640,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
     tags = COMMON_TAGS + [
         "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  #b/116752977
+        "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -657,8 +655,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp2Test"],
     tags = COMMON_TAGS + [
         "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  #b/116752977
+        "qa_sanity",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -673,8 +670,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp3Test"],
     tags = COMMON_TAGS + [
         "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  #b/116752977
+        "qa_sanity",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
