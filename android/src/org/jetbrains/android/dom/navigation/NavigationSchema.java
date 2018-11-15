@@ -784,14 +784,6 @@ public class NavigationSchema implements Disposable {
   }
 
   /**
-   * Gets the tag to use by default for the given DestinationType. Right now this is just a static mapping to the OOTB tags
-   */
-  @Nullable
-  public String getDefaultTag(@NotNull DestinationType type) {
-    return myTypeToRootTag.get(type);
-  }
-
-  /**
    * Gets the tags that can be used as the root tag of a navigation file based on the NavigationSchema for the given facet, and returning
    * a sensible default if the schema isn't available.
    */
@@ -903,6 +895,15 @@ public class NavigationSchema implements Disposable {
                                   .filter(c -> c != null)
                                   .collect(Collectors.toSet());
   }
+
+  /**
+   * Gets the tag to use by default for the given DestinationType. Right now this is just a static mapping to the OOTB tags
+   */
+  @Nullable
+  public String getDefaultTag(@NotNull DestinationType type) {
+    return myTypeToRootTag.get(type);
+  }
+  
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region UI
