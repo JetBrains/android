@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property2.api
 import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.property2.impl.ui.PropertiesPage
+import com.android.tools.idea.common.property2.impl.ui.WatermarkPanel
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -46,6 +47,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   private var activeView: PropertiesView<*>? = null
   private val views = IdentityHashMap<PropertiesModel<*>, PropertiesView<*>>()
   private val tabbedPanel = CommonTabbedPane()
+  private val watermark = WatermarkPanel()
   private val hidden = JPanel()
   private var updatingPageVisibility = false
 
@@ -113,6 +115,7 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
     }
     pages.subList(view.tabs.size, pages.size).clear()
     val preferredTab = PropertiesComponent.getInstance().getValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true))
+    watermark.model = view.watermark
     updatePageVisibility(preferredTab)
   }
 
@@ -186,6 +189,12 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
         if (preferredTabIndex >= 0) {
           tabbedPanel.selectedIndex = preferredTabIndex
         }
+      }
+      if (component.componentCount == 0) {
+        component.add(watermark, BorderLayout.CENTER)
+      }
+      else {
+        hidden.add(watermark)
       }
       component.add(hidden, BorderLayout.SOUTH)
       component.revalidate()

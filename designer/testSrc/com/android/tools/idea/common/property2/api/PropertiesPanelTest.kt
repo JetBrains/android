@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.common.property2.impl.model.util.TestInspectorBuilder
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyModel
+import com.android.tools.idea.common.property2.impl.ui.WatermarkPanel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -184,9 +185,10 @@ class PropertiesPanelTest {
     assertThat(panel.component.getComponent(1)).isEqualTo(panel.pages[1].component)
     val hidden = panel.component.getComponent(2) as JPanel
     assertThat(hidden.isVisible).isFalse()
-    assertThat(hidden.componentCount).isEqualTo(2)
+    assertThat(hidden.componentCount).isEqualTo(3)
     assertThat(hidden.getComponent(0)).isEqualTo(panel.pages[0].component)
     assertThat(hidden.getComponent(1)).isInstanceOf(JTabbedPane::class.java)
+    assertThat(hidden.getComponent(2)).isInstanceOf(WatermarkPanel::class.java)
   }
 
   @Test
@@ -205,9 +207,10 @@ class PropertiesPanelTest {
     assertThat(panel.component.getComponent(1)).isEqualTo(panel.pages[1].component)
     val hidden = panel.component.getComponent(2) as JPanel
     assertThat(hidden.isVisible).isFalse()
-    assertThat(hidden.componentCount).isEqualTo(2)
+    assertThat(hidden.componentCount).isEqualTo(3)
     assertThat(hidden.getComponent(0)).isEqualTo(panel.pages[0].component)
     assertThat(hidden.getComponent(1)).isInstanceOf(JTabbedPane::class.java)
+    assertThat(hidden.getComponent(2)).isInstanceOf(WatermarkPanel::class.java)
   }
 
   @Test
@@ -223,8 +226,9 @@ class PropertiesPanelTest {
     assertThat(builder1!!.attachToInspectorCalled).isEqualTo(1)
     assertThat(builder1a!!.attachToInspectorCalled).isEqualTo(1)
     assertThat(builder1b!!.attachToInspectorCalled).isEqualTo(1)
-    assertThat(panel.component.componentCount).isEqualTo(1)
-    val hidden = panel.component.getComponent(0) as JPanel
+    assertThat(panel.component.componentCount).isEqualTo(2)
+    assertThat(panel.component.components[0]).isInstanceOf(WatermarkPanel::class.java)
+    val hidden = panel.component.components[1] as JPanel
     assertThat(hidden.isVisible).isFalse()
     assertThat(hidden.componentCount).isEqualTo(4)
     assertThat(hidden.getComponent(0)).isEqualTo(panel.mainPage.component)
@@ -245,7 +249,8 @@ class PropertiesPanelTest {
     assertThat(main.isVisible).isTrue()
     assertThat(tabs.isVisible).isTrue()
     assertThat(hidden.isVisible).isFalse()
-    assertThat(hidden.componentCount).isEqualTo(0)
+    assertThat(hidden.componentCount).isEqualTo(1)
+    assertThat(hidden.getComponent(0)).isInstanceOf(WatermarkPanel::class.java)
     assertThat(tabs.tabCount).isEqualTo(2)
     assertThat(tabs.getTitleAt(0)).isEqualTo("Basic")
     assertThat(tabs.getTitleAt(1)).isEqualTo("Advanced")
@@ -264,7 +269,8 @@ class PropertiesPanelTest {
     assertThat(main.isVisible).isTrue()
     assertThat(tabs.isVisible).isTrue()
     assertThat(hidden.isVisible).isFalse()
-    assertThat(hidden.componentCount).isEqualTo(0)
+    assertThat(hidden.componentCount).isEqualTo(1)
+    assertThat(hidden.getComponent(0)).isInstanceOf(WatermarkPanel::class.java)
     assertThat(tabs.tabCount).isEqualTo(3)
     assertThat(tabs.getTitleAt(0)).isEqualTo("Simple")
     assertThat(tabs.getTitleAt(1)).isEqualTo("Extra")
