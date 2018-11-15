@@ -1292,8 +1292,6 @@
                     interface="com.android.tools.idea.databinding.DataBindingExpressionProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionProvider"
                     interface="com.android.tools.idea.lang.databinding.DataBindingCompletionProvider"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingSupport"
-                    interface="com.android.tools.idea.databinding.DataBindingSupport"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -1383,6 +1381,21 @@
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider"/>
 
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
+  </extensions>
+
+  <!-- data binding-->
+  <extensions defaultExtensionNs="com.intellij">
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
+    <applicationConfigurable groupId="editor" id="android.databinding"
+                             provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
   </extensions>
 
   <module-components>

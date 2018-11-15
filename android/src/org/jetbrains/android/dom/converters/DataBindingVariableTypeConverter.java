@@ -94,7 +94,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     PsiType[] result = new PsiType[1];
     psiType.accept(new ClassReferenceVisitor() {
       @Override
-      public void visitClassReference(@NotNull PsiClassReferenceType classType) {
+      public void visitClassReference(PsiClassReferenceType classType) {
         if (result[0] == null) {
           PsiClassType rawType = classType.rawType();
           if (rawType.resolve() == null) {
@@ -131,7 +131,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     } else {
       psiType.accept(new ClassReferenceVisitor() {
         @Override
-        public void visitClassReference(@NotNull PsiClassReferenceType classReference) {
+        public void visitClassReference(PsiClassReferenceType classReference) {
           PsiJavaCodeReferenceElement reference = classReference.getReference();
           int offset = reference.getTextRange().getStartOffset();
           offset = decodedValue.getEncodedOffset(offset);

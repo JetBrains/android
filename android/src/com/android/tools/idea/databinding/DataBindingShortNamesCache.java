@@ -112,7 +112,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   private void traverseAllClasses(Function<PsiClass, Void> receiver) {
     for (List<DataBindingInfo> infoList : myNameCache.getValue().values()) {
       for (DataBindingInfo info : infoList) {
-        PsiClass psiClass = InternalDataBindingUtil.getOrCreatePsiClass(info);
+        PsiClass psiClass = DataBindingUtil.getOrCreatePsiClass(info);
         receiver.fun(psiClass);
       }
     }
@@ -131,7 +131,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     List<PsiClass> selected = Lists.newArrayList();
     for (DataBindingInfo info : infoList) {
       if (scope.accept(info.getPsiFile().getVirtualFile())) {
-        selected.add(InternalDataBindingUtil.getOrCreatePsiClass(info));
+        selected.add(DataBindingUtil.getOrCreatePsiClass(info));
       }
     }
     if (selected.isEmpty()) {
@@ -310,6 +310,6 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   }
 
   private boolean isEnabled() {
-    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }

@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.lang.databinding
 
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.res.DataBindingInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.module.ModuleUtilCore
@@ -37,7 +37,7 @@ fun getDataBindingInfo(element: PsiElement): DataBindingInfo? {
   val module = ModuleUtilCore.findModuleForPsiElement(element)
   if (module != null) {
     val facet = AndroidFacet.getInstance(module)
-    if (facet != null && DataBindingUtil.isDataBindingEnabled(facet)) {
+    if (facet != null && ModuleDataBinding.getInstance(facet).isEnabled) {
       val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
       val topLevelFile = InjectedLanguageUtil.getTopLevelFile(element)
       if (topLevelFile != null) {
