@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +47,8 @@ class AsyncDevicesGetter {
 
   @NotNull
   List<Device> get(@NotNull Project project) {
+    ConnectionTimeService service = ServiceManager.getService(project, ConnectionTimeService.class);
+
     Collection<VirtualDevice> virtualDevices = myVirtualDevicesWorker.get(VirtualDevicesWorkerDelegate::new, Collections.emptyList());
 
     Supplier<SwingWorker<Collection<IDevice>, Void>> supplier = () -> new ConnectedDevicesWorkerDelegate(project);
@@ -53,19 +57,27 @@ class AsyncDevicesGetter {
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
 
     virtualDevices.stream()
-      .map(device -> newVirtualDeviceIfItsConnected(device, connectedDevices))
+      .map(device -> newVirtualDeviceIfItsConnected(device, connectedDevices, service))
       .forEach(devices::add);
 
     connectedDevices.stream()
-      .map(connectedDevice -> new PhysicalDevice(myDevicePropertiesProvider.get(connectedDevice), connectedDevice))
+      .map(device -> PhysicalDevice.newPhysicalDevice(myDevicePropertiesProvider.get(device), service, device))
       .forEach(devices::add);
 
+    Collection<String> keys = devices.stream()
+      .filter(Device::isConnected)
+      .map(Device::getKey)
+      .collect(Collectors.toList());
+
+    service.retainAll(keys);
     return devices;
   }
 
   @NotNull
   @VisibleForTesting
-  static Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice, @NotNull Iterable<IDevice> connectedDevices) {
+  static Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice,
+                                               @NotNull Iterable<IDevice> connectedDevices,
+                                               @NotNull ConnectionTimeService service) {
     AvdInfo info = virtualDevice.getAvdInfo();
     assert info != null;
 
@@ -76,7 +88,7 @@ class AsyncDevicesGetter {
 
       if (Objects.equals(device.getAvdName(), name)) {
         i.remove();
-        return VirtualDevice.newConnectedVirtualDevice(virtualDevice, device);
+        return VirtualDevice.newConnectedVirtualDevice(virtualDevice, service, device);
       }
     }
 

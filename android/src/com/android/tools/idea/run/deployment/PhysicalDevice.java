@@ -34,8 +34,36 @@ import org.jetbrains.annotations.Nullable;
 final class PhysicalDevice extends Device {
   private static final Icon ourIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.RealDevice);
 
-  PhysicalDevice(@NotNull DeviceNameProperties properties, @NotNull IDevice ddmlibDevice) {
-    super(getName(properties), ddmlibDevice.getSerialNumber(), ddmlibDevice);
+  @NotNull
+  static PhysicalDevice newPhysicalDevice(@NotNull DeviceNameProperties properties,
+                                          @NotNull ConnectionTimeService service,
+                                          @NotNull IDevice ddmlibDevice) {
+    String key = ddmlibDevice.getSerialNumber();
+
+    return new Builder()
+      .setName(getName(properties))
+      .setKey(key)
+      .setConnectionTime(service.get(key))
+      .setDdmlibDevice(ddmlibDevice)
+      .build();
+  }
+
+  static final class Builder extends Device.Builder<Builder> {
+    @NotNull
+    @Override
+    Builder self() {
+      return this;
+    }
+
+    @NotNull
+    @Override
+    PhysicalDevice build() {
+      return new PhysicalDevice(this);
+    }
+  }
+
+  private PhysicalDevice(@NotNull Builder builder) {
+    super(builder);
   }
 
   @NotNull
@@ -65,6 +93,15 @@ final class PhysicalDevice extends Device {
     return ourIcon;
   }
 
+  /**
+   * @return true. Physical devices come and go as they are connected and disconnected; there are no instances of this class for
+   * disconnected physical devices.
+   */
+  @Override
+  boolean isConnected() {
+    return true;
+  }
+
   @NotNull
   @Override
   ImmutableCollection<String> getSnapshots() {
@@ -90,6 +127,7 @@ final class PhysicalDevice extends Device {
 
     return getName().equals(device.getName()) &&
            getKey().equals(device.getKey()) &&
+           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            Objects.equals(getDdmlibDevice(), device.getDdmlibDevice());
   }
 
@@ -98,6 +136,7 @@ final class PhysicalDevice extends Device {
     int hashCode = getName().hashCode();
 
     hashCode = 31 * hashCode + getKey().hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(getConnectionTime());
     hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
 
     return hashCode;
