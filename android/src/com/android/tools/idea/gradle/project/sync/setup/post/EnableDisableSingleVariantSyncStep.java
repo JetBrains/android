@@ -41,7 +41,7 @@ public class EnableDisableSingleVariantSyncStep {
 
   public static void setSingleVariantSyncState(@NotNull Project project) {
     EligibilityState state = isEligibleForSingleVariantSync(project);
-    //PropertiesComponent.getInstance(project).setValue(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC, !state.equals(ELIGIBLE));
+    PropertiesComponent.getInstance(project).setValue(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC, !state.equals(ELIGIBLE));
   }
 
   // Check if the project is eligible for Single-Variant sync.
