@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.manifest;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.NS_RESOURCES;
-import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 
 import com.android.builder.model.ProductFlavor;
 import com.android.ide.common.util.PathString;
@@ -25,6 +24,7 @@ import com.android.ide.common.util.PathStrings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.FileExtensions;
+import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.util.CachedValueProvider;
@@ -88,13 +88,11 @@ public class AndroidManifestUtils {
     }
   }
 
-  private static String getPackageName(InputStream stream) throws XmlPullParserException, IOException {
+  private static String getPackageName(@NotNull InputStream stream) throws XmlPullParserException, IOException {
     stream.mark(1);
     // Instantiate an XML pull parser based on the contents of the stream.
     XmlPullParser parser;
-    int c = stream.read();
-    stream.reset();
-    if (c == PROTO_XML_LEAD_BYTE) {
+    if (XmlUtils.isProtoXml(stream)) {
       parser = new ProtoXmlPullParser(); // Parser for proto XML used in AARs.
     } else {
       parser = new KXmlParser(); // Parser for regular text XML.

@@ -15,30 +15,31 @@
  */
 package com.android.tools.idea.res;
 
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
+import com.android.utils.XmlUtils;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.*;
-import java.net.URI;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
-
 /**
  * Methods for working with Android file resources.
  */
 public class FileResourceReader {
-  /** The first byte of a proto XML file is always 0x0A. */
-  public static final byte PROTO_XML_LEAD_BYTE = 0x0A;
-
   /**
    * Reads and returns the contents of a resource. The resource path can point either to a file on
    * disk, or to a ZIP file entry. In the latter case the URI of the resource path contains a path
@@ -183,7 +184,7 @@ public class FileResourceReader {
     try {
       // Instantiate an XML pull parser based on the contents of the file.
       XmlPullParser parser;
-      if (contents.length != 0 && contents[0] == PROTO_XML_LEAD_BYTE) {
+      if (XmlUtils.isProtoXml(contents)) {
         parser = new ProtoXmlPullParser(); // Parser for proto XML used in AARs.
       }
       else {
