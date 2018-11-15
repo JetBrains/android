@@ -122,7 +122,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
                                                             int visiblePropertyCount,
                                                             @NotNull String propertyName) {
     Component component = findPropertyComponent(propertyName, null);
-    assertThat(component).isNotNull();
     int height = component.getHeight();
     Container parent = SwingUtilities.getAncestorOfClass(JScrollPane.class, component);
     int adjustment = visiblePropertyCount * height - parent.getHeight();
@@ -136,7 +135,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   @NotNull
   public NlPropertyInspectorFixture focusAndWaitForFocusGainInProperty(@NotNull String name, @Nullable Icon icon) {
     Component component = findFocusablePropertyComponent(name, icon);
-    assertThat(component).isNotNull();
     driver().focusAndWaitForFocusGain(component);
     return this;
   }
@@ -163,8 +161,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   @SuppressWarnings("UnusedReturnValue")
   public NlPropertyInspectorFixture pressKeyInUnknownProperty(int keyCode, int... modifiers) {
     Component component = FocusManager.getCurrentManager().getFocusOwner();
-    assertThat(component).isNotNull();
-    assertThat(SwingUtilities.isDescendingFrom(component, myPanel)).isTrue();
     //noinspection unchecked
     driver().pressAndReleaseKey(component, keyCode, modifiers);
     IdeFocusManager.findInstance().doWhenFocusSettlesDown(() -> {
