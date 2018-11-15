@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.PropertiesView
-import com.android.tools.idea.common.property2.api.TableUIProvider
 import com.android.tools.idea.common.property2.api.Watermark
-import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.inspector.AdvancedInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
@@ -42,10 +39,7 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
   private val enumSupportProvider = NeleEnumSupportProvider()
   private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-  private val nameControlTypeProvider = SimpleControlTypeProvider<NeleNewPropertyItem>(ControlType.TEXT_EDITOR)
-  private val nameEditorProvider = EditorProvider.createForNames<NeleNewPropertyItem>()
-  private val tableUIProvider = TableUIProvider.create(NeleNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
-                                                       NelePropertyItem::class.java, controlTypeProvider, editorProvider)
+
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedComponentBuilder())
@@ -58,6 +52,6 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
     basic.builders.add(ProgressBarInspectorBuilder(editorProvider))
     basic.builders.add(FavoritesInspectorBuilder(editorProvider))
     val advanced = addTab(ADVANCED_PAGE)
-    advanced.builders.add(AdvancedInspectorBuilder(model, tableUIProvider))
+    advanced.builders.add(AdvancedInspectorBuilder(model, controlTypeProvider, editorProvider))
   }
 }

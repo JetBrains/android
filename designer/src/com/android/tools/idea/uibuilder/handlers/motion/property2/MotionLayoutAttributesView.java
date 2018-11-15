@@ -41,8 +41,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteC
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteMotionFieldAction;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel;
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
+import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
@@ -70,7 +70,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
   public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
     super(MOTION_VIEW_NAME, model);
     NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider();
-    NeleControlTypeProvider controlTypeProvider = new NeleControlTypeProvider(enumSupportProvider);
+    NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
     getMain().getBuilders().add(new MotionInspectorBuilder(model, editorProvider, tableUIProvider));
