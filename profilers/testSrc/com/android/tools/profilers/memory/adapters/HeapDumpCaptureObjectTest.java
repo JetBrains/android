@@ -15,13 +15,18 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,6 +48,14 @@ public class HeapDumpCaptureObjectTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpCaptureObjectTest", myService);
 
+  private MemoryProfilerStage myStage;
+
+  @Before
+  public void setUp() {
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, new FakeTimer()),
+                                      new FakeCaptureObjectLoader());
+  }
+
   /**
    * This is a high-level test that validates the generation of the hprof MemoryObject hierarchy based on a Snapshot buffer.
    * We want to ensure not only the HeapDumpCaptureObject holds the correct HeapSet(s) representing the Snapshot, but
@@ -56,7 +69,7 @@ public class HeapDumpCaptureObjectTest {
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker());
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -129,7 +142,7 @@ public class HeapDumpCaptureObjectTest {
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
-                                myIdeProfilerServices.getFeatureTracker());
+                                myIdeProfilerServices.getFeatureTracker(), myStage);
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -173,7 +186,7 @@ public class HeapDumpCaptureObjectTest {
     MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
-                                myIdeProfilerServices.getFeatureTracker());
+                                myIdeProfilerServices.getFeatureTracker(), myStage);
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());

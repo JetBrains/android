@@ -29,12 +29,12 @@ import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -79,16 +79,21 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   private boolean myHasNativeAllocations;
 
+  @NotNull
+  private final MemoryProfilerStage myStage;
+
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull FeatureTracker featureTracker) {
+                               @NotNull FeatureTracker featureTracker,
+                               @NotNull MemoryProfilerStage stage) {
     myClient = client;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
     myFeatureTracker = featureTracker;
+    myStage = stage;
   }
 
   @NotNull
@@ -245,6 +250,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
         myHeapSets.put(key.getId(), value);
       }
     });
+
+    myStage.refreshSelectedHeap();
 
     return true;
   }

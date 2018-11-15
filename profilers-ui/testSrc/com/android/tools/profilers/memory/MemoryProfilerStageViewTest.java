@@ -33,9 +33,11 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.StudioIcons;
 import java.awt.geom.Rectangle2D;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -62,12 +64,11 @@ import static com.google.common.truth.Truth.assertThat;
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
-  private StudioProfilersView myProfilersView;
-
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService,
                         new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
+  private StudioProfilersView myProfilersView;
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -511,6 +512,40 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     validateRegion(renderedRegions.get(2), 0.8f, 1f, iconWidth, iconHeight);
     // Point should be attached due to start of FULL mode
     validateRegion(renderedRegions.get(3), 1f, 0f, iconWidth, iconHeight);
+  }
+
+  @Test
+  public void testCaptureInfoMessage_showsWhenLoadingCaptureWithMessage_hiddenWhenLoadingHeapDump() {
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    Executor joiner = MoreExecutors.directExecutor();
+    myMockLoader.setReturnImmediateFuture(true);
+
+    // Load a fake capture with a non-null info message and verify the message is displayed.
+    FakeCaptureObject fakeCapture =
+      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(0).setEndTime(10).setInfoMessage("Foo").build();
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> fakeCapture)), joiner);
+    // FakeCaptureObject's load() is a no-op, so force refresh here.
+    myStage.refreshSelectedHeap();
+    assertThat(stageView.getCaptureInfoMessage().isVisible()).isTrue();
+
+    // Load a heap dump capture and verify the message is hidden.
+    HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
+      .setEndTime(TimeUnit.MICROSECONDS.toNanos(4))
+      .setSuccess(true)
+      .build();
+    myService.addExplicitHeapDumpInfo(heapDumpInfo);
+    myService.setExplicitDumpDataStatus(DumpDataResponse.Status.SUCCESS);
+    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(getGrpcChannel().getClient().getMemoryClient(),
+                                                                      ProfilersTestData.SESSION_DATA,
+                                                                      heapDumpInfo,
+                                                                      null,
+                                                                      myIdeProfilerServices.getFeatureTracker(),
+                                                                      myStage);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> heapDumpCapture)), joiner);
+    assertThat(stageView.getCaptureInfoMessage().isVisible()).isFalse();
   }
 
   private void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
