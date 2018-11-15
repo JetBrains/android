@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 /**
  * [ControlType] provider of a value editor for a [NelePropertyItem].
  */
-class NeleControlTypeProvider(private val enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : ControlTypeProvider<NelePropertyItem> {
+open class NeleControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : ControlTypeProvider<NelePropertyItem> {
 
   override fun invoke(actual: NelePropertyItem): ControlType {
     val property = (actual as? NeleNewPropertyItem)?.delegate ?: actual

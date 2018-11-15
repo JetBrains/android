@@ -15,12 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.adtui.ptable2.*
-import com.android.tools.idea.common.property2.api.TableUIProvider
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_COLOR
+import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.PREFIX_ANDROID
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.ptable2.PTableModelUpdateListener
+import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
+import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.testutils.FakeTableLine
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
@@ -31,7 +47,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @RunsInEdt
 class AdvancedInspectorBuilderTest {
@@ -45,7 +62,7 @@ class AdvancedInspectorBuilderTest {
   fun testAdvancedInspector() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).hasSize(4)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
@@ -76,7 +93,7 @@ class AdvancedInspectorBuilderTest {
   fun testAdvancedInspectorWithAddedNewProperty() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
@@ -110,7 +127,7 @@ class AdvancedInspectorBuilderTest {
   fun testAcceptMoveToNextEditorWithEmptyNewPropertyValue() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
@@ -129,7 +146,7 @@ class AdvancedInspectorBuilderTest {
   fun testAcceptMoveToNextEditorWithSpecifiedNewPropertyValue() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
@@ -152,7 +169,7 @@ class AdvancedInspectorBuilderTest {
   fun testUpdateItemsWhenNoChanges() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
@@ -168,7 +185,7 @@ class AdvancedInspectorBuilderTest {
   fun testUpdateItemsWhenPropertyAdded() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
@@ -185,7 +202,7 @@ class AdvancedInspectorBuilderTest {
   fun testDeletePropertyItem() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     val tableLine = util.inspector.lines[1] as FakeTableLine
     val model = tableLine.tableModel
@@ -203,7 +220,7 @@ class AdvancedInspectorBuilderTest {
   fun testDeleteNewlyAddedPropertyItem() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
     performDeleteRowAction(util)
@@ -217,7 +234,7 @@ class AdvancedInspectorBuilderTest {
   fun testListenersAreConcurrentModificationSafe() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
-    val builder = AdvancedInspectorBuilder(util.model, TestTableUIProvider())
+    val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
 
     val declared = util.inspector.lines[1].tableModel!!
@@ -228,6 +245,13 @@ class AdvancedInspectorBuilderTest {
     assertThat(listener.called).isTrue()
   }
 
+  private fun createBuilder(model: NelePropertiesModel): AdvancedInspectorBuilder {
+    val enumSupportProvider = NeleEnumSupportProvider()
+    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+    return AdvancedInspectorBuilder(model, controlTypeProvider, editorProvider)
+  }
+
   private class RecursiveUpdateListener(private val model: PTableModel) : PTableModelUpdateListener {
     var called = false
 
@@ -235,11 +259,6 @@ class AdvancedInspectorBuilderTest {
       model.addListener(RecursiveUpdateListener(model))
       called = true
     }
-  }
-
-  private class TestTableUIProvider : TableUIProvider {
-    override val tableCellRendererProvider = DefaultPTableCellRendererProvider()
-    override val tableCellEditorProvider = DefaultPTableCellEditorProvider()
   }
 
   private fun addProperties(util: InspectorTestUtil) {
