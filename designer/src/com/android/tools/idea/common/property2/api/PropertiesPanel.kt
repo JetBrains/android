@@ -35,8 +35,8 @@ private const val PROPERTY_TAB_NAME = "tab.name"
  * The top level class for creating UI classes and model classes for a properties panel.
  *
  * Creates the main [component] for the properties panel which at this point contains
- * a property inspector. SeparatThe main pagee views such as a tabular view may be added at a later
- * point.
+ * a property inspector. The panel consists of a main view followed by a tabular view.
+ *
  * The content of the inspector is controlled by a list of [PropertiesView]s which
  * must be added to this class using [addView].
  */
