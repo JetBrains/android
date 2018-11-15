@@ -678,6 +678,37 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
     }
 
+    /**
+     *  Regression test for b/118485835.
+     */
+    fun testKotlinCompletion_b118485835() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/sub/test.kt",
+        // language=kotlin
+        """
+        package p1.p2.sub
+
+        fun test() {
+          R${caret}
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
+
+      assertThat(
+        this.myFixture.lookupElements!!
+          .mapNotNull { it.psiElement as? PsiClass }
+          .filter { it.name == "R" }
+          .map { it.qualifiedName }
+      ).containsExactly(
+        "p1.p2.R",
+        "com.example.mylibrary.R",
+        "com.example.anotherLib.R"
+      )
+    }
+
     fun testMalformedRTxt_styleables() {
       addAarDependency(myModule, "brokenLib", "com.example.brokenLib") { resDir ->
         resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
