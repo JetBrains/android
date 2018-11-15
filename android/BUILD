@@ -180,6 +180,14 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+    ],
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
@@ -191,17 +199,6 @@ iml_module(
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/adt/idea/databinding:intellij.android.databinding",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
-        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-    ],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module, test]",

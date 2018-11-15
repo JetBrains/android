@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.config;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.databinding.InternalDataBindingUtil;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -84,7 +84,7 @@ public class DataBindingConfigurable implements SearchableConfigurable {
     DataBindingConfiguration.CodeNavigationMode ui = getNavigationModeFromUI();
     ApplicationManager.getApplication().runWriteAction(() -> {
       myConfiguration.CODE_NAVIGATION_MODE = ui;
-      InternalDataBindingUtil.recalculateEnableInMemoryClassGeneration();
+      DataBindingUtil.recalculateEnableInMemoryClassGeneration();
     });
   }
 
