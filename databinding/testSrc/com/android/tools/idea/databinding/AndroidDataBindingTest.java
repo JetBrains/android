@@ -205,4 +205,19 @@ public class AndroidDataBindingTest {
       assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
     });
   }
+
+  @Test
+  public void testDataBindingComponentContainingFileIsNotNull() {
+    EdtTestUtil.runInEdtAndWait(() -> {
+      PsiClass aClass;
+      if (myDataBindingMode == DataBindingMode.SUPPORT) {
+        aClass = getFixture().findClass("android.databinding.DataBindingComponent");
+      }
+      else {
+        aClass = getFixture().findClass("androidx.databinding.DataBindingComponent");
+      }
+      assertNotNull(aClass);
+      assertNotNull(aClass.getContainingFile());
+    });
+  }
 }
