@@ -30,7 +30,7 @@ public class ZoomTypeTest extends TestCase {
       if (sb.length() > 0) {
         sb.append(", ");
       }
-      sb.append(Integer.toString(next)).append("%");
+      sb.append(next).append("%");
 
       int middle = (next + percentage) / 2;
       if (middle < next && middle > 25) {
@@ -40,7 +40,7 @@ public class ZoomTypeTest extends TestCase {
       percentage = next;
     }
 
-    assertEquals("3%, 4%, 5%, 6%, 7%, 8%, 9%, 10%, 11%, 13%, 15%, 17%, 19%, 21%, 24%, 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, " +
+    assertEquals("3%, 4%, 5%, 6%, 8%, 10%, 12%, 15%, 18%, 22%, 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, " +
                  "150%, 200%, 300%, 400%, 500%, 600%, 700%, 800%, 900%, 1000%", sb.toString());
 
     // Test zoom from custom values
@@ -57,7 +57,7 @@ public class ZoomTypeTest extends TestCase {
       if (sb.length() > 0) {
         sb.append(", ");
       }
-      sb.append(Integer.toString(next)).append("%");
+      sb.append(next).append("%");
 
       int middle = (next + percentage) / 2;
       if (middle < next && middle > 25) {

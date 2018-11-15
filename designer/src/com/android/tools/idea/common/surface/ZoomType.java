@@ -95,9 +95,9 @@ public enum ZoomType {
       // inexact match: jump to nearest
       i = -i - 1;
       if (i == 0) {
-        // If we're far down (like 0.1) don't just jump up to 25%, jump 10%
-        if (percentage < 22) {
-          return (int)(Math.ceil(percentage * 1.1));
+        // If we're far down (like 0.1) don't just jump up to 25%, jump 20% on the current zoom point
+        if (percentage < (ZOOM_POINTS[0] - ZOOM_POINTS[0]*0.25)) {
+          return Math.min((int)(Math.ceil(percentage * 1.2)), ZOOM_POINTS[0]);
         }
       }
       if (i < ZOOM_POINTS.length) {
