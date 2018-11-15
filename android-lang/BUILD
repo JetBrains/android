@@ -49,7 +49,11 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
         "//prebuilts/studio/sdk:platforms/latest",
     ],
-    test_runtime_deps = ["//tools/adt/idea/adt-branding:intellij.android.adt.branding"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+    ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
     visibility = ["//visibility:public"],
