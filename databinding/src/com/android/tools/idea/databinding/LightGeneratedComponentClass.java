@@ -23,7 +23,19 @@ import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -32,13 +44,16 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * Virtual class for DataBinding that represents the generated BindingComponent class.
@@ -192,12 +207,15 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
   @Override
   public PsiFile getContainingFile() {
     if (myContainingFile == null) {
+      String packageName = myMode.packageName;
+      if (packageName.endsWith(".")) {
+        packageName = packageName.substring(0, packageName.length() - 1);
+      }
       myContainingFile = PsiFileFactory.getInstance(myFacet.getModule().getProject()).createFileFromText(
         SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
-        "package " + myMode.packageName + ";\n"
+        "package " + packageName + ";\n"
         + "public interface DataBindingComponent {}"
-      , false, true, true, myFacet.getModule().getProject().getBaseDir());
-
+        , false, true, true);
     }
     return myContainingFile;
   }
