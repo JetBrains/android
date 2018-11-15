@@ -42,7 +42,6 @@ class PropertyNameEditorModelTest {
     model.enterKeyPressed()
     Truth.assertThat(model.property.name).isEqualTo("world")
     Mockito.verify(listener).valueChanged()
-    Truth.assertThat(line.gotoNextLineWasRequested).isTrue()
   }
 
   @Test

@@ -31,8 +31,6 @@ class TestPropertyEditorModel(override var property: PropertyItem): PropertyEdit
   var toggleCount = 0
     private set
 
-  override var onEnter = {}
-
   override fun cancelEditing(): Boolean {
     return true
   }

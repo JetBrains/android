@@ -16,8 +16,6 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.intellij.openapi.actionSystem.AnAction
-import javax.swing.Icon
 
 /**
  * Model for a property editor.
@@ -46,8 +44,6 @@ interface PropertyEditorModel {
    * Returns the line (if known) where this editor is kept.
    */
   var lineModel: InspectorLineModel?
-
-  var onEnter: () -> Unit
 
   /**
    * Controls the visibility of the editor.

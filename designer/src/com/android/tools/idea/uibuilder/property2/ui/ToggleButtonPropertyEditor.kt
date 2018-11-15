@@ -44,7 +44,6 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
-    button.registerKeyAction({ model.enterKeyPressed() }, getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     button.registerKeyAction({ model.f1KeyPressed() }, getKeyStroke(KeyEvent.VK_F1, 0), "help")
     button.registerKeyAction({ model.shiftF1KeyPressed() }, getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
     button.addFocusListener(EditorFocusListener(model))

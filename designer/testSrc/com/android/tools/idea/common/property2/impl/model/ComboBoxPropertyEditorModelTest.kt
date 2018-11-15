@@ -60,7 +60,6 @@ class ComboBoxPropertyEditorModelTest {
     assertThat(model.property.value).isEqualTo("gone")
     assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
-    assertThat(line.gotoNextLineWasRequested).isTrue()
   }
 
   @Test

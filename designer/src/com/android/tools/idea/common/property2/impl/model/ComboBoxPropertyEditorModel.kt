@@ -70,13 +70,11 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   override val editingSupport: EditingSupport
     get() = property.editingSupport
 
-  override fun enterKeyPressed() {
+  fun enterKeyPressed() {
     blockUpdates = true
     try {
       isPopupVisible = false
-      if (commitChange()) {
-        super.enterKeyPressed()
-      }
+      commitChange()
     }
     finally {
       blockUpdates = false

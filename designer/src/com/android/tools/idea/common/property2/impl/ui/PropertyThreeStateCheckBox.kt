@@ -35,7 +35,6 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
   init {
     icon = StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
     state = toThreeStateValue(propertyModel.value)
-    registerKeyAction({ propertyModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 

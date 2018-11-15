@@ -52,7 +52,6 @@ class TextFieldPropertyEditorModelTest {
     model.enterKeyPressed()
     assertThat(model.property.value).isEqualTo("world")
     verify(listener).valueChanged()
-    assertThat(line.gotoNextLineWasRequested).isTrue()
   }
 
   @Test
@@ -104,7 +103,6 @@ class TextFieldPropertyEditorModelTest {
     assertThat(property.lastUpdatedValue).isEqualTo("imageView")
     assertThat(property.updateCount).isEqualTo(1)
     verify(listener).valueChanged()
-    assertThat(line.gotoNextLineWasRequested).isFalse()
   }
 
   @Test

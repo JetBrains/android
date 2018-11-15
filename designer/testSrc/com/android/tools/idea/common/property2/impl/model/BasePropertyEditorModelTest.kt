@@ -88,16 +88,6 @@ class BasePropertyEditorModelTest {
   }
 
   @Test
-  fun testEnterMovesToNextLineEditor() {
-    val model = createModel()
-    val line = FakeInspectorLine(LineType.PROPERTY)
-    model.lineModel = line
-
-    model.enterKeyPressed()
-    assertThat(line.gotoNextLineWasRequested).isTrue()
-  }
-
-  @Test
   fun testListenersAreConcurrentModificationSafe() {
     // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
