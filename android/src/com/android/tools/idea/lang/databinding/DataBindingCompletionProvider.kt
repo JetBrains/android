@@ -38,6 +38,6 @@ interface DataBindingCompletionProvider {
  */
 fun addCompletions(params: CompletionParameters, resultSet: CompletionResultSet) {
   val extensionPoint: ExtensionPointName<DataBindingCompletionProvider> = ExtensionPointName(
-    "com.android.tools.idea.lang.databinding.dataBindingCompletionUtilProvider")
+    "com.android.tools.idea.lang.databinding.dataBindingCompletionProvider")
   extensionPoint.extensionList.first()?.addCompletions(params, resultSet)
 }
