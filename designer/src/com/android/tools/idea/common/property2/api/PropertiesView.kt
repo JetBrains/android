@@ -29,9 +29,33 @@ package com.android.tools.idea.common.property2.api
  * Each tab will be shown on a separate tab in the properties panel.
  */
 open class PropertiesView<P: PropertyItem>(val id: String, val model: PropertiesModel<P>) {
+  /**
+   * The main properties view.
+   */
   val main = PropertiesViewTab("", model)
+
+  /**
+   * The tabbed views.
+   *
+   * These views appear in a tabbed pane below the main properties view.
+   * Use [addTab] to add a tab to this view.
+   */
   val tabs = mutableListOf<PropertiesViewTab<P>>()
 
+  /**
+   * The watermark used for this view when the view is empty.
+   *
+   * Replace this watermark with the wanted messages.
+   */
+  var watermark = Watermark("", "", "")
+
+  /**
+   * Adds a tab to this view.
+   *
+   * A TabbedPane will be added below the [main] view with a tab
+   * with the specified [name]. Returned in a [PropertiesViewTab] which
+   * can be populated with [InspectorBuilder]s.
+   */
   fun addTab(name: String): PropertiesViewTab<P> {
     val tab = PropertiesViewTab(name, model)
     tabs.add(tab)
@@ -47,9 +71,21 @@ open class PropertiesView<P: PropertyItem>(val id: String, val model: Properties
  * - [searchable] which controls if a tab should be visible during search (default is true).
  */
 class PropertiesViewTab<P: PropertyItem>(val name: String, private val model: PropertiesModel<P>) {
+  /**
+   * An implementation should add [InspectorBuilder]s for this view.
+   */
   val builders = mutableListOf<InspectorBuilder<P>>()
+
+  /**
+   * If this is set to false this view will be hidden during a search.
+   */
   var searchable = true
 
+  /**
+   * Attaches this view to an [inspector].
+   *
+   * This method is provided for type safety for internal use.
+   */
   fun attachToInspector(inspector: InspectorPanel) {
     builders.forEach { it.attachToInspector(inspector, model.properties) }
   }
