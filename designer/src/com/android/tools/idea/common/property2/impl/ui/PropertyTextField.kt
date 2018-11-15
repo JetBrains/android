@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property2.impl.ui
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -34,7 +34,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
     registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    addFocusListener(EditorFocusListener(editorModel))
+    addFocusListener(TextEditorFocusListener(this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
   }
 
@@ -53,6 +53,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   private fun enter() {
     enterInLookup()
     editorModel.enterKeyPressed()
+    selectAll()
   }
 
   private fun escape() {

@@ -20,7 +20,7 @@ import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.BorderLayout
 import java.awt.Color
@@ -72,7 +72,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 
-    val focusListener = EditorFocusListener(model)
+    val focusListener = TextEditorFocusListener(textField, model)
     addFocusListener(focusListener)
     textField.addFocusListener(focusListener)
 
@@ -107,6 +107,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   private fun enter() {
     textField.enterInLookup()
     model.enterKeyPressed()
+    textField.selectAll()
   }
 
   private fun escape() {
