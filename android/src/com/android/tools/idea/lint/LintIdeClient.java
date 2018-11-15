@@ -575,8 +575,14 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   @Override
-  public String getClientRevision() {
+  public String getClientDisplayRevision() {
     return ApplicationInfoEx.getInstanceEx().getFullVersion();
+  }
+
+  @Nullable
+  @Override
+  public String getClientRevision() {
+    return ApplicationInfoEx.getInstanceEx().getStrictVersion();
   }
 
   @Override
