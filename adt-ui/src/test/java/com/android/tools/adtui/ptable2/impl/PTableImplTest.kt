@@ -35,6 +35,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 import javax.swing.event.ChangeEvent
+import javax.swing.event.TableModelEvent
 
 class PTableTest {
   private var model: PTableModel? = null
@@ -330,6 +331,18 @@ class PTableTest {
     table!!.tableChanged(PTableModelEvent(table!!.model, 3))
     assertThat(table!!.editingRow).isEqualTo(3)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
+  }
+
+  @Test
+  fun tableChangedWithEditingButWithoutChangeSpec() {
+    table!!.setRowSelectionInterval(0, 0)
+    dispatchAction("smartEnter")
+    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+
+    table!!.tableChanged(TableModelEvent(table!!.model))
+    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
   }
 
   @Test
