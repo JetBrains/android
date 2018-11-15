@@ -164,51 +164,22 @@ public class RepositoryUrlManager {
       }
     }
 
-    // Now try the "old" repositories, "google" and "android":
-    SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation, groupId, artifactId, fileOp);
-    if (repository == null) {
-      // Try the repo embedded in AS. We distribute for example the constraint layout there for now.
-      List<File> paths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
-      for (File path : paths) {
-        if (path != null && path.isDirectory()) {
-          GradleCoordinate versionInEmbedded = MavenRepositories.getHighestInstalledVersion(groupId,
-                                                                                            artifactId,
-                                                                                            path,
-                                                                                            filter,
-                                                                                            includePreviews,
-                                                                                            fileOp);
-          if (versionInEmbedded != null) {
-            return versionInEmbedded.getRevision();
-          }
+    // Try the repo embedded in AS.
+    List<File> paths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
+    for (File path : paths) {
+      if (path != null && path.isDirectory()) {
+        GradleCoordinate versionInEmbedded = MavenRepositories.getHighestInstalledVersion(groupId,
+                                                                                          artifactId,
+                                                                                          path,
+                                                                                          filter,
+                                                                                          includePreviews,
+                                                                                          fileOp);
+        if (versionInEmbedded != null) {
+          return versionInEmbedded.getRevision();
         }
       }
-      return null;
     }
-
-    File repositoryLocation = repository.getRepositoryLocation(sdkLocation, true, fileOp);
-    if (repositoryLocation == null) {
-      return null;
-    }
-
-    // Try using the POM file:
-    File mavenMetadataFile = MavenRepositories.getMavenMetadataFile(repositoryLocation, groupId, artifactId);
-    if (fileOp.isFile(mavenMetadataFile)) {
-      try {
-        return getLatestVersionFromMavenMetadata(mavenMetadataFile, filter, includePreviews, fileOp);
-      }
-      catch (IOException e) {
-        return null;
-      }
-    }
-
-    // Just scan all the directories:
-    GradleCoordinate max = repository.getHighestInstalledVersion(sdkLocation, groupId, artifactId,
-                                                                 filter, includePreviews, fileOp);
-    if (max == null) {
-      return null;
-    }
-
-    return max.getRevision();
+    return null;
   }
 
   /**
