@@ -21,22 +21,27 @@ import static com.android.SdkConstants.NS_RESOURCES;
 import com.android.builder.model.ProductFlavor;
 import com.android.ide.common.util.PathString;
 import com.android.ide.common.util.PathStrings;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -154,32 +159,49 @@ public class AndroidManifestUtils {
   @Nullable
   public static Collection<String> getCustomPermissions(@NotNull AndroidFacet androidFacet) {
     // TODO(b/110188226): read the merged manifest
-    Manifest manifest = androidFacet.getManifest();
-    if (manifest == null) {
-      return null;
-    }
-
-    return manifest.getPermissions()
-                   .stream()
-                   .map(permission -> permission.getName().getValue())
-                   .filter(Objects::nonNull)
-                   .collect(Collectors.toList());
+    XmlFile manifest = getManifest(androidFacet);
+    return manifest == null? null : getAndroidNamesForTags(manifest, "permission");
   }
 
   @Nullable
   public static Collection<String> getCustomPermissionGroups(@NotNull AndroidFacet androidFacet) {
     // TODO(b/110188226): read the merged manifest
-    Manifest manifest = androidFacet.getManifest();
-    if (manifest == null) {
+    XmlFile manifest = getManifest(androidFacet);
+    return manifest == null? null : getAndroidNamesForTags(manifest, "permission-group");
+  }
+
+  @Nullable
+  private static XmlFile getManifest(@NotNull AndroidFacet androidFacet) {
+    VirtualFile file = androidFacet.getMainIdeaSourceProvider().getManifestFile();
+    if (file == null) {
       return null;
     }
+    PsiFile manifest = AndroidPsiUtils.getPsiFileSafely(androidFacet.getModule().getProject(), file);
+    if (!(manifest instanceof XmlFile)) {
+      return null;
+    }
+    return (XmlFile) manifest;
+  }
 
-    return manifest.getPermissionGroups()
-                   .stream()
-                   .map(group -> group.getName())
-                   .map(name -> name.getValue())
-                   .filter(Objects::nonNull)
-                   .collect(Collectors.toList());
+  /**
+   * Returns the android:name attribute of each {@link XmlTag} of the given type in the {@link XmlFile}.
+   */
+  private static Collection<String> getAndroidNamesForTags(@NotNull XmlFile xmlFile, @NotNull String tagName) {
+    ArrayList<String> androidNames = new ArrayList<>();
+    xmlFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        if (!tagName.equals(tag.getName())) {
+          return;
+        }
+        String androidName = tag.getAttributeValue("android:name");
+        if (androidName != null) {
+          androidNames.add(androidName);
+        }
+      }
+    });
+    return androidNames;
   }
 
   private AndroidManifestUtils() {}
