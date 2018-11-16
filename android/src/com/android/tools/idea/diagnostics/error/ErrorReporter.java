@@ -26,6 +26,7 @@ import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.notification.NotificationListener;
@@ -77,10 +78,10 @@ public class ErrorReporter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    Pair<String, String> pluginInfo = IdeErrorsDialog.getPluginInfo(event);
-    if (pluginInfo != null) {
-      bean.setPluginName(pluginInfo.first);
-      bean.setPluginVersion(pluginInfo.second);
+    IdeaPluginDescriptor plugin = IdeErrorsDialog.getPlugin(event);
+    if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
+      bean.setPluginName(plugin.getName());
+      bean.setPluginVersion(plugin.getVersion());
     }
 
     Object data = event.getData();
