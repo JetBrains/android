@@ -41,7 +41,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testConstraintSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "CustomAttribute");
+    doTestCompletionVariants(getTestName(true) + ".xml", "Layout", "PropertySet", "Transform", "Motion", "CustomAttribute");
   }
 
   public void testKeyFrameSetSubTags() throws Throwable {
