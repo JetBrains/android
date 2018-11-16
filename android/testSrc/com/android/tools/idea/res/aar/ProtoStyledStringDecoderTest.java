@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.res.aar;
 
-import aapt.pb.repackage.com.google.protobuf.ExtensionRegistry;
-import aapt.pb.repackage.com.google.protobuf.TextFormat;
-import com.android.aapt.Resources.StyledString;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import com.android.aapt.Resources.StyledString;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.TextFormat;
+import org.junit.Test;
 
 /**
  * Tests for {@link ProtoStyledStringDecoder}.

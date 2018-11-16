@@ -12,7 +12,7 @@
     <orderEntry type="module" module-name="intellij.platform.editor" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="aapt-proto-jarjar" level="project" />
+    <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.common" />

@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.res.aar;
 
-import aapt.pb.repackage.com.google.protobuf.ExtensionRegistry;
-import aapt.pb.repackage.com.google.protobuf.TextFormat;
-import com.android.aapt.Resources.XmlNode;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.xmlpull.v1.XmlPullParser.*;
+import static org.xmlpull.v1.XmlPullParser.END_DOCUMENT;
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_DOCUMENT;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import static org.xmlpull.v1.XmlPullParser.TEXT;
+
+import com.android.aapt.Resources.XmlNode;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.TextFormat;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * Tests for {@link ProtoXmlPullParser}.
