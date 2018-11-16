@@ -97,6 +97,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     nlModel.notifyModified(NlModel.ChangeType.EDIT)
+    UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -111,6 +112,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     nlModel.notifyLiveUpdate(false)
+    UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertyValuesChanged(model)
   }
 

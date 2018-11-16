@@ -299,11 +299,13 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   private inner class NlModelListener : ModelListener {
     override fun modelChanged(model: NlModel) {
-      firePropertyValueChange()
+      // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
+      ApplicationManager.getApplication().invokeLater { firePropertyValueChange() }
     }
 
     override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
-      firePropertyValueChange()
+      // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
+      ApplicationManager.getApplication().invokeLater { firePropertyValueChange() }
     }
   }
 }

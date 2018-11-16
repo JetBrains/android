@@ -33,6 +33,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListe
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -317,11 +318,14 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   @Override
   public void updateAfterModelDerivedDataChanged() {
-    loadMotionScene();
-    if (myMotionLayoutAttributePanel != null) {
-      // make sure this happens after our update.
-      myMotionLayoutAttributePanel.updateAfterModelDerivedDataChanged();
-    }
+    // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
+    ApplicationManager.getApplication().invokeLater(() -> {
+      loadMotionScene();
+      if (myMotionLayoutAttributePanel != null) {
+        // make sure this happens after our update.
+        myMotionLayoutAttributePanel.updateAfterModelDerivedDataChanged();
+      }
+    });
   }
 
   @Override
