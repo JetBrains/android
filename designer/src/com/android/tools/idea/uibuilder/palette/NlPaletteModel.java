@@ -31,12 +31,12 @@ import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
@@ -48,6 +48,7 @@ import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
+import java.util.ArrayList;
 import java.util.Collection;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
@@ -88,6 +89,40 @@ public class NlPaletteModel implements Disposable {
 
     return ClassInheritorsSearch.search(viewClass, ProjectScope.getProjectScope(project), true);
   };
+
+  /**
+   * Data class which holds information about a custom view that we've extracted from its PsiClass.
+   * We can use this information later to update the corresponding palette component without having
+   * to hold onto the read lock.
+   */
+  private static class CustomViewInfo {
+    public final String description, tagName, className;
+
+    CustomViewInfo(String description, String tagName, String className) {
+      this.description = description;
+      this.tagName = tagName;
+      this.className = className;
+    }
+
+    static Collection<CustomViewInfo> fromPsiClasses(Query<PsiClass> psiClasses) {
+      ArrayList<CustomViewInfo> componentInfos = new ArrayList<>();
+
+      psiClasses.forEach(psiClass -> {
+        String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+        String tagName = psiClass.getQualifiedName();
+        String className = PackageClassConverter.getQualifiedName(psiClass);
+
+        if (description == null || tagName == null || className == null) {
+          // Currently we ignore anonymous views
+          return;
+        }
+
+        componentInfos.add(new CustomViewInfo(description, tagName, className));
+      });
+
+      return componentInfos;
+    }
+  }
 
   private final Map<NlLayoutType, Palette> myTypeToPalette;
   private final Module myModule;
@@ -173,17 +208,22 @@ public class NlPaletteModel implements Disposable {
   @VisibleForTesting
   void loadAdditionalComponents(@NotNull NlLayoutType type,
                                 @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+    Application application = ApplicationManager.getApplication();
     Project project = myModule.getProject();
     ReadAction
-      .nonBlocking(() -> viewClasses.apply(project).findAll())
+      .nonBlocking(() -> CustomViewInfo.fromPsiClasses(viewClasses.apply(project)))
       .expireWhen(() -> Disposer.isDisposed(this))
       .inSmartMode(project)
       .submit(AppExecutorUtil.getAppExecutorService())
-      .onSuccess(psiClasses -> replaceProjectComponents(type, psiClasses))
+      .onSuccess(viewInfos -> {
+        // Right now we're still in the non-blocking read action. Schedule the follow-up work on another
+        // background thread so we can avoid holding the read lock for longer than we need to.
+        application.executeOnPooledThread(() -> replaceProjectComponents(type, viewInfos));
+      })
       .onError(error -> {
         if (error instanceof ProcessCanceledException) {
-          ProgressIndicatorUtils.yieldToPendingWriteActions();
-          loadAdditionalComponents(type, viewClasses);
+          // Scheduling on the EDT guarantees that whatever write action preempted us will have completed when we try again.
+          application.invokeLater(() -> loadAdditionalComponents(type, viewClasses));
         }
         else {
           getLogger().error(error);
@@ -191,24 +231,15 @@ public class NlPaletteModel implements Disposable {
       });
   }
 
-  private void replaceProjectComponents(@NotNull NlLayoutType type, Collection<PsiClass> psiClasses) {
+  private void replaceProjectComponents(@NotNull NlLayoutType type, Collection<CustomViewInfo> viewInfos) {
     // Reload the palette first
     Palette palette = loadPalette(type);
 
-    psiClasses.forEach(psiClass -> {
-      String description = psiClass.getName(); // We use the "simple" name as description on the preview.
-      String tagName = psiClass.getQualifiedName();
-      String className = PackageClassConverter.getQualifiedName(psiClass);
-
-      if (description == null || tagName == null || className == null) {
-        // Currently we ignore anonymous views
-        return;
-      }
-
+    viewInfos.forEach(viewInfo ->
       addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             tagName, className, null, null, "",
-                             null, Collections.emptyList(), Collections.emptyList());
-    });
+                             viewInfo.tagName, viewInfo.className, null, null, "",
+                             null, Collections.emptyList(), Collections.emptyList())
+    );
 
     saveInPaletteMap(type, palette);
   }
