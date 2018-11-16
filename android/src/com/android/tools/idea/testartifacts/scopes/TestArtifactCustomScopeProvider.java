@@ -25,7 +25,6 @@ import com.intellij.psi.search.scope.packageSet.AbstractPackageSet;
 import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
-import com.intellij.ui.Colored;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -70,7 +69,6 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     return false;
   }
 
-  @Colored(color = "ffffe4", darkVariant = "494539")
   public static class AndroidTestsScope extends NamedScope {
     public static final String NAME = AndroidBundle.message("android.test.run.configuration.type.name");
     public AndroidTestsScope() {
@@ -91,7 +89,6 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
   /**
    * Scope that contains "local" (i.e. running on the JVM) unit tests from Android and Java modules.
    */
-  @Colored(color = "e7fadb", darkVariant = "2A3B2C")
   public static class UnitTestsScope extends NamedScope {
     public static final String NAME = "Local Unit Tests";
     public UnitTestsScope() {
