@@ -112,7 +112,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/80533890
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void x86AbiSplitApks() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));

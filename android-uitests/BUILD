@@ -760,6 +760,38 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "AbiSplitApksTest",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+        "qa_unreliable",  # b/119685470
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "X86AbiSplitApksTest",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+        "qa_unreliable",  # b/119685470
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",
