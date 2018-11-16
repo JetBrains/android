@@ -123,7 +123,7 @@ iml_module(
         "//tools/idea/.idea/libraries:batik",
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
-        "//tools/idea/.idea/libraries:aapt-proto-jarjar",
+        "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/android/lib:pepk",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
@@ -270,7 +270,7 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api-1.5",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/idea/.idea/libraries:commons-io",
-        "//tools/idea/.idea/libraries:aapt-proto-jarjar",
+        "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/android/lib:pepk[test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
@@ -315,14 +315,6 @@ filegroup(
 )
 
 filegroup(
-    name = "aapt-proto-artifacts",
-    srcs = [
-        "//tools/base/sdk-common/aapt-proto-jar-generator:aapt-proto-jarjar.jar",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
     name = "aia-artifacts",
     srcs = [
         "//tools/base/sdk-common/aia-manifest-jar-generator:aia-manifest-proto-1.0-jarjar.jar",
@@ -348,7 +340,6 @@ filegroup(
 filegroup(
     name = "artifacts",
     srcs = [
-        ":aapt-proto-artifacts",
         ":aia-artifacts",
         ":analytics-artifacts",
         ":deploy-artifacts",
