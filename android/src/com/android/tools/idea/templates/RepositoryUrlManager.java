@@ -35,7 +35,6 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
-import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
@@ -45,7 +44,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -59,8 +57,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.FD_EXTRAS;
-import static com.android.SdkConstants.FD_M2_REPOSITORY;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES;
 
@@ -111,16 +107,10 @@ public class RepositoryUrlManager {
   public String getArtifactStringCoordinate(GoogleMavenArtifactId artifactId,
                                             @Nullable Predicate<GradleVersion> filter,
                                             boolean preview) {
-    AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (sdk == null) {
-      return null;
-    }
-
     String revision = getLibraryRevision(artifactId.getMavenGroupId(),
                                          artifactId.getMavenArtifactId(),
                                          filter,
                                          preview,
-                                         sdk.getLocation(),
                                          FileOpUtils.create());
     if (revision == null) {
       return null;
@@ -144,7 +134,6 @@ public class RepositoryUrlManager {
                                    @NotNull String artifactId,
                                    @Nullable Predicate<GradleVersion> filter,
                                    boolean includePreviews,
-                                   @NotNull File sdkLocation,
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions.
     GradleVersion version;
@@ -161,20 +150,6 @@ public class RepositoryUrlManager {
 
     if (version != null) {
       return version.toString();
-    }
-
-    // Try the new, combined repository first:
-    File combinedRepo = FileUtils.join(sdkLocation, FD_EXTRAS, FD_M2_REPOSITORY);
-    if (fileOp.isDirectory(combinedRepo)) {
-      GradleCoordinate versionInCombined = MavenRepositories.getHighestInstalledVersion(groupId,
-                                                                                        artifactId,
-                                                                                        combinedRepo,
-                                                                                        filter,
-                                                                                        includePreviews,
-                                                                                        fileOp);
-      if (versionInCombined != null) {
-        return versionInCombined.getRevision();
-      }
     }
 
     // Try the repo embedded in AS.
@@ -416,7 +391,7 @@ public class RepositoryUrlManager {
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      String libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false, sdkLocation, sdkHandler.getFileOp());
+      String libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false, sdkHandler.getFileOp());
       if (libraryCoordinate != null) {
         return libraryCoordinate;
       }
@@ -424,7 +399,7 @@ public class RepositoryUrlManager {
       // If that didn't yield any matches, try again, this time allowing preview platforms.
       // This is necessary if the artifact prefix includes enough of a version where there are
       // only preview matches.
-      libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, true, sdkLocation, sdkHandler.getFileOp());
+      libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, true, sdkHandler.getFileOp());
       if (libraryCoordinate != null) {
         return libraryCoordinate;
       }
@@ -468,7 +443,6 @@ public class RepositoryUrlManager {
    */
   public List<GradleCoordinate> resolveDynamicSdkDependencies(@NotNull Multimap<String, GradleCoordinate> dependencies,
                                                               @Nullable String supportLibVersionFilter,
-                                                              @NotNull AndroidSdkData sdk,
                                                               @NotNull FileOp fileOp) {
     List<GradleCoordinate> result = new ArrayList<>(dependencies.size());
     String supportFilter = findExistingExplicitVersion(dependencies.values());
@@ -501,19 +475,19 @@ public class RepositoryUrlManager {
           String version = null;
           // 1 - Latest specific (ie support lib version filter level) stable version
           if (filter != null) {
-            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, false, sdk.getLocation(), fileOp);
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, false, fileOp);
           }
           // 2 - Latest specific (ie support lib version filter level) preview version
           if (version == null && filter != null) {
-            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, true, sdk.getLocation(), fileOp);
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, true, fileOp);
           }
           // 3 - Latest stable version
           if (version == null) {
-            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, false, sdk.getLocation(), fileOp);
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, false, fileOp);
           }
           // 4 - Latest preview version
           if (version == null) {
-            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, true, sdk.getLocation(), fileOp);
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, true, fileOp);
           }
           // 5 - No version found
           if (version != null) {

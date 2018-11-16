@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
@@ -37,7 +36,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -187,23 +185,19 @@ public class GradleFilePsiMerger {
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
-    AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (sdk != null) {
-      dependencies.forEach((configurationName, unresolvedDependencies) -> {
-        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
-                                                                                   supportLibVersionFilter,
-                                                                                   sdk,
-                                                                                   FileOpUtils.create());
-        PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
-        for (GradleCoordinate dependency : resolved) {
-          PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
-                                                                                       configurationName,
-                                                                                       dependency.toString()));
-          PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
-          toRoot.addAfter(factory.createLineTerminator(1), newElement);
-        }
-      });
-    }
+    dependencies.forEach((configurationName, unresolvedDependencies) -> {
+      List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
+                                                                                 supportLibVersionFilter,
+                                                                                 FileOpUtils.create());
+      PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
+      for (GradleCoordinate dependency : resolved) {
+        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
+                                                                                     configurationName,
+                                                                                     dependency.toString()));
+        PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
+        toRoot.addAfter(factory.createLineTerminator(1), newElement);
+      }
+    });
 
     // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
     Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.WHITESPACE::removeFrom).collect(Collectors.toSet());

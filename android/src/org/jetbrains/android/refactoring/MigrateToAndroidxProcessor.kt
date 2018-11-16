@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
@@ -87,22 +86,15 @@ private fun isImportElement(element: PsiElement?): Boolean =
  * Returns the latest available version for the given `AppCompatMigrationEntry.GradleMigrationEntry`
  */
 private fun getLibraryRevision(newGroupName: String, newArtifactName: String, defaultVersion: String): String {
-  val sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk()
-  if (sdk != null) {
-    val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
-                                                                 newArtifactName, null,
-                                                                 true,
-                                                                 sdk.location,
-                                                                 FileOpUtils.create())
-    if (revision != null) {
-      log.debug { "$newGroupName:$newArtifactName will use $revision" }
-      return revision
-    }
-    log.debug { "Unable to find library revision for $newGroupName:$newArtifactName. Using $defaultVersion" }
+  val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
+                                                               newArtifactName, null,
+                                                               true,
+                                                               FileOpUtils.create())
+  if (revision != null) {
+    log.debug { "$newGroupName:$newArtifactName will use $revision" }
+    return revision
   }
-  else {
-    log.debug { "Unable to find library revision for $newGroupName:$newArtifactName, SDK was null. Using $defaultVersion" }
-  }
+  log.debug { "Unable to find library revision for $newGroupName:$newArtifactName. Using $defaultVersion" }
   return defaultVersion
 }
 

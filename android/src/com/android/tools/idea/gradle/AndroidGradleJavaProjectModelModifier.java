@@ -52,7 +52,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
@@ -81,7 +80,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
@@ -254,14 +252,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
         String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, filter,false);
         if (gc == null) {
-          AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-          if (sdk == null) {
-            return null;
-          }
-
           gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
                                                              filter, false,
-                                                             sdk.getLocation(),
                                                              FileOpUtils.create());
         }
         GradleCoordinate coordinate;
