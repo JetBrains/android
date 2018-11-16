@@ -6,7 +6,7 @@
         <import type="p1.p2.R"/>
         <import type="java.util.List"/>
         <import type="java.util.Map" alias="MyMap"/>
-        <variable name="user" type="p1.p2.DataBindingHighlighting1"/>
+        <variable name="user" type="p1.p2.DataBindingUser"/>
         <variable name="clickListener" type="android.view.View.OnClickListener"/>
         <variable name="boxedBoolean" type="Boolean"/>
         <variable name="list" type="List&lt;String&gt;"/>

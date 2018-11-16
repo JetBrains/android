@@ -2,7 +2,7 @@ package p1.p2;
 
 import android.databinding.ObservableArrayMap;
 
-public class DataBindingHighlighting3 {
+public class DataBindingWithEnumMap {
   public enum OneTwoThree {
     ONE, TWO, THREE
   }
