@@ -19,15 +19,8 @@ import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
 import org.jetbrains.android.dom.Styleable;
 
-import java.util.List;
-
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "Constraint", packageName = "android.support.constraint")
-public interface Constraint extends MotionElement {
-  Layout getLayout();
-  PropertySet getPropertySet();
-  Transform getTransform();
-  List<CustomAttribute> getCustomAttributes();
-  Motion getMotion();
+@Styleable(value = "Layout", packageName = "android.support.constraint")
+public interface Layout extends MotionElement {
 }
