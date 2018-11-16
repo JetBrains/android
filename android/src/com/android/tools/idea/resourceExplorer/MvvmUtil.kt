@@ -56,7 +56,7 @@ open class CollectionParam<T>(values: Collection<T>,
  * Class used to bind a text field to integer
  * @param range An optional [IntRange] used to validate the input.
  */
-data class IntParam(val range: IntRange? = null) : InputParam<Int>()
+data class IntParam(val range: IntRange? = null) : InputParam<Int?>()
 
 /**
  * Class used to bind a text field to String
