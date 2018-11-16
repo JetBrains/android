@@ -65,6 +65,8 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
+        "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 

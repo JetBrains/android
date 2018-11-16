@@ -43,11 +43,11 @@ private fun Project.getProjectProperties(createIfNotExists: Boolean = false): Pr
   return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
 }
 
-fun Project.setAndroidxProperties() {
+fun Project.setAndroidxProperties(value: String = "true") {
   // Add gradle properties to enable the androidx handling
   getProjectProperties(true)?.let {
-    it.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.setValue("true") ?: it.addProperty(USE_ANDROIDX_PROPERTY, "true")
-    it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.setValue("true") ?: it.addProperty(ENABLE_JETIFIER_PROPERTY, "true")
+    it.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.setValue(value) ?: it.addProperty(USE_ANDROIDX_PROPERTY, value)
+    it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.setValue(value) ?: it.addProperty(ENABLE_JETIFIER_PROPERTY, value)
   }
 }
 

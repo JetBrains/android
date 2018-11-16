@@ -5,15 +5,23 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.projectsystem.DependencyManagementException
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.roots.DependencyScope
+import com.intellij.openapi.roots.ExternalLibraryDescriptor
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
+
+import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.idea.configuration.AndroidGradle
+import org.jetbrains.kotlin.idea.configuration.GradleBuildScriptManipulator
 import org.jetbrains.kotlin.idea.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
 import org.jetbrains.kotlin.idea.util.projectStructure.version
@@ -42,13 +50,19 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
         val manipulator = getManipulator(file, false)
-        val sdk = ModuleUtil.findModuleForPsiElement(file)?.let { ModuleRootManager.getInstance(it).sdk }
+        val module = ModuleUtil.findModuleForPsiElement(file)?: return false
+        val sdk = ModuleRootManager.getInstance(module).sdk
         val jvmTarget = getJvmTarget(sdk, version)
 
         return if (isTopLevelProjectFile) {
             manipulator.configureProjectBuildScript(kotlinPluginName, version)
         }
         else {
+            if (file.project.isAndroidx()) {
+                addDependency(manipulator, ANDROIDX_CORE_GROUP, CORE_KTX, "+")
+                addKtxDependenciesFromMap(module, manipulator, androidxKtxLibraryMap)
+            }
+            addKtxDependenciesFromMap(module, manipulator, nonAndroidxKtxLibraryMap)
             manipulator.configureModuleBuildScript(
                     kotlinPluginName,
                     getKotlinPluginExpression(file.isKtDsl()),
@@ -63,6 +77,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
               version,
               null
             )
+
         }
     }
 
@@ -85,11 +100,47 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request.projectModified())
     }
 
+    private fun addDependency(manipulator: GradleBuildScriptManipulator<*>, groupId: String, artifactId: String, version: String) {
+        manipulator.addKotlinLibraryToModuleBuildScript(
+          DependencyScope.COMPILE,
+          ExternalLibraryDescriptor(groupId, artifactId, version, version))
+    }
+
+    // Return version string of the specified dependency if module depends on it, and null otherwise.
+    private fun getDependencyVersion(module: Module, groupId: String, artifactId: String): String? {
+        try {
+            val coordinate = GradleCoordinate(groupId, artifactId, "+")
+            return module.getModuleSystem().getResolvedDependency(coordinate)?.revision
+        } catch (e: DependencyManagementException) {
+            return null
+        }
+    }
+
+    private fun addKtxDependenciesFromMap(module: Module, manipulator: GradleBuildScriptManipulator<*>, librayMap: Map<String, String>) {
+        for ((library, ktxLibrary) in librayMap) {
+            val ids = library.split(":")
+            val ktxIds = ktxLibrary.split(":")
+            getDependencyVersion(module, ids[0], ids[1])?.let {addDependency(manipulator, ktxIds[0], ktxIds[1], it)}
+        }
+    }
+
     companion object {
-        private val NAME = "android-gradle"
+        private const val NAME = "android-gradle"
 
-        private val KOTLIN_ANDROID = "kotlin-android"
+        private const val KOTLIN_ANDROID = "kotlin-android"
 
-        private val KOTLIN_ANDROID_EXTENSIONS = "kotlin-android-extensions"
+        private const val KOTLIN_ANDROID_EXTENSIONS = "kotlin-android-extensions"
+
+        private const val ANDROIDX_CORE_GROUP = "androidx.core"
+        private const val CORE_KTX = "core-ktx"
+
+        private val nonAndroidxKtxLibraryMap = mapOf(
+          "android.arch.navigation:navigation-ui" to "android.arch.navigation:navigation-ui-ktx",
+          "android.arch.navigation:navigation-fragment" to "android.arch.navigation:navigation-fragment-ktx"
+        )
+
+        private val androidxKtxLibraryMap = mapOf(
+          "androidx.lifecycle:lifecycle-extensions" to "androidx.lifecycle:lifecycle-viewmodel-ktx"
+        )
     }
 }
