@@ -30,6 +30,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
     ],
 )
 
