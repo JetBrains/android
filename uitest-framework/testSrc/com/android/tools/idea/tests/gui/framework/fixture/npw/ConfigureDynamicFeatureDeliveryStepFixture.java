@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -45,6 +47,13 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> setFusing(boolean select) {
     selectCheckBoxWithText("Fusing (install module on devices that don't support on-demand delivery)", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> setDownloadInstallKind(@NotNull DownloadInstallKind value) {
+    JComboBox comboBox = robot().finder().findByType(JComboBox.class, true);
+    new JComboBoxFixture(robot(), comboBox).selectItem(value.getDisplayName());
     return this;
   }
 }
