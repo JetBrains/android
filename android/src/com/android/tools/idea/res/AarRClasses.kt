@@ -49,7 +49,7 @@ class NamespacedAarRClass(
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
-    setModuleInfo(psiManager.project, library)
+    setModuleInfo(library)
   }
 
   override fun getQualifiedName(): String? = "$packageName.R"
@@ -97,7 +97,7 @@ class NonNamespacedAarRClass(
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
-    setModuleInfo(psiManager.project, library)
+    setModuleInfo(library)
   }
 
   override fun getQualifiedName(): String? = "$packageName.R"
