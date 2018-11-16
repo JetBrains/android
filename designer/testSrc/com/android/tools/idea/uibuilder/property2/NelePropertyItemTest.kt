@@ -19,6 +19,7 @@ import com.android.SdkConstants.ABSOLUTE_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
 import com.android.SdkConstants.ATTR_PARENT_TAG
@@ -30,6 +31,8 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.NEW_ID_PREFIX
+import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
@@ -321,6 +324,14 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(values).containsAllOf("@android:string/yes", "@android:string/no", "@android:string/cancel")
   }
 
+  fun testIdCompletion() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createMultipleComponents()
+    val toEndOf = createPropertyItem(ANDROID_URI, ATTR_LAYOUT_TO_END_OF, NelePropertyType.ID, listOf(components[0]), model)
+    val values = toEndOf.editingSupport.completion()
+    assertThat(values).containsExactly("@id/button1", "@id/text2", "@id/button2").inOrder()
+  }
+
   fun testParentTagCompletion() {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val components = createMerge()
@@ -415,6 +426,26 @@ class NelePropertyItemTest : PropertyTestCase() {
         component(BUTTON)
           .withAttribute(ANDROID_URI, ATTR_TEXT, "other")
           .withAttribute(TOOLS_URI, ATTR_TEXT, "something")
+    )
+  }
+
+  private fun createMultipleComponents(): List<NlComponent> {
+    return createComponents(
+      component(TEXT_VIEW)
+        .id(NEW_ID_PREFIX + "text1")
+        .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
+        .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design"),
+      component(BUTTON)
+        .id(NEW_ID_PREFIX + "button1")
+        .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
+        .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design"),
+      component(TEXT_VIEW)
+        .id(NEW_ID_PREFIX + "text2")
+        .withAttribute(ANDROID_URI, ATTR_TEXT, "demo"),
+      component(BUTTON)
+        .id(NEW_ID_PREFIX + "button2")
+        .withAttribute(ANDROID_URI, ATTR_TEXT, "other"),
+      parentTag = RELATIVE_LAYOUT
     )
   }
 

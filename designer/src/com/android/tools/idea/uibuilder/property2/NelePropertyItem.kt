@@ -43,6 +43,7 @@ import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
+import com.android.tools.idea.uibuilder.property2.support.IdEnumSupport
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.utils.HashCodes
@@ -291,6 +292,9 @@ open class NelePropertyItem(
       }.toMutableList()
       tags.sort()
       return tags
+    }
+    if (type == NelePropertyType.ID) {
+      return IdEnumSupport(this).values.map { it.value }
     }
     val values = mutableListOf<String>()
     if (definition != null && definition.values.isNotEmpty()) {

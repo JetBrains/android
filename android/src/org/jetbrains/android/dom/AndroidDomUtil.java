@@ -33,6 +33,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
+import java.util.stream.Stream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
@@ -51,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.SdkConstants.*;
 
@@ -283,6 +285,12 @@ public class AndroidDomUtil {
     if (!type.isEmpty()) return type;
     if (attrName.endsWith("Animation")) return ImmutableList.of(ResourceType.ANIM);
     return ImmutableList.of();
+  }
+
+  @TestOnly
+  @NotNull
+  public static Stream<String> getSpecialAttributeNamesByType(@NotNull ResourceType type) {
+    return SPECIAL_RESOURCE_TYPES.entries().stream().filter(entry -> entry.getValue() == type).map(entry -> entry.getKey());
   }
 
   // for special cases

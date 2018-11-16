@@ -19,6 +19,8 @@ import com.android.SdkConstants
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.resources.ResourceType
+import org.jetbrains.android.dom.AndroidDomUtil
 
 /**
  * Temporary type resolver.
@@ -30,8 +32,21 @@ object TypeResolver {
 
   fun resolveType(name: String, attribute: AttributeDefinition?): NelePropertyType {
     return lookupByName(name)
-        ?: fromAttributeDefinition(attribute)
-        ?: fallbackByName(name)
+           ?: bySpecialType(name)
+           ?: fromAttributeDefinition(attribute)
+           ?: fallbackByName(name)
+  }
+
+  private fun bySpecialType(name: String): NelePropertyType? {
+    val types = AndroidDomUtil.getSpecialResourceTypes(name)
+    for (type in types) {
+      when (type) {
+        ResourceType.ID -> return NelePropertyType.ID
+        //TODO: expand in a followup CL
+        else -> {}
+      }
+    }
+    return null
   }
 
   private fun fromAttributeDefinition(attribute: AttributeDefinition?): NelePropertyType? {
