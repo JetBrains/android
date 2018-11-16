@@ -184,15 +184,13 @@ public abstract class ImportModule implements Comparable<ImportModule> {
       compileVersion = 18;
     }
 
-    if (myImporter.getSdkLocation() != null) {
-      int requiredVersion = compileVersion;
-      String max =
-        RepositoryUrlManager.get().getLibraryRevision(SUPPORT_GROUP_ID, artifact,
-                                                      (v) -> v.getMajor() == requiredVersion, true,
-                                                      myImporter.getSdkLocation(), FileOpUtils.create());
-      if (max != null) {
-        return GradleCoordinate.parseCoordinateString(SUPPORT_GROUP_ID + ':' + artifact + ':' + max);
-      }
+    int requiredVersion = compileVersion;
+    String max =
+      RepositoryUrlManager.get().getLibraryRevision(SUPPORT_GROUP_ID, artifact,
+                                                    (v) -> v.getMajor() == requiredVersion, true,
+                                                    FileOpUtils.create());
+    if (max != null) {
+      return GradleCoordinate.parseCoordinateString(SUPPORT_GROUP_ID + ':' + artifact + ':' + max);
     }
 
     String coordinate = SUPPORT_GROUP_ID + ':' + artifact + ':' + compileVersion + ".+";
