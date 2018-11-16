@@ -332,6 +332,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     toTestCompletion("databinding_completion_variable_name_param.xml", "databinding_completion_variable_name_param_after.xml");
   }
 
+  public void testDataBindingCompletion_caretInVariableBlockTypeParam() throws Throwable {
+    toTestCompletion("databinding_completion_variable_type_param.xml", "databinding_completion_variable_type_param_after.xml");
+  }
+
   public void testDataBindingCompletion_caretInExpression() throws Throwable {
     toTestCompletion("databinding_completion_expression.xml", "databinding_completion_expression_after.xml");
     //doTestCompletionVariants("databinding_completion_expression.xml", "safeUnbox", "superCool");
