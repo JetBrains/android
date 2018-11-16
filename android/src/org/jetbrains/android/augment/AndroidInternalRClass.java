@@ -29,7 +29,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
     myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
-    setModuleInfo(psiManager.getProject(), sdk);
+    setModuleInfo(sdk);
     myFrameworkResourceManager = new FrameworkResourceManager(psiManager.getProject(), platform, false);
 
     final ResourceType[] types = ResourceType.values();

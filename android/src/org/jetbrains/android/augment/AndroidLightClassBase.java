@@ -6,7 +6,6 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Iconable;
@@ -41,19 +40,16 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
-import kotlin.KotlinNullPointerException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.kotlin.analyzer.ModuleInfo;
-import org.jetbrains.kotlin.idea.caches.project.GetModuleInfoKt;
-import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfosKt;
-import org.jetbrains.kotlin.idea.caches.project.SdkInfo;
+import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
 
 /**
  * @author Eugene.Kudelevsky
@@ -82,7 +78,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
     if (containingFile != null) {
       containingFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
       if (KOTLIN_PLUGIN_AVAILABLE) {
-        KotlinRegistrationHelper.setModuleInfo(containingFile, module, isTest);
+        KotlinRegistrationHelper.setModuleInfo(containingFile, isTest);
       }
     }
   }
@@ -91,11 +87,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
    * Sets the forced {@link ModuleInfo} of the containing {@link PsiFile} to point to the given {@link Library}, so that the Kotlin IDE
    * plugin knows how to handle this light class.
    */
-  protected void setModuleInfo(@NotNull Project project, @NotNull Library library) {
+  protected void setModuleInfo(@NotNull Library library) {
     if (KOTLIN_PLUGIN_AVAILABLE) {
       PsiFile containingFile = getContainingFile();
       if (containingFile != null) {
-        KotlinRegistrationHelper.setModuleInfo(containingFile, project, library);
+        KotlinRegistrationHelper.setModuleInfo(containingFile, library);
       }
     }
   }
@@ -104,11 +100,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
    * Sets the forced {@link ModuleInfo} of the containing {@link PsiFile} to point to the given {@link Sdk}, so that the Kotlin IDE
    * plugin knows how to handle this light class.
    */
-  protected void setModuleInfo(@NotNull Project project, @NotNull Sdk sdk) {
+  protected void setModuleInfo(@NotNull Sdk sdk) {
     if (KOTLIN_PLUGIN_AVAILABLE) {
       PsiFile containingFile = getContainingFile();
       if (containingFile != null) {
-        KotlinRegistrationHelper.setModelInfo(containingFile, project, sdk);
+        KotlinRegistrationHelper.setModelInfo(containingFile, sdk);
       }
     }
   }
@@ -413,7 +409,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   private static boolean isKotlinPluginAvailable() {
     try {
       // Check if Kotlin IDE plugin classes can be loaded.
-      Class.forName("org.jetbrains.kotlin.idea.caches.project.GetModuleInfoKt");
+      Class.forName("org.jetbrains.kotlin.idea.UserDataModuleInfoKt");
       return true;
     }
     catch (ClassNotFoundException | LinkageError e) {
@@ -425,25 +421,16 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
    * Encapsulates calls to Kotlin IDE plugin to prevent {@link NoClassDefFoundError} when Kotlin is not installed.
    */
   private static class KotlinRegistrationHelper {
-    static void setModuleInfo(@NotNull PsiFile file, @NotNull Module module, boolean isTest) {
-      try {
-        ModuleInfo moduleInfo = isTest ? IdeaModuleInfosKt.testSourceInfo(module) : IdeaModuleInfosKt.productionSourceInfo(module);
-        GetModuleInfoKt.setForcedModuleInfo(file, moduleInfo);
-      } catch (KotlinNullPointerException e) {
-        // Ignore KotlinNullPointerException in the Kotlin IDE plugin until this exception is fixed by JetBrains.
-      }
+    static void setModuleInfo(@NotNull PsiFile file, boolean isTest) {
+      file.putUserData(UserDataModuleInfoKt.MODULE_ROOT_TYPE_KEY, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
     }
 
-    static void setModuleInfo(@NotNull PsiFile file, @NotNull Project project, @NotNull Library library) {
-      try {
-        GetModuleInfoKt.setForcedModuleInfo(file, ContainerUtil.getFirstItem(IdeaModuleInfosKt.createLibraryInfo(project, library), null));
-      } catch (KotlinNullPointerException e) {
-        // Ignore KotlinNullPointerException in the Kotlin IDE plugin until this exception is fixed by JetBrains.
-      }
+    static void setModuleInfo(@NotNull PsiFile file, @NotNull Library library) {
+      file.putUserData(UserDataModuleInfoKt.LIBRARY_KEY, library);
     }
 
-    static void setModelInfo(@NotNull PsiFile file, @NotNull Project project, @NotNull Sdk sdk) {
-      GetModuleInfoKt.setForcedModuleInfo(file, new SdkInfo(project, sdk));
+    static void setModelInfo(@NotNull PsiFile file, @NotNull Sdk sdk) {
+      file.putUserData(UserDataModuleInfoKt.SDK_KEY, sdk);
     }
   }
 }
