@@ -40,7 +40,7 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
    *  - Bounds are always added.
    *  - IDs are set to the tagName if an ID is not specified.
    */
-  fun createComponents(vararg descriptors: ComponentDescriptor): List<NlComponent> {
+  fun createComponents(vararg descriptors: ComponentDescriptor, parentTag: String = LINEAR_LAYOUT): List<NlComponent> {
     var y = 0
     for (descriptor in descriptors) {
       descriptor.withBounds(0, y, 100, 100)
@@ -51,7 +51,7 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     }
     val builder = model(
         "linear.xml",
-        component(LINEAR_LAYOUT)
+        component(parentTag)
           .withBounds(0, 0, 1000, 1500)
           .id("@id/linear")
           .matchParentWidth()

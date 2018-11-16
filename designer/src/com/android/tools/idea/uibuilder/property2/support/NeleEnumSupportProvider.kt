@@ -14,13 +14,16 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.util.*
 
 private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
@@ -106,6 +109,7 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     return when {
       name.endsWith(TEXT_APPEARANCE_SUFFIX) -> TextAppearanceEnumSupport(property)
       name == ATTR_STYLE && property.namespace.isEmpty() -> return StyleEnumSupport(property)
+      isIdType(property) -> IdEnumSupport(property)
       property.namespace != ANDROID_URI -> null
       else -> when (name) {
         ATTR_FONT_FAMILY -> getFontEnumSupport(property)
@@ -121,6 +125,11 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
         else -> null
       }
     }
+  }
+
+  private fun isIdType(property: NelePropertyItem): Boolean {
+    return property.name != ATTR_ID && property.name != NavigationSchema.ATTR_DESTINATION &&
+           AndroidDomUtil.getSpecialResourceTypes(property.name).contains(ResourceType.ID)
   }
 
   private fun getFontEnumSupport(property: NelePropertyItem): EnumSupport {
