@@ -66,6 +66,8 @@ private val COUNTRY_CODE_RANGE = 101..999
  */
 private val NETWORK_CODE_RANGE = 0..1000
 
+private typealias QualifierConfigurationPair = Pair<ResourceQualifier, QualifierConfiguration?>
+
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.QualifierConfigurationPanel].
  */
@@ -74,47 +76,49 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
   var onConfigurationUpdated: ((FolderConfiguration) -> Unit)? = null
   private val availableQualifiers = FolderConfiguration.createDefault().qualifiers.toMutableSet() // Cannot use a set because of the hashCode() implementation of some qualifiers
   private val usedQualifiers = mutableMapOf<ResourceQualifier, QualifierConfiguration?>()
-  private var lastRequestedQualifier: Pair<ResourceQualifier, QualifierConfiguration?>? = null
 
-  fun canAddQualifier() = lastRequestedQualifier != null && availableQualifiers.isNotEmpty()
+  init {
+    folderConfiguration.qualifiers.map { qualifier ->
+      availableQualifiers.removeIf { qualifier.name == it.name }
+      val configuration = createQualifierConfiguration(qualifier)
+      usedQualifiers[qualifier] = configuration
+    }
+  }
+
+  /**
+   * Return true if no qualifier is currently being configured and there is still some qualifier
+   * available.
+   */
+  fun canAddQualifier() = availableQualifiers.isNotEmpty()
 
   fun applyConfiguration(): FolderConfiguration {
+    folderConfiguration.reset()
     usedQualifiers.values
       .filterNotNull()
       .map(QualifierConfiguration::buildQualifier)
-      .forEach(folderConfiguration::addQualifier)
-
-    lastRequestedQualifier?.let { (_, configuration) ->
-      configuration?.buildQualifier()?.let(folderConfiguration::addQualifier)
-    }
+      .forEach { folderConfiguration.addQualifier(it) }
 
     onConfigurationUpdated?.invoke(folderConfiguration)
     return folderConfiguration
   }
 
-  fun getAvailableQualifiers(): List<ResourceQualifier> {
-    lastRequestedQualifier?.let { (qualifier, configuration) ->
-      availableQualifiers.remove(qualifier)
-      usedQualifiers[qualifier] = configuration
-      lastRequestedQualifier = null
-    }
-    return availableQualifiers.sortedBy(ResourceQualifier::getName)
-  }
-
-  fun getInitialConfigurations(): List<Pair<ResourceQualifier, QualifierConfiguration?>> {
-    return folderConfiguration.qualifiers.map { qualifier ->
-      availableQualifiers.removeIf { qualifier.name == it.name }
-      val configuration = createQualifierConfiguration(qualifier)
-      usedQualifiers[qualifier] = configuration
-      qualifier to configuration
-    }
-  }
+  fun getAvailableQualifiers() = availableQualifiers.sortedBy(ResourceQualifier::getName)
 
   /**
-   * Returns the suitable [QualifierConfiguration] for the provided [qualifier].
+   * Return a list of pairs of [ResourceQualifier] to a [QualifierConfiguration] corresponding
+   * the [FolderConfiguration].
+   *
+   * What this means is that for each qualifier already set in the [FolderConfiguration], a new [QualifierConfiguration]
+   * is returned and the qualifier is removed from the list returned by [getAvailableQualifiers].
    */
-  fun createQualifierConfiguration(qualifier: ResourceQualifier): QualifierConfiguration? {
-    val qualifierConfiguration: QualifierConfiguration? = when (qualifier) {
+  fun getCurrentConfigurations(): List<QualifierConfigurationPair> = usedQualifiers.map { it.toPair() }
+
+  /**
+   * Return the suitable [QualifierConfiguration] for the provided [qualifier] or null if the [qualifier]
+   * is not supported.
+   */
+  private fun createQualifierConfiguration(qualifier: ResourceQualifier): QualifierConfiguration? {
+    return when (qualifier) {
       is LocaleQualifier -> LocaleQualifierConfiguration(qualifier.language, qualifier.region)
       is CountryCodeQualifier -> IntConfiguration(::CountryCodeQualifier, COUNTRY_CODE_RANGE, qualifier.code)
       is DensityQualifier -> enumConfiguration(::DensityQualifier, qualifier.value)
@@ -140,19 +144,29 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
       is WideGamutColorQualifier -> enumConfiguration(::WideGamutColorQualifier, qualifier.value)
       else -> null
     }
-    lastRequestedQualifier = qualifier to qualifierConfiguration
-    return qualifierConfiguration
   }
 
+  /**
+   * Remove [resourceQualifier] from the [FolderConfiguration] and
+   * mark it as unused.
+   * @see selectQualifier
+   */
   fun deselectQualifier(resourceQualifier: ResourceQualifier) {
     usedQualifiers.remove(resourceQualifier)
     availableQualifiers.add(resourceQualifier)
+    applyConfiguration()
   }
 
+  /**
+   * Return the suitable [QualifierConfiguration] for the provided [resourceQualifier] and
+   * mark it as used.
+   * @see deselectQualifier
+   */
   fun selectQualifier(resourceQualifier: ResourceQualifier): QualifierConfiguration? {
     val configuration = createQualifierConfiguration(resourceQualifier)
     usedQualifiers[resourceQualifier] = configuration
     availableQualifiers.remove(resourceQualifier)
+    applyConfiguration()
     return configuration
   }
 }
@@ -182,7 +196,7 @@ internal class LocaleQualifierConfiguration(language: String?, region: String?) 
   /**
    * List of the available region for the selected language
    */
-  private val regionList = CollectionParam<String?>(listOf(null), "Any region").apply {
+  private val regionList = CollectionParam(listOf(region), "Any region").apply {
     paramValue = region
   }
 
