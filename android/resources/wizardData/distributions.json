@@ -3,7 +3,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.004,
+  "distributionPercentage": 0.003,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -52,7 +52,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.015,
+  "distributionPercentage": 0.011,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -101,7 +101,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.022,
+  "distributionPercentage": 0.015,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -134,7 +134,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.006,
+  "distributionPercentage": 0.004,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -191,7 +191,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.103,
+  "distributionPercentage": 0.076,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -232,7 +232,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.048,
+  "distributionPercentage": 0.035,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
@@ -294,7 +294,7 @@
   "name": "Lollipop",
   "version": "5.1",
   "apiLevel": 22,
-  "distributionPercentage": 0.176,
+  "distributionPercentage": 0.144,
   "url": "https://developer.android.com/about/versions/android-5.1.html",
   "descriptionBlocks" : [
                           {
@@ -311,7 +311,7 @@
   "name": "Marshmallow",
   "version": "6.0",
   "apiLevel": 23,
-  "distributionPercentage": 0.255,
+  "distributionPercentage": 0.213,
   "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
   "descriptionBlocks" : [
                           {
@@ -348,7 +348,7 @@
   "name": "Nougat",
   "version": "7.0",
   "apiLevel": 24,
-  "distributionPercentage": 0.229,
+  "distributionPercentage": 0.181,
   "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
   "descriptionBlocks" : [
     {
@@ -401,7 +401,7 @@
   "name": "Nougat",
   "version": "7.1",
   "apiLevel": 25,
-  "distributionPercentage": 0.082,
+  "distributionPercentage": 0.101,
   "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
   "descriptionBlocks" : [
     {
@@ -434,7 +434,7 @@
     "name": "Oreo",
     "version": "8.0",
     "apiLevel": 26,
-    "distributionPercentage": 0.049,
+    "distributionPercentage": 0.140,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks" : [
       {
@@ -467,7 +467,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.008,
+    "distributionPercentage": 0.075,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks" : [
       {
