@@ -20,7 +20,6 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 
 import com.android.SdkConstants;
-import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property2.api.EditorProvider;
 import com.android.tools.idea.common.property2.api.FilteredPTableModel;
@@ -47,14 +46,9 @@ import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.xml.XmlElementDescriptor;
-import java.awt.BorderLayout;
 import java.util.Collections;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -73,7 +67,30 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
-    getMain().getBuilders().add(new MotionInspectorBuilder(model, editorProvider, tableUIProvider));
+    getMain().getBuilders().add(new SelectedTargetBuilder());
+    addTab("").getBuilders().add(new MotionInspectorBuilder(model, editorProvider, tableUIProvider));
+  }
+
+  private static class SelectedTargetBuilder implements InspectorBuilder<NelePropertyItem> {
+
+    @Override
+    public void attachToInspector(@NotNull InspectorPanel inspector, @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
+      NelePropertyItem any = properties.getFirst();
+      if (any == null || any.getComponents().isEmpty()) {
+        return;
+      }
+      NlComponent component = any.getComponents().get(0);
+      XmlTag tag = MotionLayoutAttributesModel.getTag(any);
+      if (tag == null) {
+        return;
+      }
+      String label = tag.getLocalName();
+      inspector.addComponent(new SelectedComponentPanel(new SelectedComponentModel(Collections.singletonList(component), label)), null);
+    }
+
+    @Override
+    public void resetCache() {
+    }
   }
 
   private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
@@ -110,13 +127,11 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         case MotionSceneString.ConstraintSetConstraint:
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           label = MotionSceneString.MotionSceneConstraintSet;
-          addTargetComponent(inspector, component, label, false);
           addCustomLayoutComponent(inspector, component);
           addPropertyTable(inspector, label, properties, targetId);
           break;
 
         case MotionSceneString.MotionSceneTransition:
-          addTargetComponent(inspector, component, label, false);
           addPropertyTable(inspector, label, properties);
           break;
 
@@ -129,7 +144,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             Logger.getInstance(NelePropertyItem.class).warn("KeyFrame without target and position");
             return;
           }
-          addTargetComponent(inspector, component, label, true);
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
           addPropertyTable(inspector, label, properties, target, position);
           break;
@@ -174,27 +188,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       deleteFieldAction.setLineModel(lineModel);
-    }
-
-    private static void addTargetComponent(@NotNull InspectorPanel inspector,
-                                           @NotNull NlComponent component,
-                                           @NotNull String label,
-                                           boolean addBottomSeparator) {
-      SelectedComponentModel model = new SelectedComponentModel(Collections.singletonList(component), label);
-      JComponent targetComponent = new SelectedComponentPanel(model);
-      if (addBottomSeparator) {
-        JPanel panel = new AdtSecondaryPanel(new BorderLayout());
-        panel.add(targetComponent, BorderLayout.CENTER);
-        panel.setBorder(JBUI.Borders.merge(
-          JBUI.Borders.emptyBottom(4),
-          JBUI.Borders.merge(
-            JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
-            JBUI.Borders.emptyBottom(4),
-            true),
-          true));
-        targetComponent = panel;
-      }
-      inspector.addComponent(targetComponent, null);
     }
 
     private void addPropertyTable(@NotNull InspectorPanel inspector,
