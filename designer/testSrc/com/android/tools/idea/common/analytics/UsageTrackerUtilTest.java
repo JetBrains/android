@@ -15,56 +15,63 @@
  */
 package com.android.tools.idea.common.analytics;
 
+ import static com.android.SdkConstants.AD_VIEW;
+ import static com.android.SdkConstants.ANDROID_URI;
+ import static com.android.SdkConstants.ATTR_LAYOUT_COLLAPSE_MODE;
+ import static com.android.SdkConstants.ATTR_TEXT;
+ import static com.android.SdkConstants.AUTO_URI;
+ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+ import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+ import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
+ import static com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT;
+ import static com.android.SdkConstants.LATEST_CONSTRAINT_LAYOUT_VERSION;
+ import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
+ import static com.android.SdkConstants.MAPS_ARTIFACT;
+ import static com.android.SdkConstants.TEXT_VIEW;
+ import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+ import static com.android.SdkConstants.TOOLS_URI;
+ import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.acceptedGoogleLibraryNamespace;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.acceptedGoogleTagNamespace;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertAttribute;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertAttributeName;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertNamespace;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertTagName;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.lookupAttributeResource;
+ import static com.google.common.truth.Truth.assertThat;
+ import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.ANDROID;
+ import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.APPLICATION;
+ import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.TOOLS;
+ import static org.mockito.Mockito.mock;
+ import static org.mockito.Mockito.when;
+
  import com.android.ide.common.rendering.api.ResourceNamespace;
  import com.android.ide.common.rendering.api.ResourceReference;
  import com.android.tools.idea.common.model.NlComponent;
- import com.android.tools.idea.common.model.NlLayoutType;
  import com.android.tools.idea.common.model.NlModel;
  import com.android.tools.idea.common.property.NlProperty;
  import com.android.tools.idea.common.property.PropertiesManager;
- import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
- import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
- import com.android.tools.idea.uibuilder.palette.Palette;
- import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
  import com.android.tools.idea.uibuilder.property.NlPropertyItem;
- import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
- import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
- import com.google.wireless.android.sdk.stats.SearchOption;
  import com.intellij.openapi.Disposable;
- import com.intellij.openapi.project.Project;
  import com.intellij.openapi.util.Disposer;
  import com.intellij.openapi.util.text.StringUtil;
  import com.intellij.util.xml.XmlName;
- import org.intellij.lang.annotations.Language;
- import org.jetbrains.android.AndroidTestCase;
- import org.jetbrains.android.dom.attrs.AttributeDefinition;
- import org.jetbrains.android.dom.attrs.AttributeDefinitions;
- import org.jetbrains.android.dom.attrs.StyleableDefinition;
- import org.jetbrains.android.resourceManagers.LocalResourceManager;
- import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
- import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
- import org.jetbrains.annotations.NotNull;
- import org.jetbrains.annotations.Nullable;
- import org.picocontainer.MutablePicoContainer;
-
- import java.io.InputStreamReader;
- import java.io.Reader;
  import java.util.Collections;
  import java.util.HashMap;
  import java.util.Map;
  import java.util.Set;
-
- import static com.android.SdkConstants.*;
- import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
- import static com.android.tools.idea.common.analytics.UsageTrackerUtil.*;
- import static com.google.common.truth.Truth.assertThat;
- import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.*;
- import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.*;
- import static org.mockito.ArgumentMatchers.any;
- import static org.mockito.ArgumentMatchers.isNotNull;
- import static org.mockito.ArgumentMatchers.notNull;
- import static org.mockito.Mockito.mock;
- import static org.mockito.Mockito.when;
+ import org.jetbrains.android.AndroidTestCase;
+ import org.jetbrains.android.dom.attrs.AttributeDefinition;
+ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+ import org.jetbrains.android.dom.attrs.StyleableDefinition;
+ import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
+ import org.jetbrains.android.resourceManagers.LocalResourceManager;
+ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+ import org.jetbrains.annotations.NotNull;
+ import org.jetbrains.annotations.Nullable;
+ import org.picocontainer.MutablePicoContainer;
 
 public class UsageTrackerUtilTest extends AndroidTestCase {
   private static final String SDK_VERSION = ":" + HIGHEST_KNOWN_API + ".0.1";
@@ -75,14 +82,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
   private static final String LEANBACK_V17_COORDINATE = LEANBACK_V17_ARTIFACT + ":7.0.0";
   private static final String ACME_LIB_COORDINATE = "com.acme:my-layout:1.0.0";
   private static final String ATTR_ACME_LAYOUT_MARGIN = "layout_my_custom_right_margin";
-  @Language("XML")
-  private static final String DISCRETE_SEEK_BAR_XML = "<SeekBar\n" +
-                                                      "    style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
-                                                      "    android:layout_width=\"wrap_content\"\n" +
-                                                      "    android:layout_height=\"wrap_content\"\n" +
-                                                      "    android:max=\"10\"\n" +
-                                                      "    android:progress=\"3\"\n" +
-                                                      "/>";
 
   private NlModel myModel;
 
@@ -154,102 +153,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     assertThat(convertNamespace("unknown")).isEqualTo(APPLICATION);
   }
 
-  public void testConvertGroupName() throws Exception {
-    assertThat(convertGroupName("All")).isEqualTo(ViewGroup.ALL_GROUPS);
-    assertThat(convertGroupName("Widgets")).isEqualTo(ViewGroup.WIDGETS);
-    assertThat(convertGroupName("Text")).isEqualTo(ViewGroup.TEXT);
-    assertThat(convertGroupName("Layouts")).isEqualTo(ViewGroup.LAYOUTS);
-    assertThat(convertGroupName("Containers")).isEqualTo(ViewGroup.CONTAINERS);
-    assertThat(convertGroupName("Images")).isEqualTo(ViewGroup.IMAGES);
-    assertThat(convertGroupName("Date")).isEqualTo(ViewGroup.DATES);
-    assertThat(convertGroupName("Transitions")).isEqualTo(ViewGroup.TRANSITIONS);
-    assertThat(convertGroupName("Advanced")).isEqualTo(ViewGroup.ADVANCED);
-    assertThat(convertGroupName("Design")).isEqualTo(ViewGroup.DESIGN);
-    assertThat(convertGroupName("AppCompat")).isEqualTo(ViewGroup.APP_COMPAT);
-    assertThat(convertGroupName("MyGroup")).isEqualTo(ViewGroup.CUSTOM);
-  }
-
-  public void testAllGroupsOnPaletteAreRecognized() throws Exception {
-    Palette palette = getPalette();
-    palette.accept(new Palette.Visitor() {
-      @Override
-      public void visit(@NotNull Palette.Item item) {
-      }
-
-      @Override
-      public void visit(@NotNull Palette.Group group) {
-        assertThat(convertGroupName(group.getName())).isNotEqualTo(ViewGroup.CUSTOM);
-      }
-    });
-  }
-
-  public void testConvertViewOption() {
-    assertThat(convertViewOption(PROGRESS_BAR, "<ProgressBar/>")).isEqualTo(NORMAL);
-    assertThat(convertViewOption(PROGRESS_BAR, "<ProgressBar style=\"?android:attr/progressBarStyleHorizontal\"/>"))
-      .isEqualTo(HORIZONTAL_PROGRESS_BAR);
-    assertThat(convertViewOption(PROGRESS_BAR, "<ProgressBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-    assertThat(convertViewOption(SEEK_BAR, "<SeekBar/>")).isEqualTo(NORMAL);
-    assertThat(convertViewOption(SEEK_BAR, DISCRETE_SEEK_BAR_XML)).isEqualTo(DISCRETE_SEEK_BAR);
-    assertThat(convertViewOption(SEEK_BAR, "<SeekBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-    assertThat(convertViewOption(EDIT_TEXT, "<EditText/>")).isEqualTo(NORMAL);
-    assertThat(convertViewOption(EDIT_TEXT, "<EditText android:inputType=\"textPassword\"/>")).isEqualTo(PASSWORD);
-    assertThat(convertViewOption(EDIT_TEXT, "<EditText android:inputType=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-    assertThat(convertViewOption(LINEAR_LAYOUT, "<LinearLayout/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
-    assertThat(convertViewOption(LINEAR_LAYOUT, "<LinearLayout android:orientation=\"vertical\"/>")).isEqualTo(VERTICAL_LINEAR_LAYOUT);
-    assertThat(convertViewOption(LINEAR_LAYOUT, "<LinearLayout android:orientation=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-    assertThat(convertViewOption(TEXT_VIEW, "<TextView/>")).isEqualTo(NORMAL);
-  }
-
-  public void testConvertProgressBarViewOption() {
-    assertThat(convertProgressBarViewOption("<ProgressBar/>")).isEqualTo(NORMAL);
-    assertThat(convertProgressBarViewOption("<ProgressBar style=\"?android:attr/progressBarStyle\"/>")).isEqualTo(NORMAL);
-    assertThat(convertProgressBarViewOption("<ProgressBar style=\"?android:attr/progressBarStyleHorizontal\"/>"))
-      .isEqualTo(HORIZONTAL_PROGRESS_BAR);
-    assertThat(convertProgressBarViewOption("<ProgressBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-  }
-
-  public void testConvertSeekBarViewOption() {
-    assertThat(convertSeekBarViewOption("<SeekBar/>")).isEqualTo(NORMAL);
-    assertThat(convertSeekBarViewOption(DISCRETE_SEEK_BAR_XML)).isEqualTo(DISCRETE_SEEK_BAR);
-    assertThat(convertSeekBarViewOption("<SeekBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-  }
-
-  public void testConvertEditTextViewOption() {
-    assertThat(convertEditTextViewOption("<EditText/>")).isEqualTo(NORMAL);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textPassword\"/>")).isEqualTo(PASSWORD);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"numberPassword\"/>")).isEqualTo(PASSWORD_NUMERIC);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textEmailAddress\"/>")).isEqualTo(EMAIL);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"phone\"/>")).isEqualTo(PHONE);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textPostalAddress\"/>")).isEqualTo(POSTAL_ADDRESS);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textMultiLine\"/>")).isEqualTo(MULTILINE_TEXT);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"time\"/>")).isEqualTo(TIME_EDITOR);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"date\"/>")).isEqualTo(DATE_EDITOR);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"number\"/>")).isEqualTo(NUMBER);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"numberSigned\"/>")).isEqualTo(SIGNED_NUMBER);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"numberDecimal\"/>")).isEqualTo(DECIMAL_NUMBER);
-    assertThat(convertEditTextViewOption("<EditText android:inputType=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-  }
-
-  public void testConvertLinearLayoutViewOption() {
-    assertThat(convertLinearLayoutViewOption("<LinearLayout/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
-    assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"horizontal\"/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
-    assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"vertical\"/>")).isEqualTo(VERTICAL_LINEAR_LAYOUT);
-    assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-  }
-
-  public void testConvertPropertiesMode() {
-    assertThat(convertPropertiesMode(PropertiesViewMode.INSPECTOR)).isEqualTo(LayoutAttributeChangeEvent.ViewType.INSPECTOR);
-    assertThat(convertPropertiesMode(PropertiesViewMode.TABLE)).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
-  }
-
-  public void testConvertFilterMatches() {
-    assertThat(convertFilterMatches(-1)).isEqualTo(SearchOption.NONE);
-    assertThat(convertFilterMatches(0)).isEqualTo(SearchOption.NONE);
-    assertThat(convertFilterMatches(1)).isEqualTo(SearchOption.SINGLE_MATCH);
-    assertThat(convertFilterMatches(2)).isEqualTo(SearchOption.MULTIPLE_MATCHES);
-    assertThat(convertFilterMatches(117)).isEqualTo(SearchOption.MULTIPLE_MATCHES);
-  }
-
   public void testConvertAttributeName() {
     setUpApplicationAttributes();
 
@@ -271,11 +174,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     assertThat(convertTagName(CONSTRAINT_LAYOUT.defaultName()).getTagName()).isEqualTo(StringUtil.getShortName(CONSTRAINT_LAYOUT.defaultName()));
     assertThat(convertTagName(AD_VIEW).getTagName()).isEqualTo(StringUtil.getShortName(AD_VIEW));
     assertThat(convertTagName("com.acme.MyClass").getTagName()).isEqualTo(CUSTOM_NAME);
-  }
-
-  public void testGetStyleValueFromSeekBar() {
-    assertThat(getStyleValue("<SeekBar/>")).isNull();
-    assertThat(getStyleValue(DISCRETE_SEEK_BAR_XML)).isEqualTo("@style/Widget.AppCompat.SeekBar.Discrete");
   }
 
   public void testAcceptedGoogleLibraryNamespace() {
@@ -312,13 +210,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
     assertThat(lookupAttributeResource(myFacet, ATTR_ACME_LAYOUT_MARGIN).getNamespace()).isEqualTo(APPLICATION);
     assertThat(lookupAttributeResource(myFacet, ATTR_ACME_LAYOUT_MARGIN).getLibraryName()).isEqualTo(ACME_LIB_COORDINATE);
-  }
-
-  private static Palette getPalette() throws Exception {
-    Project project = mock(Project.class);
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
-      return Palette.parse(reader, new ViewHandlerManager(project));
-    }
   }
 
   private NlProperty createProperty(@NotNull String propertyName, @NotNull String namespace, @Nullable String libraryName) {
@@ -359,7 +250,7 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     when(myModel.getFacet()).thenReturn(myFacet);
   }
 
-  static <T> void registerComponentInstance(MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {
+  public static <T> void registerComponentInstance(MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {
     Object old = container.getComponentInstance(key);
     container.unregisterComponent(key.getName());
     container.registerComponentInstance(key.getName(), implementation);

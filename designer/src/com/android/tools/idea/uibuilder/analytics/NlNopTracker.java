@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.analytics;
+package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.rendering.RenderResult;
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * No-op tracker used when stats tracking is disabled
  */
-class NopTracker implements NlUsageTracker {
+class NlNopTracker implements NlUsageTracker {
   @Override
   public void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType) {
   }

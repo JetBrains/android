@@ -59,8 +59,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -544,7 +543,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
+      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
       if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Delete all the constraints in the current layout?", getLabel(), getDefaultIcon()) == Messages.YES) {
@@ -604,7 +603,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
+      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
                            .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       try {
         Scout.inferConstraintsAndCommit(component);
@@ -635,7 +634,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
+      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
                            .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       try {
         Scout.findConstraintSetAndCommit(component);
@@ -779,7 +778,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             assert guideline != null;
             guideline.ensureId();
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
+            NlUsageTracker tracker = NlUsageTracker.getInstance(editor.getScene().getDesignSurface());
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
             guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
                                    ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
@@ -792,7 +791,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             assert guideline != null;
             guideline.ensureId();
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
+            NlUsageTracker tracker = NlUsageTracker.getInstance(editor.getScene().getDesignSurface());
 
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
             guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
@@ -867,7 +866,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
 
-            // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
+            // NlUsageTracker tracker = NlUsageTrackerImpl.getInstance(editor.getScene().getDesignSurface());
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
@@ -927,7 +926,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
 
-            // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
+            // NlUsageTracker tracker = NlUsageTrackerImpl.getInstance(editor.getScene().getDesignSurface());
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
@@ -1083,7 +1082,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
+      NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
                            .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       // noinspection AssignmentToMethodParameter
       modifiers &= InputEvent.CTRL_MASK;
@@ -1168,7 +1167,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       DesignSurface surface = editor.getScene().getDesignSurface();
-      NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
+      NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
                     .setRequestFocus(true)
@@ -1459,7 +1458,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                           @NotNull NlComponent component,
                           @NotNull List<NlComponent> selectedChildren,
                           @InputEventMask int modifiers) {
-        NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
+        NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
                              .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
         // noinspection AssignmentToMethodParameter
         modifiers &= InputEvent.CTRL_MASK;

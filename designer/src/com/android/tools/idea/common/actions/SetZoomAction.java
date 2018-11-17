@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.actions;
 
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -42,17 +42,17 @@ public class SetZoomAction extends AnAction {
     // track user triggered change
     switch (myType) {
       case ACTUAL:
-        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL);
+        NlUsageTracker.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL);
         break;
       case IN:
-        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN);
+        NlUsageTracker.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN);
         break;
       case OUT:
-        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT);
+        NlUsageTracker.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT);
         break;
       case FIT_INTO:
       case FIT:
-        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT);
+        NlUsageTracker.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT);
         break;
       default:
     }

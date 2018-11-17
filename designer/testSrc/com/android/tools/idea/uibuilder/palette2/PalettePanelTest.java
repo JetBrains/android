@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
