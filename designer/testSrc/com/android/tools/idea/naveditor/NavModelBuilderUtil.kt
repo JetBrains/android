@@ -123,9 +123,10 @@ object NavModelBuilderUtil {
     }
 
     fun activity(id: String,
+                 layout: String? = null,
                  name: String? = null,
                  f: ActivityComponentDescriptor.() -> Unit = {}) {
-      val activity = ActivityComponentDescriptor(id, name)
+      val activity = ActivityComponentDescriptor(id, layout, name)
       addChild(activity, null)
       activity.apply(f)
     }
@@ -201,10 +202,11 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ActivityComponentDescriptor(id: String, name: String?) : NavComponentDescriptor(TAG_ACTIVITY) {
+  class ActivityComponentDescriptor(id: String, layout: String?, name: String?) : NavComponentDescriptor(TAG_ACTIVITY) {
     init {
       id("@+id/$id")
       name?.let { withAttribute(ANDROID_URI, ATTR_NAME, it) }
+      layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
     }
 
     fun deeplink(uri: String, autoVerify: Boolean = false) {

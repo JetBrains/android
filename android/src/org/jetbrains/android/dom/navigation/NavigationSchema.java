@@ -65,6 +65,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -437,6 +438,9 @@ public class NavigationSchema implements Disposable {
     // This one currently has to be added manually no matter what, since there's no destination type for subnavs per se
     navigatorToDestinationClass.put(getClass(ROOT_NAV_GRAPH_NAVIGATOR), getClass(NAV_GRAPH_DESTINATION));
 
+    Set<PsiClass> nonCustomDestinations = new HashSet<>();
+    Set<String> nonCustomTags = new HashSet<>();
+
     // Now we iterate over all the navigators and collect the destinations and tags.
     for (PsiClass navClass : ClassInheritorsSearch.search(navigatorRoot, scope, true)) {
       if (navClass.equals(navigatorRoot)) {
@@ -444,17 +448,33 @@ public class NavigationSchema implements Disposable {
         continue;
       }
       String qName = navClass.getQualifiedName();
-      if (qName != null && qName.startsWith(ANDROIDX_PKG_PREFIX) && !navClass.hasModifier(JvmModifier.PUBLIC)) {
-        continue;
+      if (qName != null) {
+        if (qName.startsWith(ANDROIDX_PKG_PREFIX)) {
+          if (!navClass.hasModifier(JvmModifier.PUBLIC)) {
+            continue;
+          }
+        }
+        else {
+          // Metrics
+          myCustomNavigatorCount++;
+        }
       }
       collectDestinationsForNavigator(navigatorRoot, navClass, navigatorToDestinationClass);
       collectTagsForNavigator(navClass, navigatorToTag);
+      if (qName != null && qName.startsWith(ANDROIDX_PKG_PREFIX)) {
+        nonCustomDestinations.add(navigatorToDestinationClass.get(navClass));
+        nonCustomTags.add(navigatorToTag.get(navClass));
+      }
     }
     myTagToStyleables = buildTagToStyleables(navigatorToTag);
     // Match up the tags and destinations
     myTagToDestinationClass = buildTagToDestinationMap(navigatorToTag, navigatorToDestinationClass);
     // Build the type map, mostly based on hardcoded correspondences between type and destination class.
     myTypeToDestinationClass = buildDestinationTypeToDestinationMap();
+    // Metrics
+    myCustomDestinationCount = new HashSet<>(myTagToDestinationClass.values()).size() - nonCustomDestinations.size();
+    myCustomTagCount = myTagToDestinationClass.keySet().size() - nonCustomTags.size();
+
     myTypeToRootTag = buildTypeToDefaultTag(navigatorToTag);
     myNavigatorCacheKeys = buildCacheKeys(navigatorToTag, navigatorToDestinationClass);
   }
@@ -975,6 +995,27 @@ public class NavigationSchema implements Disposable {
 
   public Boolean isIncludeTag(@NotNull String tag) {
     return tag.equals(TAG_INCLUDE);
+  }
+
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
+  //region Metrics
+  /////////////////////////////////////////////////////////////////////////////
+
+  private int myCustomNavigatorCount;
+  private int myCustomTagCount;
+  private int myCustomDestinationCount;
+
+  public int getCustomNavigatorCount() {
+    return myCustomNavigatorCount;
+  }
+
+  public int getCustomTagCount() {
+    return myCustomTagCount;
+  }
+
+  public int getCustomDestinationCount() {
+    return myCustomDestinationCount;
   }
 
   //endregion
