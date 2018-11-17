@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
@@ -475,7 +475,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (myStopFilteringCallback != null) {
         myStopFilteringCallback.run();
       }
-      NlUsageTrackerManager.getInstance(myDesignSurface.get()).logDropFromPalette(
+      NlUsageTracker.getInstance(myDesignSurface.get()).logDropFromPalette(
         component.getTag(), component.getRepresentation(), getGroupName(), myDataModel.getMatchCount());
     }
 

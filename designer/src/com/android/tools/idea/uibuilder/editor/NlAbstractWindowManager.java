@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -74,7 +74,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
         if (newWindowType != myPreviousWindowType || newWindowAnchor != myPreviousWindowAnchor) {
           // TODO: Report the window docking state
-          NlUsageTrackerManager.getInstance(myDesignSurface).logAction(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE);
+          NlUsageTracker.getInstance(myDesignSurface).logAction(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE);
 
           myPreviousWindowType = newWindowType;
           myPreviousWindowAnchor = newWindowAnchor;

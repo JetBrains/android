@@ -20,8 +20,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.*;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -61,7 +60,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
@@ -301,12 +299,12 @@ public class LayoutTestUtilities {
     UsageTracker.setWriterForTest(tracker);
 
     NlUsageTracker usageTracker = mock(NlUsageTracker.class);
-    NlUsageTrackerManager.setInstanceForTest(surface, usageTracker);
+    NlUsageTracker.MANAGER.setInstanceForTest(surface, usageTracker);
     return usageTracker;
   }
 
   public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface surface) {
-    NlUsageTrackerManager.cleanAfterTesting(surface);
+    NlUsageTracker.MANAGER.cleanAfterTesting(surface);
     UsageTracker.cleanAfterTesting();
   }
 

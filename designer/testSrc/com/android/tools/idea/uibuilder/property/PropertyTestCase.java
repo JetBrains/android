@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;

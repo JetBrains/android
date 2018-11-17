@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -29,6 +28,7 @@ import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.surface.AccessoryPanelListener
@@ -128,7 +128,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   }
 
   private fun logPropertyValueChanged(property: NelePropertyItem) {
-    NlUsageTrackerManager.getInstance(activeSurface).logPropertyChange(property, -1)
+    NlUsageTracker.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
   fun provideDefaultValue(property: NelePropertyItem): ResourceValue? {

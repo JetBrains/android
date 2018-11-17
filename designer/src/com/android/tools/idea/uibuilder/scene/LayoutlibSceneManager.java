@@ -24,7 +24,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -884,19 +884,19 @@ public class LayoutlibSceneManager extends SceneManager {
       // by the user
       if (!StringUtil.equals(configuration.getTheme(), myPreviousTheme)) {
         myPreviousTheme = configuration.getTheme();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
       }
       else if (configuration.getTarget() != null && !StringUtil.equals(configuration.getTarget().getVersionName(), myPreviousVersion)) {
         myPreviousVersion = configuration.getTarget().getVersionName();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
       }
       else if (!configuration.getLocale().equals(myPreviousLocale)) {
         myPreviousLocale = configuration.getLocale();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
       }
       else if (configuration.getDevice() != null && !StringUtil.equals(configuration.getDevice().getDisplayName(), myPreviousDeviceName)) {
         myPreviousDeviceName = configuration.getDevice().getDisplayName();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
       }
     }
   }
@@ -933,9 +933,9 @@ public class LayoutlibSceneManager extends SceneManager {
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
                                                                         myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
-            NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
-                                                                       myRenderResult,
-                                                                       renderTimeMs);
+            NlUsageTracker.getInstance(surface).logRenderResult(trigger,
+                                                                myRenderResult,
+                                                                renderTimeMs);
           }
           finally {
             myRenderResultLock.readLock().unlock();

@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.analytics;
+package com.android.tools.idea.uibuilder.analytics;
+
+import static com.android.SdkConstants.EDIT_TEXT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.PROGRESS_BAR;
+import static com.android.SdkConstants.SEEK_BAR;
+import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertTagName;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.State;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.common.analytics.UsageTrackerUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -29,27 +35,32 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.wireless.android.sdk.stats.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import com.google.wireless.android.sdk.stats.LayoutEditorState;
 import com.google.wireless.android.sdk.stats.LayoutEditorState.Mode;
+import com.google.wireless.android.sdk.stats.LayoutFavoriteAttributeChangeEvent;
+import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
+import com.google.wireless.android.sdk.stats.SearchOption;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
+import java.lang.ref.WeakReference;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
-import static com.android.tools.idea.common.analytics.UsageTrackerUtil.*;
 
 /**
  * Class to manage anonymous stats logging for the layout editor. If global stats logging is disabled, no stats will be logged
@@ -57,18 +68,27 @@ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.*;
  *
  * TODO: factor out nav/layout specific parts
  */
-public class NlUsageTrackerManager implements NlUsageTracker {
-  @VisibleForTesting
-  static final NlUsageTracker NOP_TRACKER = new NopTracker();
+public class NlUsageTrackerImpl implements NlUsageTracker {
+  private static final Pattern STYLE_PATTERN = Pattern.compile("style=\"(.*)\"");
+  private static final Pattern INPUT_STYLE_PATTERN = Pattern.compile("android:inputType=\"(.*)\"");
+  private static final Pattern ORIENTATION_PATTERN = Pattern.compile("android:orientation=\"(.*)\"");
+  private static final Map<String, LayoutPaletteEvent.ViewOption> PALETTE_VIEW_OPTION_MAP =
+    ImmutableMap.<String, LayoutPaletteEvent.ViewOption>builder()
+      .put("textPassword", LayoutPaletteEvent.ViewOption.PASSWORD)
+      .put("numberPassword", LayoutPaletteEvent.ViewOption.PASSWORD_NUMERIC)
+      .put("textEmailAddress", LayoutPaletteEvent.ViewOption.EMAIL)
+      .put("phone", LayoutPaletteEvent.ViewOption.PHONE)
+      .put("textPostalAddress", LayoutPaletteEvent.ViewOption.POSTAL_ADDRESS)
+      .put("textMultiLine", LayoutPaletteEvent.ViewOption.MULTILINE_TEXT)
+      .put("time", LayoutPaletteEvent.ViewOption.TIME_EDITOR)
+      .put("date", LayoutPaletteEvent.ViewOption.DATE_EDITOR)
+      .put("number", LayoutPaletteEvent.ViewOption.NUMBER)
+      .put("numberSigned", LayoutPaletteEvent.ViewOption.SIGNED_NUMBER)
+      .put("numberDecimal", LayoutPaletteEvent.ViewOption.DECIMAL_NUMBER)
+      .build();
 
   // Sampling percentage for render events
   private static final int LOG_RENDER_PERCENT = 10;
-
-  private static final Cache<DesignSurface, NlUsageTracker> sTrackersCache = CacheBuilder.newBuilder()
-    .weakKeys()
-    .expireAfterAccess(5, TimeUnit.MINUTES)
-    .build();
-  private static final Executor ourExecutorService = new ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(10));
 
   private static final Random sRandom = new Random();
 
@@ -77,64 +97,12 @@ public class NlUsageTrackerManager implements NlUsageTracker {
   private final Consumer<AndroidStudioEvent.Builder> myEventLogger;
 
   @VisibleForTesting
-  NlUsageTrackerManager(@NotNull Executor executor,
-                        @Nullable DesignSurface surface,
-                        @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
+  NlUsageTrackerImpl(@NotNull Executor executor,
+                     @Nullable DesignSurface surface,
+                     @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
     myExecutor = executor;
     myDesignSurfaceRef = new WeakReference<>(surface);
     myEventLogger = eventLogger;
-  }
-
-  /**
-   * Returns an NlUsageTracker for the given surface or a no-op tracker if the surface is null
-   */
-  @VisibleForTesting
-  @NotNull
-  static NlUsageTracker getInstanceInner(@Nullable DesignSurface surface, boolean createIfNotExists) {
-    if (surface == null) {
-      return NOP_TRACKER;
-    }
-
-    NlUsageTracker cachedTracker = sTrackersCache.getIfPresent(surface);
-    if (cachedTracker == null && createIfNotExists) {
-      cachedTracker = new NlUsageTrackerManager(ourExecutorService, surface, UsageTracker::log);
-      sTrackersCache.put(surface, cachedTracker);
-      return cachedTracker;
-    }
-
-    return cachedTracker != null ? cachedTracker : NOP_TRACKER;
-  }
-
-  /**
-   * Returns an NlUsageTracker for the given surface or a no-op tracker if the surface is null or stats tracking is disabled.
-   * The stats are also disabled during unit testing.
-   */
-  @NotNull
-  public static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
-    // If we are in unit testing mode, do not allow creating new NlUsageTrackerManager instances.
-    // Test instances should be used.
-    return AnalyticsSettings.getOptedIn()
-           ? getInstanceInner(surface, !ApplicationManager.getApplication().isUnitTestMode())
-           : NOP_TRACKER;
-  }
-
-  /**
-   * Sets {@link NlUsageTracker} for a {@link DesignSurface} in tests.
-   */
-  @TestOnly
-  public static void setInstanceForTest(@NotNull DesignSurface surface, @NotNull NlUsageTracker tracker) {
-    sTrackersCache.put(surface, tracker);
-  }
-
-  /**
-   * Clears the cached instances to clean state in tests.
-   */
-  @TestOnly
-  public static void cleanAfterTesting(@NotNull DesignSurface surface) {
-    // The previous tracker may be a mock with recorded data that may show up as leaks.
-    // Replace the tracker first since invalidation may be delayed.
-    sTrackersCache.put(surface, NOP_TRACKER);
-    sTrackersCache.invalidate(surface);
   }
 
   /**
@@ -327,7 +295,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
                                 @NotNull PropertiesViewMode propertiesMode,
                                 int filterMatches) {
     LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
-      .setAttribute(convertAttribute(property))
+      .setAttribute(UsageTrackerUtil.convertAttribute(property))
       .setSearchOption(convertFilterMatches(filterMatches))
       .setViewType(convertPropertiesMode(propertiesMode));
     for (NlComponent component : property.getComponents()) {
@@ -340,7 +308,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
   public void logPropertyChange(@NotNull NelePropertyItem property,
                                 int filterMatches) {
     LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
-      .setAttribute(convertAttribute(property))
+      .setAttribute(UsageTrackerUtil.convertAttribute(property))
       .setSearchOption(convertFilterMatches(filterMatches));
     for (NlComponent component : property.getComponents()) {
       builder.addView(convertTagName(component.getTagName()));
@@ -355,14 +323,157 @@ public class NlUsageTrackerManager implements NlUsageTracker {
                                  @NotNull AndroidFacet facet) {
     LayoutFavoriteAttributeChangeEvent.Builder builder = LayoutFavoriteAttributeChangeEvent.newBuilder();
     if (!addedPropertyName.isEmpty()) {
-      builder.setAdded(convertAttribute(addedPropertyName, facet));
+      builder.setAdded(UsageTrackerUtil.convertAttribute(addedPropertyName, facet));
     }
     if (!removedPropertyName.isEmpty()) {
-      builder.setRemoved(convertAttribute(removedPropertyName, facet));
+      builder.setRemoved(UsageTrackerUtil.convertAttribute(removedPropertyName, facet));
     }
     for (String propertyName : currentFavorites) {
-      builder.addActive(convertAttribute(propertyName, facet));
+      builder.addActive(UsageTrackerUtil.convertAttribute(propertyName, facet));
     }
     logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.FAVORITE_CHANGE, (event) -> event.setFavoriteChangeEvent(builder));
+  }
+
+  @NotNull
+  static LayoutPaletteEvent.ViewGroup convertGroupName(@NotNull String groupName) {
+    switch (groupName) {
+      case "All":
+        return LayoutPaletteEvent.ViewGroup.ALL_GROUPS;
+      case "All Results":
+        return LayoutPaletteEvent.ViewGroup.ALL_RESULTS;
+      case "Common":
+        return LayoutPaletteEvent.ViewGroup.COMMON;
+      case "Buttons":
+        return LayoutPaletteEvent.ViewGroup.BUTTONS;
+      case "Widgets":
+        return LayoutPaletteEvent.ViewGroup.WIDGETS;
+      case "Text":
+        return LayoutPaletteEvent.ViewGroup.TEXT;
+      case "Layouts":
+        return LayoutPaletteEvent.ViewGroup.LAYOUTS;
+      case "Containers":
+        return LayoutPaletteEvent.ViewGroup.CONTAINERS;
+      case "Images":
+        return LayoutPaletteEvent.ViewGroup.IMAGES;
+      case "Date":
+        return LayoutPaletteEvent.ViewGroup.DATES;
+      case "Transitions":
+        return LayoutPaletteEvent.ViewGroup.TRANSITIONS;
+      case "Advanced":
+        return LayoutPaletteEvent.ViewGroup.ADVANCED;
+      case "Google":
+        return LayoutPaletteEvent.ViewGroup.GOOGLE;
+      case "Design":
+        return LayoutPaletteEvent.ViewGroup.DESIGN;
+      case "AppCompat":
+        return LayoutPaletteEvent.ViewGroup.APP_COMPAT;
+      case "Legacy":
+        return LayoutPaletteEvent.ViewGroup.LEGACY;
+      default:
+        return LayoutPaletteEvent.ViewGroup.CUSTOM;
+    }
+  }
+
+  @NotNull
+  static LayoutPaletteEvent.ViewOption convertViewOption(@NotNull String tagName, @NotNull String representation) {
+    switch (tagName) {
+      case PROGRESS_BAR:
+        return convertProgressBarViewOption(representation);
+
+      case SEEK_BAR:
+        return convertSeekBarViewOption(representation);
+
+      case EDIT_TEXT:
+        return convertEditTextViewOption(representation);
+
+      case LINEAR_LAYOUT:
+        return convertLinearLayoutViewOption(representation);
+
+      default:
+        return LayoutPaletteEvent.ViewOption.NORMAL;
+    }
+  }
+
+  @NotNull
+  static LayoutAttributeChangeEvent.ViewType convertPropertiesMode(@NotNull PropertiesViewMode propertiesMode) {
+    switch (propertiesMode) {
+      case TABLE:
+        return LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE;
+      case INSPECTOR:
+      default:
+        return LayoutAttributeChangeEvent.ViewType.INSPECTOR;
+    }
+  }
+
+  @NotNull
+  static SearchOption convertFilterMatches(int matches) {
+    if (matches < 1) {
+      return SearchOption.NONE;
+    }
+    if (matches > 1) {
+      return SearchOption.MULTIPLE_MATCHES;
+    }
+    return SearchOption.SINGLE_MATCH;
+  }
+
+  @Nullable
+  @com.google.common.annotations.VisibleForTesting
+  static String getStyleValue(@NotNull String representation) {
+    Matcher matcher = STYLE_PATTERN.matcher(representation);
+    return matcher.find() ? matcher.group(1) : null;
+  }
+
+  @NotNull
+  @com.google.common.annotations.VisibleForTesting
+  static LayoutPaletteEvent.ViewOption convertProgressBarViewOption(@NotNull String representation) {
+    String styleValue = getStyleValue(representation);
+    if (styleValue == null || styleValue.equals("?android:attr/progressBarStyle")) {
+      return LayoutPaletteEvent.ViewOption.NORMAL;
+    }
+    if (styleValue.equals("?android:attr/progressBarStyleHorizontal")) {
+      return LayoutPaletteEvent.ViewOption.HORIZONTAL_PROGRESS_BAR;
+    }
+    return LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
+  }
+
+  @NotNull
+  @com.google.common.annotations.VisibleForTesting
+  static LayoutPaletteEvent.ViewOption convertSeekBarViewOption(@NotNull String representation) {
+    String styleValue = getStyleValue(representation);
+    if (styleValue == null) {
+      return LayoutPaletteEvent.ViewOption.NORMAL;
+    }
+    if (styleValue.equals("@style/Widget.AppCompat.SeekBar.Discrete")) {
+      return LayoutPaletteEvent.ViewOption.DISCRETE_SEEK_BAR;
+    }
+    return LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
+  }
+
+  @NotNull
+  @com.google.common.annotations.VisibleForTesting
+  static LayoutPaletteEvent.ViewOption convertEditTextViewOption(@NotNull String representation) {
+    Matcher matcher = INPUT_STYLE_PATTERN.matcher(representation);
+    if (!matcher.find()) {
+      return LayoutPaletteEvent.ViewOption.NORMAL;
+    }
+    LayoutPaletteEvent.ViewOption viewOption = PALETTE_VIEW_OPTION_MAP.get(matcher.group(1));
+    return viewOption != null ? viewOption : LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
+  }
+
+  @NotNull
+  @com.google.common.annotations.VisibleForTesting
+  static LayoutPaletteEvent.ViewOption convertLinearLayoutViewOption(@NotNull String representation) {
+    Matcher matcher = ORIENTATION_PATTERN.matcher(representation);
+    if (!matcher.find()) {
+      return LayoutPaletteEvent.ViewOption.HORIZONTAL_LINEAR_LAYOUT;
+    }
+    String orientation = matcher.group(1);
+    if (orientation.equals("horizontal")) {
+      return LayoutPaletteEvent.ViewOption.HORIZONTAL_LINEAR_LAYOUT;
+    }
+    if (orientation.equals("vertical")) {
+      return LayoutPaletteEvent.ViewOption.VERTICAL_LINEAR_LAYOUT;
+    }
+    return LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
   }
 }

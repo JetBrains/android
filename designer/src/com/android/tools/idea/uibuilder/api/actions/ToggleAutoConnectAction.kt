@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api.actions
 
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -43,7 +43,7 @@ class ToggleAutoConnectAction : ToggleViewAction(StudioIcons.LayoutEditor.Toolba
                            parent: NlComponent,
                            selectedChildren: List<NlComponent>,
                            selected: Boolean) {
-    NlUsageTrackerManager.getInstance(editor.scene.designSurface)
+    NlUsageTracker.getInstance(editor.scene.designSurface)
       .logAction(if (selected)
                    LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
                  else

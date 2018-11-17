@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -158,7 +158,7 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
 
   @Override
   public void logPropertyChange(@NotNull NlProperty property) {
-    NlUsageTrackerManager.getInstance(getDesignSurface()).logPropertyChange(
+    NlUsageTracker.getInstance(getDesignSurface()).logPropertyChange(
       property,
       getPropertiesPanel().getPropertiesViewMode(),
       getPropertiesPanel().getFilterMatchCount());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.analytics;
+package com.android.tools.idea.uibuilder.analytics;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
+import static com.android.SdkConstants.EDIT_TEXT;
+import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.PROGRESS_BAR;
+import static com.android.SdkConstants.SEEK_BAR;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.resources.ScreenOrientation.PORTRAIT;
+import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertEditTextViewOption;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertFilterMatches;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertGroupName;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertLinearLayoutViewOption;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertProgressBarViewOption;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertPropertiesMode;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertSeekBarViewOption;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertViewOption;
+import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.getStyleValue;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.DATE_EDITOR;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.DECIMAL_NUMBER;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.DISCRETE_SEEK_BAR;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.EMAIL;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.HORIZONTAL_LINEAR_LAYOUT;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.HORIZONTAL_PROGRESS_BAR;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.MULTILINE_TEXT;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.NORMAL;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.NUMBER;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.PASSWORD;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.PASSWORD_NUMERIC;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.PHONE;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.POSTAL_ADDRESS;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.SIGNED_NUMBER;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.TIME_EDITOR;
+import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.VERTICAL_LINEAR_LAYOUT;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -23,7 +71,11 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.*;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.AnalyticsSettingsData;
+import com.android.tools.analytics.LoggedUsage;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.idea.common.analytics.UsageTrackerUtilTest;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
@@ -32,41 +84,55 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
+import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.wireless.android.sdk.stats.*;
+import com.google.wireless.android.sdk.stats.AndroidAttribute;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import com.google.wireless.android.sdk.stats.LayoutEditorState;
+import com.google.wireless.android.sdk.stats.LayoutFavoriteAttributeChangeEvent;
+import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
+import com.google.wireless.android.sdk.stats.SearchOption;
 import com.intellij.mock.MockModule;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Executor;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.picocontainer.MutablePicoContainer;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executor;
-
-import static com.android.SdkConstants.*;
-import static com.android.resources.ScreenOrientation.PORTRAIT;
-import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class NlUsageTrackerManagerTest extends AndroidTestCase {
+public class NlUsageTrackerImplTest extends AndroidTestCase {
   private static final Executor SYNC_EXECUTOR = Runnable::run;
   private static final String ATTR_CUSTOM_NAME = "MyCustomPropertyName";
+
+  @Language("XML")
+  private static final String DISCRETE_SEEK_BAR_XML = "<SeekBar\n" +
+                                                      "    style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
+                                                      "    android:layout_width=\"wrap_content\"\n" +
+                                                      "    android:layout_height=\"wrap_content\"\n" +
+                                                      "    android:max=\"10\"\n" +
+                                                      "    android:progress=\"3\"\n" +
+                                                      "/>";
 
   private NlModel myModel;
   private AttributeDefinition myCollapseParallaxMultiplierDefinition;
@@ -99,18 +165,6 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     List<LoggedUsage> usages = usageTracker.getUsages();
     assertNotEmpty(usages);
     return usages.get(usages.size() - 1).getStudioEvent();
-  }
-
-  public void testGetInstance() {
-    // Because we are testing the actual getInstanceInner instantiation, we tell the method
-    assertEquals(NlUsageTrackerManager.NOP_TRACKER, NlUsageTrackerManager.getInstanceInner(null, true));
-
-    NlDesignSurface surface1 = mock(NlDesignSurface.class);
-    NlDesignSurface surface2 = mock(NlDesignSurface.class);
-    NlUsageTracker nlUsageTracker = NlUsageTrackerManager.getInstanceInner(surface1, true);
-    assertNotEquals(NlUsageTrackerManager.NOP_TRACKER, surface1);
-    assertEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface1, true));
-    assertNotEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface2, true));
   }
 
   // b/110242994
@@ -179,7 +233,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     AndroidStudioEvent studioEvent = getLastLogUsage();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
     assertThat(logged.getView().getTagName()).isEqualTo("ConstraintLayout");
-    assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
+    assertThat(logged.getViewOption()).isEqualTo(NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
   }
@@ -199,7 +253,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     AndroidStudioEvent studioEvent = getLastLogUsage();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
     assertThat(logged.getView().getTagName()).isEqualTo(EDIT_TEXT);
-    assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.EMAIL);
+    assertThat(logged.getViewOption()).isEqualTo(EMAIL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
   }
@@ -212,7 +266,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     AndroidStudioEvent studioEvent = getLastLogUsage();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
     assertThat(logged.getView().getTagName()).isEqualTo(CUSTOM_NAME);
-    assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
+    assertThat(logged.getViewOption()).isEqualTo(NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ADVANCED);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.SINGLE_MATCH);
   }
@@ -412,7 +466,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);
 
-    return new NlUsageTrackerManager(SYNC_EXECUTOR, surface, usageTracker::logNow) {
+    return new NlUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override
       boolean shouldLog(int percent) {
         // Log everything in tests
@@ -482,5 +536,113 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     when(component.getModel()).thenReturn(myModel);
     when(component.getTagName()).thenReturn(tagName);
     return component;
+  }
+
+  public void testConvertGroupName() {
+    assertThat(convertGroupName("All")).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
+    assertThat(convertGroupName("Widgets")).isEqualTo(LayoutPaletteEvent.ViewGroup.WIDGETS);
+    assertThat(convertGroupName("Text")).isEqualTo(LayoutPaletteEvent.ViewGroup.TEXT);
+    assertThat(convertGroupName("Layouts")).isEqualTo(LayoutPaletteEvent.ViewGroup.LAYOUTS);
+    assertThat(convertGroupName("Containers")).isEqualTo(LayoutPaletteEvent.ViewGroup.CONTAINERS);
+    assertThat(convertGroupName("Images")).isEqualTo(LayoutPaletteEvent.ViewGroup.IMAGES);
+    assertThat(convertGroupName("Date")).isEqualTo(LayoutPaletteEvent.ViewGroup.DATES);
+    assertThat(convertGroupName("Transitions")).isEqualTo(LayoutPaletteEvent.ViewGroup.TRANSITIONS);
+    assertThat(convertGroupName("Advanced")).isEqualTo(LayoutPaletteEvent.ViewGroup.ADVANCED);
+    assertThat(convertGroupName("Design")).isEqualTo(LayoutPaletteEvent.ViewGroup.DESIGN);
+    assertThat(convertGroupName("AppCompat")).isEqualTo(LayoutPaletteEvent.ViewGroup.APP_COMPAT);
+    assertThat(convertGroupName("MyGroup")).isEqualTo(LayoutPaletteEvent.ViewGroup.CUSTOM);
+  }
+
+  public void testAllGroupsOnPaletteAreRecognized() throws Exception {
+    Palette palette = getPalette();
+    palette.accept(new Palette.Visitor() {
+      @Override
+      public void visit(@NotNull Palette.Item item) {
+      }
+
+      @Override
+      public void visit(@NotNull Palette.Group group) {
+        assertThat(convertGroupName(group.getName())).isNotEqualTo(LayoutPaletteEvent.ViewGroup.CUSTOM);
+      }
+    });
+  }
+
+  public void testConvertViewOption() {
+    assertThat(convertViewOption(PROGRESS_BAR, "<ProgressBar/>")).isEqualTo(NORMAL);
+    assertThat(convertViewOption(PROGRESS_BAR, "<ProgressBar style=\"?android:attr/progressBarStyleHorizontal\"/>"))
+      .isEqualTo(HORIZONTAL_PROGRESS_BAR);
+    assertThat(convertViewOption(PROGRESS_BAR, "<ProgressBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+    assertThat(convertViewOption(SEEK_BAR, "<SeekBar/>")).isEqualTo(NORMAL);
+    assertThat(convertViewOption(SEEK_BAR, DISCRETE_SEEK_BAR_XML)).isEqualTo(DISCRETE_SEEK_BAR);
+    assertThat(convertViewOption(SEEK_BAR, "<SeekBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+    assertThat(convertViewOption(EDIT_TEXT, "<EditText/>")).isEqualTo(NORMAL);
+    assertThat(convertViewOption(EDIT_TEXT, "<EditText android:inputType=\"textPassword\"/>")).isEqualTo(PASSWORD);
+    assertThat(convertViewOption(EDIT_TEXT, "<EditText android:inputType=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+    assertThat(convertViewOption(LINEAR_LAYOUT, "<LinearLayout/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
+    assertThat(convertViewOption(LINEAR_LAYOUT, "<LinearLayout android:orientation=\"vertical\"/>")).isEqualTo(VERTICAL_LINEAR_LAYOUT);
+    assertThat(convertViewOption(LINEAR_LAYOUT, "<LinearLayout android:orientation=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+    assertThat(convertViewOption(TEXT_VIEW, "<TextView/>")).isEqualTo(NORMAL);
+  }
+
+  public void testConvertProgressBarViewOption() {
+    assertThat(convertProgressBarViewOption("<ProgressBar/>")).isEqualTo(NORMAL);
+    assertThat(convertProgressBarViewOption("<ProgressBar style=\"?android:attr/progressBarStyle\"/>")).isEqualTo(NORMAL);
+    assertThat(convertProgressBarViewOption("<ProgressBar style=\"?android:attr/progressBarStyleHorizontal\"/>"))
+      .isEqualTo(HORIZONTAL_PROGRESS_BAR);
+    assertThat(convertProgressBarViewOption("<ProgressBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+  }
+
+  public void testConvertSeekBarViewOption() {
+    assertThat(convertSeekBarViewOption("<SeekBar/>")).isEqualTo(NORMAL);
+    assertThat(convertSeekBarViewOption(DISCRETE_SEEK_BAR_XML)).isEqualTo(DISCRETE_SEEK_BAR);
+    assertThat(convertSeekBarViewOption("<SeekBar style=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+  }
+
+  public void testConvertEditTextViewOption() {
+    assertThat(convertEditTextViewOption("<EditText/>")).isEqualTo(NORMAL);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textPassword\"/>")).isEqualTo(PASSWORD);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"numberPassword\"/>")).isEqualTo(PASSWORD_NUMERIC);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textEmailAddress\"/>")).isEqualTo(EMAIL);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"phone\"/>")).isEqualTo(PHONE);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textPostalAddress\"/>")).isEqualTo(POSTAL_ADDRESS);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"textMultiLine\"/>")).isEqualTo(MULTILINE_TEXT);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"time\"/>")).isEqualTo(TIME_EDITOR);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"date\"/>")).isEqualTo(DATE_EDITOR);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"number\"/>")).isEqualTo(NUMBER);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"numberSigned\"/>")).isEqualTo(SIGNED_NUMBER);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"numberDecimal\"/>")).isEqualTo(DECIMAL_NUMBER);
+    assertThat(convertEditTextViewOption("<EditText android:inputType=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+  }
+
+  public void testConvertLinearLayoutViewOption() {
+    assertThat(convertLinearLayoutViewOption("<LinearLayout/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
+    assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"horizontal\"/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
+    assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"vertical\"/>")).isEqualTo(VERTICAL_LINEAR_LAYOUT);
+    assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
+  }
+
+  public void testConvertPropertiesMode() {
+    assertThat(convertPropertiesMode(PropertiesViewMode.INSPECTOR)).isEqualTo(LayoutAttributeChangeEvent.ViewType.INSPECTOR);
+    assertThat(convertPropertiesMode(PropertiesViewMode.TABLE)).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
+  }
+
+  public void testConvertFilterMatches() {
+    assertThat(convertFilterMatches(-1)).isEqualTo(SearchOption.NONE);
+    assertThat(convertFilterMatches(0)).isEqualTo(SearchOption.NONE);
+    assertThat(convertFilterMatches(1)).isEqualTo(SearchOption.SINGLE_MATCH);
+    assertThat(convertFilterMatches(2)).isEqualTo(SearchOption.MULTIPLE_MATCHES);
+    assertThat(convertFilterMatches(117)).isEqualTo(SearchOption.MULTIPLE_MATCHES);
+  }
+
+  public void testGetStyleValueFromSeekBar() {
+    assertThat(getStyleValue("<SeekBar/>")).isNull();
+    assertThat(getStyleValue(DISCRETE_SEEK_BAR_XML)).isEqualTo("@style/Widget.AppCompat.SeekBar.Discrete");
+  }
+
+  private static Palette getPalette() throws Exception {
+    Project project = mock(Project.class);
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
+      return Palette.parse(reader, new ViewHandlerManager(project));
+    }
   }
 }

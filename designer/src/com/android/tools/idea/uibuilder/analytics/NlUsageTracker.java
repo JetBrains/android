@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.analytics;
+package com.android.tools.idea.uibuilder.analytics;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
@@ -31,6 +34,12 @@ import java.util.List;
  * Interface for usage tracking in the layout editor. Not that implementations of these methods should aim to return immediately.
  */
 public interface NlUsageTracker {
+
+  @VisibleForTesting NlUsageTracker NOP_TRACKER = new NlNopTracker();
+  @VisibleForTesting DesignerUsageTrackerManager<NlUsageTracker> MANAGER = new DesignerUsageTrackerManager<>(
+    (a, b, c) -> new NlUsageTrackerImpl(a, b, c), NOP_TRACKER
+  );
+
   /**
    * Logs a layout editor event in the usage tracker. Note that rendering actions should be logged through the
    * {@link #logRenderResult} method so it contains additional information about the render result.
@@ -87,4 +96,13 @@ public interface NlUsageTracker {
                           @NotNull String removedPropertyName,
                           @NotNull List<String> currentFavorites,
                           @NotNull AndroidFacet facet);
+
+  /**
+   * Returns an NlUsageTracker for the given surface or a no-op tracker if the surface is null or stats tracking is disabled.
+   * The stats are also disabled during unit testing.
+   */
+  @NotNull
+  static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
+    return MANAGER.getInstance(surface);
+  }
 }
