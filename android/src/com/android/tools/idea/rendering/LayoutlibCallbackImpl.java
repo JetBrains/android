@@ -42,7 +42,6 @@ import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ENABLE
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
-import static com.android.tools.idea.res.FileResourceReader.PROTO_XML_LEAD_BYTE;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.builder.model.AaptOptions;
@@ -419,9 +418,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       ByteArrayInputStream stream = new ByteArrayInputStream(FileResourceReader.readBytes(fileName));
       // Instantiate an XML pull parser based on the contents of the stream.
       XmlPullParser parser;
-      int c = stream.read();
-      stream.reset();
-      if (c == PROTO_XML_LEAD_BYTE) {
+      if (XmlUtils.isProtoXml(stream)) {
         parser = new NamedProtoXmlParser(fileName); // Parser for proto XML used in AARs.
       } else {
         parser = new NamedXmlParser(fileName); // Parser for regular text XML.
