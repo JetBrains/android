@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
+import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,36 +41,39 @@ import static org.mockito.Mockito.when;
 public class JavaModuleDependencyTest {
   private IdeaModuleDependency myOriginalDependency;
   private IdeaModule myIdeaModule;
+  private IdeaProject myIdeaProject;
 
   @Before
   public void setUp() {
     myOriginalDependency = createMock(IdeaModuleDependency.class);
     myIdeaModule = createMock(IdeaModule.class);
+    myIdeaProject = createMock(IdeaProject.class);
   }
 
   @Test
   public void testCopyWithNullIdeaModule() {
-    expect(myOriginalDependency.getDependencyModule()).andStubReturn(null);
-    replay(myOriginalDependency, myIdeaModule);
-    assertNull(JavaModuleDependency.copy(myOriginalDependency));
+
+    expect(myIdeaProject.getModules()).andReturn(ImmutableDomainObjectSet.of(ImmutableList.of()));
+    replay(myOriginalDependency, myIdeaModule, myIdeaProject);
+    assertNull(JavaModuleDependency.copy(myIdeaProject, myOriginalDependency));
     verify(myOriginalDependency, myIdeaModule);
   }
 
   @Test
   public void testCopyWithNullModuleName() {
-    expect(myOriginalDependency.getDependencyModule()).andStubReturn(myIdeaModule);
+    expect(myIdeaProject.getModules()).andReturn(ImmutableDomainObjectSet.of(ImmutableList.of()));
     expect(myIdeaModule.getName()).andStubReturn(null);
-    replay(myOriginalDependency, myIdeaModule);
-    assertNull(JavaModuleDependency.copy(myOriginalDependency));
+    replay(myOriginalDependency, myIdeaModule, myIdeaProject);
+    assertNull(JavaModuleDependency.copy(myIdeaProject, myOriginalDependency));
     verify(myOriginalDependency, myIdeaModule);
   }
 
   @Test
   public void testCopyWithEmptyModuleName() {
-    expect(myOriginalDependency.getDependencyModule()).andStubReturn(myIdeaModule);
+    expect(myIdeaProject.getModules()).andReturn(ImmutableDomainObjectSet.of(ImmutableList.of()));
     expect(myIdeaModule.getName()).andStubReturn("");
-    replay(myOriginalDependency, myIdeaModule);
-    assertNull(JavaModuleDependency.copy(myOriginalDependency));
+    replay(myOriginalDependency, myIdeaModule, myIdeaProject);
+    assertNull(JavaModuleDependency.copy(myIdeaProject, myOriginalDependency));
     verify(myOriginalDependency, myIdeaModule);
   }
 
@@ -84,16 +91,18 @@ public class JavaModuleDependencyTest {
     when(gradleProject.getProjectIdentifier()).thenReturn(projectIdentifier);
     when(gradleProject.getPath()).thenReturn(":lib");
 
-    expect(myOriginalDependency.getDependencyModule()).andStubReturn(myIdeaModule);
     expect(myIdeaModule.getName()).andStubReturn(moduleName);
     expect(myIdeaModule.getGradleProject()).andStubReturn(gradleProject);
     expect(myOriginalDependency.getScope()).andStubReturn(scope);
+    expect(myOriginalDependency.getTargetModuleName()).andReturn(moduleName);
     expect(myOriginalDependency.getExported()).andStubReturn(true);
     expect(scope.getScope()).andStubReturn("compile");
 
-    replay(myOriginalDependency, myIdeaModule, scope);
+    DomainObjectSet listOfModules = ImmutableDomainObjectSet.of(ImmutableList.of(myIdeaModule));
+    expect(myIdeaProject.getModules()).andReturn(listOfModules);
+    replay(myOriginalDependency, myIdeaModule, myIdeaProject, scope);
 
-    JavaModuleDependency copy = JavaModuleDependency.copy(myOriginalDependency);
+    JavaModuleDependency copy = JavaModuleDependency.copy(myIdeaProject, myOriginalDependency);
     assertNotNull(copy);
     assertEquals(moduleName, copy.getModuleName());
     assertSame("compile", copy.getScope());
