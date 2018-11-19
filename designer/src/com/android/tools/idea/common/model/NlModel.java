@@ -17,12 +17,10 @@ package com.android.tools.idea.common.model;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -70,7 +68,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ThreeState;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,7 +90,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final boolean CHECK_MODEL_INTEGRITY = false;
-  private static final String MATERIAL2_BASE_THEME = STYLE_RESOURCE_PREFIX + "Platform.MaterialComponents";
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
@@ -108,7 +104,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ModelVersion myModelVersion = new ModelVersion();
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
-  private ThreeState myUsingMaterial2Theme = ThreeState.UNSURE;
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
@@ -179,45 +174,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
       }
     }
-    myUsingMaterial2Theme = ThreeState.UNSURE;
-  }
-
-  public boolean usingMaterial2Theme() {
-    if (myUsingMaterial2Theme == ThreeState.UNSURE) {
-      myUsingMaterial2Theme = checkUsingMaterial2Theme();
-    }
-    return myUsingMaterial2Theme == ThreeState.YES;
-  }
-
-  private ThreeState checkUsingMaterial2Theme() {
-    StyleResourceValue material2Theme = findTheme(MATERIAL2_BASE_THEME);
-    StyleResourceValue appTheme = findTheme(myConfiguration.getTheme());
-    ResourceResolver resolver = myConfiguration.getResourceResolver();
-    if (resolver == null || material2Theme == null || appTheme == null) {
-      return ThreeState.NO;
-    }
-    return ThreeState.fromBoolean(resolver.themeIsChildOfAny(appTheme, material2Theme));
-  }
-
-  @Nullable
-  private StyleResourceValue findTheme(@NotNull String name) {
-    ResourceUrl style = ResourceUrl.parse(name);
-    if (style == null) {
-      return null;
-    }
-    ResourceNamespace.Resolver namespaceResolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
-    if (myRootComponent != null) {
-      namespaceResolver = ResourceHelper.getNamespaceResolver(myRootComponent.getTag());
-    }
-    ResourceReference reference = style.resolve(ResourceNamespace.TODO(), namespaceResolver);
-    if (reference == null) {
-      return null;
-    }
-    ResourceResolver resolver = myConfiguration.getResourceResolver();
-    if (resolver == null) {
-      return null;
-    }
-    return resolver.getStyle(reference);
   }
 
   private void deactivate() {
