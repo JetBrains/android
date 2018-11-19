@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 

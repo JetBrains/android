@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;

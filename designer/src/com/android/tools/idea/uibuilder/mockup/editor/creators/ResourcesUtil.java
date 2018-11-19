@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.common.model.NlModel;

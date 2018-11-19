@@ -19,7 +19,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 

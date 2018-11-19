@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.common.model.NlAttributesHolder;
-import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;

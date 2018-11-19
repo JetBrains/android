@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.scout;
 
 import com.android.SdkConstants;
 
-import java.util.Arrays;
-
 /**
  * Possible directions for a connection
  */

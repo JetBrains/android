@@ -28,7 +28,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 

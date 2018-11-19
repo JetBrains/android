@@ -25,7 +25,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
-import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;

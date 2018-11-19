@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;

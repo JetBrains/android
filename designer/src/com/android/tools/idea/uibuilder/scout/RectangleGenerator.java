@@ -1,7 +1,5 @@
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.model.NlComponent;
-
 import java.util.ArrayList;
 import java.util.Random;
 

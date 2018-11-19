@@ -1,25 +1,15 @@
 package com.android.tools.idea.uibuilder.layout3d;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
 import com.android.ddmlib.*;
-import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.Layer;
-import com.android.tools.pixelprobe.PixelProbe;
-import com.android.tools.pixelprobe.decoder.Decoder;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.List;
-import java.io.IOException;
-import java.io.File;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.tools.pixelprobe.decoder.Decoder.Options.LAYER_METADATA_ONLY;
 
 
 public class LayerDisplay {
