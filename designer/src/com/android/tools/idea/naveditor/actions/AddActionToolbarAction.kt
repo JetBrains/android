@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.actions
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavActionElement
 
@@ -37,10 +36,8 @@ class AddActionToolbarAction(surface: NavDesignSurface) :
     surface.selectionModel.selection.firstOrNull()?.let {
       val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it)
       if (dialog.showAndGet()) {
-        WriteCommandAction.runWriteCommandAction(it.model.project) {
-          val action = dialog.writeUpdatedAction()
-          surface.selectionModel.setSelection(listOf(action))
-        }
+        val action = dialog.writeUpdatedAction()
+        surface.selectionModel.setSelection(listOf(action))
       }
     }
   }
