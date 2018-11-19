@@ -49,13 +49,13 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
       (Consumer { it.queryUnifiedEvents() }))
   }
 
-  private fun insertData(count: Int, incrementSession: Boolean, incrementEventId: Boolean): List<Common.Event> {
+  private fun insertData(count: Int, incrementSession: Boolean, incrementGroupId: Boolean): List<Common.Event> {
     val events = mutableListOf<Common.Event>()
     for (i in 0 until count) {
       val event = eventBuilder(Common.Event.Kind.SESSION,
                                Common.Event.Type.SESSION_STARTED,
                                if (!incrementSession) 1L else i + 1L,
-                               if (!incrementEventId) 1L else i + 1L,
+                               if (!incrementGroupId) 1L else i + 1L,
                                i + 1L)
       events.add(event)
       table.insertUnifiedEvent(1, event)
@@ -70,7 +70,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
       kind = Common.Event.Kind.SESSION
       type = Common.Event.Type.SESSION_STARTED
       sessionId = 1
-      eventId = 1
+      groupId = 1
       sessionStarted = Common.SessionStarted.newBuilder().setPid(1).build()
     }.build()
     table.insertUnifiedEvent(1, event)
@@ -200,7 +200,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
         if (request.sessionId != 0L && request.sessionId != it.sessionId) {
           result = false
         }
-        if (request.groupId != 0L && request.groupId != it.eventId) {
+        if (request.groupId != 0L && request.groupId != it.groupId) {
           result = false
         }
         if (request.fromTimestamp != 0L && it.timestamp < request.fromTimestamp) {
@@ -236,7 +236,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
       .setKind(kind)
       .setType(type)
       .setSessionId(sessionId)
-      .setEventId(eventId)
+      .setGroupId(eventId)
       .setTimestamp(timestamp)
       .build()
   }

@@ -290,7 +290,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   private void streamConnected(Common.Stream stream, ProfilerServiceGrpc.ProfilerServiceBlockingStub stub) {
     myUnifiedEventsTable.insertUnifiedEvent(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Event.newBuilder()
       .setKind(Event.Kind.STREAM)
-      .setEventId(stream.getStreamId())
+      .setGroupId(stream.getStreamId())
       .setType(Event.Type.STREAM_CONNECTED)
       .setTimestamp(System.nanoTime())
       .setStream(stream)
@@ -301,7 +301,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     myUnifiedEventsTable.insertUnifiedEvent(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Event.newBuilder()
       .setKind(Event.Kind.STREAM)
       .setType(Event.Type.STREAM_DISCONNECTED)
-      .setEventId(stream.getStreamId())
+      .setGroupId(stream.getStreamId())
       .setStream(stream)
       .setTimestamp(System.nanoTime())
       .build());

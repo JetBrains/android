@@ -105,9 +105,9 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     StreamObserver<GetEventGroupsResponse> observer = mock(StreamObserver.class);
     myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
     EventGroup expectedGroup = EventGroup.newBuilder()
-      .setEventId(DEVICE_ID)
+      .setGroupId(DEVICE_ID)
       .addEvents(Event.newBuilder()
-                   .setEventId(DEVICE_ID)
+                   .setGroupId(DEVICE_ID)
                    .setKind(Event.Kind.STREAM)
                    .setType(Event.Type.STREAM_CONNECTED)
                    .setStream(Stream.newBuilder()
@@ -128,7 +128,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
     verify(observer, times(1)).onNext(response.capture());
     expectedGroup = expectedGroup.toBuilder().addEvents(Event.newBuilder()
-                                                          .setEventId(DEVICE_ID)
+                                                          .setGroupId(DEVICE_ID)
                                                           .setKind(Event.Kind.STREAM)
                                                           .setType(Event.Type.STREAM_DISCONNECTED)
                                                           .setTimestamp(100)
