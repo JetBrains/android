@@ -60,7 +60,7 @@ class ResourceDataManagerTest {
       .getAppResources(true)!!
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()
-    val colorAssetSet = DesignAssetSet("name", listOf(DesignAsset(colorItem)))
+    val colorAssetSet = DesignAssetSet("name", listOf(DesignAsset.fromResourceItem(colorItem)!!))
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
     val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAssetSet)) as Array<PsiElement> }
@@ -81,7 +81,7 @@ class ResourceDataManagerTest {
   @Test
   fun getFilePsiElement() {
     val pngItem = rule.getPNGResourceItem()
-    val colorAssetSet = DesignAssetSet("name", listOf(DesignAsset(pngItem)))
+    val colorAssetSet = DesignAssetSet("name", listOf(DesignAsset.fromResourceItem(pngItem)!!))
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
     val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAssetSet)) as Array<PsiElement> }

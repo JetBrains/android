@@ -209,12 +209,13 @@ class ProjectResourcesBrowserViewModel(
 
 private fun createResourceSection(type: ResourceType,
                                   libraryName: String,
-                                  resourceItems: List<ResourceItem>) =
-  ResourceSection(type,
-                  libraryName,
-                  resourceItems.map { DesignAsset(it) }
-                    .groupBy { it.name }
-                    .map { (name, assets) -> DesignAssetSet(name, assets) })
+                                  resourceItems: List<ResourceItem>): ResourceSection {
+  val designAssets = resourceItems
+    .mapNotNull { DesignAsset.fromResourceItem(it) }
+    .groupBy(DesignAsset::name)
+    .map { (name, assets) -> DesignAssetSet(name, assets) }
+  return ResourceSection(type, libraryName, designAssets)
+}
 
 data class ResourceSection(val type: ResourceType,
                            val libraryName: String = "",
