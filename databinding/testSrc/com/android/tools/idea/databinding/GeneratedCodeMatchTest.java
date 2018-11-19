@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding;
 
 import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
-import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -92,7 +92,7 @@ public class GeneratedCodeMatchTest {
     public TestParameters(@NotNull DataBindingMode mode) {
       this.mode = mode;
 
-      projectName = mode == DataBindingMode.ANDROIDX ? PROJECT_WITH_DATA_BINDING_ANDROID_X : PROJECT_WITH_DATA_BINDING;
+      projectName = mode == DataBindingMode.ANDROIDX ? PROJECT_WITH_DATA_BINDING_ANDROID_X : PROJECT_WITH_DATA_BINDING_SUPPORT;
       dataBindingComponentClassName = mode.dataBindingComponent.replace(".", "/");
       dataBindingLibArtifact = mode == DataBindingMode.ANDROIDX ? ANDROIDX_DATA_BINDING_LIB_ARTIFACT : DATA_BINDING_LIB_ARTIFACT;
       dataBindingBaseBindingClass = mode.viewDataBinding.replace(".", "/") + ".class";
