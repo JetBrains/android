@@ -88,7 +88,6 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
@@ -520,8 +519,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static class ClearConstraintsAction extends DirectViewAction {
 
+    private static final String MESSAGE_DELETE_CONSTRAINT = "Delete all the constraints in the current layout?";
+
     private ClearConstraintsAction() {
       super(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, "Clear All Constraints");
+    }
+
+    @Override
+    @Nullable
+    public String getConfirmationMessage() {
+      return MESSAGE_DELETE_CONSTRAINT;
     }
 
     @Override
@@ -532,11 +539,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
-      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
-      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Delete all the constraints in the current layout?", getLabel(), getIcon()) == Messages.YES) {
-        viewEditor.getScene().clearAllConstraints();
-        ensureLayersAreShown(editor, 1000);
-      }
+
+      editor.getScene().clearAllConstraints();
+      ensureLayersAreShown(editor, 1000);
     }
   }
 
@@ -573,7 +578,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
       // Todo we should log
       String cl_name = DependencyManagementUtil.mapAndroidxName(component.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT);
       if (!component.getTag().getName().equals(cl_name)) {

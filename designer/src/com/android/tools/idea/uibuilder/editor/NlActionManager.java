@@ -59,6 +59,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
 import java.awt.event.KeyEvent;
@@ -447,7 +448,14 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public final void actionPerformed(@NotNull AnActionEvent e) {
+      // TODO: refactor this function to remove getConfirmationMessage and affectsUndo.
+      String confirmationMessage = myAction.getConfirmationMessage();
+      if (confirmationMessage != null
+          && Messages.showYesNoDialog(mySurface, confirmationMessage, myAction.getLabel(), myAction.getIcon()) != Messages.YES) {
+          // User refused the action.
+          return;
+      }
       if (myAction.affectsUndo()) {
         NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
           myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers()));
