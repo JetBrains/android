@@ -324,6 +324,12 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("databinding_highlighting_enum_map.xml");
   }
 
+  public void testDataBindingHighlighting_unknownAttribute() throws Throwable {
+    // Regression test for issue http://b.android.com/195485
+    // Don't highlight data binding attributes as unknown
+    doTestHighlighting("databinding_highlighting_unknown_attribute.xml");
+  }
+
   public void testDataBindingCompletion_caretInVariableBlockWithNoParams() throws Throwable {
     doTestCompletionVariants("databinding_completion_variable_no_params.xml", "name", "type");
   }
@@ -1357,12 +1363,6 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testAarDependencyHighlightingNamespaced() throws Throwable {
     enableNamespacing("myapp");
     ResourcesTestsUtil.addBinaryAarDependency(myModule);
-    doTestHighlighting();
-  }
-
-  public void testUnknownDataBindingAttribute() throws Throwable {
-    // Regression test for issue http://b.android.com/195485
-    // Don't highlight data binding attributes as unknown
     doTestHighlighting();
   }
 
