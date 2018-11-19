@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.testing.AndroidDomRule;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
@@ -56,8 +57,11 @@ import java.util.stream.Collectors;
  * </ul>
  * Some of these methods use test name to choose a file from testData folder they're going to use, look out for
  * {@link #getTestName(String, boolean)} and similar methods to spot that.
+ *
+ * @deprecated Consider using {@link AndroidDomRule} and JUnit4 instead.
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
+@Deprecated
 public abstract class AndroidDomTestCase extends AndroidTestCase {
   protected final String myTestFolder;
 
