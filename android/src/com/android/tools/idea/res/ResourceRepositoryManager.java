@@ -29,25 +29,34 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.function.Function;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -559,16 +568,43 @@ public class ResourceRepositoryManager implements Disposable {
   @NotNull
   private Map<ExternalLibrary, AarResourceRepository> computeLibraryResourceMap() {
     Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
-    Map<ExternalLibrary, AarResourceRepository> result = new LinkedHashMap<>(libraries.size());
-    for (ExternalLibrary library: libraries) {
-      AarResourceRepository aarRepository;
-      if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
-        aarRepository = AarResourceRepositoryCache.getInstance().getSourceRepository(library);
-      } else {
-        aarRepository = AarResourceRepositoryCache.getInstance().getProtoRepository(library);
-      }
-      result.put(library, aarRepository);
+
+    AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
+    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == AaptOptions.Namespacing.DISABLED ?
+                                                               aarResourceRepositoryCache::getSourceRepository :
+                                                               aarResourceRepositoryCache::getProtoRepository;
+
+    int maxThreads = ForkJoinPool.getCommonPoolParallelism();
+    ExecutorService executorService =
+      AppExecutorUtil.createBoundedApplicationPoolExecutor(ResourceRepositoryManager.class.getName(), maxThreads);
+
+    // Construct the repositories in parallel.
+    Map<ExternalLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
+    for (ExternalLibrary library : libraries) {
+      futures.put(library, executorService.submit(() -> factory.apply(library)));
     }
-    return Collections.unmodifiableMap(result);
+
+    // Gather all the results.
+    ImmutableMap.Builder<ExternalLibrary, AarResourceRepository> map = ImmutableMap.builder();
+    for (Map.Entry<ExternalLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
+      try {
+        map.put(entry.getKey(), entry.getValue().get());
+      }
+      catch (ExecutionException e) {
+        cancelPendingTasks(futures.values());
+        Throwables.throwIfUnchecked(e.getCause());
+        throw new UncheckedExecutionException(e.getCause());
+      }
+      catch (InterruptedException e) {
+        cancelPendingTasks(futures.values());
+        throw new ProcessCanceledException(e);
+      }
+    }
+
+    return map.build();
+  }
+
+  private static void cancelPendingTasks(Collection<Future<AarResourceRepository>> futures) {
+    futures.forEach(f -> f.cancel(true));
   }
 }
