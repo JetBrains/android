@@ -25,6 +25,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
+private const val IMPORT_COMMAND_NAME = "Import resources"
+
 /**
  * Manage importing a batch of resources into the project.
  */
@@ -43,12 +45,13 @@ class DesignAssetImporter {
       .groupBy { designAsset -> getFolderName(designAsset) }
 
     LocalFileSystem.getInstance().refreshIoFiles(listOf(resFolder))
-    WriteCommandAction.runWriteCommandAction(androidFacet.module.project) {
+
+    WriteCommandAction.runWriteCommandAction(androidFacet.module.project, IMPORT_COMMAND_NAME, null, {
       groupedAssets
         .forEach { folderName, designAssets ->
           copyAssetsInFolder(folderName, designAssets, resFolder)
         }
-    }
+    }, emptyArray())
   }
 
   /**
