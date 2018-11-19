@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.manifest;
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.NS_RESOURCES;
 
+import com.android.SdkConstants;
 import com.android.builder.model.ProductFlavor;
 import com.android.ide.common.util.PathString;
 import com.android.ide.common.util.PathStrings;
@@ -160,19 +161,19 @@ public class AndroidManifestUtils {
   public static Collection<String> getCustomPermissions(@NotNull AndroidFacet androidFacet) {
     // TODO(b/110188226): read the merged manifest
     XmlFile manifest = getManifest(androidFacet);
-    return manifest == null? null : getAndroidNamesForTags(manifest, "permission");
+    return manifest == null? null : getAndroidNamesForTags(manifest, SdkConstants.TAG_PERMISSION);
   }
 
   @Nullable
   public static Collection<String> getCustomPermissionGroups(@NotNull AndroidFacet androidFacet) {
     // TODO(b/110188226): read the merged manifest
     XmlFile manifest = getManifest(androidFacet);
-    return manifest == null? null : getAndroidNamesForTags(manifest, "permission-group");
+    return manifest == null? null : getAndroidNamesForTags(manifest, SdkConstants.TAG_PERMISSION_GROUP);
   }
 
   @Nullable
   private static XmlFile getManifest(@NotNull AndroidFacet androidFacet) {
-    VirtualFile file = androidFacet.getMainIdeaSourceProvider().getManifestFile();
+    VirtualFile file = androidFacet.getManifestFile();
     if (file == null) {
       return null;
     }
@@ -195,7 +196,7 @@ public class AndroidManifestUtils {
         if (!tagName.equals(tag.getName())) {
           return;
         }
-        String androidName = tag.getAttributeValue("android:name");
+        String androidName = tag.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
         if (androidName != null) {
           androidNames.add(androidName);
         }

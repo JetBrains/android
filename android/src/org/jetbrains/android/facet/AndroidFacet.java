@@ -158,8 +158,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     getConfiguration().disposeFacet();
   }
 
+  /**
+   * @see #getManifest()
+   */
   @Nullable
-  public Manifest getManifest() {
+  public VirtualFile getManifestFile() {
     // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
     // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
     // general, but pretending there was no manifest terminates many code paths early.
@@ -167,7 +170,18 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return null;
     }
 
-    VirtualFile manifestFile = getMainIdeaSourceProvider().getManifestFile();
+    return getMainIdeaSourceProvider().getManifestFile();
+  }
+
+  /**
+   * Creates and returns a DOM representation of the manifest. This may come with significant overhead,
+   * as initializing the DOM model requires parsing the manifest. In performance-critical situations,
+   * callers may want to consider getting the manifest as a {@link VirtualFile} with {@link #getManifestFile()}
+   * and searching the corresponding PSI file manually.
+   */
+  @Nullable
+  public Manifest getManifest() {
+    VirtualFile manifestFile = getManifestFile();
     return manifestFile != null ? loadDomElement(getModule(), manifestFile, Manifest.class) : null;
   }
 
