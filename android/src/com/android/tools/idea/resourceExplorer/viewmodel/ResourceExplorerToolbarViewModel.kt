@@ -16,9 +16,12 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.importer.chooseDesignAssets
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
 import com.android.tools.idea.resourceExplorer.plugin.ResourceImporter
+import com.android.tools.idea.resourceExplorer.view.ResourceImportDialog
 import com.android.tools.idea.util.androidFacet
+import com.intellij.icons.AllIcons
 import com.intellij.ide.IdeView
 import com.intellij.ide.util.DirectoryChooserUtil
 import com.intellij.openapi.actionSystem.ActionManager
@@ -27,10 +30,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.SystemInfo
@@ -72,6 +77,8 @@ class ResourceExplorerToolbarViewModel(
       add(actionManager.getAction("NewAndroidImageAsset"))
       add(actionManager.getAction("NewAndroidVectorAsset"))
       add(CreateResourceFileAction.getInstance())
+      add(Separator())
+      add(ImportResourceAction())
     }
 
   /**
@@ -155,5 +162,13 @@ class ResourceExplorerToolbarViewModel(
           }
         }
       }
+  }
+
+  inner class ImportResourceAction : AnAction("Import...", "Import files from disk", AllIcons.Actions.Upload), DumbAware {
+    override fun actionPerformed(e: AnActionEvent) {
+      chooseDesignAssets(importersProvider) {
+        ResourceImportDialog(facet, it).show()
+      }
+    }
   }
 }
