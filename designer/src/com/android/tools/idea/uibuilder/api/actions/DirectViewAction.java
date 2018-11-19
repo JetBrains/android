@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
-import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +35,15 @@ import java.util.List;
  * be included in context menus for actions.
  */
 public abstract class DirectViewAction extends AbstractViewAction {
+
+  /**
+   * Returns an optional confirmation message to be displayed to the user before performing the action.
+   */
+  @Nullable
+  public String getConfirmationMessage() {
+    return null;
+  }
+
   /**
    * Creates a new view action. If you use this method you must also override
    * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
