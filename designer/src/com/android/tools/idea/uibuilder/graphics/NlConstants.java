@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.graphics;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 
 import java.awt.*;
 

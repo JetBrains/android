@@ -19,8 +19,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.util.ui.EmptyIcon;
-import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Component;
 import java.awt.Dimension;
