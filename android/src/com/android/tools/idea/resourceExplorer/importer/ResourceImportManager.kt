@@ -17,14 +17,18 @@ package com.android.tools.idea.resourceExplorer.importer
 
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.util.toIoFile
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
+import java.nio.file.InvalidPathException
 import kotlin.streams.toList
 
+private const val PREFERENCE_LAST_SELECTED_DIRECTORY = "resourceExplorer.lastChosenDirectory"
 /**
  * Returns a flat list of all the actual files (and not directory) within the hierarchy of this file.
  */
@@ -53,9 +57,18 @@ fun toDesignAssetSets(files: List<File>, importersProvider: ImportersProvider) =
  * the files converted into DesignAssetSet.
  */
 fun chooseDesignAssets(importersProvider: ImportersProvider, fileChosenCallback: (List<DesignAssetSet>) -> Unit) {
+  val lastChosenDirFile: VirtualFile? = PropertiesComponent.getInstance().getValue(PREFERENCE_LAST_SELECTED_DIRECTORY)?.let {
+    try {
+      VfsUtil.findFile(File(it).toPath(), true)
+    }
+    catch (ex: InvalidPathException) {
+      null
+    }
+  }
   val fileChooserDescriptor = createFileDescriptor(importersProvider)
-  FileChooserFactory.getInstance().createPathChooser(fileChooserDescriptor, null, null).choose(null) { selectedFiles ->
+  FileChooserFactory.getInstance().createPathChooser(fileChooserDescriptor, null, null).choose(lastChosenDirFile) { selectedFiles ->
     fileChosenCallback(recursivelyFindAllDesignAssets(importersProvider, selectedFiles))
+    PropertiesComponent.getInstance().setValue(PREFERENCE_LAST_SELECTED_DIRECTORY, selectedFiles.firstOrNull()?.path)
   }
 }
 

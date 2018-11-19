@@ -155,7 +155,8 @@ fun main(vararg args: String) {
   runInEdt {
     UIManager.setLookAndFeel(DarculaLaf())
     JFrame().apply {
-      contentPane = ResourceImportDialog(staticRule.module.androidFacet!!, getAssets(staticRule.fixture.testDataPath)).root
+      contentPane = ResourceImportDialog(
+        ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(staticRule.fixture.testDataPath))).root
       pack()
       isVisible = true
     }

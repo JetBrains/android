@@ -34,7 +34,7 @@ class DesignAssetImporter {
 
   val folderConfiguration = FolderConfiguration()
 
-  fun importDesignAssets(assetSets: List<DesignAssetSet>,
+  fun importDesignAssets(assetSets: Collection<DesignAssetSet>,
                          androidFacet: AndroidFacet,
                          resFolder: File = getDefaultResDirectory(androidFacet)) {
 
