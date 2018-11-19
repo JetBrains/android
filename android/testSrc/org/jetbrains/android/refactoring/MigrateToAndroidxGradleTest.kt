@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROIDX
+import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
@@ -40,7 +40,7 @@ private fun String.replaceCompileSdkWith(version: String) =
 class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
 
   fun testMigrationRefactoring() {
-    loadProject(MIGRATE_TO_ANDROIDX)
+    loadProject(MIGRATE_TO_ANDROID_X)
     runProcessor()
 
     val activityMain = getTextForFile("app/src/main/res/layout/activity_main.xml")
@@ -76,7 +76,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   }
 
   fun testExistingGradleProperties() {
-    loadProject(MIGRATE_TO_ANDROIDX)
+    loadProject(MIGRATE_TO_ANDROID_X)
 
     runWriteAction {
       val gradlePropertiesFile = project.baseDir.createChildData(this, "gradle.properties")
@@ -96,7 +96,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   }
 
   fun testVerifyPrerequisites() {
-    loadProject(MIGRATE_TO_ANDROIDX)
+    loadProject(MIGRATE_TO_ANDROID_X)
 
     val appGradleFile = myFixture.project.baseDir.findFileByRelativePath("app/build.gradle")!!
     val appGradleContent = getTextForFile("app/build.gradle")
@@ -133,7 +133,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   }
 
   fun testWarning() {
-    loadProject(MIGRATE_TO_ANDROIDX)
+    loadProject(MIGRATE_TO_ANDROID_X)
 
     val warningMessage = """Before proceeding, we recommend that you make a backup of your project.
       |

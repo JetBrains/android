@@ -15,7 +15,7 @@
  */
 package com.android.tools.perf.idea.gradle.project.sync;
 
-import static com.android.tools.idea.testing.TestProjectPaths.SYNC_PERF_AVERAGE_PROJECT;
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_AVERAGE_PERF_PROJECT;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ public class IDEASyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
   public String getRelativePath() {
-    return SYNC_PERF_AVERAGE_PROJECT;
+    return SYNC_AVERAGE_PERF_PROJECT;
   }
 
   @Override
