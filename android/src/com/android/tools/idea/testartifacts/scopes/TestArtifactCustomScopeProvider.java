@@ -25,6 +25,7 @@ import com.intellij.psi.search.scope.packageSet.AbstractPackageSet;
 import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
+import com.intellij.ui.FileColorName;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -69,7 +70,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     return false;
   }
 
-  public static class AndroidTestsScope extends NamedScope {
+  public static class AndroidTestsScope extends NamedScope implements FileColorName {
     public static final String NAME = AndroidBundle.message("android.test.run.configuration.type.name");
     public AndroidTestsScope() {
       super(NAME, AndroidIcons.AndroidTestsScope, new AbstractPackageSet("test:*..*") {
@@ -84,12 +85,17 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
         }
       });
     }
+
+    @Override
+    public String colorName() {
+      return "Yellow";
+    }
   }
 
   /**
    * Scope that contains "local" (i.e. running on the JVM) unit tests from Android and Java modules.
    */
-  public static class UnitTestsScope extends NamedScope {
+  public static class UnitTestsScope extends NamedScope implements FileColorName {
     public static final String NAME = "Local Unit Tests";
     public UnitTestsScope() {
       super(NAME, AndroidIcons.AndroidTestsScope, new AbstractPackageSet("test:*..*") {
@@ -110,6 +116,11 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
           }
         }
       });
+    }
+
+    @Override
+    public String colorName() {
+      return "Green";
     }
   }
 
