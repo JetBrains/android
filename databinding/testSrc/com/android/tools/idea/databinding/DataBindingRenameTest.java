@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -72,7 +72,8 @@ public class DataBindingRenameTest {
   @Before
   public void setUp() {
     myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
-    myProjectRule.load(myDataBindingMode == DataBindingMode.SUPPORT ? PROJECT_WITH_DATA_BINDING : PROJECT_WITH_DATA_BINDING_ANDROID_X);
+    myProjectRule.load(myDataBindingMode == DataBindingMode.SUPPORT ? PROJECT_WITH_DATA_BINDING_SUPPORT
+                                                                    : PROJECT_WITH_DATA_BINDING_ANDROID_X);
   }
 
   private void checkAndRename(String newName) {

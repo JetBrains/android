@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -56,7 +56,7 @@ public class DataBindingAdapterAttributesTest {
   private final String myProjectName;
 
   public DataBindingAdapterAttributesTest(@NotNull DataBindingMode mode) {
-    myProjectName = mode == DataBindingMode.SUPPORT ? PROJECT_WITH_DATA_BINDING : PROJECT_WITH_DATA_BINDING_ANDROID_X;
+    myProjectName = mode == DataBindingMode.SUPPORT ? PROJECT_WITH_DATA_BINDING_SUPPORT : PROJECT_WITH_DATA_BINDING_ANDROID_X;
   }
 
   @Before

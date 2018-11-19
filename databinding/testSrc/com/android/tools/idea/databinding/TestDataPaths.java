@@ -23,7 +23,7 @@ import com.android.testutils.TestUtils;
 public final class TestDataPaths {
   public static final String TEST_DATA_ROOT = TestUtils.getWorkspaceFile("tools/adt/idea/databinding/testData").getPath();
 
-  public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
+  public static final String PROJECT_WITH_DATA_BINDING_SUPPORT = "projects/projectWithDataBindingSupport";
   public static final String PROJECT_WITH_DATA_BINDING_ANDROID_X = "projects/projectWithDataBindingAndroidX";
   public static final String PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB = "projects/projectWithDataBindingAndSimpleLib";
 }
