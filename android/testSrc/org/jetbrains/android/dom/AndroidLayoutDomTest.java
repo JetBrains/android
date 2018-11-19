@@ -3,8 +3,6 @@ package org.jetbrains.android.dom;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -301,58 +299,6 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.addClass(myLayoutManager);
     myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs);
     doTestHighlighting("recycler_view_1.xml");
-  }
-
-  // TODO b/119441165: Move data binding highlighting tests from AndroidLayoutDomTest out of core module
-  public void testDataBindingHighlighting_complexLayoutWithErrorsAndWarnings() throws Throwable {
-    // TODO test w/ X
-    DataBindingUtil.setDataBindingMode(myFacet, DataBindingMode.SUPPORT);
-    copyFileToProject("DataBindingUser.java", "src/p1/p2/DataBindingUser.java");
-    doTestHighlighting("databinding_highlighting_complex.xml");
-  }
-
-  public void testDataBindingHighlighting_unknownTypeResultsInError() throws Throwable {
-    // TODO test w/ X
-    DataBindingUtil.setDataBindingMode(myFacet, DataBindingMode.SUPPORT);
-    doTestHighlighting("databinding_highlighting_unknown_type.xml");
-  }
-
-  public void testDataBindingHighlighting_handlesEnumMap() throws Throwable {
-    // TODO test w/ X
-    DataBindingUtil.setDataBindingMode(myFacet, DataBindingMode.SUPPORT);
-    copyFileToProject("DataBindingWithEnumMap.java", "src/p1/p2/DataBindingWithEnumMap.java");
-    doTestHighlighting("databinding_highlighting_enum_map.xml");
-  }
-
-  public void testDataBindingHighlighting_unknownAttribute() throws Throwable {
-    // Regression test for issue http://b.android.com/195485
-    // Don't highlight data binding attributes as unknown
-    doTestHighlighting("databinding_highlighting_unknown_attribute.xml");
-  }
-
-  public void testDataBindingCompletion_caretInVariableBlockWithNoParams() throws Throwable {
-    doTestCompletionVariants("databinding_completion_variable_no_params.xml", "name", "type");
-  }
-
-  public void testDataBindingCompletion_caretInVariableBlockStartingNameParam() throws Throwable {
-    toTestCompletion("databinding_completion_variable_name_param.xml", "databinding_completion_variable_name_param_after.xml");
-  }
-
-  public void testDataBindingCompletion_caretInVariableBlockTypeParam() throws Throwable {
-    toTestCompletion("databinding_completion_variable_type_param.xml", "databinding_completion_variable_type_param_after.xml");
-  }
-
-  public void testDataBindingCompletion_caretInExpression() throws Throwable {
-    toTestCompletion("databinding_completion_expression.xml", "databinding_completion_expression_after.xml");
-    //doTestCompletionVariants("databinding_completion_expression.xml", "safeUnbox", "superCool");
-  }
-
-  /**
-   * Regression test for https://issuetracker.google.com/37104001.
-   * Code completion in views inside a <layout> tag need to pick up default layout parameters.
-   */
-  public void testDataBindingCompletion_caretInAndroidAttribute() throws Throwable {
-    toTestCompletion("databinding_completion_attribute.xml", "databinding_completion_attribute_after.xml");
   }
 
   public void testCustomTagCompletion() throws Throwable {
