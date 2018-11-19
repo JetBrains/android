@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.plugin
 
+import com.android.ide.common.vectordrawable.Svg2Vector
+import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.testFramework.LightVirtualFile
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 private val supportedFileTypes = setOf("svg")
 
@@ -31,4 +37,26 @@ class SVGImporter : ResourceImporter {
 
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
+
+  override fun processFiles(files: List<File>): List<DesignAsset> {
+    val errorBuilder = StringBuilder()
+    val designAssets = files
+      .map { convertSVGToVectorDrawable(it, errorBuilder) }
+      .map { DesignAsset(it, emptyList(), ResourceType.DRAWABLE) }
+    if (errorBuilder.isNotBlank()) {
+      Logger.getInstance(SVGImporter::class.java).warn("Error converting SVGs to Vector Drawable\n $errorBuilder")
+    }
+    return designAssets
+  }
+
+  private fun convertSVGToVectorDrawable(it: File, errorBuilder: StringBuilder): LightVirtualFile {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    val errorLog = Svg2Vector.parseSvgToXml(it, byteArrayOutputStream)
+    if (errorLog.isNotBlank()) {
+      errorBuilder
+        .append(errorLog)
+        .append('\n')
+    }
+    return LightVirtualFile("${it.nameWithoutExtension}.xml", String(byteArrayOutputStream.toByteArray()))
+  }
 }
