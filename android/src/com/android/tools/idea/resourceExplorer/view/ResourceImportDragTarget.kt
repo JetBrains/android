@@ -16,7 +16,8 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
-import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.importer.getAllLeafFiles
+import com.android.tools.idea.resourceExplorer.importer.toDesignAssetSets
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.ide.dnd.FileCopyPasteUtil
@@ -25,9 +26,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
 import java.awt.Point
 import java.io.File
-import java.nio.file.FileVisitOption
-import java.nio.file.Files
-import kotlin.streams.toList
 
 /**
  * A [DnDNativeTarget] which accepts files and try to import them as resources using the available
@@ -73,30 +71,11 @@ class ResourceImportDragTarget(
     importersProvider.getImportersForExtension(file.extension).isNotEmpty()
 
   override fun drop(event: DnDEvent) {
-    val assetSets = toDesignAssetSets(getFiles(event))
+    val assetSets = toDesignAssetSets(getFiles(event), importersProvider)
     ResourceImportDialog(facet, assetSets).show()
-  }
-
-  private fun toDesignAssetSets(files: List<File>): List<DesignAssetSet> {
-    return files
-      .groupBy({ importersProvider.getImportersForExtension(it.extension) }, { it })
-      .filter { (importers, _) -> importers.isNotEmpty() }
-      .flatMap { (importers, files) -> importers[0].processFiles(files) }
-      .groupBy { it.name }
-      .map { (name, assets) -> DesignAssetSet(name, assets) }
   }
 
   override fun updateDraggedImage(image: Image?, dropPoint: Point?, imageOffset: Point?) {
   }
-}
-
-/**
- * Returns a flat list of all the actual files (and not directory) within the hierarchy of this file.
- */
-private fun File.getAllLeafFiles(): List<File> {
-  return Files.walk(toPath(), 10, FileVisitOption.FOLLOW_LINKS)
-    .filter { file -> Files.isRegularFile(file) }
-    .map { it.toFile() }
-    .toList()
 }
 
