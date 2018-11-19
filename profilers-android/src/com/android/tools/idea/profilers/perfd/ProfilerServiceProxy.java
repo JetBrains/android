@@ -352,7 +352,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       // for each process.
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
         myEventQueue.enqueue(Common.Event.newBuilder()
-                                           .setEventId(process.getPid())
+                                           .setGroupId(process.getPid())
                                            .setKind(Event.Kind.PROCESS)
                                            .setType(Event.Type.PROCESS_STARTED)
                                            .setProcess(process)
@@ -365,7 +365,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       Common.Process process = myCachedProcesses.remove(client);
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
         myEventQueue.enqueue(Common.Event.newBuilder()
-                                           .setEventId(process.getPid())
+                                           .setGroupId(process.getPid())
                                            .setKind(Event.Kind.PROCESS)
                                            .setType(Event.Type.PROCESS_ENDED)
                                            .setProcess(process.toBuilder().setState(Common.Process.State.DEAD))

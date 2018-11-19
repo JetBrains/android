@@ -243,7 +243,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     mySessions.put(session.getSessionId(), session);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
     addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
-      .setEventId(session.getSessionId())
+      .setGroupId(session.getSessionId())
       .setSessionId(session.getSessionId())
       .setKind(Common.Event.Kind.SESSION)
       .setType(Common.Event.Type.SESSION_STARTED)
@@ -264,7 +264,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     );
     if (session.getEndTimestamp() != Long.MAX_VALUE) {
       addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
-        .setEventId(session.getSessionId())
+        .setGroupId(session.getSessionId())
         .setSessionId(session.getSessionId())
         .setKind(Common.Event.Kind.SESSION)
         .setType(Common.Event.Type.SESSION_ENDED)
@@ -454,14 +454,14 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   /**
    * Helper method for finding an existing event group and updating its array of events, or creating an event group if one does not exist.
    */
-  public void addEventToEventGroup(long streamId, long eventId, Common.Event event) {
+  public void addEventToEventGroup(long streamId, long groupId, Common.Event event) {
     List<EventGroup.Builder> groups = getListForStream(streamId);
-    Optional<EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getEventId() == eventId).findFirst();
+    Optional<EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getGroupId() == groupId).findFirst();
     if (eventGroup.isPresent()) {
       eventGroup.get().addEvents(event);
     }
     else {
-      groups.add(EventGroup.newBuilder().setEventId(eventId).addEvents(event));
+      groups.add(EventGroup.newBuilder().setGroupId(groupId).addEvents(event));
     }
   }
 
@@ -503,7 +503,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
           if (request.getSessionId() != event.getSessionId() && request.getSessionId() != EMPTY_REQUEST_VALUE) {
             continue;
           }
-          if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getEventId()) {
+          if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
             continue;
           }
           if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
@@ -512,10 +512,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
           if (request.getKind() != event.getKind()) {
             continue;
           }
-          if (!eventGroups.containsKey(eventGroup.getEventId())) {
-            eventGroups.put(eventGroup.getEventId(), EventGroup.newBuilder().setEventId(eventGroup.getEventId()));
+          if (!eventGroups.containsKey(eventGroup.getGroupId())) {
+            eventGroups.put(eventGroup.getGroupId(), EventGroup.newBuilder().setGroupId(eventGroup.getGroupId()));
           }
-          eventGroups.get(eventGroup.getEventId()).addEvents(event);
+          eventGroups.get(eventGroup.getGroupId()).addEvents(event);
         }
       }
     }

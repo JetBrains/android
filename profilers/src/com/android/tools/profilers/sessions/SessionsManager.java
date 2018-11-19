@@ -211,7 +211,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     // Note: we only add to a growing list of sessions at the moment.
     groups.forEach(group -> {
-      SessionItem sessionItem = mySessionItems.get(group.getEventId());
+      SessionItem sessionItem = mySessionItems.get(group.getGroupId());
       boolean sessionStateChanged = false;
       // We found a new session we process it and update our internal state.
       if (sessionItem == null) {

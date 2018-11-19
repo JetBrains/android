@@ -104,19 +104,19 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
       val eventsList = mutableListOf(Common.Event.newBuilder()
                                        .setTimestamp(10)
                                        .setSessionId(1)
-                                       .setEventId(1)
+                                       .setGroupId(1)
                                        .setKind(Common.Event.Kind.SESSION)
                                        .build(),
                                      Common.Event.newBuilder()
                                        .setTimestamp(11)
                                        .setSessionId(1)
-                                       .setEventId(2)
+                                       .setGroupId(2)
                                        .setKind(Common.Event.Kind.SESSION)
                                        .build(),
                                      Common.Event.newBuilder()
                                        .setTimestamp(12)
                                        .setSessionId(1)
-                                       .setEventId(3)
+                                       .setGroupId(3)
                                        .setKind(Common.Event.Kind.SESSION)
                                        .build())
     }

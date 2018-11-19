@@ -31,7 +31,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public enum Statements {
     // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
     INSERT(
-      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, SessionId, EventId, Kind, Type, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, SessionId, GroupId, Kind, Type, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?, ?)"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]");
 
@@ -66,13 +66,13 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       createTable("UnifiedEventsTable",
                   "StreamId INTEGER NOT NULL", // Optional filter, required for all data.
                   "SessionId INTEGER NOT NULL", // Optional filter, not required for data (eg device/process).
-                  "EventId INTEGER NOT NULL", // Optional filter, not required for data.
+                  "GroupId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
                   "Type INTEGER NOT NULL", // Post process filter, not required for data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
 
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "EventId", "Kind", "Type", "Timestamp");
+      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "GroupId", "Kind", "Type", "Timestamp");
     }
     catch (SQLException ex) {
       onError(ex);
@@ -82,7 +82,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public void insertUnifiedEvent(long streamId, @NotNull Common.Event event) {
     execute(Statements.INSERT, streamId,
             event.getSessionId(),
-            event.getEventId(),
+            event.getGroupId(),
             event.getKind().getNumber(),
             event.getType().getNumber(),
             event.getTimestamp(),
@@ -104,7 +104,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     }
 
     if (request.getGroupId() != 0) {
-      sql.append(" AND EventId = ?");
+      sql.append(" AND GroupId = ?");
       params.add(request.getGroupId());
     }
 
@@ -124,7 +124,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       HashMap<Long, Profiler.EventGroup.Builder> builderGroups = new HashMap<>();
       while (results.next()) {
         Common.Event event = Common.Event.parser().parseFrom(results.getBytes(1));
-        Profiler.EventGroup.Builder group = builderGroups.computeIfAbsent(event.getEventId(), key -> Profiler.EventGroup.newBuilder());
+        Profiler.EventGroup.Builder group = builderGroups.computeIfAbsent(event.getGroupId(), key -> Profiler.EventGroup.newBuilder());
         group.addEvents(event);
       }
       builderGroups.values().stream().forEach((builder) -> {

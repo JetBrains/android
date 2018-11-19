@@ -37,7 +37,7 @@ public class ProfilerTestData {
     return Common.Event.newBuilder()
       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(timestampUs))
       .setKind(Common.Event.Kind.NETWORK_SPEED)
-      .setEventId(NETWORK_TX_VALUE)
+      .setGroupId(NETWORK_TX_VALUE)
       .setNetworkSpeed(Network.NetworkSpeedData.newBuilder().setThroughput(throughput));
   }
 
@@ -46,7 +46,7 @@ public class ProfilerTestData {
     return Common.Event.newBuilder()
       .setTimestamp(TimeUnit.MICROSECONDS.toNanos(timestampUs))
       .setKind(Common.Event.Kind.NETWORK_SPEED)
-      .setEventId(NETWORK_RX_VALUE)
+      .setGroupId(NETWORK_RX_VALUE)
       .setNetworkSpeed(Network.NetworkSpeedData.newBuilder().setThroughput(throughput));
   }
 }
