@@ -42,6 +42,7 @@ class FileImportRowViewModel(
 
   private fun configurationUpdated(folderConfiguration: FolderConfiguration) {
     qualifiers = folderConfiguration.getFolderName(resourceFolderType)
+    asset.qualifiers = folderConfiguration.qualifiers.toList()
     updateCallback?.invoke()
   }
 }
