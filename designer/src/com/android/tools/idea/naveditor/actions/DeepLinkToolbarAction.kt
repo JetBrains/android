@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.actions
 import com.android.tools.idea.naveditor.property.inspector.AddDeeplinkDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 
@@ -35,11 +34,9 @@ class DeepLinkToolbarAction(surface: NavDesignSurface) :
 
   override fun actionPerformed(e: AnActionEvent?) {
     surface.selectionModel.selection.firstOrNull()?.let {
-      WriteCommandAction.runWriteCommandAction(it.model.project) {
-        val dialog = AddDeeplinkDialog(null, it)
-        if (dialog.showAndGet()) {
-          dialog.save()
-        }
+      val dialog = AddDeeplinkDialog(null, it)
+      if (dialog.showAndGet()) {
+        dialog.save()
       }
     }
   }
