@@ -846,24 +846,6 @@ public class NlModelTest extends LayoutTestCase {
     }
   }
 
-  public void testNotUsingMaterial2Theme() {
-    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
-    SyncNlModel model = modelBuilder.build();
-    assertFalse(model.usingMaterial2Theme());
-  }
-
-  public void testUsingMaterial2Theme() {
-    myFixture.addFileToProject("res/values/styles.xml",
-                               "<resources>\n" +
-                               "  <style name=\"Platform.MaterialComponents\" parent=\"Theme.Material\"/>\n" +
-                               "  <style name=\"Theme.MaterialComponents\" parent=\"Platform.MaterialComponents\"/>\n" +
-                               "</resources>\n");
-    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
-    SyncNlModel model = modelBuilder.build();
-    model.getConfiguration().setTheme("Theme.MaterialComponents");
-    assertTrue(model.usingMaterial2Theme());
-  }
-
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
