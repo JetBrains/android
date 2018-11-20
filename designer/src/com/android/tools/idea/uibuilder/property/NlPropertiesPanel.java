@@ -115,7 +115,6 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     myTablePanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        super.mouseClicked(e);
         myTable.editingStopped(new ChangeEvent(myTablePanel));
       }
     });

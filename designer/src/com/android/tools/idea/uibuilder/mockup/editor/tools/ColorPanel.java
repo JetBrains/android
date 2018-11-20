@@ -61,7 +61,6 @@ public class ColorPanel {
     myColorFrame.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        super.mouseClicked(e);
         ColorPicker.showDialog(myContentPane, "Edit color",color, true,
                                new ColorPickerListener[] {new ColorPickerListener() {
                                  @Override
