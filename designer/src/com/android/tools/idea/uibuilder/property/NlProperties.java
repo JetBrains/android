@@ -75,7 +75,7 @@ public class NlProperties {
 
   @NotNull
   public Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
-                                                             @NotNull PropertiesManager propertiesManager,
+                                                             @Nullable PropertiesManager propertiesManager,
                                                              @NotNull List<NlComponent> components) {
     assert !EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode();
 
@@ -89,7 +89,7 @@ public class NlProperties {
 
   @NotNull
   private Table<String, String, NlPropertyItem> getPropertiesImpl(@NotNull AndroidFacet facet,
-                                                                  @NotNull PropertiesManager propertiesManager,
+                                                                  @Nullable PropertiesManager propertiesManager,
                                                                   @NotNull List<NlComponent> components) {
     assert !components.isEmpty();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
@@ -229,7 +229,7 @@ public class NlProperties {
   public static void saveStarState(@Nullable String propertyNamespace,
                                    @NotNull String propertyName,
                                    boolean starred,
-                                   @NotNull PropertiesManager propertiesManager) {
+                                   @Nullable PropertiesManager propertiesManager) {
     String propertyNameWithPrefix = getPropertyNameWithPrefix(propertyNamespace, propertyName);
     List<String> favorites = new ArrayList<>();
     for (String starredProperty : getStarredProperties()) {
@@ -244,7 +244,9 @@ public class NlProperties {
     properties.setValue(STARRED_PROP, Joiner.on(';').join(favorites));
     String added = starred ? propertyNameWithPrefix : "";
     String removed = !starred ? propertyNameWithPrefix : "";
-    propertiesManager.logFavoritesChange(added, removed, favorites);
+    if (propertiesManager != null) {
+      propertiesManager.logFavoritesChange(added, removed, favorites);
+    }
   }
 
   public static String getStarredPropertiesAsString() {
