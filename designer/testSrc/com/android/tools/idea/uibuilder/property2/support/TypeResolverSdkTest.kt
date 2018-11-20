@@ -1,0 +1,166 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.uibuilder.property2.support
+
+import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.CLASS_PREFERENCE
+import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.testutils.AndroidAttributeFact
+import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.junit.Rule
+import org.junit.Test
+
+private const val ANDROID_VIEWS_HEADER = "Android Views"
+private const val ANDROID_PREFERENCES_HEADER = "Android Preferences"
+private const val PREFERENCE_PACKAGE = "android.preference"
+private const val TOTAL_ERROR_MESSAGE = "attributes with mismatched types"
+private const val LAYOUT_FILE_SUFFIX = "_layout"
+
+@RunsInEdt
+class TypeResolverSdkTest {
+  @JvmField @Rule
+  val projectRule = AndroidProjectRule.withSdk()
+
+  @JvmField @Rule
+  val edtRule = EdtRule()
+
+  @Test
+  fun testAndroidViewAttributeTypes() {
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(ANDROID_WIDGET_PREFIX.trim { it == '.' })!!
+    val report = Report(ANDROID_VIEWS_HEADER)
+    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
+    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.name!!, report) }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  @Test
+  fun testAndroidPreferenceAttributeTypes() {
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiPreferenceClass = psiFacade.findClass(CLASS_PREFERENCE, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(PREFERENCE_PACKAGE)!!
+    val report = Report(ANDROID_PREFERENCES_HEADER)
+    psiPackage.classes.filter { it.isInheritor(psiPreferenceClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  private fun checkViewAttributes(tagName: String, report: Report) {
+    val util = SupportTestUtil(projectRule, tagName)
+    val tag = util.components.first().tag
+    checkAttributes(tag, report)
+  }
+
+  private fun checkViewLayoutAttributes(tagName: String, report: Report) {
+    val util = SupportTestUtil(projectRule, BUTTON, parentTag = tagName, fileName = "${tagName}${LAYOUT_FILE_SUFFIX}")
+    val tag = util.components.first().parent!!.tag
+    checkAttributes(tag, report)
+  }
+
+  private fun checkAttributes(tag: XmlTag, report: Report) {
+    val descriptorProvider = AndroidDomElementDescriptorProvider()
+    val descriptor = descriptorProvider.getDescriptor(tag)!!
+    val attrDescriptors = descriptor.getAttributesDescriptors(tag)
+    val resourceManagers = ModuleResourceManagers.getInstance(projectRule.module.androidFacet!!)
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager!!
+    val localResourceManager = resourceManagers.localResourceManager
+    val localAttrDefs = localResourceManager.attributeDefinitions
+    val systemAttrDefs = frameworkResourceManager.attributeDefinitions!!
+    attrDescriptors.forEach {
+      val name = it.name
+      val namespaceUri = (it as NamespaceAwareXmlAttributeDescriptor).getNamespace(tag) ?: SdkConstants.ANDROID_URI
+      val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
+      if (namespace != ResourceNamespace.TOOLS && namespace != null) {
+        val attrDefs = if (SdkConstants.ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
+        val attrDefinition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name))
+        val type = TypeResolver.resolveType(it.name, attrDefinition)
+        val lookupType = AndroidAttributeFact.lookup(it.name)
+        if (type != lookupType) {
+          report.logMismatch(Mismatch(tag.localName, it.name, type, lookupType))
+        }
+        report.logAttribute(tag.localName)
+      }
+    }
+  }
+
+  private data class Mismatch(val tag: String,
+                              val attribute: String,
+                              val found: NelePropertyType,
+                              val expected: NelePropertyType)
+
+  private class Report(private val name: String) {
+    private val found = mutableMapOf<String, Int>()
+    private val errors = mutableMapOf<String, Int>()
+    private val mismatches = mutableListOf<Mismatch>()
+    var totalErrors = 0
+      private set
+
+    fun logAttribute(tag: String) {
+      val count = found[tag]
+      found[tag] = 1 + (count ?: 0)
+    }
+
+    private fun logError(tag: String) {
+      val count = errors[tag]
+      errors[tag] = 1 + (count ?: 0)
+      totalErrors++
+    }
+
+    fun logMismatch(mismatch: Mismatch) {
+      mismatches.add(mismatch)
+      logError(mismatch.tag)
+    }
+
+    fun dumpReport() {
+      System.err.println("\n==============================================================>")
+      System.err.println("           $name")
+      if (mismatches.isNotEmpty()) {
+        System.err.println("\nType mismatches found:")
+        mismatches.forEach { System.err.println(
+          "Tag: ${it.tag}, Attr: ${it.attribute}, Got: ${it.found}, Wanted: ${it.expected}") }
+      }
+      System.err.println()
+      found.forEach { tag, count -> System.err.println(
+        "${String.format("%4d", count)}: attributes found for: $tag ${formatError(tag)}") }
+      System.err.println("\n==============================================================>")
+    }
+
+    private fun formatError(tag: String): String {
+      val count = errors[tag] ?: return ""
+      return ", mismatches: $count"
+    }
+  }
+}
