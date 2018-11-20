@@ -82,8 +82,8 @@ public class SyncExecutorTest extends IdeaTestCase {
     assertNull(options.getSelectedVariants());
   }
 
-  public void testCompoundSyncShouldBeDisabledByDefault() {
-    assertFalse(StudioFlags.COMPOUND_SYNC_ENABLED.get());
+  public void testCompoundSyncShouldBeEnabledByDefault() {
+    assertTrue(StudioFlags.COMPOUND_SYNC_ENABLED.get());
   }
 
   public void testCreateSyncActionWithCompoundSync() {
