@@ -39,6 +39,7 @@ import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
@@ -103,14 +104,20 @@ class ProjectLightResourceClassService(
     }, false)
 
     // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep
-    // hard references to ExternalLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync
-    // removes a library from the project.
+    // hard references to ExternalLibrary keys, otherwise the entries will be collected.
     project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent) {
         val aars = aarsByPackage.value.values()
         aarPackageNamesCache.retainAll(aars)
-        aarClassesCache.retainAll(aars)
       }
+    })
+
+    // Light classes for AARs store a reference to the Library in UserData. These Library instances can become stale during sync, which
+    // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.
+    LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(object : LibraryTable.Listener {
+      override fun afterLibraryAdded(newLibrary: Library) = aarClassesCache.invalidateAll()
+      override fun afterLibraryRenamed(library: Library) = aarClassesCache.invalidateAll()
+      override fun afterLibraryRemoved(library: Library) = aarClassesCache.invalidateAll()
     })
   }
 
