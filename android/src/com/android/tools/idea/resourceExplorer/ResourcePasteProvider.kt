@@ -16,8 +16,11 @@
 package com.android.tools.idea.resourceExplorer
 
 import com.android.SdkConstants
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resourceExplorer.viewmodel.RESOURCE_URL_FLAVOR
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.util.dependsOnAppCompat
@@ -31,6 +34,7 @@ import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.actions.PasteAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -63,7 +67,17 @@ class ResourcePasteProvider : PasteProvider {
   private fun performForXml(psiElement: PsiElement?,
                             dataContext: DataContext,
                             caret: Caret) {
-    val resourceReference = getResourceUrl(dataContext)?.toString() ?: return
+    val resourceUrl = getResourceUrl(dataContext)
+    val resourceReference = resourceUrl?.toString() ?: return
+
+    if (psiElement is PsiWhiteSpace) {
+      if (getFolderType(psiElement.containingFile) == ResourceFolderType.LAYOUT) {
+        if (resourceUrl.type == ResourceType.DRAWABLE) {
+          insertImageView(resourceReference, psiElement, caret)
+          return
+        }
+      }
+    }
 
     if (psiElement !is XmlElement) {
       pasteAtCaret(caret, resourceReference)
@@ -88,6 +102,20 @@ class ResourcePasteProvider : PasteProvider {
     pasteAtCaret(caret, resourceReference)
   }
 
+  private fun insertImageView(resourceReference: String, psiElement: PsiElement, caret: Caret) {
+    val parent = psiElement.parentOfType<XmlTag>() ?: return
+    val dependsOnAppCompat = dependsOnAppCompat(parent)
+
+    val before = parent.children.last { it.textRange.startOffset < caret.offset }
+
+    runWriteAction {
+      val childTag = parent.addAfter(parent.createChildTag("ImageView", parent.namespace, null, false), before) as XmlTag
+      with(childTag) {
+        setAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
+        setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
+        setSrcAttribute(dependsOnAppCompat, this, resourceReference)
+        collapseIfEmpty()
+        TemplateUtils.reformatAndRearrange(parent.project, this)
       }
     }
   }
