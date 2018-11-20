@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.gradle.structure.model.repositories.search
 
+import com.android.tools.analytics.UsageTracker
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Callable
 
@@ -26,6 +32,26 @@ class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepo
     val futures = repositories.map { it.search(request) }
     return Futures
       .whenAllComplete(futures)
-      .call(Callable { futures.map { it.getResultSafely() }.combine() }, PooledThreadExecutor.INSTANCE)
+      .call(Callable { futures.map { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } }, PooledThreadExecutor.INSTANCE)
+  }
+}
+
+private fun logSearchStats(stats: SearchResultStats) {
+  ApplicationManager.getApplication().executeOnPooledThread {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_REPOSITORIES_SEARCH)
+        .setPsdEvent(
+          PSDEvent.newBuilder()
+            .addAllRepositoriesSearched(
+              stats.stats.map { (repository, stats) ->
+                PSDEvent.PSDRepositoryUsage.newBuilder()
+                  .setRepository(repository)
+                  .setDurationMs(stats.duration.toMillis())
+                  .build()
+              }
+            )
+        )
+    )
   }
 }

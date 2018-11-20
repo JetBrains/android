@@ -64,5 +64,4 @@ class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
       IsEqual.equalTo(
         listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"), ValueDescriptor("0.9"))))
   }
-
 }

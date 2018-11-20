@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.google.wireless.android.sdk.stats.PSDEvent
+import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE
 import com.intellij.util.text.nullize
 
 object GoogleRepository : GoogleRepositoryBase(IdeGoogleMavenRepository)
 
-open class GoogleRepositoryBase(val repository: GoogleMavenRepository) : ArtifactRepository() {
+open class GoogleRepositoryBase(val repository: GoogleMavenRepository) : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE) {
   override val name: String = "Google"
   override val isRemote: Boolean = true
 
