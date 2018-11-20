@@ -26,6 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.xml.sax.SAXParseException
 import java.awt.Dimension
 import java.awt.Image
+import java.lang.ref.WeakReference
 import java.text.ParseException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -48,14 +49,29 @@ class DrawableAssetRenderer : DesignAssetRenderer {
 
   private var drawableRenderer: TimedDisposable<DrawableRenderer>? = null
 
+  // Only use a single weak reference because only the resources of one module are rendered at a
+  // time. We can update to an hash map when this changes.
+  private var currentFacet: WeakReference<AndroidFacet>? = null
+
   private val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
   private fun getRenderer(module: Module): DrawableRenderer {
+    val facet = AndroidFacet.getInstance(module)
+                ?: throw NullPointerException("Facet couldn't be found for use in DrawableRenderer.")
+
+    // We cannot reuse the same renderer with another facet
+    // otherwise some drawable might not render.
+    if (facet != currentFacet?.get()) {
+      currentFacet = null
+      drawableRenderer?.dispose()
+      drawableRenderer = null
+    }
+
     val renderer = drawableRenderer?.get()
     return if (renderer == null) {
-      val facet = AndroidFacet.getInstance(module) ?: throw NullPointerException("Facet couldn't be found for use in DrawableRenderer.")
       val newRenderer = DrawableRenderer(facet)
       drawableRenderer = TimedDisposable(newRenderer, facet, disposeTime, disposeTimeUnit)
+      currentFacet = WeakReference(facet)
       newRenderer
     }
     else {
