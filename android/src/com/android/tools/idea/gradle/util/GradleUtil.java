@@ -20,9 +20,11 @@ import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -369,20 +371,28 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns the path of a build.gradle file in the directory at the given path. For example, if the directory path is
-   * '~/myProject/myModule', this method will return the path '~/myProject/myModule/build.gradle'. Please note that a build.gradle file
-   * may not exist at the returned path.
+   * Returns the path of a build.gradle or build.gradle.kts file in the directory at the given path.
+   * build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
+   * <p>
+   * Please note that the build.gradle file may not exist at the returned path.
    * <p>
    * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
    * {@link #getGradleBuildFile(Module)}.
    * </p>
    *
    * @param dirPath the given directory path.
-   * @return the path of a build.gradle file in the directory at the given path.
+   * @return the path of a build.gradle or build.gradle.kts file in the directory at the given path.
    */
   @NotNull
   public static File getGradleBuildFilePath(@NotNull File dirPath) {
-    return new File(dirPath, FN_BUILD_GRADLE);
+    File defaultBuildFile = new File(dirPath, FN_BUILD_GRADLE);
+    if (!defaultBuildFile.isFile()) {
+      File ktsBuildFile = new File(dirPath, FN_BUILD_GRADLE_KTS);
+      if (ktsBuildFile.isFile()) {
+        return ktsBuildFile;
+      }
+    }
+    return defaultBuildFile;
   }
 
   @Nullable
@@ -393,7 +403,14 @@ public final class GradleUtil {
 
   @NotNull
   private static File getGradleSettingsFilePath(@NotNull File dirPath) {
-    return new File(dirPath, FN_SETTINGS_GRADLE);
+    File defaultSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE);
+    if (!defaultSettingsFile.isFile()) {
+      File ktsSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE_KTS);
+      if (ktsSettingsFile.isFile()) {
+        return ktsSettingsFile;
+      }
+    }
+    return defaultSettingsFile;
   }
 
   @NotNull

@@ -58,6 +58,11 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
   }
 
+  public void testHasTopLevelGradleBuildFileWithKtsFile() throws Exception {
+    createFileInProjectRoot(getProject(), "build.gradle.kts");
+    assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
+  }
+
   public void testHasTopLevelGradleBuildFileUsingNonGradleProject() {
     File projectFolderPath = getBaseDirPath(getProject());
     File buildFilePath = new File(projectFolderPath, "build.gradle");

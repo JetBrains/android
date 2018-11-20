@@ -43,7 +43,9 @@ public final class ProjectImportUtil {
   @Nullable
   public static VirtualFile findImportTarget(@NotNull VirtualFile file) {
     if (file.isDirectory()) {
-      VirtualFile target = findMatchingChild(file, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_SETTINGS_GRADLE);
+      VirtualFile target =
+        findMatchingChild(file, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_BUILD_GRADLE_KTS, SdkConstants.FN_SETTINGS_GRADLE,
+                          SdkConstants.FN_SETTINGS_GRADLE_KTS);
       if (target != null) {
         return target;
       }
