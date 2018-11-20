@@ -32,7 +32,7 @@ class UpdateGradlePluginProcessorTest : AndroidGradleTestCase() {
 
     val buildFileContents = loadFile(projectFolderPath.resolve("build.gradle"))
     assertTrue(buildFileContents.contains("com.android.tools.build:gradle:1.2.3"))
-    assertTrue(buildFileContents.contains("org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}custom_kotlin_version"))
-    assertTrue(buildFileContents.contains("ext.custom_kotlin_version = '2.3.4'"))
+    assertTrue(buildFileContents.contains("org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}kotlin_version"))
+    assertTrue(buildFileContents.contains("ext.kotlin_version = '2.3.4'"))
   }
 }
