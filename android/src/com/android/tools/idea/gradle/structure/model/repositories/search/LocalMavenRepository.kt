@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.base.Strings.nullToEmpty
+import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.JDOMUtil.loadDocument
 import java.io.File
@@ -28,7 +29,8 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
-data class LocalMavenRepository(val rootLocation: File, override val name: String) : ArtifactRepository() {
+data class LocalMavenRepository(val rootLocation: File, override val name: String) :
+  ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL) {
   private val rootLocationPath: Path = rootLocation.toPath()
   override val isRemote: Boolean = false
 

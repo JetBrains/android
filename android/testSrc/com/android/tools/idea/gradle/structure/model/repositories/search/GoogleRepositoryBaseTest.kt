@@ -122,14 +122,20 @@ class GoogleRepositoryBaseTest {
   @Test
   fun searchByName() {
     Assert.assertThat(
-      repository.search(SearchRequest(SearchQuery(null, "common-java8"), 50, 0)).get(10, TimeUnit.SECONDS),
+      repository
+        .search(SearchRequest(SearchQuery(null, "common-java8"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON_JAVA8))))
   }
 
   @Test
   fun searchByGroupId() {
     Assert.assertThat(
-      repository.search(SearchRequest(SearchQuery("com.android.support", ""), 50, 0)).get(10, TimeUnit.SECONDS),
+      repository
+        .search(SearchRequest(SearchQuery("com.android.support", ""), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
       CoreMatchers.equalTo(
         SearchResult(artifacts = listOf(LEANBACK, RECOMMENDATION, RECYCLER_VIEW_V7, SUPPORT_COMPAT, SUPPORT_VECTOR_DRAWABLE))))
   }
@@ -137,14 +143,20 @@ class GoogleRepositoryBaseTest {
   @Test
   fun searchByNameWildcard() {
     Assert.assertThat(
-      repository.search(SearchRequest(SearchQuery("", "common*"), 50, 0)).get(10, TimeUnit.SECONDS),
+      repository
+        .search(SearchRequest(SearchQuery("", "common*"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON, COMMON_JAVA8))))
   }
 
   @Test
   fun searchByGroupIdWildcard() {
     Assert.assertThat(
-      repository.search(SearchRequest(SearchQuery("com.android.*", null), 50, 0)).get(10, TimeUnit.SECONDS),
+      repository
+        .search(SearchRequest(SearchQuery("com.android.*", null), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
       CoreMatchers.equalTo(
         SearchResult(artifacts = listOf(LEANBACK, RECOMMENDATION, RECYCLER_VIEW_V7, SUPPORT_COMPAT, SUPPORT_VECTOR_DRAWABLE))))
   }
@@ -152,14 +164,22 @@ class GoogleRepositoryBaseTest {
   @Test
   fun searchByExactMatch() {
     Assert.assertThat(
-      repository.search(SearchRequest(SearchQuery("com.android.support", "leanback-v17"), 50, 0)).get(10, TimeUnit.SECONDS),
+      repository
+        .search(SearchRequest(SearchQuery("com.android.support", "leanback-v17"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(LEANBACK))))
   }
 
   @Test
   fun searchByWildcard() {
     Assert.assertThat(
-      repository.search(SearchRequest(SearchQuery("android.*", "common-*"), 50, 0)).get(10, TimeUnit.SECONDS),
+      repository
+        .search(SearchRequest(SearchQuery("android.*", "common-*"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON_JAVA8))))
   }
 }
+
+private fun SearchResult.clearStats() = copy(stats = SearchResultStats.EMPTY)

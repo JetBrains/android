@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.JsonParser
+import com.google.wireless.android.sdk.stats.PSDEvent
+import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER
 import com.intellij.util.io.HttpRequests
 import java.io.Reader
 
-object JCenterRepository : ArtifactRepository() {
+object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER) {
   override val name: String = "JCenter"
   override val isRemote: Boolean = true
 
@@ -163,7 +165,7 @@ object JCenterRepository : ArtifactRepository() {
       }
     }
 
-    return SearchResult(artifacts, errors)
+    return SearchResult(artifacts, errors, SearchResultStats.EMPTY)
   }
 
   @VisibleForTesting

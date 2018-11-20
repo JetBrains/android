@@ -15,13 +15,35 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search
 
+import com.google.wireless.android.sdk.stats.PSDEvent
+import java.time.Duration
 import java.util.concurrent.Future
 
-data class SearchResult(val artifacts: List<FoundArtifact>, val errors: List<Exception>) {
-  constructor(artifacts: List<FoundArtifact>): this(artifacts, listOf())
-  constructor (e: Exception) : this(listOf(), listOf(e))
+data class SearchResult(
+  val artifacts: List<FoundArtifact>,
+  val errors: List<Exception>,
+  val stats: SearchResultStats = SearchResultStats.EMPTY
+) {
+  constructor(artifacts: List<FoundArtifact>) : this(artifacts, listOf(), SearchResultStats.EMPTY)
+  constructor (e: Exception) : this(listOf(), listOf(e), SearchResultStats.EMPTY)
 
   val artifactCoordinates: List<String> get() = artifacts.flatMap { it.coordinates }
+}
+
+data class SearchResultRepoStats(val duration: Duration) {
+  fun combineWith(other: SearchResultRepoStats) = SearchResultRepoStats(this.duration + other.duration)
+
+  companion object {
+    val EMPTY = SearchResultRepoStats(Duration.ZERO)
+  }
+}
+
+data class SearchResultStats(val stats: Map<PSDEvent.PSDRepositoryUsage.PSDRepository, SearchResultRepoStats>) {
+  companion object {
+    fun duration(repo: PSDEvent.PSDRepositoryUsage.PSDRepository, duration: Duration) =
+      SearchResultStats(mapOf(repo to SearchResultRepoStats(duration)))
+    val EMPTY = SearchResultStats(mapOf())
+  }
 }
 
 fun Collection<SearchResult>.combine() = SearchResult(
@@ -36,8 +58,19 @@ fun Collection<SearchResult>.combine() = SearchResult(
         artifacts.flatMap { it.unsortedVersions }.toSet()
       )
     },
-  flatMap { it.errors }
+  flatMap { it.errors },
+  map { it.stats }.combine()
 )
+
+fun Collection<SearchResultStats>.combine(): SearchResultStats =
+  SearchResultStats(
+    this
+      .flatMap { it.stats.entries }
+      .groupBy({ it.key }, { it.value })
+      .mapValues { (_, v) ->
+        v.fold(SearchResultRepoStats.EMPTY) { acc, it -> acc.combineWith(it) }
+      })
+
 
 fun Future<SearchResult>.getResultSafely() =
   try {
