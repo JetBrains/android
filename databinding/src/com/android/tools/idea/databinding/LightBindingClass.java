@@ -324,24 +324,28 @@ public class LightBindingClass extends AndroidLightClassBase {
     PsiClassType layoutInflaterType =
         PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, module.getModuleWithDependenciesAndLibrariesScope(true));
     PsiClassType dataBindingComponent =
-        PsiType.getTypeByName(myMode.dataBindingComponent, project, module.getModuleWithDependenciesAndLibrariesScope(true));
+        PsiType.getJavaLangObject(getManager(), module.getModuleWithDependenciesAndLibrariesScope(true));
     PsiClassType viewType =
         PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, module.getModuleWithDependenciesAndLibrariesScope(true));
 
-    LightMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
+    LightDataBindingMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
     inflate4Arg.addParameter("inflater", layoutInflaterType);
     inflate4Arg.addParameter("root", viewGroupType);
     inflate4Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
     inflate4Arg.addParameter("bindingComponent", dataBindingComponent);
+    // methods receiving DataBindingComponent are deprecated. see: b/116541301
+    inflate4Arg.setDeprecated(true);
 
     LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
     inflate3Arg.addParameter("inflater", layoutInflaterType);
     inflate3Arg.addParameter("root", viewGroupType);
     inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-    LightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
+    LightDataBindingMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
     inflate2Arg.addParameter("inflater", layoutInflaterType);
     inflate2Arg.addParameter("bindingComponent", dataBindingComponent);
+    // methods receiving DataBindingComponent are deprecated. see: b/116541301
+    inflate2Arg.setDeprecated(true);
 
     LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
     inflate1Arg.addParameter("inflater", layoutInflaterType);
@@ -349,9 +353,11 @@ public class LightBindingClass extends AndroidLightClassBase {
     LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
     bind.addParameter("view", viewType);
 
-    LightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
+    LightDataBindingMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
     bindWithComponent.addParameter("view", viewType);
     bindWithComponent.addParameter("bindingComponent", dataBindingComponent);
+    // methods receiving DataBindingComponent are deprecated. see: b/116541301
+    bindWithComponent.setDeprecated(true);
 
     PsiManager psiManager = getManager();
     PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
@@ -361,15 +367,15 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private LightMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
-    LightMethodBuilder method = createPublicMethod(name, returnType);
+  private LightDataBindingMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
+    LightDataBindingMethodBuilder method = createPublicMethod(name, returnType);
     method.addModifier("static");
     return method;
   }
 
   @NotNull
-  private LightMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
-    LightMethodBuilder method = new LightMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
+  private LightDataBindingMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
+    LightDataBindingMethodBuilder method = new LightDataBindingMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
     method.setContainingClass(this);
     method.setMethodReturnType(returnType);
     method.addModifier("public");
