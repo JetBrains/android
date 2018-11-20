@@ -59,9 +59,6 @@ interface DataBindingSupport {
   @NotNull
   DataBindingMode getDataBindingMode(@NotNull AndroidFacet facet);
 
-  // TODO b/119441165: setDataBindingMode is only used in AndroidLayoutDomTest which should be moved out of core module eventually.
-  void setDataBindingMode(@NotNull AndroidFacet facet, @NotNull DataBindingMode mode);
-
   @NotNull
   ModificationTracker getDataBindingEnabledTracker();
 }
@@ -99,16 +96,6 @@ public class DataBindingUtil {
   static public DataBindingMode getDataBindingMode(@NotNull AndroidFacet facet) {
     DataBindingSupport support = getDataBindingSupport();
     return support == null ? DataBindingMode.NONE : support.getDataBindingMode(facet);
-  }
-
-  /**
-   * Set data binding mode for the facet.
-   */
-  static public void setDataBindingMode(@NotNull AndroidFacet facet, @NotNull DataBindingMode mode) {
-    DataBindingSupport support = getDataBindingSupport();
-    if (support != null) {
-      support.setDataBindingMode(facet, mode);
-    }
   }
 
   /**
