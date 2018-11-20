@@ -403,10 +403,10 @@ public class StudioIcons {
 
   public static class NavEditor {
     public static class ExistingDestinations {
-      public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
-      public static final Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.png"); // 146x188
-      public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 106x156
-      public static final Icon PLACEHOLDER = load("/studio/icons/nav-editor/existing-destinations/placeholder.png"); // 146x188
+      public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 73x94
+      public static final Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.png"); // 73x94
+      public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 53x78
+      public static final Icon PLACEHOLDER = load("/studio/icons/nav-editor/existing-destinations/placeholder.png"); // 73x94
     }
 
     public static class Properties {
@@ -419,6 +419,7 @@ public class StudioIcons {
 
     public static class Surface {
       public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.png"); // 56x56
+      public static final Icon POP_ACTION = load("/studio/icons/nav-editor/surface/pop-action.png"); // 56x56
       public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.png"); // 56x56
     }
 
