@@ -179,7 +179,9 @@ public final class GradleProjects {
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
     VirtualFile target = findImportTarget(importSource);
-    return target != null && GradleConstants.EXTENSION.equals(target.getExtension());
+    return target != null &&
+           (GradleConstants.EXTENSION.equals(target.getExtension()) ||
+            target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
   }
 
   public static void setSyncRequestedDuringBuild(@NotNull Project project, @Nullable Boolean value) {

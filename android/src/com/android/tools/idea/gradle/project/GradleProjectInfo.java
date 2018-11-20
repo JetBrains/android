@@ -37,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
+import java.util.Arrays;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +47,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -146,21 +148,28 @@ public class GradleProjectInfo {
    * e.g. this is used to check if an opened Gradle project has already been imported or not yet.
    */
   public boolean hasGradleFacets() {
-      return myFacetManager.hasFacets(GradleFacet.getFacetTypeId());
+    return myFacetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 
   /**
-   * Indicates whether the project has a build.gradle file in the project's root folder.
+   * Indicates whether the project has build.gradle or build.gradle.kts file in the project's root folder.
    *
-   * @return {@code true} if the project has a build.gradle file in the project's root folder; {@code false} otherwise.
+   * @return {@code true} if the project has build.gradle or build.gradle.kts file in the project's root folder; {@code false} otherwise.
    */
   public boolean hasTopLevelGradleBuildFile() {
     if (myProject.isDefault()) {
       return false;
     }
     VirtualFile baseDir = myProject.getBaseDir();
-    VirtualFile buildGradle = baseDir == null ? null : baseDir.findChild(FN_BUILD_GRADLE);
-    return buildGradle != null && !buildGradle.isDirectory();
+    if (baseDir != null) {
+      for (String fileName : Arrays.asList(FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS)) {
+        VirtualFile buildGradle = baseDir.findChild(fileName);
+        if (buildGradle != null && !buildGradle.isDirectory()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**

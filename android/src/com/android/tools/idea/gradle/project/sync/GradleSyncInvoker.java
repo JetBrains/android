@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
@@ -56,9 +57,11 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.*;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -175,8 +178,9 @@ public class GradleSyncInvoker {
   }
 
   private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
-    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || hasTopLevelGradleBuildFile(project)) {
-      boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
+    GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
+    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || projectInfo.hasTopLevelGradleBuildFile()) {
+      boolean isImportedProject = projectInfo.isImportedProject();
       if (!isImportedProject) {
         myFileDocumentManager.saveAllDocuments();
       }
@@ -191,15 +195,6 @@ public class GradleSyncInvoker {
       }
     });
     return false; // stop sync.
-  }
-
-  private static boolean hasTopLevelGradleBuildFile(@NotNull Project project) {
-    String projectFolderPath = project.getBasePath();
-    if (projectFolderPath != null) {
-      File buildFile = new File(projectFolderPath, FN_BUILD_GRADLE);
-      return buildFile.isFile();
-    }
-    return false;
   }
 
   private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {

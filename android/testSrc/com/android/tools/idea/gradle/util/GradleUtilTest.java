@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import org.junit.After;
 import org.junit.Test;
 
@@ -24,8 +25,10 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.google.common.io.Files.createTempDir;
 import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.junit.Assert.*;
 
 /**
@@ -68,6 +71,14 @@ public class GradleUtilTest {
     myTempDir = createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
     assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
+  }
+
+  @Test
+  public void getKtsGradleBuildFilePath() throws IOException {
+    myTempDir = createTempDir();
+    File ktsBuildFilePath = new File(myTempDir, FN_BUILD_GRADLE_KTS);
+    writeToFile(ktsBuildFilePath, "");
+    assertEquals(ktsBuildFilePath, GradleUtil.getGradleBuildFilePath(myTempDir));
   }
 
   @Test
