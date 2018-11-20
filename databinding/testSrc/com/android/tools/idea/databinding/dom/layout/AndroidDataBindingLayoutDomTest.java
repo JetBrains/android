@@ -23,23 +23,42 @@ import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.TestDataPaths;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 /**
  * Tests data-binding specific highlighting and completion in layout XML files.
  */
+@RunWith(Parameterized.class)
 public final class AndroidDataBindingLayoutDomTest {
   private final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk().initAndroid(true);
   private final AndroidDomRule myDomRule = new AndroidDomRule("res/layout", () -> myProjectRule.fixture);
 
   @Rule
   public final TestRule myRuleChain = RuleChain.outerRule(myProjectRule).around(myDomRule);
+
+  @NotNull
+  private final DataBindingMode myDataBindingMode;
+
+  @Parameters(name = "{0}")
+  public static List<DataBindingMode> getModes() {
+    return Lists.newArrayList(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX);
+  }
+
+  public AndroidDataBindingLayoutDomTest(@NotNull DataBindingMode mode) {
+    myDataBindingMode = mode;
+  }
 
   @Before
   public void setUp() {
@@ -49,9 +68,8 @@ public final class AndroidDataBindingLayoutDomTest {
 
     myProjectRule.fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/dom/layout");
 
-    // TODO(b/119768148): Test w/ AndroidX (using parameterized tests)
     AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID);
-    ModuleDataBinding.getInstance(androidFacet).setMode(DataBindingMode.SUPPORT);
+    ModuleDataBinding.getInstance(androidFacet).setMode(myDataBindingMode);
   }
 
   @Test
