@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.utils.TraceUtils;
@@ -83,6 +85,7 @@ import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
+import java.util.stream.Collectors;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -488,6 +491,36 @@ public class AndroidUtils {
     return depFacets;
   }
 
+  /**
+   * Returns the AndroidFacets corresponding to the Android modules that the given module transitively
+   * depends on for resources.
+   * <p/>
+   * Note that this method should only be used to find dependencies in the context of resolving Android
+   * resources. This is a special case where, depending on the build system, we may be able to ignore
+   * certain modules to improve performance. If you want to find <b>all</b> the modules that a given module
+   * depends on according to its order entries, use {@link AndroidUtils#getAllAndroidDependencies}.
+   * <p/>
+   * TODO(b/118317486): Remove this API once resource module dependencies can accurately
+   * be determined from order entries for all supported build systems.
+   *
+   * @see AndroidModuleSystem#getResourceModuleDependencies()
+   */
+  public static List<AndroidFacet> getAndroidResourceDependencies(@NotNull Module module) {
+    return ProjectSystemUtil.getModuleSystem(module)
+      .getResourceModuleDependencies()
+      .stream()
+      .map(AndroidFacet::getInstance)
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the AndroidFacets corresponding to all the Android modules that the given module
+   * transitively depends on.
+   * <p/>
+   * Callers who need to know a module's dependencies <b>in the context of resolving resources</b>
+   * should consider using {@link AndroidUtils#getAndroidResourceDependencies(Module)} instead,
+   * as that method may exclude irrelevant modules depending on the build system.
+   */
   @NotNull
   public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
     return AndroidDependenciesCache.getInstance(module).getAllAndroidDependencies(androidLibrariesOnly);
