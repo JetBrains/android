@@ -31,14 +31,6 @@ public class DataBindingSupportImpl implements DataBindingSupport {
   }
 
   /**
-   * Set data binding mode for the facet.
-   */
-  @Override
-  public void setDataBindingMode(@NotNull AndroidFacet facet, @NotNull DataBindingMode mode) {
-    ModuleDataBinding.getInstance(facet).setMode(mode);
-  }
-
-  /**
    * Returns tracker that changes when a facet's data binding enabled value changes.
    */
   @Override
