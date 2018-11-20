@@ -56,7 +56,7 @@ public class DataBindingClassFinder extends PsiElementFinder {
       }
       VirtualFile file = dataBindingInfo.getPsiFile().getVirtualFile();
       if (file != null && scope.accept(file)) {
-        return InternalDataBindingUtil.getOrCreatePsiClass(dataBindingInfo);
+        return DataBindingClassFactory.getOrCreatePsiClass(dataBindingInfo);
       }
     }
     return null;
@@ -84,6 +84,6 @@ public class DataBindingClassFinder extends PsiElementFinder {
   }
 
   private boolean isEnabled() {
-    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }

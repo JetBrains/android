@@ -41,7 +41,8 @@ public class BrClassFinder extends PsiElementFinder {
         Map<String, PsiClass> classes = new HashMap<>();
         for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
           if (ModuleDataBinding.getInstance(facet).isEnabled()) {
-            classes.put(DataBindingUtil.getBrQualifiedName(facet), InternalDataBindingUtil.getOrCreateBrClassFor(facet));
+            classes
+              .put(DataBindingUtil.getBrQualifiedName(facet), DataBindingClassFactory.getOrCreateBrClassFor(facet));
           }
         }
         return CachedValueProvider.Result.create(classes, myComponent);
@@ -92,6 +93,6 @@ public class BrClassFinder extends PsiElementFinder {
   }
 
   private boolean isEnabled() {
-    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }

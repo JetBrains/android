@@ -78,6 +78,6 @@ public class DataBindingComponentClassFinder extends PsiElementFinder {
   }
 
   private boolean isEnabled() {
-    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }

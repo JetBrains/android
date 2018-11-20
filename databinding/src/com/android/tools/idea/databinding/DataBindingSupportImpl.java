@@ -20,7 +20,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class DataBindingSupportImpl implements DataBindingSupport {
-
   /**
    * Returns data binding mode for the facet.
    */
@@ -36,6 +35,7 @@ public class DataBindingSupportImpl implements DataBindingSupport {
   @Override
   @NotNull
   public ModificationTracker getDataBindingEnabledTracker() {
-    return InternalDataBindingUtil.DATA_BINDING_ENABLED_TRACKER;
+    //noinspection AccessStaticViaInstance - TODO(b/119823849): One tracker per module?
+    return DataBindingModeTrackingService.getInstance().DATA_BINDING_ENABLED_TRACKER;
   }
 }

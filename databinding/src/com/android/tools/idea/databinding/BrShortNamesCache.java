@@ -50,7 +50,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
       } else {
         Set<String> allFields = Sets.newHashSet();
         for (AndroidFacet facet : facets) {
-          LightBrClass brClass = InternalDataBindingUtil.getOrCreateBrClassFor(facet);
+          LightBrClass brClass = DataBindingClassFactory.getOrCreateBrClassFor(facet);
           Collections.addAll(allFields, brClass.getAllFieldNames());
         }
         result = ArrayUtil.toStringArray(allFields);
@@ -180,7 +180,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
     List<PsiClass> selected = Lists.newArrayList();
     for (AndroidFacet facet : facets) {
       if (scope.isSearchInModuleContent(facet.getModule())) {
-        selected.add(InternalDataBindingUtil.getOrCreateBrClassFor(facet));
+        selected.add(DataBindingClassFactory.getOrCreateBrClassFor(facet));
       }
     }
     if (selected.isEmpty()) {
@@ -190,6 +190,6 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   }
 
   private boolean isEnabled() {
-    return InternalDataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
+    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }

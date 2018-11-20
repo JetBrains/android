@@ -67,7 +67,7 @@ public class ModuleDataBinding {
   public void setMode(@NotNull DataBindingMode mode) {
     if (myDataBindingMode != mode) {
       myDataBindingMode = mode;
-      InternalDataBindingUtil.incrementModificationCount();
+      DataBindingModeTrackingService.getInstance().incrementModificationCount();
     }
   }
 
@@ -85,10 +85,10 @@ public class ModuleDataBinding {
   }
 
   /**
-   * Set by {@linkplain InternalDataBindingUtil} the first time we need it.
+   * Set by {@linkplain DataBindingCodeGenService} the first time we need it.
    *
    * @param lightBrClass
-   * @see InternalDataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
    */
   void setLightBrClass(@NotNull LightBrClass lightBrClass) {
     myLightBrClass = lightBrClass;
@@ -98,7 +98,7 @@ public class ModuleDataBinding {
    * Returns the light BR class for this facet if it is aready set.
    *
    * @return The BR class for this facet, if exists
-   * @see InternalDataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
    */
   @Nullable
   LightBrClass getLightBrClass() {

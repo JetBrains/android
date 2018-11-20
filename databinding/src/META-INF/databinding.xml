@@ -25,6 +25,8 @@
     <applicationConfigurable groupId="editor" id="android.databinding"
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingCodeGenService" />
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
   </extensions>
