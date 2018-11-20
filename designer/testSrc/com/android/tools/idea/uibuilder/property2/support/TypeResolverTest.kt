@@ -41,7 +41,7 @@ class TypeResolverTest {
   @Test
   fun testFromAttributeDefinition() {
     assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.BOOLEAN)).isEqualTo(NelePropertyType.THREE_STATE_BOOLEAN)
-    assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.COLOR)).isEqualTo(NelePropertyType.DRAWABLE)
+    assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.COLOR)).isEqualTo(NelePropertyType.COLOR_STATE_LIST)
     assertThat(resolve(ATTR_ELEVATION, AttributeFormat.DIMENSION)).isEqualTo(NelePropertyType.DIMENSION)
     assertThat(resolve(ATTR_MAXIMUM, AttributeFormat.FLOAT)).isEqualTo(NelePropertyType.FLOAT)
     assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.FRACTION)).isEqualTo(NelePropertyType.FRACTION)
@@ -64,7 +64,7 @@ class TypeResolverTest {
   @Test
   fun testFromNameFallback() {
     assertThat(TypeResolver.resolveType(ATTR_BACKGROUND, null)).isEqualTo(NelePropertyType.DRAWABLE)
-    assertThat(TypeResolver.resolveType(ATTR_BACKGROUND_TINT, null)).isEqualTo(NelePropertyType.DRAWABLE)
+    assertThat(TypeResolver.resolveType(ATTR_BACKGROUND_TINT, null)).isEqualTo(NelePropertyType.COLOR_STATE_LIST)
     assertThat(TypeResolver.resolveType(ATTR_TEXT_APPEARANCE, null)).isEqualTo(NelePropertyType.TEXT_APPEARANCE)
     assertThat(TypeResolver.resolveType(ATTR_SWITCH_TEXT_APPEARANCE, null)).isEqualTo(NelePropertyType.TEXT_APPEARANCE)
     assertThat(TypeResolver.resolveType(ATTR_SCROLLBAR_STYLE, null)).isEqualTo(NelePropertyType.STYLE)
