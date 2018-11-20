@@ -20,6 +20,7 @@
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory"/>
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector"/>
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
   </extensions>
