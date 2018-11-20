@@ -67,7 +67,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   protected NlIdPropertyItem(@NotNull XmlName name,
                              @Nullable AttributeDefinition attributeDefinition,
                              @NotNull List<NlComponent> components,
-                             @NotNull PropertiesManager propertiesManager) {
+                             @Nullable PropertiesManager propertiesManager) {
     super(name, attributeDefinition, components, propertiesManager);
   }
 

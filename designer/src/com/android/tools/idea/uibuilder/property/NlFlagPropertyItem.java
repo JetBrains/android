@@ -55,7 +55,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   protected NlFlagPropertyItem(@NotNull XmlName name,
                                @Nullable AttributeDefinition attributeDefinition,
                                @NotNull List<NlComponent> components,
-                               @NotNull PropertiesManager propertiesManager) {
+                               @Nullable PropertiesManager propertiesManager) {
     super(name, attributeDefinition, components, propertiesManager);
     assert attributeDefinition != null;
   }

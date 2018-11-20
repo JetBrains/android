@@ -41,9 +41,8 @@ class NavNlPropertiesTest : NavTestCase() {
         }
       }
     }
-    val propertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
 
-    val properties = NlProperties.getInstance().getProperties(myFacet, propertiesManager, listOf(model.find("a1")))
+    val properties = NlProperties.getInstance().getProperties(myFacet, null, listOf(model.find("a1")))
     assertContainsElements(properties.row(AUTO_URI).keys, ATTR_DESTINATION, ATTR_ENTER_ANIM, ATTR_EXIT_ANIM,
                            ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM, ATTR_POP_UP_TO, ATTR_POP_UP_TO_INCLUSIVE,
                            ATTR_SINGLE_TOP)
