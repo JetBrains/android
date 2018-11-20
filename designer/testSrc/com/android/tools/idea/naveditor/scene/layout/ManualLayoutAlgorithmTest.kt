@@ -17,9 +17,9 @@ package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
-import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -250,7 +250,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    val editor = object: NlEditor(model.virtualFile, project), DocumentsEditor {
+    val editor = object: NavEditor(model.virtualFile, project), DocumentsEditor {
       override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile))
     }
     val surface = NavDesignSurface(project, myRootDisposable)

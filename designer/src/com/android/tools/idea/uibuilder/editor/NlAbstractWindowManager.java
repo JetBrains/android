@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
-import com.android.tools.idea.common.editor.NlEditorPanel;
+import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
@@ -107,8 +107,8 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
   @Nullable
   protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
-    if (designer instanceof NlEditorPanel) {
-      NlEditorPanel editor = (NlEditorPanel)designer;
+    if (designer instanceof DesignerEditorPanel) {
+      DesignerEditorPanel editor = (DesignerEditorPanel)designer;
       return editor.getSurface();
     } else if (designer instanceof NlPreviewForm) {
       NlPreviewForm form = (NlPreviewForm)designer;

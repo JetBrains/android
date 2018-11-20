@@ -18,8 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 import static junit.framework.TestCase.assertTrue;
 
 import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.editor.NlEditor;
-import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -65,8 +65,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Fixture wrapping the the layout editor for a particular file
+ * TODO(b/119869057): Split logic of NlEditorFixture into NlEditorFixture and NavEditorFixture
  */
-public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
+public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
   private NlPaletteFixture myPaletteFixture;

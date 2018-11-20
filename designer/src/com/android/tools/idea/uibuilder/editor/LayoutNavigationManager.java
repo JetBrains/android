@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.common.editor.DesignerEditor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -27,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.common.editor.NlEditorProvider.DESIGNER_ID;
 
 public class LayoutNavigationManager implements Disposable {
 
@@ -84,8 +82,9 @@ public class LayoutNavigationManager implements Disposable {
         return false;
       }
     }
-    boolean isInDesignerMode = sourceEditor instanceof NlEditor;
-    manager.setSelectedEditor(destination, isInDesignerMode ? DESIGNER_ID : TextEditorProvider.getInstance().getEditorTypeId());
+    boolean isInDesignerMode = sourceEditor instanceof DesignerEditor;
+    manager.setSelectedEditor(destination, isInDesignerMode ? ((DesignerEditor)sourceEditor).getEditorId()
+                                                            : TextEditorProvider.getInstance().getEditorTypeId());
     return true;
   }
 

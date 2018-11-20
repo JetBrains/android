@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.TestNlEditor
+import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
@@ -285,7 +285,7 @@ class NavSceneTest : NavTestCase() {
         fragment("fragment2", layout = "activity_main2")
       }
     }
-    val editor = TestNlEditor(model.virtualFile, project)
+    val editor = TestNavEditor(model.virtualFile, project)
 
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)

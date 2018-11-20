@@ -21,8 +21,7 @@ import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.common.editor.NlEditor
-import com.android.tools.idea.common.editor.NlEditorProvider
+import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -112,9 +111,9 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
     val manager = FileEditorManager.getInstance(project)
     val selectedEditor = manager.getSelectedEditor(old)
     manager.openEditor(descriptor, true)
-    // Switch to the same type of editor (XML or Layout Editor) in the target file
-    if (selectedEditor is NlEditor) {
-      manager.setSelectedEditor(better, NlEditorProvider.DESIGNER_ID)
+    // Switch to the same type of editor (XML or Designer Editor) in the target file
+    if (selectedEditor is DesignerEditor) {
+      manager.setSelectedEditor(better, selectedEditor.editorId)
     }
     else if (selectedEditor != null) {
       manager.setSelectedEditor(better, TextEditorProvider.getInstance().editorTypeId)

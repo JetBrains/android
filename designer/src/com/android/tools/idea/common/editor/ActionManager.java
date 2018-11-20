@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Provides and handles actions for an {@link NlEditor}.
+ * Provides and handles actions for a {@link DesignerEditor}.
  */
 public abstract class ActionManager<S extends DesignSurface> {
   protected final S mySurface;

@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.surface
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.TestNlEditor
+import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.model.startDestination
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.DataContext
@@ -82,7 +82,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     sceneComponent.setPosition(123, 456)
     val sceneManager = surface.sceneManager!!
     sceneManager.save(listOf(sceneComponent))
-    val editor = TestNlEditor(model.virtualFile, project)
+    val editor = TestNavEditor(model.virtualFile, project)
 
     surface.selectionModel.setSelection(listOf(nlComponent))
     handler.deleteElement(context)
