@@ -21,6 +21,7 @@ import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.St
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     methodCalls.add((table) -> assertThat(table.getThreadsDataByRequest(CpuProfiler.GetThreadsRequest.getDefaultInstance())).isEmpty());
     methodCalls.add((table) -> assertThat(table.getTraceData(Common.Session.getDefaultInstance(), 0)).isNull());
     methodCalls.add((table) -> assertThat(table.getTraceInfo(CpuProfiler.GetTraceInfoRequest.getDefaultInstance())).isEmpty());
-    methodCalls.add((table) -> table.insert(Common.Session.getDefaultInstance(), CpuProfiler.CpuUsageData.getDefaultInstance()));
+    methodCalls.add((table) -> table.insert(Common.Session.getDefaultInstance(), Cpu.CpuUsageData.getDefaultInstance()));
     methodCalls.add((table) -> {
       List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = new ArrayList<>();
       activities.add(CpuProfiler.GetThreadsResponse.ThreadActivity.getDefaultInstance());
@@ -84,14 +85,14 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
 
   private void populateDatabase() {
     for (int i = 0; i < TEST_DATA_COUNT; i++) {
-      CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData
+      Cpu.CpuUsageData testData = Cpu.CpuUsageData
         .newBuilder().setAppCpuTimeInMillisec(SESSION_ONE_OFFSET + i).setSystemCpuTimeInMillisec(SESSION_ONE_OFFSET + i)
         .setElapsedTimeInMillisec(SESSION_ONE_OFFSET + i).setEndTimestamp(SESSION_ONE_OFFSET + i).build();
       getTable().insert(SESSION_HUNDREDS, testData);
     }
 
     for (int i = 0; i < TEST_DATA_COUNT; i++) {
-      CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData
+      Cpu.CpuUsageData testData = Cpu.CpuUsageData
         .newBuilder().setAppCpuTimeInMillisec(SESSION_TWO_OFFSET + i).setSystemCpuTimeInMillisec(SESSION_TWO_OFFSET + i)
         .setElapsedTimeInMillisec(SESSION_TWO_OFFSET + i).setEndTimestamp(SESSION_TWO_OFFSET + i).build();
       getTable().insert(SESSION_THOUSANDS, testData);
@@ -136,14 +137,14 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   public void testGetData() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest
       .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(SESSION_ONE_OFFSET).setEndTimestamp(Long.MAX_VALUE).build();
-    List<CpuProfiler.CpuUsageData> response = getTable().getCpuDataByRequest(request);
+    List<Cpu.CpuUsageData> response = getTable().getCpuDataByRequest(request);
 
     // Validate that we have data from start timestamp (exclusive) to end timestamp (inclusive)
     assertThat(response.size()).isEqualTo(TEST_DATA_COUNT - 1);
 
     // Validate we only got back data we expected to get back.
     for (int i = 1; i < response.size(); i++) {
-      CpuProfiler.CpuUsageData data = response.get(i - 1);
+      Cpu.CpuUsageData data = response.get(i - 1);
       assertThat(data.getEndTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
       assertThat(data.getAppCpuTimeInMillisec()).isEqualTo(SESSION_ONE_OFFSET + i);
       assertThat(data.getSystemCpuTimeInMillisec()).isEqualTo(SESSION_ONE_OFFSET + i);
@@ -158,7 +159,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       .setStartTimestamp(SESSION_ONE_OFFSET)
       .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA_COUNT - 1))
       .build();
-    List<CpuProfiler.CpuUsageData> response = getTable().getCpuDataByRequest(request);
+    List<Cpu.CpuUsageData> response = getTable().getCpuDataByRequest(request);
 
     assertThat(response.size()).isEqualTo(0);
   }
@@ -167,7 +168,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   public void testGetDataInvalidTimeRange() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest
       .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(0).setEndTimestamp(10).build();
-    List<CpuProfiler.CpuUsageData> response = getTable().getCpuDataByRequest(request);
+    List<Cpu.CpuUsageData> response = getTable().getCpuDataByRequest(request);
 
     assertThat(response.size()).isEqualTo(0);
   }

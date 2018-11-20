@@ -21,6 +21,7 @@ import com.android.tools.datastore.energy.BatteryModel;
 import com.android.tools.datastore.energy.CpuConfig;
 import com.android.tools.datastore.energy.PowerProfile;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -49,7 +50,7 @@ public final class EnergyDataPoller extends PollRunner {
   @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyService;
   private long myDataRequestStartTimestampNs;
   @Nullable
-  private CpuProfiler.CpuUsageData myLastData = null;
+  private Cpu.CpuUsageData myLastData = null;
   private PowerProfile.NetworkType myLastKnownNetworkType = PowerProfile.NetworkType.NONE;
 
   @NotNull private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
@@ -195,9 +196,9 @@ public final class EnergyDataPoller extends PollRunner {
         CpuProfiler.CpuDataRequest.newBuilder().setSession(request.getSession()).setStartTimestamp(request.getStartTimestamp())
                                   .setEndTimestamp(request.getEndTimestamp()).build();
       CpuProfiler.CpuDataResponse cpuDataResponse = myCpuService.getData(cpuDataRequest);
-      CpuProfiler.CpuUsageData prevUsageData = myLastData;
+      Cpu.CpuUsageData prevUsageData = myLastData;
 
-      for (CpuProfiler.CpuUsageData currUsageData : cpuDataResponse.getDataList()) {
+      for (Cpu.CpuUsageData currUsageData : cpuDataResponse.getDataList()) {
         if (prevUsageData == null) {
           prevUsageData = currUsageData;
           continue;

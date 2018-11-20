@@ -19,6 +19,7 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
@@ -74,7 +75,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
         .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(3)).build())
     .build();
 
-  private static final CpuUsageData CPU_USAGE_DATA = CpuUsageData
+  private static final Cpu.CpuUsageData CPU_USAGE_DATA = Cpu.CpuUsageData
     .newBuilder()
     .setAppCpuTimeInMillisec(ONE_SECOND_MS)
     .setElapsedTimeInMillisec(TEN_SECONDS_MS)

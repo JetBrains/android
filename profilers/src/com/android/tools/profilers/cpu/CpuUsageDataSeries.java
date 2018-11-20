@@ -19,15 +19,14 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.

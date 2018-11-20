@@ -16,7 +16,9 @@
 package com.android.tools.datastore.energy
 
 import com.android.tools.datastore.FakeLogService
-import com.android.tools.profiler.proto.CpuProfiler.*
+import com.android.tools.profiler.proto.Cpu.CpuCoreUsageData
+import com.android.tools.profiler.proto.Cpu.CpuUsageData
+import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

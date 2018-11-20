@@ -22,6 +22,7 @@ import com.android.tools.datastore.TestGrpcService
 import com.android.tools.datastore.energy.BatteryModel
 import com.android.tools.datastore.energy.PowerProfile
 import com.android.tools.datastore.service.EnergyService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuServiceGrpc
 import com.android.tools.profiler.proto.EnergyProfiler
@@ -118,7 +119,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   }
 
   private class FakeCpuService : CpuServiceGrpc.CpuServiceImplBase() {
-    var dataList = ArrayList<CpuProfiler.CpuUsageData>()
+    var dataList = ArrayList<Cpu.CpuUsageData>()
 
     override fun getData(request: CpuProfiler.CpuDataRequest, responseObserver: StreamObserver<CpuProfiler.CpuDataResponse>) {
       responseObserver.onNext(CpuProfiler.CpuDataResponse.newBuilder().addAllData(dataList).build())
@@ -251,27 +252,27 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   @Test
   fun cpuEventsAffectEnergySamples() {
     fakeCpuService.dataList = Lists.newArrayList(
-      CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(0).addCores(
-        CpuProfiler.CpuCoreUsageData.newBuilder().setCore(0).setSystemCpuTimeInMillisec(0).setElapsedTimeInMillisec(0).build())
+      Cpu.CpuUsageData.newBuilder().setEndTimestamp(0).addCores(
+        Cpu.CpuCoreUsageData.newBuilder().setCore(0).setSystemCpuTimeInMillisec(0).setElapsedTimeInMillisec(0).build())
         .build(),
       // Timestamp rounds from 250ms to nearest bucket, 200ms. CPU at 100%
-      CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS)
+      Cpu.CpuUsageData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS)
         .setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS)
         .setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
         .setAppCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
         .addCores(
-          CpuProfiler.CpuCoreUsageData.newBuilder()
+          Cpu.CpuCoreUsageData.newBuilder()
             .setCore(0).setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS).setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS).build())
         .build(),
 
       // Timestamp rounds from 750ms to nearest bucket, 800ms. CPU drops to 50%
       // (Since previous data, 500ms elapsed but only 250ms app time)
-      CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS)
+      Cpu.CpuUsageData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS)
         .setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS)
         .setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS)
         .setAppCpuTimeInMillisec(ONE_HALF_SEC_MS)
         .addCores(
-          CpuProfiler.CpuCoreUsageData.newBuilder()
+          Cpu.CpuCoreUsageData.newBuilder()
             .setCore(0).setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS).setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS).build())
         .build()
     )

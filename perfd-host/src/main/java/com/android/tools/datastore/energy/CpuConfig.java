@@ -18,12 +18,12 @@ package com.android.tools.datastore.energy;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.energy.PowerProfile.CpuCoreUsage;
 import com.android.tools.datastore.poller.EnergyDataPoller;
+import com.android.tools.profiler.proto.Cpu.CpuCoreUsageData;
+import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
 import com.google.common.primitives.Doubles;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuConfig {
   @NotNull private final LogService myLogService;
@@ -109,12 +109,12 @@ public class CpuConfig {
       double system = currUsageData.getSystemCpuTimeInMillisec() - prevUsageData.getSystemCpuTimeInMillisec();
       double appSystemRatio = (currUsageData.getAppCpuTimeInMillisec() - prevUsageData.getAppCpuTimeInMillisec()) / system;
 
-      List<CpuProfiler.CpuCoreUsageData> coresUsageData = currUsageData.getCoresList();
-      List<CpuProfiler.CpuCoreUsageData> prevCoresUsageData = prevUsageData.getCoresList();
+      List<CpuCoreUsageData> coresUsageData = currUsageData.getCoresList();
+      List<CpuCoreUsageData> prevCoresUsageData = prevUsageData.getCoresList();
 
       for (int i = 0; i < coreCount; i++) {
-        CpuProfiler.CpuCoreUsageData currCore = coresUsageData.get(i);
-        CpuProfiler.CpuCoreUsageData prevCore = prevCoresUsageData.get(i);
+        CpuCoreUsageData currCore = coresUsageData.get(i);
+        CpuCoreUsageData prevCore = prevCoresUsageData.get(i);
         assert i < myCpuCoreMinFreqInKhz.length;
         int minFreqKhz = myCpuCoreMinFreqInKhz[i];
         int maxFreqKhz = myCpuCoreMaxFreqInKhz[i];

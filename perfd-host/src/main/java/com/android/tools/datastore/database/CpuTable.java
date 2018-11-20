@@ -16,11 +16,11 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
-import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
