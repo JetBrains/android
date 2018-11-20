@@ -31,6 +31,9 @@ import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.actions.PasteAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlTag
 
@@ -60,55 +63,110 @@ class ResourcePasteProvider : PasteProvider {
   private fun performForXml(psiElement: PsiElement?,
                             dataContext: DataContext,
                             caret: Caret) {
-    if (psiElement is XmlElement) {
-      val resourceReference = getResourceUrl(dataContext)?.toString() ?: return
-      val xmlTag = findNearestXmlTag(psiElement) ?: return
-      when (xmlTag.name) {
-        SdkConstants.IMAGE_VIEW -> performForImageView(xmlTag, resourceReference)
-        else -> pasteAtCaret(caret, resourceReference)
+    val resourceReference = getResourceUrl(dataContext)?.toString() ?: return
+
+    if (psiElement !is XmlElement) {
+      pasteAtCaret(caret, resourceReference)
+      return
+    }
+
+    val xmlAttributeValue = psiElement.parentOfType<XmlAttributeValue>()
+    if (processForValue(xmlAttributeValue, caret, resourceReference)) {
+      return
+    }
+
+    val xmlAttribute = psiElement.parentOfType<XmlAttribute>()
+    if (processForAttribute(xmlAttribute, caret, resourceReference)) {
+      return
+    }
+
+    val xmlTag = psiElement.parentOfType<XmlTag>()
+    if (processForTag(xmlTag, caret, resourceReference)) {
+      return
+    }
+
+    pasteAtCaret(caret, resourceReference)
+  }
+
       }
     }
+  }
+
+  private fun processForTag(xmlTag: XmlTag?,
+                            caret: Caret,
+                            resourceReference: String): Boolean {
+    return when (xmlTag?.name) {
+      SdkConstants.IMAGE_VIEW -> performForImageView(xmlTag, resourceReference)
+      else -> false
+    }
+  }
+
+  private fun processForAttribute(xmlAttribute: XmlAttribute?,
+                                  caret: Caret,
+                                  resourceReference: String): Boolean {
+    if (xmlAttribute == null) return false
+    runWriteAction {
+      xmlAttribute.value = resourceReference
+    }
+    xmlAttribute.valueElement?.valueTextRange?.startOffset?.let {
+      caret.selectStringFromOffset(resourceReference, it)
+    }
+    return true
+  }
+
+  private fun processForValue(xmlAttributeValue: XmlAttributeValue?,
+                              caret: Caret,
+                              resourceReference: String): Boolean {
+    if (xmlAttributeValue == null) return false
+    processForAttribute(xmlAttributeValue.parent as? XmlAttribute, caret, resourceReference)
+    return true
   }
 
   private fun pasteAtCaret(caret: Caret, resourceReference: String) {
     runWriteAction {
       caret.editor.document.insertString(caret.offset, resourceReference)
     }
-    caret.setSelection(caret.offset, caret.offset + resourceReference.length)
-    caret.moveToOffset(caret.offset + resourceReference.length)
+    caret.selectStringFromOffset(resourceReference, caret.offset)
   }
 
-  /**
-   * If the psiElement is descendant of an [XmlTag] this method return the [XmlTag] or
-   * returns null otherwise.
-   */
-  private fun findNearestXmlTag(psiElement: PsiElement?): XmlTag? {
-    var currentElement = psiElement
-    while (currentElement != null && currentElement !is XmlTag) {
-      currentElement = runReadAction { currentElement?.parent }
+  private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String) {
+    runWriteAction {
+      caret.editor.document.replaceString(psiElement.textRange.startOffset, psiElement.textRange.endOffset, resourceReference)
     }
-    return currentElement as? XmlTag
+    caret.selectStringFromOffset(resourceReference, psiElement.textRange.startOffset)
+  }
+
+  private fun Caret.selectStringFromOffset(resourceReference: String, offset: Int) {
+    setSelection(offset, offset + resourceReference.length)
+    moveToOffset(offset + resourceReference.length)
   }
 
   /**
    * Set the src attribute for an ImageView [xmlTag] with the provided [resourceReference].
    * This method will use the app compat attributes if the module is using AppCompat
    */
-  private fun performForImageView(xmlTag: XmlTag, resourceReference: String) {
-    val dependsOnAppCompat = runReadAction { ModuleUtilCore.findModuleForPsiElement(xmlTag)?.dependsOnAppCompat() } == true
+  private fun performForImageView(xmlTag: XmlTag, resourceReference: String): Boolean {
+    val dependsOnAppCompat = dependsOnAppCompat(xmlTag)
     runWriteAction {
-      if (dependsOnAppCompat) {
-        xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, resourceReference)
-        xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, null)
-      }
-      else {
-        xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, null)
-        xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, resourceReference)
-      }
-
+      setSrcAttribute(dependsOnAppCompat, xmlTag, resourceReference)
       TemplateUtils.reformatAndRearrange(xmlTag.project, xmlTag)
     }
+    return true
   }
+
+  private fun setSrcAttribute(dependsOnAppCompat: Boolean, xmlTag: XmlTag, resourceReference: String) {
+    if (dependsOnAppCompat) {
+      xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, resourceReference)
+      xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, null)
+    }
+    else {
+      xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, null)
+      xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, resourceReference)
+    }
+  }
+
+  private fun dependsOnAppCompat(xmlTag: XmlTag) =
+    runReadAction { ModuleUtilCore.findModuleForPsiElement(xmlTag)?.dependsOnAppCompat() } == true
 
   private fun getResourceUrl(dataContext: DataContext): ResourceUrl? =
     PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
