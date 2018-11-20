@@ -24,7 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.TestNlEditor
+import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -186,7 +186,7 @@ class AddDestinationMenuTest : NavTestCase() {
     assertNotNull(destination.component)
     assertEquals(3, surface.currentNavigation.children.size)
 
-    UndoManager.getInstance(project).undo(TestNlEditor(model.virtualFile, project))
+    UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
 
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)

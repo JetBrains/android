@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.editor;
+package com.android.tools.idea.naveditor.editor;
 
+import com.android.tools.idea.common.editor.DesignerEditorProvider;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -22,22 +23,22 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 
-public class NlEditorProvider extends DesignerEditorProvider {
+public class NavEditorProvider extends DesignerEditorProvider {
 
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new NlEditor(file, project);
+    return new NavEditor(file, project);
   }
 
   @NotNull
   @Override
   public String getEditorTypeId() {
-    return NlEditor.NL_EDITOR_ID;
+    return NavEditor.NAV_EDITOR_ID;
   }
 
   @Override
   protected boolean acceptAndroidFacetXml(@NotNull XmlFile xmlFile) {
-    return NlLayoutType.canBeOpenInLayoutEditor(xmlFile);
+    return NlLayoutType.typeOf(xmlFile) == NlLayoutType.NAV;
   }
 }

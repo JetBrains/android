@@ -20,7 +20,7 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.TestNlEditor
+import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -144,7 +144,7 @@ class AddToNewGraphActionTest : NavTestCase() {
 
     val action = AddToNewGraphAction(surface)
     action.actionPerformed(mock(AnActionEvent::class.java))
-    UndoManager.getInstance(project).undo(TestNlEditor(model.virtualFile, project))
+    UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)
 

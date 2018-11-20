@@ -17,9 +17,9 @@ package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
-import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.idPath
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
@@ -68,7 +68,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before {
       override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
         if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it) } == true) {
-          for (editor in source.getAllEditors(file).filterIsInstance<NlEditor>()) {
+          for (editor in source.getAllEditors(file).filterIsInstance<NavEditor>()) {
             val layoutPositions = storage.state[file.name] ?: continue
             editor.component.surface.model?.let { rectifyIds(it.components.flatMap { c -> c.children }, layoutPositions) }
           }

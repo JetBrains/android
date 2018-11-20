@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.common.editor.NlEditorPanel
+import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -461,7 +461,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testActivateWithSchemaChange() {
     NavigationSchema.createIfNecessary(myModule)
-    val editor = mock(NlEditorPanel::class.java)
+    val editor = mock(DesignerEditorPanel::class.java)
     val surface = NavDesignSurface(project, editor, project)
     surface.model = model("nav.xml") { navigation() }
     @Suppress("UNCHECKED_CAST")
@@ -527,7 +527,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testActivateAddNavigator() {
     NavigationSchema.createIfNecessary(myModule)
-    val surface = NavDesignSurface(project, mock(NlEditorPanel::class.java), project)
+    val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
     surface.model = model("nav.xml") { navigation() }
 
     addClass("import androidx.navigation.*;\n" +

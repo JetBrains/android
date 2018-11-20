@@ -82,7 +82,7 @@ public enum NlLayoutType {
     }
   },
 
-  NAV(true) {
+  NAV(true, false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return NavigationDomFileDescription.isNavFile(file);
@@ -98,14 +98,18 @@ public enum NlLayoutType {
   PREFERENCE_SCREEN(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.XML, Collections.singleton(SdkConstants.TAG_PREFERENCE_SCREEN));
+      return FileDescriptionUtils.isResourceOfTypeWithRootTag(file,
+                                                              ResourceFolderType.XML,
+                                                              Collections.singleton(SdkConstants.TAG_PREFERENCE_SCREEN));
     }
   },
 
   STATE_LIST(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfTypeContainingTag(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
+      return FileDescriptionUtils.isResourceOfTypeContainingTag(file,
+                                                                ResourceFolderType.DRAWABLE,
+                                                                Collections.singleton(SdkConstants.TAG_SELECTOR));
     }
 
     @NotNull
@@ -138,7 +142,9 @@ public enum NlLayoutType {
   VECTOR(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_VECTOR));
+      return FileDescriptionUtils.isResourceOfTypeWithRootTag(file,
+                                                              ResourceFolderType.DRAWABLE,
+                                                              Collections.singleton(SdkConstants.TAG_VECTOR));
     }
 
     @NotNull
@@ -150,8 +156,15 @@ public enum NlLayoutType {
 
   private final boolean mySupportedByDesigner;
 
+  private final boolean myCanBeOpenByNlEditor;
+
   NlLayoutType(boolean supportedByDesigner) {
+    this(supportedByDesigner, supportedByDesigner);
+  }
+
+  NlLayoutType(boolean supportedByDesigner, boolean canBeOpenByNlEditor) {
     mySupportedByDesigner = supportedByDesigner;
+    myCanBeOpenByNlEditor = canBeOpenByNlEditor;
   }
 
   public abstract boolean isResourceTypeOf(@NotNull XmlFile file);
@@ -160,8 +173,8 @@ public enum NlLayoutType {
     return this == LAYOUT;
   }
 
-  public static boolean supports(@NotNull XmlFile file) {
-    return typeOf(file).isSupportedByDesigner();
+  public static boolean canBeOpenInLayoutEditor(@NotNull XmlFile file) {
+    return typeOf(file).myCanBeOpenByNlEditor;
   }
 
   @NotNull

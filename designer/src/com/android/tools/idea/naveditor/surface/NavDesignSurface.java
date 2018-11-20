@@ -24,7 +24,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.editor.NlEditorPanel;
+import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -96,7 +96,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link DesignSurface} for the navigation editor.
@@ -108,11 +107,10 @@ public class NavDesignSurface extends DesignSurface {
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
-  private final NlEditorPanel myEditorPanel;
+  private DesignerEditorPanel myEditorPanel;
 
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
 
-  @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     this(project, null, parentDisposable);
   }
@@ -120,7 +118,7 @@ public class NavDesignSurface extends DesignSurface {
   /**
    * {@code editorPanel} should only be null in tests
    */
-  public NavDesignSurface(@NotNull Project project, @Nullable NlEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
+  public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, new SelectionModel(), parentDisposable);
     setBackground(JBColor.white);
 
@@ -147,10 +145,8 @@ public class NavDesignSurface extends DesignSurface {
     super.dispose();
   }
 
-  @VisibleForTesting
-  @Nullable
-  NlEditorPanel getEditorPanel() {
-    return myEditorPanel;
+  public void setEditorPanel(DesignerEditorPanel editorPanel) {
+    myEditorPanel = editorPanel;
   }
 
   @Override
@@ -289,22 +285,18 @@ public class NavDesignSurface extends DesignSurface {
 
       NavigationSchema schema = NavigationSchema.get(module);
       if (!schema.quickValidate()) {
-        NlEditorPanel editorPanel = getEditorPanel();
-        if (editorPanel != null) {
-          editorPanel.getWorkBench().showLoading("Refreshing Navigators...");
+        if (myEditorPanel == null) {
+          return;
         }
+        myEditorPanel.getWorkBench().showLoading("Refreshing Navigators...");
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           try {
             schema.rebuildSchema().get();
-            if (editorPanel != null) {
-              ApplicationManager.getApplication().invokeLater(() -> editorPanel.getWorkBench().hideLoading());
-            }
+            ApplicationManager.getApplication().invokeLater(() -> myEditorPanel.getWorkBench().hideLoading());
           }
           catch (Exception e) {
-            if (editorPanel != null) {
-              ApplicationManager.getApplication().invokeLater(
-                () -> editorPanel.getWorkBench().loadingStopped("Error refreshing Navigators"));
-            }
+            ApplicationManager.getApplication().invokeLater(
+              () -> myEditorPanel.getWorkBench().loadingStopped("Error refreshing Navigators"));
           }
         });
       }

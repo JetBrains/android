@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.editor
+package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.gradle.project.sync.setup.Facets
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 
-class NlEditorProviderTest : AndroidTestCase() {
+class NavEditorProviderTest : AndroidTestCase() {
 
-  private lateinit var provider : NlEditorProvider
+  private lateinit var provider : NavEditorProvider
 
   override fun setUp() {
     super.setUp()
-    provider = NlEditorProvider()
+    provider = NavEditorProvider()
   }
 
   fun testDoNotAcceptNonLayoutFile() {
@@ -38,13 +39,13 @@ class NlEditorProviderTest : AndroidTestCase() {
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
-  fun testDoNotAcceptNavigationFile() {
-    val file = myFixture.addFileToProject("res/navigation/my_nav.xml", navigationContent())
+  fun testDoNotAcceptLayoutFile() {
+    val file = myFixture.addFileToProject("res/layout/my_layout.xml", layoutContent())
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
-  fun testAcceptLayoutFileInAndroidModuleOnly() {
-    val file = myFixture.addFileToProject("res/layout/my_layout.xml", layoutContent())
+  fun testAcceptNavigationFileInAndroidModuleOnly() {
+    val file = myFixture.addFileToProject("res/navigation/my_nav.xml", navigationContent())
     assertTrue(provider.accept(project, file.virtualFile))
 
     // Makes the module is not an AndroidModule by removing AndroidFacet from it.
@@ -69,9 +70,8 @@ class NlEditorProviderTest : AndroidTestCase() {
 
   @Language("XML")
   private fun navigationContent(): String {
-    val nav = ComponentDescriptor(SdkConstants.TAG_NAVIGATION).id("mynav")
     val sb = StringBuilder()
-    nav.appendXml(sb, 0)
+    NavModelBuilderUtil.navigation("mynav").appendXml(sb, 0)
     return sb.toString()
   }
 }

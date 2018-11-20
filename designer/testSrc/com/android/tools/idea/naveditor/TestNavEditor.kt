@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor
 
-import com.android.tools.idea.common.editor.NlEditor
+import com.android.tools.idea.naveditor.editor.NavEditor
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.undo.DocumentReference
 import com.intellij.openapi.command.undo.DocumentReferenceManager
@@ -23,9 +23,9 @@ import com.intellij.openapi.command.undo.DocumentReferenceProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-class TestNlEditor(private val myFile: VirtualFile, project: Project) : NlEditor(myFile, project), DocumentReferenceProvider {
+class TestNavEditor(private val vFile: VirtualFile, project: Project) : NavEditor(vFile, project), DocumentReferenceProvider {
 
   override fun getDocumentReferences(): Collection<DocumentReference> {
-    return ImmutableList.of(DocumentReferenceManager.getInstance().create(myFile))
+    return ImmutableList.of(DocumentReferenceManager.getInstance().create(vFile))
   }
 }
