@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
@@ -61,9 +62,8 @@ private const val NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show"
 
 class ArtifactRepositorySearchForm(
   val variables: PsVariablesScope,
-  repositories: Collection<ArtifactRepository>
+  private val repositorySearch: ArtifactRepositorySearchService
 ) : ArtifactRepositorySearchFormUi() {
-  private val repositorySearch: ArtifactRepositorySearch = ArtifactRepositorySearch(repositories)
   private val resultsTable: TableView<FoundArtifact>
   private val versionsPanel: AvailableVersionsPanel
   private val eventDispatcher = SelectionChangeEventDispatcher<ParsedValue<String>>()

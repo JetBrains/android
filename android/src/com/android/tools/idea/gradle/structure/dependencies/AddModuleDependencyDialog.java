@@ -32,6 +32,7 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
   public AddModuleDependencyDialog(@NotNull PsModule module) {
     super(module);
     setTitle(TITLE);
+    init();
   }
 
   @Override

@@ -303,7 +303,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     @Override
     protected void showAddDependencyDialog(@NotNull PsModule module) {
-      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(module);
+      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(myContext, module);
       if (dialog.showAndGet()) {
         dialog.addNewDependencies();
       }
