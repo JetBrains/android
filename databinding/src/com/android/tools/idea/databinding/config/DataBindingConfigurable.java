@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.config;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.databinding.InternalDataBindingUtil;
+import com.android.tools.idea.databinding.DataBindingCodeGenService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -85,7 +85,7 @@ public final class DataBindingConfigurable implements SearchableConfigurable {
     DataBindingConfiguration.CodeGenMode codeGenMode = getSelectedCodeGenMode();
     ApplicationManager.getApplication().runWriteAction(() -> {
       myConfiguration.CODE_GEN_MODE = codeGenMode;
-      InternalDataBindingUtil.recalculateEnableInMemoryClassGeneration();
+      DataBindingCodeGenService.getInstance().handleCodeGenModeChanged();
     });
   }
 
