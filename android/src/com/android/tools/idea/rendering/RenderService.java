@@ -439,6 +439,8 @@ public class RenderService implements Disposable {
     private boolean isSecurityManagerEnabled = true;
     private float myDownscaleFactor = 1f;
     private boolean showDecorations = true;
+    private int myMaxRenderWidth = -1;
+    private int myMaxRenderHeight = -1;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -490,7 +492,15 @@ public class RenderService implements Disposable {
       return this;
     }
 
-
+    /**
+     * @see RenderTask#setMaxRenderSize(int, int)
+     */
+    @NotNull
+    public RenderTaskBuilder withMaxRenderSize(int maxRenderWidth, int maxRenderHeight) {
+      myMaxRenderWidth = maxRenderWidth;
+      myMaxRenderHeight = maxRenderHeight;
+      return this;
+    }
 
     /**
      * Disables the security manager for the {@link RenderTask}.
@@ -596,6 +606,9 @@ public class RenderService implements Disposable {
         }
 
         task.setDecorations(showDecorations);
+        if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
+          task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
+        }
 
         return task;
       } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
