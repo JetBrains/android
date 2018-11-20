@@ -43,6 +43,7 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 
 class DefaultModuleSystem(val module: Module) :
   AndroidModuleSystem,
@@ -105,6 +106,8 @@ class DefaultModuleSystem(val module: Module) :
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
     return Triple(emptyList(), dependenciesToAdd, "")
   }
+
+  override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getResolvedDependentLibraries(): Collection<Library> {
     val libraries = mutableListOf<Library>()

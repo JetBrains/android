@@ -117,6 +117,19 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun getResolvedDependentLibraries(): Collection<Library>
 
   /**
+   * Returns the Android modules that this module transitively depends on for resources.
+   * As Android modules, each module in the returned list will have an associated AndroidFacet.
+   *
+   * Where supported, the modules will be returned in overlay order to help with resource resolution,
+   * but this is only to support legacy callers. New callers should avoid making such assumptions and
+   * instead determine the overlay order explicitly if necessary.
+   *
+   * TODO(b/118317486): Remove this API once resource module dependencies can accurately
+   * be determined from order entries for all supported build systems.
+   */
+  fun getResourceModuleDependencies(): List<Module>
+
+  /**
    * Determines whether or not the underlying build system is capable of generating a PNG
    * from vector graphics.
    */

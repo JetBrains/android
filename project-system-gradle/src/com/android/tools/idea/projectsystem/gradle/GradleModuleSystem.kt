@@ -42,6 +42,8 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
 import java.util.Collections
@@ -73,6 +75,8 @@ class GradleModuleSystem(
         .find { it.matches(coordinate) }
     }
   }
+
+  override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getResolvedDependentLibraries(): Collection<Library> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
