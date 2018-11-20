@@ -130,7 +130,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public IdeaSourceProvider getMainIdeaSourceProvider() {
     if (!requiresAndroidModel()) {
       if (myMainIdeaSourceSet == null) {
-        myMainIdeaSourceSet = IdeaSourceProvider.create(this);
+        myMainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(this);
       }
     }
     else {
