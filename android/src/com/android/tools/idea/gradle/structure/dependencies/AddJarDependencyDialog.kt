@@ -30,6 +30,7 @@ class AddJarDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(m
 
   init {
     title = ADD_JAR_DEPENDENCY_DIALOG_TITLE
+    init()
   }
 
   override fun postponeValidation(): Boolean = true

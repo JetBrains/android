@@ -44,7 +44,6 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   protected AbstractAddDependenciesDialog(@NotNull PsModule module) {
     super(module.getParent().getIdeProject());
     myModule = module;
-    init();
   }
 
   @Override

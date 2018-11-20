@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.ValidationInfo
@@ -25,12 +26,13 @@ import javax.swing.JComponent
 
 const val ADD_LIBRARY_DEPENDENCY_DIALOG_TITLE = "Add Library Dependency"
 
-class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(module) {
+class AddLibraryDependencyDialog(private val context: PsContext, module: PsModule) : AbstractAddDependenciesDialog(module) {
 
   private var libraryDependenciesForm: LibraryDependenciesForm? = null
 
   init {
     title = ADD_LIBRARY_DEPENDENCY_DIALOG_TITLE
+    init()
   }
 
   override fun addNewDependencies() {
@@ -47,7 +49,7 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
 
   override fun getDependencySelectionView(): JComponent {
     if (libraryDependenciesForm == null) {
-      libraryDependenciesForm = LibraryDependenciesForm(module)
+      libraryDependenciesForm = LibraryDependenciesForm(context, module)
     }
     return libraryDependenciesForm!!.panel
   }

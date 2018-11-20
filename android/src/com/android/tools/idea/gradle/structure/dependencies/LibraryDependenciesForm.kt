@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderTo
@@ -26,7 +27,7 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-internal class LibraryDependenciesForm (module: PsModule) : LibraryDependenciesFormUi(), Disposable {
+internal class LibraryDependenciesForm (context: PsContext, module: PsModule) : LibraryDependenciesFormUi(), Disposable {
   private val searchForm: ArtifactRepositorySearchForm
   private var selected: ParsedValue<String> = ParsedValue.NotSet
 
@@ -37,7 +38,7 @@ internal class LibraryDependenciesForm (module: PsModule) : LibraryDependenciesF
   val repositories = module.getArtifactRepositories()
 
   init {
-    searchForm = ArtifactRepositorySearchForm(module.variables, repositories)
+    searchForm = ArtifactRepositorySearchForm(module.variables, context.getArtifactRepositorySearchServiceFor(module))
     searchForm.add(SelectionChangeListener { selectedLibrary ->
       selected = selectedLibrary ?: ParsedValue.NotSet
       myLibraryLabel.clear()
