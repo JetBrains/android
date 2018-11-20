@@ -21,6 +21,7 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -64,8 +65,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> observer) {
     if (!myLastCpuResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
       CpuDataResponse.Builder response = CpuDataResponse.newBuilder();
-      List<CpuUsageData> cpuData = myCpuTable.getCpuDataByRequest(request);
-      for (CpuUsageData data : cpuData) {
+      List<Cpu.CpuUsageData> cpuData = myCpuTable.getCpuDataByRequest(request);
+      for (Cpu.CpuUsageData data : cpuData) {
         response.addData(data);
       }
       myLastCpuResponse = new ResponseData<>(request.getSession(),

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.CpuTable
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 
 import java.sql.Connection
@@ -76,23 +77,23 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
   }
 
   private fun generateUsage(timestamp: Long, properties: GeneratorProperties) {
-    val data = CpuProfiler.CpuUsageData.newBuilder()
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+    val data = Cpu.CpuUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(0)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)
                   .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(1)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)
                   .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(2)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)
                   .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(3)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)

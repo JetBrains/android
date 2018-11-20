@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.StatusRuntimeException;
@@ -66,7 +67,7 @@ public class CpuDataPoller extends PollRunner {
     CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest
       .newBuilder().setSession(mySession).setStartTimestamp(getDataStartNs).setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(request.build());
-    for (CpuProfiler.CpuUsageData data : response.getDataList()) {
+    for (Cpu.CpuUsageData data : response.getDataList()) {
       getDataStartNs = Math.max(getDataStartNs, data.getEndTimestamp());
       myCpuTable.insert(mySession, data);
     }

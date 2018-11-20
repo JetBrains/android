@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -277,7 +278,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
     if (!myEmptyUsageData) {
       // Add first usage data
-      CpuProfiler.CpuUsageData.Builder cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
+      Cpu.CpuUsageData.Builder cpuUsageData = Cpu.CpuUsageData.newBuilder();
       cpuUsageData.setElapsedTimeInMillisec(0);
       cpuUsageData.setSystemCpuTimeInMillisec(0);
       cpuUsageData.setAppCpuTimeInMillisec(0);
@@ -285,7 +286,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       response.addData(cpuUsageData);
 
       // Add second usage data.
-      cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
+      cpuUsageData = Cpu.CpuUsageData.newBuilder();
       cpuUsageData.setElapsedTimeInMillisec(TOTAL_ELAPSED_TIME);
       cpuUsageData.setSystemCpuTimeInMillisec(mySystemTimeMs);
       cpuUsageData.setAppCpuTimeInMillisec(myAppTimeMs);
