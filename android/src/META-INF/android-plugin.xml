@@ -466,8 +466,6 @@
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
 
-    <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
-
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
@@ -1060,7 +1058,6 @@
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
                    serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />
     <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
-    <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
     <moduleService serviceImplementation="com.android.tools.idea.res.ResourceIdManager" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
