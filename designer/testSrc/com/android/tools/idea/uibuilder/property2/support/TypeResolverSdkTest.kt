@@ -17,13 +17,16 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
+import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CLASS_PREFERENCE
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.SdkConstants.MATERIAL1_PKG
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.AndroidAttributeFact
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -42,16 +45,25 @@ import org.junit.Test
 
 private const val ANDROID_VIEWS_HEADER = "Android Views"
 private const val ANDROID_PREFERENCES_HEADER = "Android Preferences"
+private const val APPCOMPAT_VIEWS_HEADER = "AppCompat Views"
+private const val CONSTRAINT_LAYOUT_HEADER = "Constraint Layout"
+private const val DESIGN_HEADER = "Material Design"
+private const val CONSTRAINT_LAYOUT_ID = "constraint"
+private const val DESIGN_ID = "design"
 private const val PREFERENCE_PACKAGE = "android.preference"
+private const val APPCOMPAT_VIEW_PACKAGE = "android.support.v7.widget"
+private const val CONSTRAINT_LAYOUT_PACKAGE = "android.support.constraint"
 private const val TOTAL_ERROR_MESSAGE = "attributes with mismatched types"
 private const val LAYOUT_FILE_SUFFIX = "_layout"
 
 @RunsInEdt
 class TypeResolverSdkTest {
-  @JvmField @Rule
+  @JvmField
+  @Rule
   val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField @Rule
+  @JvmField
+  @Rule
   val edtRule = EdtRule()
 
   @Test
@@ -74,6 +86,48 @@ class TypeResolverSdkTest {
     val psiPackage = psiFacade.findPackage(PREFERENCE_PACKAGE)!!
     val report = Report(ANDROID_PREFERENCES_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiPreferenceClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  @Test
+  fun testAppCompatViewAttributeTypes() {
+    Dependencies.add(projectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(APPCOMPAT_VIEW_PACKAGE)!!
+    val report = Report(APPCOMPAT_VIEWS_HEADER)
+    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  @Test
+  fun testConstraintLayoutViewAttributeTypes() {
+    Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(CONSTRAINT_LAYOUT_PACKAGE)!!
+    val report = Report(CONSTRAINT_LAYOUT_HEADER)
+    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  @Test
+  fun testDesignViewAttributeTypes() {
+    Dependencies.add(projectRule.fixture, DESIGN_ID)
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(MATERIAL1_PKG)!!
+    val report = Report(DESIGN_HEADER)
+    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     report.dumpReport()
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -108,7 +162,12 @@ class TypeResolverSdkTest {
         val attrDefinition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name))
         val type = TypeResolver.resolveType(it.name, attrDefinition)
         val lookupType = AndroidAttributeFact.lookup(it.name)
-        if (type != lookupType) {
+
+        // Remove this when we have a library in prebuilts with this bug fixed: b/119883920
+        if (tag.name == SdkConstants.FLOATING_ACTION_BUTTON.oldName() && it.name == SdkConstants.ATTR_BACKGROUND_TINT_MODE) {
+          // ignore for now...
+        }
+        else if (type != lookupType) {
           report.logMismatch(Mismatch(tag.localName, it.name, type, lookupType))
         }
         report.logAttribute(tag.localName)

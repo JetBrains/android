@@ -30,7 +30,165 @@ object AndroidAttributeFact {
 
   fun lookup(name: String): NelePropertyType {
     when (name) {
-      // Hand edited overrides:
+      // Material Design additions
+      "layout_collapseMode" -> return NelePropertyType.ENUM
+      "layout_collapseParallaxMultiplier" -> return NelePropertyType.FLOAT
+      "layout_scrollFlags" -> return NelePropertyType.FLAGS
+      "layout_scrollInterpolator" -> return NelePropertyType.INTERPOLATOR
+      "tabBackground" -> return NelePropertyType.DRAWABLE
+      "tabContentStart" -> return NelePropertyType.DIMENSION
+      "tabGravity" -> return NelePropertyType.ENUM
+      "tabIconTint" -> return NelePropertyType.DRAWABLE
+      "tabIconTintMode" -> return NelePropertyType.ENUM
+      "tabIndicator" -> return NelePropertyType.DRAWABLE
+      "tabIndicatorAnimationDuration" -> return NelePropertyType.INTEGER
+      "tabIndicatorColor" -> return NelePropertyType.COLOR
+      "tabIndicatorFullWidth" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "tabIndicatorGravity" -> return NelePropertyType.ENUM
+      "tabIndicatorHeight" -> return NelePropertyType.DIMENSION
+      "tabInlineLabel" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "tabMaxWidth" -> return NelePropertyType.DIMENSION
+      "tabMinWidth" -> return NelePropertyType.DIMENSION
+      "tabMode" -> return NelePropertyType.ENUM
+      "tabPadding" -> return NelePropertyType.DIMENSION
+      "tabPaddingBottom" -> return NelePropertyType.DIMENSION
+      "tabPaddingEnd" -> return NelePropertyType.DIMENSION
+      "tabPaddingStart" -> return NelePropertyType.DIMENSION
+      "tabPaddingTop" -> return NelePropertyType.DIMENSION
+      "tabRippleColor" -> return NelePropertyType.COLOR
+      "tabSelectedTextColor" -> return NelePropertyType.COLOR
+      "tabTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "tabTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "tabUnboundedRipple" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "expanded" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "liftOnScroll" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "insetForeground" -> return NelePropertyType.DRAWABLE
+      "itemBackground" -> return NelePropertyType.DRAWABLE
+      "itemHorizontalPadding" -> return NelePropertyType.DIMENSION
+      "itemIconPadding" -> return NelePropertyType.DIMENSION
+      "itemIconTint" -> return NelePropertyType.DRAWABLE
+      "itemTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "itemTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "menu" -> return NelePropertyType.MENU
+      "boxBackgroundColor" -> return NelePropertyType.COLOR
+      "boxBackgroundMode" -> return NelePropertyType.ENUM
+      "boxCollapsedPaddingTop" -> return NelePropertyType.DIMENSION
+      "boxCornerRadiusBottomEnd" -> return NelePropertyType.DIMENSION
+      "boxCornerRadiusBottomStart" -> return NelePropertyType.DIMENSION
+      "boxCornerRadiusTopEnd" -> return NelePropertyType.DIMENSION
+      "boxCornerRadiusTopStart" -> return NelePropertyType.DIMENSION
+      "boxStrokeColor" -> return NelePropertyType.COLOR
+      "boxStrokeWidth" -> return NelePropertyType.DIMENSION
+      "counterEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "counterMaxLength" -> return NelePropertyType.INTEGER
+      "counterOverflowTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "counterTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "errorEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "errorTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "helperText" -> return NelePropertyType.STRING
+      "helperTextEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "helperTextTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "hintAnimationEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "hintEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "hintTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "passwordToggleContentDescription" -> return NelePropertyType.STRING
+      "passwordToggleDrawable" -> return NelePropertyType.DRAWABLE
+      "passwordToggleEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "passwordToggleTint" -> return NelePropertyType.COLOR_STATE_LIST
+      "passwordToggleTintMode" -> return NelePropertyType.ENUM
+      "itemHorizontalTranslationEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "itemIconSize" -> return NelePropertyType.DIMENSION
+      "itemTextAppearanceActive" -> return NelePropertyType.TEXT_APPEARANCE
+      "itemTextAppearanceInactive" -> return NelePropertyType.TEXT_APPEARANCE
+      "labelVisibilityMode" -> return NelePropertyType.ENUM
+      "borderWidth" -> return NelePropertyType.DIMENSION
+      "fabCustomSize" -> return NelePropertyType.DIMENSION
+      "fabSize" -> return NelePropertyType.ENUM
+      "hideMotionSpec" -> return NelePropertyType.ANIM
+      "hoveredFocusedTranslationZ" -> return NelePropertyType.DIMENSION
+      "maxImageSize" -> return NelePropertyType.DIMENSION
+      "pressedTranslationZ" -> return NelePropertyType.DIMENSION
+      "rippleColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "showMotionSpec" -> return NelePropertyType.ANIM
+      "useCompatPadding" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "collapsedTitleGravity" -> return NelePropertyType.FLAGS
+      "collapsedTitleTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "contentScrim" -> return NelePropertyType.DRAWABLE
+      "expandedTitleGravity" -> return NelePropertyType.FLAGS
+      "expandedTitleMargin" -> return NelePropertyType.DIMENSION
+      "expandedTitleMarginBottom" -> return NelePropertyType.DIMENSION
+      "expandedTitleMarginEnd" -> return NelePropertyType.DIMENSION
+      "expandedTitleMarginStart" -> return NelePropertyType.DIMENSION
+      "expandedTitleMarginTop" -> return NelePropertyType.DIMENSION
+      "expandedTitleTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "scrimAnimationDuration" -> return NelePropertyType.INTEGER
+      "scrimVisibleHeightTrigger" -> return NelePropertyType.DIMENSION
+      "statusBarScrim" -> return NelePropertyType.DRAWABLE
+      "titleEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "toolbarId" -> return NelePropertyType.ID
+
+      // ConstraintLayout additions
+      "barrierAllowsGoneWidgets" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "barrierDirection" -> return NelePropertyType.ENUM
+      "chainUseRtl" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "constraintSet" -> return NelePropertyType.ID
+      "constraint_referenced_ids" -> return NelePropertyType.STRING
+      "layout_constrainedHeight" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "layout_constrainedWidth" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "layout_constraintBaseline_creator" -> return NelePropertyType.INTEGER
+      "layout_constraintBaseline_toBaselineOf" -> return NelePropertyType.ID
+      "layout_constraintBottom_creator" -> return NelePropertyType.INTEGER
+      "layout_constraintBottom_toBottomOf" -> return NelePropertyType.ID
+      "layout_constraintBottom_toTopOf" -> return NelePropertyType.ID
+      "layout_constraintCircle" -> return NelePropertyType.ID
+      "layout_constraintCircleAngle" -> return NelePropertyType.INTEGER
+      "layout_constraintCircleRadius" -> return NelePropertyType.DIMENSION
+      "layout_constraintDimensionRatio" -> return NelePropertyType.FLOAT
+      "layout_constraintEnd_toEndOf" -> return NelePropertyType.ID
+      "layout_constraintEnd_toStartOf" -> return NelePropertyType.ID
+      "layout_constraintGuide_begin" -> return NelePropertyType.DIMENSION
+      "layout_constraintGuide_end" -> return NelePropertyType.DIMENSION
+      "layout_constraintGuide_percent" -> return NelePropertyType.FRACTION
+      "layout_constraintHeight_default" -> return NelePropertyType.ENUM
+      "layout_constraintHeight_max" -> return NelePropertyType.DIMENSION
+      "layout_constraintHeight_min" -> return NelePropertyType.DIMENSION
+      "layout_constraintHeight_percent" -> return NelePropertyType.FRACTION
+      "layout_constraintHorizontal_bias" -> return NelePropertyType.FRACTION
+      "layout_constraintHorizontal_chainStyle" -> return NelePropertyType.ENUM
+      "layout_constraintHorizontal_weight" -> return NelePropertyType.FLOAT
+      "layout_constraintLeft_creator" -> return NelePropertyType.INTEGER
+      "layout_constraintLeft_toLeftOf" -> return NelePropertyType.ID
+      "layout_constraintLeft_toRightOf" -> return NelePropertyType.ID
+      "layout_constraintRight_creator" -> return NelePropertyType.INTEGER
+      "layout_constraintRight_toLeftOf" -> return NelePropertyType.ID
+      "layout_constraintRight_toRightOf" -> return NelePropertyType.ID
+      "layout_constraintStart_toEndOf" -> return NelePropertyType.ID
+      "layout_constraintStart_toStartOf" -> return NelePropertyType.ID
+      "layout_constraintTop_creator" -> return NelePropertyType.INTEGER
+      "layout_constraintTop_toBottomOf" -> return NelePropertyType.ID
+      "layout_constraintTop_toTopOf" -> return NelePropertyType.ID
+      "layout_constraintVertical_bias" -> return NelePropertyType.FRACTION
+      "layout_constraintVertical_chainStyle" -> return NelePropertyType.ENUM
+      "layout_constraintVertical_weight" -> return NelePropertyType.FLOAT
+      "layout_constraintWidth_default" -> return NelePropertyType.ENUM
+      "layout_constraintWidth_max" -> return NelePropertyType.DIMENSION
+      "layout_constraintWidth_min" -> return NelePropertyType.DIMENSION
+      "layout_constraintWidth_percent" -> return NelePropertyType.FRACTION
+      "layout_editor_absoluteX" -> return NelePropertyType.DIMENSION
+      "layout_editor_absoluteY" -> return NelePropertyType.DIMENSION
+      "layout_goneMarginBottom" -> return NelePropertyType.DIMENSION
+      "layout_goneMarginEnd" -> return NelePropertyType.DIMENSION
+      "layout_goneMarginLeft" -> return NelePropertyType.DIMENSION
+      "layout_goneMarginRight" -> return NelePropertyType.DIMENSION
+      "layout_goneMarginStart" -> return NelePropertyType.DIMENSION
+      "layout_goneMarginTop" -> return NelePropertyType.DIMENSION
+      "layout_optimizationLevel" -> return NelePropertyType.FLAGS
+
+      // AppCompat additions:
+      "srcCompat" -> return NelePropertyType.DRAWABLE
+      "titleMargins" -> return NelePropertyType.DIMENSION
+
+      // Hand edited overrides for framework attributes:
       "alignmentMode" -> return NelePropertyType.ENUM
       "amPmBackgroundColor" -> return NelePropertyType.COLOR_STATE_LIST
       "amPmTextColor" -> return NelePropertyType.COLOR_STATE_LIST
@@ -426,7 +584,7 @@ object AndroidAttributeFact {
       "hasCode" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "headerBackground" -> return NelePropertyType.DRAWABLE
       "headerDividersEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
-      "headerLayout" -> return NelePropertyType.ID
+      "headerLayout" -> return NelePropertyType.LAYOUT
       "headerRemoveIconIfEmpty" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "headerTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "height" -> return NelePropertyType.DIMENSION

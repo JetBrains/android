@@ -87,12 +87,15 @@ object TypeResolver {
       SdkConstants.ATTR_CONTENT,
       SdkConstants.ATTR_DROP_DOWN_ANCHOR,
       SdkConstants.ATTR_HANDLE,
+      SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE,
+      SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
       SdkConstants.ATTR_NEXT_CLUSTER_FORWARD,
       SdkConstants.ATTR_NEXT_FOCUS_DOWN,
       SdkConstants.ATTR_NEXT_FOCUS_FORWARD,
       SdkConstants.ATTR_NEXT_FOCUS_LEFT,
       SdkConstants.ATTR_NEXT_FOCUS_RIGHT,
-      SdkConstants.ATTR_NEXT_FOCUS_UP -> NelePropertyType.ID
+      SdkConstants.ATTR_NEXT_FOCUS_UP,
+      SdkConstants.ATTR_TOOLBAR_ID -> NelePropertyType.ID
 
       SdkConstants.ATTR_EDITOR_EXTRAS -> NelePropertyType.ID // TODO: Support <input-extras> as resource type?
 
@@ -101,6 +104,7 @@ object TypeResolver {
       SdkConstants.ATTR_CHECK_MARK,
       SdkConstants.ATTR_CHILD_DIVIDER,
       SdkConstants.ATTR_COLLAPSE_ICON,
+      SdkConstants.ATTR_CONTENT_SCRIM,
       SdkConstants.ATTR_DIAL,
       SdkConstants.ATTR_DIVIDER,
       SdkConstants.ATTR_DRAWABLE_BOTTOM,
@@ -114,6 +118,10 @@ object TypeResolver {
       SdkConstants.ATTR_HAND_HOUR,
       SdkConstants.ATTR_HAND_MINUTE,
       SdkConstants.ATTR_HEADER_BACKGROUND,
+      SdkConstants.ATTR_INSET_BACKGROUND,
+      SdkConstants.ATTR_INSET_FOREGROUND,
+      SdkConstants.ATTR_ITEM_BACKGROUND,
+      SdkConstants.ATTR_ITEM_ICON_TINT,
       SdkConstants.ATTR_LIST_SELECTOR,
       SdkConstants.ATTR_LOGO,
       SdkConstants.ATTR_OVER_SCROLL_FOOTER,
@@ -121,9 +129,12 @@ object TypeResolver {
       SdkConstants.ATTR_POPUP_BACKGROUND,
       SdkConstants.ATTR_QUERY_BACKGROUND,
       SdkConstants.ATTR_NAVIGATION_ICON,
-      SdkConstants.ATTR_SRC,
       SdkConstants.ATTR_SELECTED_DATE_VERTICAL_BAR,
       SdkConstants.ATTR_SUBMIT_BACKGROUND,
+      SdkConstants.ATTR_SRC,
+      SdkConstants.ATTR_SRC_COMPAT,
+      SdkConstants.ATTR_TAB_BACKGROUND,
+      SdkConstants.ATTR_TAB_ICON_TINT,
       SdkConstants.ATTR_TAB_STRIP_LEFT,
       SdkConstants.ATTR_TAB_STRIP_RIGHT,
       SdkConstants.ATTR_THUMB,
@@ -132,10 +143,13 @@ object TypeResolver {
       SdkConstants.ATTR_SCROLLBAR_THUMB_HORIZONTAL,
       SdkConstants.ATTR_SCROLLBAR_THUMB_VERTICAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_HORIZONTAL,
-      SdkConstants.ATTR_SCROLLBAR_TRACK_VERTICAL -> NelePropertyType.DRAWABLE
+      SdkConstants.ATTR_SCROLLBAR_TRACK_VERTICAL,
+      SdkConstants.ATTR_STATUS_BAR_SCRIM -> NelePropertyType.DRAWABLE
 
       SdkConstants.ATTR_IN_ANIMATION,
       SdkConstants.ATTR_OUT_ANIMATION,
+      SdkConstants.ATTR_SHOW_MOTION_SPEC,
+      SdkConstants.ATTR_HIDE_MOTION_SPEC,
       SdkConstants.ATTR_LAYOUT_ANIMATION,
       SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIM
 
@@ -144,6 +158,8 @@ object TypeResolver {
       SdkConstants.ATTR_NUMBERS_INNER_TEXT_COLOR,
       SdkConstants.ATTR_NUMBERS_SELECTOR_COLOR,
       SdkConstants.ATTR_NUMBERS_TEXT_COLOR,
+      SdkConstants.ATTR_PASSWORD_TOGGLE_TINT,
+      SdkConstants.ATTR_RIPPLE_COLOR,
       SdkConstants.ATTR_TEXT_COLOR,
       SdkConstants.ATTR_TEXT_COLOR_HINT,
       SdkConstants.ATTR_TEXT_COLOR_LINK,
@@ -153,21 +169,36 @@ object TypeResolver {
       SdkConstants.ATTR_CHECK_MARK_TINT,
       SdkConstants.ATTR_DRAWABLE_TINT,
       SdkConstants.ATTR_INDETERMINATE_TINT,
+      SdkConstants.ATTR_ITEM_TEXT_COLOR,
       SdkConstants.ATTR_FOREGROUND_TINT,
       SdkConstants.ATTR_PROGRESS_TINT,
       SdkConstants.ATTR_PROGRESS_BACKGROUND_TINT,
       SdkConstants.ATTR_SECONDARY_PROGRESS_TINT,
+      SdkConstants.ATTR_TAB_TEXT_COLOR,
       SdkConstants.ATTR_THUMB_TINT,
       SdkConstants.ATTR_TICK_MARK_TINT,
       SdkConstants.ATTR_TRACK_TINT -> NelePropertyType.COLOR_STATE_LIST
 
       SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NelePropertyType.ARRAY
 
-      SdkConstants.ATTR_INTERPOLATOR -> NelePropertyType.INTERPOLATOR
+      SdkConstants.ATTR_INTERPOLATOR,
+      SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NelePropertyType.INTERPOLATOR
 
       SdkConstants.ATTR_ENTRIES -> NelePropertyType.STRING_ARRAY
 
       SdkConstants.ATTR_IGNORE_GRAVITY -> NelePropertyType.THREE_STATE_BOOLEAN
+
+      SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO -> NelePropertyType.FLOAT
+
+      SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
+      SdkConstants.ATTR_LAYOUT_WIDTH_PERCENT,
+      SdkConstants.ATTR_LAYOUT_HEIGHT_PERCENT,
+      SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
+      SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS -> NelePropertyType.FRACTION
+
+      SdkConstants.ATTR_ELEVATION -> NelePropertyType.DIMENSION
+
+      SdkConstants.ATTR_MENU -> NelePropertyType.MENU
 
       else -> null
     }
@@ -194,6 +225,7 @@ object TypeResolver {
       "style" ->
         return NelePropertyType.STYLE
       else -> {
+        if (thirdLast == "text" && secondLast == "appearance") return NelePropertyType.TEXT_APPEARANCE
         if (forthLast == "text" && thirdLast == "select" && secondLast == "handle") return NelePropertyType.DRAWABLE
       }
     }
