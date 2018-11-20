@@ -45,7 +45,6 @@ class TypeResolverTest {
     assertThat(resolve(ATTR_ELEVATION, AttributeFormat.DIMENSION)).isEqualTo(NelePropertyType.DIMENSION)
     assertThat(resolve(ATTR_MAXIMUM, AttributeFormat.FLOAT)).isEqualTo(NelePropertyType.FLOAT)
     assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.FRACTION)).isEqualTo(NelePropertyType.FRACTION)
-    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.INTEGER)).isEqualTo(NelePropertyType.INTEGER)
     assertThat(resolve(ATTR_TEXT, AttributeFormat.STRING)).isEqualTo(NelePropertyType.STRING)
     assertThat(resolve(ATTR_FONT_FAMILY, AttributeFormat.STRING)).isEqualTo(NelePropertyType.FONT)
     assertThat(resolve(ATTR_VISIBILITY, AttributeFormat.ENUM)).isEqualTo(NelePropertyType.ENUM)
@@ -59,6 +58,7 @@ class TypeResolverTest {
     assertThat(TypeResolver.resolveType(ATTR_CLASS, null)).isEqualTo(NelePropertyType.FRAGMENT)
     assertThat(TypeResolver.resolveType(ATTR_LAYOUT, null)).isEqualTo(NelePropertyType.LAYOUT)
     assertThat(TypeResolver.resolveType(ATTR_SHOW_IN, null)).isEqualTo(NelePropertyType.LAYOUT)
+    assertThat(TypeResolver.resolveType(ATTR_ELEVATION, null)).isEqualTo(NelePropertyType.DIMENSION)
   }
 
   @Test
