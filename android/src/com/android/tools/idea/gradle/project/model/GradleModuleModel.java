@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -63,11 +64,28 @@ public class GradleModuleModel implements ModuleModel {
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
                            @Nullable String agpVersion) {
+    this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
+         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), ImmutableList.copyOf(gradlePlugins), buildFilePath,
+         gradleVersion, agpVersion);
+  }
+
+  /**
+   * Method of constructing a GradleModuleModel without a GradleProject for use in tests ONLY.
+   */
+  @VisibleForTesting
+  public GradleModuleModel(@NotNull String moduleName,
+                           @NotNull List<String> taskNames,
+                           @NotNull String gradlePath,
+                           @NotNull File rootFolderPath,
+                           @NotNull List<String> gradlePlugins,
+                           @Nullable File buildFilePath,
+                           @Nullable String gradleVersion,
+                           @Nullable String agpVersion) {
     myModuleName = moduleName;
-    myTaskNames = getTaskNames(gradleProject);
-    myGradlePath = gradleProject.getPath();
-    myRootFolderPath = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
-    myGradlePlugins = ImmutableList.copyOf(gradlePlugins);
+    myTaskNames = taskNames;
+    myGradlePath = gradlePath;
+    myRootFolderPath = rootFolderPath;
+    myGradlePlugins = gradlePlugins;
     myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
     myAgpVersion = agpVersion;
