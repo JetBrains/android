@@ -97,11 +97,11 @@ public class AvdDisplayListTest extends AndroidGradleTestCase {
     assertEquals(StudioIcons.Avd.DEVICE_MOBILE_LARGE, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
 
     myPropertiesMap.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
-    Icon tvDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-tv_large.png", AvdDisplayList.class);
+    Icon tvDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-tv-large.png", AvdDisplayList.class);
     assertEquals(tvDeviceIcon, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
 
     myPropertiesMap.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
-    Icon wearDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-wear_large.png", AvdDisplayList.class);
+    Icon wearDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-wear-large.png", AvdDisplayList.class);
     assertEquals(wearDeviceIcon, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
   }
 
