@@ -184,7 +184,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   public NlPropertyInspectorFixture assertFocusInProperty(@NotNull String name, @Nullable Icon icon) {
     Component propertyComponent = findFocusablePropertyComponent(name, icon);
     Component focusComponent = FocusManager.getCurrentManager().getFocusOwner();
-    assertThat(propertyComponent != null).named("property: " + name + " found").isTrue();
     assertThat(SwingUtilities.isDescendingFrom(focusComponent, propertyComponent)).named("property: " + name + " has focus").isTrue();
     return this;
   }
@@ -229,11 +228,11 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     }
   }
 
-  @Nullable
+  @NotNull
   private Component findFocusablePropertyComponent(@NotNull String name, @Nullable Icon icon) {
     Component component = findPropertyComponent(name, icon);
     if (component == null) {
-      return null;
+      throw new IllegalStateException("no property component with given icon and name: " + name);
     }
     if (!component.isFocusable() && component instanceof Container) {
       for (Component inner : ((Container)component).getComponents()) {
