@@ -20,15 +20,19 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
 import com.android.utils.HashCodes;
 import com.google.common.base.MoreObjects;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Base class for AAR resource items. */
 abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue {
   @NotNull private final String myName;
-  // Minimize memory usage by storing enums as their ordinals in byte form.
+  // Store enums as their ordinals in byte form to minimize memory footprint.
   private final byte myTypeOrdinal;
   private final byte myVisibilityOrdinal;
 
@@ -57,7 +61,7 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
   }
 
   @Override
-  @NotNull
+  @Nullable
   public final String getLibraryName() {
     return getRepository().getLibraryName();
   }
@@ -154,5 +158,41 @@ abstract class AbstractAarResourceItem implements AarResourceItem, ResourceValue
                       .add("name", getName())
                       .add("value", getValue())
                       .toString();
+  }
+
+  /**
+   * Serializes the resource item to the given stream.
+   */
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    stream.writeInt((myTypeOrdinal << 1) + (isFileBased() ? 1 : 0));
+    stream.writeString(myName);
+    stream.writeInt(myVisibilityOrdinal);
+  }
+
+  /**
+   * Creates a resource item by reading its contents of the given stream.
+   */
+  @NotNull
+  static AbstractAarResourceItem deserialize(@NotNull Base128InputStream stream,
+                                             @NotNull List<AarConfiguration> configurations,
+                                             @NotNull List<AarSourceFile> sourceFiles,
+                                             @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+    int encodedType = stream.readInt();
+    boolean isFileBased = (encodedType & 0x1) != 0;
+    ResourceType resourceType = ResourceType.values()[encodedType >>> 1];
+    String name = stream.readString();
+    if (name == null) {
+      throw StreamFormatException.invalidFormat();
+    }
+    ResourceVisibility visibility = ResourceVisibility.values()[stream.readInt()];
+
+    if (isFileBased) {
+      return AarFileResourceItem.deserialize(stream, resourceType, name, visibility, configurations);
+    }
+
+    return AbstractAarValueResourceItem.deserialize(stream, resourceType, name, visibility, configurations, sourceFiles, namespaceResolvers);
   }
 }

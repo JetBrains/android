@@ -21,6 +21,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.HashCodes;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -100,5 +102,14 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
   @Override
   public int hashCode() {
     return HashCodes.mix(super.hashCode(), myNamespace.hashCode(), Objects.hashCode(myDescription));
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    AarAttrResourceItem.serializeAttrValue(this, getRepository().getNamespace(), stream);
   }
 }

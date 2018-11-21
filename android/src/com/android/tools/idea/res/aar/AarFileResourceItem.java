@@ -19,9 +19,14 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
+import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
 import com.android.utils.HashCodes;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,5 +116,46 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   @Override
   public int hashCode() {
     return HashCodes.mix(super.hashCode(), myRelativePath.hashCode());
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    stream.writeString(myRelativePath);
+    String qualifierString = getConfiguration().getQualifierString();
+    int index = configIndexes.get(qualifierString);
+    assert index >= 0;
+    stream.writeInt(index);
+    stream.writeInt(getEncodedDensityForSerialization());
+  }
+
+  /**
+   * Creates an AarFileResourceItem by reading its contents of the given stream.
+   */
+  @NotNull
+  static AarFileResourceItem deserialize(@NotNull Base128InputStream stream,
+                                         @NotNull ResourceType resourceType,
+                                         @NotNull String name,
+                                         @NotNull ResourceVisibility visibility,
+                                         @NotNull List<AarConfiguration> configurations) throws IOException {
+    String relativePath = stream.readString();
+    if (relativePath == null) {
+      throw StreamFormatException.invalidFormat();
+    }
+    AarConfiguration configuration = configurations.get(stream.readInt());
+    int encodedDensity = stream.readInt();
+    if (encodedDensity == 0) {
+      return new AarFileResourceItem(resourceType, name, configuration, visibility, relativePath);
+    }
+
+    Density density = Density.values()[encodedDensity - 1];
+    return new AarDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
+  }
+
+  protected int getEncodedDensityForSerialization() {
+    return 0;
   }
 }

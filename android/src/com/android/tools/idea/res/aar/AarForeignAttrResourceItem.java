@@ -33,24 +33,26 @@ public class AarForeignAttrResourceItem extends AarAttrResourceItem {
   /**
    * Initializes the resource.
    *
+   * @param namespace the namespace of the attr resource
    * @param name the name of the resource
    * @param sourceFile the source file containing definition of the resource
-   * @param namespace the namespace of the attr resource
-   * @param description the description of the attr resource
+   * @param description the description of the attr resource, if available
+   * @param groupName the name of the attr group, if available
    * @param formats the allowed attribute formats
    * @param valueMap the enum or flag integer values keyed by the value names. Some of the values in the
-   *     map may be null. The map must contain the names of all declared values, even the ones that don't
-   *     have corresponding numeric values.
+*     map may be null. The map must contain the names of all declared values, even the ones that don't
+*     have corresponding numeric values.
    * @param valueDescriptionMap the the enum or flag value descriptions keyed by the value names
    */
-  public AarForeignAttrResourceItem(@NotNull String name,
+  public AarForeignAttrResourceItem(@NotNull ResourceNamespace namespace,
+                                    @NotNull String name,
                                     @NotNull AarSourceFile sourceFile,
-                                    @NotNull ResourceNamespace namespace,
                                     @Nullable String description,
+                                    @Nullable String groupName,
                                     @NotNull Set<AttributeFormat> formats,
                                     @NotNull Map<String, Integer> valueMap,
                                     @NotNull Map<String, String> valueDescriptionMap) {
-    super(name, sourceFile, ResourceVisibility.PUBLIC, description, formats, valueMap, valueDescriptionMap);
+    super(name, sourceFile, ResourceVisibility.PUBLIC, description, groupName, formats, valueMap, valueDescriptionMap);
     myNamespace = namespace;
   }
 

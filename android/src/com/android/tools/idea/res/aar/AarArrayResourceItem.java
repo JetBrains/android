@@ -16,8 +16,13 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -73,5 +78,36 @@ final class AarArrayResourceItem extends AbstractAarValueResourceItem implements
     if (!super.equals(obj)) return false;
     AarArrayResourceItem other = (AarArrayResourceItem) obj;
     return myElements.equals(other.myElements);
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    stream.writeInt(myElements.size());
+    for (String element : myElements) {
+      stream.writeString(element);
+    }
+  }
+
+  /**
+   * Creates an AarArrayResourceItem by reading its contents of the given stream.
+   */
+  @NotNull
+  static AarArrayResourceItem deserialize(@NotNull Base128InputStream stream,
+                                          @NotNull String name,
+                                          @NotNull ResourceVisibility visibility,
+                                          @NotNull AarSourceFile sourceFile,
+                                          @NotNull ResourceNamespace.Resolver resolver) throws IOException {
+    int n = stream.readInt();
+    List<String> elements = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      elements.add(stream.readString());
+    }
+    AarArrayResourceItem item = new AarArrayResourceItem(name, sourceFile, visibility, elements);
+    item.setNamespaceResolver(resolver);
+    return item;
   }
 }

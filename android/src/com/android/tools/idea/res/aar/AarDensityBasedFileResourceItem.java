@@ -70,6 +70,11 @@ final class AarDensityBasedFileResourceItem extends AarFileResourceItem implemen
   }
 
   @Override
+  protected int getEncodedDensityForSerialization() {
+    return myDensity.ordinal() + 1;
+  }
+
+  @Override
   @NotNull
   public String toString() {
     return MoreObjects.toStringHelper(this)

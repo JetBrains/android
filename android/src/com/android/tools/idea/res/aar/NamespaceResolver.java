@@ -16,6 +16,9 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
+import com.intellij.util.ArrayUtil;
+import java.io.IOException;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +30,8 @@ import org.xmlpull.v1.XmlPullParserException;
  * together with {@link XmlPullParser}.
  */
 final class NamespaceResolver implements ResourceNamespace.Resolver {
+  static final NamespaceResolver EMPTY = new NamespaceResolver(ArrayUtil.EMPTY_STRING_ARRAY);
+
   /** Interleaved prefixes and the corresponding URIs in order of descending priority. */
   @NotNull private final String[] prefixesAndUris;
 
@@ -37,6 +42,10 @@ final class NamespaceResolver implements ResourceNamespace.Resolver {
       prefixesAndUris[--j] = parser.getNamespaceUri(i);
       prefixesAndUris[--j] = parser.getNamespacePrefix(i);
     }
+  }
+
+  private NamespaceResolver(@NotNull String[] prefixesAndUris) {
+    this.prefixesAndUris = prefixesAndUris;
   }
 
   int getNamespaceCount() {
@@ -77,5 +86,33 @@ final class NamespaceResolver implements ResourceNamespace.Resolver {
   @Override
   public int hashCode() {
     return Arrays.hashCode(prefixesAndUris);
+  }
+
+  /**
+   * Serializes the namespace resolver to the given stream.
+   */
+  void serialize(@NotNull Base128OutputStream stream) throws IOException {
+    stream.writeInt(getNamespaceCount());
+    for (String str : prefixesAndUris) {
+      stream.writeString(str);
+    }
+  }
+
+  /**
+   * Creates a namespace resolver by reading its contents of the given stream.
+   * @see #serialize(Base128OutputStream)
+   */
+  @NotNull
+  static NamespaceResolver deserialize(@NotNull Base128InputStream stream) throws IOException {
+    int n = stream.readInt() * 2;
+    String[] prefixesAndUris = new String[n];
+    for (int i = 0; i < n; i++) {
+      String s = stream.readString();
+      if (s == null) {
+        throw StreamFormatException.invalidFormat();
+      }
+      prefixesAndUris[i] = s;
+    }
+    return new NamespaceResolver(prefixesAndUris);
   }
 }

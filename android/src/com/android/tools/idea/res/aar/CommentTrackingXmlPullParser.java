@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.res.aar;
 
-import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
 import static com.android.SdkConstants.TAG_EAT_COMMENT;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -44,7 +44,7 @@ public class CommentTrackingXmlPullParser extends KXmlParser {
 
   @Nullable String myLastComment;
   boolean tagEncounteredAfterComment;
-  @Nullable String myAttrGroupComment;
+  @NotNull final ArrayList<String> myAttrGroupCommentStack = new ArrayList<>(4);
 
   /**
    * Initializes the parser. XML namespaces are supported by default.
@@ -71,7 +71,7 @@ public class CommentTrackingXmlPullParser extends KXmlParser {
    */
   @Nullable
   public String getAttrGroupComment() {
-    return myAttrGroupComment;
+    return myAttrGroupCommentStack.get(myAttrGroupCommentStack.size() - 1);
   }
 
   @Override
@@ -95,38 +95,34 @@ public class CommentTrackingXmlPullParser extends KXmlParser {
           myLastComment = null;
         }
         tagEncounteredAfterComment = true;
-        if (getPrefix() == null) {
-          switch (getName()) {
-            case TAG_EAT_COMMENT:
-              // The framework attribute file follows a special convention where related attributes are grouped together,
-              // and there is always a set of comments that indicate these sections which look like this:
-              //     <!-- =========== -->
-              //     <!-- Text styles -->
-              //     <!-- =========== -->
-              //     <eat-comment/>
-              // These section headers are always immediately followed by an <eat-comment>. Not all <eat-comment/> sections are
-              // actually attribute headers, some are comments. We identify these by looking at the line length; category comments
-              // are short, and descriptive comments are longer.
-              if (myLastComment != null && myLastComment.length() <= ATTR_GROUP_MAX_CHARACTERS && !myLastComment.startsWith("TODO:")) {
-                myAttrGroupComment = myLastComment;
-                if (myAttrGroupComment.endsWith(".")) {
-                  myAttrGroupComment = myAttrGroupComment.substring(0, myAttrGroupComment.length() - 1); // Strip the trailing period.
-                }
-              }
-              break;
+        // Duplicate the last element in myAttrGroupCommentStack.
+        myAttrGroupCommentStack.add(myAttrGroupCommentStack.get(myAttrGroupCommentStack.size() - 1));
+        assert myAttrGroupCommentStack.size() == getDepth() + 1;
 
-            case TAG_DECLARE_STYLEABLE:
-              myAttrGroupComment = null;
-              break;
+        if (TAG_EAT_COMMENT.equals(getName()) && getPrefix() == null) {
+          // The framework attribute file follows a special convention where related attributes are grouped together,
+          // and there is always a set of comments that indicate these sections which look like this:
+          //     <!-- =========== -->
+          //     <!-- Text styles -->
+          //     <!-- =========== -->
+          //     <eat-comment/>
+          // These section headers are always immediately followed by an <eat-comment>. Not all <eat-comment/> sections are
+          // actually attribute headers, some are comments. We identify these by looking at the line length; category comments
+          // are short, and descriptive comments are longer.
+          if (myLastComment != null && myLastComment.length() <= ATTR_GROUP_MAX_CHARACTERS && !myLastComment.startsWith("TODO:")) {
+            String attrGroupComment = myLastComment;
+            if (attrGroupComment.endsWith(".")) {
+              attrGroupComment = attrGroupComment.substring(0, attrGroupComment.length() - 1); // Strip the trailing period.
+            }
+            // Replace the second to last element in myAttrGroupCommentStack.
+            myAttrGroupCommentStack.set(myAttrGroupCommentStack.size() - 2, attrGroupComment);
           }
         }
         break;
 
       case END_TAG:
         myLastComment = null;
-        if (getName().equals(TAG_DECLARE_STYLEABLE) && getPrefix() == null) {
-          myAttrGroupComment = null;
-        }
+        myAttrGroupCommentStack.remove(myAttrGroupCommentStack.size() - 1);
         break;
 
       case COMMENT: {
@@ -144,14 +140,16 @@ public class CommentTrackingXmlPullParser extends KXmlParser {
   public void setInput(@NotNull Reader reader) throws XmlPullParserException {
     super.setInput(reader);
     myLastComment = null;
-    myAttrGroupComment = null;
+    myAttrGroupCommentStack.clear();
+    myAttrGroupCommentStack.add(null);
   }
 
   @Override
   public void setInput(@NotNull InputStream inputStream, @Nullable String encoding) throws XmlPullParserException {
     super.setInput(inputStream, encoding);
     myLastComment = null;
-    myAttrGroupComment = null;
+    myAttrGroupCommentStack.clear();
+    myAttrGroupCommentStack.add(null);
   }
 
   private static boolean isEmptyOrAsciiArt(@NotNull String commentText) {

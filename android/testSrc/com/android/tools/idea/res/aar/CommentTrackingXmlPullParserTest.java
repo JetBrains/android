@@ -114,7 +114,7 @@ public class CommentTrackingXmlPullParserTest {
               styleableCount++;
             } else if (name.equals("DateTimeView")) {
               assertThat(parser.getLastComment()).isNull();
-              assertThat(parser.getAttrGroupComment()).isNull();
+              assertThat(parser.getAttrGroupComment()).isEqualTo("Other non-theme attributes");
               styleableCount++;
             }
           } else if (tagName.equals(TAG_ATTR)) {
@@ -138,7 +138,7 @@ public class CommentTrackingXmlPullParserTest {
               attrCount++;
             } else if (name.equals("showRelative")) {
               assertThat(parser.getLastComment()).isNull();
-              assertThat(parser.getAttrGroupComment()).isNull();
+              assertThat(parser.getAttrGroupComment()).isEqualTo("Other non-theme attributes");
               attrCount++;
             }
           }
