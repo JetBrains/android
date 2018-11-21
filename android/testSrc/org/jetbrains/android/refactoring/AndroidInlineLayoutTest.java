@@ -20,8 +20,12 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    AndroidInlineLayoutHandler.setTestConfig(null);
-    super.tearDown();
+    try {
+      AndroidInlineLayoutHandler.setTestConfig(null);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void test1() throws Exception {
