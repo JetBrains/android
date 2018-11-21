@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleDependenciesSetupTest.getLibraryTableModeCount;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.mock.MockProgressIndicator;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class GradleSyncTestCase extends AndroidGradleTestCase {
   protected GradleSync myGradleSync;
@@ -65,6 +65,17 @@ public abstract class GradleSyncTestCase extends AndroidGradleTestCase {
     GradleModuleModels javalib1 = modulesByModuleName.get("javalib1");
     assertNotNull(javalib1);
     assertContainsJavaModels(javalib1);
+  }
+
+  public void testLibrariesAndProjectRootsAreNotRecreatedOnSync() throws Exception {
+    loadSimpleApplication();
+
+    long libraryTableModCount = getLibraryTableModeCount(getProject());
+
+    // Sync again
+    requestSyncAndWait();
+
+    assertEquals(libraryTableModCount, getLibraryTableModeCount(getProject()));
   }
 
   @NotNull

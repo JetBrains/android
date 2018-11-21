@@ -15,33 +15,42 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
+import static com.intellij.openapi.roots.DependencyScope.RUNTIME;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.DependencyScope.*;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModuleDependenciesSetup}.
@@ -172,26 +181,40 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
   }
 
-  public void testSetupUpWithMissingFile() throws IOException {
-    File binaryPath = createTempFile("fakeLibrary.jar", "");
+  public void testSetupWithChangedPaths() throws IOException {
+    File cachedPath = createTempFile("fakeLibrary.jar", "");
     File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
     File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
-    assertTrue(binaryPath.delete());
+    assertTrue(cachedPath.delete());
     // Library should only have sources added by url.
-    Library newLibrary = createLibrary(binaryPath, sourcePath, javadocPath);
+    Library newLibrary = createLibrary(cachedPath, sourcePath, javadocPath);
 
-    String libraryName = binaryPath.getName();
+    long libraryTableModCount = getLibraryTableModeCount(myProject);
+
+    String libraryName = cachedPath.getName();
     Module module = getModule();
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
+    File newBinaryPath = createTempFile("newFakeLibrary.jar", "");
+    File[] newBinaryPaths = {newBinaryPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, newBinaryPath, newBinaryPaths, false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
     assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
     LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
     assertNotSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been recreated.
+    assertTrue(libraryTableModCount < getLibraryTableModeCount(myProject));
+  }
+
+  /**
+   * @return the current modification count of the {@link ProjectLibraryTable} for the current project.
+   */
+  public static long getLibraryTableModeCount(@NotNull Project project) {
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    assertInstanceOf(libraryTable, ProjectLibraryTableImpl.class);
+    ProjectLibraryTableImpl libraryTableImpl = (ProjectLibraryTableImpl)libraryTable;
+    return libraryTableImpl.getStateModificationCount();
   }
 
   @NotNull
