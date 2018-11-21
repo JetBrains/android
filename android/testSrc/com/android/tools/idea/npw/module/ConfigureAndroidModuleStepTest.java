@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,10 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      super.tearDown();
+      BatchInvoker.clearOverrideStrategy();
     }
     finally {
-      BatchInvoker.clearOverrideStrategy();
+      super.tearDown();
     }
   }
 
