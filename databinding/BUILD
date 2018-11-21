@@ -6,6 +6,7 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["intellij.android.databinding.iml"],
+    test_resources = ["testData"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
