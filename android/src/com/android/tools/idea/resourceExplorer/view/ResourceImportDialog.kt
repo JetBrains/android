@@ -61,12 +61,11 @@ class ResourceImportDialog(
   constructor(facet: AndroidFacet, assetSets: List<DesignAssetSet>) :
     this(ResourceImportDialogViewModel(facet, assetSets))
 
-
   private val content = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     border = CONTENT_PANEL_BORDER
     dialogViewModel.assetSets.forEach {
-      add(designAssetSetView(it))
+      add(DesignAssetSetView(it))
     }
   }
 
@@ -75,10 +74,11 @@ class ResourceImportDialog(
     border = null
   }
 
+  private val fileCountLabel = JBLabel()
+
   private val northPanel = JPanel(BorderLayout()).apply {
     border = NORTH_PANEL_BORDER
-    val importedAssetCount = dialogViewModel.fileCount
-    add(JBLabel("$importedAssetCount ${StringUtil.pluralize("resource", importedAssetCount)} ready to be imported"), BorderLayout.WEST)
+    add(fileCountLabel, BorderLayout.WEST)
     add(JBLabel("Import more assets", AllIcons.Actions.Upload, JBLabel.LEFT), BorderLayout.EAST)
   }
 
@@ -88,7 +88,9 @@ class ResourceImportDialog(
     setResizable(false)
     isOKActionEnabled = true
     title = DIALOG_TITLE
+    dialogViewModel.updateCallback = ::updateValues
     init()
+    updateValues()
   }
 
   override fun doOKAction() {
@@ -100,39 +102,59 @@ class ResourceImportDialog(
   override fun createNorthPanel() = northPanel
   override fun getStyle() = DialogStyle.COMPACT
 
-  private fun designAssetSetView(assetSet: DesignAssetSet): JPanel {
+  private fun updateValues() {
+    val importedAssetCount = dialogViewModel.fileCount
+    fileCountLabel.text = "$importedAssetCount ${StringUtil.pluralize("resource", importedAssetCount)} ready to be imported"
+  }
+
+  private inner class DesignAssetSetView(private val assetSet: DesignAssetSet) : JPanel(BorderLayout(0, 0)) {
     val assetNameLabel = JBLabel(assetSet.name, UIUtil.ComponentStyle.LARGE)
     val itemNumberLabel = JBLabel(dialogViewModel.getItemNumberString(assetSet),
                                   UIUtil.ComponentStyle.SMALL,
                                   UIUtil.FontColor.BRIGHTER)
     val newAlternativeButton = JBLabel("New alternative", StudioIcons.Common.ADD, JBLabel.RIGHT)
 
-    return JPanel(VerticalFlowLayout(true, false)).apply {
-      add(
-        JPanel(BorderLayout()).apply {
-          border = ASSET_GROUP_BORDER
-          add(JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
-            (layout as FlowLayout).alignOnBaseline = true
-            add(assetNameLabel)
-            add(itemNumberLabel)
-          }, BorderLayout.WEST)
-          add(newAlternativeButton, BorderLayout.EAST)
-        }
-      )
+    val fileViewContainer = JPanel(VerticalFlowLayout(true, false)).apply {
       assetSet.designAssets.forEach { asset ->
         add(singleAssetView(asset))
       }
     }
-  }
 
-  private fun singleAssetView(asset: DesignAsset): FileImportRow {
-    val fileImportRow = FileImportRow(FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE))
-    dialogViewModel.getAssetPreview(asset).whenComplete { image, _ ->
-      image?.let {
-        fileImportRow.preview.icon = ImageIcon(it)
-        fileImportRow.preview.repaint()
+    private val header = JPanel(BorderLayout()).apply {
+      border = ASSET_GROUP_BORDER
+      add(JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
+        (layout as FlowLayout).alignOnBaseline = true
+        add(assetNameLabel)
+        add(itemNumberLabel)
+      }, BorderLayout.WEST)
+      add(newAlternativeButton, BorderLayout.EAST)
+    }
+
+    init {
+      add(header, BorderLayout.NORTH)
+      add(fileViewContainer)
+    }
+
+    private fun singleAssetView(asset: DesignAsset): FileImportRow {
+      val viewModel = FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE, removeCallback = this::removeAsset)
+      val fileImportRow = FileImportRow(viewModel)
+      dialogViewModel.getAssetPreview(asset).whenComplete { image, _ ->
+        image?.let {
+          fileImportRow.preview.icon = ImageIcon(it)
+          fileImportRow.preview.repaint()
+        }
+      }
+      return fileImportRow
+    }
+
+    private fun removeAsset(it: DesignAsset) {
+      dialogViewModel.removeAsset(it)
+      itemNumberLabel.text = dialogViewModel.getItemNumberString(assetSet)
+      if (fileViewContainer.componentCount == 0) {
+        parent.remove(this)
+        root.revalidate()
+        root.repaint()
       }
     }
-    return fileImportRow
   }
 }

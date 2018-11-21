@@ -84,7 +84,7 @@ private val SECTION_LIST_BORDER = JBUI.Borders.empty(0, 4)
 
 private val SECTION_HEADER_LABEL_FONT = JBUI.Fonts.label().deriveFont(mapOf(
   TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
-  TextAttribute.SIZE to 14f
+  TextAttribute.SIZE to JBUI.scale(14f)
 ))
 
 private val GRID_MODE_BACKGROUND = UIUtil.getPanelBackground()

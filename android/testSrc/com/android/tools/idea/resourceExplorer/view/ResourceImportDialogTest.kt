@@ -24,6 +24,7 @@ import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
 import com.android.tools.idea.resourceExplorer.model.getAssetSets
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceImportDialogViewModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
@@ -32,7 +33,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.ui.UIUtil
+import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.util.ui.UIUtil.findComponentsOfType
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -41,9 +43,12 @@ import org.junit.runner.Description
 import java.io.File
 import javax.swing.JComboBox
 import javax.swing.JFrame
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.UIManager
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 
 class ResourceImportDialogTest {
 
@@ -51,33 +56,74 @@ class ResourceImportDialogTest {
   val rule = AndroidProjectRule.onDisk()
 
   private lateinit var resourceImportDialog: ResourceImportDialog
+  private lateinit var dialogViewModel: ResourceImportDialogViewModel
 
   @Before
   fun setUp() {
     rule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
-    resourceImportDialog = runInEdtAndGet { ResourceImportDialog(rule.module.androidFacet!!, getAssets(rule.fixture.testDataPath)) }
+    dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, getAssets(rule.fixture.testDataPath))
+    resourceImportDialog = runInEdtAndGet {
+      ResourceImportDialog(dialogViewModel)
+    }
   }
 
   @Test
   fun checkDialogCorrectlyPopulated() {
     val content = resourceImportDialog.root.viewport.view as JPanel
-    val fileRows = UIUtil.findComponentsOfType(content, FileImportRow::class.java)
+    val fileRows = findComponentsOfType(content, FileImportRow::class.java)
     assertEquals(3, fileRows.size)
 
     val row0 = fileRows[0]
-    val combos = UIUtil.findComponentsOfType(row0, JComboBox::class.java)
+    val combos = findComponentsOfType(row0, JComboBox::class.java)
     assertEquals(2, combos.size)
     assertEquals(DensityQualifier::class, (combos[0].selectedItem::class))
     assertEquals(Density.XHIGH, combos[1].selectedItem)
 
     val row1 = fileRows[1]
-    val combos1 = UIUtil.findComponentsOfType(row1, JComboBox::class.java)
+    val combos1 = findComponentsOfType(row1, JComboBox::class.java)
     assertEquals(4, combos1.size)
     assertEquals(NightModeQualifier::class, (combos1[0].selectedItem::class))
     assertEquals(NightMode.NIGHT, combos1[1].selectedItem)
     assertEquals(DensityQualifier::class, (combos1[2].selectedItem::class))
     assertEquals(Density.MEDIUM, combos1[3].selectedItem)
   }
+
+  @Test
+  fun removeAssets() {
+    val content = resourceImportDialog.root.viewport.view as JPanel
+    val fileRows = findComponentsOfType(content, FileImportRow::class.java)
+    val firstAssetSet = dialogViewModel.assetSets.first()
+    val firstAsset = firstAssetSet.designAssets.first()
+
+    val row0 = fileRows[0]
+    val parent = row0.parent as JPanel
+
+    // Click the remove button on the fist asset to be imported.
+    val removeLabel = findComponentsOfType(row0, LinkLabel::class.java).first { it.text.equals("Do not import", true) }
+    removeLabel.doClick()
+
+    // Check that the view has been removed and that the asset has been removed from the model.
+    assertFalse(parent.components.contains(row0))
+    assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
+
+    // Check that a label with the assetSet name is still present.
+    assertEquals(1, findComponentsOfType(content, JLabel::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
+
+    // Click all remove button for the reset of the label.
+    var removeLabel1: LinkLabel<*>?
+    do {
+      removeLabel1 = findComponentsOfType(parent, LinkLabel::class.java).firstOrNull { it.text.equals("Do not import", true) }
+      removeLabel1?.doClick()
+    }
+    while (removeLabel1 != null)
+
+    // Check that the DesignAssetSet has been removed from the model.
+    assertFalse(dialogViewModel.assetSets.contains(firstAssetSet))
+
+    // Check that the DesignAssetSet name is not present anymore.
+    assertNull(findComponentsOfType(content, JLabel::class.java).firstOrNull { it.text.equals(firstAssetSet.name, true) })
+  }
+
 
   @After
   fun tearDown() {

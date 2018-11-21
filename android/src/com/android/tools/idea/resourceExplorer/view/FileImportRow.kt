@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.tools.adtui.ui.ClickableLabel
 import com.android.tools.idea.resourceExplorer.viewmodel.FileImportRowViewModel
 import com.android.tools.idea.resourceExplorer.widget.ChessBoardPanel
 import com.android.tools.idea.resourceExplorer.widget.Separator
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.BorderFactory
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 
 private val PREVIEW_SIZE = JBUI.size(100)
 
@@ -49,7 +47,16 @@ class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout
   private val fileSize = JBLabel(viewModel.fileSize)
   private val fileDimension = JBLabel(viewModel.fileDimension)
 
-  private val doNotImportButton = ClickableLabel("Do not import", StudioIcons.Common.CLOSE, SwingConstants.LEFT)
+  private val doNotImportButton = LinkLabel<Any?>("Do not import", null) { _, _ -> removeButtonClicked() }
+
+  private fun removeButtonClicked() {
+    parent.let {
+      it.remove(this)
+      it.revalidate()
+      it.repaint()
+    }
+    viewModel.removeFile()
+  }
 
   private val middlePane = JPanel(BorderLayout()).apply {
     add(JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {

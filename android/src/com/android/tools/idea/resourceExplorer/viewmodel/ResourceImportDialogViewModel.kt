@@ -29,15 +29,20 @@ import java.util.concurrent.CompletableFuture
  * ViewModel for [ResourceImportDialogViewModel]
  */
 class ResourceImportDialogViewModel(val facet: AndroidFacet,
-                                    val assetSets: List<DesignAssetSet>,
+                                    assetSets: List<DesignAssetSet>,
                                     private val designAssetImporter: DesignAssetImporter = DesignAssetImporter()
 ) {
 
+  private val assetSetsToImport = assetSets.toMutableList()
+
+  val assetSets get() = assetSetsToImport.toList()
+
   private val rendererManager = DesignAssetRendererManager.getInstance()
-  val fileCount: Int = assetSets.sumBy { it.designAssets.size }
+  val fileCount: Int get() = assetSets.sumBy { it.designAssets.size }
+  var updateCallback: () -> Unit = {}
 
   fun doImport() {
-    designAssetImporter.importDesignAssets(assetSets, facet)
+    designAssetImporter.importDesignAssets(assetSetsToImport, facet)
   }
 
   fun getAssetPreview(asset: DesignAsset): CompletableFuture<out Image?> {
@@ -48,4 +53,18 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
 
   fun getItemNumberString(assetSet: DesignAssetSet) =
     "(${assetSet.designAssets.size} ${StringUtil.pluralize("item", assetSet.designAssets.size)})"
+
+  /**
+   * Remove the [asset] from the list of [DesignAsset]s to import.
+   * @return the [DesignAssetSet] that was containing the [asset]
+   */
+  fun removeAsset(asset: DesignAsset): DesignAssetSet {
+    val designAssetSet = assetSetsToImport.first { it.designAssets.contains(asset) }
+    designAssetSet.designAssets -= asset
+    if (designAssetSet.designAssets.isEmpty()) {
+      assetSetsToImport.remove(designAssetSet)
+    }
+    updateCallback()
+    return designAssetSet
+  }
 }

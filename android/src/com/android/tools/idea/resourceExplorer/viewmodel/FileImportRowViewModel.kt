@@ -26,7 +26,8 @@ import com.intellij.openapi.util.text.StringUtil
 class FileImportRowViewModel(
   val asset: DesignAsset,
   val resourceFolderType: ResourceFolderType,
-  val qualifierViewModel: QualifierConfigurationViewModel = QualifierConfigurationViewModel(folderConfiguration(asset))) {
+  val qualifierViewModel: QualifierConfigurationViewModel = QualifierConfigurationViewModel(folderConfiguration(asset)),
+  val removeCallback: (DesignAsset) -> Unit) {
 
   // TODO get value from actual file
   var updateCallback: (() -> Unit)? = null
@@ -44,6 +45,10 @@ class FileImportRowViewModel(
     qualifiers = folderConfiguration.getFolderName(resourceFolderType)
     asset.qualifiers = folderConfiguration.qualifiers.toList()
     updateCallback?.invoke()
+  }
+
+  fun removeFile() {
+    removeCallback(asset)
   }
 }
 
