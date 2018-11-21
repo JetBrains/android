@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.aapt.ConfigurationOuterClass.Configuration;
 import com.android.aapt.Resources;
 import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
@@ -43,6 +42,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -79,7 +79,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   // The signed mantissa is stored in the higher 24 bits of the value.
   private static final int COMPLEX_MANTISSA_SHIFT = 8;
 
-  @NotNull private final File myResApkFileOrFolder;
+  @NotNull private final Path myResApkFileOrFolder;
   /**
    * Either "apk" or "file"" depending on whether the repository was loaded from res.apk
    * or its unzipped contents.
@@ -97,9 +97,15 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   private String myResourceUrlPrefix;
   private ResourceUrlParser myUrlParser;
 
-  private AarProtoResourceRepository(@NotNull File apkFileOrFolder, @NotNull ResourceNamespace namespace, @NotNull String libraryName) {
+  private AarProtoResourceRepository(@NotNull Path apkFileOrFolder, @NotNull ResourceNamespace namespace, @NotNull String libraryName) {
     super(namespace, libraryName);
     myResApkFileOrFolder = apkFileOrFolder;
+  }
+
+  @Override
+  @NotNull
+  Path getOrigin() {
+    return myResApkFileOrFolder;
   }
 
   @Override
@@ -122,10 +128,11 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       loader.load();
     } catch (IOException e) {
       LOG.error(e);
-      return new AarProtoResourceRepository(apkFileOrFolder, getNamespace(loader.packageName), libraryName); // Return an empty repository.
+      return new AarProtoResourceRepository(apkFileOrFolder.toPath(), getNamespace(loader.packageName), libraryName); // Return an empty repository.
     }
 
-    AarProtoResourceRepository repository = new AarProtoResourceRepository(apkFileOrFolder, getNamespace(loader.packageName), libraryName);
+    AarProtoResourceRepository repository =
+        new AarProtoResourceRepository(apkFileOrFolder.toPath(), getNamespace(loader.packageName), libraryName);
     repository.load(loader);
     return repository;
   }
@@ -139,10 +146,10 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     loadResourceTable(loader.resourceTableMsg);
     if (loader.loadedFromResApk) {
       myFilesystemProtocol = "apk";
-      myResourcePathPrefix = myResApkFileOrFolder.getAbsolutePath() + URLUtil.JAR_SEPARATOR;
+      myResourcePathPrefix = myResApkFileOrFolder.toString() + URLUtil.JAR_SEPARATOR;
     } else {
       myFilesystemProtocol = "file";
-      myResourcePathPrefix = myResApkFileOrFolder.getAbsolutePath() + File.separatorChar;
+      myResourcePathPrefix = myResApkFileOrFolder.toString() + File.separatorChar;
     }
     myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix.replace(File.separatorChar, '/');
   }
@@ -239,7 +246,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
       case STR: {
         String textValue = itemMsg.getStr().getValue();
-        return new AarTextValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue, null);
+        return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue);
       }
 
       case RAW_STR: {
@@ -256,6 +263,9 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
         Resources.StyledString styledStrMsg = itemMsg.getStyledStr();
         String textValue = styledStrMsg.getValue();
         String rawXmlValue = ProtoStyledStringDecoder.getRawXmlValue(styledStrMsg);
+        if (rawXmlValue.equals(textValue)) {
+          return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue);
+        }
         return new AarTextValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue, rawXmlValue);
       }
 
@@ -340,7 +350,8 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       }
     }
 
-    return new AarAttrResourceItem(resourceName, sourceFile, visibility, description, formats, valueMap, valueDescriptionMap);
+    String groupName = null; // Attribute group name is not available in a proto resource repository.
+    return new AarAttrResourceItem(resourceName, sourceFile, visibility, description, groupName, formats, valueMap, valueDescriptionMap);
   }
 
   @NotNull

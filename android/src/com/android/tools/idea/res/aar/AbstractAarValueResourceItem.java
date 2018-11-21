@@ -24,6 +24,9 @@ import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.utils.HashCodes;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,16 +112,71 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem impl
     };
   }
 
+  @NotNull
+  final AarSourceFile getSourceFile() {
+    return mySourceFile;
+  }
+
   @Override
   public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
-    AbstractAarValueResourceItem other = (AbstractAarValueResourceItem) obj;
+    AbstractAarValueResourceItem other = (AbstractAarValueResourceItem)obj;
     return Objects.equals(mySourceFile, other.mySourceFile);
   }
 
   @Override
   public int hashCode() {
     return HashCodes.mix(super.hashCode(), Objects.hashCode(mySourceFile));
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    int index = sourceFileIndexes.get(mySourceFile);
+    assert index >= 0;
+    stream.writeInt(index);
+    index = namespaceResolverIndexes.get(myNamespaceResolver);
+    assert index >= 0;
+    stream.writeInt(index);
+  }
+
+  /**
+   * Creates a resource item by reading its contents of the given stream.
+   */
+  @NotNull
+  static AbstractAarValueResourceItem deserialize(@NotNull Base128InputStream stream,
+                                                  @NotNull ResourceType resourceType,
+                                                  @NotNull String name,
+                                                  @NotNull ResourceVisibility visibility,
+                                                  @NotNull List<AarConfiguration> configurations,
+                                                  @NotNull List<AarSourceFile> sourceFiles,
+                                                  @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+    AarSourceFile sourceFile = sourceFiles.get(stream.readInt());
+    ResourceNamespace.Resolver resolver = namespaceResolvers.get(stream.readInt());
+
+    switch (resourceType) {
+      case ARRAY:
+        return AarArrayResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
+
+      case ATTR:
+        return AarAttrResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
+
+      case PLURALS:
+        return AarPluralsResourceItem.deserialize(stream, name, visibility, sourceFile, resolver);
+
+      case STYLE:
+        return AarStyleResourceItem.deserialize(stream, name, visibility, sourceFile, resolver, namespaceResolvers);
+
+      case STYLEABLE:
+        return AarStyleableResourceItem.deserialize(
+            stream, name, visibility, sourceFile, resolver, configurations, sourceFiles, namespaceResolvers);
+
+      default:
+        return AarValueResourceItem.deserialize(stream, resourceType, name, visibility, sourceFile, resolver);
+    }
   }
 }

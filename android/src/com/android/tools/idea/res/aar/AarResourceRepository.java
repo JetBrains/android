@@ -17,15 +17,16 @@ package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource repository containing resources of an Android library (AAR).
  */
 public interface AarResourceRepository extends SingleNamespaceResourceRepository {
   /**
-   * Returns the name of the library.
+   * Returns the name of the library, or null if this is a framework resource repository.
    */
-  @NotNull
+  @Nullable
   String getLibraryName();
 
   /**

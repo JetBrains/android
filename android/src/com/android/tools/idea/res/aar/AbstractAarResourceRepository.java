@@ -24,6 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import java.nio.file.Path;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,10 +34,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractAarResourceRepository extends AbstractResourceRepository implements AarResourceRepository {
   @NotNull protected final ResourceNamespace myNamespace;
-  @NotNull protected final String myLibraryName;
+  @Nullable protected final String myLibraryName;
   @NotNull protected final ResourceTable myFullTable = new ResourceTable();
 
-  protected AbstractAarResourceRepository(@NotNull ResourceNamespace namespace, @NotNull String libraryName) {
+  protected AbstractAarResourceRepository(@NotNull ResourceNamespace namespace, @Nullable String libraryName) {
     myNamespace = namespace;
     myLibraryName = libraryName;
   }
@@ -67,7 +68,7 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   }
 
   @Override
-  @NotNull
+  @Nullable
   public final String getLibraryName() {
     return myLibraryName;
   }
@@ -75,7 +76,7 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   @Override
   @NotNull
   public String getDisplayName() {
-    return myLibraryName;
+    return myLibraryName == null ? "Android Framework" : myLibraryName;
   }
 
   /**
@@ -101,4 +102,11 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
    */
   @NotNull
   abstract PathString getPathString(@NotNull String relativeResourcePath);
+
+  /**
+   * Returns the file or directory this resource repository was loaded from. Resource repositories loaded from
+   * the same file or directory with different file filtering options have the same origin.
+   */
+  @NotNull
+  abstract Path getOrigin();
 }

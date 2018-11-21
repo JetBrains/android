@@ -16,10 +16,17 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,5 +65,56 @@ final class AarStyleableResourceItem extends AbstractAarValueResourceItem implem
     if (!super.equals(obj)) return false;
     AarStyleableResourceItem other = (AarStyleableResourceItem) obj;
     return myAttrs.equals(other.myAttrs);
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    stream.writeInt(myAttrs.size());
+    for (AttrResourceValue attr : myAttrs) {
+      ((AbstractAarValueResourceItem)attr).serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    }
+  }
+
+  /**
+   * Creates an AarStyleableResourceItem by reading its contents of the given stream.
+   */
+  @NotNull
+  static AarStyleableResourceItem deserialize(@NotNull Base128InputStream stream,
+                                              @NotNull String name,
+                                              @NotNull ResourceVisibility visibility,
+                                              @NotNull AarSourceFile sourceFile,
+                                              @NotNull ResourceNamespace.Resolver resolver,
+                                              @NotNull List<AarConfiguration> configurations,
+                                              @NotNull List<AarSourceFile> sourceFiles,
+                                              @NotNull List<ResourceNamespace.Resolver> namespaceResolvers) throws IOException {
+    AbstractAarResourceRepository repository = sourceFile.getConfiguration().getRepository();
+    int n = stream.readInt();
+    List<AttrResourceValue> attrs = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      AbstractAarResourceItem attrItem = deserialize(stream, configurations, sourceFiles, namespaceResolvers);
+      if (!(attrItem instanceof AarAttrResourceItem)) {
+        throw StreamFormatException.invalidFormat();
+      }
+      AttrResourceValue attr = getCanonicalAttr((AarAttrResourceItem)attrItem, repository);
+      attrs.add(attr);
+    }
+    AarStyleableResourceItem item = new AarStyleableResourceItem(name, sourceFile, visibility, attrs);
+    item.setNamespaceResolver(resolver);
+    return item;
+  }
+
+  @NotNull
+  private static AttrResourceValue getCanonicalAttr(@NotNull AarAttrResourceItem attr, @NotNull AbstractAarResourceRepository repository) {
+    List<ResourceItem> items = repository.getResources(attr.getNamespace(), ResourceType.ATTR, attr.getName());
+    for (ResourceItem item : items) {
+      if (item.equals(attr)) {
+        return (AarAttrResourceItem)item;
+      }
+    }
+    return attr;
   }
 }

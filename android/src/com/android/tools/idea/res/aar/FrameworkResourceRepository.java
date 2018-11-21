@@ -28,15 +28,19 @@ import com.android.ide.common.resources.DuplicateDataException;
 import com.android.ide.common.resources.MergingException;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.ResourceSet;
-import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -54,6 +58,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,12 +72,14 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -114,8 +121,8 @@ import org.xmlpull.v1.XmlPullParser;
 public final class FrameworkResourceRepository extends AarSourceResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "caches/framework_resources";
-  private static final String CACHE_FILE_HEADER = "Framework resource cache";
-  private static final String CACHE_FILE_FORMAT_VERSION = "3";
+  private static final byte[] CACHE_FILE_HEADER = "Framework resource cache".getBytes(StandardCharsets.UTF_8);
+  private static final String CACHE_FILE_FORMAT_VERSION = "4";
   private static final String ANDROID_PLUGIN_ID = "org.jetbrains.android";
   // Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>.
   private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
@@ -133,10 +140,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private final boolean myWithLocaleResources;
   private final Map<ResourceType, Set<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
   private Future myCacheCreatedFuture;
-  private boolean myLoadedFromCache;
+  private final boolean myUseLightweightDataStructures = StudioFlags.LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR.get();
 
   private FrameworkResourceRepository(@NotNull Path resFolder, boolean withLocaleResources) {
-    super(resFolder, ANDROID_NAMESPACE, null, "");
+    super(resFolder, ANDROID_NAMESPACE, null, null);
     myWithLocaleResources = withLocaleResources;
   }
 
@@ -160,7 +167,45 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
 
     LOG.debug("Loading FrameworkResourceRepository from sources in " + resFolder);
-    ResourceSet resourceSet = new FrameworkResourceSet(resFolder, withLocaleResources);
+    repository.load();
+
+    if (usePersistentCache) {
+      repository.createPersistentCacheAsynchronously();
+    }
+    return repository;
+  }
+
+  private void load() {
+    if (!myUseLightweightDataStructures) {
+      loadUsingResourceMerger();
+      return;
+    }
+
+    Loader loader = new MyLoader();
+    loader.load(ImmutableList.of(myResourceDirectory), true);
+    populatePublicResourcesMap();
+  }
+
+  private void populatePublicResourcesMap() {
+    Map<ResourceType, ListMultimap<String, ResourceItem>> mapByType = getMapByType();
+    for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : mapByType.entrySet()) {
+      ResourceType resourceType = entry.getKey();
+      ImmutableSet.Builder<ResourceItem> setBuilder = null;
+      ListMultimap<String, ResourceItem> items = entry.getValue();
+      for (ResourceItem item : items.values()) {
+        if (((ResourceItemWithVisibility)item).getVisibility() == ResourceVisibility.PUBLIC) {
+          if (setBuilder == null) {
+            setBuilder = ImmutableSet.builder();
+          }
+          setBuilder.add(item);
+        }
+      }
+      myPublicResources.put(resourceType, setBuilder == null ? ImmutableSet.of() : setBuilder.build());
+    }
+  }
+
+  private void loadUsingResourceMerger() {
+    ResourceSet resourceSet = new FrameworkResourceSet(myResourceDirectory, myWithLocaleResources);
 
     try {
       ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
@@ -174,13 +219,12 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       LOG.warn(e);
     }
 
-    ResourceTable resourceTable = repository.getFullTable();
     ListMultimap<String, ResourceMergerItem> resourceItems = resourceSet.getDataMap();
     for (String key : resourceItems.keys()) {
       List<ResourceMergerItem> items = resourceItems.get(key);
       for (int i = items.size(); --i >= 0;) {
         ResourceItem item = items.get(i);
-        ListMultimap<String, ResourceItem> multimap = resourceTable.getOrPutEmpty(item.getNamespace(), item.getType());
+        ListMultimap<String, ResourceItem> multimap = myFullTable.getOrPutEmpty(item.getNamespace(), item.getType());
         if (!multimap.containsEntry(item.getName(), item)) {
           multimap.put(item.getName(), item);
         }
@@ -191,19 +235,14 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     // require navigation to sibling XML nodes. Since the XML nodes loaded from the cache don't maintain
     // references to their siblings or parents, we extract attr descriptions and group names and store
     // them as values of synthetic attributes of "attr" XML elements.
-    repository.assignAttrDescriptions();
-    repository.assignAttrGroups();
+    assignAttrDescriptions();
+    assignAttrGroups();
 
-    repository.loadPublicResources();
-
-    if (usePersistentCache) {
-      repository.createPersistentCacheAsynchronously();
-    }
-    return repository;
+    loadPublicResources();
   }
 
   private void createPersistentCacheAsynchronously() {
-    myCacheCreatedFuture = ApplicationManager.getApplication().executeOnPooledThread(this::createPersistentCache);
+    myCacheCreatedFuture = ApplicationManager.getApplication().executeOnPooledThread(() -> createPersistentCache());
   }
 
   @Override
@@ -252,11 +291,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   @VisibleForTesting
   void waitUntilPersistentCacheCreated() throws ExecutionException, InterruptedException {
     myCacheCreatedFuture.get();
-  }
-
-  @VisibleForTesting
-  boolean isLoadedFromCache() {
-    return myLoadedFromCache;
   }
 
   /**
@@ -453,7 +487,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       LOG.error("Can't read and parse public attribute list " + publicXmlFile.toString(), e);
     }
 
-    // Put unmodifiable list for all resource types in the public resource map.
+    // Put unmodifiable sets for all resource types in the public resource map.
     for (ResourceType type : ResourceType.values()) {
       Set<ResourceItem> items = myPublicResources.get(type);
       if (items == null) {
@@ -463,7 +497,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
         items = Collections.unmodifiableSet(items); // Make immutable.
       }
 
-      // put the new list in the map
+      // Put the new list in the map.
       myPublicResources.put(type, items);
     }
   }
@@ -495,6 +529,28 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    * @see #createPersistentCache()
    */
   private boolean loadFromPersistentCache() {
+    if (!myUseLightweightDataStructures) {
+      return loadFromPersistentCacheForResourceMergerItems();
+    }
+
+    byte[] header = getCacheFileHeader();
+    return loadFromPersistentCache(getCacheFile(), header);
+  }
+
+  @Override
+  protected void loadFromStream(@NotNull Base128InputStream stream) throws IOException {
+    super.loadFromStream(stream);
+    populatePublicResourcesMap();
+  }
+
+  /**
+   * Loads the framework resource repository from a binary cache file on disk.
+   *
+   * @return true if the repository was loaded from the cache, or false if the cache does not
+   *     exist or is out of date
+   * @see #createPersistentCacheForResourceMergerItems()
+   */
+  private boolean loadFromPersistentCacheForResourceMergerItems() {
     Path cacheFile = getCacheFile();
     if (!Files.exists(cacheFile)) {
       return false; // Cache file does not exist.
@@ -608,6 +664,32 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     return true;
   }
 
+  private void createPersistentCache() {
+    if (!myUseLightweightDataStructures) {
+      createPersistentCacheForResourceMergerItems();
+      return;
+    }
+
+    byte[] header = getCacheFileHeader();
+    createPersistentCache(getCacheFile(), header);
+  }
+
+  private byte[] getCacheFileHeader() {
+    ByteArrayOutputStream header = new ByteArrayOutputStream();
+    try (Base128OutputStream stream = new Base128OutputStream(header)) {
+      stream.write(CACHE_FILE_HEADER);
+      stream.writeString(CACHE_FILE_FORMAT_VERSION);
+      stream.writeBoolean(myUseLightweightDataStructures);
+      stream.writeString(myResourceDirectory.toString());
+      stream.writeBoolean(myWithLocaleResources);
+      stream.writeString(getAndroidPluginVersion());
+    }
+    catch (IOException e) {
+      throw new Error("Internal error", e); // An IOException in the try block above indicates a bug.
+    }
+    return header.toByteArray();
+  }
+
   /**
    * Creates a persistent cache file with the following format:
    * <ol>
@@ -693,7 +775,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
    *   <li>The value of the attribute (UTF-8 string)</li>
    * </ol>
    */
-  private void createPersistentCache() {
+  private void createPersistentCacheForResourceMergerItems() {
     Path cacheFile = getCacheFile();
 
     // Write to a temporary file first, then rename to to the final name.
@@ -867,7 +949,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @NotNull
   private Map<ResourceType, ListMultimap<String, ResourceItem>> getMapByType() {
-    return getFullTable().row(ANDROID_NAMESPACE);
+    return myFullTable.row(ANDROID_NAMESPACE);
   }
 
   @NotNull
@@ -898,8 +980,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     @Override
     protected void writeStreamHeader() throws IOException {
-      for (int i = 0; i < CACHE_FILE_HEADER.length(); i++) {
-        writeByte(CACHE_FILE_HEADER.charAt(i));
+      for (int i = 0; i < CACHE_FILE_HEADER.length; i++) {
+        writeByte(CACHE_FILE_HEADER[i]);
       }
       writeByte(' ');
       for (int i = 0; i < CACHE_FILE_FORMAT_VERSION.length(); i++) {
@@ -972,8 +1054,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     @Override
     protected void readStreamHeader() throws IOException {
-      for (int i = 0; i < CACHE_FILE_HEADER.length(); i++) {
-        if (readUnsignedByte() != CACHE_FILE_HEADER.charAt(i)) {
+      for (int i = 0; i < CACHE_FILE_HEADER.length; i++) {
+        if (readUnsignedByte() != CACHE_FILE_HEADER[i]) {
           throw new StreamCorruptedException();
         }
       }
@@ -1046,10 +1128,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private static class FrameworkResourceSet extends ResourceSet {
     private final boolean myWithLocaleResources;
 
-    FrameworkResourceSet(@NotNull File resourceFolder, boolean withLocaleResources) {
+    FrameworkResourceSet(@NotNull Path resourceFolder, boolean withLocaleResources) {
       super("AndroidFramework", ANDROID_NAMESPACE, null, false);
       myWithLocaleResources = withLocaleResources;
-      addSource(resourceFolder);
+      addSource(resourceFolder.toFile());
       setShouldParseResourceIds(true);
       setTrackSourcePositions(false);
       setCheckDuplicates(false);
@@ -1689,5 +1771,103 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     VALUE,
     /** Resource associated with a {@linkplain DataFile.FileType#SINGLE_FILE} file. */
     FILE
+  }
+
+  private class MyLoader extends Loader {
+    @Override
+    public boolean isIgnored(@NotNull Path fileOrDirectory, @NotNull BasicFileAttributes attrs) {
+      if (super.isIgnored(fileOrDirectory, attrs)) {
+        return true;
+      }
+
+      String fileName = fileOrDirectory.getFileName().toString();
+      if (attrs.isDirectory()) {
+        if (fileName.startsWith("values-mcc") || fileName.startsWith("raw-")) {
+          return true; // Mobile country codes and raw resources are not used by LayoutLib.
+        }
+
+        // Skip locale-specific folders if myWithLocaleResources is false.
+        if (!myWithLocaleResources && fileName.startsWith("values-")) {
+          FolderConfiguration config = FolderConfiguration.getConfigForFolder(fileName);
+          if (config == null || config.getLocaleQualifier() != null) {
+            return true;
+          }
+        }
+      }
+      else if ((fileName.equals("public.xml") || fileName.equals("symbols.xml")) &&
+               "values".equals(new PathString(fileOrDirectory).getParentFileName())) {
+        return true; // Skip files that don't contain resources.
+      }
+
+      return false;
+    }
+
+    @Override
+    protected void loadPublicResourceNames() {
+      Path valuesFolder = myResourceDirectory.resolve(SdkConstants.FD_RES_VALUES);
+      Path publicXmlFile = valuesFolder.resolve("public.xml");
+
+      try (InputStream stream = new BufferedInputStream(Files.newInputStream(publicXmlFile))) {
+        KXmlParser parser = new KXmlParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(stream, StandardCharsets.UTF_8.name());
+
+        ResourceType lastType = null;
+        String lastTypeName = "";
+        while (true) {
+          int event = parser.next();
+          if (event == XmlPullParser.START_TAG) {
+            // As of API 15 there are a number of "java-symbol" entries here.
+            if (!parser.getName().equals(SdkConstants.TAG_PUBLIC)) {
+              continue;
+            }
+
+            String name = null;
+            String typeName = null;
+            for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
+              String attribute = parser.getAttributeName(i);
+
+              if (attribute.equals(SdkConstants.ATTR_NAME)) {
+                name = parser.getAttributeValue(i);
+                if (typeName != null) {
+                  // Skip id attribute processing.
+                  break;
+                }
+              }
+              else if (attribute.equals(SdkConstants.ATTR_TYPE)) {
+                typeName = parser.getAttributeValue(i);
+              }
+            }
+
+            if (name != null && typeName != null) {
+              ResourceType type;
+              if (typeName.equals(lastTypeName)) {
+                type = lastType;
+              }
+              else {
+                type = ResourceType.fromXmlValue(typeName);
+                lastType = type;
+                lastTypeName = typeName;
+              }
+
+              if (type != null) {
+                Set<String> names = myPublicResources.computeIfAbsent(type, t -> new HashSet<>());
+                names.add(name);
+              }
+              else {
+                LOG.error("Public resource declaration \"" + name + "\" of type " + typeName + " points to unknown resource type.");
+              }
+            }
+          }
+          else if (event == XmlPullParser.END_DOCUMENT) {
+            break;
+          }
+        }
+      } catch (NoSuchFileException e) {
+        // There is no public.xml. This not considered an error.
+      } catch (Exception e) {
+        LOG.error("Can't read and parse public attribute list " + publicXmlFile.toString(), e);
+      }
+    }
   }
 }

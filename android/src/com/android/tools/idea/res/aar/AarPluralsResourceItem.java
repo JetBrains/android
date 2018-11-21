@@ -16,8 +16,13 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.PluralsResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,5 +95,40 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
     if (!super.equals(obj)) return false;
     AarPluralsResourceItem other = (AarPluralsResourceItem) obj;
     return myQuantities.equals(other.myQuantities) && myValues.equals(other.myValues);
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    int n = myQuantities.size();
+    stream.writeInt(n);
+    for (int i = 0; i < n; i++) {
+      stream.writeString(myQuantities.get(i));
+      stream.writeString(myValues.get(i));
+    }
+  }
+
+  /**
+   * Creates an AarPluralsResourceItem by reading its contents of the given stream.
+   */
+  @NotNull
+  static AarPluralsResourceItem deserialize(@NotNull Base128InputStream stream,
+                                            @NotNull String name,
+                                            @NotNull ResourceVisibility visibility,
+                                            @NotNull AarSourceFile sourceFile,
+                                            @NotNull ResourceNamespace.Resolver resolver) throws IOException {
+    int n = stream.readInt();
+    List<String> quantities = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
+    List<String> values = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      quantities.add(stream.readString());
+      values.add(stream.readString());
+    }
+    AarPluralsResourceItem item = new AarPluralsResourceItem(name, sourceFile, visibility, quantities, values);
+    item.setNamespaceResolver(resolver);
+    return item;
   }
 }

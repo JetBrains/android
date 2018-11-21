@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.utils.HashCodes;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.io.IOException;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,5 +67,35 @@ class AarValueResourceItem extends AbstractAarValueResourceItem implements Resol
   @Override
   public int hashCode() {
     return HashCodes.mix(super.hashCode(), Objects.hashCode(myValue));
+  }
+
+  @Override
+  void serialize(@NotNull Base128OutputStream stream,
+                 @NotNull ObjectIntHashMap<String> configIndexes,
+                 @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
+                 @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+    super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
+    stream.writeString(myValue);
+    String rawXmlValue = getRawXmlValue();
+    stream.writeString(Objects.equals(rawXmlValue, myValue) ? null : rawXmlValue);
+  }
+
+  /**
+   * Creates an AarValueResourceItem by reading its contents of the given stream.
+   */
+  @NotNull
+  static AarValueResourceItem deserialize(@NotNull Base128InputStream stream,
+                                          @NotNull ResourceType resourceType,
+                                          @NotNull String name,
+                                          @NotNull ResourceVisibility visibility,
+                                          @NotNull AarSourceFile sourceFile,
+                                          @NotNull ResourceNamespace.Resolver resolver) throws IOException {
+    String value = stream.readString();
+    String rawXmlValue = stream.readString();
+    AarValueResourceItem item = rawXmlValue == null ?
+        new AarValueResourceItem(resourceType, name, sourceFile, visibility, value) :
+        new AarTextValueResourceItem(resourceType, name, sourceFile, visibility, value, rawXmlValue);
+    item.setNamespaceResolver(resolver);
+    return item;
   }
 }

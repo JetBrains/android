@@ -16,6 +16,7 @@
 package com.android.tools.idea.res.aar
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.utils.HashCodes
 
 /**
  * A ([AbstractAarResourceRepository], [FolderConfiguration]) pair. Instances of [AbstractAarResourceItem] contain
@@ -23,4 +24,26 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
  * [FolderConfiguration]. This indirection saves memory because the number of `AarConfiguration` instances is tiny
  * fraction of the number of [AbstractAarResourceItem] instances.
  */
-internal data class AarConfiguration(val repository: AbstractAarResourceRepository, val folderConfiguration: FolderConfiguration)
+internal data class AarConfiguration(val repository: AbstractAarResourceRepository, val folderConfiguration: FolderConfiguration) {
+  /**
+   * Overridden to not distinguish between repositories loaded from the same file or folder.
+   */
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as AarConfiguration
+
+    if (repository.origin != other.repository.origin) return false
+    if (folderConfiguration != other.folderConfiguration) return false
+
+    return true
+  }
+
+  /**
+   * Overridden to not distinguish between repositories loaded from the same file or folder.
+   */
+  override fun hashCode(): Int {
+    return HashCodes.mix(repository.origin.hashCode(), folderConfiguration.hashCode());
+  }
+}

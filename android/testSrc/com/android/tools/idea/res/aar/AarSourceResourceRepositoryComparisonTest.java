@@ -29,9 +29,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.utils.XmlUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,8 +38,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,8 +52,6 @@ public class AarSourceResourceRepositoryComparisonTest extends AndroidTestCase {
   private static final boolean PRINT_STATS = false;
 
   private static final String LIBRARY_NAME = "design-27.0.2";
-
-  private static final Pattern DIMEN_PATTERN = Pattern.compile("(?<number>-?\\d+(\\.\\d*)?)(?<suffix>px|dp|dip|sp|pt|in|mm|)");
 
   private static final Comparator<ResourceItem> ITEM_COMPARATOR = (item1, item2) -> {
     int comp = item1.getType().compareTo(item2.getType());
@@ -98,8 +92,7 @@ public class AarSourceResourceRepositoryComparisonTest extends AndroidTestCase {
     myAarFolder = new File(myFixture.getTestDataPath(), "design_aar");
   }
 
-  private static void compareContents(@NotNull SingleNamespaceResourceRepository expected,
-                                      @NotNull SingleNamespaceResourceRepository actual) {
+  static void compareContents(@NotNull SingleNamespaceResourceRepository expected, @NotNull SingleNamespaceResourceRepository actual) {
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResources());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResources());
 
@@ -150,7 +143,10 @@ public class AarSourceResourceRepositoryComparisonTest extends AndroidTestCase {
     if (!Objects.equals(item1.getConfiguration(), item2.getConfiguration())) {
       return false;
     }
-    return Objects.equals(item1.getSource(), item2.getSource());
+    if (!Objects.equals(item1.getSource(), item2.getSource())) {
+      return false;
+    }
+    return true;
   }
 
   private static boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2) {
@@ -278,131 +274,11 @@ public class AarSourceResourceRepositoryComparisonTest extends AndroidTestCase {
 
     String v1 = value1.getValue();
     String v2 = value2.getValue();
-    if (Objects.equals(v1, v2)) {
-      return true;
-    }
-    if (value1 instanceof AarFileResourceItem) {
-      String temp = v1;
-      v1 = v2;
-      v2 = temp;
-    }
-
-    switch (value1.getResourceType()) {
-      case COLOR:
-      case DRAWABLE:
-        if (v1.startsWith("#") && v2.startsWith("#") && v1.equalsIgnoreCase(v2)) {
-          return true; // Hexadecimal representations of the same color may differ by case.
-        }
-        break;
-
-      case STRING:
-        if (!v2.contains("%")) {
-          String temp = v1;
-          v1 = v2;
-          v2 = temp;
-        }
-        if (v2.contains("%")) {
-          // AAR string resources do not contain any xliff information.
-          // Allow "Share with %s" to match "Share with (Mail)" or "Share with ${application_name}".
-          Pattern pattern = buildPattern(v2);
-          if (pattern.matcher(v1).matches()) {
-            return true;
-          }
-        }
-        break;
-
-      case STYLE_ITEM:
-        ResourceUrl url1 = ResourceUrl.parse(v1);
-        ResourceUrl url2 = ResourceUrl.parse(v2);
-        if (url1 != null && url1.equals(url2)) {
-          return true;
-        }
-        break;
-
-      case ID:
-        return true; // ID resources don't have values in AARv2.
-
-      default:
-        break;
-    }
-
-    if (v1 == null || v2 == null) {
+    if (!Objects.equals(v1, v2) && value1.getResourceType() != ResourceType.ID) { // Values or ID resource values don't matter.
       return false;
     }
-    if (normalizeDimensionValue(v1).equals(normalizeDimensionValue(v2))) {
-      return true;
-    }
-    return false;
-  }
 
-  @NotNull
-  private static String normalizeDimensionValue(@NotNull String value) {
-    Matcher matcher = DIMEN_PATTERN.matcher(value);
-    if (!matcher.matches()) {
-      return value;
-    }
-    String number = XmlUtils.trimInsignificantZeros(matcher.group("number"));
-    String suffix = matcher.group("suffix");
-    if (suffix.equals("dip")) {
-      suffix = "dp";
-    }
-    return number + suffix;
-  }
-
-  /**
-   * Builds a regular expression pattern replacing format specifiers with (\$\{.*\}|\(.*\)) patterns and
-   * escaping the rest the string.
-   *
-   * @param formatStr the format string to build a regular expression pattern for
-   * @return a regular expression pattern
-   */
-  @NotNull
-  private static Pattern buildPattern(@NotNull String formatStr) {
-    StringBuilder buf = new StringBuilder(formatStr.length() * 2);
-    boolean escaped = false;
-    boolean inFormatSpecifier = false;
-    for (int i = 0; i < formatStr.length(); i++) {
-      char c = formatStr.charAt(i);
-      if (inFormatSpecifier) {
-        if (c == 's') {
-          buf.append("(\\$\\{.*\\}|\\(.*\\))");
-          inFormatSpecifier = false;
-        }
-      } else {
-        switch (c) {
-          case '%':
-            if (escaped) {
-              buf.append(c);
-              escaped = false;
-            } else {
-              inFormatSpecifier = true;
-            }
-            break;
-          case '\\':
-          case '.':
-          case '^':
-          case '$':
-          case '|':
-          case '(':
-          case ')':
-          case '{':
-          case '}':
-          case '[':
-          case ']':
-          case '*':
-          case '+':
-          case '?':
-            buf.append('\\').append(c);
-            escaped = c != '\\' || !escaped;
-            break;
-          default:
-            buf.append(c);
-            escaped = false;
-            break;
-        }
-      }
-    }
-    return Pattern.compile(buf.toString());
+    return true;
   }
 
   @Override
