@@ -43,7 +43,9 @@ open class NeleControlTypeProvider(val enumSupportProvider: EnumSupportProvider<
       property.type == NelePropertyType.BOOLEAN ->
         ControlType.BOOLEAN
 
-      property.type == NelePropertyType.COLOR_OR_DRAWABLE || property.type == NelePropertyType.COLOR ->
+      property.type == NelePropertyType.DRAWABLE ||
+      property.type == NelePropertyType.COLOR ||
+      property.type == NelePropertyType.COLOR_STATE_LIST ->
         ControlType.COLOR_EDITOR
 
       else ->

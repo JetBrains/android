@@ -474,13 +474,13 @@ class ViewInspectorBuilderTest {
 
   private fun addImageViewProperties(util: InspectorTestUtil, withAppCompat: Boolean) {
     if (withAppCompat) {
-      util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.COLOR_OR_DRAWABLE)
+      util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
     }
     else {
-      util.addProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.COLOR_OR_DRAWABLE)
+      util.addProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
     }
     util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.COLOR_OR_DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
     util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NelePropertyType.THREE_STATE_BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NelePropertyType.THREE_STATE_BOOLEAN)

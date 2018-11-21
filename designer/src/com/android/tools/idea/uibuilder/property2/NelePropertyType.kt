@@ -27,10 +27,13 @@ import java.util.EnumSet
  */
 enum class NelePropertyType {
   UNKNOWN,
+  ANIM,
+  ARRAY,
   BOOLEAN,
   COLOR,
-  COLOR_OR_DRAWABLE,
+  COLOR_STATE_LIST,
   DIMENSION,
+  DRAWABLE,
   ENUM,
   FLAGS,
   FLOAT,
@@ -40,30 +43,39 @@ enum class NelePropertyType {
   FRAGMENT,
   ID,
   INTEGER,
+  INTERPOLATOR,
   LAYOUT,
   LIST,
+  MENU,
   READONLY_STRING,
   STRING,
+  STRING_ARRAY,
   STYLE,
   THREE_STATE_BOOLEAN,
   TEXT_APPEARANCE;
 
   val resourceTypes: EnumSet<ResourceType>
     get() = when (this) {
+      ANIM -> EnumSet.of(ResourceType.ANIM)
+      ARRAY -> EnumSet.of(ResourceType.ARRAY)
       BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       COLOR -> EnumSet.of(ResourceType.COLOR)
-      COLOR_OR_DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
+      COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
       DIMENSION -> EnumSet.of(ResourceType.DIMEN)
+      DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE)
       FLOAT -> EnumSet.of(ResourceType.DIMEN)
       FONT -> EnumSet.of(ResourceType.FONT)
       FRACTION -> EnumSet.of(ResourceType.FRACTION)
       FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
       ID -> EnumSet.of(ResourceType.ID)
       INTEGER -> EnumSet.of(ResourceType.INTEGER)
+      INTERPOLATOR -> EnumSet.of(ResourceType.INTERPOLATOR)
       LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
       LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
+      MENU -> EnumSet.of(ResourceType.MENU)
       READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
       STRING -> EnumSet.of(ResourceType.STRING)
+      STRING_ARRAY -> EnumSet.of(ResourceType.ARRAY)
       STYLE -> EnumSet.of(ResourceType.STYLE)
       TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
       THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
@@ -83,8 +95,9 @@ enum class NelePropertyType {
     return when (this) {
       THREE_STATE_BOOLEAN,
       BOOLEAN -> error(literal != SdkConstants.VALUE_TRUE && literal != SdkConstants.VALUE_FALSE) { "Invalid bool value: '$literal'"}
-      COLOR_OR_DRAWABLE,
-      COLOR -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
+      COLOR_STATE_LIST,
+      COLOR,
+      DRAWABLE -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
       ENUM -> "Invalid value: '$literal'"
       FONT_SIZE,
       DIMENSION -> error(DimensionConverter.INSTANCE.fromString(literal, null) == null) { getDimensionError(literal) }

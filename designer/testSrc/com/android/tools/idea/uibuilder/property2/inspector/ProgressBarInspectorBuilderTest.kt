@@ -148,8 +148,8 @@ class ProgressBarInspectorBuilderTest {
 
   private fun addRequiredProperties(util: InspectorTestUtil) {
     util.addProperty("", ATTR_STYLE, NelePropertyType.STYLE)
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS_DRAWABLE, NelePropertyType.COLOR_OR_DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NelePropertyType.COLOR_OR_DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS_DRAWABLE, NelePropertyType.DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NelePropertyType.DRAWABLE)
     util.addProperty(ANDROID_URI, ATTR_MAXIMUM, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_PROGRESS, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_INDETERMINATE, NelePropertyType.THREE_STATE_BOOLEAN)
@@ -157,8 +157,8 @@ class ProgressBarInspectorBuilderTest {
   }
 
   private fun addOptionalProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS_TINT, NelePropertyType.COLOR_OR_DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_TINT, NelePropertyType.COLOR_OR_DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS_TINT, NelePropertyType.COLOR_STATE_LIST)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_TINT, NelePropertyType.COLOR_STATE_LIST)
   }
 
   private fun getHiddenProperties(util: InspectorTestUtil): List<String> {
