@@ -17,23 +17,17 @@ package com.android.tools.idea.stats;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.deployer.SystraceConsumer;
-import com.android.tools.deployer.Trace;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.utils.NullLogger;
-import com.android.utils.StdLogger;
+import com.android.tools.tracer.Trace;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ArtifactDetail;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.google.wireless.android.sdk.stats.RunEvent;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.jetbrains.annotations.Nullable;
 
 public class RunStats {
@@ -64,9 +58,7 @@ public class RunStats {
 
   private void commit(RunEvent.Status status) {
     Trace.end();
-    Path jsonPath = Paths.get(PathManager.getSystemPath(), "systrace.json");
-    SystraceConsumer consumer = new SystraceConsumer(jsonPath.toString(), new NullLogger());
-    Trace.consume(consumer);
+    Trace.flush();
     if (!myLogged) {
       myEvent.getRunEventBuilder()
              .setStatus(status)

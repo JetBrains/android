@@ -36,5 +36,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
+        "//tools/base/tracer:studio.android.sdktools.tracer[module]",
     ],
 )

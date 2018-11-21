@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
-import com.android.tools.deployer.Trace;
+import com.android.tools.tracer.Trace;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
