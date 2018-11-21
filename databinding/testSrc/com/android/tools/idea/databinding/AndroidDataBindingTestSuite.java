@@ -20,6 +20,7 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
+import com.intellij.idea.IdeaTestApplication;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -46,5 +47,13 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
 
     // Run Kotlin in-process for easier control over its JVM args.
     System.setProperty("kotlin.compiler.execution.strategy", "in-process");
+
+    // As a side-effect, the following line initializes an initial application. This is important
+    // as this test suite has at least one test that creates and then disposes a temporary mock
+    // application. However, the ApplicationManager API doesn't fallback to an older application if
+    // one was never set, which leaves other tests that call ApplicationManager.getApplication()
+    // unexpectedly accessing a disposed application - leading to exceptions if the tests happen to
+    // be called in a bad order.
+    IdeaTestApplication.getInstance();
   }
 }

@@ -114,7 +114,7 @@ public class InternalDataBindingUtil {
 
   private static boolean calculateEnableInMemoryClasses() {
     DataBindingConfiguration config = DataBindingConfiguration.getInstance();
-    return config.CODE_NAVIGATION_MODE == DataBindingConfiguration.CodeNavigationMode.XML;
+    return config.CODE_GEN_MODE == DataBindingConfiguration.CodeGenMode.IN_MEMORY;
   }
 
   /**
