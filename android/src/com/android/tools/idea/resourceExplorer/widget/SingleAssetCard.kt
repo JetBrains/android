@@ -154,7 +154,7 @@ abstract class AssetView : JPanel(BorderLayout()) {
   protected val newLabel = object : JLabel(" NEW ") {
 
     init {
-      font = UIUtil.getLabelFont(UIUtil.FontSize.MINI)
+      font = UIUtil.getLabelFont().deriveFont(8f)
       foreground = JBColor.WHITE
       isVisible = isNew
     }
@@ -163,7 +163,10 @@ abstract class AssetView : JPanel(BorderLayout()) {
       g.color = UIUtil.getTreeSelectionBorderColor()
       val antialias = (g as Graphics2D).getRenderingHint(RenderingHints.KEY_ANTIALIASING)
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      g.fillRoundRect(0, 0, width, height, height, height)
+      val insets = insets
+      val descent = getFontMetrics(font).descent
+      val height = height - insets.bottom - descent // Ensure that text is centered within the background
+      g.fillRoundRect(insets.left, insets.top, width - insets.right, height, height, height)
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialias)
       super.paintComponent(g)
     }
@@ -224,19 +227,26 @@ class SingleAssetCard : AssetView() {
  * and some textual info below.
  */
 class RowAssetView : AssetView() {
+
+  private val CENTER_PANEL_BORDER_SELECTED = JBUI.Borders.empty(0, 10, 1, 1)
+
   override var selected by Delegates.observable(false) { _, _, selected ->
     border = if (selected) ROW_CELL_BORDER_SELECTED else ROW_CELL_BORDER
+    centerPanel.border = if (selected) CENTER_PANEL_BORDER_SELECTED else CENTER_PANEL_BORDER_UNSELECTED
   }
 
+  private val CENTER_PANEL_BORDER_UNSELECTED = BorderFactory.createCompoundBorder(
+    JBUI.Borders.empty(0, 10, 0, 1),
+    JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
+  )
+
   private val centerPanel = JPanel(BorderLayout()).apply {
-    isOpaque = true
-    border = BorderFactory.createCompoundBorder(
-      JBUI.Borders.empty(0, 10, 2, 1),
-      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
-    )
+    isOpaque = false
+    border = CENTER_PANEL_BORDER_UNSELECTED
   }
 
   private val metadataPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+    isOpaque = false
     add(secondLineLabel)
     add(Separator())
     add(thirdLineLabel)
@@ -249,13 +259,15 @@ class RowAssetView : AssetView() {
       add(JPanel(BorderLayout()).apply {
         add(titleLabel)
         add(newLabel, BorderLayout.EAST)
+        isOpaque = false
         border = JBUI.Borders.empty(8, 0, 0, 4)
       }, BorderLayout.NORTH)
 
       add(JPanel(BorderLayout()).apply {
         add(metadataPanel)
         add(issueIcon, BorderLayout.EAST)
-        border = JBUI.Borders.empty(0, 0, 8, 4)
+        border = JBUI.Borders.empty(0, 0, 4, 4)
+        isOpaque = false
       }, BorderLayout.SOUTH)
 
       issueIcon.preferredSize = Dimension(newLabel.preferredSize.width, issueIcon.preferredSize.height)
@@ -263,6 +275,7 @@ class RowAssetView : AssetView() {
 
     add(contentWrapper, BorderLayout.WEST)
     add(centerPanel)
+    isOpaque = false
   }
 
   override fun computeThumbnailSize(width: Int) = Dimension(width, width)

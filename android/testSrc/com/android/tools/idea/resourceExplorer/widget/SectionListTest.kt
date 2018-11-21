@@ -95,7 +95,7 @@ fun main(args: Array<String>) {
 
   val sectionList = SectionList(listModel)
   panel.preferredSize = JBUI.size(1000, 1000)
-  panel.add(sectionList.mainComponent)
+  panel.add(sectionList)
   panel.add(sectionList.sectionsComponent, BorderLayout.WEST)
 
   frame.contentPane = panel
