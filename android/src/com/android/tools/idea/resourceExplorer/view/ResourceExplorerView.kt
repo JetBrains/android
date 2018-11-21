@@ -36,22 +36,21 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.font.TextAttribute
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -67,19 +66,29 @@ import kotlin.properties.Delegates
 
 
 private val MAX_CELL_WIDTH = JBUI.scale(300)
-private val LIST_CELL_SIZE = JBUI.scale(70)
+private val LIST_CELL_SIZE = JBUI.scale(60)
 private val MIN_CELL_WIDTH = JBUI.scale(150)
 private const val DEFAULT_GRID_MODE = false
 private val DEFAULT_CELL_WIDTH = LIST_CELL_SIZE
 private val SECTION_CELL_MARGIN = JBUI.scale(4)
 private val SECTION_CELL_MARGIN_LEFT = JBUI.scale(8)
 private val COLORED_BORDER_WIDTH = JBUI.scale(4)
-private val SECTION_HEADER_SECONDARY_COLOR = Gray.x66
+private val SECTION_HEADER_SECONDARY_COLOR = JBColor.border()
 
 private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
-  JBUI.Borders.emptyBottom(8),
+  JBUI.Borders.empty(4, 4, 8, 4),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
+
+private val SECTION_LIST_BORDER = JBUI.Borders.empty(0, 4)
+
+private val SECTION_HEADER_LABEL_FONT = JBUI.Fonts.label().deriveFont(mapOf(
+  TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
+  TextAttribute.SIZE to 14f
+))
+
+private val GRID_MODE_BACKGROUND = UIUtil.getPanelBackground()
+private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
 
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
@@ -110,6 +119,7 @@ class ResourceExplorerView(
     }
 
   private var gridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, newValue ->
+    sectionList.background = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     sectionList.getLists().forEach {
       (it as AssetListView).isGridMode = newValue
     }
@@ -117,7 +127,6 @@ class ResourceExplorerView(
 
   private val listeners = mutableListOf<SelectionListener>()
   private val sectionListModel: SectionListModel = SectionListModel()
-  private val sectionList: SectionList = SectionList(sectionListModel)
   private val dragHandler = resourceDragHandler()
   private val imageCache = ImageCache(
     mergingUpdateQueue = MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
@@ -133,8 +142,9 @@ class ResourceExplorerView(
     }
   }
 
-  private val listPanel: JBScrollPane = sectionList.mainComponent.apply {
-    border = JBUI.Borders.empty(8)
+  private val sectionList: SectionList = SectionList(sectionListModel).apply {
+    border = SECTION_LIST_BORDER
+    background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
     verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
     addMouseWheelListener { event ->
@@ -220,12 +230,11 @@ class ResourceExplorerView(
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
-    sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
     resourcesBrowserViewModel.resourceChangedCallback = ::populateResourcesLists
     populateResourcesLists()
 
     add(headerPanel, BorderLayout.NORTH)
-    add(listPanel)
+    add(sectionList)
     add(footerPanel, BorderLayout.SOUTH)
     Disposer.register(this, imageCache)
   }
@@ -263,29 +272,6 @@ class ResourceExplorerView(
     }
   }
 
-  private fun createSectionListCellRenderer(): ListCellRenderer<Section<*>> {
-    return ListCellRenderer { _, value, _, isSelected, _ ->
-      val label = JLabel(value.name)
-      if (isSelected) {
-        label.isOpaque = true
-        label.background = UIUtil.getPanelBackground().brighter()
-        label.border = BorderFactory.createCompoundBorder(
-          JBUI.Borders.customLine(JBColor.BLUE, 0, COLORED_BORDER_WIDTH, 0, 0),
-          BorderFactory.createEmptyBorder(SECTION_CELL_MARGIN, SECTION_CELL_MARGIN_LEFT, SECTION_CELL_MARGIN, SECTION_CELL_MARGIN)
-        )
-      }
-      else {
-        label.border = BorderFactory.createEmptyBorder(
-          SECTION_CELL_MARGIN,
-          COLORED_BORDER_WIDTH + SECTION_CELL_MARGIN_LEFT,
-          SECTION_CELL_MARGIN,
-          SECTION_CELL_MARGIN
-        )
-      }
-      label
-    }
-  }
-
   fun addSelectionListener(listener: SelectionListener) {
     listeners += listener
   }
@@ -320,18 +306,13 @@ class ResourceExplorerView(
 
     override var header: JComponent = createHeaderComponent()
 
-    private fun createHeaderComponent(): JComponent {
-
-      return JPanel(BorderLayout()).apply {
-        val nameLabel = JBLabel(this@AssetSection.name)
-        nameLabel.font = nameLabel.font.deriveFont(24f)
-        val countLabel = JBLabel(list.model.size.toString())
-        countLabel.foreground = SECTION_HEADER_SECONDARY_COLOR
-        add(nameLabel)
-        add(countLabel, BorderLayout.EAST)
-
-        border = SECTION_HEADER_BORDER
+    private fun createHeaderComponent() = JPanel(FlowLayout(FlowLayout.LEFT, 4, 8)).apply {
+      isOpaque = false
+      val nameLabel = JBLabel("${this@AssetSection.name} (${list.model.size})").apply {
+        font = SECTION_HEADER_LABEL_FONT
       }
+      add(nameLabel)
+      border = SECTION_HEADER_BORDER
     }
   }
 

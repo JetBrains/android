@@ -21,6 +21,7 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import java.awt.Color
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import javax.swing.Box
@@ -41,7 +42,7 @@ private val EMPTY_SELECTION_ARRAY = IntArray(0)
 /**
  * A Swing component displaying multiple lists organized in [Section]s with a header.
  *
- * The component is divided into two parts: the main component ([mainComponent]) which displays
+ * The component is divided into two parts: the main component (this instance) which displays
  * the lists in a [JScrollPane] and the section list ([sectionsComponent]) which displays the list of
  * the sections' names.
  *
@@ -49,7 +50,7 @@ private val EMPTY_SELECTION_ARRAY = IntArray(0)
  * the corresponding section in the main component, and scrolling the main component will select the section name of
  * the section visible at the top in the section list.
  */
-class SectionList(private val model: SectionListModel) {
+class SectionList(private val model: SectionListModel) : JBScrollPane() {
 
   private var sectionList = JBList<Section<*>>(model)
   private val sectionToComponentMap = HashBiMap.create<Section<*>, JComponent>()
@@ -58,17 +59,10 @@ class SectionList(private val model: SectionListModel) {
   private val innerListSelectionListener = createListSelectionListener()
   private var content: JComponent = createMultiListPanel(sectionToComponentMap, allInnerLists, innerListSelectionListener)
 
-  private val scrollView = JBScrollPane(content)
-
   /**
    * Gap between lists
    */
   private val listsGap = JBUI.scale(50)
-
-  /**
-   * Returns the main component displaying the multi-list
-   */
-  val mainComponent = scrollView
 
   /**
    * Returns the list of [Section] name
@@ -82,7 +76,7 @@ class SectionList(private val model: SectionListModel) {
         allInnerLists.clear()
         sectionList.selectionModel.clearSelection()
         content = createMultiListPanel(sectionToComponentMap, allInnerLists, innerListSelectionListener)
-        scrollView.setViewportView(content)
+        setViewportView(content)
       }
 
       override fun intervalRemoved(e: ListDataEvent?) {}
@@ -95,12 +89,12 @@ class SectionList(private val model: SectionListModel) {
     sectionList.addListSelectionListener {
       val selectedValue = sectionList.selectedValue
       if (selectedValue != null) {
-        scrollView.viewport.viewPosition = selectedValue.header.location
+        viewport.viewPosition = selectedValue.header.location
       }
     }
 
-    scrollView.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-    scrollView.verticalScrollBar.addAdjustmentListener(createAdjustmentListener())
+    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+    verticalScrollBar.addAdjustmentListener(createAdjustmentListener())
   }
 
   /**
@@ -110,7 +104,7 @@ class SectionList(private val model: SectionListModel) {
   private fun createAdjustmentListener(): (AdjustmentEvent) -> Unit {
     return {
       val rectangle = Rectangle()
-      val bounds = scrollView.viewport.viewRect
+      val bounds = viewport.viewRect
       val first = content.components.firstOrNull {
         sectionToComponentMap.containsValue(it) && it.getBounds(rectangle).intersects(bounds)
       }
@@ -167,6 +161,7 @@ class SectionList(private val model: SectionListModel) {
     selectionListener: ListSelectionListener
   ): JComponent {
     return JPanel(VerticalFlowLayout()).apply {
+      background = this@SectionList.background
       for (section in model.sections) {
         sectionToComponent[section] = section.header
         allInnerLists += section.list
@@ -224,6 +219,12 @@ class SectionList(private val model: SectionListModel) {
       }
     }
 
+  override fun setBackground(bg: Color?) {
+    @Suppress("UNNECESSARY_SAFE_CALL")
+    content?.background = bg
+    viewport?.background = bg
+    super.setBackground(bg)
+  }
 }
 
 class SectionListModel : ListModel<Section<*>> {
