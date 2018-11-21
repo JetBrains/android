@@ -527,8 +527,7 @@ public class TemplateManager {
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
       NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, minSdkVersion);
       String actionId = ACTION_ID_PREFIX + category + templateName;
-      am.unregisterAction(actionId);
-      am.registerAction(actionId, templateAction);
+      am.replaceAction(actionId, templateAction);
       categoryGroup.add(templateAction);
 
     }
