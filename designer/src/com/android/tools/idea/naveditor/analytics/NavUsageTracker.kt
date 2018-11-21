@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.analytics
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -33,7 +34,8 @@ interface NavUsageTracker {
 
   companion object {
     private val NOP_TRACKER = NavNopTracker()
-    private val MANAGER: DesignerUsageTrackerManager<NavUsageTracker> = DesignerUsageTrackerManager(::NavUsageTrackerImpl, NOP_TRACKER)
+    @VisibleForTesting
+    val MANAGER: DesignerUsageTrackerManager<NavUsageTracker> = DesignerUsageTrackerManager(::NavUsageTrackerImpl, NOP_TRACKER)
 
     fun getInstance(designSurface: DesignSurface?) = MANAGER.getInstance(designSurface)
   }
