@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito
@@ -41,11 +42,11 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
   val nlModel = components[0].model
 
   constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture,
-              vararg tags: String, parentTag: String = "", activityName: String = ""):
-    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, *tags))
+              vararg tags: String, parentTag: String = "", fileName: String = "", activityName: String = ""):
+    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, fileName, *tags))
 
-  constructor(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = ""):
-    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag)
+  constructor(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = ""):
+    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag, fileName = fileName)
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
     return NelePropertyItem(namespace, name, type, null, "", model, null, components)
@@ -99,10 +100,11 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
                                  fixture: CodeInsightTestFixture,
                                  activityName: String,
                                  parentTag: String,
+                                 fileName: String,
                                  vararg tags: String): List<NlComponent> {
       val (file, components) = when {
         tags.size == 1 && parentTag.isEmpty() -> createSingleComponent(fixture, activityName, tags[0])
-        else -> createMultipleComponents(fixture, activityName, parentTag, *tags)
+        else -> createMultipleComponents(fixture, activityName, parentTag, fileName, *tags)
       }
       val root = if (tags.size == 1) components.first() else components.first().parent!!
       completeModel(facet, file, components.first().model, root)
@@ -132,6 +134,7 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
     private fun createMultipleComponents(fixture: CodeInsightTestFixture,
                                          activityName: String,
                                          parentTag: String,
+                                         fileName: String,
                                          vararg tags: String): Pair<PsiFile, List<NlComponent>> {
       if (parentTag.isEmpty()) throw IllegalArgumentException("parentTag must be supplied")
       val activityAttrs = formatActivityAttributes(activityName)
@@ -139,7 +142,8 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
       var text = "<$parentTag xmlns:android=\"$ANDROID_URI\" xmlns:app=\"$AUTO_URI\" $parentId $activityAttrs>"
       tags.forEachIndexed { index, tag -> text += "<$tag ${formatId(tag, index, tags.size)}/>" }
       text += "</$parentTag>"
-      val file = fixture.addFileToProject("res/layout/${parentTag.toLowerCase()}.xml", text) as XmlFile
+      val layoutFileName = fileName.nullize() ?: parentTag
+      val file = fixture.addFileToProject("res/layout/${layoutFileName.toLowerCase()}.xml", text) as XmlFile
       val parent = MockNlComponent.create(file.rootTag!!)
       val components = mutableListOf<NlComponent>()
       file.rootTag!!.subTags.forEach { components.add(MockNlComponent.create(it)) }
