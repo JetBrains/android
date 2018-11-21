@@ -56,7 +56,7 @@ object TypeResolver {
     for (format in attribute.formats) {
       when (format) {
         AttributeFormat.BOOLEAN -> return NelePropertyType.THREE_STATE_BOOLEAN
-        AttributeFormat.COLOR -> return NelePropertyType.COLOR_OR_DRAWABLE // We dont know if a drawable is acceptable !!!
+        AttributeFormat.COLOR -> return NelePropertyType.COLOR
         AttributeFormat.DIMENSION -> return NelePropertyType.DIMENSION
         AttributeFormat.FLOAT -> return NelePropertyType.FLOAT
         AttributeFormat.FRACTION -> return NelePropertyType.FRACTION
@@ -82,8 +82,11 @@ object TypeResolver {
 
   private fun fallbackByName(name: String): NelePropertyType {
     val parts = split(name)
-    if ("background" in parts || "drawable" in parts || "color" in parts) {
-      return NelePropertyType.COLOR_OR_DRAWABLE
+    if ("drawable" in parts) {
+      return NelePropertyType.DRAWABLE
+    }
+    if ("color" in parts) {
+      return NelePropertyType.COLOR
     }
     if ("text" in parts && "appearance" in parts) {
       return NelePropertyType.TEXT_APPEARANCE
