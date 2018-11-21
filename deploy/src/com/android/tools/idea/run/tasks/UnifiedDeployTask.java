@@ -21,7 +21,6 @@ import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
-import com.android.tools.deployer.Trace;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.deployer.DeployerException;
@@ -102,7 +101,6 @@ public class UnifiedDeployTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LogWrapper logger = new LogWrapper(LOG);
-    Trace.begin("UnifiedDeployTask.perform()");
 
     AdbClient adb = new AdbClient(device, logger);
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, logger);

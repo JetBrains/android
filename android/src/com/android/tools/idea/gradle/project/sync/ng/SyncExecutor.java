@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncAction;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.tracer.Trace;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
@@ -45,6 +46,7 @@ import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskEx
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
+import java.util.ArrayList;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -149,7 +151,11 @@ class SyncExecutor {
     // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
     // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
     // daemons are expensive (memory-wise) and slow to start.
-    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(emptyList());
+    List<String> options = new ArrayList<>();
+    // For development purposes we might want to forward a trace agent to gradle
+    // This is a no-op in production
+    Trace.addVmArgs(options);
+    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(options);
     return executionSettings;
   }
 

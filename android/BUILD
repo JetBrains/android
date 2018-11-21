@@ -134,6 +134,7 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
+        "//tools/base/tracer:studio.android.sdktools.tracer[module]",
     ],
 )
 
@@ -348,6 +349,7 @@ filegroup(
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/base/tracer:trace_agent",
     ],
 )
 

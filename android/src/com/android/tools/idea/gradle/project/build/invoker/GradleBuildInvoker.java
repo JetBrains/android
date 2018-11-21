@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.tracer.Trace;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -364,6 +365,9 @@ public class GradleBuildInvoker {
       }
     }
 
+    // For development we might want to forward an agent to the daemon.
+    // This is a no-op in production builds.
+    Trace.addVmArgs(jvmArguments);
     Request request = new Request(myProject, buildFilePath, gradleTasks);
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, "Build");
     // @formatter:off
