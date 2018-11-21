@@ -17,7 +17,6 @@ package com.android.tools.idea.deploy;
 
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeploymentService;
@@ -29,9 +28,6 @@ import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
-import com.intellij.execution.DefaultExecutionTargetProvider;
-import com.intellij.execution.ExecutionTargetManager;
-import com.intellij.execution.ExecutionTargetProvider;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerListener;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -65,11 +61,6 @@ public class DeployActionsInitializer {
     AnAction codeSwap = new CodeSwapAction();
     actionManager.registerAction(CodeSwapAction.ID, codeSwap, androidPluginId);
     ag.add(codeSwap, new Constraints(AFTER, ApplyChangesAction.ID));
-
-    if (StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      // Disable the default ExecutionTarget provider -- we'll manage our own.
-      ExecutionTargetProvider.EXTENSION_NAME.getPoint(null).unregisterExtension(DefaultExecutionTargetProvider.class);
-    }
 
     ApplicationManager
       .getApplication()
