@@ -28,7 +28,7 @@
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.whatsnew.WhatsNew$WhatsNewService"/>
     <postStartupActivity implementation="com.android.tools.idea.welcome.whatsnew.WhatsNew"
-                         order="before TipOfTheDayManager"/>
+                         order="before TipOfTheDayActivity"/>
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
   </extensions>
