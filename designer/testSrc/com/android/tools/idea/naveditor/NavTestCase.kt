@@ -59,8 +59,15 @@ abstract class NavTestCase : AndroidTestCase() {
       val unzippedClasses = FileUtil.createTempDirectory("unzipClasses", null)
       ZipUtil.extract(File(tempDir, "classes.jar"), unzippedClasses, null)
 
-      PsiTestUtil.addProjectLibrary(myFixture.module, libName, VfsUtil.findFileByIoFile(unzippedClasses, true),
-                                    VfsUtil.findFileByIoFile(File(tempDir, "res"), true))
+      val resFile = File(tempDir, "res")
+      if (resFile.exists()) {
+        PsiTestUtil.addProjectLibrary(myFixture.module, libName, VfsUtil.findFileByIoFile(unzippedClasses, true),
+                                      VfsUtil.findFileByIoFile(resFile, true))
+      }
+      else {
+        // Not all dependencies come with resources folder (eg support-fragment-28.0.0.aar)
+        PsiTestUtil.addProjectLibrary(myFixture.module, libName, VfsUtil.findFileByIoFile(unzippedClasses, true))
+      }
 
       myFixture.testDataPath = testDataPath
     }
