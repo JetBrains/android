@@ -162,6 +162,7 @@ public class CreateCppKotlinProjectTest {
             ".gradle",
             ".gitignore",
             ".externalNativeBuild",
+            ".cxx", // CMake compiler caches
             "gradle-wrapper.jar",
             "gradlew.bat",
             "gradlew",
