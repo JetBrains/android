@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,15 +78,20 @@ public final class ModulesListModelTest extends AndroidTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
-      @Override
-      public Void compute() throws IOException {
-        myTempDir.delete(this);
-        return null;
-      }
-    });
-    myModel = null;
-    super.tearDown();
+    try {
+      ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
+        @Override
+        public Void compute() throws IOException {
+          myTempDir.delete(this);
+          return null;
+        }
+      });
+    }
+    finally {
+      myModel = null;
+
+      super.tearDown();
+    }
   }
 
   private void setModules() {
