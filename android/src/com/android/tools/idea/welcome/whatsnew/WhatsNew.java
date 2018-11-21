@@ -22,7 +22,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.ide.TipOfTheDayManager;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -46,7 +46,6 @@ import javax.swing.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -87,7 +86,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
     if (messagePath != null) {
       try {
         // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
-        disableTipOfTheDay();
+        GeneralSettings.getInstance().setShowTipsOnStartup(false);
         String text = getAccessibleText(messagePath, resourceUrl);
         InputStream stream = WhatsNew.class.getResourceAsStream(messagePath);
         if (stream == null) {
@@ -96,7 +95,11 @@ public class WhatsNew implements StartupActivity, DumbAware {
         }
         try {
           ImageIcon image = new ImageIcon(ImageIO.read(stream));
-          ApplicationManager.getApplication().invokeLater(new WhatsNewDialog(project, image, text)::show);
+          ApplicationManager.getApplication().invokeLater(() -> {
+            new WhatsNewDialog(project, image, text).show();
+            ApplicationManager.getApplication().invokeLater(
+              () -> GeneralSettings.getInstance().setShowTipsOnStartup(true));
+          });
         }
         finally {
           stream.close();
@@ -136,20 +139,6 @@ public class WhatsNew implements StartupActivity, DumbAware {
       catch (IOException | UnsupportedOperationException e) {
         // ignore
       }
-    }
-  }
-
-  private static void disableTipOfTheDay() {
-    TipOfTheDayManager tips = StartupActivity.POST_STARTUP_ACTIVITY.findExtensionOrFail(TipOfTheDayManager.class);
-    try {
-      // This is obviously a horrible hack
-      Field flag = TipOfTheDayManager.class.getDeclaredField("myVeryFirstProjectOpening");
-      flag.setAccessible(true);
-      flag.setBoolean(tips, false);
-      flag.setAccessible(false);
-    }
-    catch (Exception e) {
-      // nothing, just give up
     }
   }
 
