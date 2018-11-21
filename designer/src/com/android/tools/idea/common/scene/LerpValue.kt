@@ -40,4 +40,9 @@ abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) {
   fun isComplete(time: Long) = time >= startTime + duration
 
   abstract fun interpolate(fraction: Float): T
+
+  override fun equals(other: Any?): Boolean {
+    val otherLerp = other as? LerpValue<T> ?: return false
+    return start == otherLerp.start && end == otherLerp.end && duration == otherLerp.duration
+  }
 }

@@ -32,12 +32,12 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawCircle;
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
@@ -58,10 +58,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ActionHandleTarget extends NavBaseTarget {
   private static final int DURATION = 200;
-  @SwingCoordinate private static final int STROKE_WIDTH = 2;
   private static String DRAG_CREATE_IN_PROGRESS = "DRAG_CREATE_IN_PROGRESS";
-
-  private static final BasicStroke STROKE = new BasicStroke(STROKE_WIDTH);
 
   private enum HandleState {
     INVISIBLE(0, 0),
@@ -176,28 +173,34 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     SceneView view = myComponent.getScene().getDesignSurface().getCurrentSceneView();
 
+    if (view == null) {
+      return;
+    }
+
     @SwingCoordinate float centerX = Coordinates.getSwingXDip(view, getCenterX());
     @SwingCoordinate float centerY = Coordinates.getSwingYDip(view, getCenterY());
     @SwingCoordinate Point2D.Float center = new Point2D.Float(centerX, centerY);
 
-    @SwingCoordinate float initialRadius = Coordinates.getSwingDimension(view, myHandleState.myOuterRadius);
-    @SwingCoordinate float finalRadius = Coordinates.getSwingDimension(view, newState.myOuterRadius);
+    @SwingCoordinate float initialOuterRadius = Coordinates.getSwingDimension(view, myHandleState.myOuterRadius);
+    @SwingCoordinate float finalOuterRadius = Coordinates.getSwingDimension(view, newState.myOuterRadius);
+    @SwingCoordinate float initialInnerRadius = Coordinates.getSwingDimension(view, myHandleState.myInnerRadius);
+    @SwingCoordinate float finalInnerRadius = Coordinates.getSwingDimension(view, newState.myInnerRadius);
+
     int duration = (int)Math.abs(DURATION * (myHandleState.myOuterRadius - newState.myOuterRadius) / OUTER_RADIUS_LARGE);
 
     ColorSet colorSet = sceneContext.getColorSet();
-    list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, colorSet.getBackground(),
-                                  new LerpFloat(initialRadius, finalRadius, duration)));
-
-    initialRadius = Coordinates.getSwingDimension(view, myHandleState.myInnerRadius);
-    finalRadius = Coordinates.getSwingDimension(view, newState.myInnerRadius);
-    Color color = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
+    Color outerColor = colorSet.getBackground();
+    Color innerColor = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
 
     if (myIsDragging) {
-      list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, finalRadius));
+      list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, outerColor,
+                                    new LerpFloat(initialOuterRadius, finalOuterRadius, duration)));
+      list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_LEVEL, center, innerColor, finalInnerRadius));
       list.add(new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext)));
     }
     else {
-      list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpFloat(initialRadius, finalRadius, duration)));
+      list.add(new DrawActionHandle(DRAW_ACTION_HANDLE_LEVEL, center, initialOuterRadius, finalOuterRadius,
+                                    initialInnerRadius, finalInnerRadius, duration, innerColor, outerColor));
     }
 
     myHandleState = newState;

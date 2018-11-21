@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.intellij.util.ui.JBUI
+import java.awt.BasicStroke
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
@@ -55,6 +56,9 @@ val OUTER_RADIUS_SMALL = JBUI.scale(7f)
 @JvmField
 @NavCoordinate
 val OUTER_RADIUS_LARGE = JBUI.scale(11f)
+
+@SwingCoordinate
+val HANDLE_STROKE = BasicStroke(JBUI.scale(2).toFloat())
 
 @JvmField
 @NavCoordinate

@@ -24,10 +24,10 @@ import java.awt.BasicStroke
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
-const val X = 100f
-const val Y = 200f
-const val WIDTH = 80f
-const val HEIGHT = 120f
+private const val X = 100f
+private const val Y = 200f
+private const val WIDTH = 80f
+private const val HEIGHT = 120f
 
 class DrawPlaceholderTest : NavTestCase() {
   fun testDrawPlaceholder() {
