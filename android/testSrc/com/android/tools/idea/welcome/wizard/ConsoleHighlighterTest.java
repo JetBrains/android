@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,12 @@ public class ConsoleHighlighterTest extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    myFixture.tearDown();
-    super.tearDown();
+    try {
+      myFixture.tearDown();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testOffsetRangeIndex() {
