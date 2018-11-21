@@ -18,6 +18,8 @@ package com.android.tools.idea.naveditor.surface;
 import static com.android.SdkConstants.ATTR_GRAPH;
 import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_XML_TAB;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
@@ -44,7 +46,9 @@ import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.editor.NavEditor;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
@@ -57,10 +61,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -74,6 +82,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -84,6 +93,7 @@ import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -110,6 +120,7 @@ public class NavDesignSurface extends DesignSurface {
   private DesignerEditorPanel myEditorPanel;
 
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
+  private static final Set<Project> PROJECTS_WITH_LISTENERS = ContainerUtil.createWeakSet();
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     this(project, null, parentDisposable);
@@ -133,6 +144,23 @@ public class NavDesignSurface extends DesignSurface {
         requestRender();
       }
     });
+
+    synchronized (PROJECTS_WITH_LISTENERS) {
+      if (!PROJECTS_WITH_LISTENERS.contains(project)) {
+        PROJECTS_WITH_LISTENERS.add(project);
+        project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+          @Override
+          public void selectionChanged(@NotNull FileEditorManagerEvent event) {
+            // skip the initial opening
+            if (event.getOldEditor() != null && event.getNewEditor() != null) {
+              NavUsageTracker.Companion.getInstance(NavDesignSurface.this)
+                .createEvent(event.getNewEditor() instanceof NavEditor ? SELECT_DESIGN_TAB : SELECT_XML_TAB)
+                .log();
+            }
+          }
+        });
+      }
+    }
   }
 
   @Override
@@ -215,13 +243,23 @@ public class NavDesignSurface extends DesignSurface {
           public void onFailure(@Nullable Throwable t) {
             showFailToAddMessage(result, model);
           }
-        });
+        }, MoreExecutors.directExecutor());
       }
       else {
         showFailToAddMessage(result, model);
       }
     });
     return result;
+  }
+
+  @Override
+  public CompletableFuture<Void> setModel(@Nullable NlModel model) {
+    CompletableFuture<Void> future = super.setModel(model);
+    NavUsageTracker.Companion.getInstance(this)
+      .createEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE)
+      .withNavigationContents()
+      .log();
+    return future;
   }
 
   private void showFailToAddMessage(@NotNull CompletableFuture<?> result, @NotNull NlModel model) {

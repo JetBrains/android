@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.naveditor.analytics
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 
 /**
  * No-op tracker used when stats tracking is disabled
  */
-internal class NavNopTracker : NavUsageTracker {
+// Open for testing
+@VisibleForTesting
+open class NavNopTracker : NavUsageTracker {
   override fun logEvent(event: NavEditorEvent) {
     // nothing
   }
