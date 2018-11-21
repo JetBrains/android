@@ -15,8 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.SdkConstants.ANDROIDX_ANNOTATIONS_ARTIFACT;
+import static com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static com.android.utils.FileUtils.isSameFile;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.io.File.separatorChar;
+
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
@@ -25,20 +37,14 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.io.UncheckedIOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.io.File;
-
-import static com.android.SdkConstants.*;
-import static com.android.utils.FileUtils.isSameFile;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.io.File.separatorChar;
-
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
+  private static final Logger LOG = Logger.getInstance(AndroidModuleDependenciesSetup.class);
+
   @NotNull private final LibraryFilePaths myLibraryFilePaths;
 
   AndroidModuleDependenciesSetup(@NotNull LibraryFilePaths libraryFilePaths) {
@@ -71,6 +77,9 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null || !isLibraryValid(library, binaryPaths)) {
       if (library != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(library.getName() + " not valid after sync.");
+        }
         modelsProvider.removeLibrary(library);
       }
       library = modelsProvider.createLibrary(libraryName);
