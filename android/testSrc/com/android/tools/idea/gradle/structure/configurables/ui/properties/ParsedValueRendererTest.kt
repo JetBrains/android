@@ -259,9 +259,29 @@ class ParsedValueRendererTest {
 
   @Test
   fun testRenderAny_map() {
-    val list = mapOf("a" to 1.asParsed(), "b" to "a".asParsed(), "c" to ("v" to true).asParsed()).asParsed()
-    assertThat(testRender { list.renderAnyTo(this, mapOf()) },
+    val map = mapOf("a" to 1.asParsed(), "b" to "a".asParsed(), "c" to ("v" to true).asParsed()).asParsed()
+    assertThat(testRender { map.renderAnyTo(this, mapOf()) },
                equalTo("[a : 1, b : a, c : <b><var>\$v</b><comment> : true<nocolor>]"))
+  }
+
+  @Test
+  fun testRenderAny_mapWithRferencesToNestedMaps() {
+    val map = mapOf(
+      "a" to (mapOf("b" to "val".asParsed())).asParsed(),
+      "c" to (mapOf("d" to ("var" to "val").asParsed())).asParsed()
+    ).asParsed()
+    assertThat(testRender { map.renderAnyTo(this, mapOf()) },
+               equalTo("[a : [b : val], c : [d : <b><var>\$var</b><comment> : val<nocolor>]]"))
+  }
+
+  @Test
+  fun testRenderAny_referenceToMapWithRferencesToNestedMaps() {
+    val map = ("ref" to mapOf(
+      "a" to (mapOf("b" to "val".asParsed())).asParsed(),
+      "c" to (mapOf("d" to ("var" to "val").asParsed())).asParsed()
+    )).asParsed()
+    assertThat(testRender { map.renderAnyTo(this, mapOf()) },
+               equalTo("<b><var>\$ref</b><comment> : [a : [b : val], c : [d : <b>\$var</b>]]"))
   }
 }
 

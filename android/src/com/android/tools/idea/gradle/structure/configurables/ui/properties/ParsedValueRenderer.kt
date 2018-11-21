@@ -16,7 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.KnownValues
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
@@ -40,33 +47,21 @@ private val codeAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, Simp
  * Renders the receiver (which may be of [List], [Map] or any simple type to the [textRenderer] with any known values handled by renderers
  * from [knownValues]. Returns true in the case of non-empty output.
  */
-fun ParsedValue<Any>.renderAnyTo(
+fun Any.renderAnyTo(
   textRenderer: TextRenderer,
   knownValues: Map<ParsedValue<Any>, ValueRenderer>
-): Boolean {
-  fun renderAny(value: Any) =
-    when (value) {
-      is ParsedValue<*> -> value.renderTo(textRenderer, { toString() }, knownValues)
-      else -> {
-        val text = toString()
-        if (text.isNotEmpty()) {
-          textRenderer.append(text, regularAttributes)
-        }
-        text.isNotEmpty()
-      }
-    }
-
-  val literalValue = maybeLiteralValue
-  return when (literalValue) {
+): Boolean =
+  when (this) {
+    is ParsedValue<*> -> this.renderTo(textRenderer, { toString() }, knownValues)
     is Map<*, *> -> {
       textRenderer.append("[", regularAttributes)
-      literalValue.entries.forEachIndexed { index, entry ->
+      this.entries.forEachIndexed { index, entry ->
         if (index > 0) textRenderer.append(", ", regularAttributes)
         textRenderer.append(entry.key.toString(), regularAttributes)
         textRenderer.append(" : ", regularAttributes)
-        renderAny(entry.value ?: "")
+        (entry.value ?: "").renderAnyTo(textRenderer, knownValues)
       }
-      if (literalValue.isEmpty()) {
+      if (this.isEmpty()) {
         textRenderer.append(":", regularAttributes)
       }
       textRenderer.append("]", regularAttributes)
@@ -74,15 +69,20 @@ fun ParsedValue<Any>.renderAnyTo(
     }
     is List<*> -> {
       textRenderer.append("[", regularAttributes)
-      literalValue.forEachIndexed { index, v->
+      this.forEachIndexed { index, v ->
         if (index > 0) textRenderer.append(", ", regularAttributes)
-        renderAny(v ?: "")
+        (v ?: "").renderAnyTo(textRenderer, knownValues)
       }
       textRenderer.append("]", regularAttributes)
       true
     }
-    else -> renderTo(textRenderer, { toString() }, knownValues)
-  }
+    else -> {
+      val text = this.toString()
+      if (text.isNotEmpty()) {
+        textRenderer.append(text, regularAttributes)
+      }
+      text.isNotEmpty()
+    }
 }
 
 /**
@@ -107,10 +107,23 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
             valueDescription.renderTo(makeCommentRenderer(textRenderer))
           }
           else {
-            val formattedValue = value.value.formatValue()
-            if (!formattedValue.isEmpty()) {
+            val valueToFormat: PropertyT = value.value
+
+            fun Any.renderAsComplexComment() {
               textRenderer.append(" : ", commentAttributes)
-              textRenderer.append(formattedValue, commentAttributes)
+              this.renderAnyTo(makeCommentSkippingCommentRenderer(textRenderer), knownValues.toMap())
+            }
+
+            when (valueToFormat) {
+              is Map<*, *> -> valueToFormat.renderAsComplexComment()
+              is List<*> -> valueToFormat.renderAsComplexComment()
+              else -> {
+                val formattedValue = valueToFormat.formatValue()
+                if (!formattedValue.isEmpty()) {
+                  textRenderer.append(" : ", commentAttributes)
+                  textRenderer.append(formattedValue, commentAttributes)
+                }
+              }
             }
           }
         }
@@ -128,6 +141,10 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
         textRenderer.append(value.dslText.text, codeAttributes)
         true
       }
+      value is ParsedValue.Set.Parsed && value.dslText === DslText.Literal && value.value is Map<*, *> ->
+        value.value.renderAnyTo(textRenderer, knownValues.toMap())
+      value is ParsedValue.Set.Parsed && value.dslText === DslText.Literal && value.value is List<*> ->
+        value.value.renderAnyTo(textRenderer, knownValues.toMap())
       else -> {
         val formattedText = value.getText(formatValue)
         textRenderer.append(formattedText, regularAttributes)
@@ -203,11 +220,24 @@ fun <PropertyT : Any> buildKnownValueRenderers(
 
 fun makeCommentRenderer(textRenderer: TextRenderer) = object : TextRenderer {
   // Replace 'regular' text color with 'comment' text color.
-  override fun append(text: String, attributes: SimpleTextAttributes) =
+  override fun append(text: String, attributes: SimpleTextAttributes) {
     textRenderer.append(
       text,
-      if (attributes.fgColor == regularAttributes.fgColor) attributes.derive(0, commentAttributes.fgColor, null, null) else attributes
+      attributes.derive(-1, commentAttributes.fgColor, null, null)
     )
+  }
+}
+
+fun makeCommentSkippingCommentRenderer(textRenderer: TextRenderer) = object : TextRenderer {
+  // Replace 'regular' text color with 'comment' text color.
+  override fun append(text: String, attributes: SimpleTextAttributes) {
+    if (attributes.fgColor != commentAttributes.fgColor) {
+      textRenderer.append(
+        text,
+        attributes.derive(-1, commentAttributes.fgColor, null, null)
+      )
+    }
+  }
 }
 
 fun makeUnparsedRenderer(textRenderer: TextRenderer) = object : TextRenderer {
