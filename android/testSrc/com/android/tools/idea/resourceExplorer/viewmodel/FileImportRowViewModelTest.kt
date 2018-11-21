@@ -25,7 +25,6 @@ import com.android.tools.idea.resourceExplorer.CollectionParam
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
-import com.intellij.testFramework.LightVirtualFile
 import org.junit.Test
 
 class FileImportRowViewModelTest {
@@ -35,7 +34,7 @@ class FileImportRowViewModelTest {
     val file = MockVirtualFile("asset.png", "")
     val densityQualifier = DensityQualifier(Density.MEDIUM)
     val asset = DesignAsset(file, listOf(densityQualifier), ResourceType.DRAWABLE)
-    val viewModel = FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE)
+    val viewModel = FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE) {}
     val qualifierViewModel = viewModel.qualifierViewModel
     val directionQualifier = qualifierViewModel.getAvailableQualifiers().first { it is LayoutDirectionQualifier }
     val qualifierConfiguration = qualifierViewModel.selectQualifier(directionQualifier)!!
