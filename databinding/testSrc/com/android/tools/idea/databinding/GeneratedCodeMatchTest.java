@@ -185,13 +185,6 @@ public class GeneratedCodeMatchTest {
           kls -> kls
         ));
 
-      Map<ClassReader, ClassReader> superClassLookup = klassMap.values().stream()
-        .filter(kls -> klassMap.containsKey(kls.getSuperName()))
-        .collect(Collectors.toMap(
-          kls -> kls,
-          kls -> klassMap.get(kls.getSuperName())
-        ));
-
       int verifiedClassCount = 0;
       for (ClassReader classReader : klassMap.values()) {
         if (!shouldVerify(viewDataBindingClass, classReader)) {
