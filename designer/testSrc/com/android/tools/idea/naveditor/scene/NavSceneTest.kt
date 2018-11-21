@@ -595,8 +595,7 @@ class NavSceneTest : NavTestCase() {
       "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
       "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ff1886f7,Default:1:6,true\n" +
       "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
-      "DrawFilledCircle,6,560.0x409.5,fff5f5f5,0.0:3.5:127\n" +
-      "DrawCircle,7,560.0x409.5,ff1886f7,2,0.0:2.5:127\n" +
+      "DrawActionHandle,7,560.0x409.5,0.0,3.5,0.0,2.5,127,ff1886f7,fff5f5f5\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -622,8 +621,7 @@ class NavSceneTest : NavTestCase() {
       "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
       "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ff1886f7,Default:1:6,true\n" +
       "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
-      "DrawFilledCircle,6,560.0x409.5,fff5f5f5,3.5:0.0:127\n" +
-      "DrawCircle,7,560.0x409.5,ff1886f7,2,2.5:0.0:127\n" +
+      "DrawActionHandle,7,560.0x409.5,3.5,0.0,2.5,0.0,127,ff1886f7,fff5f5f5\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
@@ -662,8 +660,7 @@ class NavSceneTest : NavTestCase() {
       "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawPlaceholder,5,401.0x401.0x74.5x126.0\n" +
-      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:127\n" +
-      "DrawCircle,7,478.5x464.0,ffa7a7a7,2,0.0:2.5:127\n" +
+      "DrawActionHandle,7,478.5x464.0,0.0,3.5,0.0,2.5,127,ffa7a7a7,fff5f5f5\n" +
       "\n" +
       "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
       "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
@@ -687,8 +684,7 @@ class NavSceneTest : NavTestCase() {
       "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawPlaceholder,5,401.0x401.0x74.5x126.0\n" +
-      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,3.5:0.0:127\n" +
-      "DrawCircle,7,478.5x464.0,ffa7a7a7,2,2.5:0.0:127\n" +
+      "DrawActionHandle,7,478.5x464.0,3.5,0.0,2.5,0.0,127,ffa7a7a7,fff5f5f5\n" +
       "\n" +
       "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
       "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
@@ -748,8 +744,7 @@ class NavSceneTest : NavTestCase() {
       "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawPlaceholder,5,401.0x401.0x74.5x126.0\n" +
-      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:5.5:200\n" +
-      "DrawCircle,7,478.5x464.0,ffa7a7a7,2,0.0:4.0:200\n" +
+      "DrawActionHandle,7,478.5x464.0,0.0,5.5,0.0,4.0,200,ffa7a7a7,fff5f5f5\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )
