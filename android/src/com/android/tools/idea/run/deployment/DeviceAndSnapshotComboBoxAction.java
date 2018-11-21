@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
+import com.intellij.execution.RunManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -365,6 +366,15 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
     // So we'll just make sure the following gets run on the EDT thread and wait for its result.
-    ApplicationManager.getApplication().invokeAndWait(() -> ExecutionTargetManager.getInstance(project).update());
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      ExecutionTargetManager manager = ExecutionTargetManager.getInstance(project);
+      List<ExecutionTarget> availableTargets = manager.getTargetsFor(RunManager.getInstance(project).getSelectedConfiguration());
+      for (ExecutionTarget availableTarget : availableTargets) {
+        if (availableTarget instanceof DeviceAndSnapshotExecutionTargetProvider.Target) {
+          manager.setActiveTarget(availableTarget);
+          break;
+        }
+      }
+    });
   }
 }
