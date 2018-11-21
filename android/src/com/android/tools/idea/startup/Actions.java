@@ -34,9 +34,11 @@ public final class Actions {
     AnAction oldAction = actionManager.getAction(actionId);
     if (oldAction != null) {
       newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
-      actionManager.unregisterAction(actionId);
+      actionManager.replaceAction(actionId, newAction);
     }
-    actionManager.registerAction(actionId, newAction);
+    else {
+      actionManager.registerAction(actionId, newAction);
+    }
   }
 
   public static void moveAction(@NotNull String actionId, @NotNull String oldGroupId, @NotNull String groupId, @NotNull Constraints constraints) {
