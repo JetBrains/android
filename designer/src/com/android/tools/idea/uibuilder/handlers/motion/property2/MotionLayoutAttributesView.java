@@ -182,7 +182,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       }
 
       Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty();
-      FilteredPTableModel<NelePropertyItem> tableModel = FilteredPTableModel.Companion.create(myModel, filter, false);
+      FilteredPTableModel<NelePropertyItem> tableModel =
+        FilteredPTableModel.Companion.create(myModel, filter, Collections.emptyList(), false);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, property);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
@@ -196,7 +197,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                   @NotNull NelePropertyItem... excluded) {
       Function1<NelePropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() && ArrayUtil.find(excluded, item) < 0 && item.getRawValue() != null;
-      FilteredPTableModel<NelePropertyItem> tableModel = FilteredPTableModel.Companion.create(myModel, filter, true);
+      FilteredPTableModel<NelePropertyItem> tableModel =
+        FilteredPTableModel.Companion.create(myModel, filter, Collections.emptyList(), true);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, tableModel, properties);
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle(titleName, true, addFieldAction, deleteFieldAction);

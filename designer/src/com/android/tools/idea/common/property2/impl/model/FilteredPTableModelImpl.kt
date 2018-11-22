@@ -21,6 +21,7 @@ import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.PTableModelUpdateListener
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
 import com.android.tools.idea.common.property2.api.FlagPropertyItem
+import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertyItem
@@ -40,12 +41,13 @@ import org.jetbrains.android.formatter.AttributeComparator
 class FilteredPTableModelImpl<P : PropertyItem>(
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
+  private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean) : FilteredPTableModel<P>, PTableModel {
   private val listeners = mutableListOf<PTableModelUpdateListener>()
-  private val comparator = AttributeComparator<P> { it.name }
+  private val comparator = AttributeComparator<PTableItem> { it.name }
 
   /** The items in this table model */
-  override val items = findParticipatingItems().toMutableList()
+  override val items = mutableListOf<PTableItem>()
 
   /**
    * The item that is currently being edited in the table.
@@ -54,7 +56,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   override var editedItem: PTableItem? = null
 
   init {
-    sort(items)
+    groupAndSort(findParticipatingItems(), items)
   }
 
   override fun addNewItem(item: P): P {
@@ -108,14 +110,14 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    */
   override fun refresh() {
     val last = lastItem()
-    val newItems = findParticipatingItems().toMutableList()
-    sort(newItems)
+    val newItems = mutableListOf<PTableItem>()
+    groupAndSort(findParticipatingItems(), newItems)
     if (last != null) {
       val existing = model.properties.getOrNull(last.namespace, last.name)
       if (existing == null || !itemFilter(existing)) {
         newItems.add(last)
       } else if (keepNewAfterFlyAway) {
-        (last as NewPropertyItem).name = ""
+        last.name = ""
         newItems.add(last)
       }
     }
@@ -132,7 +134,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    * end of the table before this change. Use this for computing which item
    * the table should be editing after this operation.
    */
-  private fun updateItems(newItems: List<P>, newItem: PTableItem?): PTableItem? {
+  private fun updateItems(newItems: List<PTableItem>, newItem: PTableItem?): PTableItem? {
     var nextItemToEdit = editedItem
     val modelChanged = items != newItems
     if (modelChanged) {
@@ -153,7 +155,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    *
    * Skip flag items if the property is currently expanded in the table.
    */
-  private fun lastItem(): P? {
+  private fun lastItem(): NewPropertyItem? {
     var last = items.lastOrNull() ?: return null
     if (last is FlagPropertyItem) {
       val flags = last.flags.children.size
@@ -161,7 +163,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
         last = items[items.size - flags - 1]
       }
     }
-    return if (last is NewPropertyItem) last else null
+    return last as? NewPropertyItem
   }
 
   private fun findParticipatingItems(): List<P> {
@@ -174,7 +176,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    * Note that the current edited item may have flown away to another
    * place in the table.
    */
-  private fun findNextItemToEdit(newItems: List<P>, newItem: PTableItem?): PTableItem? {
+  private fun findNextItemToEdit(newItems: List<PTableItem>, newItem: PTableItem?): PTableItem? {
     val itemToFind = editedItem ?: return null  // Nothing was being edited, continue without editing
     if (itemToFind == newItem && newItems.lastOrNull() == newItem) {
       // The new property at the end of the model was being edited.
@@ -210,8 +212,44 @@ class FilteredPTableModelImpl<P : PropertyItem>(
     return null
   }
 
-  private fun sort(list: MutableList<P>) {
-    // TODO: Grouping
+  private fun group(list: List<P>, output: MutableList<PTableItem>) {
+    if (groups.isEmpty()) {
+      output.addAll(list)
+      return
+    }
+
+    val temp1 = mutableListOf<P>()
+    val temp2 = mutableListOf<P>()
+    var input = list
+    var temp = temp1
+
+    for (group in groups) {
+      val groupItem = TableGroupItem(group)
+      for (item in input) {
+        if (group.itemFilter(item)) {
+          groupItem.children.add(item)
+        }
+        else {
+          temp.add(item)
+        }
+      }
+      if (groupItem.children.isNotEmpty()) {
+        groupItem.children.sortWith(comparator)
+        output.add(groupItem)
+        input = temp
+        temp = if (input == temp1) temp2 else temp1
+      }
+      temp.clear()
+    }
+    output.addAll(input)
+  }
+
+  private fun sort(list: MutableList<PTableItem>) {
     list.sortWith(comparator)
+  }
+
+  private fun groupAndSort(list: List<P>, output: MutableList<PTableItem>) {
+    group(list, output)
+    sort(output)
   }
 }
