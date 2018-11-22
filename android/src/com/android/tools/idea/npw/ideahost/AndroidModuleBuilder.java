@@ -37,7 +37,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +92,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
 
   @Override
   public Icon getNodeIcon() {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Override

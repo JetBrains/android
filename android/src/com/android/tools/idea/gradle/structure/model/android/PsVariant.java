@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -117,7 +117,7 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
   @Override
   @Nullable
   public Icon getIcon() {
-    return AndroidIcons.Variant;
+    return AndroidArtworkIcons.Icons.Variant;
   }
 
   @Override

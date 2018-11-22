@@ -22,7 +22,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.Function;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import junit.framework.TestCase;
 
 import javax.swing.*;
@@ -190,20 +190,20 @@ public class FlagManagerTest extends TestCase {
   public void testMissingFlag() {
     Icon icon = FlagManager.get().getFlag("AQ");
     assertNotNull(icon);
-    assertSame(AndroidIcons.EmptyFlag, icon);
+    assertSame(AndroidArtworkIcons.Icons.Flags.Flag_empty, icon);
 
     icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("AQ"));
     assertNotNull(icon);
-    assertSame(AndroidIcons.EmptyFlag, icon);
+    assertSame(AndroidArtworkIcons.Icons.Flags.Flag_empty, icon);
 
     icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("WO")); // Not used in ISO 3166-1
     assertNotNull(icon);
-    assertSame(AndroidIcons.EmptyFlag, icon);
+    assertSame(AndroidArtworkIcons.Icons.Flags.Flag_empty, icon);
   }
 
   public void testKnownFlag() {
     Icon icon = FlagManager.get().getFlag("US");
     assertNotNull(icon);
-    assertNotSame(AndroidIcons.EmptyFlag, icon);
+    assertNotSame(AndroidArtworkIcons.Icons.Flags.Flag_empty, icon);
   }
 }

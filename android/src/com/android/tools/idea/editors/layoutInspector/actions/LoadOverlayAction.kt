@@ -38,7 +38,7 @@ import javax.swing.JComponent
  * Lets the user choose an image to overlay on top of the captured view to compare the app's visual against design mocks.
  */
 class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
-    AnAction(ACTION_ID, "Overlay Image", StudioIcons.LayoutInspector.LOAD_OVERLAY), CustomComponentAction {
+  AnAction(ACTION_ID, "Overlay Image", StudioIcons.LayoutInspector.LOAD_OVERLAY), CustomComponentAction {
   companion object {
     const val ACTION_ID = "Load Overlay"
 

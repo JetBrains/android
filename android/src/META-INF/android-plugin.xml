@@ -147,7 +147,7 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidArtworkIcons.Icons.Android">
       <separator/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
           icon="AndroidIcons.AvdManager"/>
@@ -933,7 +933,7 @@
                       facetIdList="android"
                       anchor="left"
                       secondary="false"
-                      icon="AndroidIcons.CapturesToolWindow"
+                      icon="AndroidArtworkIcons.Icons.Captures"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings"/>
     <applicationConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettingsConfigurableProvider"

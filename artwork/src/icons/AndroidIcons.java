@@ -1,8 +1,12 @@
+/*
+ * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+ */
+
 package icons;
 
 import com.intellij.openapi.util.IconLoader;
 
-import javax.swing.Icon;
+import javax.swing.*;
 
 /**
  * Note: This file should be auto generated once build/scripts/icons.gant is part of CE.
@@ -51,27 +55,14 @@ public class AndroidIcons {
   public static final Icon Sunburst = load("/icons/sunburst.png"); // 16x16
   public static final Icon PlayStore = load("/icons/play_store.png");
 
-  public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
+  public static final Icon EmptyFlag = AndroidArtworkIcons.Icons.Flags.Flag_empty; // 16x16
 
-  public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
-  public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
-  public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
-  public static final Icon MavenLogo = load("/icons/maven.png"); // 16x16
-
-  public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
-  public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
-  public static final Icon CpuMonitor = load("/icons/cpu_monitor.png"); // 16x16
-  public static final Icon GpuMonitor = load("/icons/gpu_monitor.png"); // 16x16
-  public static final Icon NetworkMonitor = load("/icons/network_monitor.png"); // 16x16
-
-  public static final Icon Variant = load("/icons/variant.png");
+  public static final Icon GradleSync = AndroidArtworkIcons.Icons.Gradlesync; // 16x16
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
   public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
   public static final Icon AndroidTestsScope = load("/icons/androidTestsScope.svg");
-
-  public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
   public static class ProjectStructure {
     public static final Icon UnknownLibrary = load("/icons/psd/unknownLibrary.png");

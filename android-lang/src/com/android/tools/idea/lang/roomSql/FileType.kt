@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.roomSql
 import com.intellij.openapi.fileTypes.FileTypeConsumer
 import com.intellij.openapi.fileTypes.FileTypeFactory
 import com.intellij.openapi.fileTypes.LanguageFileType
-import icons.AndroidIcons
+import icons.AndroidArtworkIcons
 import javax.swing.Icon
 
 const val ROOM_SQL_DESCRIPTION = "Android Room SQL"
@@ -33,7 +33,7 @@ object ROOM_SQL_FILE_TYPE : LanguageFileType(RoomSqlLanguage.INSTANCE) {
 /**
  * Icon used for all things related to Room.
  */
-val ROOM_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
+val ROOM_ICON: Icon = AndroidArtworkIcons.Icons.Explorer.DatabaseFolder
 
 class RoomSqlFileTypeFactory : FileTypeFactory() {
   override fun createFileTypes(consumer: FileTypeConsumer) {

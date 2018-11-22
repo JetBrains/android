@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -82,7 +82,7 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
   @NotNull
   @Override
   public Icon getTitleIcon() {
-    return AndroidIcons.CpuMonitor;
+    return AndroidArtworkIcons.Icons.Cpu_monitor;
   }
 
   @Override

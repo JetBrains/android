@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidArtworkIcons;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,7 +126,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   @NotNull
   @Override
   public Icon getTitleIcon() {
-    return AndroidIcons.GpuMonitor;
+    return AndroidArtworkIcons.Icons.Gpu_monitor;
   }
 
   @Override

@@ -35,7 +35,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +73,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
                                    @NotNull PsContext context,
                                    @NotNull DependencySelection dependencySelection,
                                    @Nullable ToolWindowAnchor anchor) {
-    super(title, AndroidIcons.Variant, anchor);
+    super(title, AndroidArtworkIcons.Icons.Variant, anchor);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -257,7 +257,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     }
     return null;
   }
-  
+
   @Nullable
   private AbstractPsModelNode getSelectionIfSingle() {
     Set<AbstractPsModelNode> selection = myTreeBuilder.getSelectedElements(AbstractPsModelNode.class);

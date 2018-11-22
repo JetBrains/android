@@ -34,7 +34,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -284,7 +284,7 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
     void createAndAddToolWindowPanel(@NotNull String title,
                                      @NotNull JPanel contents,
                                      @Nullable JComponent preferredFocusedComponent) {
-      ToolWindowPanel panel = new ToolWindowPanel(title, AndroidIcons.Android, null) {
+      ToolWindowPanel panel = new ToolWindowPanel(title, AndroidArtworkIcons.Icons.Android, null) {
       };
 
       ToolWindowHeader header = panel.getHeader();

@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +76,7 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
 
     new ListSpeedSearch(myConfigurationsList);
 
-    myToolWindowPanel = new ToolWindowPanel("Configurations", AndroidIcons.Android, null) {
+    myToolWindowPanel = new ToolWindowPanel("Configurations", AndroidArtworkIcons.Icons.Android, null) {
     };
     ToolWindowHeader header = myToolWindowPanel.getHeader();
     header.setPreferredFocusedComponent(myConfigurationsList);

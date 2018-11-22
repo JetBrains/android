@@ -1,3 +1,7 @@
+/*
+ * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+ */
+
 package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
@@ -13,7 +17,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.sql.dialects.SqlLanguageDialect;
 import com.intellij.util.Consumer;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +74,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   @Override
   public AnAction getCreateDataSourceAction(@NotNull Consumer<AndroidDataSource> consumer) {
     if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
-    return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
+    return new DumbAwareAction("Android SQLite", null, AndroidArtworkIcons.Icons.Android) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         AndroidDataSource result = new AndroidDataSource();

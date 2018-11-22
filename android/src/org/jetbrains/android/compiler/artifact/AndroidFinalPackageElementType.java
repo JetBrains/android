@@ -1,3 +1,7 @@
+/*
+ * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+ */
+
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.openapi.module.Module;
@@ -7,7 +11,7 @@ import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElement;
 import com.intellij.packaging.elements.PackagingElementType;
 import com.intellij.packaging.ui.ArtifactEditorContext;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +37,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
 
   @Override
   public Icon getCreateElementIcon() {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Override

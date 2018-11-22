@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidArtworkIcons;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -104,7 +105,7 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
   @NotNull
   @Override
   public Icon getTitleIcon() {
-    return AndroidIcons.MemoryMonitor;
+    return AndroidArtworkIcons.Icons.Memory_monitor;
   }
 
   @Override

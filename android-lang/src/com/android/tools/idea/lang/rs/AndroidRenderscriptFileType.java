@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.rs;
 import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
 import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.LanguageFileType;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +54,7 @@ public class AndroidRenderscriptFileType extends LanguageFileType {
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Renderscript;
+    return AndroidArtworkIcons.Icons.Render_script;
   }
 
   public static FileNameMatcher[] fileNameMatchers() {

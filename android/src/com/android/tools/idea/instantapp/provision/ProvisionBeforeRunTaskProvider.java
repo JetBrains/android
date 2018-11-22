@@ -42,7 +42,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,13 +94,13 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Nullable
   @Override
   public Icon getTaskIcon(ProvisionBeforeRunTask task) {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Override

@@ -18,11 +18,9 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

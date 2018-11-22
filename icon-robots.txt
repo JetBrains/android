@@ -5,5 +5,4 @@ skip: tools-base/**/*
 skip: android/**/*
 skip: adt-branding/**/*
 skip: designer/**/*
-skip: artwork/**/*
 skip: smali/**/*

@@ -44,7 +44,7 @@ import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Function;
 import com.intellij.util.ui.tree.TreeUtil;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +59,8 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.text.Collator;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
@@ -143,7 +143,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
-            textRenderer.setIcon(AndroidIcons.Variant);
+            textRenderer.setIcon(AndroidArtworkIcons.Icons.Variant);
           }
           else if (data instanceof DependencyTreeElement) {
             DependencyTreeElement dependency = (DependencyTreeElement)data;
@@ -482,7 +482,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
-            textRenderer.setIcon(AndroidIcons.Variant);
+            textRenderer.setIcon(AndroidArtworkIcons.Icons.Variant);
           }
         }
       }
