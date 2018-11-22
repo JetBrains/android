@@ -414,28 +414,31 @@ public class DrawConnection implements DrawCommand {
             String marginString = Integer.toString(margin);
             if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
               int gap = Math.max(marginDistance, DrawConnectionUtils.getHorizontalMarginGap(g, marginString));
-              if (Math.abs(startx - endx) > gap) {
-                int marginX = endx - ((endx > startx) ? gap : -gap);
-                int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-                g.setColor(marginColor);
-                DrawConnectionUtils
-                  .drawHorizontalMargin(g, marginString, isMarginReference, marginX, endx - arrow, endy);
-
-                springEndX = marginX;
+              if (Math.abs(startx - endx) < gap) {
+                // Doesn't have enough space to paint margin string.
+                marginString = null;
               }
+
+              int marginX = endx - ((endx > startx) ? gap : -gap);
+              int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+              g.setColor(marginColor);
+              DrawConnectionUtils.drawHorizontalMargin(g, marginString, isMarginReference, marginX, endx - arrow, endy);
+
+              springEndX = marginX;
             }
             else {
               int gap = Math.max(marginDistance, DrawConnectionUtils.getVerticalMarginGap(g));
-              if (Math.abs(starty - endy) > gap) {
-                int marginY = endy - ((endy > starty) ? gap : -gap);
-                int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-                g.setColor(marginColor);
-
-                DrawConnectionUtils
-                  .drawVerticalMargin(g, marginString, isMarginReference, endx, marginY, endy - arrow);
-
-                springEndY = marginY;
+              if (Math.abs(starty - endy) < gap) {
+                // Doesn't have enough space to paint margin string.
+                marginString = null;
               }
+
+              int marginY = endy - ((endy > starty) ? gap : -gap);
+              int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+              g.setColor(marginColor);
+              DrawConnectionUtils.drawVerticalMargin(g, marginString, isMarginReference, endx, marginY, endy - arrow);
+
+              springEndY = marginY;
             }
           }
 
