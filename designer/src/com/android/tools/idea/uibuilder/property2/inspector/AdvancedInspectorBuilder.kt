@@ -19,6 +19,7 @@ import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
+import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.api.InspectorBuilder
 import com.android.tools.idea.common.property2.api.InspectorPanel
 import com.android.tools.idea.common.property2.api.PropertiesTable
@@ -28,6 +29,10 @@ import com.android.tools.idea.common.property2.impl.support.SimpleControlTypePro
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.inspector.groups.ConstraintGroup
+import com.android.tools.idea.uibuilder.property2.inspector.groups.MarginGroup
+import com.android.tools.idea.uibuilder.property2.inspector.groups.PaddingGroup
+import com.android.tools.idea.uibuilder.property2.inspector.groups.ThemeGroup
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider
 import com.intellij.openapi.actionSystem.AnAction
@@ -69,7 +74,7 @@ class AdvancedInspectorBuilder(private val model: NelePropertiesModel,
     addNewRow.lineModel = tableLineModel
     deleteRowAction.lineModel = tableLineModel
 
-    val allTableModel = FilteredPTableModel.create(model, { true })
+    val allTableModel = FilteredPTableModel.create(model, { true }, createGroups(properties))
     addTable(inspector, ALL_ATTRIBUTES_TITLE, allTableModel, allTableUIProvider, searchable = true)
   }
 
@@ -82,8 +87,16 @@ class AdvancedInspectorBuilder(private val model: NelePropertiesModel,
     val titleModel = inspector.addExpandableTitle(title, true, *actions)
     return inspector.addTable(tableModel, searchable, uiProvider, titleModel)
   }
-}
 
+  private fun createGroups(properties: PropertiesTable<NelePropertyItem>): List<GroupSpec<NelePropertyItem>> {
+    val groups = mutableListOf<GroupSpec<NelePropertyItem>>()
+    groups.add(PaddingGroup(properties))
+    groups.add(MarginGroup(properties))
+    groups.add(ConstraintGroup(properties))
+    groups.add(ThemeGroup(model.facet, properties))
+    return groups
+  }
+}
 
 private class AddNewRowAction(val tableModel: FilteredPTableModel<NelePropertyItem>,
                               val newProperty: NeleNewPropertyItem): AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
