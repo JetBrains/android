@@ -19,7 +19,7 @@ class AndroidAttributeInfo {
 
   public String getNamespace() {
     final boolean system = AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myPackage);
-    return system ? SdkConstants.NS_RESOURCES : null;
+    return system ? SdkConstants.ANDROID_URI : null;
   }
 
   @NotNull

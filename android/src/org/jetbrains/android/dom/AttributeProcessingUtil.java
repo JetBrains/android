@@ -106,7 +106,7 @@ public class AttributeProcessingUtil {
       return false;
     }
 
-    if ((element instanceof LayoutViewElement || element instanceof Fragment) && NS_RESOURCES.equals(attributeName.getNamespaceKey())) {
+    if ((element instanceof LayoutViewElement || element instanceof Fragment) && ANDROID_URI.equals(attributeName.getNamespaceKey())) {
       XmlElement xmlElement = element.getXmlElement();
       XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
       String tagName = tag != null ? tag.getName() : null;
@@ -289,7 +289,7 @@ public class AttributeProcessingUtil {
     if (styleableName != null) {
       Set<XmlName> newSkipAttrNames = new HashSet<>();
       if (element instanceof Intent) {
-        newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
+        newSkipAttrNames.add(new XmlName("action", ANDROID_URI));
       }
 
       registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);

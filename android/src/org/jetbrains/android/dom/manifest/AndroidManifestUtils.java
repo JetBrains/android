@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.manifest;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.NS_RESOURCES;
 
 import com.android.SdkConstants;
 import com.android.builder.model.ProductFlavor;
@@ -150,7 +149,7 @@ public class AndroidManifestUtils {
   }
 
   public static boolean isRequiredAttribute(@NotNull XmlName attrName, @NotNull DomElement element) {
-    if (element instanceof CompatibleScreensScreen && NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+    if (element instanceof CompatibleScreensScreen && SdkConstants.ANDROID_URI.equals(attrName.getNamespaceKey())) {
       final String localName = attrName.getLocalName();
       return "screenSize".equals(localName) || "screenDensity".equals(localName);
     }

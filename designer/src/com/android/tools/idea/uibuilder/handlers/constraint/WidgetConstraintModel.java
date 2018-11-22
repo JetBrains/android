@@ -41,7 +41,6 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
@@ -226,9 +225,9 @@ public class WidgetConstraintModel {
     boolean rtl = ConstraintUtilities.isInRTL(myComponent);
 
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
-    String marginString = myComponent.getLiveAttribute(NS_RESOURCES, marginsAttr[type][0]);
+    String marginString = myComponent.getLiveAttribute(ANDROID_URI, marginsAttr[type][0]);
     for (int i = 1; marginString == null && marginsAttr[type].length > i; i++) {
-      marginString = myComponent.getLiveAttribute(NS_RESOURCES, marginsAttr[type][i]);
+      marginString = myComponent.getLiveAttribute(ANDROID_URI, marginsAttr[type][i]);
     }
 
     int margin = 0;

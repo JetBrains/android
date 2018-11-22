@@ -124,11 +124,11 @@ public class NlProperties {
 
       for (XmlAttributeDescriptor desc : descriptors) {
         XmlName name = getXmlName(desc, tag);
-        if (NS_RESOURCES.equals(name.getNamespaceKey()) && apiLookup != null &&
+        if (ANDROID_URI.equals(name.getNamespaceKey()) && apiLookup != null &&
             apiLookup.getFieldVersion("android/R$attr", name.getLocalName()) > minApi) {
           continue;
         }
-        AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
+        AttributeDefinitions attrDefs = ANDROID_URI.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(name.getLocalName());
         if (!NlPropertyItem.isDefinitionAcceptable(name, attrDef)) {
           // Ignore attributes we don't have information about.
@@ -202,7 +202,7 @@ public class NlProperties {
       StyleableDefinition styleable = styleableName != null ? localAttrDefs.getStyleableByName(styleableName) : null;
       if (styleable != null) {
         for (AttributeDefinition attrDef : styleable.getAttributes()) {
-          if (properties.contains(NS_RESOURCES, attrDef.getName())) {
+          if (properties.contains(ANDROID_URI, attrDef.getName())) {
             // If the corresponding framework attribute is supported, prefer the framework attribute.
             continue;
           }

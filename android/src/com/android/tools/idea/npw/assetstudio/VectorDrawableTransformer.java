@@ -166,12 +166,12 @@ public class VectorDrawableTransformer {
       indenter.copy(1, 1, startLine, startColumn, "", result);
       String lineSeparator = detectLineSeparator(originalDrawable);
       // Output the "vector" element with the xmlns:android attribute.
-      result.append(String.format("<vector %s:%s=\"%s\"", SdkConstants.XMLNS, SdkConstants.ANDROID_NS_NAME, SdkConstants.NS_RESOURCES));
+      result.append(String.format("<vector %s:%s=\"%s\"", SdkConstants.XMLNS, SdkConstants.ANDROID_NS_NAME, ANDROID_URI));
       // Copy remaining namespace attributes.
       for (int i = 0; i < parser.getNamespaceCount(1); i++) {
         String prefix = parser.getNamespacePrefix(i);
         String uri = parser.getNamespaceUri(i);
-        if (!SdkConstants.ANDROID_NS_NAME.equals(prefix) || !SdkConstants.NS_RESOURCES.equals(uri)) {
+        if (!SdkConstants.ANDROID_NS_NAME.equals(prefix) || !ANDROID_URI.equals(uri)) {
           result.append(String.format("%s%s%s:%s=\"%s\"", lineSeparator, DOUBLE_INDENT, SdkConstants.XMLNS, prefix, uri));
         }
       }

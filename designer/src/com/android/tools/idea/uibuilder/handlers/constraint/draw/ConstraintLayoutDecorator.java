@@ -378,18 +378,18 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         float bias = 0.5f;
         boolean rtl = constraintComponent.getScene().isInRTL();
         String[] margin_attr = (rtl) ? MARGIN_ATTR_RTL[i] : MARGIN_ATTR_LTR[i];
-        String marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[0]);
+        String marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[0]);
         if (marginString == null && margin_attr.length > 1) {
-          marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[1]);
+          marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[1]);
         }
         if (marginString == null) {
           if (i == 0) { // left check if it is start
             marginString =
-              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START);
           }
           else if (i == 1) { // right check if it is end
             marginString =
-              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END);
           }
         }
         if (marginString != null) {

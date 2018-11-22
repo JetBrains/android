@@ -22,7 +22,6 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
@@ -406,7 +405,8 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
+                                                                    ANDROID_URI + "\"/>");
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
@@ -447,7 +447,8 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
+                                                                    ANDROID_URI + "\"/>");
     NlComponent recyclerView =
       model.createComponent(model.getSurface(), recyclerViewTag, null, null, InsertType.CREATE);
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());

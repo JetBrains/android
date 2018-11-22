@@ -289,7 +289,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return;
     }
 
-    final String prefix = ((XmlTag)grandparent).getPrefixByNamespace(SdkConstants.NS_RESOURCES);
+    final String prefix = ((XmlTag)grandparent).getPrefixByNamespace(SdkConstants.ANDROID_URI);
     if (prefix == null || prefix.length() < 3) {
       return;
     }
@@ -320,7 +320,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       if (nsPrefix.isEmpty()) {
         return;
       }
-      if (!SdkConstants.NS_RESOURCES.equals(tag.getNamespaceByPrefix(nsPrefix))) {
+      if (!SdkConstants.ANDROID_URI.equals(tag.getNamespaceByPrefix(nsPrefix))) {
         return;
       }
       else {
@@ -349,7 +349,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
             ns = tag.getNamespaceByPrefix(prefix);
             prefix2ns.put(prefix, ns);
           }
-          if (SdkConstants.NS_RESOURCES.equals(ns)) {
+          if (SdkConstants.ANDROID_URI.equals(ns)) {
             final boolean deprecated = isFrameworkAttributeDeprecated(facet, attribute, attributeName);
             result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, deprecated);
           }
