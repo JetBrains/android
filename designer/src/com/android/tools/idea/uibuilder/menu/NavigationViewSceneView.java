@@ -18,13 +18,11 @@ package com.android.tools.idea.uibuilder.menu;
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +36,6 @@ import java.util.List;
  */
 public final class NavigationViewSceneView extends ScreenView {
   public static final String SHOW_IN_ATTRIBUTE_VALUE = "navigation_view";
-  private NavColorSet myColorSet = new NavColorSet();
 
   public NavigationViewSceneView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
@@ -97,11 +94,5 @@ public final class NavigationViewSceneView extends ScreenView {
   public Shape getScreenShape() {
     Dimension size = getSize();
     return new Rectangle(getX(), getY(), size.width, size.height);
-  }
-
-  @NotNull
-  @Override
-  public ColorSet getColorSet() {
-    return myColorSet;
   }
 }
