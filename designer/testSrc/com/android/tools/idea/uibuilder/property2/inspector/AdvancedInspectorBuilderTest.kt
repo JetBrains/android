@@ -18,6 +18,13 @@ package com.android.tools.idea.uibuilder.property2.inspector
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_COLOR
@@ -27,6 +34,7 @@ import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.PTableModelUpdateListener
@@ -85,8 +93,14 @@ class AdvancedInspectorBuilderTest {
 
     // Check all 6 attributes:
     assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONTENT_DESCRIPTION,
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_MARGIN, ATTR_CONTENT_DESCRIPTION,
                        ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
+
+    // Layout Margin is a group:
+    val margin = util.inspector.lines[3].tableModel!!.items[2] as PTableGroupItem
+    assertThat(margin.children.map { it.name })
+      .containsExactly(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_TOP,
+                       ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_BOTTOM).inOrder()
   }
 
   @Test
@@ -119,8 +133,14 @@ class AdvancedInspectorBuilderTest {
 
     // Check all 6 attributes:
     assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONTENT_DESCRIPTION,
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_MARGIN, ATTR_CONTENT_DESCRIPTION,
                        ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
+
+    // Layout Margin is a group:
+    val margin = util.inspector.lines[3].tableModel!!.items[2] as PTableGroupItem
+    assertThat(margin.children.map { it.name })
+      .containsExactly(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_TOP,
+                       ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_BOTTOM).inOrder()
   }
 
   @Test
@@ -268,6 +288,13 @@ class AdvancedInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_LAYOUT_WIDTH, NelePropertyType.DIMENSION)
     util.addProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
     util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, NelePropertyType.DIMENSION)
 
     util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
     util.properties[ANDROID_URI, ATTR_LAYOUT_WIDTH].value = VALUE_WRAP_CONTENT
