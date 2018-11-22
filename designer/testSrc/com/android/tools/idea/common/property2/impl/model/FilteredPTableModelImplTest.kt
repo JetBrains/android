@@ -19,6 +19,13 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_GRAVITY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_VISIBLE
@@ -26,6 +33,8 @@ import com.android.SdkConstants.VALUE_MATCH_PARENT
 import com.android.SdkConstants.VALUE_TOP
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableGroupItem
+import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.impl.model.util.TestNewPropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.TestPTableModelUpdateListener
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
@@ -34,6 +43,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.util.Collections
 
 class FilteredPTableModelImplTest {
   private var model: TestPropertyModel? = null
@@ -42,6 +52,13 @@ class FilteredPTableModelImplTest {
   private var propGravity: TestPropertyItem? = null
   private var propText: TestPropertyItem? = null
   private var propVisible: TestPropertyItem? = null
+  private var propMarginBottom: TestPropertyItem? = null
+  private var propMarginEnd: TestPropertyItem? = null
+  private var propMarginLeft: TestPropertyItem? = null
+  private var propMarginRight: TestPropertyItem? = null
+  private var propMarginStart: TestPropertyItem? = null
+  private var propMarginTop: TestPropertyItem? = null
+  private var propMargin: TestPropertyItem? = null
 
   @Before
   fun init() {
@@ -50,6 +67,13 @@ class FilteredPTableModelImplTest {
     propGravity = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_GRAVITY)
     propText = TestPropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
     propVisible = TestPropertyItem(ANDROID_URI, ATTR_VISIBLE)
+    propMarginBottom = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM)
+    propMarginEnd = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)
+    propMarginLeft = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT)
+    propMarginRight = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT)
+    propMarginStart = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN_START)
+    propMarginTop = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP)
+    propMargin = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_MARGIN)
 
     model = TestPropertyModel()
     model!!.add(propHeight!!)
@@ -57,6 +81,13 @@ class FilteredPTableModelImplTest {
     model!!.add(propGravity!!)
     model!!.add(propText!!)
     model!!.add(propVisible!!)
+    model!!.add(propMarginBottom!!)
+    model!!.add(propMarginEnd!!)
+    model!!.add(propMarginLeft!!)
+    model!!.add(propMarginRight!!)
+    model!!.add(propMarginStart!!)
+    model!!.add(propMarginTop!!)
+    model!!.add(propMargin!!)
   }
 
   @After
@@ -68,17 +99,24 @@ class FilteredPTableModelImplTest {
     propGravity = null
     propText = null
     propVisible = null
+    propMarginBottom = null
+    propMarginEnd = null
+    propMarginLeft = null
+    propMarginRight = null
+    propMarginStart = null
+    propMarginTop = null
+    propMargin = null
   }
 
   @Test
   fun testFilteredContent() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     assertThat(tableModel.items).containsExactly(propWidth, propHeight, propText).inOrder()
   }
 
   @Test
   fun testAddExistingProperty() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val listener = TestPTableModelUpdateListener()
     val property = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
     tableModel.addListener(listener)
@@ -89,7 +127,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAddNonExistingProperty() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val listener = TestPTableModelUpdateListener()
     val property = TestPropertyItem(ANDROID_URI, ATTR_FONT_FAMILY, "Sans")
     tableModel.editedItem = propHeight
@@ -102,7 +140,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAddNewProperty() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val listener = TestPTableModelUpdateListener()
     val property = TestNewPropertyItem()
     tableModel.editedItem = propHeight
@@ -115,7 +153,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testIsCellEditable() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val property = TestNewPropertyItem()
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.NAME)).isFalse()
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.VALUE)).isTrue()
@@ -128,7 +166,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAcceptMoveToNextEditor() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() },Collections.emptyList(), false)
     val property = TestNewPropertyItem()
     assertThat(tableModel.acceptMoveToNextEditor(propWidth!!, PTableColumn.NAME)).isTrue()
     assertThat(tableModel.acceptMoveToNextEditor(propWidth!!, PTableColumn.VALUE)).isTrue()
@@ -141,7 +179,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenHeightIsRemoved() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val listener = TestPTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propWidth
@@ -155,7 +193,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenHeightIsEditedAndRemoved() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val listener = TestPTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propHeight
@@ -169,7 +207,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenGravityIsAssigned() {
-    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, false)
+    val tableModel = FilteredPTableModelImpl(model!!, { !it.value.isNullOrEmpty() }, Collections.emptyList(), false)
     val listener = TestPTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propText
@@ -179,5 +217,31 @@ class FilteredPTableModelImplTest {
     assertThat(tableModel.items).containsExactly(propWidth, propHeight, propGravity, propText).inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
     assertThat(listener.nextEditedItem).isEqualTo(propText)
+  }
+
+  @Test
+  fun testSortedGroup() {
+    val tableModel = FilteredPTableModelImpl(model!!, { true }, listOf(MarginGroup()), false)
+    val items = tableModel.items
+    val group = items[3] as PTableGroupItem
+    assertThat(items).containsExactly(propWidth, propHeight, propGravity, group, propText, propVisible).inOrder()
+    assertThat(group.children).containsExactly(propMargin, propMarginStart, propMarginLeft, propMarginTop, propMarginEnd,
+                                               propMarginRight, propMarginBottom).inOrder()
+  }
+
+  private inner class MarginGroup: GroupSpec<TestPropertyItem> {
+    override val name = "margin"
+
+    override val value: String?
+      get() = "[${part(propMargin)}, ${part(propMarginLeft, propMarginStart)}, " +
+              "${part(propMarginTop)}, ${part(propMarginRight, propMarginEnd)}, ${part(propMarginBottom)}]"
+
+    override val itemFilter: (TestPropertyItem) -> Boolean
+      get() = { it == propMargin || it == propMarginLeft || it == propMarginRight || it == propMarginStart ||
+                it == propMarginEnd || it == propMarginTop || it == propMarginBottom }
+
+    private fun part(property: TestPropertyItem?, override: TestPropertyItem? = null): String {
+      return override?.value ?: property?.value ?: "?"
+    }
   }
 }

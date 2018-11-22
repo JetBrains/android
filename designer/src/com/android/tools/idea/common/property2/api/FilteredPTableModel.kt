@@ -73,11 +73,14 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * item will be included at the end of the table after setting its
      * name to null i.e. the new item line will be ready for the user
      * to add another item to the table.
+     * The [groups] specifies which item are grouped under a specified
+     * group name.
      */
     fun <P : PropertyItem> create(model: PropertiesModel<P>,
                                   itemFilter: (P) -> Boolean,
+                                  groups: List<GroupSpec<P>> = emptyList(),
                                   keepNewAfterFlyAway: Boolean = true): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, keepNewAfterFlyAway)
+      return FilteredPTableModelImpl(model, itemFilter, groups, keepNewAfterFlyAway)
     }
   }
 }
