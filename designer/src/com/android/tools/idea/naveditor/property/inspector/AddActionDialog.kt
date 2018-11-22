@@ -19,10 +19,14 @@ import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
@@ -38,6 +42,21 @@ import javax.swing.Action
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
+
+/**
+ * Shows an [AddActionDialog] and then updates the corresponding model.
+ */
+@VisibleForTesting
+fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, source: NavEditorEvent.Source, hadExisting: Boolean) {
+  if (actionDialog.showAndGet()) {
+    val action = actionDialog.writeUpdatedAction()
+    surface?.selectionModel?.setSelection(listOf(action))
+    NavUsageTracker.getInstance(surface).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
+      .withActionInfo(action)
+      .withSource(source)
+      .log()
+  }
+}
 
 /**
  * Create a new action for the given component
@@ -376,8 +395,9 @@ open class AddActionDialog(
     return dialog.myContentPanel
   }
 
+  // Open for testing
   @VisibleForTesting
-  fun writeUpdatedAction(): NlComponent {
+  open fun writeUpdatedAction(): NlComponent {
     return WriteCommandAction.runWriteCommandAction(
       parent.model.project, Computable<NlComponent> {
       val actionSetup: NlComponent.() -> Unit = {

@@ -26,6 +26,7 @@ import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -46,15 +47,12 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
 
   override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     assert(parents.size == 1)
-    showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, existing, parents[0]), surface)
+    showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, existing, parents[0]), surface, true)
   }
 
   @VisibleForTesting
-  fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?) {
-    if (actionDialog.showAndGet()) {
-      val action = actionDialog.writeUpdatedAction()
-      surface?.selectionModel?.setSelection(listOf(action))
-    }
+  fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean = false) {
+    showAndUpdateFromDialog(actionDialog, surface, NavEditorEvent.Source.PROPERTY_INSPECTOR, hadExisting)
     inspector.refresh()
   }
 

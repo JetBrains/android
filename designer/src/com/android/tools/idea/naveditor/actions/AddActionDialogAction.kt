@@ -18,22 +18,20 @@ package com.android.tools.idea.naveditor.actions
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
+import com.android.tools.idea.naveditor.property.inspector.showAndUpdateFromDialog
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-open class AddActionDialogAction(
+sealed class AddActionDialogAction(
   private val surface: DesignSurface,
   val text: String,
   private val parent: NlComponent,
-  private val action: NlComponent?
-) :
-  AnAction(text) {
+  private val existingAction: NlComponent?
+) : AnAction(text) {
   override fun actionPerformed(e: AnActionEvent) {
-    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, action, parent)
-    if (addActionDialog.showAndGet()) {
-      val action = addActionDialog.writeUpdatedAction()
-      surface.selectionModel.setSelection(listOf(action))
-    }
+    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, existingAction, parent)
+    showAndUpdateFromDialog(addActionDialog, surface, NavEditorEvent.Source.CONTEXT_MENU, existingAction != null)
   }
 }
 

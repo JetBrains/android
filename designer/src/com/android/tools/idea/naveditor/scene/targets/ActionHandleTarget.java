@@ -35,12 +35,14 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
@@ -131,6 +133,10 @@ public class ActionHandleTarget extends NavBaseTarget {
         StringUtil.isNotEmpty(closestComponent.getId())) {
       NlComponent action = createAction(closestComponent);
       if (action != null) {
+        NavUsageTracker.Companion.getInstance(scene.getDesignSurface()).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+          .withActionInfo(action)
+          .withSource(NavEditorEvent.Source.DESIGN_SURFACE)
+          .log();
         getComponent().getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(action));
       }
     }
@@ -146,7 +152,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   }
 
   @Nullable
-  public NlComponent createAction(@NotNull SceneComponent destination) {
+  private NlComponent createAction(@NotNull SceneComponent destination) {
     if (mIsOver) {
       return null;
     }

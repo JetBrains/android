@@ -44,7 +44,6 @@ class NavSceneManagerTest : NavTestCase() {
     }
     val scene = model.surface.scene!!
 
-
     val fragment2x = scene.getSceneComponent("fragment2")!!.drawX
     val fragment2y = scene.getSceneComponent("fragment2")!!.drawY
     val fragment3x = scene.getSceneComponent("fragment3")!!.drawX

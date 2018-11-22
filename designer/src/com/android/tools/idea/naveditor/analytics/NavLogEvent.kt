@@ -299,4 +299,9 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     navEventBuilder.setContents(builder)
     return this
   }
+
+  fun withSource(source: NavEditorEvent.Source): NavLogEvent {
+    navEventBuilder.source = source
+    return this
+  }
 }
