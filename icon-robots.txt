@@ -7,3 +7,4 @@ skip: adt-branding/**/*
 skip: designer/**/*
 skip: artwork/**/*
 skip: smali/**/*
+skip: artwork/compatibilityResources/**/*
