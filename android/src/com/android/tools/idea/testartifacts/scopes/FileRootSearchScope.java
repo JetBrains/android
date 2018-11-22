@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -25,15 +28,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import gnu.trove.TObjectIntHashMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
-
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Search scope to check if a file belong to specific file roots (could be jar file or source root).
@@ -139,7 +139,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
   @Override
   public GlobalSearchScope uniteWith(@NotNull GlobalSearchScope scope) {
     if (scope instanceof FileRootSearchScope) {
-      return merge((FileRootSearchScope)scope);
+      return add((FileRootSearchScope)scope);
     }
     return super.uniteWith(scope);
   }
@@ -149,18 +149,21 @@ public class FileRootSearchScope extends GlobalSearchScope {
    * using {@link GlobalSearchScope#uniteWith} or {@link SearchScope#union} but has better query time performance and worse creation time
    * performance. This method is only supposed to be used in {@link TestArtifactSearchScopes} where we create the base scopes.
    */
+  @Contract(value = "_ -> new", pure = true)
   @NotNull
-  protected FileRootSearchScope merge(@NotNull FileRootSearchScope scope) {
+  protected FileRootSearchScope add(@NotNull FileRootSearchScope scope) {
     return calculate(scope, true);
   }
 
+  @Contract(value = "_ -> new", pure = true)
   @NotNull
-  protected FileRootSearchScope exclude(@NotNull FileRootSearchScope scope) {
+  protected FileRootSearchScope subtract(@NotNull FileRootSearchScope scope) {
     return calculate(scope, false);
   }
 
+  @Contract(value = "_, _ -> new", pure = true)
   @NotNull
-  private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, boolean merge) {
+  private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, boolean add) {
     Set<File> roots = Sets.newHashSet();
     myDirRootPaths.forEach(file -> {
       roots.add(file);
@@ -168,7 +171,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
     });
 
     scope.myDirRootPaths.forEach(file -> {
-      if (merge) {
+      if (add) {
         roots.add(file);
       } else {
         roots.remove(file);
