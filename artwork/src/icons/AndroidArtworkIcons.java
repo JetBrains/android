@@ -21,7 +21,6 @@ public final class AndroidArtworkIcons {
   public final static class Icons {
     public static final Icon Activity = load("/icons/activity.png"); // 16x16
     public static final Icon Android = load("/icons/android.svg"); // 16x16
-    public static final Icon Android24 = load("/icons/android24.png"); // 24x24
     public static final Icon Android_file = load("/icons/android_file.png"); // 16x16
     public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
     public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
@@ -337,7 +336,7 @@ public final class AndroidArtworkIcons {
     }
     public static final Icon Flip_landscape = load("/icons/flip_landscape.png"); // 16x16
     public static final Icon Flip_portrait = load("/icons/flip_portrait.png"); // 16x16
-    public static final Icon Font_file = load("/icons/font-file.png"); // 16x16
+    public static final Icon Font_file = load("/icons/font-file.svg"); // 16x16
 
     public final static class Formfactors {
 
