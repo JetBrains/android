@@ -28,7 +28,6 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_PUBLIC_TXT;
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
-import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
 import static com.android.SdkConstants.TAG_ATTR;
@@ -42,6 +41,7 @@ import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -508,7 +508,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           if (event == XmlPullParser.START_TAG) {
             int numAttributes = parser.getAttributeCount();
             for (int i = 0; i < numAttributes; i++) {
-              if (NS_RESOURCES.equals(parser.getAttributeNamespace(i))) {
+              if (SdkConstants.ANDROID_URI.equals(parser.getAttributeNamespace(i))) {
                 String value = parser.getAttributeValue(i);
                 if (value.startsWith(NEW_ID_PREFIX) && value.length() > NEW_ID_PREFIX.length()) {
                   String resourceName = value.substring(NEW_ID_PREFIX.length());

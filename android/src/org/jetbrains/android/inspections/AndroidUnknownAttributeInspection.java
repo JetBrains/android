@@ -123,7 +123,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
       if (!"xmlns".equals(attribute.getNamespacePrefix())) {
         String namespace = attribute.getNamespace();
 
-        if (SdkConstants.NS_RESOURCES.equals(namespace) || namespace.isEmpty()) {
+        if (SdkConstants.ANDROID_URI.equals(namespace) || namespace.isEmpty()) {
           final XmlTag tag = attribute.getParent();
 
           if (tag != null &&

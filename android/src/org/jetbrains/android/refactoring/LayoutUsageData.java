@@ -58,7 +58,7 @@ public class LayoutUsageData {
     for (XmlAttribute attribute : includeTag.getAttributes()) {
       final String namespace = attribute.getNamespace();
 
-      if (SdkConstants.NS_RESOURCES.equals(namespace)) {
+      if (SdkConstants.ANDROID_URI.equals(namespace)) {
         attributesToAdd.put(attribute.getLocalName(), attribute.getValue());
       }
     }
@@ -84,7 +84,7 @@ public class LayoutUsageData {
     for (Map.Entry<String, String> entry : attributesToAdd.entrySet()) {
       final String localName = entry.getKey();
       final String value = entry.getValue();
-      newTag.setAttribute(localName, SdkConstants.NS_RESOURCES, value);
+      newTag.setAttribute(localName, SdkConstants.ANDROID_URI, value);
     }
     CodeStyleManager.getInstance(newTag.getManager()).reformat(newTag);
   }

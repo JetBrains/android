@@ -440,7 +440,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
     XmlName name = getXmlName(component, descriptor);
 
-    AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
+    AttributeDefinitions attrDefs = ANDROID_URI.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
     return attrDefs == null ? null : attrDefs.getAttrDefByName(descriptor.getName());
   }
 

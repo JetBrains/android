@@ -43,7 +43,6 @@ import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
-import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TOOLS_URI;
@@ -780,7 +779,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTracker.getInstance(editor.getScene().getDesignSurface());
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
-            guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
+            guideline.setAttribute(ANDROID_URI, ATTR_ORIENTATION,
                                    ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
           }
           break;
@@ -794,7 +793,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             NlUsageTracker tracker = NlUsageTracker.getInstance(editor.getScene().getDesignSurface());
 
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
-            guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
+            guideline.setAttribute(ANDROID_URI, ATTR_ORIENTATION,
                                    ATTR_GUIDELINE_ORIENTATION_VERTICAL);
           }
           break;

@@ -111,11 +111,11 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
         val name = desc.name
         val namespaceUri = getNamespace(desc, tag)
         // Exclude the framework attributes that were added after the current min API level.
-        if (NS_RESOURCES == namespaceUri && apiLookup != null &&
+        if (ANDROID_URI == namespaceUri && apiLookup != null &&
             apiLookup.getFieldVersion("android/R\$attr", name) > minApi) {
           continue
         }
-        val attrDefs = if (NS_RESOURCES == namespaceUri) systemAttrDefs else localAttrDefs
+        val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
         val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
         val attrDef = namespace?.let { attrDefs?.getAttrDefinition(ResourceReference.attr(it, name)) }
         val property = createProperty(namespaceUri, name, attrDef, model, components)
@@ -170,7 +170,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       val styleable = inflatedClass.name?.let { localAttrDefs.getStyleableByName(it) }
       if (styleable != null) {
         for (attrDef in styleable.attributes) {
-          if (properties.contains(NS_RESOURCES, attrDef.name)) {
+          if (properties.contains(ANDROID_URI, attrDef.name)) {
             // If the corresponding framework attribute is supported, prefer the framework attribute.
             continue
           }

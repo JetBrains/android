@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.base.Strings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
@@ -38,7 +37,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.xml.XmlSchemaProvider;
 import com.google.common.collect.ImmutableSet;
 import gnu.trove.THashMap;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
@@ -128,7 +126,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
       result.add(TOOLS_URI);
-      result.add(NS_RESOURCES);
+      result.add(ANDROID_URI);
       if (ManifestDomFileDescription.isManifestFile(file)) {
         result.add(DIST_URI);
       }

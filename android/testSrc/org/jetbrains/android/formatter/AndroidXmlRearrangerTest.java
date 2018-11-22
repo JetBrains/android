@@ -43,7 +43,7 @@ public final class AndroidXmlRearrangerTest {
 
   @Test
   public void deserializeAndroidAttributeOrder() {
-    StdArrangementMatchRule rule = XmlRearranger.attrArrangementRule(".*", SdkConstants.NS_RESOURCES, AndroidAttributeOrder.INSTANCE);
+    StdArrangementMatchRule rule = XmlRearranger.attrArrangementRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE);
     Object expected = StdArrangementSettings.createByMatchRules(Collections.emptyList(), Collections.singletonList(rule));
 
     Element arrangement = newArrangementElement();

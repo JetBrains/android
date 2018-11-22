@@ -181,7 +181,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
     @Override
     public String getLocationString() {
       final XmlTag xmlTag = myElement.getXmlTag();
-      final XmlAttribute idAttribute = xmlTag == null ? null : xmlTag.getAttribute("id", SdkConstants.NS_RESOURCES);
+      final XmlAttribute idAttribute = xmlTag == null ? null : xmlTag.getAttribute("id", SdkConstants.ANDROID_URI);
       return idAttribute == null ? null : idAttribute.getValue();
     }
 

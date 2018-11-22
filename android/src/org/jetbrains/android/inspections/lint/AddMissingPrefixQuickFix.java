@@ -33,7 +33,7 @@ public class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
       return;
     }
 
-    String androidNsPrefix = tag.getPrefixByNamespace(SdkConstants.NS_RESOURCES);
+    String androidNsPrefix = tag.getPrefixByNamespace(SdkConstants.ANDROID_URI);
 
     if (androidNsPrefix == null) {
       final PsiFile file = tag.getContainingFile();
@@ -51,7 +51,7 @@ public class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
 
       final XmlFile xmlFile = (XmlFile)file;
       final String defaultPrefix = "android";
-      extension.insertNamespaceDeclaration(xmlFile, null, Collections.singleton(SdkConstants.NS_RESOURCES), defaultPrefix, null);
+      extension.insertNamespaceDeclaration(xmlFile, null, Collections.singleton(SdkConstants.ANDROID_URI), defaultPrefix, null);
       androidNsPrefix = defaultPrefix;
     }
     String finalAndroidNsPrefix = androidNsPrefix;

@@ -209,7 +209,7 @@ public class AndroidDomUtil {
     String localName = attrName.getLocalName();
     String tagName = xmlTag.getName();
 
-    if (NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+    if (ANDROID_URI.equals(attrName.getNamespaceKey())) {
       // Framework attributes:
       if (context instanceof XmlResourceElement) {
         if ("configure".equals(localName) && "appwidget-provider".equals(tagName)) {

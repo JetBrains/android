@@ -54,12 +54,12 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
 
     rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
     rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:id", SdkConstants.NS_RESOURCES, KEEP));
-    rules.add(attrArrangementRule(".*:name", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule(".*:id", SdkConstants.ANDROID_URI, KEEP));
+    rules.add(attrArrangementRule(".*:name", SdkConstants.ANDROID_URI, KEEP));
     rules.add(attrArrangementRule("name", "^$", KEEP));
     rules.add(attrArrangementRule("style", "^$", KEEP));
     rules.add(attrArrangementRule(".*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, AndroidAttributeOrder.INSTANCE));
+    rules.add(attrArrangementRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE));
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
 
     return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
@@ -71,17 +71,17 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
 
     rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
     rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:id", SdkConstants.NS_RESOURCES, KEEP));
-    rules.add(attrArrangementRule(".*:name", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule(".*:id", SdkConstants.ANDROID_URI, KEEP));
+    rules.add(attrArrangementRule(".*:name", SdkConstants.ANDROID_URI, KEEP));
     rules.add(attrArrangementRule("name", "^$", KEEP));
     rules.add(attrArrangementRule("style", "^$", KEEP));
     rules.add(attrArrangementRule(".*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:layout_width", SdkConstants.NS_RESOURCES, KEEP));
-    rules.add(attrArrangementRule(".*:layout_height", SdkConstants.NS_RESOURCES, KEEP));
-    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.NS_RESOURCES, BY_NAME));
-    rules.add(attrArrangementRule(".*:width", SdkConstants.NS_RESOURCES, BY_NAME));
-    rules.add(attrArrangementRule(".*:height", SdkConstants.NS_RESOURCES, BY_NAME));
-    rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, BY_NAME));
+    rules.add(attrArrangementRule(".*:layout_width", SdkConstants.ANDROID_URI, KEEP));
+    rules.add(attrArrangementRule(".*:layout_height", SdkConstants.ANDROID_URI, KEEP));
+    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.ANDROID_URI, BY_NAME));
+    rules.add(attrArrangementRule(".*:width", SdkConstants.ANDROID_URI, BY_NAME));
+    rules.add(attrArrangementRule(".*:height", SdkConstants.ANDROID_URI, BY_NAME));
+    rules.add(attrArrangementRule(".*", SdkConstants.ANDROID_URI, BY_NAME));
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
 
     return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
