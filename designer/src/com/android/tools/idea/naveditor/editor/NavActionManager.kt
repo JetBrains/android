@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.common.actions.ActivateComponentAction
+import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.actions.ZoomInAction
 import com.android.tools.idea.common.actions.ZoomOutAction
