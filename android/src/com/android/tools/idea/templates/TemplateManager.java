@@ -48,7 +48,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.templates.github.ZipUtil;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
@@ -535,7 +535,7 @@ public class TemplateManager {
 
   private static void setPresentation(String category, AnAction categoryGroup) {
     Presentation presentation = categoryGroup.getTemplatePresentation();
-    presentation.setIcon(AndroidIcons.Android);
+    presentation.setIcon(AndroidArtworkIcons.Icons.Android);
     presentation.setText(category);
   }
 

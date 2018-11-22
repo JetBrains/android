@@ -37,7 +37,7 @@ import java.awt.event.MouseEvent
 
 // Open for testing only
 open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>(NavActionsProperty::class.java,
-    StudioIcons.NavEditor.Properties.ACTION) {
+                                                                                      StudioIcons.NavEditor.Properties.ACTION) {
 
   override fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
     assert(parents.size == 1)

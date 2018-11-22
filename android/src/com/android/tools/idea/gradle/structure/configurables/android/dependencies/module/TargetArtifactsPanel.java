@@ -31,7 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.treeStructure.Tree;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +52,7 @@ public class TargetArtifactsPanel extends ToolWindowPanel {
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   public TargetArtifactsPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
-    super("Target Artifacts", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
+    super("Target Artifacts", AndroidArtworkIcons.Icons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());

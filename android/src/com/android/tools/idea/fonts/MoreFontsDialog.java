@@ -48,6 +48,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidArtworkIcons;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -61,8 +62,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
@@ -480,7 +481,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
       switch (fontFamily.getFontSource()) {
         case SYSTEM:
-          setIcon(AndroidIcons.Android);
+          setIcon(AndroidArtworkIcons.Icons.Android);
           break;
         case DOWNLOADABLE:
           setIcon(StudioIcons.Common.LINK);

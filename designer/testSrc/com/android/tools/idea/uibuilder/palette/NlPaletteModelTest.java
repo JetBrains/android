@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.CollectionQuery;
+import icons.AndroidArtworkIcons;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
@@ -82,7 +83,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     String tag = "com.example.FakeCustomView";
     boolean added = model
-      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24, tag, tag,
+      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidArtworkIcons.Icons.Android, AndroidIcons.Android24, tag, tag,
                               getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
                               "family", ImmutableList.of("family", "size"), Collections.emptyList());
     Palette.Group thirdParty = getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP);
@@ -92,7 +93,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
 
     Palette.Item item = (Palette.Item)thirdParty.getItem(0);
     assertThat(item.getTagName()).isEqualTo(tag);
-    assertThat(item.getIcon()).isEqualTo(AndroidIcons.Android);
+    assertThat(item.getIcon()).isEqualTo(AndroidArtworkIcons.Icons.Android);
     assertThat(item.getLargeIcon()).isEqualTo(AndroidIcons.Android24);
     assertThat(item.getTitle()).isEqualTo("FakeCustomView");
     assertThat(item.getGradleCoordinateId()).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
@@ -101,7 +102,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
     ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(tag);
     assertThat(handler).isNotNull();
     assertThat(handler.getTitle(tag)).isEqualTo("FakeCustomView");
-    assertThat(handler.getIcon(tag)).isEqualTo(AndroidIcons.Android);
+    assertThat(handler.getIcon(tag)).isEqualTo(AndroidArtworkIcons.Icons.Android);
     assertThat(handler.getLargeIcon(tag)).isEqualTo(AndroidIcons.Android24);
     assertThat(handler.getGradleCoordinateId(tag)).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
     assertThat(handler.getPreviewScale(tag)).isWithin(0.0).of(1.0);

@@ -28,7 +28,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,7 +120,7 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   @NotNull
   @Override
   public Icon getTitleIcon() {
-    return AndroidIcons.NetworkMonitor;
+    return AndroidArtworkIcons.Icons.Network_monitor;
   }
 
   @Override

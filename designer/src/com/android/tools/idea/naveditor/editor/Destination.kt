@@ -23,10 +23,8 @@ import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
-import icons.AndroidIcons
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.awt.Color
 import java.awt.Image
 
 sealed class Destination {

@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ import java.net.URL;
 public abstract class AndroidAssetStudioAction extends AnAction {
 
   protected AndroidAssetStudioAction(@Nullable String text, @Nullable String description) {
-    super(text, description, AndroidIcons.Android);
+    super(text, description, AndroidArtworkIcons.Icons.Android);
   }
 
   protected static boolean isAvailable(DataContext dataContext) {

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.actions;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.common.model.NlComponent;
-import icons.AndroidDesignerIcons;
+import icons.AndroidArtworkIcons;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +56,7 @@ public class BaselineAction extends LinearLayoutAction {
     else {
       presentation.setVisible(true);
       boolean align = !isBaselineAligned(selectedChildren.get(0));
-      presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
+      presentation.setIcon(align ? AndroidArtworkIcons.Icons.Baseline : AndroidArtworkIcons.Icons.Nobaseline);
       presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
     }
   }

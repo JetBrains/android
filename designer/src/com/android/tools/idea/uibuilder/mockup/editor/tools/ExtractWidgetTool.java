@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -23,10 +24,8 @@ import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFactory;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ToolRootPanel;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;

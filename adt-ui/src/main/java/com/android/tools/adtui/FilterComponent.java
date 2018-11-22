@@ -22,7 +22,7 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.Alarm;
-import icons.StudioIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -283,7 +283,7 @@ public class FilterComponent extends JPanel {
 
   @NotNull
   static public FlatToggleButton createFilterToggleButton() {
-    FlatToggleButton filterButton = new FlatToggleButton("", StudioIcons.Common.FILTER);
+    FlatToggleButton filterButton = new FlatToggleButton("", AndroidArtworkIcons.Studio.Icons.Common.Filter);
     filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(FILTER_KEY_STROKE)));
     return filterButton;
   }

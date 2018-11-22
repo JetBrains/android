@@ -1,0 +1,1 @@
+skip: device-art-resources/**/*

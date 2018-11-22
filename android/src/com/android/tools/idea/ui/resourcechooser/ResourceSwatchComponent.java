@@ -16,9 +16,9 @@
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.adtui.ui.ClickableLabel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -32,7 +32,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,7 +71,7 @@ public class ResourceSwatchComponent extends JPanel {
   public static final SwatchIcon WARNING_ICON = new SwatchIcon() {
     @Override
     public void paintSwatch(@NotNull Component c, @NotNull Graphics g, int x, int y, int w, int h) {
-      Icon QUESTION_ICON = AndroidIcons.GreyQuestionMark;
+      Icon QUESTION_ICON = AndroidArtworkIcons.Icons.Grey_question;
       int horizontalMargin = (w + JBUI.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
       int verticalMargin = (h + JBUI.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
       QUESTION_ICON.paintIcon(c, g, x + horizontalMargin, y + verticalMargin);

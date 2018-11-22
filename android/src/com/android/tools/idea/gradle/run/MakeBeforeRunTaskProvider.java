@@ -64,7 +64,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ThreeState;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,13 +124,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Nullable
   @Override
   public Icon getTaskIcon(MakeBeforeRunTask task) {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Override
