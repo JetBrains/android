@@ -19,11 +19,13 @@ import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 
+import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utilities for creating various graphics
@@ -832,58 +834,58 @@ public class DrawConnectionUtils {
   }
 
   /**
-   * draw the horizontal margin text and line
+   * draw the horizontal margin text and line.
    *
-   * @param g
-   * @param string
-   * @param x1
-   * @param x2
-   * @param y
+   * @param string The margin value to display. May be null.
    */
-  public static void drawHorizontalMargin(Graphics2D g,
-                                          String string,
+  public static void drawHorizontalMargin(@NotNull Graphics2D g,
+                                          @Nullable String string,
                                           boolean isReference,
                                           @SwingCoordinate int x1,
                                           @SwingCoordinate int x2,
-                                          int y) {
-    Font previousFont = g.getFont();
-    g.setFont(sFont);
-    FontMetrics metrics = g.getFontMetrics();
-    Rectangle2D rect = metrics.getStringBounds(string, g);
-    float sx = (float)((x1 + x2) / 2 - rect.getWidth() / 2);
-    float sy = (float)(y - MARGIN_SPACING - metrics.getDescent());
-    if (isReference) {
-      g.setFont(sFontReference);
-    }
-    g.drawString(string, sx, sy);
+                                          @SwingCoordinate int y) {
     g.drawLine(x1, y, x2, y);
-    g.setFont(previousFont);
+
+    if (string != null) {
+      Font previousFont = g.getFont();
+      g.setFont(sFont);
+      FontMetrics metrics = g.getFontMetrics();
+      Rectangle2D rect = metrics.getStringBounds(string, g);
+      float sx = (float)((x1 + x2) / 2 - rect.getWidth() / 2);
+      float sy = (float)(y - MARGIN_SPACING - metrics.getDescent());
+      if (isReference) {
+        g.setFont(sFontReference);
+      }
+      g.drawString(string, sx, sy);
+      g.setFont(previousFont);
+    }
   }
 
   /**
-   * @param g
-   * @param string
-   * @param x
-   * @param y1
-   * @param y2
+   * draw the vertical margin text and line.
+   *
+   * @param string The margin value to display. May be null.
    */
-  public static void drawVerticalMargin(Graphics2D g,
-                                        String string,
+  public static void drawVerticalMargin(@NotNull Graphics2D g,
+                                        @Nullable String string,
                                         boolean isReference,
                                         @SwingCoordinate int x,
                                         @SwingCoordinate int y1,
                                         @SwingCoordinate int y2) {
-    Font previousFont = g.getFont();
-    g.setFont(sFont);
-    FontMetrics metrics = g.getFontMetrics();
-    Rectangle2D rect = metrics.getStringBounds(string, g);
     g.drawLine(x, y1, x, y2);
-    float sx = (float)(x + MARGIN_SPACING);
-    float sy = (float)((y2 + y1) / 2 + rect.getHeight() / 2 - metrics.getDescent());
-    if (isReference) {
-      g.setFont(sFontReference);
+
+    if (string != null) {
+      Font previousFont = g.getFont();
+      g.setFont(sFont);
+      FontMetrics metrics = g.getFontMetrics();
+      Rectangle2D rect = metrics.getStringBounds(string, g);
+      float sx = (float)(x + MARGIN_SPACING);
+      float sy = (float)((y2 + y1) / 2 + rect.getHeight() / 2 - metrics.getDescent());
+      if (isReference) {
+        g.setFont(sFontReference);
+      }
+      g.drawString(string, sx, sy);
+      g.setFont(previousFont);
     }
-    g.drawString(string, sx, sy);
-    g.setFont(previousFont);
   }
 }
