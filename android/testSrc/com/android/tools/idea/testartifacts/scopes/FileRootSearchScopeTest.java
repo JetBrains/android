@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.tools.idea.testartifacts.scopes.FileRootSearchScope;
 import com.google.common.collect.ImmutableList;
 import com.intellij.testFramework.PlatformTestCase;
 
@@ -39,7 +38,7 @@ public class FileRootSearchScopeTest extends PlatformTestCase {
     File genSrcRoot = createTempDir("genSrcRoot");
     FileRootSearchScope scope2 = new FileRootSearchScope(getProject(), ImmutableList.of(genSrcRoot));
 
-    FileRootSearchScope unitedScope = scope1.merge(scope2);
+    FileRootSearchScope unitedScope = scope1.add(scope2);
     assertTrue(unitedScope.accept(getVirtualFile(srcRoot)));
     assertTrue(unitedScope.accept(getVirtualFile(genSrcRoot)));
   }

@@ -39,23 +39,24 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
     }
 
     GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(testScopes.getModule(), true);
-    GlobalSearchScope excludedScope;
+    GlobalSearchScope excludeScope;
 
     boolean inAndroidTest = testScopes.isAndroidTestSource(file);
     boolean inUnitTest = testScopes.isUnitTestSource(file);
 
     if (inAndroidTest && inUnitTest) {
-      excludedScope = testScopes.getSharedTestsExcludeScope();
+      excludeScope = testScopes.getSharedTestsExcludeScope();
     }
     else if (inAndroidTest) {
-      excludedScope = testScopes.getAndroidTestExcludeScope();
+      excludeScope = testScopes.getAndroidTestExcludeScope();
     }
     else if (inUnitTest) {
-      excludedScope = testScopes.getUnitTestExcludeScope();
+      excludeScope = testScopes.getUnitTestExcludeScope();
     }
     else {
       return null;
     }
-    return scope.intersectWith(GlobalSearchScope.notScope(excludedScope));
+    // scope - excludeScope
+    return scope.intersectWith(GlobalSearchScope.notScope(excludeScope));
   }
 }
