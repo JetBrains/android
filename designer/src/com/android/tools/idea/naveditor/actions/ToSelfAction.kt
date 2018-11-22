@@ -17,7 +17,9 @@ package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.createSelfAction
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
@@ -27,6 +29,10 @@ class ToSelfAction(private val mySurface: DesignSurface, private val component: 
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createSelfAction()
       mySurface.selectionModel.setSelection(listOf(action))
+      NavUsageTracker.getInstance(mySurface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        .withActionInfo(action)
+        .withSource(NavEditorEvent.Source.CONTEXT_MENU)
+        .log()
     }
   }
 }

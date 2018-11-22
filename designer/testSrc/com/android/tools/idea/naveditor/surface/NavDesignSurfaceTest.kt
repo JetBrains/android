@@ -17,8 +17,6 @@ package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
@@ -33,8 +31,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
-import com.android.tools.idea.naveditor.analytics.NavNopTracker
-import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.editor.NAV_EDITOR_ID
 import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.NavCoordinate
@@ -68,9 +65,7 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
 import java.awt.Dimension
@@ -100,41 +95,31 @@ class NavDesignSurfaceTest : NavTestCase() {
     val editors = fileEditorManager.openFile(file, true)
     val surface = editors.firstIsInstance<NavEditor>().component.surface
 
-    val tracker = mockTracker(surface)
-
-    fileEditorManager.setSelectedEditor(file, TextEditorProvider.getInstance().editorTypeId)
-    verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_XML_TAB).build())
-    fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
-    verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB).build())
+    TestNavUsageTracker.create(surface).use { tracker ->
+      fileEditorManager.setSelectedEditor(file, TextEditorProvider.getInstance().editorTypeId)
+      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_XML_TAB).build())
+      fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
+      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB).build())
+    }
   }
 
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
 
-    val tracker = mockTracker(surface)
-
-    surface.model = model("nav2.xml") {
-      navigation {
-        fragment("f1")
-        activity("a1")
+    TestNavUsageTracker.create(surface).use { tracker ->
+      surface.model = model("nav2.xml") {
+        navigation {
+          fragment("f1")
+          activity("a1")
+        }
       }
+
+      val expectedEvent = NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
+        .withNavigationContents()
+        .getProtoForTest()
+      assertEquals(1, expectedEvent.contents.fragments)
+      verify(tracker).logEvent(expectedEvent)
     }
-
-    val expectedEvent = NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
-      .withNavigationContents()
-      .getProtoForTest()
-    assertEquals(1, expectedEvent.contents.fragments)
-    verify(tracker).logEvent(expectedEvent)
-  }
-
-  private fun mockTracker(surface: DesignSurface): NavNopTracker {
-    val settings = AnalyticsSettingsData()
-    settings.optedIn = true
-    AnalyticsSettings.setInstanceForTest(settings)
-    val tracker = spy(NavNopTracker())
-    doReturn(surface).`when`(tracker).surface
-    NavUsageTracker.MANAGER.setInstanceForTest(surface, tracker)
-    return tracker
   }
 
   private fun <T> any(): T = ArgumentMatchers.any() as T

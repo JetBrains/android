@@ -16,7 +16,9 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
+import com.android.tools.idea.naveditor.property.inspector.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavActionElement
@@ -35,10 +37,7 @@ class AddActionToolbarAction(surface: NavDesignSurface) :
   override fun actionPerformed(e: AnActionEvent) {
     surface.selectionModel.selection.firstOrNull()?.let {
       val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it)
-      if (dialog.showAndGet()) {
-        val action = dialog.writeUpdatedAction()
-        surface.selectionModel.setSelection(listOf(action))
-      }
+      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.TOOLBAR, false)
     }
   }
 }

@@ -14,14 +14,23 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.AUTO_URI
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.actionDestination
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavActionInfo
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 import java.awt.Font
 import javax.swing.JComboBox
 import javax.swing.JLabel
@@ -608,4 +617,73 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("foo", dialog.id)
     dialog.close(0)
   }
+
+  fun testShowAndUpdateFromDialogWithExisting() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+        }
+        fragment("f2")
+      }
+    }
+    val surface = model.surface
+    val dialog = mock(AddActionDialog::class.java)
+    `when`(dialog.showAndGet()).thenReturn(true)
+    val action = model.find("a1")!!
+    doReturn(action).`when`(dialog).writeUpdatedAction()
+
+    TestNavUsageTracker.create(surface).use { tracker ->
+      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, true)
+      assertSameElements(surface.selectionModel.selection, action)
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.EDIT_ACTION)
+                                 .setActionInfo(NavActionInfo.newBuilder()
+                                                  .setCountFromSource(1)
+                                                  .setCountSame(1)
+                                                  .setCountToDestination(1)
+                                                  .setType(NavActionInfo.ActionType.REGULAR))
+                                 .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+    }
+  }
+
+  fun testShowAndUpdateFromDialogToCreate() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+        }
+        fragment("f2")
+      }
+    }
+    val surface = model.surface
+    val dialog = mock(AddActionDialog::class.java)
+    `when`(dialog.showAndGet()).thenReturn(true)
+    val action = model.find("a1")!!
+    doReturn(action).`when`(dialog).writeUpdatedAction()
+
+    TestNavUsageTracker.create(surface).use { tracker ->
+      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, false)
+      assertSameElements(surface.selectionModel.selection, action)
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+                                 .setActionInfo(NavActionInfo.newBuilder()
+                                                  .setCountFromSource(1)
+                                                  .setCountSame(1)
+                                                  .setCountToDestination(1)
+                                                  .setType(NavActionInfo.ActionType.REGULAR))
+                                 .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+    }
+  }
+
+  fun testShowAndUpdateFromDialogCancel() {
+    val surface = mock(NavDesignSurface::class.java)
+    val dialog = mock(AddActionDialog::class.java)
+    TestNavUsageTracker.create(surface).use { tracker ->
+      `when`(dialog.showAndGet()).thenReturn(false)
+      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, false)
+      verifyZeroInteractions(tracker)
+    }
+  }
+
 }
