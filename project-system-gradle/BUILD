@@ -42,7 +42,6 @@ iml_module(
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:constraint-layout_latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
