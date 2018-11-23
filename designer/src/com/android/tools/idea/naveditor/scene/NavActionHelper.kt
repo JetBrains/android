@@ -251,6 +251,19 @@ fun getIconRect(@SwingCoordinate source: Rectangle2D.Float,
                            2 * radius, 2 * radius)
 }
 
+fun getIconRectSelf(@SwingCoordinate start: Point2D.Float, context: SceneContext): Rectangle2D.Float {
+  val distance = context.getSwingDimension(POP_ICON_DISTANCE).toFloat()
+  val offsetX = context.getSwingDimension(SELF_ACTION_LENGTHS[0]) + distance
+  val x = start.x + offsetX
+
+  val range = context.getSwingDimension(POP_ICON_RANGE).toDouble()
+  val y = start.y + Math.sqrt(Math.max(range * range - offsetX * offsetX, 0.0)).toFloat()
+
+  val radius = context.getSwingDimension(POP_ICON_RADIUS).toFloat()
+
+  return Rectangle2D.Float(x, y, 2 * radius, 2 * radius)
+}
+
 private fun getCenterPoint(rectangle: Rectangle2D.Float): Point2D.Float {
   return Point2D.Float(rectangle.centerX.toFloat(), rectangle.centerY.toFloat())
 }
