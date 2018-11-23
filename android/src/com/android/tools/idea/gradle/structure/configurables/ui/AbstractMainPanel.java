@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.navigation.History;
@@ -26,8 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
-import java.util.List;
 
 public abstract class AbstractMainPanel extends JPanel implements Disposable, Place.Navigator, CrossModuleUiStateComponent {
   @NotNull private final PsProject myProject;

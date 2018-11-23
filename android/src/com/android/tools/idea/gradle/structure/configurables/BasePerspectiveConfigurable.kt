@@ -278,7 +278,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
     assert(configurable is BaseNamedConfigurable<*>)
   }
 
-
   override fun createActions(fromPopup: Boolean): List<AnAction> =
     listOf(
       object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
