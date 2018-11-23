@@ -49,9 +49,12 @@ class PsMessageScopeAggregator(
       .groupBy({ it.buildType }, { PsMessageAggregatedScope(it).copy(buildType = null) })
       .mapValues { (_, value) -> value.toSet() }
 
-    val commonTails = allBuildTypes
-      .map { tailsByBuildType[it].orEmpty() }
-      .reduce { acc, it -> acc.intersect(it) }
+    val commonTails =
+      allBuildTypes
+        .map { tailsByBuildType[it].orEmpty() }
+        .takeUnless { it.isEmpty() }
+        ?.reduce { acc, it -> acc.intersect(it) }
+      ?: setOf()
 
     val aggregatedTails = aggregateProductFlavors(commonTails)
     return tailsByBuildType
@@ -72,9 +75,12 @@ class PsMessageScopeAggregator(
       .groupBy({ it.productFlavors[firstIndex] }, { it.withFlavor(flavor = null, at = firstIndex) })
       .mapValues { (_, value) -> value.toSet() }
 
-    val commonTails = allProductFlavors[firstIndex]
-      .map { tailsByProductFlavor[it].orEmpty() }
-      .reduce { acc, it -> it.intersect(acc) }
+    val commonTails =
+      allProductFlavors[firstIndex]
+        .map { tailsByProductFlavor[it].orEmpty() }
+        .takeUnless { it.isEmpty() }
+        ?.reduce { acc, it -> it.intersect(acc) }
+      ?: setOf()
 
     val aggregatedTails = aggregateProductFlavors(commonTails, firstIndex + 1, collapsed + 1)
       .takeIf {
