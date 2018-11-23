@@ -41,16 +41,6 @@ class PsIssueCollection {
     }
   }
 
-  fun findIssues(model: PsModel, comparator: Comparator<PsIssue>?): List<PsIssue> =
-    when (model) {
-      is PsModule -> PsModulePath(model)
-      is PsLibraryDependency -> PsLibraryDependencyNavigationPath(model)
-      else -> null
-    }
-      ?.let { findIssues(it, comparator) }
-      .orEmpty()
-
-
   fun findIssues(path: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> =
     synchronized(lock) {
       myIssues.get(path).toList()
