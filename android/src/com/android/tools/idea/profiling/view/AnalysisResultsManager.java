@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +116,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
         if (isSelected(e)) {
           presentation.setText(AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.name"));
           presentation.setDescription(AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.description"));
-          presentation.setIcon(AllIcons.Process.DisabledRun);
+          presentation.setIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Execute));
         }
         else {
           presentation.setText(AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.name"));
