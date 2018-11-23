@@ -41,7 +41,7 @@ abstract class PsModule protected constructor(
 ) : PsChildModel() {
   abstract val gradlePath: String?
   final override var name: String = "" ; private set
-  override val path: PsPath? get() = PsModulePath(name)
+  override val path: PsModulePath get() = PsModulePath(name)
   var parsedModel: GradleBuildModel? = null ; private set
 
   var parentModule: PsModule? = null ; private set
