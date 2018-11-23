@@ -18,8 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 import static junit.framework.TestCase.assertTrue;
 
 import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
-import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -74,7 +74,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
-  public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
+  public NlEditorFixture(@NotNull Robot robot, @NotNull DesignerEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
     DesignSurface surface = editor.getComponent().getSurface();
     if (surface instanceof NlDesignSurface) {
