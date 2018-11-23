@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,22 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler
+import com.android.tools.idea.gradle.structure.navigation.Places
 import com.intellij.ui.navigation.Place
 
-data class PsModulePath(val moduleName: String) : PsPlaceBasedPath() {
-  constructor (module: PsModule) : this(module.name)
-  override fun toString(): String = moduleName
-  override fun queryPlace(place: Place, context: PsContext) = throw UnsupportedOperationException()
-  override fun getHyperlinkDestination(context: PsContext): String? = null
+/**
+ * A navigation path base don UI places.
+ */
+abstract class PsPlaceBasedPath : PsPath {
+  /**
+   * Populate [place] with nagigation path items.
+   */
+  abstract fun queryPlace(place: Place, context: PsContext)
+
+  override fun getHyperlinkDestination(context: PsContext): String? {
+    val place = Place()
+    queryPlace(place, context)
+    return GoToPathLinkHandler.GO_TO_PATH_TYPE + Places.serialize(place)
+  }
 }

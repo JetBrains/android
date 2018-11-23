@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,25 @@
  */
 package com.android.tools.idea.gradle.structure.navigation
 
+import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MODULE_DEPENDENCIES_PLACE_NAME
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.intellij.ui.navigation.Place
 
-
-data class PsLibraryDependencyNavigationPath(override val parent: PsDependenciesNavigationPath, val dependency: String) : PsPlaceBasedPath() {
-  constructor (dependency: PsLibraryDependency) :
-    this(PsDependenciesNavigationPath(PsModulePath(dependency.parent)), dependency.spec.compactNotation())
-
+data class PsDependenciesNavigationPath(override val parent: PsModulePath) : PsPlaceBasedPath() {
   override fun queryPlace(place: Place, context: PsContext) {
-    parent.queryPlace(place, context)
-    place.putPath(MODULE_DEPENDENCIES_PLACE_NAME, dependency)
+    val mainConfigurable = context.mainConfigurable
+    val target = mainConfigurable.findConfigurable(
+      DependenciesPerspectiveConfigurable::class.java)!!
+
+    ProjectStructureConfigurable.putPath(place, target)
+    target.putNavigationPath(place, parent.moduleName)
   }
 
-  override fun toString(): String = dependency
+  override val canHide: Boolean get() = true
+
+  override fun toString(): String = "Dependencies"
 }

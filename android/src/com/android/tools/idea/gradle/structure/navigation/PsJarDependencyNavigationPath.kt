@@ -17,28 +17,21 @@ package com.android.tools.idea.gradle.structure.navigation
 
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler.GO_TO_PATH_TYPE
+import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MODULE_DEPENDENCIES_PLACE_NAME
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPath
-import com.android.tools.idea.gradle.structure.navigation.Places.serialize
+import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath
 import com.intellij.ui.navigation.Place
 
-data class PsJarDependencyNavigationPath(override val parent: PsModulePath, val dependency: String) : PsPath {
-  constructor (dependency: PsJarDependency) : this(PsModulePath(dependency.parent),
-                                                   "${dependency.joinedConfigurationNames}/${dependency.filePath}")
+data class PsJarDependencyNavigationPath(override val parent: PsDependenciesNavigationPath, val dependency: String) : PsPlaceBasedPath() {
+  constructor (dependency: PsJarDependency) :
+    this(PsDependenciesNavigationPath(PsModulePath(dependency.parent)), "${dependency.joinedConfigurationNames}/${dependency.filePath}")
 
-  override fun getHyperlinkDestination(context: PsContext): String {
-    val place = Place()
-
-    val mainConfigurable = context.mainConfigurable
-    val target = mainConfigurable.findConfigurable(DependenciesPerspectiveConfigurable::class.java)!!
-
-    putPath(place, target)
-    target.putNavigationPath(place, parent.moduleName, dependency)
-
-    return GO_TO_PATH_TYPE + serialize(place)
+  override fun queryPlace(place: Place, context: PsContext) {
+    parent.queryPlace(place, context)
+    place.putPath(MODULE_DEPENDENCIES_PLACE_NAME, dependency)
   }
 
   override fun toString(): String = dependency

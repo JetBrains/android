@@ -30,15 +30,20 @@ class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
     val issueText = issue.text.makeTextWrappable()
 
     buffer.append("<b>")
-    buffer.append(issuePathText)
-    issuePath.parents.asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
-      val parentPathHref = parentPath.getHyperlinkDestination(context)
-      val parentPathText = parentPath.toString().makeTextWrappable()
-      buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
+    issuePath.parents.asReversed().takeWhile { it != scope }.asReversed().let { parents ->
+      parents.forEachIndexed { index, parentPath ->
+        if (parentPath.canHide) return@forEachIndexed
+        val parentPathHref = parentPath.getHyperlinkDestination(context)
+                             ?: (if (index < parents.size - 1) parents[index + 1].getHyperlinkDestination(context) else null)
+        if (parentPathHref != null) {
+          val parentPathText = parentPath.toString().makeTextWrappable()
+          buffer.append("<a href=\"$parentPathHref\">$parentPathText</a> » ")
+        }
+      }
+      buffer.append(issuePathText)
     }
-    buffer.append(" : ")
+    buffer.append("</b><p>")
     buffer.append(issueText)
-    buffer.append("</b>")
     if (issuePathHref != null) {
       buffer.append("<br/><a href='$issuePathHref'>View usage</a>")
     }

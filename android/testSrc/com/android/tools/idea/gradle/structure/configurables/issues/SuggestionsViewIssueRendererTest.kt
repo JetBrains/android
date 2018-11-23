@@ -31,7 +31,8 @@ class SuggestionsViewIssueRendererTest {
     override fun getHtml(context: PsContext): String = "html"
   }
   private val testIssuePath = TestPath("/PATH")
-  private val testIssueParentedPath = TestPath("/CHILD", testIssuePath)
+  private val testIssueParentPath = TestPath("/PATH", null, "url:parentpath")
+  private val testIssueParentedPath = TestPath("/CHILD", testIssueParentPath)
 
   @Before
   fun setUp() {
@@ -55,7 +56,7 @@ class SuggestionsViewIssueRendererTest {
     val testIssue = createIssue(testIssuePath)
     val renderer = SuggestionsViewIssueRenderer(context)
     val result = renderIssue(renderer, testIssue, scope = null)
-    assertThat(result.header, equalTo("<b>/PATH : TEXT</b>"))
+    assertThat(result.header, equalTo("<b>/PATH</b><p>TEXT"))
     assertThat(result.details, equalTo(""))
   }
 
@@ -64,7 +65,7 @@ class SuggestionsViewIssueRendererTest {
     val testIssue = createIssue(testIssueParentedPath)
     val renderer = SuggestionsViewIssueRenderer(context)
     val result = renderIssue(renderer, testIssue, scope = testIssueParentedPath.parents[0])
-    assertThat(result.header, equalTo("<b>/CHILD : TEXT</b>"))
+    assertThat(result.header, equalTo("<b>/CHILD</b><p>TEXT"))
     assertThat(result.details, equalTo(""))
   }
 
@@ -73,7 +74,7 @@ class SuggestionsViewIssueRendererTest {
     val testIssue = createIssue(testIssueParentedPath)
     val renderer = SuggestionsViewIssueRenderer(context)
     val result = renderIssue(renderer, testIssue, scope = null)
-    assertThat(result.header, equalTo("""<b>/CHILD (<a href="null">/PATH</a>) : TEXT</b>"""))
+    assertThat(result.header, equalTo("""<b><a href="url:parentpath">/PATH</a> » /CHILD</b><p>TEXT"""))
     assertThat(result.details, equalTo(""))
   }
 
@@ -82,7 +83,7 @@ class SuggestionsViewIssueRendererTest {
     val testIssue = createIssue(viewUsagePath)
     val renderer = SuggestionsViewIssueRenderer(context)
     val result = renderIssue(renderer, testIssue, scope = null)
-    assertThat(result.header, equalTo("<b>/WITH_USAGE : TEXT</b>"))
+    assertThat(result.header, equalTo("<b>/WITH_USAGE</b><p>TEXT"))
     assertThat(result.details, equalTo("<a href='href-dest'>View usage</a>"))
   }
 
@@ -91,7 +92,7 @@ class SuggestionsViewIssueRendererTest {
     val testIssue = createIssue(testIssuePath, quickFix = quickFix)
     val renderer = SuggestionsViewIssueRenderer(context)
     val result = renderIssue(renderer, testIssue, scope = null)
-    assertThat(result.header, equalTo("<b>/PATH : TEXT</b>"))
+    assertThat(result.header, equalTo("<b>/PATH</b><p>TEXT"))
     assertThat(result.details, equalTo(""))
   }
 }
