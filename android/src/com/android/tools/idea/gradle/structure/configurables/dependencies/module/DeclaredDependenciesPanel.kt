@@ -46,6 +46,8 @@ import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
 import javax.swing.JComponent
 
+const val MODULE_DEPENDENCIES_PLACE_NAME = "module.dependencies.place"
+
 /**
  * Panel that displays the table of "editable" dependencies.
  */
@@ -104,7 +106,7 @@ internal class DeclaredDependenciesPanel(
     updateTableColumnSizes()
   }
 
-  private fun createPlaceName(moduleName: String): String = "dependencies.$moduleName.place"
+  private fun createPlaceName(moduleName: String): String = MODULE_DEPENDENCIES_PLACE_NAME
 
   private fun initializeDependencyDetails() {
     addDetails(SingleDeclaredLibraryDependencyDetails(context))
