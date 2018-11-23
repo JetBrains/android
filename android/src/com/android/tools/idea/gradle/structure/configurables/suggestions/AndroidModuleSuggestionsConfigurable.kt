@@ -28,12 +28,11 @@ import java.awt.BorderLayout
 
 class AndroidModuleSuggestionsConfigurable(
     context: PsContext,
-    module: PsModule,
-    private val extraModules: List<PsModule>
+    module: PsModule
 ) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
   override fun getId() = "android.psd.suggestions." + displayName
 
-  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context, extraModules) {
+  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     private val panel = createInnerPanel().also {
       add(it.panel, BorderLayout.CENTER)
     }
