@@ -15,7 +15,18 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.ide.common.fonts.*;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.xml.XmlPrettyPrinter;
@@ -24,28 +35,20 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.util.FileExtensions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
-
-import java.io.File;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class LayoutPullParsersTest extends AndroidTestCase {
@@ -322,12 +325,14 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertEquals(RES_AUTO, LayoutPullParsers.create(createRenderTask(menuFile)).getLayoutNamespace());
     assertEquals(RES_AUTO, LayoutPullParsers.create(createRenderTask(drawableFile)).getLayoutNamespace());
 
-    // Framework XML:
-    ResourceItem frameworkResourceItem =
-      Iterables.getOnlyElement(ResourceRepositoryManager.getOrCreateInstance(myFacet)
-                                                        .getFrameworkResources(false)
-                                                        .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon"));
-    VirtualFile frameworkFile = FileExtensions.toVirtualFile(frameworkResourceItem.getSource());
-    assertEquals(ANDROID, LayoutPullParsers.create(createRenderTask(frameworkFile)).getLayoutNamespace());
+    // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
+    List<ResourceItem> frameworkResourceItems = ResourceRepositoryManager.getOrCreateInstance(myFacet)
+      .getFrameworkResources(false)
+      .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
+
+    for (ResourceItem frameworkResourceItem : frameworkResourceItems) {
+      VirtualFile frameworkFile = toVirtualFile(frameworkResourceItem.getSource());
+      assertEquals(ANDROID, LayoutPullParsers.create(createRenderTask(frameworkFile)).getLayoutNamespace());
+    }
   }
 }

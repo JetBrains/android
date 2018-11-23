@@ -20,6 +20,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -35,9 +36,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -433,14 +432,15 @@ public class ResourceHelperTest extends AndroidTestCase {
     PsiClass frameworkClass = myFixture.getJavaFacade().findClass("android.app.Activity");
     assertThat(ResourceHelper.getResourceNamespace(frameworkClass)).isEqualTo(ANDROID);
 
-    // Framework XML:
-    ResourceItem appIconResourceItem =
-      Iterables.getOnlyElement(ResourceRepositoryManager.getOrCreateInstance(myFacet)
-                                                        .getFrameworkResources(false)
-                                                        .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon"));
-    XmlFile appIcon = (XmlFile)PsiManager.getInstance(getProject()).findFile(FileExtensions.toVirtualFile(appIconResourceItem.getSource()));
-    assertThat(ResourceHelper.getResourceNamespace(appIcon)).isEqualTo(ANDROID);
-    assertThat(ResourceHelper.getResourceNamespace(appIcon.getRootTag())).isEqualTo(ANDROID);
+    // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
+    List<ResourceItem> appIconResourceItems = ResourceRepositoryManager.getOrCreateInstance(myFacet)
+      .getFrameworkResources(false)
+      .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 
+    for (ResourceItem appIconResourceItem : appIconResourceItems) {
+      XmlFile appIcon = (XmlFile)PsiManager.getInstance(getProject()).findFile(toVirtualFile(appIconResourceItem.getSource()));
+      assertThat(ResourceHelper.getResourceNamespace(appIcon)).isEqualTo(ANDROID);
+      assertThat(ResourceHelper.getResourceNamespace(appIcon.getRootTag())).isEqualTo(ANDROID);
+    }
   }
 }
