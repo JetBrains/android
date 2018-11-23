@@ -34,9 +34,9 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Module
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -83,8 +83,7 @@ public final class TestArtifactSearchScopes implements Disposable {
       return null;
     }
 
-    ProjectFileIndex projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project);
-    Module module = projectFileIndex.getModuleForFile(file);
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
     return module != null ? get(module) : null;
   }
 

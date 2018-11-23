@@ -89,7 +89,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       // (and syncing VFS) seems to fix huge flakiness that we observe otherwise.
       // TODO(b/64667992): try to listen for a finished gradle build (the one from "run before" in the run config) and sync VFS then.
       val result = invokeGradleTasks(project, "test")
-      assertTrue(result.isBuildSuccessful)
+      assertTrue("Gradle build failed.", result.isBuildSuccessful)
       log("Command-line tests done")
       VirtualFileManager.getInstance().syncRefresh()
       log("Vfs synced")
@@ -338,7 +338,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     assertThat(testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_TEST)
     assertThat(testRun.testKind).isEqualTo(TestRun.TestKind.UNIT_TEST)
     assertThat(testRun.numberOfTestsExecuted).isEqualTo(expectedTests.size)
-    assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.19.0")
+    assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.7.1")
   }
 
   private fun createRunnerConfigurationSettingsForClass(className: String): RunnerAndConfigurationSettings {
