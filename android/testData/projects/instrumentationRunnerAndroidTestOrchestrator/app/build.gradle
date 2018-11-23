@@ -30,4 +30,5 @@ android {
 
 dependencies {
     androidTestImplementation 'com.android.support:appcompat-v7:+'
+    androidTestImplementation 'com.android.support.test:runner:+'
 }
