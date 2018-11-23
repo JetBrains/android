@@ -36,23 +36,19 @@ import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.refactoring.listeners.RefactoringElementListener
 
-private val JUnitConfiguration.testArtifactSearchScopes: Sequence<TestArtifactSearchScopes>
-  get() {
-    return (this as AndroidJUnitConfiguration).modulesToCompile
-      .asSequence()
-      .mapNotNull(TestArtifactSearchScopes::get)
-  }
-
+/**
+ * Returns a new [GlobalSearchScope] with exclusion rules for unit tests from [TestArtifactSearchScopes] for all modules relevant to the
+ * [JUnitConfiguration].
+ *
+ * @see TestArtifactSearchScopes.getUnitTestExcludeScope
+ */
 private fun fixScope(originalScope: GlobalSearchScope, jUnitConfiguration: JUnitConfiguration): GlobalSearchScope {
-  return jUnitConfiguration.testArtifactSearchScopes.fold(originalScope) { scope, testArtifactSearchScopes ->
-    scope.intersectWith(testArtifactSearchScopes.androidTestExcludeScope)
-  }
-}
-
-private fun fixTestClassFilter(originalFilter: TestClassFilter, jUnitConfiguration: JUnitConfiguration): TestClassFilter {
-  return jUnitConfiguration.testArtifactSearchScopes.fold(originalFilter) { filter, testArtifactSearchScopes ->
-    filter.intersectionWith(testArtifactSearchScopes.androidTestExcludeScope)
-  }
+  return (jUnitConfiguration as AndroidJUnitConfiguration).modulesToCompile
+    .asSequence()
+    .mapNotNull(TestArtifactSearchScopes::get)
+    .fold(originalScope) { scope, testArtifactSearchScopes ->
+      scope.intersectWith(GlobalSearchScope.notScope(testArtifactSearchScopes.unitTestExcludeScope))
+    }
 }
 
 /**
@@ -110,7 +106,10 @@ class AndroidTestsPattern(
   configuration: JUnitConfiguration,
   environment: ExecutionEnvironment
 ) : TestsPattern(configuration, environment) {
-  override fun getClassFilter(data: JUnitConfiguration.Data) = fixTestClassFilter(super.getClassFilter(data), configuration)
+  override fun getClassFilter(data: JUnitConfiguration.Data): TestClassFilter {
+    val originalFilter = super.getClassFilter(data)
+    return originalFilter.intersectionWith(fixScope(originalFilter.scope, configuration))
+  }
 }
 
 /**
@@ -122,5 +121,8 @@ class AndroidTestPackage(
   environment: ExecutionEnvironment
 ) : TestPackage(configuration, environment) {
   @VisibleForTesting
-  public override fun getClassFilter(data: JUnitConfiguration.Data) = fixTestClassFilter(super.getClassFilter(data), configuration)
+  public override fun getClassFilter(data: JUnitConfiguration.Data): TestClassFilter {
+    val originalFilter = super.getClassFilter(data)
+    return originalFilter.intersectionWith(fixScope(originalFilter.scope, configuration))
+  }
 }
