@@ -19,6 +19,7 @@ package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
 import com.intellij.lang.properties.psi.PropertiesFile
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -53,10 +54,13 @@ fun Project.setAndroidxProperties() {
 /**
  * Checks that the "useAndroidx" is set explicitly. This method does not say anything about its value.
  */
-fun Project.hasAndroidxProperty(): Boolean = getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY) != null
+fun Project.hasAndroidxProperty(): Boolean = ReadAction.compute<Boolean, RuntimeException> {
+  getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY) != null
+}
 
 /**
  * Checks that the "useAndroidx" property is set to true
  */
-fun Project.isAndroidx(): Boolean =
+fun Project.isAndroidx(): Boolean = ReadAction.compute<Boolean, RuntimeException> {
   getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.value?.toBoolean() ?: false
+}
