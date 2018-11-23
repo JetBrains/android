@@ -15,14 +15,15 @@
  */
 package com.example.android.app;
 
-import android.app.Application;
-import android.test.ApplicationTestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
  */
-public class ExampleTest extends ApplicationTestCase<Application> {
-    public ExampleTest() {
-        super(Application.class);
+@RunWith(AndroidJUnit4.class)
+public class ExampleTest {
+    @Test
+    public exampleTest() {
     }
 }

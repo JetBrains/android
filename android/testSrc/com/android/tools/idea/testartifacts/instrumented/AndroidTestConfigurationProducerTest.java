@@ -99,11 +99,15 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     Files.write(
       "package google.simpleapplication;\n" +
       "\n" +
-      "import android.app.Application;\n" +
-      "import android.test.ApplicationTestCase;\n" +
+      "import org.junit.Test;\n" +
+      "import org.junit.runner.RunWith;\n" +
       "\n" +
       "public class SomeTest {\n" +
-      "  public static class InnerClassTest extends ApplicationTestCase<Application> {\n" +
+      "  @RunWith(AndroidJUnit4.class)\n" +
+      "  public static class InnerClassTest {\n" +
+      "    @Test\n" +
+      "    public exampleTest() {\n" +
+      "    }\n" +
       "    \n" +
       "  }\n" +
       "}",
