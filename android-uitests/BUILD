@@ -4,7 +4,6 @@ COMMON_DATA = [
     "//tools/adt/idea/android:test_deps.zip",
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
-    "//prebuilts/studio/sdk:constraint-layout_latest",
     "//prebuilts/studio/sdk:cmake",
     "//prebuilts/studio/sdk:ndk-bundle",
     "//prebuilts/studio/sdk:platforms/latest",
