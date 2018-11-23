@@ -38,6 +38,7 @@ class SuggestionViewer(
   private fun renderIssue(issue: PsIssue, scope: PsPath?) {
     val hyperlinkListener = NavigationHyperlinkListener(context)
     myText.text = renderer.renderIssue(issue, scope)
+    myIconLabel.icon = issue.severity.icon
     myText.addHyperlinkListener(hyperlinkListener)
 
     val hyperlinkDestination = issue.quickFix?.getHyperlinkDestination(context)

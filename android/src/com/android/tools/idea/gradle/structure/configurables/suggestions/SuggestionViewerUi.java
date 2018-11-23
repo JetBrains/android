@@ -32,6 +32,8 @@ public abstract class SuggestionViewerUi {
   protected JButton myUpdateButton;
   protected JPanel myButtonPanel;
   protected JPanel myTextPanel;
+  protected JLabel myIconLabel;
+  protected JPanel myIconPanel;
 
   public SuggestionViewerUi(boolean isLast) {
     myPanel.setName(SUGGESTION_VIEWER_NAME);
@@ -39,6 +41,7 @@ public abstract class SuggestionViewerUi {
     myPanel.setBackground(UIUtil.getTextFieldBackground());
     myButtonPanel.setBackground(UIUtil.getTextFieldBackground());
     myTextPanel.setBackground(UIUtil.getTextFieldBackground());
+    myIconPanel.setBackground(UIUtil.getTextFieldBackground());
     myText.setBackground(UIUtil.getTextFieldBackground());
     HtmlLabel.setUpAsHtmlLabel(myText, myUpdateButton.getFont());
     // The last item does not need a separator line at the bottom.
