@@ -29,9 +29,6 @@ class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
     val issuePathText = issuePath.toString().makeTextWrappable()
     val issueText = issue.text.makeTextWrappable()
 
-    buffer.append("<table width='100%'><tr><td width='32' valign='top'>")
-    buffer.append("<img width=16 height=16 src='${issue.severity.icon}'></img>")
-    buffer.append("</td><td valign='top'>")
     buffer.append("<b>")
     buffer.append(issuePathText)
     issuePath.parents.asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
@@ -45,6 +42,5 @@ class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
     if (issuePathHref != null) {
       buffer.append("<br/><a href='$issuePathHref'>View usage</a>")
     }
-    buffer.append("</td></tr></table>")
   }
 }

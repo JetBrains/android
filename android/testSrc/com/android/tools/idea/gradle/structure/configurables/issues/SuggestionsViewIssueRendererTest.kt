@@ -44,7 +44,7 @@ class SuggestionsViewIssueRendererTest {
   data class RenderResult(val header: String?, val details: String?)
 
   private fun renderIssue(renderer: IssueRenderer, psIssue: PsIssue, scope: PsPath?) =
-      "<td[^>]*>.*</td><td[^>]*>(((?!<br/>).)*)(<br/>(.*))?</td>".toRegex().find(renderer.renderIssue(psIssue, scope)).let {
+      "(((?!<br/>).)*)(<br/>(.*))?".toRegex().find(renderer.renderIssue(psIssue, scope)).let {
         val header = it?.groups?.get(1)?.value.orEmpty()
         val details = it?.groups?.get(4)?.value.orEmpty()
         RenderResult(header, details)
