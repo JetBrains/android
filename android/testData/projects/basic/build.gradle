@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    api 'com.android.support:support-v4:27.1.1'
-    debugApi 'com.android.support:support-v13:27.1.1'
+    api 'com.android.support:support-v4:28.0.0'
+    debugApi 'com.android.support:support-v13:28.0.0'
 }
 
 android {

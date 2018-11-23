@@ -71,7 +71,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                                                                                 DslText.Reference("otherName"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("otherName").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(27, DslText.Reference("var"))))
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(28, DslText.Reference("var"))))
     }
   }
 
