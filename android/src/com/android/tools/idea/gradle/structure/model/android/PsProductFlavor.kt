@@ -56,6 +56,9 @@ open class PsProductFlavor(
   var versionName by ProductFlavorDescriptors.versionName
   var versionNameSuffix by ProductFlavorDescriptors.versionNameSuffix
   var resConfigs by ProductFlavorDescriptors.resConfigs
+  var matchingFallbacks by ProductFlavorDescriptors.matchingFallbacks
+  var consumerProguardFiles by ProductFlavorDescriptors.consumerProGuardFiles
+  var proguardFiles by ProductFlavorDescriptors.proGuardFiles
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 

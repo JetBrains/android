@@ -54,6 +54,8 @@ open class PsBuildType(
   var zipAlignEnabled by BuildTypeDescriptors.zipAlignEnabled
   var multiDexEnabled by BuildTypeDescriptors.multiDexEnabled
   var debuggable by BuildTypeDescriptors.debuggable
+  var matchingFallbacks by BuildTypeDescriptors.matchingFallbacks
+  var consumerProguardFiles by BuildTypeDescriptors.consumerProGuardFiles
   var proguardFiles by BuildTypeDescriptors.proGuardFiles
   var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
 
