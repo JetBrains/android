@@ -71,15 +71,15 @@ object ActionDecorator : NavBaseDecorator() {
         val sourceNlComponent = scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
         val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return
         val sourceRect = Coordinates.getSwingRectDip(view, sourceSceneComponent.fillDrawRect2D(0, null))
+        val isPopAction = nlComponent.popUpTo != null
 
         if (actionType == ActionType.SELF) {
-          DrawSelfAction.buildDisplayList(list, view, sourceRect, color)
+          DrawSelfAction.buildDisplayList(list, view, sourceRect, color, isPopAction)
         }
         else {
           val targetNlComponent = nlComponent.effectiveDestination ?: return
           val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
           val destRect = Coordinates.getSwingRectDip(view, destinationSceneComponent.fillDrawRect2D(0, null))
-          val isPopAction = nlComponent.popUpTo != null
 
           DrawAction.buildDisplayList(list, view, actionType, isPopAction, sourceRect, destRect, color)
         }

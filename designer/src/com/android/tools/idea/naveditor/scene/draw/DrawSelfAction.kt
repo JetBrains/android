@@ -17,9 +17,27 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.*
+import com.android.tools.idea.common.scene.draw.ArrowDirection
+import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawArrow
+import com.android.tools.idea.common.scene.draw.DrawCommandBase
+import com.android.tools.idea.common.scene.draw.buildString
+import com.android.tools.idea.common.scene.draw.colorToString
+import com.android.tools.idea.common.scene.draw.parse
+import com.android.tools.idea.common.scene.draw.point2DToString
+import com.android.tools.idea.common.scene.draw.stringToColor
+import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.scene.*
+import com.android.tools.idea.naveditor.scene.ACTION_STROKE
+import com.android.tools.idea.naveditor.scene.ConnectionDirection
+import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
+import com.android.tools.idea.naveditor.scene.SELF_ACTION_LENGTHS
+import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
+import com.android.tools.idea.naveditor.scene.getArrowPoint
+import com.android.tools.idea.naveditor.scene.getArrowRectangle
+import com.android.tools.idea.naveditor.scene.getIconRectSelf
+import com.android.tools.idea.naveditor.scene.getStartPoint
+import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import java.awt.Color
 import java.awt.Graphics2D
@@ -28,7 +46,7 @@ import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 
-class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
+data class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
                      @SwingCoordinate private val end: Point2D.Float,
                      private val myColor: Color) : DrawCommandBase() {
   private constructor(sp: Array<String>) : this(stringToPoint2D(sp[0]), stringToPoint2D(sp[1]), stringToColor(sp[2]))
@@ -57,7 +75,7 @@ class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
   }
 
   companion object {
-    fun buildDisplayList(list: DisplayList, sceneView: SceneView, rect: Rectangle2D.Float, color: Color) {
+    fun buildDisplayList(list: DisplayList, sceneView: SceneView, rect: Rectangle2D.Float, color: Color, isPopAction: Boolean) {
       val start = getStartPoint(rect)
       val sceneContext = SceneContext.get(sceneView)
       val arrowPoint = getArrowPoint(sceneContext, rect, ConnectionDirection.BOTTOM)
@@ -69,6 +87,11 @@ class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
 
       list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, arrowRectangle, color))
       list.add(DrawSelfAction(start, end, color))
+
+      if (isPopAction) {
+        val iconRect = getIconRectSelf(start, sceneContext)
+        list.add(DrawIcon(iconRect, DrawIcon.IconType.POP_ACTION, color))
+      }
     }
   }
 }
