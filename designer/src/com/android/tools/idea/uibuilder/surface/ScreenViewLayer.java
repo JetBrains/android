@@ -237,7 +237,7 @@ public class ScreenViewLayer extends Layer {
     if (sx + sw > image.getWidth()) {
       sw = image.getWidth() - sx;
     }
-    if (sy + sy > image.getHeight()) {
+    if (sy + sh > image.getHeight()) {
       sh = image.getHeight() - sy;
     }
 
