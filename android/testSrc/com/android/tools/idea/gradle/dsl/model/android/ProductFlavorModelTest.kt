@@ -15,6 +15,58 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_ASSIGNMENT_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_APPEND_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_OVERRIDE_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_FUNCTION_CALL_WITH_PARENTHESES
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_NATIVE_ELEMENT_TEXT
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_PARSE_MATCHING_FALLBACKS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_RESET_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_EXTERNAL_NATIVE_BLOCK_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXEPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_NATIVE_BLOCK_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_ONLY_NATIVE_ELEMENT_IN_THE_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_AND_RESET_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_CLEARS_PROGUARD_FILES
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE_EXPECTED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -25,32 +77,6 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNa
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.NdkBuildOptionsModelImpl
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-
-
-private const val NATIVE_ELEMENTS_TEXT = "android {\n" +
-                                         "  defaultConfig {\n" +
-                                         "    externalNativeBuild {\n" +
-                                         "      cmake {\n" +
-                                         "        abiFilters 'abiFilter1', 'abiFilter2'\n" +
-                                         "        arguments 'argument1', 'argument2'\n" +
-                                         "        cFlags 'cFlag1', 'cFlag2'\n" +
-                                         "        cppFlags 'cppFlag1', 'cppFlag2'\n" +
-                                         "        targets 'target1', 'target2'\n" +
-                                         "      }\n" +
-                                         "      ndkBuild {\n" +
-                                         "        abiFilters 'abiFilter3', 'abiFilter4'\n" +
-                                         "        arguments 'argument3', 'argument4'\n" +
-                                         "        cFlags 'cFlag3', 'cFlag4'\n" +
-                                         "        cppFlags 'cppFlag3', 'cppFlag4'\n" +
-                                         "        targets 'target3', 'target4'\n" +
-                                         "      }\n" +
-                                         "    }\n" +
-                                         "    ndk {\n" +
-                                         "      abiFilter 'abiFilter5'\n" +
-                                         "      abiFilters 'abiFilter6', 'abiFilter7'\n" +
-                                         "    }\n" +
-                                         "  }\n" +
-                                         "}"
 
 /**
  * Tests for [ProductFlavorModelImpl].
@@ -64,41 +90,7 @@ private const val NATIVE_ELEMENTS_TEXT = "android {\n" +
 class ProductFlavorModelTest : GradleFileModelTestCase() {
   @Test
   fun testDefaultConfigBlockWithApplicationStatements() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      dimension "abcd"
-                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                      maxSdkVersion 23
-                      minSdkVersion 15
-                      multiDexEnabled true
-                      multiDexKeepFile file('multidex.keep')
-                      multiDexKeepProguard file('multidex.proguard')
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      renderscriptTargetApi 18
-                      renderscriptSupportModeEnabled true
-                      renderscriptSupportModeBlasEnabled false
-                      renderscriptNdkModeEnabled true
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                      targetSdkVersion 22
-                      testApplicationId "com.example.myapplication.test"
-                      testFunctionalTest true
-                      testHandleProfiling true
-                      testInstrumentationRunner "abcd"
-                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                      useJack true
-                      vectorDrawables {
-                        useSupportLibrary true
-                      }
-                      versionCode 1
-                      versionName "1.0"
-                      wearAppUnbundled true
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -140,34 +132,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigBlockWithAssignmentStatements() {
-    val text = """android.defaultConfig {
-                    applicationId = "com.example.myapplication"
-                    consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-                    dimension = "abcd"
-                    manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-                    maxSdkVersion = 23
-                    multiDexEnabled = true
-                    proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-                    renderscriptTargetApi = 18
-                    renderscriptSupportModeEnabled = true
-                    renderscriptSupportModeBlasEnabled = false
-                    renderscriptNdkModeEnabled = true
-                    testApplicationId = "com.example.myapplication.test"
-                    testFunctionalTest = true
-                    testHandleProfiling = true
-                    testInstrumentationRunner = "abcd"
-                    testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
-                    useJack = true
-                    vectorDrawables {
-                        generatedDensities = ['yes', 'no', 'maybe']
-                        useSupportLibrary = true
-                    }
-                    versionCode = 1
-                    versionName = "1.0"
-                    wearAppUnbundled = true
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
 
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -203,27 +168,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigApplicationStatements() {
-    val text = """android.defaultConfig.applicationId "com.example.myapplication"
-                  android.defaultConfig.consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                  android.defaultConfig.dimension "abcd"
-                  android.defaultConfig.manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                  android.defaultConfig.maxSdkVersion 23
-                  android.defaultConfig.minSdkVersion 15
-                  android.defaultConfig.multiDexEnabled true
-                  android.defaultConfig.proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                  android.defaultConfig.resConfigs "abcd", "efgh"
-                  android.defaultConfig.resValue "abcd", "efgh", "ijkl"
-                  android.defaultConfig.targetSdkVersion 22
-                  android.defaultConfig.testApplicationId "com.example.myapplication.test"
-                  android.defaultConfig.testFunctionalTest true
-                  android.defaultConfig.testHandleProfiling true
-                  android.defaultConfig.testInstrumentationRunner "abcd"
-                  android.defaultConfig.testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                  android.defaultConfig.useJack true
-                  android.defaultConfig.versionCode 1
-                  android.defaultConfig.versionName "1.0"""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_APPLICATION_STATEMENTS)
 
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -255,23 +200,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigAssignmentStatements() {
-    val text = """android.defaultConfig.applicationId = "com.example.myapplication"
-                  android.defaultConfig.consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-                  android.defaultConfig.dimension = "abcd"
-                  android.defaultConfig.manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-                  android.defaultConfig.maxSdkVersion = 23
-                  android.defaultConfig.multiDexEnabled = true
-                  android.defaultConfig.proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-                  android.defaultConfig.testApplicationId = "com.example.myapplication.test"
-                  android.defaultConfig.testFunctionalTest = true
-                  android.defaultConfig.testHandleProfiling = true
-                  android.defaultConfig.testInstrumentationRunner = "abcd"
-                  android.defaultConfig.testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
-                  android.defaultConfig.useJack = true
-                  android.defaultConfig.versionCode = 1
-                  android.defaultConfig.versionName = "1.0"""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_ASSIGNMENT_STATEMENTS)
 
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -299,49 +228,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigBlockWithOverrideStatements() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                      consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro'
-                      dimension "abcd"
-                      manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-                      maxSdkVersion 23
-                      minSdkVersion 15
-                      multiDexEnabled true
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      targetSdkVersion 22
-                      testApplicationId "com.example.myapplication.test"
-                      testFunctionalTest true
-                      testHandleProfiling = false
-                      testInstrumentationRunner = "abcd"
-                      testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
-                      useJack true
-                      versionCode 1
-                      versionName "1.0"
-                    }
-                  }
-                  android.defaultConfig {
-                    applicationId = "com.example.myapplication1"
-                    consumerProguardFiles 'proguard-android-1.txt', 'proguard-rules-1.pro'
-                    dimension "efgh"
-                    manifestPlaceholders activityLabel3:"defaultName3", activityLabel4:"defaultName4"
-                    maxSdkVersion = 24
-                    minSdkVersion 16
-                    multiDexEnabled false
-                    proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.pro']
-                    targetSdkVersion 23
-                    testApplicationId = "com.example.myapplication.test1"
-                    testFunctionalTest false
-                    testHandleProfiling true
-                    testInstrumentationRunner = "efgh"
-                    testInstrumentationRunnerArguments = [key:"value"]
-                    useJack = false
-                    versionCode 2
-                    versionName = "2.0"
-                  }
-                  android.defaultConfig.versionName = "3.0"""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_OVERRIDE_STATEMENTS)
 
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -370,29 +257,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigBlockWithAppendStatements() {
-    val text = """android.defaultConfig {
-                    proguardFiles = ['pro-1.txt', 'pro-2.txt']
-                    resConfigs "abcd", "efgh"
-                    resValue "abcd", "efgh", "ijkl"
-                    testInstrumentationRunnerArguments = [key1:"value1", key2:"value2"]
-                    testInstrumentationRunnerArgument "key3", "value3"
-                  }
-                  android {
-                    defaultConfig {
-                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                      proguardFile 'pro-3.txt'
-                      resConfigs "ijkl", "mnop"
-                      resValue "mnop", "qrst", "uvwx"
-                      testInstrumentationRunnerArguments key4:"value4", key5:"value5"
-                    }
-                  }
-                  android.defaultConfig.manifestPlaceholders.activityLabel3 "defaultName3"
-                  android.defaultConfig.manifestPlaceholders.activityLabel4 = "defaultName4"
-                  android.defaultConfig.proguardFiles 'pro-4.txt', 'pro-5.txt'
-                  android.defaultConfig.resConfig "qrst"
-                  android.defaultConfig.testInstrumentationRunnerArguments.key6 "value6"
-                  android.defaultConfig.testInstrumentationRunnerArguments.key7 = "value7"""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_APPEND_STATEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -433,31 +298,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndResetElements() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      dimension "abcd"
-                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                      maxSdkVersion 23
-                      minSdkVersion 15
-                      multiDexEnabled true
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                      targetSdkVersion 22
-                      testApplicationId "com.example.myapplication.test"
-                      testFunctionalTest false
-                      testHandleProfiling true
-                      testInstrumentationRunner "abcd"
-                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                      useJack false
-                      versionCode 1
-                      versionName "1.0"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_AND_RESET_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -555,25 +396,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndResetLiteralElements() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                      dimension "abcd"
-                      maxSdkVersion 23
-                      minSdkVersion "15"
-                      multiDexEnabled true
-                      targetSdkVersion "22"
-                      testApplicationId "com.example.myapplication.test"
-                      testFunctionalTest false
-                      testHandleProfiling true
-                      testInstrumentationRunner "abcd"
-                      useJack false
-                      versionCode 1
-                      versionName "1.0"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -656,12 +479,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetLiteralElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -744,16 +562,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceAndResetListElements() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -789,12 +598,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetListElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -827,16 +631,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndResetListElements() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -874,17 +669,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveFromAndResetListElements() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                      resValue "mnop", "qrst", "uvwx"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -921,14 +706,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetAndResetMapElements() {
-    val text = """android {
-                    defaultConfig {
-                      manifestPlaceholders key1:"value1", key2:"value2"
-                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_AND_RESET_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -958,12 +736,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetMapElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -991,14 +764,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndResetMapElements() {
-    val text = """android {
-                    defaultConfig {
-                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -1028,31 +794,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyElements() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      dimension "abcd"
-                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                      maxSdkVersion 23
-                      minSdkVersion 15
-                      multiDexEnabled true
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                      targetSdkVersion 22
-                      testApplicationId "com.example.myapplication.test"
-                      testFunctionalTest false
-                      testHandleProfiling true
-                      testInstrumentationRunner "abcd"
-                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                      useJack false
-                      versionCode 1
-                      versionName "1.0"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1180,25 +922,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndApplyLiteralElements() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                      dimension "abcd"
-                      maxSdkVersion 23
-                      minSdkVersion "15"
-                      multiDexEnabled true
-                      targetSdkVersion "22"
-                      testApplicationId "com.example.myapplication.test"
-                      testFunctionalTest false
-                      testHandleProfiling true
-                      testInstrumentationRunner "abcd"
-                      useJack false
-                      versionCode 1
-                      versionName "1.0"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1284,15 +1008,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndApplyIntegerLiteralElements() {
-    val text = """android {
-                    defaultConfig {
-                      minSdkVersion "15"
-                      targetSdkVersion "22"
-                      versionCode 1
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1328,12 +1044,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyLiteralElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1419,12 +1130,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyIntegerLiteralElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1460,16 +1166,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceAndApplyListElements() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1514,12 +1211,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyListElements() {
-    val text = """android {
-                      defaultConfig {
-                      }
-                    }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1562,16 +1254,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndApplyListElements() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1623,17 +1306,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveFromAndApplyListElements() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-                      proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-                      resConfigs "abcd", "efgh"
-                      resValue "abcd", "efgh", "ijkl"
-                      resValue "mnop", "qrst", "uvwx"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1677,14 +1350,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveFromAndApplyListElementsWithSingleElement() {
-    val text = """android {
-                    defaultConfig {
-                      consumerProguardFiles 'proguard-android.txt'
-                      proguardFiles = ['proguard-rules.pro']
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1715,14 +1381,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetAndApplyMapElements() {
-    val text = """android {
-                      defaultConfig {
-                        manifestPlaceholders key1:"value1", key2:"value2"
-                        testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                      }
-                    }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1762,12 +1421,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyMapElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1806,14 +1460,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyMapElements() {
-    val text = """android {
-                    defaultConfig {
-                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1853,13 +1500,13 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseNativeElements() {
-    writeToBuildFile(NATIVE_ELEMENTS_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_NATIVE_ELEMENT_TEXT)
     verifyNativeElements()
   }
 
   @Test
   fun testEditNativeElements() {
-    writeToBuildFile(NATIVE_ELEMENTS_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_NATIVE_ELEMENT_TEXT)
     verifyNativeElements()
 
     val buildModel = gradleBuildModel
@@ -1911,12 +1558,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddNativeElements() {
-    val text = """android {
-                    defaultConfig {
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS)
     verifyNullNativeElements()
 
     val buildModel = gradleBuildModel
@@ -1968,7 +1610,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveNativeElements() {
-    writeToBuildFile(NATIVE_ELEMENTS_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_NATIVE_ELEMENT_TEXT)
     verifyNativeElements()
 
     val buildModel = gradleBuildModel
@@ -2000,7 +1642,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveOneOfNativeElementsInTheList() {
-    writeToBuildFile(NATIVE_ELEMENTS_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_NATIVE_ELEMENT_TEXT)
     verifyNativeElements()
 
     val buildModel = gradleBuildModel
@@ -2052,31 +1694,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveOnlyNativeElementInTheList() {
-    val text = """android {
-                    defaultConfig {
-                      externalNativeBuild {
-                        cmake {
-                          abiFilters 'abiFilterX'
-                          arguments 'argumentX'
-                          cFlags 'cFlagX'
-                          cppFlags 'cppFlagX'
-                          targets 'targetX'
-                        }
-                        ndkBuild {
-                          abiFilters 'abiFilterY'
-                          arguments 'argumentY'
-                          cFlags 'cFlagY'
-                          cppFlags 'cppFlagY'
-                          targets 'targetY'
-                        }
-                      }
-                      ndk {
-                        abiFilters 'abiFilterZ'
-                      }
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_ONLY_NATIVE_ELEMENT_IN_THE_LIST)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -2171,16 +1789,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveNativeBlockElements() {
-    val text = """android {
-                    defaultConfig {
-                      externalNativeBuild {
-                      }
-                      ndk {
-                      }
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_NATIVE_BLOCK_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -2201,18 +1810,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveExternalNativeBlockElements() {
-    val text = """android {
-                    defaultConfig {
-                      externalNativeBuild {
-                        cmake {
-                        }
-                        ndkBuild {
-                        }
-                      }
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_EXTERNAL_NATIVE_BLOCK_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -2233,18 +1831,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testFunctionCallWithParentheses() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.psd.sample.app.default"
-                      testApplicationId "com.example.psd.sample.app.default.test"
-                      maxSdkVersion 26
-                      minSdkVersion 9
-                      targetSdkVersion(19)
-                      versionCode 1
-                      versionName "1.0"
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_FUNCTION_CALL_WITH_PARENTHESES)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -2266,28 +1853,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    val expected = """
-                   android {
-                     defaultConfig {
-                       minSdkVersion 18
-                       maxSdkVersion 24
-                       targetSdkVersion 24
-                     }
-                   }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED)
   }
 
   @Test
   fun testParseMatchingFallbacks() {
-    val text = """
-      android {
-        productFlavors {
-          demo {
-            matchingFallbacks = ['trial', 'free']
-          }
-        }
-      }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_PARSE_MATCHING_FALLBACKS)
     val buildModel = gradleBuildModel
     val demoFlavour = buildModel.android().productFlavors()[0]!!
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
@@ -2312,15 +1883,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAppendMatchingFallbacks() {
-    val text = """
-      android {
-        productFlavors {
-          demo {
-            matchingFallbacks = ['trial']
-          }
-        }
-      }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS)
     val buildModel = gradleBuildModel
     val demoFlavour = buildModel.android().productFlavors()[0]!!
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
@@ -2333,18 +1896,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun deleteMatchingFallbacks() {
-    val text = """
-      android {
-        flavorDimensions 'tier'
-        productFlavors {
-          demo {
-            dimension 'tier'
-            matchingFallbacks = ['trial']
-          }
-        }
-      }""".trimIndent()
-    writeToBuildFile(text)
+  fun testDeleteMatchingFallbacks() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS)
     val buildModel = gradleBuildModel
     val demoFlavour = buildModel.android().productFlavors()[0]!!
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
@@ -2356,25 +1909,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty(buildModel.android().productFlavors()[0].matchingFallbacks())
   }
 
-  private val MISSING_DIMENSION_TEXT = """
-      android {
-        defaultConfig{
-        missingDimensionStrategy 'minApi', 'minApi18'
-        missingDimensionStrategy 'abi', 'x86'
-        }
-        flavorDimensions 'tier'
-        productFlavors {
-            free {
-                dimension 'tier'
-                missingDimensionStrategy 'minApi', 'minApi23'
-            }
-            paid {}
-        }
-      }""".trimIndent()
-
   @Test
   fun testMissingDimensionStrategy() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
 
@@ -2390,10 +1927,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddMissingDimensionStrategy() {
-    val text = """
-               ext.refToVal = "boo"
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY)
 
     val buildModel = gradleBuildModel
 
@@ -2417,21 +1951,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(strategies[0], listOf("dim", "val1", "val2"))
     verifyListProperty(strategies[1], listOf("otherDim", "boo"))
 
-    val expected = """
-                   ext.refToVal = "boo"
-
-                   android {
-                     defaultConfig {
-                       missingDimensionStrategy 'dim', 'val1', 'val2'
-                       missingDimensionStrategy 'otherDim', refToVal
-                     }
-                   }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY_EXPECTED)
   }
 
   @Test
   fun testRemoveMissingDimensionStrategy() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
 
@@ -2460,25 +1985,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
       assertEmpty(freeStrategies)
     }
 
-    val expected = """
-      android {
-        defaultConfig{
-        missingDimensionStrategy 'minApi', 'minApi18'
-        }
-        flavorDimensions 'tier'
-        productFlavors {
-            free {
-                dimension 'tier'
-            }
-            paid {}
-        }
-      }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXEPECTED)
   }
 
   @Test
   fun testMissingDimensionStrategiesAreModifiedWithChange() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2498,7 +2010,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMissingDimensionStrategiesAreModifiedWithAddition() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2510,7 +2022,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMissingDimensionStrategiesAreUnmodifiedWithAdditionAfterApply() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2526,7 +2038,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMissingDimensionStrategiesAreModifiedWithDeletion() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2539,7 +2051,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMissingDimensionStrategiesAreUnmodifiedWithDeletionAfterApply() {
-    writeToBuildFile(MISSING_DIMENSION_TEXT)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT)
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2555,13 +2067,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testResConfigsInListMethodCall() {
-    val text = """
-               android {
-                 defaultConfig {
-                   resConfigs(["en", "fr"])
-                 }
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL)
 
     val buildModel = gradleBuildModel
     val resConfigs = buildModel.android().defaultConfig().resConfigs()
@@ -2573,24 +2079,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
 
-    val expected = """
-               android {
-                 defaultConfig {
-                   resConfigs(["en", "fr", 'it'])
-                 }
-               }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED)
   }
 
   @Test
   fun testRemoveResConfigInListMethodCall() {
-    val text = """
-               android {
-                 defaultConfig {
-                   resConfigs(["en", "fr"])
-                 }
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL)
 
     val buildModel = gradleBuildModel
     val resConfigs = buildModel.android().defaultConfig().resConfigs()
@@ -2602,13 +2096,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     verifyListProperty(resConfigs, listOf("fr"))
 
-    val expected = """
-               android {
-                 defaultConfig {
-                   resConfigs(["fr"])
-                 }
-               }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED)
   }
 
   /**
@@ -2617,13 +2105,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
    */
   @Test
   fun testSetProguardFiles() {
-    val text = """
-      android {
-        defaultConfig {
-          setProguardFiles([getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'])
-        }
-      }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES)
 
     val buildModel = gradleBuildModel
     val defaultConfig = buildModel.android().defaultConfig()
@@ -2635,13 +2117,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
     applyChanges(buildModel)
-    val expected = """
-      android {
-        defaultConfig {
-          setProguardFiles(['proguard-rules.pro', 'value'])
-        }
-      }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_EXPECTED)
   }
 
   /**
@@ -2650,14 +2127,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
    */
   @Test
   fun testSetProguardFilesWithReference() {
-    val text = """
-      ext.list = [getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro']
-      android {
-        defaultConfig {
-          setProguardFiles(list)
-        }
-      }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE)
 
     val buildModel = gradleBuildModel
     val defaultConfig = buildModel.android().defaultConfig()
@@ -2670,14 +2140,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
     applyChanges(buildModel)
-    val expected = """
-      ext.list = ['proguard-rules.pro', 'value']
-      android {
-        defaultConfig {
-          setProguardFiles(list)
-        }
-      }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE_EXPECTED)
   }
 
   /**
@@ -2685,14 +2149,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
    */
   @Test
   fun testSetProguardFilesClearsProguardFiles() {
-    val text = """
-      android {
-        defaultConfig {
-          proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-          setProguardFiles(['val1', 'val2'])
-        }
-      }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_CLEARS_PROGUARD_FILES)
 
     val buildModel = gradleBuildModel
     val proguardFiles = buildModel.android().defaultConfig().proguardFiles()

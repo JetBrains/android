@@ -18,14 +18,16 @@ package com.android.tools.idea.gradle.dsl.model.ext
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.UNKNOWN
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.junit.Test
 
 class RawTextTest : GradleFileModelTestCase() {
-  private fun set(setFunc : (GradlePropertyModel) -> Unit) : ((GradlePropertyModel) -> Unit) -> Unit {
+  private fun set(setFunc: (GradlePropertyModel) -> Unit): ((GradlePropertyModel) -> Unit) -> Unit {
     return {
       writeToBuildFile("")
 
@@ -42,7 +44,7 @@ class RawTextTest : GradleFileModelTestCase() {
   }
 
   // This method is purely for naming purposes.
-  private fun (((GradlePropertyModel) -> Unit) -> Unit).validate(func : (GradlePropertyModel) -> Unit) {
+  private fun (((GradlePropertyModel) -> Unit) -> Unit).validate(func: (GradlePropertyModel) -> Unit) {
     this.invoke { func.invoke(it) }
   }
 

@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DEX_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
@@ -28,20 +36,7 @@ import org.junit.Test;
 public class DexOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElementsInApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    javaMaxHeapSize '2048m'\n" +
-                  "    jumboMode true\n" +
-                  "    keepRuntimeAnnotatedClasses false\n" +
-                  "    maxProcessCount 10\n" +
-                  "    optimize true\n" +
-                  "    preDexLibraries false\n" +
-                  "    threadCount 5\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -59,20 +54,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseElementsInAssignmentStatements() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "    additionalParameters = ['ijkl', 'mnop']\n" +
-                  "    javaMaxHeapSize = '1024m'\n" +
-                  "    jumboMode = false\n" +
-                  "    keepRuntimeAnnotatedClasses = true\n" +
-                  "    maxProcessCount = 5\n" +
-                  "    optimize = false\n" +
-                  "    preDexLibraries = true\n" +
-                  "    threadCount = 10\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -90,20 +72,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditElements() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    javaMaxHeapSize '2048m'\n" +
-                  "    jumboMode true\n" +
-                  "    keepRuntimeAnnotatedClasses false\n" +
-                  "    maxProcessCount 10\n" +
-                  "    optimize true\n" +
-                  "    preDexLibraries false\n" +
-                  "    threadCount 5\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -145,12 +114,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -192,20 +156,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    javaMaxHeapSize '2048m'\n" +
-                  "    jumboMode true\n" +
-                  "    keepRuntimeAnnotatedClasses false\n" +
-                  "    maxProcessCount 10\n" +
-                  "    optimize true\n" +
-                  "    preDexLibraries false\n" +
-                  "    threadCount 5\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -249,13 +200,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -276,13 +221,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  dexOptions {\n" +
-                  "    additionalParameters 'abcd'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DEX_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

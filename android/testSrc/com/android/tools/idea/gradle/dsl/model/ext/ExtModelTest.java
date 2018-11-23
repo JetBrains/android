@@ -15,6 +15,57 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_BUILD_SCRIPT_EXT_USAGE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_DEF_USED_IN_DEF_RESOLVED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_DEPENDENCY_EXT_USAGE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_EXT_FLAT_AND_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_EXT_FLAT_AND_BLOCK_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_FLAT_DEF_VARIABLES_ARE_RESOLVED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_LIST_REFERENCE_IN_LIST_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_MAP_REFERENCE_IN_MAP_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_MULTIPLE_DEF_DECLARATIONS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_MULTIPLE_EXT_BLOCKS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_MULTIPLE_EXT_BLOCKS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_NESTED_DEF_VARIABLES_ARE_RESOLVED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_LIST_OF_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_SIMPLE_PROPERTY_IN_EXT_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_SIMPLE_PROPERTY_PER_LINE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY_WITH_HISTORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_WITH_HISTORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_WITH_HISTORY_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_QUALIFIED_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_QUALIFIED_VARIABLE_IN_STRING_LITERAL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLES_IN_STRING_LITERAL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_LIST_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_BUILD_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_BUILD_FILE_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_PROPERTIES_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_PROPERTIES_FILE_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_MAP_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_BUILD_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_BUILD_FILE_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_PROPERTIES_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_PROPERTIES_FILE_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_STRING_REFERENCE_IN_LIST_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_STRING_REFERENCE_IN_MAP_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -25,13 +76,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Test;
-
 import java.io.IOException;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
+import org.junit.Test;
 
 /**
  * Tests for {@link ExtModel}.
@@ -39,10 +85,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 public class ExtModelTest extends GradleFileModelTestCase {
   @Test
   public void testParsingSimplePropertyPerLine() throws IOException {
-    String text = "ext.COMPILE_SDK_VERSION = 21\n" +
-                  "ext.srcDirName = 'src/java'";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_PARSING_SIMPLE_PROPERTY_PER_LINE);
 
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION"), INTEGER_TYPE, 21, INTEGER, REGULAR, 0);
@@ -51,12 +94,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingSimplePropertyInExtBlock() throws IOException {
-    String text = "ext {\n" +
-                  "   COMPILE_SDK_VERSION = 21\n" +
-                  "   srcDirName = 'src/java'\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_PARSING_SIMPLE_PROPERTY_IN_EXT_BLOCK);
 
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION"), INTEGER_TYPE, 21, INTEGER, REGULAR, 0);
@@ -65,11 +103,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingListOfProperties() throws IOException {
-    String text = "ext.libraries = [\n" +
-                  "    guava: \"com.google.guava:guava:19.0-rc1\",\n" +
-                  "    design :  \"com.android.support:design:22.2.1\"\n" +
-                  "]";
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_PARSING_LIST_OF_PROPERTIES);
 
 
     ExtModel extModel = getGradleBuildModel().ext();
@@ -79,12 +113,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveExtProperty() throws IOException {
-    String text = "ext.COMPILE_SDK_VERSION = 21\n" +
-                  "android {\n" +
-                  "  compileSdkVersion COMPILE_SDK_VERSION\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_EXT_PROPERTY);
 
     ExtModel extModel = getGradleBuildModel().ext();
     GradlePropertyModel model = extModel.findProperty("COMPILE_SDK_VERSION");
@@ -97,14 +126,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveQualifiedExtProperty() throws IOException {
-    String text = "ext.constants = [\n" +
-                  "  COMPILE_SDK_VERSION : 21\n" +
-                  "]\n" +
-                  "android {\n" +
-                  "  compileSdkVersion constants.COMPILE_SDK_VERSION\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_QUALIFIED_EXT_PROPERTY);
 
     ExtModel extModel = getGradleBuildModel().ext();
     GradlePropertyModel model = extModel.findProperty("constants").toMap().get("COMPILE_SDK_VERSION");
@@ -117,16 +139,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveMultiLevelExtProperty() throws IOException {
-    String text = "ext.SDK_VERSION = 21\n" +
-                  "ext.COMPILE_SDK_VERSION = SDK_VERSION\n" +
-                  "android {\n" +
-                  "  compileSdkVersion COMPILE_SDK_VERSION\n" +
-                  "  defaultConfig {\n" +
-                  "    targetSdkVersion compileSdkVersion\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -144,17 +157,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveMultiModuleExtProperty() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "ext.SDK_VERSION = 21";
-
-    String subModuleText = "android {\n" +
-                           "  compileSdkVersion SDK_VERSION\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_SUB);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -172,16 +177,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariablesInStringLiteral() throws IOException {
-    String text = "ext.ANDROID = \"android\"\n" +
-                  "ext.SDK_VERSION = 23\n" +
-                  "android {\n" +
-                  "  compileSdkVersion = \"$ANDROID-${SDK_VERSION}\"\n" +
-                  "  defaultConfig {\n" +
-                  "    targetSdkVersion \"$compileSdkVersion\"\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLES_IN_STRING_LITERAL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -199,14 +195,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveQualifiedVariableInStringLiteral() throws IOException {
-    String text = "android {\n" +
-                  "  compileSdkVersion 23\n" +
-                  "  defaultConfig {\n" +
-                  "    targetSdkVersion \"$android.compileSdkVersion\"\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_QUALIFIED_VARIABLE_IN_STRING_LITERAL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -220,12 +209,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testStringReferenceInListProperty() throws IOException {
-    String text = "ext.TEST_STRING = \"test\"\n" +
-                  "android.defaultConfig {\n" +
-                  "    proguardFiles 'proguard-android.txt', TEST_STRING\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_STRING_REFERENCE_IN_LIST_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -239,12 +223,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testListReferenceInListProperty() throws IOException {
-    String text = "ext.TEST_STRINGS = [\"test1\", \"test2\"]\n" +
-                  "android.defaultConfig {\n" +
-                  "    proguardFiles TEST_STRINGS\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_LIST_REFERENCE_IN_LIST_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -259,12 +238,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariableInListProperty() throws IOException {
-    String text = "ext.TEST_STRING = \"test\"\n" +
-                  "android.defaultConfig {\n" +
-                  "    proguardFiles 'proguard-android.txt', \"$TEST_STRING\"\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_LIST_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -278,12 +252,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testStringReferenceInMapProperty() throws IOException {
-    String text = "ext.TEST_STRING = \"test\"\n" +
-                  "android.defaultConfig {\n" +
-                  "    testInstrumentationRunnerArguments size:\"medium\", foo:TEST_STRING\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_STRING_REFERENCE_IN_MAP_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -298,12 +267,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMapReferenceInMapProperty() throws IOException {
-    String text = "ext.TEST_MAP = [test1:\"value1\", test2:\"value2\"]\n" +
-                  "android.defaultConfig {\n" +
-                  "    testInstrumentationRunnerArguments TEST_MAP\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_MAP_REFERENCE_IN_MAP_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -323,12 +287,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariableInMapProperty() throws IOException {
-    String text = "ext.TEST_STRING = \"test\"\n" +
-                  "android.defaultConfig {\n" +
-                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"$TEST_STRING\"\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_MAP_PROPERTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = getGradleBuildModel().ext();
@@ -343,18 +302,14 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariableInSubModuleBuildFile() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
-    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
     String subModulePropertiesText = "xyz=value_from_sub_module_properties_file";
-    String subModuleBuildText = "ext.xyz = \"value_from_sub_module_build_file\"\n" +
-                                "ext.test = xyz";
 
-    writeToSettingsFile(settingsText);
+    writeToSettingsFile(getSubModuleSettingsText());
     writeToPropertiesFile(mainModulePropertiesText);
-    writeToBuildFile(mainModuleBuildText);
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_BUILD_FILE);
     writeToSubModulePropertiesFile(subModulePropertiesText);
-    writeToSubModuleBuildFile(subModuleBuildText);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_BUILD_FILE_SUB);
 
     ExtModel extModel = getSubModuleGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("test").resolve(), STRING_TYPE, "value_from_sub_module_build_file", STRING, REGULAR, 1);
@@ -362,17 +317,14 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariableInSubModulePropertiesFile() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
-    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
     String subModulePropertiesText = "xyz=value_from_sub_module_properties_file";
-    String subModuleBuildText = "ext.test = xyz";
 
-    writeToSettingsFile(settingsText);
+    writeToSettingsFile(getSubModuleSettingsText());
     writeToPropertiesFile(mainModulePropertiesText);
-    writeToBuildFile(mainModuleBuildText);
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_PROPERTIES_FILE);
     writeToSubModulePropertiesFile(subModulePropertiesText);
-    writeToSubModuleBuildFile(subModuleBuildText);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_PROPERTIES_FILE_SUB);
 
     ExtModel extModel = getSubModuleGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("test").resolve(), STRING_TYPE, "value_from_sub_module_properties_file", STRING, REGULAR, 1);
@@ -380,15 +332,12 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariableInMainModulePropertiesFile() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
-    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
-    String subModuleBuildText = "ext.test = xyz";
 
-    writeToSettingsFile(settingsText);
+    writeToSettingsFile(getSubModuleSettingsText());
     writeToPropertiesFile(mainModulePropertiesText);
-    writeToBuildFile(mainModuleBuildText);
-    writeToSubModuleBuildFile(subModuleBuildText);
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_PROPERTIES_FILE);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_PROPERTIES_FILE_SUB);
 
     ExtModel extModel = getSubModuleGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("test").resolve(), STRING_TYPE, "value_from_main_module_properties_file", STRING, REGULAR, 1);
@@ -396,13 +345,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveVariableInMainModuleBuildFile() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
-    String subModuleBuildText = "ext.test = xyz";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleBuildText);
-    writeToSubModuleBuildFile(subModuleBuildText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_BUILD_FILE);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_BUILD_FILE_SUB);
 
     ExtModel extModel = getSubModuleGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("test").resolve(), STRING_TYPE, "value_from_main_module_build_file", STRING, REGULAR, 1);
@@ -410,11 +355,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveMultiLevelExtPropertyWithHistory() throws IOException {
-    String text = "ext.FIRST = 123\n" +
-                  "ext.SECOND = FIRST\n" +
-                  "ext.THIRD = SECOND";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY_WITH_HISTORY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -429,13 +370,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveMultiModuleExtPropertyWithHistory() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-    String mainModuleText = "ext.FIRST = 123";
-    String subModuleText = "ext.SECOND = FIRST";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_WITH_HISTORY);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_WITH_HISTORY_SUB);
 
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -450,15 +387,12 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveMultiModuleExtPropertyFromPropertiesFileWithHistory() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "first=value_from_gradle_properties";
-    String mainModuleBuildText = "ext.second = first";
-    String subModuleBuildText = "ext.third = second";
 
-    writeToSettingsFile(settingsText);
+    writeToSettingsFile(getSubModuleSettingsText());
     writeToPropertiesFile(mainModulePropertiesText);
-    writeToBuildFile(mainModuleBuildText);
-    writeToSubModuleBuildFile(subModuleBuildText);
+    writeToBuildFile(EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY);
+    writeToSubModuleBuildFile(EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY_SUB);
 
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -476,12 +410,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testFlatDefVariablesAreResolved() throws IOException {
-    String text = "def world = 'WORLD'\n" +
-                  "def foo = 'bar'\n" +
-                  "ext.first = \"Hello ${world}\"\n";
-
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_FLAT_DEF_VARIABLES_ARE_RESOLVED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -491,13 +420,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testNestedDefVariablesAreResolved() throws IOException {
-    String text = "def world = 'world'\n" +
-                  "def foo = 'bar'\n" +
-                  "ext {\n" +
-                  "    second = \"Welcome to $foo $world!\"\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_NESTED_DEF_VARIABLES_ARE_RESOLVED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -507,11 +430,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleDefDeclarations() throws IOException {
-    String text = "def olleh = 'hello', dlrow = 'world'\n" +
-                  "ext.prop = \"hello $dlrow\"\n" +
-                  "ext.prop2 = \"$olleh world\"";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_MULTIPLE_DEF_DECLARATIONS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -522,11 +441,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testDefUsedInDefResolved() throws IOException {
-    String text = "def animal = 'penguin'\n" +
-                  "def message = \"${animal}s are cool!\"\n" +
-                  "ext.greeting = \"Hello, $message\"";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_DEF_USED_IN_DEF_RESOLVED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
@@ -536,15 +451,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testDependencyExtUsage() throws IOException {
-    String text = "buildscript {\n" +
-                  "  dependencies {\n" +
-                  "    ext.hello = 'boo'\n" +
-                  "    classpath \"com.android.tools.build:gradle:$hello\"\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "ext.goodbye = hello\n" +
-                  "ext.goodday = buildscript.dependencies.ext.hello";
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_DEPENDENCY_EXT_USAGE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel buildScriptDeps = buildModel.buildscript().dependencies();
@@ -561,13 +468,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildScriptExtUsage() throws IOException {
-    String text = "buildscript {\n" +
-                  "  ext.hello = 'boo'\n" +
-                  "  dependencies {\n" +
-                  "    classpath \"com.android.tools.build:gradle:$hello\"\n" +
-                  "  }\n" +
-                  "}\n";
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_BUILD_SCRIPT_EXT_USAGE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel buildScriptDeps = buildModel.buildscript().dependencies();
@@ -579,20 +480,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleExtBlocks() throws IOException {
-    String text =
-      "apply plugin: 'com.android.application'\n" +
-      "ext {\n" +
-      "  var1 = \"1.5\"\n" +
-      "}\n" +
-      "android {\n" +
-      "}\n" +
-      "ext {\n" +
-      "}\n" +
-
-      "dependencies {\n" +
-      "  compile fileTree(dir: 'libs', include: ['*.jar'])\n" +
-      "}";
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_MULTIPLE_EXT_BLOCKS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel ext = buildModel.ext();
@@ -604,33 +492,14 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradlePropertyModel propertyModel = ext.findProperty("newProp");
     verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
     GradlePropertyModel oldModel = ext.findProperty("var1");
-    verifyPropertyModel(oldModel, STRING_TYPE, "1.5", STRING, REGULAR,0);
+    verifyPropertyModel(oldModel, STRING_TYPE, "1.5", STRING, REGULAR, 0);
 
-    String expected =
-      "apply plugin: 'com.android.application'\n" +
-      "ext {\n" +
-      "  var1 = \"1.5\"\n" +
-      "  newProp = true\n" +
-      "}\n" +
-      "android {\n" +
-      "}\n" +
-      "ext {\n" +
-      "}\n" +
-
-      "dependencies {\n" +
-      "  compile fileTree(dir: 'libs', include: ['*.jar'])\n" +
-      "}";
-    verifyFileContents(myBuildFile, expected);
+    verifyFileContents(myBuildFile, EXT_MODEL_MULTIPLE_EXT_BLOCKS_EXPECTED);
   }
 
   @Test
   public void testExtFlatAndBlock() throws IOException {
-    String text =
-      "ext.hello = 10\n" +
-      "ext {\n" +
-      "  boo = '10'\n" +
-      "}";
-    writeToBuildFile(text);
+    writeToBuildFile(EXT_MODEL_EXT_FLAT_AND_BLOCK);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel ext = buildModel.ext();
@@ -647,12 +516,6 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     verifyPropertyModel(newModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
 
-    String expected =
-      "ext.hello = 10\n" +
-      "ext {\n" +
-      "  boo = '10'\n" +
-      "  newProp = true\n" +
-      "}";
-    verifyFileContents(myBuildFile, expected);
+    verifyFileContents(myBuildFile, EXT_MODEL_EXT_FLAT_AND_BLOCK_EXPECTED);
   }
 }

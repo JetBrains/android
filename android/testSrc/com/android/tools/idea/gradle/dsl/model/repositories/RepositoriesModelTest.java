@@ -15,21 +15,47 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_CUSTOM_MAVEN_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_SINGLE_DIR_ARGUMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_GOOGLE_DEFAULT_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_J_CENTER_CUSTOM_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_J_CENTER_DEFAULT_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_MULTIPLE_ARTIFACT_URLS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_SINGLE_ARTIFACT_URLS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MULTIPLE_REPOSITORIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_METHOD_NAME;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.*;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * Tests for {@link RepositoriesModelImpl}.
@@ -42,10 +68,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseJCenterDefaultRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_J_CENTER_DEFAULT_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -55,12 +78,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseJCenterCustomRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter {\n" +
-                  "    url \"http://jcenter.bintray.com/\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_J_CENTER_CUSTOM_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -76,10 +94,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  mavenCentral()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -95,11 +110,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepositoryWithMultipleArtifactUrls() throws IOException {
-    String text = "repositories {\n" +
-                  "  mavenCentral name: \"nonDefaultName\", " +
-                  "artifactUrls: [\"http://www.mycompany.com/artifacts1\", \"http://www.mycompany.com/artifacts2\"]\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_MULTIPLE_ARTIFACT_URLS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -118,10 +129,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepositoryWithSingleArtifactUrls() throws IOException {
-    String text = "repositories {\n" +
-                  "  mavenCentral artifactUrls: \"http://www.mycompany.com/artifacts\"\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_SINGLE_ARTIFACT_URLS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -138,13 +146,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCustomMavenRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    name \"myRepoName\"\n" +
-                  "    url \"http://repo.mycompany.com/maven2\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_CUSTOM_MAVEN_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -160,16 +162,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenRepositoryWithArtifactUrls() throws IOException {
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    // Look for POMs and artifacts, such as JARs, here\n" +
-                  "    url \"http://repo2.mycompany.com/maven2\"\n" +
-                  "    // Look for artifacts here if not found at the above location\n" +
-                  "    artifactUrls \"http://repo.mycompany.com/jars\"\n" +
-                  "    artifactUrls \"http://repo.mycompany.com/jars2\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -188,16 +181,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenRepositoryWithCredentials() throws IOException {
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    credentials {\n" +
-                  "      username 'user'\n" +
-                  "      password 'password123'\n" +
-                  "    }\n" +
-                  "    url \"http://repo.mycompany.com/maven2\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -219,12 +203,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFlatDirRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  flatDir {\n" +
-                  "    dirs 'lib1', 'lib2'\n" +
-                  "   }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -239,10 +218,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFlatDirRepositoryWithSingleDirArgument() throws IOException {
-    String text = "repositories {\n" +
-                  "   flatDir name: 'libs', dirs: \"libs\"\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_SINGLE_DIR_ARGUMENT);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -257,10 +233,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFlatDirRepositoryWithDirListArgument() throws IOException {
-    String text = "repositories {\n" +
-                  "   flatDir dirs: [\"libs1\", \"libs2\"]\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -276,11 +249,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMultipleRepositories() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "  mavenCentral()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MULTIPLE_REPOSITORIES);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -296,10 +265,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseGoogleDefaultRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_PARSE_GOOGLE_DEFAULT_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -309,10 +275,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByMethodCall() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
@@ -324,9 +287,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByMethodCallEmpty() throws IOException {
-    String text = "repositories {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(0);
@@ -335,9 +296,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryToEmptyBuildscript() throws IOException {
-    String text = "buildscript {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
@@ -358,10 +317,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByMethodCallPresent() throws IOException {
-    String text = "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -375,10 +331,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByUrl() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
@@ -390,9 +343,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByUrlEmpty() throws IOException {
-    String text = "repositories {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(0);
@@ -401,13 +352,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByUrlPresent() throws IOException {
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
-                  "    name \"" + GOOGLE_DEFAULT_REPO_NAME + "\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -526,13 +471,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddToExistingFlatRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  flatDir {\n" +
-                  "    dirs '" + TEST_DIR + "'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -558,11 +497,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDuplicateToExistingFlatRepository() throws IOException {
-    String text = "repositories {\n" +
-                  "  flatDir.dirs '" + TEST_DIR + "'\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -585,10 +520,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameForMethodCall() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -608,8 +540,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetUrlForMethodCall() throws IOException {
-    String text = "";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -634,10 +565,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetArtifactUrlsInMaven() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();

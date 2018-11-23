@@ -51,7 +51,8 @@ class ReplaceElementTest : TransformTestCase() {
     try {
       replaceElement(holder, oldElement, newElement)
       fail()
-    } catch (e: AssertionError) {
+    }
+    catch (e: AssertionError) {
       // Expected
     }
   }

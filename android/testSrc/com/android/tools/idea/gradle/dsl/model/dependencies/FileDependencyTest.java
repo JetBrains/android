@@ -15,16 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_MULTIPLE_FILE_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_ONE_OF_FILE_DEPENDENCY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link FileDependencyModelImpl}.
@@ -32,10 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class FileDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParseSingleFileDependency() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -46,11 +50,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMultipleFileDependencies() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib1.jar', 'lib2.jar')\n" +
-                  "    compile files('lib3.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_PARSE_MULTIPLE_FILE_DEPENDENCIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -63,12 +63,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFileDependenciesWithClosure() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib1.jar', 'lib2.jar') {\n" +
-                  "      builtBy 'compile'\n" +
-                  "    }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -80,10 +75,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetFile() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib1.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_SET_FILE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -105,10 +97,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testUpdateOneOfFileDependency() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib1.jar', 'lib2.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_UPDATE_ONE_OF_FILE_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -132,9 +121,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddFileDependency() throws IOException {
-    String text = "dependencies {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_ADD_FILE_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -153,10 +140,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFileDependency() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib1.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -174,10 +158,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfFileDependency() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile files('lib1.jar', 'lib2.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();

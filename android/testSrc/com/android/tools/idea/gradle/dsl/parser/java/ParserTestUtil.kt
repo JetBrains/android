@@ -17,7 +17,11 @@ package com.android.tools.idea.gradle.dsl.parser.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
-import com.android.tools.idea.gradle.dsl.parser.elements.*
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 
 private const val INDENT = 2
 private const val RESET = 0
@@ -26,7 +30,7 @@ private const val LIGHT_RED = 91
 private const val LIGHT_MAGENTA = 95
 private const val LIGHT_CYAN = 96
 private const val LIGHT_YELLOW = 93
-private fun color(code : Int) : String {
+private fun color(code: Int): String {
   return "\u001B[${code}m"
 }
 
@@ -51,8 +55,8 @@ private val String.magenta get() = if (isEmpty()) "" else color(LIGHT_MAGENTA) +
 private val String.cyan get() = if (isEmpty()) "" else color(LIGHT_CYAN) + this + color(RESET)
 private val String.yellow get() = if (isEmpty()) "" else color(LIGHT_YELLOW) + this + color(RESET)
 
-private fun GradleDslElement.printElement(builder : StringBuilder, indent : Int) {
-  when(this) {
+private fun GradleDslElement.printElement(builder: StringBuilder, indent: Int) {
+  when (this) {
     is GradleDslMethodCall -> {
       builder.append("${javaClass.simpleName.red} : ${name.magenta} ${methodName.yellow} : ${value.toString().cyan} ->\n")
       builder.append("${" ".repeat(indent)}| ${name.blue} -> ")

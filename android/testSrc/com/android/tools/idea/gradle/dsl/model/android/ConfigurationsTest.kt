@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_PARSE_CONFIGS
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_PARSE_QUALIFIED_CONFIGS
+import com.android.tools.idea.gradle.dsl.TestFileName.CONFIGURATIONS_REMOVE_CONFIG
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -27,14 +34,7 @@ import org.junit.Test
 class ConfigurationsTest : GradleFileModelTestCase() {
   @Test
   fun testParseConfigs() {
-    val text = """
-               configurations {
-                 goodConfig
-
-                 compile.transitive = true
-                 newConfig.visible = false
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(CONFIGURATIONS_PARSE_CONFIGS)
 
     val buildModel = gradleBuildModel
 
@@ -61,18 +61,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseQualifiedConfigs() {
-    /**
-     * Note: Gradle will only allow the use of superBadConfig from here. But we detect them all anyway.
-     */
-    val text = """
-               configurations.badConfig
-               configurations.otherBadConfig.visible = false
-               configurations {
-                 superBadConfig.visible = false
-               }
-               configurations.evenWorseConfig.transitive = true
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(CONFIGURATIONS_PARSE_QUALIFIED_CONFIGS)
 
     val buildModel = gradleBuildModel
 
@@ -103,19 +92,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddNewConfigFromEmpty() {
-    val text = """
-               android {
-                 buildToolsVersion = "23.0.0"
-                 compileSdkVersion = "android-23"
-                 defaultPublishConfig = "debug"
-                 generatePureSplits = true
-               }
-
-               dependencies {
-                 runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY)
 
     val buildModel = gradleBuildModel
 
@@ -125,26 +102,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    val expected = """
-                   android {
-                     buildToolsVersion = "23.0.0"
-                     compileSdkVersion = "android-23"
-                     defaultPublishConfig = "debug"
-                     generatePureSplits = true
-                   }
-
-                   configurations {
-                     newConfig {
-                     }
-                     otherNewConfig {
-                       transitive = true
-                     }
-                  }
-
-                  dependencies {
-                    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'
-                  }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED)
 
     run {
       val configs = buildModel.configurations().all()
@@ -164,21 +122,13 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddNewConfig() {
-    val text = """
-               ext {
-                 var1 = true
-                 var2 = false
-               }
-               configurations {
-                 newConfig
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(CONFIGURATIONS_ADD_NEW_CONFIG)
 
     val buildModel = gradleBuildModel
 
     run {
       val configModel = buildModel.configurations()
-      val newConfig =configModel.addConfiguration("otherNewConfig")
+      val newConfig = configModel.addConfiguration("otherNewConfig")
       newConfig.visible().setValue(ReferenceTo("var1"))
     }
 
@@ -199,33 +149,12 @@ class ConfigurationsTest : GradleFileModelTestCase() {
       verifyPropertyModel(second.visible(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1)
     }
 
-    val expected = """
-                   ext {
-                     var1 = true
-                     var2 = false
-                   }
-                   configurations {
-                     newConfig
-                     otherNewConfig {
-                       visible = var1
-                     }
-                   }
-                   """.trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_EXPECTED)
   }
 
   @Test
   fun testRemoveConfig() {
-    val text = """
-               configurations {
-                 badConfig {
-                   transitive = true
-                 }
-                 worseConfig
-                 worstConfig.visible = false
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(CONFIGURATIONS_REMOVE_CONFIG)
 
     val buildModel = gradleBuildModel
 

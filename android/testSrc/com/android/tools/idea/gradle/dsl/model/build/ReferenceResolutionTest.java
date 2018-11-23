@@ -15,15 +15,25 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PARENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PARENT_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PROJECT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PROJECT_DIR_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PROJECT_PATH_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_ROOT_DIR_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT_SUB;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.junit.Test;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
 /**
  * Tests resolving references to project, parent, rootProject etc.
@@ -31,22 +41,9 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 public class ReferenceResolutionTest extends GradleFileModelTestCase {
   @Test
   public void testResolveRootDir() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "";
-
-    String subModuleText = "ext {\n" +
-                           "  rpd = rootDir\n" +
-                           "  rpd1 = project.rootDir\n" +
-                           "  rpd2 = parent.rootDir\n" +
-                           "  rpd3 = rootProject.rootDir\n" +
-                           "  rpd4 = project(':" + SUB_MODULE_NAME + "').rootDir\n" +
-                           "  rpd5 = project(':').rootDir\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile("");
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_ROOT_DIR_SUB);
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
     ExtModel ext = getSubModuleGradleBuildModel().ext();
@@ -60,22 +57,9 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveProjectDir() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "";
-
-    String subModuleText = "ext {\n" +
-                           "  pd = projectDir\n" +
-                           "  pd1 = project.projectDir\n" +
-                           "  pd2 = parent.projectDir\n" +
-                           "  pd3 = rootProject.projectDir\n" +
-                           "  pd4 = project(':" + SUB_MODULE_NAME + "').projectDir\n" +
-                           "  pd5 = project(':').projectDir\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile("");
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_PROJECT_DIR_SUB);
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
     String expectedSubModuleDir = mySubModuleBuildFile.getParent();
@@ -90,20 +74,9 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveProject() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "";
-
-    String subModuleText = "android {\n" +
-                           "  compileSdkVersion = \"android-23\"\n" +
-                           "  defaultConfig {\n" +
-                           "    minSdkVersion = project.android.compileSdkVersion\n" +
-                           "  }\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile("");
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_PROJECT);
 
     AndroidModel android = getSubModuleGradleBuildModel().android();
     assertNotNull(android);
@@ -114,19 +87,9 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveParent() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "android {\n" +
-                            "  compileSdkVersion = \"android-23\"\n" +
-                            "}";
-
-    String subModuleText = "android {\n" +
-                           "  compileSdkVersion = parent.android.compileSdkVersion\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(REFERENCE_RESOLUTION_RESOLVE_PARENT);
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_PARENT_SUB);
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
@@ -139,19 +102,9 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveRootProject() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "android {\n" +
-                            "  compileSdkVersion = \"android-23\"\n" +
-                            "}";
-
-    String subModuleText = "android {\n" +
-                           "  compileSdkVersion = rootProject.android.compileSdkVersion\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT);
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT_SUB);
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
@@ -164,20 +117,9 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveProjectPath() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "";
-
-    String subModuleText = "android {\n" +
-                           "  compileSdkVersion = \"android-23\"\n" +
-                           "  defaultConfig {\n" +
-                           "    minSdkVersion = project(':" + SUB_MODULE_NAME + "').android.compileSdkVersion\n" +
-                           "  }\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile("");
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_PROJECT_PATH_SUB);
 
     AndroidModel android = getSubModuleGradleBuildModel().android();
     assertNotNull(android);
@@ -188,19 +130,9 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
   @Test
   public void testResolveOtherProjectPath() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "android {\n" +
-                            "  compileSdkVersion = \"android-23\"\n" +
-                            "}";
-
-    String subModuleText = "android {\n" +
-                           "  compileSdkVersion = project(':').android.compileSdkVersion\n" +
-                           "}";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH);
+    writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH_SUB);
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);

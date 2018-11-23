@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
-import com.intellij.pom.java.LanguageLevel;
-import org.junit.Test;
-
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
 import static org.junit.Assert.assertEquals;
+
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
+import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 /**
  * Tests for {@link LanguageLevelUtil}.

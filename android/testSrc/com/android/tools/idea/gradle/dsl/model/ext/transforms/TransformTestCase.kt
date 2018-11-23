@@ -18,7 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.parser.elements.*
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -64,11 +70,11 @@ open class TransformTestCase : GradleFileModelTestCase() {
     return GradleDslMethodCall(parent, GradleNameElement.create(statement.copy()), methodName.copy())
   }
 
-  protected fun createExpressionMap(name : GradleNameElement = GradleNameElement.empty()) : GradleDslExpressionMap {
+  protected fun createExpressionMap(name: GradleNameElement = GradleNameElement.empty()): GradleDslExpressionMap {
     return GradleDslExpressionMap(gradleDslFile, name, false)
   }
 
-  protected fun createClosure(parent: GradleDslElement) : GradleDslClosure {
+  protected fun createClosure(parent: GradleDslElement): GradleDslClosure {
     return GradleDslClosure(parent, null, GradleNameElement.empty())
   }
 }

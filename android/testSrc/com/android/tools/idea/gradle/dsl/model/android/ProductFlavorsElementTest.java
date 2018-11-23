@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -22,11 +32,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Test;
-
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 /**
  * Tests for {@link ProductFlavorsDslElement}.
@@ -39,22 +46,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ProductFlavorsElementTest extends GradleFileModelTestCase {
   @Test
   public void testProductFlavorsWithApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  productFlavors {\n" +
-                  "    flavor1 {\n" +
-                  "      applicationId \"com.example.myFlavor1\"\n" +
-                  "      proguardFiles 'proguard-android-1.txt', 'proguard-rules-1.txt'\n" +
-                  "      testInstrumentationRunnerArguments key1:\"value1\", key2:\"value2\"\n" +
-                  "    }\n" +
-                  "    flavor2 {\n" +
-                  "      applicationId \"com.example.myFlavor2\"\n" +
-                  "      proguardFiles 'proguard-android-2.txt', 'proguard-rules-2.txt'\n" +
-                  "      testInstrumentationRunnerArguments key3:\"value3\", key4:\"value4\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -76,20 +68,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsWithAssignmentStatements() throws Exception {
-    String text = "android.productFlavors {\n" +
-                  "  flavor1 {\n" +
-                  "    applicationId = \"com.example.myFlavor1\"\n" +
-                  "    proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.txt']\n" +
-                  "    testInstrumentationRunnerArguments = [key1:\"value1\", key2:\"value2\"]\n" +
-                  "  }\n" +
-                  "  flavor2 {\n" +
-                  "    applicationId = \"com.example.myFlavor2\"\n" +
-                  "    proguardFiles = ['proguard-android-2.txt', 'proguard-rules-2.txt']\n" +
-                  "    testInstrumentationRunnerArguments = [key3:\"value3\", key4:\"value4\"]\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -112,34 +91,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsWithOverrideStatements() throws Exception {
-    String text = "android {\n" +
-                  "  productFlavors {\n" +
-                  "    flavor1 {\n" +
-                  "      applicationId \"com.example.myFlavor1\"\n" +
-                  "      proguardFiles 'proguard-android-1.txt', 'proguard-rules-1.txt'\n" +
-                  "      testInstrumentationRunnerArguments key1:\"value1\", key2:\"value2\"\n" +
-                  "    }\n" +
-                  "    flavor2 {\n" +
-                  "      applicationId = \"com.example.myFlavor2\"\n" +
-                  "      proguardFiles 'proguard-android-2.txt', 'proguard-rules-2.txt'\n" +
-                  "      testInstrumentationRunnerArguments key3:\"value3\", key4:\"value4\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  productFlavors.flavor1 {\n" +
-                  "    applicationId = \"com.example.myFlavor1-1\"\n" +
-                  "  }\n" +
-                  "  productFlavors.flavor2 {\n" +
-                  "    proguardFiles = ['proguard-android-4.txt', 'proguard-rules-4.txt']\n" +
-                  "  }\n" +
-                  " productFlavors {\n" +
-                  "  flavor1.testInstrumentationRunnerArguments = [key5:\"value5\", key6:\"value6\"]\n" +
-                  "  flavor2.applicationId = \"com.example.myFlavor2-1\"\n" +
-                  " }\n" +
-                  "}\n" +
-                  "android.productFlavors.flavor1.proguardFiles = ['proguard-android-3.txt', 'proguard-rules-3.txt']\n" +
-                  "android.productFlavors.flavor2.testInstrumentationRunnerArguments = [key7:\"value7\", key8:\"value8\"]";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -162,30 +114,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsWithAppendStatements() throws Exception {
-    String text = "android {\n" +
-                  "  productFlavors {\n" +
-                  "    flavor1 {\n" +
-                  "      proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.txt']\n" +
-                  "      testInstrumentationRunnerArguments key1:\"value1\", key2:\"value2\"\n" +
-                  "    }\n" +
-                  "    flavor2 {\n" +
-                  "      proguardFiles 'proguard-android-2.txt', 'proguard-rules-2.txt'\n" +
-                  "      testInstrumentationRunnerArguments = [key3:\"value3\", key4:\"value4\"]\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  productFlavors.flavor1 {\n" +
-                  "    proguardFiles 'proguard-android-3.txt', 'proguard-rules-3.txt'\n" +
-                  "  }\n" +
-                  "  productFlavors.flavor2 {\n" +
-                  "    testInstrumentationRunnerArguments.key6 \"value6\"\n" +
-                  "  }\n" +
-                  " productFlavors {\n" +
-                  "  flavor2.proguardFile 'proguard-android-4.txt'\n" +
-                  " }\n" +
-                  "}\n" +
-                  "android.productFlavors.flavor1.testInstrumentationRunnerArguments.key5 = \"value5\"";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -209,9 +138,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddEmptyProductFlavor() throws Exception {
-    String text = "android {}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -249,9 +176,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddProductFlavor() throws Exception {
-    String text = "android {}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -272,18 +197,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsNotRemoved() throws Exception {
-    String text = "android {\n" +
-                  "  productFlavors {\n" +
-                  "    x {\n" +
-                  "      externalNativeBuild {\n" +
-                  "        cmake {\n" +
-                  "           arguments '-DANDROID_STL=c++_static'\n" +
-                  "        }\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ProductFlavorModel xModel = buildModel.android().productFlavors().get(0);
@@ -294,12 +208,6 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
 
     checkForValidPsiElement(buildModel.android().productFlavors().get(0), ProductFlavorModelImpl.class);
-    String expected = "android {\n" +
-                      "  productFlavors {\n" +
-                      "    x {\n" +
-                      "    }\n" +
-                      "  }\n" +
-                      "}";
-    verifyFileContents(myBuildFile, expected);
+    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED);
   }
 }

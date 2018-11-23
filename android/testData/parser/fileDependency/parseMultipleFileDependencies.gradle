@@ -1,0 +1,4 @@
+dependencies {
+  compile files('lib1.jar', 'lib2.jar')
+  compile files('lib3.jar')
+}

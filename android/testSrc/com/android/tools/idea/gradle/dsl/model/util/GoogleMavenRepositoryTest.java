@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.model.util;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_URL_ALREADY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL4DOT0;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -25,16 +40,9 @@ import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import org.junit.Test;
 
 /**
  * Tests for {@link GoogleMavenRepository}.
@@ -51,52 +59,34 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
 
   @Test
   public void testHasGoogleMavenRepositoryEmpty() throws IOException {
-    String text = "repositories {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY);
     assertFalse(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   @Test
   public void testHasGoogleMavenRepositoryName3dot5() throws IOException {
-    String text = "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("3.5"));
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   @Test
   public void testHasGoogleMavenRepositoryName4dot0() throws IOException {
-    String text = "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME4DOT0);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("4.0"));
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   @Test
   public void testHasGoogleMavenRepositoryUrl3dot5() throws IOException {
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL3DOT5);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("3.5"));
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   @Test
   public void testHasGoogleMavenRepositoryUrl4dot0() throws IOException {
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL4DOT0);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("4.0"));
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
@@ -104,9 +94,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   @Test
   public void testAddGoogleRepositoryEmpty3dot5() throws IOException {
     // Prepare repositories
-    String text = "repositories {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY3DOT5);
     Project project = getProject();
     when(myGradleVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse("3.5"));
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -129,9 +117,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   @Test
   public void testAddGoogleRepositoryEmpty4dot0() throws IOException {
     // Prepare repositories
-    String text = "repositories {\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY4DOT0);
     Project project = getProject();
     when(myGradleVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse("4.0"));
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -154,12 +140,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   @Test
   public void testAddGoogleRepositoryWithUrlAlready() throws IOException {
     // Prepare repositories
-    String text = "repositories {\n" +
-                  "  maven {\n" +
-                  "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_URL_ALREADY);
     Project project = getProject();
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -175,10 +156,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   @Test
   public void testAddGoogleRepositoryWithGoogleAlready3dot5() throws IOException {
     // Prepare repositories
-    String text = "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY3DOT5);
     Project project = getProject();
     when(myGradleVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse("3.5"));
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -202,10 +180,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   @Test
   public void testAddGoogleRepositoryWithGoogleAlready4dot0() throws IOException {
     // Prepare repositories
-    String text = "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY4DOT0);
     Project project = getProject();
     when(myGradleVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse("4.0"));
     GradleBuildModel buildModel = getGradleBuildModel();

@@ -15,16 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
@@ -32,10 +40,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ModuleDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParsingWithCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':javalib1')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -50,10 +55,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithDependencyOnRoot() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -72,13 +74,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithMapNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
-                  "    compile project(path: ':androidlib2', configuration: 'flavor2Release')\n" +
-                  "    runtime project(path: ':javalib2')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -107,10 +103,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':javalib1')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -132,11 +125,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnMapNotationWithConfiguration() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -159,11 +148,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':androidlib1')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -185,11 +170,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':name:name')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -215,10 +196,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReset() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':javalib1')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -245,12 +223,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   // Test for b/68188327
   @Test
   public void testMultiTypeApplicationStatementDoesNotThrowException() throws IOException {
-    String text = "dependencies {\n" +
-                  "    implementation group: 'my.test.dep', name: 'artifact', version: 'version', {\n" +
-                  "        exclude module: 'module1'\n" +
-                  "        exclude module: 'module2'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 

@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
@@ -25,16 +33,7 @@ import org.junit.Test;
 public class CompileOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testCompileOptionsBlock() throws Exception {
-    String text = "android {\n" +
-                  "  compileOptions {\n" +
-                  "    encoding 'UTF8'\n" +
-                  "    incremental true\n" +
-                  "    sourceCompatibility 1.6\n" +
-                  "    targetCompatibility 1.6\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -48,16 +47,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompileOptionsBlockUsingAssignment() throws Exception {
-    String text = "android {\n" +
-                  "  compileOptions {\n" +
-                  "    encoding = 'UTF8'\n" +
-                  "    incremental = false\n" +
-                  "    sourceCompatibility = 1.6\n" +
-                  "    targetCompatibility = 1.6\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -71,8 +61,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompileOptionsApplicationStatement() throws Exception {
-    String text = "android.compileOptions.sourceCompatibility 1.6\n" + "android.compileOptions.targetCompatibility 1.6\n";
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -85,15 +74,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
   // TODO test the case of remove sourceCompatibility with override
   @Test
   public void testCompileOptionsBlockWithOverrideStatement() throws Exception {
-    String text = "android {\n" +
-                  "  compileOptions {\n" +
-                  "    sourceCompatibility 1.6\n" +
-                  "    targetCompatibility 1.6\n" +
-                  "  }\n" +
-                  "  compileOptions.sourceCompatibility 1.7\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -105,17 +86,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompileOptionsRemoveApplicationStatement() throws Exception {
-    String text = "android {\n" +
-                  "  compileSdkVersion 23\n" +
-                  "  compileOptions {\n" +
-                  "    sourceCompatibility 1.6\n" +
-                  "    targetCompatibility 1.6\n" +
-                  "    encoding 'UTF8'\n" +
-                  "    incremental true\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -141,16 +112,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompileOptionsModify() throws Exception {
-    String text = "android {\n" +
-                  "  compileOptions {\n" +
-                  "    sourceCompatibility 1.6\n" +
-                  "    targetCompatibility 1.7\n" +
-                  "    encoding 'UTF8'\n" +
-                  "    incremental false\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -163,7 +125,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("incremental", Boolean.FALSE, compileOptions.incremental());
 
     compileOptions.sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8);
-    compileOptions.targetCompatibility ().setLanguageLevel(LanguageLevel.JDK_1_9);
+    compileOptions.targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_9);
     compileOptions.encoding().setValue("ISO-2022-JP");
     compileOptions.incremental().setValue(true);
 
@@ -180,11 +142,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompileOptionsAdd() throws Exception {
-    String text = "android {\n" +
-                  "  compileSdkVersion 23\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -208,7 +166,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     compileOptions = android.compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility().toLanguageLevel());
-    assertEquals("encoding" ,"UTF8", compileOptions.encoding());
+    assertEquals("encoding", "UTF8", compileOptions.encoding());
     assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
   }
 }

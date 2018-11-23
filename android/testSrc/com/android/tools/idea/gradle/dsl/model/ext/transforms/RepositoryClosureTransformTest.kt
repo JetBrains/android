@@ -19,7 +19,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.nullValue
+import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
@@ -82,7 +86,7 @@ class RepositoryClosureTransformTest : TransformTestCase() {
     val resultElement = transform.bind(gradleDslFile, inputElement, "some.value", "unusedName")
     assertThat(resultElement, instanceOf(GradleDslLiteral::class.java))
     assertThat((resultElement as GradleDslLiteral).value as String, equalTo("some.value"))
-    assertThat(resultElement.name, equalTo(fieldName ))
+    assertThat(resultElement.name, equalTo(fieldName))
   }
 
   @Test

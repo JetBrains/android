@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_SUB_PROJECTS_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_SUB_PROJECTS_SECTION_WITH_LOCAL_PROPERTIES;
+
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
 import org.junit.Test;
+
 
 /**
  * Tests subprojects section of the build.gradle file.
@@ -26,18 +32,9 @@ import org.junit.Test;
 public class SubProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testSubProjectsSection() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "subprojects { \n" +
-                            "  sourceCompatibility = 1.5\n" +
-                            "  targetCompatibility = 1.6\n" +
-                            "}";
-
-    String subModuleText = "";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(SUB_PROJECTS_SUB_PROJECTS_SECTION);
+    writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
     assertMissingProperty(java.sourceCompatibility());
@@ -50,47 +47,26 @@ public class SubProjectsTest extends GradleFileModelTestCase {
 
   @Test
   public void testSubProjectsSectionWithLocalProperties() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "sourceCompatibility = 1.4 \n" +
-                            "targetCompatibility = 1.5 \n" +
-                            "subprojects { \n" +
-                            "  sourceCompatibility = 1.5\n" +
-                            "  targetCompatibility = 1.6\n" +
-                            "}";
-
-    String subModuleText = "";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(SUB_PROJECTS_SUB_PROJECTS_SECTION_WITH_LOCAL_PROPERTIES);
+    writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_4, java.sourceCompatibility().toLanguageLevel()); // subprojects section applies only for sub projects.
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel()); // subprojects section applies only for sub projects.
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility().toLanguageLevel()); // Subproject got 1_5 from SubProjects section
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel()); // Subproject got 1_6 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_5,
+                 subModuleJava.sourceCompatibility().toLanguageLevel()); // Subproject got 1_5 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_6,
+                 subModuleJava.targetCompatibility().toLanguageLevel()); // Subproject got 1_6 from SubProjects section
   }
 
   @Test
   public void testOverrideSubProjectsSection() throws Exception {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "subprojects { \n" +
-                            "  sourceCompatibility = 1.4\n" +
-                            "  targetCompatibility = 1.5\n" +
-                            "}\n" +
-                            "sourceCompatibility = 1.5 \n" +
-                            "targetCompatibility = 1.6";
-
-    String subModuleText = "sourceCompatibility = 1.6\n" +
-                           "targetCompatibility = 1.7";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
+    writeToSettingsFile(getSubModuleSettingsText());
+    writeToBuildFile(SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION);
+    writeToSubModuleBuildFile(SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION_SUB);
 
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
