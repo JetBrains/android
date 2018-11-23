@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -28,6 +30,7 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/119945681
 @RunWith(GuiTestRemoteRunner.class)
 public class ResolveXmlReferencesTest {
 
