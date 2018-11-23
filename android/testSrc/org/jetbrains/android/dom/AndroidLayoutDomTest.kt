@@ -302,7 +302,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   // Designtime attributes completion is showing completion variants
   fun testDesigntimeAttributesCompletion() {
-    doTestCompletionVariants("tools_designtime_completion.xml", "src", "nextFocusRight")
+    doTestCompletionVariants("tools_designtime_completion.xml", "src", "nextFocusRight", "screenReaderFocusable")
   }
 
   // Designtime attributes completion is completing attribute names correctly

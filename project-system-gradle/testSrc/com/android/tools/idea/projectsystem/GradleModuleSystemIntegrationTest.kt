@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
 
 /**
  * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
@@ -37,7 +38,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "27.+"))
+    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "$LATEST_API.+"))
   }
 
   @Throws(Exception::class)
@@ -76,7 +77,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     // Verify that getRegisteredDependency gets a existing dependency correctly.
     val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
     assertThat(moduleSystem.getRegisteredDependency(appCompat)).isNotNull()
-    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("27.+")
+    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("$LATEST_API.+")
   }
 
   @Throws(Exception::class)
@@ -117,10 +118,10 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
-    // Verify that app-compat is on version 27.1.1 so the checks below make sense.
-    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("27.1.1")
+    // Verify that app-compat is on version 28.0.0 so the checks below make sense.
+    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
 
-    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "27.+")
+    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "$LATEST_API.+")
     val wildcardVersionResolution = moduleSystem.getResolvedDependency(appCompatDependency)
     assertThat(wildcardVersionResolution).isNotNull()
     assertThat(wildcardVersionResolution!!.matches(appCompatDependency)).isTrue()
@@ -132,8 +133,8 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
-    // Verify that app-compat is on version 27.1.1 so the checks below make sense.
-    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("27.1.1")
+    // Verify that app-compat is on version 28.0.0 so the checks below make sense.
+    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
 
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "26.+"))).isNull()
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.0"))).isNull()
@@ -173,7 +174,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
         ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.APP_COMPAT_V7.toString() }
 
     assertThat(appCompatArtifact).isNotNull()
-    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("27.+")
+    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("$LATEST_API.+")
   }
 
   private fun verifyProjectDependsOnGuava() {
