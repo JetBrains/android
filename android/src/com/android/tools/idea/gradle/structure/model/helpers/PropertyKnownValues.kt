@@ -101,7 +101,7 @@ fun productFlavorMatchingFallbackValuesCore(project: PsProject, dimension: Strin
     .flatMap {
       (it as? PsAndroidModule)
         ?.productFlavors?.asSequence()
-        ?.filter { dimension == null || it.dimension.maybeValue == dimension }
+        ?.filter { dimension == null || it.configuredDimension.maybeValue == dimension }
         ?.map { it.name }
       ?: emptySequence()
     }

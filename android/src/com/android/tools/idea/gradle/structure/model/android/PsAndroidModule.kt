@@ -117,7 +117,7 @@ class PsAndroidModule(
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
     fun flavorsByDimension(dimension: String) =
-      productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }
+      productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
 
     fun buildFlavorCombinations() = when {
       flavorDimensions.size > 1 -> flavorDimensions
@@ -194,7 +194,7 @@ class PsAndroidModule(
 
   fun removeProductFlavor(productFlavor: PsProductFlavor) =
     getOrCreateProductFlavorCollection()
-      .remove(PsProductFlavorKey(productFlavor.dimension.maybeValue.orEmpty(), productFlavor.name))
+      .remove(PsProductFlavorKey(productFlavor.effectiveDimension.orEmpty(), productFlavor.name))
 
   fun addNewSigningConfig(name: String): PsSigningConfig = getOrCreateSigningConfigCollection().addNew(name)
 
