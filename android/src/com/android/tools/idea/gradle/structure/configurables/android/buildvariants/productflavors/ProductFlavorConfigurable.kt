@@ -50,7 +50,7 @@ class FlavorDimensionConfigurable(
   override fun apply() = Unit
   override fun setDisplayName(name: String?) = throw UnsupportedOperationException()
   override fun getChildrenModels(): Collection<PsProductFlavor> =
-    module.productFlavors.filter { it.dimension.maybeValue == flavorDimension.name }
+    module.productFlavors.filter { it.effectiveDimension == flavorDimension.name }
   override fun createChildConfigurable(model: PsProductFlavor): NamedConfigurable<PsProductFlavor> =
     ProductFlavorConfigurable(model, context).also { Disposer.register(this, it) }
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.productFlavors.onChange(disposable, listener)

@@ -16,10 +16,18 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 class PsProductFlavorTest : AndroidGradleTestCase() {
@@ -182,6 +190,34 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 
+  fun testEffectiveDimensions() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    run {
+
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
+      val productFlavor = appModule.findProductFlavor("foo", "paid")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+
+      productFlavor.configuredDimension = ParsedValue.NotSet
+      assertThat(productFlavor.effectiveDimension, nullValue())
+    }
+    run {
+
+      val nested2Module = project.findModuleByName("nested2") as PsAndroidModule
+      assertThat(nested2Module, notNullValue())
+
+      val productFlavor = nested2Module.findProductFlavor("foo", "paid")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>(ParsedValue.NotSet))
+      assertThat(productFlavor.effectiveDimension, equalTo("foo"))
+    }
+  }
+
   fun testSetProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
@@ -196,7 +232,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
     productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
     productFlavor.applicationIdSuffix = "suffix".asParsed()
-    productFlavor.dimension = "bar".asParsed()
+    productFlavor.configuredDimension = "bar".asParsed()
     productFlavor.maxSdkVersion = 26.asParsed()
     productFlavor.minSdkVersion = "20".asParsed()
     productFlavor.multiDexEnabled = false.asParsed()

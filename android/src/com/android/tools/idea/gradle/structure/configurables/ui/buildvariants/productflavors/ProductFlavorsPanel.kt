@@ -112,7 +112,7 @@ class ProductFlavorsPanel(
             val selectedObject = selectedConfigurable
             val currentDimension = when (selectedObject) {
               is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
-              is ProductFlavorConfigurable -> selectedObject.model.dimension.maybeValue
+              is ProductFlavorConfigurable -> selectedObject.model.effectiveDimension
               else -> {
                 Messages.showErrorDialog(
                   "All product flavors must belong to a named flavor dimension. Add a flavor dimension first.",
