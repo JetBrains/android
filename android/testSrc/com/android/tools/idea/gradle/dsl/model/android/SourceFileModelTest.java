@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
-
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link SourceFileModel}.
@@ -34,33 +40,13 @@ import static com.google.common.truth.Truth.assertThat;
 public class SourceFileModelTest extends GradleFileModelTestCase {
   @Test
   public void testSourceFile() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "        srcFile \"mainSource.xml\"\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE);
     verifySourceFile(getGradleBuildModel(), "mainSource.xml");
   }
 
   @Test
   public void testSourceFileEditAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "        srcFile \"mainSource.xml\"\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
@@ -75,17 +61,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceFileEditAndApply() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "        srcFile \"mainSource.xml\"\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
@@ -100,16 +76,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceFileAddAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_RESET);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, null);
 
@@ -124,16 +91,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceFileAddAndApply() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, null);
 
@@ -148,17 +106,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceFileRemoveAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "        srcFile \"mainSource.xml\"\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
@@ -173,17 +121,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceFileRemoveAndApply() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      manifest {\n" +
-                  "        srcFile \"mainSource.xml\"\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 

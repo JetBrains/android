@@ -15,14 +15,47 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ALLPROJECTS_APPLIED_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_REFERENCE_BLOCK_ELEMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_SINGLE_FILE
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SUBPROJECTS_APPLIED_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.UNKNOWN
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -60,91 +93,14 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   }
 
   private fun setupSingleFile() {
-    val text = """
-               ext {
-                 N0 = 24
-                 N1 = 25
-                 O  = 27
-                 def versions = [N0, N1, O]
-                 def files = [key: 'proguard.txt', key2: 'coolguard.txt', passwordFile: "passwordFile.pass"]
-                 prop1 = versions
-                 prop2 = files
-               }
-
-               android {
-                 defaultConfig {
-                    maxSdkVersion versions[1]
-                    minSdkVersion android.defaultConfig.maxSdkVersion
-                 }
-                 signingConfigs {
-                   myConfig {
-                     storeFile file(prop2['passwordFile'])
-                     storePassword prop2['key3']
-                   }
-                 }
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_DEPENDENCY_SETUP_SINGLE_FILE)
   }
 
   private fun setupParentAndAppliedFiles() {
-    val parentText = """
-                     ext {
-                       // Some global properties.
-                       numbers = [0, 1, 2, 3, 4, 5, 6]
-                       letters = ['a', 'b', 'c', 'd', 'e']
-                       bool = true
-                     }
-                     """.trimIndent()
-    val defaults = """
-                   def signing = [
-                     storeF : "store.txt",
-                     storeP : ["fed", "grt"],
-                     keyF   : "key.file"
-                     keyP   : ["cfv", "bnn"]
-                   ]
-
-                   ext.vars = [
-                     "minSdk" : 17,
-                     "maxSdk" : ext.vars.minSdk,
-                     "signing": signing
-                   ]
-                   """.trimIndent()
-    val childText = """
-                    apply from: "../defaults.gradle"
-
-                    // Local overrides
-                    ext {
-                      varInt = numbers[1]
-                      varBool = bool
-                      varRefString = "${'$'}{numbers[3]}"
-                      varProGuardFiles = [test: 'proguard-rules.txt', debug: debugFile]
-                    }
-
-                    android {
-                       compileSdkVersion varInt
-                       buildToolsVersion varRefString
-
-                       signingConfigs {
-                         myConfig {
-                           storeFile file(vars['signing'].storeF)
-                           storePassword vars["signing"].storeP
-                           keyPassword "${'$'}{vars["signing"].keyP}${'$'}{letters[3]}"
-                         }
-                       }
-
-                       defaultConfig {
-                         applicationId appId
-                         testApplicationId testId
-                         maxSdkVersion vars.maxSdk
-                         minSdkVersion vars.minSdk
-                       }
-                    }
-                    """.trimIndent()
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToNewProjectFile("defaults.gradle", defaults)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT)
+    writeToSubModuleBuildFile(TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD)
+    writeToNewProjectFile("defaults.gradle", PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS)
+    writeToSettingsFile(subModuleSettingsText)
   }
 
   /**
@@ -531,29 +487,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testBuildScriptAppliedDependencies() {
-    val text = """
-               buildscript {
-                 apply from: 'versions.gradle'
-                 dependencies {
-                   classpath deps.android_gradle_plugin
-                 }
-               }
-
-               dependencies {
-                 compile deps.android_gradle_plugin
-               }
-               """.trimIndent()
-    val appliedText = """
-                      ext.deps = [:]
-                      def versions = [:]
-                      versions.android_gradle_plugin = "3.1.0"
-
-                      def deps = [:]
-                      deps.android_gradle_plugin = "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
-                      ext.deps = deps
-                      """.trimIndent()
-    writeToNewProjectFile("versions.gradle", appliedText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED)
+    writeToBuildFile(PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES)
 
     val buildModel = gradleBuildModel
     val classPathProperty = buildModel.buildscript().dependencies().artifacts()[0]
@@ -582,29 +517,10 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testBuildScriptAppliedInParentModule() {
-    val text = """
-               buildscript {
-                 apply from: 'versions.gradle'
-               }
-               """.trimIndent()
-    val childText = """
-                    dependencies {
-                      compile rootProject.ext.deps.android_gradle_plugin
-                    }
-                    """.trimIndent()
-    val appliedText = """
-                      ext.deps = [:]
-                      def versions = [:]
-                      versions.android_gradle_plugin = "3.1.0"
-
-                      def deps = [:]
-                      deps.android_gradle_plugin = "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
-                      ext.deps = deps
-                      """.trimIndent()
-    writeToNewProjectFile("versions.gradle", appliedText)
-    writeToBuildFile(text)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED)
+    writeToBuildFile(PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE)
+    writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_SUB)
+    writeToSettingsFile(subModuleSettingsText)
 
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
@@ -621,30 +537,19 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testSubProjectsAppliedDependencies() {
-    runApplyFileToChildrenTest("subprojects")
+    runApplyFileToChildrenTest(PROPERTY_DEPENDENCY_SUBPROJECTS_APPLIED_DEPENDENCIES)
   }
 
   @Test
   fun testAllProjectsAppliedDependencies() {
-    runApplyFileToChildrenTest("allprojects")
+    runApplyFileToChildrenTest(PROPERTY_DEPENDENCY_ALLPROJECTS_APPLIED_DEPENDENCIES)
   }
 
-  private fun runApplyFileToChildrenTest(function: String) {
-    val text = """
-               $function { project ->
-                 apply from: "versions.gradle"
-               }
-               """.trimIndent()
-    val appliedText = "ext.property = 'boo'"
-    val childText = """
-                    dependencies {
-                      compile "${'$'}{property}:${'$'}property:2.0"
-                    }
-                    """.trimIndent()
-    writeToNewProjectFile("versions.gradle", appliedText)
-    writeToBuildFile(text)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+  private fun runApplyFileToChildrenTest(fileName: TestFileName) {
+    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED)
+    writeToBuildFile(fileName)
+    writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB)
+    writeToSettingsFile(subModuleSettingsText)
 
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
@@ -654,22 +559,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFileWithVariables() {
-    val text = """
-               def namePart1 = 'super'
-               ext.namePart2 = 'awesome'
-               apply from: "${'$'}{namePart1}${'$'}{namePart2}.gradle"
-
-               dependencies {
-                 api("${'$'}group:${'$'}name:${'$'}version")
-               }
-               """.trimIndent()
-    val appliedText = """
-                      ext.group   = 'super'
-                      ext.name    = 'powers'
-                      ext.version = '1.0.0'
-                      """.trimIndent()
-    writeToNewProjectFile("superawesome.gradle", appliedText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("superawesome.gradle", PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED)
+    writeToBuildFile(PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES)
 
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
@@ -679,20 +570,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFileWithRootDirVariables() {
-    val text = """
-               apply from: "${'$'}rootDir/deps.gradle"
-
-               dependencies {
-                 api("${'$'}group:${'$'}name:${'$'}version")
-               }
-               """.trimIndent()
-    val appliedText = """
-                      ext.group   = 'super'
-                      ext.name    = 'powers'
-                      ext.version = '1.0.0'
-                      """.trimIndent()
-    writeToNewProjectFile("deps.gradle", appliedText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("deps.gradle", PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES_APPLIED)
+    writeToBuildFile(PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES)
 
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
@@ -702,26 +581,11 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleAllProjectBlocks() {
-    val text = """
-               allprojects { project ->
-                 apply from: "versions.gradle"
-               }
-               subprojects { project ->
-                 apply from: "versions2.gradle"
-               }
-               """.trimIndent()
-    val allProjectsText = "rootProject.ext.property = 'boo'"
-    val subProjectsText = "ext.other = 'agh'"
-    val childText = """
-                    dependencies {
-                      compile "${'$'}{property}:${'$'}other:2.0"
-                    }
-                    """.trimIndent()
-    writeToNewProjectFile("versions.gradle", allProjectsText)
-    writeToNewProjectFile("versions2.gradle", subProjectsText)
-    writeToBuildFile(text)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE)
+    writeToNewProjectFile("versions2.gradle", PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO)
+    writeToBuildFile(PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS)
+    writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_SUB)
+    writeToSettingsFile(subModuleSettingsText)
 
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
@@ -731,16 +595,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testReferenceBlockElement() {
-    val text = """
-               android {
-                 compileSdkVersion 26
-               }
-
-               ext {
-                 prop1 = android
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_DEPENDENCY_REFERENCE_BLOCK_ELEMENT)
 
     val buildModel = gradleBuildModel
 
@@ -757,30 +612,10 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testRootProjectInAppliedFiles() {
-    val text = """
-               buildscript {
-                 ext.version = '1.0'
-               }
-
-               subprojects {
-                 apply from: 'versions.gradle'
-               }
-               """.trimIndent()
-    val appliedText = """
-                      rootProject.ext.greetings = "goodbye"
-                      rootProject.ext.dep = "good:dep:${'$'}{version}"
-                      """.trimIndent()
-    val childText = """
-                    ext.hello = greetings
-
-                    dependencies {
-                      compile dep
-                    }
-                    """.trimIndent()
-    writeToBuildFile(text)
-    writeToNewProjectFile("versions.gradle", appliedText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES)
+    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED)
+    writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB)
+    writeToSettingsFile(subModuleSettingsText)
 
     val projectModel = ProjectBuildModel.get(myProject)
     val childBuildModel = projectModel.getModuleBuildModel(mySubModule)!!
@@ -792,16 +627,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testVariableInBuildscript() {
-    val text = """
-               buildscript {
-                 ext.kotlin = "2.0"
-
-                 dependencies {
-                   compile "hello:kotlin:${'$'}{kotlin}"
-                 }
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT)
 
     val pbm = ProjectBuildModel.get(myProject)
     val buildModel = pbm.projectBuildModel!!

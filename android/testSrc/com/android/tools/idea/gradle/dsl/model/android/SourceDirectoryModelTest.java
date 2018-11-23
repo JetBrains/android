@@ -15,52 +15,32 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link SourceDirectoryModel}.
  */
 public class SourceDirectoryModelTest extends GradleFileModelTestCase {
-  private static final String GRADLE_TEXT = "android { \n" +
-                                            "  sourceSets {\n" +
-                                            "    main {\n" +
-                                            "      java {\n" +
-                                            "        srcDirs \"javaSource1\"\n" +
-                                            "        srcDir \"javaSource2\"\n" +
-                                            "        include \"javaInclude1\"\n" +
-                                            "        include \"javaInclude2\"\n" +
-                                            "        exclude \"javaExclude1\", \"javaExclude2\"\n" +
-                                            "      }\n" +
-                                            "      jni {\n" +
-                                            "        srcDirs = [\"jniSource1\", \"jniSource2\"]\n" +
-                                            "        include \"jniInclude1\", \"jniInclude2\"\n" +
-                                            "        exclude \"jniExclude1\"\n" +
-                                            "        exclude \"jniExclude2\"\n" +
-                                            "      }\n" +
-                                            "    }\n" +
-                                            "  }\n" +
-                                            "}";
-
   @Test
   public void testSourceDirectoryEntries() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
     verifySourceDirectoryEntries(getGradleBuildModel(), 1, 2);
   }
 
   @Test
   public void testSourceDirectoryEntriesAddAndReset() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -87,7 +67,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesAddAndApply() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -114,7 +94,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesRemoveAndReset() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -141,7 +121,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesRemoveAndApply() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -168,7 +148,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesRemoveAllAndReset() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -195,7 +175,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesRemoveAllAndApply() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -225,7 +205,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesReplaceAndReset() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
@@ -252,7 +232,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSourceDirectoryEntriesReplaceAndApply() throws Exception {
-    writeToBuildFile(GRADLE_TEXT);
+    writeToBuildFile(SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);

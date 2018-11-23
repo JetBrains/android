@@ -1,0 +1,9 @@
+dependencies {
+  api fileTree(dir: 'libs', include: ['*.jar'])
+  implementation 'com.example.libs:lib1:0.+'
+  api 'com.android.support:appcompat-v7:+'
+  compile files('lib1.jar')
+  compile files('lib2.jar', "lib3.aar")
+  implementation files('lib4.aar')
+  debugImplementation project(':javalib1')
+}

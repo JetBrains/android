@@ -15,18 +15,28 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_IN_SOURCE_SET_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_STATEMENTS;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link SourceSetModel}.
@@ -34,80 +44,26 @@ import static com.google.common.truth.Truth.assertThat;
 public class SourceSetModelTest extends GradleFileModelTestCase {
   @Test
   public void testSetRootInSourceSetBlock() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set1 {\n" +
-                  "      root = \"source1\"\n" +
-                  "    }\n" +
-                  "    set2 {\n" +
-                  "      root \"source2\"\n" +
-                  "    }\n" +
-                  "    set3 {\n" +
-                  "      setRoot \"source3\"\n" +
-                  "    }\n" +
-                  "    set4 {\n" +
-                  "      setRoot(\"source4\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_IN_SOURCE_SET_BLOCK);
     verifySourceSetRoot(getGradleBuildModel(), "source");
   }
 
   @Test
   public void testSetRootStatements() throws Exception {
-    String text = "android.sourceSets.set1.root = \"source1\"\n" +
-                  "android.sourceSets.set2.root \"source2\"\n" +
-                  "android.sourceSets.set3.setRoot \"source3\"\n" +
-                  "android.sourceSets.set4.setRoot(\"source4\")";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_STATEMENTS);
     verifySourceSetRoot(getGradleBuildModel(), "source");
   }
 
   @Test
   public void testSetRootOverrideStatements() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set1 {\n" +
-                  "      root = \"source1\"\n" +
-                  "      setRoot \"override1\"\n" +
-                  "    }\n" +
-                  "    set2 {\n" +
-                  "      root \"source2\"\n" +
-                  "    }\n" +
-                  "    set2.setRoot(\"override2\")\n" +
-                  "    set3 {\n" +
-                  "      setRoot \"source3\"\n" +
-                  "    }\n" +
-                  "    set4 {\n" +
-                  "      setRoot(\"source4\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  sourceSets.set3.root \"override3\"\n" +
-                  "}\n" +
-                  "android.sourceSets.set4.root = \"override4\"";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "override");
   }
 
   @Test
   public void testSetRootEditAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set1 {\n" +
-                  "      root = \"source1\"\n" +
-                  "    }\n" +
-                  "    set2.root \"source2\"\n" +
-                  "  }\n" +
-                  "  sourceSets.set3.setRoot \"source3\"\n" +
-                  "}\n" +
-                  "android.sourceSets.set4.setRoot(\"source4\")";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
@@ -128,18 +84,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetRootEditAndApply() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set1 {\n" +
-                  "      root = \"source1\"\n" +
-                  "    }\n" +
-                  "    set2.root \"source2\"\n" +
-                  "  }\n" +
-                  "  sourceSets.set3.setRoot \"source3\"\n" +
-                  "}\n" +
-                  "android.sourceSets.set4.setRoot(\"source4\")";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
@@ -162,14 +107,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetRootAddAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -191,14 +129,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetRootAddAndApply() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -231,18 +162,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetRootRemoveAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set1 {\n" +
-                  "      root = \"source1\"\n" +
-                  "    }\n" +
-                  "    set2.root \"source2\"\n" +
-                  "  }\n" +
-                  "  sourceSets.set3.setRoot \"source3\"\n" +
-                  "}\n" +
-                  "android.sourceSets.set4.setRoot(\"source4\")";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
@@ -264,18 +184,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetRootRemoveAndApply() throws Exception {
-    String text = "android {\n" +
-                  "  sourceSets {\n" +
-                  "    set1 {\n" +
-                  "      root = \"source1\"\n" +
-                  "    }\n" +
-                  "    set2.root \"source2\"\n" +
-                  "  }\n" +
-                  "  sourceSets.set3.setRoot \"source3\"\n" +
-                  "}\n" +
-                  "android.sourceSets.set4.setRoot(\"source4\")";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
@@ -320,13 +229,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyBlockElements() throws Exception {
-    String text = "android { \n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -407,40 +310,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyBlockElements() throws Exception {
-    String text = "android { \n" +
-                  "  sourceSets {\n" +
-                  "    main {\n" +
-                  "      aidl {\n" +
-                  "        srcDir \"aidlSource\"\n" +
-                  "      }\n" +
-                  "      assets {\n" +
-                  "        srcDir \"aseetsSource\"\n" +
-                  "      }\n" +
-                  "      java {\n" +
-                  "        srcDir \"javaSource\"\n" +
-                  "      }\n" +
-                  "      jni {\n" +
-                  "        srcDir \"jniSource\"\n" +
-                  "      }\n" +
-                  "      jniLibs {\n" +
-                  "        srcDir \"jniLibsSource\"\n" +
-                  "      }\n" +
-                  "      manifest {\n" +
-                  "        srcFile \"manifestSource.xml\"\n" +
-                  "      }\n" +
-                  "      renderscript {\n" +
-                  "        srcDir \"renderscriptSource\"\n" +
-                  "      }\n" +
-                  "      res {\n" +
-                  "        srcDir \"resSource\"\n" +
-                  "      }\n" +
-                  "      resources {\n" +
-                  "        srcDir \"resourcesSource\"\n" +
-                  "      }\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

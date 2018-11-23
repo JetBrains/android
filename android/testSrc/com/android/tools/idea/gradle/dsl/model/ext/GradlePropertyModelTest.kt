@@ -13,6 +13,119 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_AND_REMOVE_FROM_NON_LITERAL_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_MAP_VALUE_TO_STRING
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_MIDDLE_OF_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_OUT_OF_BOUNDS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_REMOVE_REFERENCE_VALUES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_SINGLE_ELEMENT_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_TO_AND_DELETE_LIST_FROM_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_TO_NONE_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_TO_VARIABLE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_AS_TYPE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_LITERAL
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_REFERENCE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHECK_SETTING_DELETED_MODEL
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CONVERT_TO_EMPTY_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_LIST_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEEP_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_PROPERTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_EMPTY_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_ITEMS_FROM_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_ITEMS_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_LIST_WITH_ITEMS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_ITEM_TO_AND_SET_FROM_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_PROPERTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_VARIABLE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_WITH_ITEMS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCIES_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE_REFERENCE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_CHANGED_UPDATES_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE4_DEPTH
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_TWICE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ESCAPE_SET_STRINGS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_DECLARED_PROPERTIES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_FILE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_NON_QUOTED_LIST_INDEX
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_PROPERTIES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_GET_VARIABLES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_INTEGER_REFERENCE_PROPERTY_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_LIST_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAP_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAP_ORDER
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MULTIPLE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MULTIPLE_TYPE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_NESTED_LIST_PROPERTY_INJECTION
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_NESTED_MAP_VARIABLE_INJECTION
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OBTAIN_EXPRESSION_PSI_ELEMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OUTER_SCOPE_VARIABLES_RESOLVED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OUT_OF_SCOPE_MAP_AND_LIST_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_SET_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_VARIABLE_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_QUOTES_IN_STRING
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_QUOTES_WITHIN_QUOTES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_LIST_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_MAP_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_PROPERTY_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_TO_RETURN_OBJECT
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_VARIABLE_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_BOTH_STRING_TYPES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_GARBAGE_REFERENCE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_IN_MIDDLE_OF_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LIST_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LITERAL_TO_MAP_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_ON_NONE_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_TO_LITERAL
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_EMPTY_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_WITH_MODEL
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_TO_LIST_VALUES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_UNKNOWN_VALUE_TYPE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_VALUE_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES_IN_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES_IN_MAP
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_PROPERTY_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_SET_VALUE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
@@ -53,16 +166,7 @@ import java.math.BigDecimal
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   @Test
   fun testProperties() {
-    val text = """
-               ext {
-                 prop1 = 'value'
-                 prop2 = 25
-                 prop3 = true
-                 prop4 = [ "key": 'val']
-                 prop5 = [ 'val1', 'val2', "val3"]
-                 prop6 = 25.3
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTIES)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -155,16 +259,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testVariables() {
-    val text = """
-               ext {
-                 def prop1 = 'value'
-                 def prop2 = 25
-                 def prop3 = true
-                 def prop4 = [ "key": 'val']
-                 def prop5 = [ 'val1', 'val2', "val3"]
-                 def prop6 = 25.3
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES)
 
     val extModel = gradleBuildModel.ext()
 
@@ -253,13 +348,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testUnknownValues() {
-    val text = """
-               ext {
-                 prop1 = z(1)
-                 prop2 = 1 + 2
-                 prop3 = obj.getName()
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES)
 
     val buildModel = gradleBuildModel
 
@@ -275,11 +364,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testUnknownValuesInMap() {
-    val text = """
-               ext {
-                 prop1 = [key: getValue(), key2: 2 + 3]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -295,11 +380,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testUnknownValuesInList() {
-    val text = """
-               ext {
-                 prop1 = [getValue(), 2 + 3, z(1)]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES_IN_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -316,16 +397,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetProperties() {
-    val text = """
-               ext {
-                 def var1 = "Value1"
-                 prop1 = var1
-                 def var2 = "Value2"
-                 prop2 = "Cool ${'$'}{var2}"
-                 def var3 = "Value3"
-                 prop3 = "Nice ${'$'}var3"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_PROPERTIES)
 
     val extModel = gradleBuildModel.ext()
     val properties = extModel.properties
@@ -342,16 +414,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetVariables() {
-    val text = """
-               ext {
-                 def var1 = "gecko"
-                 def var2 = "barbet"
-                 def var3 = "crane"
-                 prop1 = "sidewinder"
-                 prop2 = "jackel"
-                 prop3 = "tiger"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_VARIABLES)
 
     val extModel = gradleBuildModel.ext()
     val variables = extModel.variables
@@ -365,15 +428,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsType() {
-    val text = """
-               ext {
-                 def prop1 = 'value'
-                 def prop2 = 25
-                 def prop3 = true
-                 def prop4 = [ "key": 'val']
-                 def prop5 = [ 'val1', 'val2', "val3"]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_AS_TYPE)
 
     val extModel = gradleBuildModel.ext()
 
@@ -407,13 +462,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetNonQuotedListIndex() {
-    val text = """
-               ext {
-                 prop1 = [1, "two", "3", 4]
-                 prop2 = prop1[0]
-                 prop3 = prop1[1]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_NON_QUOTED_LIST_INDEX)
 
     val extModel = gradleBuildModel.ext()
 
@@ -427,12 +476,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReferencePropertyDependency() {
-    val text = """
-               ext {
-                 prop1 = 'value'
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_REFERENCE_PROPERTY_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -452,12 +496,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testIntegerReferencePropertyDependency() {
-    val text = """
-               ext {
-                 prop1 = 25
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_INTEGER_REFERENCE_PROPERTY_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -477,12 +516,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReferenceVariableDependency() {
-    val text = """
-               ext {
-                 def prop1 = 'value'
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_REFERENCE_VARIABLE_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -502,10 +536,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateAndDeleteListToEmpty() {
-    val text = """
-               ext {
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_LIST_TO_EMPTY)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -532,12 +563,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateAndDeletePlaceHoldersToEmpty() {
-    val text = """
-               android {
-                 defaultConfig {
-                 }
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY)
 
     val buildModel = gradleBuildModel
 
@@ -563,10 +589,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateAndDeleteMapToEmpty() {
-    val text = """
-               ext {
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -593,12 +616,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReferenceMapDependency() {
-    val text = """
-               ext {
-                 prop1 = ["key" : 'value']
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_REFERENCE_MAP_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -623,12 +641,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReferenceListDependency() {
-    val text = """
-               ext {
-                 prop1 = [1, true]
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_REFERENCE_LIST_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -659,12 +672,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyDependency() {
-    val text = """"
-               ext {
-                 prop1 = 'hello'
-                 prop2 = "${'$'}{prop1} world!"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTY_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -684,12 +692,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testVariableDependency() {
-    val text = """
-               ext {\n" +
-                 def prop1 = 'hello'
-                 def prop2 = "${'$'}{prop1} world!"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLE_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -709,12 +712,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyVariableDependency() {
-    val text = """
-               ext {
-                 def prop1 = 'hello'
-                 prop2 = "${'$'}{prop1} world!"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTY_VARIABLE_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -734,12 +732,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testVariablePropertyDependency() {
-    val text = """
-               ext {
-                 prop1 = 'hello'
-                 def prop2 = "${'$'}{prop1} world!"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLE_PROPERTY_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -759,13 +752,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleDependenciesWithFullyQualifiedName() {
-    val text = """
-               ext {
-                 prop1 = 'value1'
-                 def prop1 = 'value2'
-                 prop2 = "${'$'}{prop1} and ${'$'}{project.ext.prop1}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_MULTIPLE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -797,13 +784,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleTypeDependenciesWithFullyQualifiedName() {
-    val text = """
-               ext {
-                 prop1 = 'value1'
-                 def prop1 = true
-                 prop2 = "${'$'}{prop1} and ${'$'}{project.ext.prop1}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_MULTIPLE_TYPE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -835,14 +816,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testNestedListPropertyInjection() {
-    val text = """
-           ext {
-             prop1 = [1, 2, 3]
-             prop2 = [prop1, prop1, prop1]
-             prop3 = ['key' : prop2]
-             prop4 = "${'$'}{prop3.key[0][2]}"
-           }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_NESTED_LIST_PROPERTY_INJECTION)
 
     val propertyModel = gradleBuildModel.ext().findProperty("prop4")
     assertEquals("3", propertyModel.getValue(STRING_TYPE))
@@ -861,14 +835,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testNestedMapVariableInjection() {
-    val text = """
-               ext {
-                 prop = true
-                 def prop1 = ['key1': "value${'$'}{prop}"]
-                 def prop2 = ["key2": prop1]
-                 def prop3 = "${'$'}{prop2["key2"]["key1"]}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_NESTED_MAP_VARIABLE_INJECTION)
 
     val propertyModel = gradleBuildModel.ext().findProperty("prop3")
     assertEquals(STRING, propertyModel.valueType)
@@ -896,12 +863,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testListDependency() {
-    val text = """
-               ext {
-                 prop1 = ['value']
-                 prop2 = "${'$'}{prop1[0]}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_LIST_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -918,12 +880,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMapDependency() {
-    val text = """
-               ext {
-                 prop1 = ["key": 'value']
-                 prop2 = "${'$'}{prop1.key}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_MAP_DEPENDENCY)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
@@ -939,14 +896,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testOutOfScopeMapAndListDependencies() {
-    val text = """
-               def prop1 = 'value1'
-               def prop2 = ["key" : 'value2']
-               def prop3 = ['value3']
-               ext {
-                 prop4 = "${'$'}{prop1} and ${'$'}{prop2.key} and ${'$'}{prop3[0]}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_OUT_OF_SCOPE_MAP_AND_LIST_DEPENDENCIES)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop4")
@@ -979,19 +929,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeepDependencies() {
-    val text = """
-               ext {
-                 prop1 = '1'
-                 prop2 = "2${'$'}{prop1}"
-                 prop3 = "3${'$'}{prop2}"
-                 prop4 = "4${'$'}{prop3}"
-                 prop5 = "5${'$'}{prop4}"
-                 prop6 = "6${'$'}{prop5}"
-                 prop7 = "7${'$'}{prop6}"
-                 prop8 = "8${'$'}{prop7}"
-                 prop9 = "9${'$'}{prop8}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEEP_DEPENDENCIES)
 
     val extModel = gradleBuildModel.ext()
     var expected = "987654321"
@@ -1023,13 +961,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependenciesInMap() {
-    val text = """
-               ext {
-                 prop1 = 25
-                 prop2 = false
-                 prop4 = ["key1" : prop1, "key2" : "${'$'}{prop2}"]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCIES_IN_MAP)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop4")
@@ -1084,11 +1016,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetFile() {
-    val text = """
-               ext {
-                 prop1 = 'value'
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_FILE)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop1")
@@ -1097,31 +1025,17 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertySetValue() {
-    val text = """
-               ext {
-                 prop2 = 'ref'
-                 prop1 = 'value'
-               }""".trimIndent()
-    runSetPropertyTest(text, REGULAR)
+    runSetPropertyTest(GRADLE_PROPERTY_MODEL_PROPERTY_SET_VALUE, REGULAR)
   }
 
   @Test
   fun testVariableSetValue() {
-    val text = """
-               ext {
-                 def prop2 = 'ref'
-                 def prop1 = 'value'
-               }""".trimIndent()
-    runSetPropertyTest(text, VARIABLE)
+    runSetPropertyTest(GRADLE_PROPERTY_MODEL_VARIABLE_SET_VALUE, VARIABLE)
   }
 
   @Test
   fun testSetUnknownValueType() {
-    val text = """
-               ext {
-                 prop1 = "hello"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_UNKNOWN_VALUE_TYPE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1137,13 +1051,15 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.setValue(File("Hello"))
         fail()
-      } catch (e: IllegalArgumentException) {
+      }
+      catch (e: IllegalArgumentException) {
         // Expected
       }
       try {
         propertyModel.setValue(IllegalStateException("Boo"))
         fail()
-      } catch (e: IllegalArgumentException) {
+      }
+      catch (e: IllegalArgumentException) {
         // Expected
       }
 
@@ -1153,10 +1069,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEscapeSetStrings() {
-    val text = """
-               ext {
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ESCAPE_SET_STRINGS)
     val buildModel = gradleBuildModel
 
     run {
@@ -1186,10 +1099,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testQuotesInString() {
-    val text = """
-               ext {
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_QUOTES_IN_STRING)
     val buildModel = gradleBuildModel
 
     run {
@@ -1220,14 +1130,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetBothStringTypes() {
-    val text = """
-               ext {
-                 lamb = 'Lamb'
-                 seven = 'sêvĕn'
-                 def prop1 = 'Value1'
-                 prop2 = 'Value2'
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_BOTH_STRING_TYPES)
     val buildModel = gradleBuildModel
 
     run {
@@ -1262,12 +1165,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetGarbageReference() {
-    val text = """
-               ext {
-                 prop1 = 'Then I heard one of the four living creatures say'
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_GARBAGE_REFERENCE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1289,12 +1187,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetReferenceWithModel() {
-    val text = """
-               ext {
-                 prop1 = '“Come and see!” I looked'
-                 prop2 = 'and there before me was a white horse!'
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_REFERENCE_WITH_MODEL)
     val buildModel = gradleBuildModel
 
     run {
@@ -1320,11 +1213,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testQuotesWithinQuotes() {
-    val text = """
-               ext {
-                 prop2 = "\"\"\"Hello \"\"\""
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_QUOTES_WITHIN_QUOTES)
     val buildModel = gradleBuildModel
 
     // Check we read the string correctly
@@ -1351,13 +1240,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetReferenceValue() {
-    val text = """
-               ext {
-                 prop1 = "Good"
-                 prop2 = "Evil"
-                 prop3 = prop2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_REFERENCE_VALUE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1378,12 +1261,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testChangePropertyTypeToReference() {
-    val text = """
-               ext {
-                 prop1 = "25"
-                 prop2 = true
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_REFERENCE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1413,12 +1291,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testChangePropertyTypeToLiteral() {
-    val text = """
-               ext {
-                 prop1 = 25
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_LITERAL)
     val buildModel = gradleBuildModel
 
     run {
@@ -1449,12 +1322,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependencyChangedUpdatesValue() {
-    val text = """
-               ext {
-                 prop1 = 'hello'
-                 prop2 = "${'$'}{prop1} world!"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_CHANGED_UPDATES_VALUE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1492,11 +1360,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependencyBasicCycle() {
-    val text = """
-               ext {
-                 prop1 = "${'$'}{prop1}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
     verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 0)
@@ -1504,11 +1368,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependencyBasicCycleReference() {
-    val text = """
-               ext {
-                 prop1 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE_REFERENCE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
     verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
@@ -1516,14 +1376,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependencyNoCycle4Depth() {
-    val text = """
-               ext {
-                 prop1 = "Value"
-                 prop2 = "${'$'}{prop1}"
-                 prop3 = "${'$'}{prop2}"
-                 prop4 = "${'$'}{prop3}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE4_DEPTH)
     val buildModel = gradleBuildModel
 
     run {
@@ -1534,12 +1387,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependencyTwice() {
-    val text = """
-               ext {
-                 prop1 = "Value"
-                 prop2 = "${'$'}{prop1} + ${'$'}{prop1}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_TWICE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1550,14 +1398,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDependencyNoCycle() {
-    val text = """
-               ext {
-                 prop1 = "Value"
-                 prop2 = "${'$'}{prop1}"
-                 prop1 = "${'$'}{prop2}"
-                 prop2 = "${'$'}{prop1}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE)
     val buildModel = gradleBuildModel
 
     run {
@@ -1573,11 +1414,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteProperty() {
-    val text = """
-               ext {
-                 prop1 = "Value"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_PROPERTY)
     val buildModel = gradleBuildModel
 
     // Delete the property
@@ -1597,11 +1434,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteVariable() {
-    val text = """
-               ext {
-                 def prop1 = "Value"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_VARIABLE)
     val buildModel = gradleBuildModel
 
     // Delete the property
@@ -1621,12 +1454,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteAndResetProperty() {
-    val text = """
-               ext {
-                 prop1 = "Value"
-                 prop2 = "Other Value"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_PROPERTY)
     val buildModel = gradleBuildModel
 
 
@@ -1680,12 +1508,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteVariableDependency() {
-    val text = """
-               ext {
-                 def prop1 = "value"
-                 prop2 = prop1
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY)
     val buildModel = gradleBuildModel
 
     // Get the model to delete
@@ -1713,12 +1536,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCheckSettingDeletedModel() {
-    val text = """
-               ext {
-                 prop1 = "Value"
-                 prop2 = "Other Value"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CHECK_SETTING_DELETED_MODEL)
     val buildModel = gradleBuildModel
 
     // Delete the property and attempt to set it again.
@@ -1771,12 +1589,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeletePropertyInList() {
-    val text = """
-               ext {
-                 prop1 = [1, 2, 3, 4]
-                 prop2 = "${'$'}{prop1[0]}"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_LIST)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -1839,11 +1652,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddMapValueToString() {
-    val text = """
-               ext {
-                 prop1 = "hello"
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_MAP_VALUE_TO_STRING)
 
     val buildModel = gradleBuildModel
 
@@ -1852,7 +1661,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.getMapValue("key")
         fail("Exception should have been thrown!")
-      } catch (e: IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected.
       }
     }
@@ -1860,11 +1670,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetNewValueInMap() {
-    val text = """
-               ext {
-                 prop1 = ['key1' : 'value1', 'key2' : 'value2']
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -1910,12 +1716,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetNewValueInEmptyMap() {
-    val text = """
-               ext {
-                 def val = "value"
-                 prop1 = [:]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_EMPTY_MAP)
     val buildModel = gradleBuildModel
 
     run {
@@ -1954,11 +1755,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeletePropertyInMap() {
-    val text = """
-               ext {
-                 prop1 = ['key1' : 'value1', 'key2' : 'value2']
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -1990,20 +1787,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
     }
 
-    val expected = """
-                   ext {
-                     prop1 = ['key2' : 'value2']
-                   }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_EXPECTED)
   }
 
   @Test
   fun testDeleteMapItemToAndSetFromEmpty() {
-    val text = """
-               ext {
-                 prop1 = ['key1' : 25]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_MAP_ITEM_TO_AND_SET_FROM_EMPTY)
 
     val buildModel = gradleBuildModel
 
@@ -2049,11 +1838,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetMapValueToLiteral() {
-    val text = """
-               ext {
-                 prop1 = ['key1' : 25]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_TO_LITERAL)
 
     val buildModel = gradleBuildModel
 
@@ -2078,11 +1863,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteToEmptyMap() {
-    val text = """
-               ext {
-                 prop1 = [key : "value", key1 :32, key2: true]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -2111,11 +1892,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddExistingMapProperty() {
-    val text = """
-               ext {
-                 prop = [key: 'val']
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY)
 
     val buildModel = gradleBuildModel
 
@@ -2137,11 +1914,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteMapProperty() {
-    val text = """
-               ext {
-                 prop1 = ['key':"value"]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_MAP_PROPERTY)
 
     val buildModel = gradleBuildModel
 
@@ -2165,12 +1938,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteMapVariable() {
-    val text = """
-               ext {
-                 def map = [key : "value"]
-                 prop = map
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_MAP_VARIABLE)
 
     val buildModel = gradleBuildModel
 
@@ -2197,11 +1965,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteEmptyMap() {
-    val text = """
-               ext {
-                 prop = [:]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_EMPTY_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -2224,12 +1988,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetLiteralToMapValue() {
-    val text = """
-               ext {
-                 def val = 'value'
-                 prop1 = val
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_LITERAL_TO_MAP_VALUE)
 
     val buildModel = gradleBuildModel
 
@@ -2267,11 +2026,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseMapInMap() {
-    val text = """
-               ext {
-                 prop1 = [key1 : 25, key2 : [key: "value"]]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -2292,12 +2047,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMapsInMap() {
-    val text = """
-               ext {
-                 def var = "hellO"
-                 prop1 = [key1 : [key2 : 'value'], key3 : [key4: 'value2', key5: 43], key6 : [key7: 'value3']]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_MAPS_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -2346,12 +2096,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    val expected = """
-                   ext {
-                     def var = "hellO"
-                     prop1 = [key3: [key4: var], key6: 77]
-                   }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_EXPECTED)
 
     // Check everything is in order after a reparse.
     run {
@@ -2377,11 +2122,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMapOrder() {
-    val text = """
-               ext {
-                 prop1 = [key1 : 1, key3 : 3, key2 : 2]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_MAP_ORDER)
 
     val buildModel = gradleBuildModel
 
@@ -2397,11 +2138,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetMapInMap() {
-    val text = """
-               ext {
-                 prop1 = ['key1' : 25]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_MAP_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -2415,7 +2152,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-    
+
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       assertEquals(MAP, propertyModel.valueType)
@@ -2458,14 +2195,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testConvertToEmptyList() {
-    val text = """
-               ext {
-                 prop1 = 25
-                 prop2 = prop1
-                 prop3 = [key:'value', key1:'value']
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_CONVERT_TO_EMPTY_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -2513,12 +2243,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToNoneList() {
-    val text = """
-               ext {
-                 prop1 = true
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_TO_NONE_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -2529,14 +2254,16 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.addListValue().setValue("True")
         fail()
-      } catch (e: IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected
       }
 
       try {
         propertyModel.addListValueAt(23).setValue(72)
         fail()
-      } catch (e: IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected
       }
     }
@@ -2544,11 +2271,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddOutOfBounds() {
-    val text = """
-               ext {
-                 prop1 = [1, 2, 3, 4, 5, 6, "hello"]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_OUT_OF_BOUNDS)
 
     val buildModel = gradleBuildModel
 
@@ -2559,7 +2282,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.addListValueAt(82).setValue(true)
         fail()
-      } catch (e: IndexOutOfBoundsException) {
+      }
+      catch (e: IndexOutOfBoundsException) {
         // Expected
       }
     }
@@ -2567,11 +2291,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetListInMap() {
-    val text = """
-               ext {
-                 prop1 = [key: 'val', key1: 'val', key2: 'val']
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_LIST_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -2602,17 +2322,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetToListValues() {
-    val text = """
-               ext {
-                 def var = "hello"
-                 prop1 = 5
-                 prop2 = var
-                 prop3 = "${'$'}{prop2}"
-                 prop4 = [key: 'val', key1: true]
-                 prop5 = ['val']
-                 prop6 = [key: 'val']
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_TO_LIST_VALUES)
 
     val buildModel = gradleBuildModel
 
@@ -2668,9 +2378,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       // TODO: Order of statements is wrong so this model does not get correctly parsed.
       /*val secondModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
-      val depModel = secondModel.dependencies[0]!!
-      verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
+verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+val depModel = secondModel.dependencies[0]!!
+verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
       val thirdModel = buildModel.ext().findProperty("prop3")
       assertEquals(LIST, thirdModel.valueType)
@@ -2694,11 +2404,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddSingleElementToEmpty() {
-    val text = """
-               ext {
-                 prop1 = true
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_SINGLE_ELEMENT_TO_EMPTY)
 
     val buildModel = gradleBuildModel
 
@@ -2720,12 +2426,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndDeleteListFromEmpty() {
-    val text = """
-               ext {
-                 def six = 6
-                 prop1 = []
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_TO_AND_DELETE_LIST_FROM_EMPTY)
 
     val buildModel = gradleBuildModel
 
@@ -2778,14 +2479,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndRemoveFromNonLiteralList() {
-    val text = """
-               android {
-                 defaultConfig {
-                   proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules2.txt'
-                 }
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_AND_REMOVE_FROM_NON_LITERAL_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -2795,10 +2489,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       proguardFiles.addListValueAt(0).setValue("z.txt")
       proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
       verifyListProperty(
-          proguardFiles,
-          listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
-          DERIVED,
-          0
+        proguardFiles,
+        listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+        DERIVED,
+        0
       )
     }
 
@@ -2807,23 +2501,17 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
       verifyListProperty(
-          proguardFiles,
-          listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
-          DERIVED,
-          0
+        proguardFiles,
+        listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+        DERIVED,
+        0
       )
     }
   }
 
   @Test
   fun testSetList() {
-    val text = """
-               ext {
-                 prop1 = [1, 2, 3]
-                 prop2 = ["hellO"]
-                 prop3 = [54]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -2864,12 +2552,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddMiddleOfList() {
-    val text = """
-               ext {
-                 def var = "2"
-                 prop1 = [1, 4]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_MIDDLE_OF_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -2893,12 +2576,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetInMiddleOfList() {
-    val text = """
-               ext {
-                 def var = "2"
-                 prop1 = [1, 2, var, 4]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_IN_MIDDLE_OF_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -2922,19 +2600,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testResolveAndSetVariablesInParentModule() {
-    val parentText = """
-                     ext {
-                       greeting = "hello"
-                     }""".trimIndent()
-
-    val childText = """
-                    ext {
-                      prop1 = greeting
-                      prop2 = "${'$'}{greeting} world!"
-                    }""".trimIndent()
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE)
+    writeToSubModuleBuildFile(GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB)
+    writeToSettingsFile(subModuleSettingsText)
 
     val buildModel = subModuleGradleBuildModel
 
@@ -2967,21 +2635,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testResolveVariablesInPropertiesFile() {
-    val parentText = """
-                     ext {
-                       animal = "penguin"
-                     }""".trimIndent()
-
-    val childText = """
-                    ext {
-                      def animal = "rhino"
-                      prop = "hello, ${'$'}{animal}!"
-                    }""".trimIndent()
     val childProperties = "animal = lion"
     val parentProperties = "animal = meerkat"
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE)
+    writeToSubModuleBuildFile(GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE_SUB)
+    writeToSettingsFile(subModuleSettingsText)
     writeToPropertiesFile(parentProperties)
     writeToSubModulePropertiesFile(childProperties)
 
@@ -3045,13 +2703,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetValueInMap() {
-    val text = """
-               ext {
-                 def val = "hello"
-                 def otherVal = "goodbye"
-                 prop1 = [key1: 'value', key2: val, key3: 23, key4: true]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_VALUE_IN_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -3095,13 +2747,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetMapValueOnNoneMap() {
-    val text = """
-               ext {
-                 prop1 = ['value1', false, 17]
-                 prop2 = "hello"
-                 prop3 = prop1 // Should only work for resolved properties.
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_ON_NONE_MAP)
 
     val buildModel = gradleBuildModel
 
@@ -3110,7 +2756,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         firstModel.getMapValue("value1").setValue("newValue")
         fail()
-      } catch (e: IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected
       }
 
@@ -3118,7 +2765,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         secondModel.getMapValue("hello").setValue("goodbye")
         fail()
-      } catch (e: IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected
       }
 
@@ -3126,7 +2774,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         thirdModel.getMapValue("key").setValue(0)
         fail()
-      } catch (e: IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected
       }
     }
@@ -3134,16 +2783,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testOuterScopeVariablesResolved() {
-    val text = """
-               def max_version = 15
-               android {
-                 def min_version = 12
-                 defaultConfig {
-                   minSdkVersion min_version
-                   targetSdkVersion max_version
-                 }
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_OUTER_SCOPE_VARIABLES_RESOLVED)
 
     val buildModel = gradleBuildModel
 
@@ -3171,31 +2811,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testInScopeElement() {
-    val parentText = """
-                     def var1 = "aardwolf" // No
-                     ext {
-                       def var2 = "zorro" // No
-                       prop1 = "baboon" // Yes
-                     }""".trimIndent()
-    val childText = """
-                    ext {
-                      def var6 = "swan" // No
-                      prop2 = "kite" // Yes
-                    }
-                    def var3 = "goldeneye" // Yes
-                    android {
-                      def var4 = "wallaby" // Yes
-                      defaultConfig {
-                        def var5 = "curlew" // Yes
-                        targetSdkVersion 14 // No
-                        minSdkVersion 12 // No
-                      }
-                    }""".trimIndent()
     val childProperties = "prop3 = chickadee"
     val parentProperties = "prop4 = ferret"
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT)
+    writeToSubModuleBuildFile(GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB)
+    writeToSettingsFile(subModuleSettingsText)
     writeToPropertiesFile(parentProperties)
     writeToSubModulePropertiesFile(childProperties)
 
@@ -3231,34 +2851,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testVariablesFromNestedApply() {
-    val firstApplyFileText = """
-                             def var1 = "1"
-                             def var2 = true
-                             def var3 = 1
-
-                             ext {
-                               prop1 = [var1, var2, var3]
-                               prop2 = true
-                             }""".trimIndent()
-    val secondApplyFileText = """
-                              ext {
-                                prop2 = false
-                                prop3 = "hello"
-                                prop4 = "boo"
-                              }
-
-                              apply from: "b.gradle"
-                              """.trimIndent()
-    val text = """
-               apply from: "a.gradle"
-
-               ext {
-                 prop4 = prop1[0]
-                 prop5 = 5
-               }""".trimIndent()
-    writeToNewProjectFile("b.gradle", firstApplyFileText)
-    writeToNewProjectFile("a.gradle", secondApplyFileText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("b.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
+    writeToNewProjectFile("a.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY)
 
     val buildModel = gradleBuildModel
 
@@ -3308,22 +2903,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   @Ignore
   @Test
   fun testApplicationCycle() {
-    val applyFileText = """
-                        ext {
-                          prop1 = "hello"
-                        }
-
-                        apply from: "build.gradle"
-                        """.trimIndent()
-    val text = """
-               ext {
-                 prop2 = "true"
-               }
-
-               apply from: "a.gradle"
-               """.trimIndent()
-    writeToNewProjectFile("a.gradle", applyFileText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("a.gradle", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE)
 
     // Make sure we don't blow up.
     val buildModel = gradleBuildModel
@@ -3336,25 +2917,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testVariablesFromApply() {
-    val applyFileText = """
-                        def var1 = "Hello"
-                        def var2 = var1
-                        def var3 = true
-
-                        ext {
-                          prop1 = var2
-                          prop2 = "${'$'}{prop1} world!"
-                          prop3 = var3
-                        }
-                        """.trimIndent()
-    val text = """
-               apply from: "vars.gradle"
-               ext {
-                 prop4 = "${'$'}{prop1} : ${'$'}{prop2} : ${'$'}{prop3}"
-               }
-               """.trimIndent()
-    writeToNewProjectFile("vars.gradle", applyFileText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("vars.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY)
 
     val buildModel = gradleBuildModel
 
@@ -3386,15 +2950,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddRemoveReferenceValues() {
-    val text = """
-               ext {
-                 propB = "2"
-                 propC = "3"
-                 propRef = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propList = ["1", propB, propC, propRef, propInterpolated]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_REMOVE_REFERENCE_VALUES)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -3416,14 +2972,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRename() {
-    val text = """
-               ext {
-                 def var1 = "hello"
-
-                 prop1 = "${'$'}{var1} ${'$'}{var2}"
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_RENAME)
 
     val buildModel = gradleBuildModel
 
@@ -3453,12 +3002,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRenameMapPropertyAndKeys() {
-    val text = """
-               ext {
-                 def map1 = [key1 : 'a', "key2" : 'b', key3 : 'c']
-                 map2 = [key4 : 4]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS)
 
     val buildModel = gradleBuildModel
     run {
@@ -3504,12 +3048,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRenameListValueThrows() {
-    val text = """
-               ext {
-                 def list1 = [1, 2, 3, 4]
-                 list2 = ['a', 'b', 'c', 'd']
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS)
 
     val buildModel = gradleBuildModel
     run {
@@ -3522,7 +3061,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         listItem.rename("listItemName")
         fail()
-      } catch (e: UnsupportedOperationException) {
+      }
+      catch (e: UnsupportedOperationException) {
         // Expected
       }
 
@@ -3545,22 +3085,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetDeclaredProperties() {
-    val text = """
-               android {
-                 def outerVar = "Spooky"
-                 buildTypes {
-                   debug {
-                     def var = sneaky
-                     minifyEnabled true
-                   }
-                 }
-               }
-               ext  {
-                 prop1 = "property"
-                 def var = "value"
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_DECLARED_PROPERTIES)
 
     val buildModel = gradleBuildModel
     val extProperties = buildModel.ext().declaredProperties
@@ -3582,11 +3107,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteItemsFromList() {
-    val text = """
-               ext {
-                 prop = [1]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_ITEMS_FROM_LIST)
 
     val buildModel = gradleBuildModel
     run {
@@ -3603,11 +3124,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteListWithItems() {
-    val text = """
-               ext {
-                 prop = [1]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_LIST_WITH_ITEMS)
 
     val buildModel = gradleBuildModel
     run {
@@ -3622,11 +3139,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteItemsInMap() {
-    val text = """
-               ext {
-                 prop = [key: 1]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_ITEMS_IN_MAP)
 
     val buildModel = gradleBuildModel
     run {
@@ -3643,11 +3156,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteMapWithItems() {
-    val text = """
-               ext {
-                 prop = ["key": 1]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_MAP_WITH_ITEMS)
 
     val buildModel = gradleBuildModel
     run {
@@ -3660,8 +3169,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertMissingProperty(buildModel.ext().findProperty("prop"))
   }
 
-  private fun runSetPropertyTest(text: String, type: PropertyType) {
-    writeToBuildFile(text)
+  private fun runSetPropertyTest(fileName: TestFileName, type: PropertyType) {
+    writeToBuildFile(fileName)
 
     val buildModel = gradleBuildModel
 
@@ -3715,25 +3224,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testObtainExpressionPsiElement() {
-    val text = """
-               android {
-                 signingConfigs {
-                   myConfig {
-                     storeFile file('my_file.txt')
-                     storePassword System.getenv("KSTOREPWD")
-                   }
-                 }
-               }
-
-               ext {
-                 prop1 = 'value'
-                 prop2 = 25
-                 prop3 = true
-                 prop4 = [ "key": 'val']
-                 prop5 = [ 'val1', 'val2', "val3"]
-                 prop6 = 25.3
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_OBTAIN_EXPRESSION_PSI_ELEMENT)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -3744,10 +3235,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertThat(extModel.findProperty("prop2").fullExpressionPsiElement!!.text, equalTo("25"))
     assertThat(extModel.findProperty("prop3").expressionPsiElement!!.text, equalTo("true"))
     assertThat(extModel.findProperty("prop3").fullExpressionPsiElement!!.text, equalTo("true"))
-    assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo("[ \"key\": 'val']"))
-    assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo("[ \"key\": 'val']"))
-    assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo("[ 'val1', 'val2', \"val3\"]"))
-    assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo("[ 'val1', 'val2', \"val3\"]"))
+    assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo("[\"key\": 'val']"))
+    assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo("[\"key\": 'val']"))
+    assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo("['val1', 'val2', \"val3\"]"))
+    assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo("['val1', 'val2', \"val3\"]"))
     assertThat(extModel.findProperty("prop6").expressionPsiElement!!.text, equalTo("25.3"))
     assertThat(extModel.findProperty("prop6").fullExpressionPsiElement!!.text, equalTo("25.3"))
 
@@ -3767,12 +3258,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToVariable() {
-    val text = """
-               def vars = [:]
-               vars.one = 1
-               ext.value = vars.one
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_TO_VARIABLE)
 
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("value")
@@ -3787,8 +3273,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddVariableCycle() {
-    val text = ""
-    writeToBuildFile(text)
+    writeToBuildFile("")
 
     val buildModel = gradleBuildModel
     val newProperty = buildModel.ext().findProperty("var")
@@ -3803,12 +3288,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
    */
   @Test
   fun testReferenceToReturnObject() {
-    val text = """
-      ext {
-        hello = 20
-        goodbye = hello
-      }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_REFERENCE_TO_RETURN_OBJECT)
 
     val buildModel = gradleBuildModel
     val property = buildModel.ext().findProperty("goodbye")

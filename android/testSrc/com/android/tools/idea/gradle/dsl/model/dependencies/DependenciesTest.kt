@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
+import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_ALL_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_REMOVE_JAR_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
@@ -28,17 +30,7 @@ import org.junit.Test
 class DependenciesTest : GradleFileModelTestCase() {
   @Test
   fun testAllDependencies() {
-    val text = """
-               dependencies {
-                 api fileTree(dir: 'libs', include: ['*.jar'])
-                 implementation 'com.example.libs:lib1:0.+'
-                 api 'com.android.support:appcompat-v7:+'
-                 compile files('lib1.jar')
-                 compile files('lib2.jar', "lib3.aar")
-                 implementation files('lib4.aar')
-                 debugImplementation project(':javalib1')
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(DEPENDENCIES_ALL_DEPENDENCIES)
 
     val buildModel = gradleBuildModel
 
@@ -90,13 +82,7 @@ class DependenciesTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveJarDependencies() {
-    val text = """
-               dependencies {
-                 api fileTree(dir: 'libs', include: ['*.jar'])
-                 implementation 'com.example.libs:lib1:0.+'
-                 compile files('lib1.jar')
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(DEPENDENCIES_REMOVE_JAR_DEPENDENCIES)
 
     val buildModel = gradleBuildModel
 
@@ -106,7 +92,7 @@ class DependenciesTest : GradleFileModelTestCase() {
       val dep = deps[0] as FileTreeDependencyModel
       assertThat(dep.configurationName(), equalTo("api"))
       assertThat(dep.dir().toString(), equalTo("libs"))
-      assertThat(dep.includes().toList()?.map {it.toString()}, equalTo(listOf("*.jar")))
+      assertThat(dep.includes().toList()?.map { it.toString() }, equalTo(listOf("*.jar")))
       assertThat(dep.excludes().toList(), nullValue())
       dep
     }

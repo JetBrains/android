@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_SINGLE_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleBuildModelImpl}.
@@ -31,11 +34,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class GradleBuildModelImplTest extends GradleFileModelTestCase {
   @Test
   public void testRemoveRepositoriesSingleBlock() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_SINGLE_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -46,13 +45,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesMultipleBlocks() throws IOException {
-    String text = "repositories {\n" +
-                  "  jcenter()\n" +
-                  "}\n" +
-                  "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -63,16 +56,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesWithBuildscriptRepositories() throws IOException {
-    String text = "buildscript {\n" +
-                  "  repositories {\n" +
-                  "    jcenter()\n" +
-                  "    google()\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
@@ -90,15 +74,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesWithAllprojectsBlock() throws IOException {
-    String text = "allprojects {\n" +
-                  "  repositories {\n" +
-                  "    jcenter()\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "repositories {\n" +
-                  "  google()\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(2);

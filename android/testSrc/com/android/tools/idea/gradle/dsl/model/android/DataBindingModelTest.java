@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_PARSE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_REMOVE_ELEMENTS;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
@@ -27,15 +33,7 @@ import org.junit.Test;
 public class DataBindingModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElements() throws Exception {
-    String text = "android {\n" +
-                  "  dataBinding {\n" +
-                  "    addDefaultAdapters true\n" +
-                  "    enabled false\n" +
-                  "    version '1.0'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DATA_BINDING_MODEL_PARSE_ELEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -48,15 +46,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditElements() throws Exception {
-    String text = "android {\n" +
-                  "  dataBinding {\n" +
-                  "    addDefaultAdapters true\n" +
-                  "    enabled false\n" +
-                  "    version '1.0'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DATA_BINDING_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -83,10 +73,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DATA_BINDING_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -113,12 +100,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElementsFromExisting() throws Exception {
-    String text = "android {\n" +
-                  "  dataBinding {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -145,15 +127,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    String text = "android {\n" +
-                  "  dataBinding {\n" +
-                  "    addDefaultAdapters true\n" +
-                  "    enabled false\n" +
-                  "    version '1.0'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(DATA_BINDING_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

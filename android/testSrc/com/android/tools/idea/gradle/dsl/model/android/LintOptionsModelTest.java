@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_TEXT;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
@@ -26,44 +31,15 @@ import org.junit.Test;
  * Tests for {@link LintOptionsModel}.
  */
 public class LintOptionsModelTest extends GradleFileModelTestCase {
-  private static final String LINT_OPTIONS_TEXT = "android {\n" +
-                                                  "  lintOptions {\n" +
-                                                  "    abortOnError true\n" +
-                                                  "    absolutePaths false\n" +
-                                                  "    check 'check-id-1', 'check-id-2'\n" +
-                                                  "    checkAllWarnings true\n" +
-                                                  "    checkReleaseBuilds false\n" +
-                                                  "    disable 'disable-id-1', 'disable-id-2'\n" +
-                                                  "    enable 'enable-id-1', 'enable-id-2'\n" +
-                                                  "    error 'error-id-1', 'error-id-2'\n" +
-                                                  "    explainIssues true\n" +
-                                                  "    fatal 'fatal-id-1', 'fatal-id-2'\n" +
-                                                  "    htmlOutput file('html.output')\n" +
-                                                  "    htmlReport false\n" +
-                                                  "    ignore 'ignore-id-1', 'ignore-id-2'\n" +
-                                                  "    ignoreWarnings true\n" +
-                                                  "    lintConfig file('lint.config')\n" +
-                                                  "    noLines false\n" +
-                                                  "    quiet true\n" +
-                                                  "    showAll false\n" +
-                                                  "    textOutput file('text.output')\n" +
-                                                  "    textReport true\n" +
-                                                  "    warning 'warning-id-1', 'warning-id-2'\n" +
-                                                  "    warningsAsErrors false\n" +
-                                                  "    xmlOutput file('xml.output')\n" +
-                                                  "    xmlReport true\n" +
-                                                  "  }\n" +
-                                                  "}";
-
   @Test
   public void testParseElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_TEXT);
+    writeToBuildFile(LINT_OPTIONS_MODEL_TEXT);
     verifyLintOptions();
   }
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_TEXT);
+    writeToBuildFile(LINT_OPTIONS_MODEL_TEXT);
     verifyLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -129,12 +105,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  lintOptions {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(LINT_OPTIONS_MODEL_ADD_ELEMENTS);
     verifyNullLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -201,7 +172,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_TEXT);
+    writeToBuildFile(LINT_OPTIONS_MODEL_TEXT);
     verifyLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -308,19 +279,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  lintOptions {\n" +
-                  "    check 'check-id-1', 'check-id-2'\n" +
-                  "    disable 'disable-id-1', 'disable-id-2'\n" +
-                  "    enable 'enable-id-1', 'enable-id-2'\n" +
-                  "    error 'error-id-1', 'error-id-2'\n" +
-                  "    fatal 'fatal-id-1', 'fatal-id-2'\n" +
-                  "    ignore 'ignore-id-1', 'ignore-id-2'\n" +
-                  "    warning 'warning-id-1', 'warning-id-2'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -359,19 +318,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  lintOptions {\n" +
-                  "    check 'check-id'\n" +
-                  "    disable 'disable-id'\n" +
-                  "    enable 'enable-id'\n" +
-                  "    error 'error-id'\n" +
-                  "    fatal 'fatal-id'\n" +
-                  "    ignore 'ignore-id'\n" +
-                  "    warning 'warning-id'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

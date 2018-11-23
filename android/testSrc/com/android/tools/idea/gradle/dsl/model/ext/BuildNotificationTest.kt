@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_PROPERTY_PLACEMENT_NOTIFICATION
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.INCOMPLETE_PARSE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -26,13 +29,7 @@ import org.junit.Test
 class BuildNotificationTest : GradleFileModelTestCase() {
   @Test
   fun testIncompleteParsingNotification() {
-    val text = """
-               ext {
-               prop1 = 1 + 2
-               prop2 = 1 * 2
-               prop2 = object.getValue() ** object.getOtherValue()
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION)
 
     val buildModel = gradleBuildModel
     val notifications = buildModel.notifications
@@ -43,7 +40,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
 
     val expected = "Found the following unknown element types while parsing: " +
-        "GrAdditiveExpressionImpl, GrMultiplicativeExpressionImpl, GrPowerExpressionImpl"
+                   "GrAdditiveExpressionImpl, GrMultiplicativeExpressionImpl, GrPowerExpressionImpl"
     assertThat(firstNotification.toString(), equalTo(expected))
   }
 
@@ -88,13 +85,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyPlacementNotification() {
-    val text = """
-               ext {
-                 prop  = "${'$'}{greeting}"
-                 prop1 = prop
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(BUILD_NOTIFICATION_PROPERTY_PLACEMENT_NOTIFICATION)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -102,20 +93,14 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("greeting")
     propertyModel.setValue(ReferenceTo("prop"))
 
-    val notifications =  buildModel.notifications[myBuildFile.path]!!
+    val notifications = buildModel.notifications[myBuildFile.path]!!
     assertSize(1, notifications)
     assertTrue(notifications[0] is PropertyPlacementNotification)
   }
 
   @Test
   fun testNoPropertyPlacementNotification() {
-    val text = """
-               ext {
-                 prop  = "${'$'}{greeting}"
-                 prop1 = prop
-               }
-               """.trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -123,7 +108,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("greeting")
     propertyModel.setValue(ReferenceTo("hello"))
 
-    val notifications =  buildModel.notifications[myBuildFile.path]!!
+    val notifications = buildModel.notifications[myBuildFile.path]!!
     assertSize(0, notifications)
   }
 }

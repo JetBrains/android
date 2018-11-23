@@ -15,12 +15,41 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.copyFileOrDir;
+import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
+import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
+import static com.intellij.openapi.util.io.FileUtil.loadFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static org.junit.Assume.assumeTrue;
+import static org.junit.runners.Parameterized.Parameter;
+import static org.junit.runners.Parameterized.Parameters;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
-import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -35,30 +64,27 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.junit.runners.Parameterized.Parameter;
-import static org.junit.runners.Parameterized.Parameters;
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized.class)
@@ -87,9 +113,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected File myModuleDirPath;
   protected File myProjectBasePath;
 
-  @Parameters(name="{1}")
+  @Parameters(name = "{1}")
   public static Collection languageExtensions() {
-    return Arrays.asList(new Object[][] { {".gradle", GROOVY_LANGUAGE} });
+    return Arrays.asList(new Object[][]{{".gradle", GROOVY_LANGUAGE}});
   }
 
   /**
@@ -174,14 +200,38 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(mySettingsFile, text);
   }
 
+  protected void writeToSettingsFile(@NotNull TestFileName fileName) throws IOException {
+    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
+    assumeTrue(testFile.exists());
+    copyFileOrDir(testFile, mySettingsFile);
+    injectTestInformation(mySettingsFile);
+  }
+
   protected void writeToBuildFile(@NotNull String text) throws IOException {
     writeToFile(myBuildFile, text);
   }
 
   protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
     final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
-    Assume.assumeTrue(testFile.exists());
+    assumeTrue(testFile.exists());
     copyFileOrDir(testFile, myBuildFile);
+    injectTestInformation(myBuildFile);
+  }
+
+  protected String getContents(@NotNull TestFileName fileName) throws IOException {
+    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
+    assumeTrue(testFile.exists());
+    return FileUtils.readFileToString(testFile);
+  }
+
+  protected String getSubModuleSettingsText() {
+    if (!isGroovy()) throw new UnsupportedOperationException("TODO // IMPLEMENT");
+    return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : "TODO Implement";
+  }
+
+  protected Module writeToNewSubModule(@NotNull String name, @NotNull TestFileName fileName, @NotNull String propertiesFileText)
+    throws IOException {
+    return writeToNewSubModule(name, getContents(fileName), propertiesFileText);
   }
 
   protected Module writeToNewSubModule(@NotNull String name, @NotNull String buildFileText, @NotNull String propertiesFileText)
@@ -225,9 +275,23 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
   }
 
+  protected void writeToNewProjectFile(@NotNull String fileName, @NotNull TestFileName testFile) throws IOException {
+    File newFile = new File(myProjectBasePath, fileName);
+    copyFileOrDir(testFile.toFile(myTestDataPath, myTestDataExtension), newFile);
+    injectTestInformation(newFile);
+    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
+  }
+
   protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull String text) throws IOException {
     File newFile = new File(mySubModuleBuildFile.getParent(), fileName);
     writeToFile(newFile, text);
+    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
+  }
+
+  protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull TestFileName testFile) throws IOException {
+    File newFile = new File(mySubModuleBuildFile.getParent(), fileName);
+    copyFileOrDir(testFile.toFile(myTestDataPath, myTestDataExtension), newFile);
+    injectTestInformation(newFile);
     ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
   }
 
@@ -242,6 +306,19 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
     writeToFile(mySubModuleBuildFile, text);
+  }
+
+  protected void writeToSubModuleBuildFile(@NotNull TestFileName fileName) throws IOException {
+    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
+    assumeTrue(testFile.exists());
+    copyFileOrDir(testFile, mySubModuleBuildFile);
+    injectTestInformation(mySubModuleBuildFile);
+  }
+
+  protected void injectTestInformation(@NotNull File file) throws IOException {
+    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+    content = content.replace("<SUB_MODULE_NAME>", SUB_MODULE_NAME);
+    Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
   }
 
   protected void writeToSubModulePropertiesFile(@NotNull String text) throws IOException {
@@ -286,6 +363,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void verifyFileContents(@NotNull File file, @NotNull String contents) throws IOException {
     assertThat(FileUtils.readFileToString(file).replaceAll("[ \\t]+", "").trim())
       .isEqualTo(contents.replaceAll("[ \\t]+", "").trim());
+  }
+
+  protected void verifyFileContents(@NotNull File file, @NotNull TestFileName expected) throws IOException {
+    verifyFileContents(file, loadFile(expected.toFile(myTestDataPath, myTestDataExtension)));
   }
 
   protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {

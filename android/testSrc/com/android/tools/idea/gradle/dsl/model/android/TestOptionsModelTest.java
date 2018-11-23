@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.TEST_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
+
 import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -26,24 +29,15 @@ import org.junit.Test;
  * Tests for {@link TestOptionsModel}.
  */
 public class TestOptionsModelTest extends GradleFileModelTestCase {
-  private static final String TEST_OPTIONS_TEXT = "android {\n" +
-                                                  "  testOptions {\n" +
-                                                  "    reportDir 'reportDirectory'\n" +
-                                                  "    resultsDir 'resultsDirectory'\n" +
-                                                  "    unitTests.returnDefaultValues true\n" +
-                                                  "    execution 'ANDROID_TEST_ORCHESTRATOR'" +
-                                                  "  }\n" +
-                                                  "}";
-
   @Test
   public void testParseElements() throws Exception {
-    writeToBuildFile(TEST_OPTIONS_TEXT);
+    writeToBuildFile(TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
   }
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(TEST_OPTIONS_TEXT);
+    writeToBuildFile(TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -67,12 +61,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  testOptions {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(TEST_OPTIONS_MODEL_ADD_ELEMENTS);
     verifyNullTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -91,7 +80,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(TEST_OPTIONS_TEXT);
+    writeToBuildFile(TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
