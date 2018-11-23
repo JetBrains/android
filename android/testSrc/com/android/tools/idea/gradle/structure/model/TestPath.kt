@@ -30,6 +30,7 @@ data class TestPath(
 
   companion object {
     val EMPTY_PATH: PsPath = object : PsPath {
+      override fun getHyperlinkDestination(context: PsContext): String? = null
       override fun toString(): String = ""
     }
   }

@@ -29,13 +29,16 @@ interface PsPath : Comparable<PsPath> {
    */
   val parent: PsPath? get() = null
 
-  fun getHyperlinkDestination(context: PsContext): String? = null
+  val canHide: Boolean get() = false
+
+  fun getHyperlinkDestination(context: PsContext): String?
 
   override fun compareTo(other: PsPath): Int = compareValuesBy(this, other, { it.parent }, { it.toString() })
 }
-  /**
-   * Returns a list of parent context paths.
-   *
-   * For example, a module would be a parent for its dependencies.
-   */
+
+/**
+ * Returns a list of parent context paths.
+ *
+ * For example, a module would be a parent for its dependencies.
+ */
 val PsPath.parents: List<PsPath> get() = parent?.let { it.parents + it } ?: listOf()
