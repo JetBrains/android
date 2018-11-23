@@ -138,16 +138,16 @@ public class AppJavaUnitTest {
         assertNotEquals(AsyncTask.Status.RUNNING, AsyncTask.Status.FINISHED);
 
         assertEquals(AsyncTask.Status.FINISHED, AsyncTask.Status.valueOf("FINISHED"));
-        assertEquals(1, AsyncTask.Status.PENDING.ordinal());
+        assertEquals(0, AsyncTask.Status.PENDING.ordinal()); // Was 1 pre API28
         assertEquals("RUNNING", AsyncTask.Status.RUNNING.name());
 
         assertEquals(AsyncTask.Status.RUNNING, Enum.valueOf(AsyncTask.Status.class, "RUNNING"));
 
         AsyncTask.Status[] values = AsyncTask.Status.values();
         assertEquals(3, values.length);
-        assertEquals(AsyncTask.Status.FINISHED, values[0]);
-        assertEquals(AsyncTask.Status.PENDING, values[1]);
-        assertEquals(AsyncTask.Status.RUNNING, values[2]);
+        assertEquals(AsyncTask.Status.PENDING, values[0]);
+        assertEquals(AsyncTask.Status.RUNNING, values[1]);
+        assertEquals(AsyncTask.Status.FINISHED, values[2]);
     }
 
     @Test
