@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
@@ -620,8 +621,8 @@ public class EditorFixture {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
-        checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
-        return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
+        checkState(selected instanceof DesignerEditor, "not a %s: %s", DesignerEditor.class.getSimpleName(), selected);
+        return new NlEditorFixture(myFrame.robot(), (DesignerEditor)selected);
       });
 
 
