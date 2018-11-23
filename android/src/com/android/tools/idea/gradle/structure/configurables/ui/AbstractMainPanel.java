@@ -36,10 +36,6 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
   private History myHistory;
 
   protected AbstractMainPanel(@NotNull PsContext context) {
-    this(context, Collections.emptyList());
-  }
-
-  protected AbstractMainPanel(@NotNull PsContext context, @NotNull List<PsModule> extraModules) {
     super(new BorderLayout());
     myProject = context.getProject();
     myContext = context;

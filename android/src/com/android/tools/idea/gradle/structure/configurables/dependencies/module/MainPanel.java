@@ -46,8 +46,8 @@ public class MainPanel extends AbstractMainDependenciesPanel {
 
   private int myQueuedSelectionCounter = 0;
 
-  public MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
-    super(context, extraModules);
+  public MainPanel(@NotNull PsModule module, @NotNull PsContext context) {
+    super(context);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());

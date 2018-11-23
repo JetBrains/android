@@ -59,5 +59,5 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   }
 
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, module, extraModules).apply { setHistory(myHistory) }
+      AndroidModuleSuggestionsConfigurable(context, module).apply { setHistory(myHistory) }
 }
