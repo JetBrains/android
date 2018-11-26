@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class ActionTarget extends BaseTarget {
 
-  @Nullable private Action myAction;
+  @Nullable private final Action myAction;
   @NotNull private final NlIcon myIcon;
   protected boolean myIsVisible = true;
 
@@ -43,10 +43,6 @@ public class ActionTarget extends BaseTarget {
 
   public ActionTarget(@NotNull NlIcon icon, @Nullable Action action) {
     myIcon = icon;
-    myAction = action;
-  }
-
-  public void setAction(@Nullable Action action) {
     myAction = action;
   }
 
