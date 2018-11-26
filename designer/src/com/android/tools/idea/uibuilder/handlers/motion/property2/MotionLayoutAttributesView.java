@@ -147,6 +147,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           }
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
           addPropertyTable(inspector, label, properties, target, position);
+          addEasingCurveComponent(inspector, component);
           break;
       }
       if (hasCustomAttributes(tag)) {
@@ -159,6 +160,16 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       ViewHandlerManager manager = ViewHandlerManager.get(facet);
       ViewHandler handler = manager.getHandler(SdkConstants.MOTION_LAYOUT.newName());
       return handler != null ? handler.getLayoutCustomPanel() : null;
+    }
+
+    private void addEasingCurveComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component) {
+      NlComponent parent = component.getParent();
+      String parentTag = parent != null ? parent.getTagName() : null;
+      if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
+        InspectorLineModel title = inspector.addExpandableTitle("Easing Curve", true);
+        myCustomLayoutPanel.useComponent(component);
+        inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
+      }
     }
 
     private void addCustomLayoutComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component) {

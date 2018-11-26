@@ -34,6 +34,7 @@ import com.android.utils.Pair;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +43,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
+import static com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel.stripID;
 
 public class MotionLayoutComponentDelegate implements NlComponentDelegate {
-
-  private static final boolean USE_CACHE = true;
+  private static final boolean USE_CACHE = false;
 
   private final MotionLayoutTimelinePanel myPanel;
 
@@ -107,7 +108,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
       return false;
     }
     if (ourInterceptedAttributes.contains(attribute)) {
-      return true;
+      return myPanel.handlesWriteForComponent(component.getId());
     }
     return false;
   }
@@ -124,35 +125,27 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
   @Override
   public boolean handlesCommit(ComponentModification modification) {
-    return true;
+    SmartPsiElementPointer<XmlTag> constraint = myPanel.getSelectedConstraint();
+    return constraint != null;
   }
 
   @Nullable
   private XmlTag getConstrainedView(@NotNull NlComponent component) {
-    String constraintSetId = null;
-    switch (myPanel.getCurrentState()) {
-      case TL_START: {
-        constraintSetId = "@+id/start";
-      } break;
-      case TL_END: {
-        constraintSetId = "@+id/end";
-      } break;
-      default:
-        return null;
-    }
-    XmlFile file = myPanel.getTransitionFile(component);
-    if (file == null) {
+
+    SmartPsiElementPointer<XmlTag> constraint = myPanel.getSelectedConstraint();
+    if (constraint == null){
       return null;
     }
-    XmlTag constraintSet = myPanel.getConstraintSet(file, constraintSetId);
-    if (constraintSet == null) {
-      return null;
+    XmlTag tag = constraint.getElement().getParentTag();
+    XmlTag[] child =  tag.getSubTags();
+    for (int i = 0; i < child.length; i++) {
+      XmlTag xmlTag = child[i];
+      if (component.getId().equals(stripID(xmlTag.getAttributeValue("id",SdkConstants.ANDROID_URI)))) {
+        return xmlTag;
+      }
     }
-    XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
-    if (constrainedView == null) {
-      return null;
-    }
-    return constrainedView;
+    return null;
+
   }
 
   HashMap<NlComponent, HashMap<Pair<String, String>, String> > mAttributesCacheStart = new HashMap<>();
@@ -161,21 +154,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
   @Override
   public String getAttribute(@NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute) {
-    switch (myPanel.getCurrentState()) {
-      case TL_START: {
-        return getCachedAttribute(mAttributesCacheStart, component, namespace, attribute);
-      }
-      case TL_END: {
-        return getCachedAttribute(mAttributesCacheEnd, component, namespace, attribute);
-      }
-      default:
-        // Quick hack to show fixed sizes while we are in the transition
-        if (attribute.equals(SdkConstants.ATTR_LAYOUT_WIDTH)
-          || attribute.equals(SdkConstants.ATTR_LAYOUT_HEIGHT)) {
-          return SdkConstants.VALUE_WRAP_CONTENT;
-        }
-    }
-    return null;
+    return getCachedAttribute(mAttributesCacheStart, component, namespace, attribute);
   }
 
   @Nullable
@@ -305,17 +284,18 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   public void apply(ComponentModification modification) {
     String constraintSetId = null;
     int position = 0;
-    switch (myPanel.getCurrentState()) {
-      case TL_START: {
-        constraintSetId = "@+id/start";
-        position = 0;
-      } break;
-      case TL_END: {
-        constraintSetId = "@+id/end";
+
+    SmartPsiElementPointer<XmlTag> constraint = myPanel.getSelectedConstraint();
+    if (constraint != null) {
+      XmlTag tag = constraint.getElement().getParentTag();
+      String id = stripID(tag.getAttributeValue("id", SdkConstants.ANDROID_URI));
+      constraintSetId = "@+id/" + id;
+      // todo: fix temporary hack, we should compare with the name of the current end constraintset
+      if (id.equalsIgnoreCase("end")) {
         position = 1;
-      } break;
-      default:
-        return;
+      }
+    } else {
+      return;
     }
 
     ResourceIdManager manager = ResourceIdManager.get(modification.getComponent().getModel().getModule());
@@ -396,15 +376,14 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     NlComponent component = modification.getComponent();
     Project project = component.getModel().getProject();
     String constraintSetId = null;
-    switch (myPanel.getCurrentState()) {
-      case TL_START: {
-        constraintSetId = "@+id/start";
-      } break;
-      case TL_END: {
-        constraintSetId = "@+id/end";
-      } break;
-      default:
-        return;
+
+    SmartPsiElementPointer<XmlTag> constraint = myPanel.getSelectedConstraint();
+    if (constraint != null) {
+      XmlTag tag = constraint.getElement().getParentTag();
+      String id = stripID(tag.getAttributeValue("id", SdkConstants.ANDROID_URI));
+      constraintSetId = "@+id/" + id;
+    } else {
+      return;
     }
 
     XmlFile file = myPanel.getTransitionFile(component);
@@ -436,7 +415,6 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
         }
       }
     }.execute();
-
 
     // Let's warn we edited the model.
     MotionSceneModel.saveAndNotify(file, component.getModel());

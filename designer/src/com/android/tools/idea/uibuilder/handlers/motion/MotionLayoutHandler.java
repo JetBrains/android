@@ -91,7 +91,6 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     return false;
   }
 
-
   @Override
   public boolean needsAccessoryPanel(@NotNull AccessoryPanel.Type type) {
     switch (type) {

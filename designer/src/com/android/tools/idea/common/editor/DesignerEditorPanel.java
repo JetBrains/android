@@ -85,13 +85,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
-    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
     Disposer.register(editor, myWorkBench);
 
     myToolWindowDefinitions = toolWindowDefinitions;
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
   }
 
   @NotNull

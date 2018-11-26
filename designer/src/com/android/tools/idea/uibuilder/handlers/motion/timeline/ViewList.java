@@ -22,12 +22,15 @@ import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLine
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
+import com.android.tools.layoutlib.annotations.NotNull;
+import com.android.tools.layoutlib.annotations.Nullable;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
 import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.tree.TreePathUtil;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -46,6 +49,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -64,12 +68,14 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 class ViewList extends JPanel implements Gantt.ChartElement {
   DefaultMutableTreeNode myRootNode = new DefaultMutableTreeNode();
   JTree myTree = new Tree(myRootNode);
   Chart myChart;
   boolean myInternal;
+  private boolean myIgnoreTreeSelections;
   private static boolean USER_STUDY = true;
   private static final Icon mySpacerIcon = JBUI.scale(EmptyIcon.create(0, 0));
 
@@ -227,6 +233,9 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   }
 
   void treeSelection(TreeSelectionEvent e) {
+    if (myIgnoreTreeSelections) {
+      return;
+    }
     mySelectedView = null;
     if (e.getPath().getPath().length > 1) {
       mySelectedView = (ViewNode)(e.getPath().getPath()[1]);
@@ -234,6 +243,40 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       myChart.update(Reason.SELECTION_CHANGED);
     }
     myAddPanel.doLayout();
+  }
+
+  public void handleSelection(@NotNull List<String> ids) {
+    myIgnoreTreeSelections = true;
+    try {
+      TreeSelectionModel model = myTree.getSelectionModel();
+      model.clearSelection();
+      for (String id : ids) {
+        ViewNode node = getViewNode(id);
+        if (node != null) {
+          model.addSelectionPath(TreePathUtil.convertArrayToTreePath(myRootNode, node));
+        }
+      }
+      myChart.mySelectedKeyView = ids.isEmpty() ? null : ids.get(0);
+      myChart.update(Reason.SELECTION_CHANGED);
+    }
+    finally {
+      myIgnoreTreeSelections = false;
+    }
+  }
+
+  @Nullable
+  private ViewNode getViewNode(@NotNull String id) {
+    for (int i = 0; i < myTree.getRowCount(); i++) {
+      TreePath path = myTree.getPathForRow(i);
+      Object last = path.getLastPathComponent();
+      if (last instanceof ViewNode) {
+        ViewNode node = (ViewNode)last;
+        if (id.equals(node.getViewElement().toString())) {
+          return node;
+        }
+      }
+    }
+    return null;
   }
 
   private void graph(Chart.GraphElements toGraph) {
@@ -428,12 +471,12 @@ class ViewList extends JPanel implements Gantt.ChartElement {
 
   void reload() {
     myRootNode.removeAllChildren();
-    DefaultMutableTreeNode node = myRootNode;
     DefaultTreeModel model = (DefaultTreeModel)myTree.getModel();
 
     for (Gantt.ViewElement viewElement : myChart.myViewElements) {
 
-      myRootNode.add(node = new ViewNode(viewElement));
+      DefaultMutableTreeNode node = new ViewNode(viewElement);
+      myRootNode.add(node);
       if (viewElement.mKeyFrames == null) {
         continue;
       }

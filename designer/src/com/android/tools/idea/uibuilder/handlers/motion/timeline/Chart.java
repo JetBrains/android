@@ -47,17 +47,63 @@ public class Chart {
   public float myZoom = 1;
   float myPixelsPerPercent = 5;
   private GanttCommands.Mode myMode = GanttCommands.Mode.UNKNOWN;
+
+  // Selection
   public String mySelectedKeyView;
   Selection mySelection = Selection.NONE;
-  MotionSceneModel myModel;
   MotionSceneModel.KeyFrame mySelectedKeyFrame;
   SmartPsiElementPointer<XmlTag> mySelectedKeyFrameTag;
+  MotionSceneModel.ConstraintView mySelectedConstraint; // if a <constraint> is selected null otherwise
+  SmartPsiElementPointer<XmlTag> mySelectedConstraintTag;
+
+  public void select(MotionSceneModel.ConstraintView constraint) {
+    mySelectedConstraint = constraint;
+    if (constraint == null) {
+      mySelectedConstraintTag = null;
+    }
+    else {
+      mySelection = Selection.CONSTRAINT;
+      mySelectedConstraintTag = constraint.getTag();
+      mySelectedKeyView = constraint.mId;
+      mySelectedKeyFrameTag = null;
+      mySelectedKeyFrame = null;
+    }
+  }
+
+  public void select(MotionSceneModel.KeyFrame keyFrame) {
+    mySelectedKeyFrame = keyFrame;
+    if (keyFrame == null) {
+      mySelectedConstraintTag = null;
+    }
+    else {
+      mySelection = Selection.KEY;
+      mySelectedKeyView = keyFrame.target;
+      mySelectedKeyFrameTag = keyFrame.getTag();
+      mySelectedConstraint = null;
+      mySelectedConstraintTag = null;
+    }
+  }
+
+  public void selectView(String view) {
+    mySelectedKeyView = view;
+    mySelectedKeyFrame = null;
+    mySelectedConstraintTag = null;
+    mySelectedKeyFrameTag = null;
+    mySelectedConstraint = null;
+    mySelection = Selection.VIEW;
+  }
+
+  MotionSceneModel.KeyFrame myCopyBuffer;
+  // ========================= s
+
+  MotionSceneModel myModel;
+
   ArrayList<Gantt.ChartElement> myChartElements = new ArrayList<>();
   ArrayList<Gantt.ViewElement> myViewElements = new ArrayList<>();
 
-  static private Color myTimeCursorColor = new JBColor(0xff3d81e1,0xff3d81e1);
-  static private Color myTimeCursorStartColor = new JBColor(0xff3da1f1,0xff3dd1f1);
-  static private Color myTimeCursorEndColor = new JBColor(0xff3da1f1,0xff3dd1f1);
+  static private Color myTimeCursorColor = new JBColor(0xff3d81e1, 0xff3d81e1);
+  static private Color myTimeCursorStartColor = new JBColor(0xff3da1f1, 0xff3dd1f1);
+  static private Color myTimeCursorEndColor = new JBColor(0xff3da1f1, 0xff3dd1f1);
   static Color myGridColor = new Color(0xff838383);
   static Color myUnSelectedLineColor = new Color(0xe0759a);
   static Color ourMySelectedLineColor = new Color(0x3879d9);
@@ -67,6 +113,8 @@ public class Chart {
   static Color ourBorder = new JBColor(0xc9c9c9, 0x242627);
   static Color ourBorderLight = new JBColor(0xe8e6e6, 0x3c3f41);
   static int ourGraphHeight = JBUI.scale(60);
+  static Color ourAddConstraintColor = new JBColor(0xff838383, 0xff666666);
+  static Color ourAddConstraintPlus = new JBColor(0xffc9c9c9, 0xff333333);
 
   GraphElements myGraphElements;
 
@@ -95,6 +143,7 @@ public class Chart {
       setAnimationTotalTimeMs(duration);
       myGantt.setDurationMs(duration);
     }
+
     if (mySelectedKeyFrameTag != null && mySelectedKeyView != null) {
       MotionSceneModel.MotionSceneView m = myModel.getMotionSceneView(mySelectedKeyView);
       m.myKeyPositions.stream()
@@ -107,16 +156,24 @@ public class Chart {
         .filter(keyframe -> keyframe.getTag() == mySelectedKeyFrameTag)
         .forEach(keyframe -> mySelectedKeyFrame = keyframe);
     }
+
+    if (mySelectedConstraintTag != null && mySelectedKeyView != null) {
+      MotionSceneModel.ConstraintView startConstraint = myModel.getStartConstraintSet().myConstraintViews.get(mySelectedKeyView);
+      MotionSceneModel.ConstraintView endConstraint = myModel.getEndConstraintSet().myConstraintViews.get(mySelectedKeyView);
+      if (startConstraint != null && startConstraint.getTag() == mySelectedConstraintTag) {
+        mySelectedConstraint = startConstraint;
+      } else if (endConstraint != null && endConstraint.getTag() == mySelectedConstraintTag) {
+        mySelectedConstraint = endConstraint;
+      }
+    }
     update(Gantt.ChartElement.Reason.SELECTION_CHANGED);
   }
 
+  public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
+    return mySelectedConstraintTag;
+  }
+
   public static Color getColorForPosition(int position) {
-    if (position == 0) {
-      return Chart.myTimeCursorStartColor ;
-    }
-    else if (position == 100) {
-      return Chart.myTimeCursorEndColor;
-    }
     return Chart.myTimeCursorColor;
   }
 
@@ -161,10 +218,9 @@ public class Chart {
 
   enum Selection {
     NONE,
-    ROW,
     KEY,
     VIEW,
-    TIME_POINT
+    CONSTRAINT
   }
 
   public float getPlayBackSpeed() {

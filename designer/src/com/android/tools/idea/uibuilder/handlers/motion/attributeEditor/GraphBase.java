@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-
 import com.intellij.ui.JBColor;
 
 import java.awt.BasicStroke;
@@ -103,7 +102,6 @@ public class GraphBase extends JPanel {
     calcRange();
     repaint();
   }
-
 
   public void addGraph(int n, double[][] p, Color c, int mode) {
     float[] xf = new float[p.length];
