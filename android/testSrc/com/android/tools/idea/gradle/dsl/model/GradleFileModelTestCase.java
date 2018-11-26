@@ -57,10 +57,10 @@ import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
@@ -176,24 +176,31 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     Module mainModule = createModule(myProject.getName());
 
     // Create a sub module
-    final VirtualFile baseDir = myProject.getBaseDir();
+    final VirtualFile baseDir = ProjectUtil.guessProjectDir(myProject);
     assertNotNull(baseDir);
     final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
                                      SUB_MODULE_NAME + File.separatorChar + SUB_MODULE_NAME + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
     myFilesToDelete.add(moduleFile);
-    mySubModule = new WriteAction<Module>() {
-      @Override
-      protected void run(@NotNull Result<Module> result) {
-        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-        assertNotNull(virtualFile);
-        Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
-        module.getModuleFile();
-        result.setResult(module);
-      }
-    }.execute().getResultObject();
+    mySubModule = WriteAction.compute(() -> {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+      assertNotNull(virtualFile);
+      Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
+      module.getModuleFile();
+      return module;
+    });
 
     return mainModule;
+  }
+
+  private void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull File destination) throws IOException {
+    final File testFile = testFileName.toFile(myTestDataPath, myTestDataExtension);
+    assumeTrue(testFile.exists());
+    copyFileOrDir(testFile, destination);
+    injectTestInformation(destination);
+    ApplicationManager.getApplication().runWriteAction(() ->
+      ProjectUtil.guessProjectDir(myProject).getFileSystem().refresh(false)
+    );
   }
 
   protected void writeToSettingsFile(@NotNull String text) throws IOException {
@@ -201,10 +208,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToSettingsFile(@NotNull TestFileName fileName) throws IOException {
-    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
-    assumeTrue(testFile.exists());
-    copyFileOrDir(testFile, mySettingsFile);
-    injectTestInformation(mySettingsFile);
+    prepareAndInjectInformationForTest(fileName, mySettingsFile);
   }
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {
@@ -212,16 +216,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
-    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
-    assumeTrue(testFile.exists());
-    copyFileOrDir(testFile, myBuildFile);
-    injectTestInformation(myBuildFile);
+    prepareAndInjectInformationForTest(fileName, myBuildFile);
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
     final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
     assumeTrue(testFile.exists());
-    return FileUtils.readFileToString(testFile);
+    return FileUtils.readFileToString(testFile, StandardCharsets.UTF_8);
   }
 
   protected String getSubModuleSettingsText() {
@@ -236,24 +237,20 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected Module writeToNewSubModule(@NotNull String name, @NotNull String buildFileText, @NotNull String propertiesFileText)
     throws IOException {
-    final VirtualFile baseDir = myProject.getBaseDir();
+    final VirtualFile baseDir = ProjectUtil.guessProjectDir(myProject);
     assertNotNull(baseDir);
     final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
                                      name + File.separator + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
     myFilesToDelete.add(moduleFile);
 
-    Module newModule = new WriteAction<Module>() {
-
-      @Override
-      protected void run(@NotNull Result<Module> result) {
-        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-        assertNotNull(virtualFile);
-        Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
-        module.getModuleFile();
-        result.setResult(module);
-      }
-    }.execute().getResultObject();
+    Module newModule = WriteAction.compute(() -> {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+      assertNotNull(virtualFile);
+      Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
+      module.getModuleFile();
+      return module;
+    });
 
     File newModuleFilePath = new File(newModule.getModuleFilePath());
     File newModuleDirPath = newModuleFilePath.getParentFile();
@@ -269,30 +266,15 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return newModule;
   }
 
-  protected void writeToNewProjectFile(@NotNull String fileName, @NotNull String text) throws IOException {
-    File newFile = new File(myProjectBasePath, fileName);
-    writeToFile(newFile, text);
-    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
+
+  protected void writeToNewProjectFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
+    File newFile = new File(myProjectBasePath, newFileName);
+    prepareAndInjectInformationForTest(testFileName, newFile);
   }
 
-  protected void writeToNewProjectFile(@NotNull String fileName, @NotNull TestFileName testFile) throws IOException {
-    File newFile = new File(myProjectBasePath, fileName);
-    copyFileOrDir(testFile.toFile(myTestDataPath, myTestDataExtension), newFile);
-    injectTestInformation(newFile);
-    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
-  }
-
-  protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull String text) throws IOException {
-    File newFile = new File(mySubModuleBuildFile.getParent(), fileName);
-    writeToFile(newFile, text);
-    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
-  }
-
-  protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull TestFileName testFile) throws IOException {
-    File newFile = new File(mySubModuleBuildFile.getParent(), fileName);
-    copyFileOrDir(testFile.toFile(myTestDataPath, myTestDataExtension), newFile);
-    injectTestInformation(newFile);
-    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
+  protected void writeToNewSubModuleFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
+    File newFile = new File(mySubModuleBuildFile.getParent(), newFileName);
+    prepareAndInjectInformationForTest(testFileName, newFile);
   }
 
   @NotNull
@@ -309,13 +291,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToSubModuleBuildFile(@NotNull TestFileName fileName) throws IOException {
-    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
-    assumeTrue(testFile.exists());
-    copyFileOrDir(testFile, mySubModuleBuildFile);
-    injectTestInformation(mySubModuleBuildFile);
+    prepareAndInjectInformationForTest(fileName, mySubModuleBuildFile);
   }
 
-  protected void injectTestInformation(@NotNull File file) throws IOException {
+  private static void injectTestInformation(@NotNull File file) throws IOException {
     String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
     content = content.replace("<SUB_MODULE_NAME>", SUB_MODULE_NAME);
     Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
@@ -327,21 +306,24 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   protected GradleSettingsModel getGradleSettingsModel() {
-    GradleSettingsModel settingsModel = GradleSettingsModelImpl.get(myProject);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    GradleSettingsModel settingsModel = projectBuildModel.getProjectSettingsModel();
     assertNotNull(settingsModel);
     return settingsModel;
   }
 
   @NotNull
   protected GradleBuildModel getGradleBuildModel() {
-    GradleBuildModel buildModel = GradleBuildModelImpl.get(myModule);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(myModule);
     assertNotNull(buildModel);
     return buildModel;
   }
 
   @NotNull
   protected GradleBuildModel getSubModuleGradleBuildModel() {
-    GradleBuildModel buildModel = GradleBuildModelImpl.get(mySubModule);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(mySubModule);
     assertNotNull(buildModel);
     return buildModel;
   }
@@ -361,7 +343,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull File file, @NotNull String contents) throws IOException {
-    assertThat(FileUtils.readFileToString(file).replaceAll("[ \\t]+", "").trim())
+    assertThat(loadFile(file).replaceAll("[ \\t]+", "").trim())
       .isEqualTo(contents.replaceAll("[ \\t]+", "").trim());
   }
 
@@ -458,7 +440,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   public static <T> boolean hasPsiElement(@NotNull T object) {
     assertThat(object).isInstanceOf(GradleDslBlockModel.class);
-    GradleDslBlockModel model = GradleDslBlockModel.class.cast(object);
+    GradleDslBlockModel model = (GradleDslBlockModel)object;
     return model.hasValidPsiElement();
   }
 

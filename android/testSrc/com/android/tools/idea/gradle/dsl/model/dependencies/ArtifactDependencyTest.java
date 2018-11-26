@@ -30,7 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_NAME_AND_RENAME_UNSUPPORTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.*;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT;
@@ -1317,10 +1317,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artifacts = dependencies.artifacts();
     artifact = artifacts.get(0);
     assertThat(artifact.completeModel().toString()).isEqualTo("org.gradle.test.classifiers:service:3.2.1");
-    String expected = "dependencies {\n" +
-                      "  testCompile \"org.gradle.test.classifiers:service:3.2.1\"\n" +
-                      "}";
-    verifyFileContents(myBuildFile, expected);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION_EXPECTED);
   }
 
   @Test
@@ -1341,8 +1338,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullReferencesTest(@NotNull String text) throws IOException {
-    writeToBuildFile(text);
+  private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
+    writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1368,8 +1365,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullSingleReferenceTest(@NotNull String text, @NotNull PropertyType type, @NotNull String name) throws IOException {
-    writeToBuildFile(text);
+  private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name) throws IOException {
+    writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1393,49 +1390,23 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSingleReferenceCompactApplication() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile 'some:gradle:thing'\n" +
-                  "}";
-    runSetFullSingleReferenceTest(text, REGULAR, "testCompile");
+    runSetFullSingleReferenceTest(ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_APPLICATION, REGULAR, "testCompile");
   }
 
   @Test
   public void testSetSingleReferenceCompactMethod() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile('some:gradle:thing')\n" +
-                  "}";
     // Properties from within method calls are derived.
-    runSetFullSingleReferenceTest(text, DERIVED, "0");
+    runSetFullSingleReferenceTest(ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD, DERIVED, "0");
   }
 
   @Test
   public void testSetFullReferencesCompactApplication() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "  guavaPart = 'google.guava:guava:+'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile 'some:gradle:thing',  'some:other:gradle:thing'\n" +
-                  "}";
-    runSetFullReferencesTest(text);
+    runSetFullReferencesTest(ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION);
   }
 
   @Test
   public void testSetFullReferenceCompactMethod() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "  guavaPart = 'google.guava:guava:+'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile('some:gradle:thing',  'some:other:gradle:thing')\n" +
-                  "}";
-    runSetFullReferencesTest(text);
+    runSetFullReferencesTest(ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD);
   }
 
   @Test
@@ -1513,7 +1484,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionReference() throws IOException {
-    writeToBuildFile("ext.jUnitVersion = 2");
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE);
 
     GradleBuildModel model = getGradleBuildModel();
     DependenciesModel depModel = model.dependencies();
@@ -1532,11 +1503,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetExcludesBlockToReferences() throws IOException {
-    writeToBuildFile("ext.junit_version = '2.3.1'\n" +
-                     "ext.excludes_name = 'bad'\n" +
-                     "ext.excludes_group = 'dependency'\n" +
-                     "dependencies {\n" +
-                     "}");
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ArtifactDependencySpec spec = ArtifactDependencySpec.create("junit:junit:$junit_version");
@@ -1574,6 +1541,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "boo", "group", "spooky", "version", "2.0"));
   }
 
+  @Test
   public void testMalformedFakeArtifactElement() throws IOException {
     writeToBuildFile(ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT);
 
