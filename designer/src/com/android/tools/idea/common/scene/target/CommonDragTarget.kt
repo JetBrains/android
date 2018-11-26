@@ -22,12 +22,14 @@ import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
 import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
 import java.awt.Color
@@ -81,6 +83,11 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   private var currentSnappedPlaceholder: Placeholder? = null
 
   var insertType: InsertType = InsertType.MOVE_WITHIN
+
+  /**
+   * To handle Live Rendering case.
+   */
+  private val targetSnapper = TargetSnapper()
 
   init {
     myComponent = sceneComponent
@@ -164,6 +171,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           list.add(DrawNonHoveredHost(h.drawLeft, h.drawTop, h.drawRight, h.drawBottom))
         }
       }
+
+      targetSnapper.renderSnappedNotches(list, sceneContext, myComponent)
     }
   }
 
@@ -225,23 +234,15 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
     }
     currentSnappedPlaceholder = null
+
+    targetSnapper.reset()
+    targetSnapper.gatherNotches(myComponent)
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
     draggedComponents.forEach { it.isDragging = true }
-    val ph = snap(x, y)
-    if (myComponent.scene.isLiveRenderingEnabled
-        && ph?.host?.authoritativeNlComponent?.viewHandler is ConstraintLayoutHandler
-        && myComponent.parent == ph.host) {
-      // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged in the same ConstraintLayout
-      // TODO: Makes Live Rendering works when dragging widget between different ViewGroups
-      applyPlaceholder(ph, commit = false)
-      myComponent.authoritativeNlComponent.fireLiveChangeEvent()
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
-    }
-    else {
-      myComponent.scene.repaint()
-    }
+    snap(x, y)
+    myComponent.scene.repaint()
   }
 
   /**
@@ -291,14 +292,34 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       doSnap(recessivePlaceholders)
     }
 
-    currentSnappedPlaceholder = targetPlaceholder
-    if (currentSnappedPlaceholder?.dominate == true) {
-      draggedComponents.forEach { it.setPosition(snappedX, snappedY) }
+    val ph = targetPlaceholder
+    currentSnappedPlaceholder = ph
+    // TODO: Makes Live Rendering works when dragging widget between different ViewGroups
+    if (myComponent.scene.isLiveRenderingEnabled && ph is ConstraintPlaceholder && myComponent.parent == ph.host) {
+      // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged in the same ConstraintLayout
+      val primaryX = targetSnapper.trySnapHorizontal(snappedX).orElse(snappedX)
+      val primaryY = targetSnapper.trySnapVertical(snappedY).orElse(snappedY)
+
+      draggedComponents.forEachIndexed { index, it -> when (index) {
+        0 -> it.setPosition(primaryX, primaryY)
+        else -> it.setPosition(primaryX + offsets[0].x - offsets[index].x, primaryY + offsets[0].y - offsets[index].y)
+      } }
+
+      applyPlaceholder(ph, commit = false)
+
+      myComponent.authoritativeNlComponent.fireLiveChangeEvent()
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
     }
     else {
-      draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
+      if (currentSnappedPlaceholder?.dominate == true) {
+        draggedComponents.forEach { it.setPosition(snappedX, snappedY) }
+      }
+      else {
+        draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
+      }
+      myComponent.scene.needsLayout(Scene.NO_LAYOUT)
     }
-    return targetPlaceholder
+    return ph
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {

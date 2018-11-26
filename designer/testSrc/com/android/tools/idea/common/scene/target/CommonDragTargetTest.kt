@@ -50,7 +50,7 @@ class CommonDragTargetTest : SceneTest() {
     assertEquals(1, myScreen.screen.selectionModel.selection.size)
   }
 
-  fun testDragComponentInSameLayoutWillKeepOriginalPosition() {
+  fun testDragComponentInConstraintLayoutWithSnapping() {
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
     val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
 
@@ -58,9 +58,25 @@ class CommonDragTargetTest : SceneTest() {
     myInteraction.mouseDown("textView2")
     myInteraction.mouseRelease(60f, 60f)
 
+    // The result would be 16dp due to snapped by TargetSnapper. In non-snapped case it would be 10dp.
     textView2.authoritativeNlComponent.let {
-      assertEquals("10dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("10dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals("16dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+      assertEquals("16dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    }
+    assertEquals(constraintLayout.children[1], textView2)
+  }
+
+  fun testDragComponentInSameLayoutWillKeepOriginalPosition() {
+    val textView2 = myScreen.get("@id/textView2").sceneComponent!!
+    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
+
+    myInteraction.select(textView2)
+    myInteraction.mouseDown("textView2")
+    myInteraction.mouseRelease(80f, 80f)
+
+    textView2.authoritativeNlComponent.let {
+      assertEquals("30dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+      assertEquals("30dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
     }
     assertEquals(constraintLayout.children[1], textView2)
   }
