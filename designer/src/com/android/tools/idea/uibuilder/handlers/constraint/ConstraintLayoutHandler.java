@@ -97,7 +97,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAncho
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ClearConstraintsTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
@@ -445,9 +444,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, true),
       new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, true)
     );
-
-    ActionTarget previousAction = new ClearConstraintsTarget();
-    listBuilder.add(previousAction);
 
     int baseline = NlComponentHelperKt.getBaseline(childComponent.getNlComponent());
     ViewInfo info = NlComponentHelperKt.getViewInfo(childComponent.getNlComponent());
