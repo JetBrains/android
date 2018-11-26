@@ -37,9 +37,10 @@ private const val ACTION_HIDE = "actionHide"
  * provided by [ComponentAssistantFactory].
  */
 // TODO: Replace icon with the final version
-class ComponentAssistantActionTarget(
+class ComponentAssistantActionTarget @JvmOverloads constructor(
+  val assistantLabel: String = "Set Sample Data",
   private val panelFactory: ComponentAssistantFactory
-) : ActionTarget(NlIcon(StudioIcons.Shell.ToolWindows.BUILD, StudioIcons.Shell.ToolWindows.BUILD), null) {
+) : ActionTarget(assistantLabel, NlIcon(StudioIcons.Shell.ToolWindows.BUILD, StudioIcons.Shell.ToolWindows.BUILD), null) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
   private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)

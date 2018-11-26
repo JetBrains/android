@@ -16,12 +16,18 @@
 package com.android.tools.idea.common.scene.target;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawAction;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,17 +37,19 @@ import java.util.List;
 /**
  * Implements an Action target
  */
-public class ActionTarget extends BaseTarget {
+public class ActionTarget extends BaseTarget implements ViewAction {
 
   @Nullable private final Action myAction;
   @NotNull private final NlIcon myIcon;
+  @NotNull private final String myLabel;
   protected boolean myIsVisible = true;
 
   public interface Action {
     void apply(SceneComponent component);
   }
 
-  public ActionTarget(@NotNull NlIcon icon, @Nullable Action action) {
+  public ActionTarget(@NotNull String label, @NotNull NlIcon icon, @Nullable Action action) {
+    myLabel = label;
     myIcon = icon;
     myAction = action;
   }
@@ -115,5 +123,35 @@ public class ActionTarget extends BaseTarget {
       myAction.apply(myComponent);
       myComponent.getScene().needsRebuildList();
     }
+  }
+
+  // ViewAction implementation
+
+  @Override
+  public int getRank() {
+    return getPreferenceLevel();
+  }
+
+  @NotNull
+  @Override
+  public String getLabel() {
+    return myLabel;
+  }
+
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return myIcon.getScreenModeIcon();
+  }
+
+  @Override
+  public boolean affectsUndo() {
+    return false;
+  }
+
+  @Nullable
+  @Override
+  public String getToolTipText() {
+    return myLabel;
   }
 }

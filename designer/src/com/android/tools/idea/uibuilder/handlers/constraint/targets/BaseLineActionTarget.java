@@ -31,7 +31,7 @@ public class BaseLineActionTarget extends ActionTarget {
     new NlIcon(StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED, StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT);
 
   public BaseLineActionTarget() {
-    super(BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline()));
+    super(EDIT_BASELINE_ACTION_TOOLTIP, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline()));
   }
 
   @Override
@@ -55,9 +55,4 @@ public class BaseLineActionTarget extends ActionTarget {
     myComponent.getScene().needsRebuildList();
     myComponent.getScene().repaint();
   }
-  @Override
-  public String getToolTipText() {
-    return   EDIT_BASELINE_ACTION_TOOLTIP;
-  }
-
 }
