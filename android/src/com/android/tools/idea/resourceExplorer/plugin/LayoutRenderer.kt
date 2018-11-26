@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.plugin
 import com.android.annotations.VisibleForTesting
 import com.android.annotations.VisibleForTesting.Visibility
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
@@ -171,7 +172,15 @@ constructor(
 
     val task = renderTaskProvider(facet, xmlFile, configuration) ?: return CompletableFuture.completedFuture(null)
     return task.render()
-      .thenApplyAsync(Function { it: RenderResult -> it.renderedImage.copy }, PooledThreadExecutor.INSTANCE)
+      .thenApplyAsync(
+        Function { it: RenderResult ->
+          when {
+            it.renderResult.isSuccess -> it.renderedImage.copy
+            it.renderResult.exception != null -> throw it.renderResult.exception
+            else -> throw RenderingException(it.renderResult.status.name)
+          }
+        },
+        PooledThreadExecutor.INSTANCE)
       .thenApply { image ->
         if (image != null) {
           val cachedRenderSource = CachedRenderSource(file, configuration)

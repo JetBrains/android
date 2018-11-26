@@ -276,7 +276,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
   }
 
   /**
-   * Return a [ColorResourceCellRenderer] that will try to use the provided [textRenderer] to format the list value into a String.
+   * Returns a [ColoredListCellRenderer] that will try to use the provided [textRenderer] to format the list value into a String.
    * If a value of the list is null, [placeholderValue] will be used instead.
    */
   private fun <T> getRenderer(placeholderValue: String?, textRenderer: ((T) -> String?)?) = object : ColoredListCellRenderer<T?>() {

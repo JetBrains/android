@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer
 
+import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -24,6 +25,7 @@ import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.Async
 import java.awt.Image
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
@@ -39,7 +41,7 @@ private val MAXIMUM_CACHE_WEIGHT_BYTES = (200 * 1024.0.pow(2)).toLong() // 200 M
  */
 class ImageCache(cacheExpirationTime: Long = 5,
                  timeUnit: TimeUnit = TimeUnit.MINUTES,
-                 mergingUpdateQueue : MergingUpdateQueue? = null
+                 mergingUpdateQueue: MergingUpdateQueue? = null
 ) : Disposable {
 
 
@@ -58,7 +60,8 @@ class ImageCache(cacheExpirationTime: Long = 5,
     }
   }
 
-  private val updateQueue = mergingUpdateQueue ?: MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false)
+  private val updateQueue = mergingUpdateQueue ?: MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null,
+                                                                     false)
 
   override fun dispose() {
     synchronized(pendingFutures) {
@@ -82,11 +85,15 @@ class ImageCache(cacheExpirationTime: Long = 5,
    *
    * Note that if a value is present in the cache and [forceComputation] is true, the returned [Image] will be the value from
    * the cache.
+   *
+   * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
 
   fun computeAndGet(@Async.Schedule key: DesignAsset,
                     placeholder: Image,
                     forceComputation: Boolean,
+                    onImageCached: () -> Unit = {},
+                    executor: Executor = EdtExecutor.INSTANCE,
                     computationFutureProvider: (() -> CompletableFuture<out Image?>))
     : Image {
 
@@ -98,7 +105,7 @@ class ImageCache(cacheExpirationTime: Long = 5,
     if ((cachedImage == null || cachedImage == placeholder || forceComputation) && !pendingFutures.containsKey(key)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
       updateQueue.queue(key, executeImmediately) {
-        scheduleFuture(computationFutureProvider, key)
+        scheduleFuture(computationFutureProvider, key, onImageCached, executor)
       }
     }
     return cachedImage ?: placeholder
@@ -106,18 +113,22 @@ class ImageCache(cacheExpirationTime: Long = 5,
 
 
   private fun scheduleFuture(computationFutureProvider: () -> CompletableFuture<out Image?>,
-                             @Async.Execute key: DesignAsset) {
-    val future = computationFutureProvider().thenAccept { image: Image? ->
-      synchronized(pendingFutures) {
-        pendingFutures.remove(key)
+                             @Async.Execute key: DesignAsset,
+                             onImageCached: () -> Unit,
+                             executor: Executor) {
+    val future = computationFutureProvider()
+      .thenAccept { image: Image? ->
+        synchronized(pendingFutures) {
+          pendingFutures.remove(key)
+        }
+        if (image != null) {
+          objectToImage.put(key, image)
+        }
+        else {
+          objectToImage.invalidate(key)
+        }
       }
-      if (image != null) {
-        objectToImage.put(key, image)
-      }
-      else {
-        objectToImage.invalidate(key)
-      }
-    }
+      .thenRun { executor.execute(onImageCached) }
     synchronized(pendingFutures) {
       if (!future.isDone) {
         pendingFutures[key] = future

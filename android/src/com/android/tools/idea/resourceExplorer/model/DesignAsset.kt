@@ -16,17 +16,21 @@
 package com.android.tools.idea.resourceExplorer.model
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceMergerItem
+import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 val externalResourceNamespace = ResourceNamespace.fromPackageName("external.design.resource")
+private val LOG = Logger.getInstance(DesignAsset::class.java)
 
 /**
  * A Design asset on disk.
@@ -128,4 +132,12 @@ private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: Qualifie
     qualifiers1.toList(),
     ResourceType.DRAWABLE
   )
+}
+
+fun ResourceResolver.resolveValue(designAsset: DesignAsset): ResourceValue? {
+  val resolvedValue = resolveResValue(designAsset.resourceItem.resourceValue)
+  if (resolvedValue == null) {
+    LOG.warn("${designAsset.resourceItem.name} couldn't be resolved")
+  }
+  return resolvedValue
 }

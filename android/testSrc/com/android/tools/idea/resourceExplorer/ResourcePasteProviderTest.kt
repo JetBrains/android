@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.resourceExplorer.viewmodel.RESOURCE_URL_FLAVOR
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -27,28 +28,31 @@ import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.actions.PasteAction
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.testFramework.MapDataContext
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Producer
-import org.junit.ClassRule
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 
 internal class ResourcePasteProviderTest {
 
-  companion object {
-    @ClassRule
-    @JvmField
-    val projectRule = ProjectRule()
-  }
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory() // TODO(KT-28244) Fallback to ProjectRule when https://youtrack.jetbrains.com/issue/KT-28244 is fixed
 
-  private val project = projectRule.project
+  private lateinit var project: Project
+
+  @Before
+  fun setUp() {
+    project = projectRule.project
+  }
 
   @Test
   fun pasteOntoImageView() {

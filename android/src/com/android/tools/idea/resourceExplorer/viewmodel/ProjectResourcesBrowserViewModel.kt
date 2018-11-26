@@ -15,37 +15,26 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
-import com.android.ide.common.resources.ResourceResolver
-import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.ResourceResolverCache
-import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.aar.AarResourceRepository
-import com.android.tools.idea.res.resolveDrawable
-import com.android.tools.idea.resourceExplorer.plugin.LayoutRenderer
+import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
-import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
+import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManagerImpl
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.xml.XmlFile
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.Dimension
-import java.awt.Image
-import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
-private val LOG = Logger.getInstance(ProjectResourcesBrowserViewModel::class.java)
 private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT)
 
 /**
@@ -64,9 +53,12 @@ class ProjectResourcesBrowserViewModel(
 
   private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
 
-  private val resourceNotificationManager: ResourceNotificationManager = ResourceNotificationManager(facet.module.project)
+  private val resourceNotificationManager = ResourceNotificationManager.getInstance(facet.module.project)
 
   private val dataManager = ResourceDataManager(facet)
+
+  private val imageCache = ImageCache(
+    mergingUpdateQueue = MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
   private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
     if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
@@ -81,8 +73,6 @@ class ProjectResourcesBrowserViewModel(
     resourceVersion = currentVersion
     resourceChangedCallback?.invoke()
   }
-
-  var resourceResolver = createResourceResolver(facet)
 
   /**
    * The index in [resourceTypes] of the resource type being used.
@@ -101,10 +91,13 @@ class ProjectResourcesBrowserViewModel(
 
   init {
     subscribeListener(facet)
+    Disposer.register(this, imageCache)
   }
 
+  override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, imageCache)
+
   private fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
-    resourceResolver = createResourceResolver(newFacet)
+    assetPreviewManager = AssetPreviewManagerImpl(newFacet, imageCache)
     unsubscribeListener(oldFacet)
     subscribeListener(newFacet)
     dataManager.facet = newFacet
@@ -112,45 +105,13 @@ class ProjectResourcesBrowserViewModel(
   }
 
   private fun subscribeListener(facet: AndroidFacet) {
-    ResourceNotificationManager.getInstance(facet.module.project)
+    resourceNotificationManager
       .addListener(resourceNotificationListener, facet, null, null)
   }
 
   private fun unsubscribeListener(oldFacet: AndroidFacet) {
-    ResourceNotificationManager.getInstance(oldFacet.module.project)
+    resourceNotificationManager
       .removeListener(resourceNotificationListener, oldFacet, null, null)
-  }
-
-  /**
-   * Returns a preview of the [DesignAsset].
-   */
-  override fun getPreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> =
-    when (designAsset.type) {
-      ResourceType.LAYOUT -> getLayoutPreview(designAsset)
-      ResourceType.DRAWABLE -> getDrawablePreview(dimension, designAsset)
-      else -> null
-    }
-    ?: CompletableFuture.completedFuture(null)
-
-  private fun getDrawablePreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>? {
-    val resolveValue = designAsset.resolveValue() ?: return null
-    val file = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
-               ?: designAsset.file
-    return DesignAssetRendererManager.getInstance().getViewer(file)
-      .getImage(file, facet.module, dimension)
-  }
-
-  /**
-   * Returns a preview of the [DesignAsset].
-   */
-  private fun getLayoutPreview(designAsset: DesignAsset): CompletableFuture<out Image?>? {
-    val file = designAsset.file
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file)
-    return if (psiFile is XmlFile) {
-      val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
-      LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration)
-    }
-    else null
   }
 
   private fun getModuleResources(type: ResourceType): ResourceSection {
@@ -175,26 +136,6 @@ class ProjectResourcesBrowserViewModel(
           .map { createResourceSection(type, userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }
       }
       .toList()
-  }
-
-  private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
-    val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
-    val manifest = MergedManifest.get(androidFacet)
-    val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
-    return ResourceResolverCache(configurationManager).getResourceResolver(
-      configurationManager.target,
-      theme,
-      FolderConfiguration.createDefault()
-    )
-  }
-
-  private fun DesignAsset.resolveValue(): ResourceValue? {
-    val resourceItem = this.resourceItem
-    val resolvedValue = resourceResolver.resolveResValue(resourceItem.resourceValue)
-    if (resolvedValue == null) {
-      LOG.warn("${resourceItem.name} couldn't be resolved")
-    }
-    return resolvedValue
   }
 
   override fun getResourcesLists(): List<ResourceSection> {
@@ -245,5 +186,8 @@ data class ResourceSection(val type: ResourceType,
                            val libraryName: String = "",
                            val assets: List<DesignAssetSet>)
 
-private fun userReadableLibraryName(lib: AarResourceRepository) = GradleCoordinate.parseCoordinateString(lib.libraryName)?.artifactId
-                                                                  ?: ""
+private fun userReadableLibraryName(lib: AarResourceRepository) =
+  lib.libraryName?.let {
+    GradleCoordinate.parseCoordinateString(it)?.artifactId
+  }
+  ?: ""

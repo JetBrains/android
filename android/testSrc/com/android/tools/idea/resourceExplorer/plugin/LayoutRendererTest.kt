@@ -26,15 +26,20 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFileSystem
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
+import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
-import java.awt.image.BufferedImage
+import java.awt.Image
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.swing.ImageIcon
+import kotlin.test.assertTrue
 
 
 private val BACKGROUND_COLOR = arrayOf(0xFA, 0xD1, 0x3A, 0xFF)
@@ -68,21 +73,37 @@ class LayoutRendererTest {
 
   @Test
   fun integrationWithProjectResourcesBrowserViewModel() {
+    val latch = CountDownLatch(1)
     val androidFacet = rule.module.androidFacet!!
     val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest)
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
+    lateinit var projectResourcesBrowserViewModel: ProjectResourcesBrowserViewModel
+    try {
+      projectResourcesBrowserViewModel = ProjectResourcesBrowserViewModel(androidFacet)
+      val previewProvider = projectResourcesBrowserViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
+      val width = 150
+      val height = 200
+      previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
+        .cast<ImageIcon>().image.toBufferedImage()
 
-    val image = ProjectResourcesBrowserViewModel(androidFacet)
-      .getPreview(Dimension(), designAsset).get(5, TimeUnit.SECONDS)!! as BufferedImage
+      assertTrue(latch.await(10, TimeUnit.SECONDS))
+      val image = previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
+        .cast<ImageIcon>().image.toBufferedImage()
 
-    // Check that we get the correct background color.
-    val intArray = IntArray(4)
-    assertThat(image.raster.getPixel(100, 100, intArray)).asList().containsExactly(*BACKGROUND_COLOR)
+      // Check that we get the correct background color.
+      val intArray = IntArray(4)
+      assertThat(image.raster.width).isEqualTo(width)
+      assertThat(image.raster.height).isEqualTo(height)
+      assertThat(image.raster.getPixel(100, 100, intArray)).asList().containsExactly(*BACKGROUND_COLOR)
 
-    // Test the size
-    assertThat(image.width).isEqualTo(768)
-    assertThat(image.height).isEqualTo(1024)
+      // Test the size
+      assertThat(image.width).isEqualTo(width)
+      assertThat(image.height).isEqualTo(height)
+    }
+    finally {
+      Disposer.dispose(projectResourcesBrowserViewModel)
+    }
   }
 
   private fun createLayoutFile(): XmlFile {
@@ -105,7 +126,7 @@ class LayoutRendererTest {
   }
 }
 
-fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
+private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
   RenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
     .withDownscaleFactor(DOWNSCALE_FACTOR)
@@ -113,3 +134,5 @@ fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration
     .disableDecorations()
     .disableSecurityManager()
     .build()
+
+private fun Image.toBufferedImage() = ImageUtil.toBufferedImage(this)

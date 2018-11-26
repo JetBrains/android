@@ -25,9 +25,7 @@ import com.android.tools.idea.resourceExplorer.widget.Separator
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -50,8 +48,6 @@ import java.util.WeakHashMap
 import javax.swing.AbstractAction
 import javax.swing.ActionMap
 import javax.swing.BorderFactory
-import javax.swing.FocusManager
-import javax.swing.ImageIcon
 import javax.swing.InputMap
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -190,14 +186,10 @@ class ResourceDetailView(
     subtitle = asset.file.name
     metadata = viewModel.getSize(asset)
 
-    val image = imageCache.computeAndGet(asset, EMPTY_ICON, false) {
-      viewModel.getPreview(thumbnailSize, asset)
-        .whenComplete { image, _ ->
-          thumbnail = JBLabel(ImageIcon(image))
-          repaint()
-        }
-    }
-    thumbnail = JBLabel(ImageIcon(image))
+    val icon = viewModel.assetPreviewManager
+      .getPreviewProvider(asset.type)
+      .getIcon(asset, thumbnailSize.width, thumbnailSize.height, this::repaint) { isShowing }
+    thumbnail = JBLabel(icon)
 
     // Mouse listener to open the file on double click
     addFocusListener(cardFocusListener)

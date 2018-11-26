@@ -16,10 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import java.awt.Dimension
-import java.awt.Image
-import java.util.concurrent.CompletableFuture
+import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
 
 /**
  * Interface for the view model of [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]
@@ -33,7 +30,8 @@ interface ResourceExplorerViewModel {
   var resourceChangedCallback: (() -> Unit)?
 
   /**
-   * The index in [resourceTypes] of the resource type being used.
+   * The index in [resourceTypes] of the resource type being used. Changing the value
+   * of this field should change the resources being shown.
    */
   var resourceTypeIndex: Int
 
@@ -42,10 +40,7 @@ interface ResourceExplorerViewModel {
    */
   val resourceTypes: Array<ResourceType>
 
-  /**
-   * Returns a preview of the [DesignAsset].
-   */
-  fun getPreview(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>
+  val assetPreviewManager: AssetPreviewManager
 
   /**
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the

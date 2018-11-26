@@ -21,7 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.SketchLibrary
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.ResourceFileGenerator
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.builders.SketchToStudioConverter.getResources
@@ -32,15 +32,13 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.S
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPage
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
-import java.awt.Dimension
-import java.awt.Image
 import java.awt.event.ItemEvent
-import java.util.concurrent.CompletableFuture
 
 private fun LightVirtualFile.toAsset(name: String) = DesignAssetSet(name, listOf(
   DesignAsset(this, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE)))
@@ -56,22 +54,23 @@ private const val colorsFileName = "sketch_colors.xml"
 class SketchImporterPresenter(private val sketchImporterView: SketchImporterView,
                               sketchFile: SketchFile,
                               private val designAssetImporter: DesignAssetImporter,
-                              val facet: AndroidFacet) {
+                              val facet: AndroidFacet,
+                              assetPreviewManager: AssetPreviewManager) {
 
+  private val project = facet.module.project
   private var importAll = DEFAULT_IMPORT_ALL
   private val presenters: MutableList<ResourcesPresenter> = sketchFile.pages
     .mapNotNull { page ->
-      val pagePresenter = PagePresenter(page, facet, sketchFile.library)
-      sketchImporterView.createPageView(pagePresenter)
+      val pagePresenter = PagePresenter(page, project, sketchFile.library, assetPreviewManager)
+      sketchImporterView.addPageView(pagePresenter)
       pagePresenter
     }.toMutableList()
-  private val drawableFileGenerator = ResourceFileGenerator(
-    facet.module.project)
+  private val drawableFileGenerator = ResourceFileGenerator(project)
 
   init {
-    val documentPresenter = DocumentPresenter(sketchFile.document, facet, sketchFile.library)
+    val documentPresenter = DocumentPresenter(sketchFile.document, project, sketchFile.library, assetPreviewManager)
     presenters.add(documentPresenter)
-    sketchImporterView.createDocumentView(documentPresenter)
+    sketchImporterView.addDocumentView(documentPresenter)
     sketchImporterView.addFilterExportableButton(!importAll)
     populateViews()
   }
@@ -155,20 +154,16 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
   }
 }
 
-abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
+abstract class ResourcesPresenter(
+  project: Project,
+  val assetPreviewManager: AssetPreviewManager
+) {
   lateinit var view: ChildView
   var importAll = DEFAULT_IMPORT_ALL
-  private val drawableFileGenerator = ResourceFileGenerator(
-    facet.module.project)
+  private val drawableFileGenerator = ResourceFileGenerator(project)
   abstract val resources: StudioResourcesModel
   protected abstract val filesToDrawableAssets: Map<DesignAssetSet, DrawableAssetModel>
   protected abstract val colorsToColorAssets: Map<Pair<Color, String>, ColorAssetModel>
-  private val rendererManager = DesignAssetRendererManager.getInstance()
-
-  fun fetchImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> {
-    val file = designAsset.file
-    return rendererManager.getViewer(file).getImage(file, facet.module, dimension)
-  }
 
   /**
    * Refresh preview panel in the associated view.
@@ -220,9 +215,10 @@ abstract class ResourcesPresenter(protected val facet: AndroidFacet) {
 }
 
 class PagePresenter(private val sketchPage: SketchPage,
-                    facet: AndroidFacet,
-                    library: SketchLibrary
-) : ResourcesPresenter(facet) {
+                    val project: Project,
+                    library: SketchLibrary,
+                    assetPreviewManager: AssetPreviewManager
+) : ResourcesPresenter(project, assetPreviewManager) {
   override val resources: StudioResourcesModel = getResources(sketchPage, library)
   override var filesToDrawableAssets = generateDrawableFiles()
   override val colorsToColorAssets = generateColorPairs()
@@ -233,9 +229,10 @@ class PagePresenter(private val sketchPage: SketchPage,
 }
 
 class DocumentPresenter(sketchDocument: SketchDocument,
-                        facet: AndroidFacet,
-                        library: SketchLibrary
-) : ResourcesPresenter(facet) {
+                        val project: Project,
+                        library: SketchLibrary,
+                        assetPreviewManager: AssetPreviewManager
+) : ResourcesPresenter(project, assetPreviewManager) {
   override val resources: StudioResourcesModel = getResources(sketchDocument, library)
   override var filesToDrawableAssets = generateDrawableFiles()
   override val colorsToColorAssets = generateColorPairs()
