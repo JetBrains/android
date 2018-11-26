@@ -781,14 +781,12 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   /**
-   * Set a flag to notify that the Scene needs to recompute the layout on the nex
+   * Set a flag to notify that the Scene needs to recompute the layout on the next rendering cycle.
    *
    * @param type Type of layout to recompute: {@link #NO_LAYOUT}, {@link #IMMEDIATE_LAYOUT}, {@link #ANIMATED_LAYOUT}
    */
   public void needsLayout(@MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT}) int type) {
-    if (mNeedsLayout < type) {
-      mNeedsLayout = type;
-    }
+    mNeedsLayout = type;
   }
 
   public long getDisplayListVersion() {
