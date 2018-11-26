@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.pr
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.PRODUCT_FLAVORS_PLACE_NAME
 import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.Companion.putPath
 import com.intellij.ui.navigation.Place
 
 data class PsBuildVariantsNavigationPath(override val parent: PsModulePath) : PsPlaceBasedPath() {
