@@ -76,7 +76,7 @@ public class ViewActionsSeparatorTest {
 
   @NotNull
   private static ViewAction createAction(boolean visible) {
-    return new ViewAction() {
+    return new AbstractViewAction(null, "") {
 
       @Override
       public void updatePresentation(@NotNull ViewActionPresentation presentation,

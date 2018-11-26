@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * A sub menu for a group of actions
  */
-public class ViewActionMenu extends ViewAction {
+public class ViewActionMenu extends AbstractViewAction {
   protected final List<ViewAction> myActions;
 
   /**
@@ -39,19 +39,7 @@ public class ViewActionMenu extends ViewAction {
    * @param actions  the set of actions in this menu
    */
   public ViewActionMenu(@NotNull String menuName, @Nullable Icon icon, @NotNull List<ViewAction> actions) {
-    this(-1, menuName, icon, actions);
-  }
-
-  /**
-   * Creates a new view action.
-   *
-   * @param rank     the sorting order of this action
-   * @param menuName the menu label
-   * @param icon     the (optional) icon
-   * @param actions  the set of actions in this menu
-   */
-  public ViewActionMenu(int rank, @NotNull String menuName, @Nullable Icon icon, @NotNull List<ViewAction> actions) {
-    super(rank, icon, menuName);
+    super(icon, menuName);
     myActions = actions;
   }
 
@@ -72,6 +60,6 @@ public class ViewActionMenu extends ViewAction {
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers) {
-    presentation.setLabel(myLabel);
+    presentation.setLabel(getLabel());
   }
 }

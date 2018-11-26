@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlAttributesHolder
-import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler

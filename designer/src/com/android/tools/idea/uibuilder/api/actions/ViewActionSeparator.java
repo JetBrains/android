@@ -27,22 +27,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** A separator between actions */
-public final class ViewActionSeparator extends ViewAction {
+public final class ViewActionSeparator extends AbstractViewAction {
   private List<ViewAction> myFollowingActions = new ArrayList<>();
   /**
    * Creates a separator
    */
   public ViewActionSeparator() {
-    this(-1);
-  }
-
-  /**
-   * Creates a separator
-   *
-   * @param rank the sorting order of this separator
-   */
-  public ViewActionSeparator(int rank) {
-    super(rank, null, "");
+    super(null, "");
   }
 
   /**
