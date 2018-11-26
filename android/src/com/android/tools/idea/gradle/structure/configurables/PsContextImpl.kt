@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.repositories.search.*
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -56,7 +56,11 @@ class PsContextImpl constructor(
 
   init {
     mainConfigurable.add(
-      ProjectStructureConfigurable.ProjectStructureChangeListener { if (!disableSync) this.requestGradleModels() }, this)
+      object : ProjectStructureConfigurable.ProjectStructureChangeListener {
+        override fun projectStructureChanged() {
+          if (!disableSync) this@PsContextImpl.requestGradleModels()
+        }
+      }, this)
     // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
     requestGradleModels()
 

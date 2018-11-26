@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath
 import com.intellij.ui.navigation.Place
 
 data class PsJarDependencyNavigationPath(override val parent: PsDependenciesNavigationPath, val dependency: String) : PsPlaceBasedPath() {
