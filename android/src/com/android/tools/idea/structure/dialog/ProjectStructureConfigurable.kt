@@ -199,7 +199,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   @Nls
   override fun getDisplayName(): String = ProjectBundle.message("project.settings.display.name")
 
-  override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic.orEmpty()
+  override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
   override fun createComponent(): JComponent? {
     val component = MyPanel()
