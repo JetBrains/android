@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.stats.withProjectId
-import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
@@ -29,7 +28,6 @@ import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
@@ -75,16 +73,17 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
-  private val mySdksConfigurable: IdeSdksConfigurable
+  private var myHistory = History(this)
+  private val mySdksConfigurable: IdeSdksConfigurable = IdeSdksConfigurable(this, myProject).also { it.setHistory(myHistory) }
   private val myDetails = Wrapper()
   private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent>()
-  private val myUiState = UIState()
-
-  private var myHistory = History(this)
+  private val myUiState = UIState().also { it.load(myProject) }
+  private val myEmptySelection = JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
+                                        SwingConstants.CENTER)
+  private val myChangeEventDispatcher = EventDispatcher.create(ProjectStructureChangeListener::class.java)
 
   private var mySplitter: JBSplitter? = null
   private var mySidePanel: SidePanel? = null
-  private val myNotificationPanel: JPanel? = null
   private var myToolbarComponent: JComponent? = null
   private var myErrorsComponent: JBLabel? = null
   private var myToFocus: JComponent? = null
@@ -94,91 +93,40 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   private var mySelectedConfigurable: Configurable? = null
 
-  private val myEmptySelection = JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
-                                        SwingConstants.CENTER)
-  private val myChangeEventDispatcher = EventDispatcher.create(ProjectStructureChangeListener::class.java)
-
   private var myDisposable = MyDisposable()
   private var myOpenTimeMs: Long = 0
 
-  init {
-    mySdksConfigurable = IdeSdksConfigurable(this, myProject)
-    mySdksConfigurable.setHistory(myHistory)
-
-    val propertiesComponent = PropertiesComponent.getInstance(myProject)
-    myUiState.lastEditedConfigurable = propertiesComponent.getValue(LAST_EDITED_PROPERTY)
-    val proportion = propertiesComponent.getValue(PROPORTION_PROPERTY)
-    myUiState.proportion = parseFloatValue(proportion)
-    val sideProportion = propertiesComponent.getValue(SIDE_PROPORTION_PROPERTY)
-    myUiState.sideProportion = parseFloatValue(sideProportion)
-  }
-
-  override fun getPreferredFocusedComponent(): JComponent? {
-    return myToFocus
-  }
-
-  fun showDialog(): Boolean {
-    return showDialog(null)
-  }
-
-  private fun showDialog(advanceInit: Runnable?): Boolean {
-    return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit)
-  }
+  override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
   override fun setHistory(history: History) {
     myHistory = history
   }
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
-    if (place == null) {
-      return ActionCallback.DONE
-    }
+    val displayName = place?.getPath(CATEGORY_NAME) as? String ?: return ActionCallback.REJECTED
 
-    val toSelect: Configurable?
-    val displayName = place.getPath(CATEGORY_NAME)
-    if (displayName is String) {
-      toSelect = findConfigurable((displayName as String?)!!)
-    }
-    else {
-      toSelect = place.getPath(CATEGORY) as Configurable?
-    }
+    val toSelect = findConfigurable(displayName)
 
     var detailsContent: JComponent? = myDetails.targetComponent
 
     if (mySelectedConfigurable !== toSelect) {
-      saveSideProportion()
+      (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
       removeSelected()
     }
 
     if (toSelect != null) {
-      if (toSelect is CrossModuleUiStateComponent) {
-        (toSelect as CrossModuleUiStateComponent).restoreUiState()
-      }
+      (toSelect as? CrossModuleUiStateComponent)?.restoreUiState()
       detailsContent = myConfigurables[toSelect]
       if (detailsContent == null) {
         detailsContent = toSelect.createComponent()
         myConfigurables[toSelect] = detailsContent
       }
       myDetails.setContent(detailsContent)
-    }
+      myUiState.lastEditedConfigurable = toSelect.displayName
 
+      logUsageLeftNavigateTo(toSelect)
+    }
     mySelectedConfigurable = toSelect
-    if (mySelectedConfigurable != null) {
-      myUiState.lastEditedConfigurable = mySelectedConfigurable!!.displayName
-
-      val psdEvent = PSDEvent
-        .newBuilder()
-        .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-      if (mySelectedConfigurable is TrackedConfigurable) {
-        (mySelectedConfigurable as TrackedConfigurable).applyTo(psdEvent)
-        UsageTracker.log(AndroidStudioEvent
-                           .newBuilder()
-                           .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                           .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-                           .setPsdEvent(psdEvent).withProjectId(
-            myProject))
-      }
-    }
 
     if (toSelect is MasterDetailsComponent) {
       val masterDetails = toSelect as MasterDetailsComponent?
@@ -208,6 +156,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
     myToFocus = toFocus
     if (myToFocus != null) {
+      @Suppress("DEPRECATION")
       requestFocus(myToFocus!!)
     }
 
@@ -224,19 +173,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     return result
   }
 
-  private fun findConfigurable(displayName: String): Configurable? {
-    for (configurable in myConfigurables.keys) {
-      if (displayName == configurable.displayName) {
-        return configurable
-      }
-    }
-    return null
-  }
-
-  private fun saveSideProportion() {
-    if (mySelectedConfigurable is MasterDetailsComponent) {
-      myUiState.sideProportion = (mySelectedConfigurable as MasterDetailsComponent).splitter.proportion
-    }
+  private fun MasterDetailsComponent.saveSideProportion() {
+    myUiState.sideProportion = this.splitter.proportion
   }
 
   private fun removeSelected() {
@@ -248,28 +186,20 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   override fun queryPlace(place: Place) {
-    if (mySelectedConfigurable != null) {
-      place.putPath(CATEGORY, mySelectedConfigurable)
-      Place.queryFurther(mySelectedConfigurable, place)
+    mySelectedConfigurable?.let {
+      place.putPath(CATEGORY_NAME, it.displayName)
+      Place.queryFurther(it, place)
     }
   }
 
-  override fun getId(): String {
-    return "android.project.structure"
-  }
+  override fun getId(): String = "android.project.structure"
 
-  override fun enableSearch(option: String): Runnable? {
-    return null
-  }
+  override fun enableSearch(option: String): Runnable? = null
 
   @Nls
-  override fun getDisplayName(): String {
-    return ProjectBundle.message("project.settings.display.name")
-  }
+  override fun getDisplayName(): String = ProjectBundle.message("project.settings.display.name")
 
-  override fun getHelpTopic(): String? {
-    return if (mySelectedConfigurable != null) mySelectedConfigurable!!.helpTopic else ""
-  }
+  override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic.orEmpty()
 
   override fun createComponent(): JComponent? {
     val component = MyPanel()
@@ -311,196 +241,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     return component
   }
 
-  private fun initSidePanel() {
-    val isDefaultProject = myProject === ProjectManager.getInstance().defaultProject
-
-    mySidePanel = SidePanel(this, myHistory)
-
-    addConfigurable(mySdksConfigurable)
-
-    if (!isDefaultProject) {
-      addConfigurables()
-    }
-  }
-
-  private fun addConfigurables() {
-    if (myDisposable.disposed) {
-      myDisposable = MyDisposable()
-    }
-    val additionalConfigurableGroups = Lists.newArrayList<ProjectStructureItemGroup>()
-    for (contributor in AndroidConfigurableContributor.EP_NAME.extensions) {
-      contributor.getMainConfigurables(myProject, myDisposable).forEach(Consumer<Configurable> { this.addConfigurable(it) })
-      additionalConfigurableGroups.addAll(contributor.additionalConfigurableGroups)
-    }
-    for (group in additionalConfigurableGroups) {
-      val name = group.groupName
-      mySidePanel!!.addSeparator(name)
-      group.items.forEach(Consumer<Configurable> { this.addConfigurable(it) })
-    }
-  }
-
-  private fun addConfigurable(configurable: Configurable) {
-    myConfigurables[configurable] = null
-    if (configurable is Place.Navigator) {
-      val navigator = configurable as Place.Navigator
-      navigator.setHistory(myHistory)
-    }
-    mySidePanel!!.addPlace(createPlaceFor(configurable), Presentation(configurable.displayName))
-    if (configurable is CounterDisplayConfigurable) {
-      (configurable as CounterDisplayConfigurable).add(
-        CounterDisplayConfigurable.CountChangeListener { invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
-    }
-  }
-
-  fun <T : Configurable> findConfigurable(type: Class<T>): T? {
-    for (configurable in myConfigurables.keys) {
-      if (type.isInstance(configurable)) {
-        return type.cast(configurable)
-      }
-    }
-    return null
-  }
-
-  override fun isModified(): Boolean {
-    for (configurable in myConfigurables.keys) {
-      if (configurable.isModified) {
-        return true
-      }
-    }
-    return false
-  }
-
-  @Throws(ConfigurationException::class)
-  override fun apply() {
-    val duration = System.currentTimeMillis() - myOpenTimeMs
-    UsageTracker.log(AndroidStudioEvent
-                       .newBuilder()
-                       .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                       .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-                       .setPsdEvent(
-                         PSDEvent
-                           .newBuilder()
-                           .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-                           .setDurationMs(duration)
-                       ).withProjectId(myProject))
-    var applied = false
-    for (configurable in myConfigurables.keys) {
-      if (configurable.isModified) {
-        configurable.apply()
-        applied = true
-      }
-    }
-    if (applied) {
-      myChangeEventDispatcher.multicaster.projectStructureChanged()
-    }
-  }
-
-  override fun reset() {
-    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
-    try {
-      mySdksConfigurable.reset()
-
-      var toSelect: Configurable? = null
-      for (each in myConfigurables.keys) {
-        if (myUiState.lastEditedConfigurable != null && myUiState.lastEditedConfigurable == each.displayName) {
-          toSelect = each
-        }
-        if (each is MasterDetailsComponent) {
-          each.setHistory(myHistory)
-        }
-        each.disposeUIResources()
-        each.reset()
-      }
-
-      myHistory.clear()
-
-      if (toSelect == null && !myConfigurables.isEmpty()) {
-        toSelect = myConfigurables.keys.stream().findFirst().orElse(null)
-      }
-
-      removeSelected()
-
-      navigateTo(if (toSelect != null) createPlaceFor(toSelect) else null, false)
-
-      if (myUiState.proportion > 0) {
-        mySplitter!!.proportion = myUiState.proportion
-      }
-    }
-    finally {
-      token.finish()
-    }
-  }
-
-  override fun disposeUIResources() {
-    if (!myUiInitialized) {
-      return
-    }
-    try {
-      val propertiesComponent = PropertiesComponent.getInstance(myProject)
-      propertiesComponent.setValue(LAST_EDITED_PROPERTY, myUiState.lastEditedConfigurable)
-      propertiesComponent.setValue(PROPORTION_PROPERTY, myUiState.proportion.toString())
-      propertiesComponent.setValue(SIDE_PROPORTION_PROPERTY, myUiState.sideProportion.toString())
-
-      myUiState.proportion = mySplitter!!.proportion
-      saveSideProportion()
-      myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
-
-      Disposer.dispose(myDisposable)
-    }
-    finally {
-      myConfigurables.clear()
-      myUiInitialized = false
-    }
-  }
-
-  fun getHistory(): History? {
-    return myHistory
-  }
-
-  fun add(listener: ProjectStructureChangeListener, parentDisposable: Disposable) {
-    myChangeEventDispatcher.addListener(listener, parentDisposable)
-  }
-
-  fun add(listener: ProjectStructureChangeListener) {
-    myChangeEventDispatcher.addListener(listener)
-  }
-
-  fun remove(listener: ProjectStructureChangeListener) {
-    myChangeEventDispatcher.removeListener(listener)
-  }
-
-  private inner class MyPanel internal constructor() : JPanel(BorderLayout()), DataProvider {
-
-    override fun getData(@NonNls dataId: String): Any? {
-      if (KEY.`is`(dataId)) {
-        return this@ProjectStructureConfigurable
-      }
-      return if (History.KEY.`is`(dataId)) {
-        getHistory()
-      }
-      else null
-    }
-  }
-
-  class UIState {
-    var proportion: Float = 0.toFloat()
-    var sideProportion: Float = 0.toFloat()
-    var lastEditedConfigurable: String? = null
-  }
-
-  private class MyDisposable : Disposable {
-    @Volatile
-    internal var disposed: Boolean = false
-
-    override fun dispose() {
-      disposed = true
-    }
-  }
-
-  interface ProjectStructureChangeListener : EventListener {
-    fun projectStructureChanged()
-  }
-
   fun showPlace(place: Place?) {
     // TODO(IDEA-196602):  Pressing Ctrl+Alt+S or Ctrl+Alt+Shift+S for a little longer shows tens of dialogs. Remove when fixed.
     if (myShowing) return
@@ -521,13 +261,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     add(changeListener)
     try {
       myOpenTimeMs = System.currentTimeMillis()
-      UsageTracker.log(AndroidStudioEvent
-                         .newBuilder()
-                         .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                         .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-                         .setPsdEvent(PSDEvent.newBuilder().setGeneration(
-                           PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)).withProjectId(
-          myProject))
+      logUsageOpen()
       myShowing = true
       try {
         showDialog(Runnable {
@@ -548,53 +282,217 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
   }
 
-  fun show() {
-    showPlace(null)
+  fun show() = showPlace(null)
+
+  private fun showDialog(advanceInit: Runnable?) = ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit)
+
+  private fun initSidePanel() {
+    val isDefaultProject = myProject === ProjectManager.getInstance().defaultProject
+
+    mySidePanel = SidePanel(this, myHistory)
+
+    addConfigurable(mySdksConfigurable)
+
+    if (!isDefaultProject) {
+      addConfigurables()
+    }
+  }
+
+  private fun addConfigurables() {
+    if (myDisposable.disposed) myDisposable = MyDisposable()
+
+    val additionalConfigurableGroups = mutableListOf<ProjectStructureItemGroup>()
+    for (contributor in AndroidConfigurableContributor.EP_NAME.extensions) {
+      contributor.getMainConfigurables(myProject, myDisposable).forEach(Consumer<Configurable> { this.addConfigurable(it) })
+      additionalConfigurableGroups.addAll(contributor.additionalConfigurableGroups)
+    }
+    for (group in additionalConfigurableGroups) {
+      val name = group.groupName
+      mySidePanel!!.addSeparator(name)
+      group.items.forEach(Consumer<Configurable> { this.addConfigurable(it) })
+    }
+  }
+
+  private fun addConfigurable(configurable: Configurable) {
+    myConfigurables[configurable] = null
+    (configurable as? Place.Navigator)?.setHistory(myHistory)
+    mySidePanel!!.addPlace(createPlaceFor(configurable), Presentation(configurable.displayName))
+    (configurable as? CounterDisplayConfigurable)
+      ?.add(CounterDisplayConfigurable.CountChangeListener { invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
+  }
+
+  fun <T : Configurable> findConfigurable(type: Class<T>): T? = myConfigurables.keys.filterIsInstance(type).firstOrNull()
+
+  private fun findConfigurable(displayName: String): Configurable? = myConfigurables.keys.firstOrNull { it.displayName == displayName }
+
+  override fun isModified(): Boolean = myConfigurables.keys.any { it.isModified }
+
+  @Throws(ConfigurationException::class)
+  override fun apply() {
+    logUsageApply()
+    val modifiedConfigurables = myConfigurables.keys.filter { it.isModified }
+    modifiedConfigurables.forEach { it.apply() }
+    if (modifiedConfigurables.isNotEmpty()) myChangeEventDispatcher.multicaster.projectStructureChanged()
+  }
+
+  override fun reset() {
+    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
+    try {
+      val configurables = myConfigurables.keys
+
+      mySdksConfigurable.reset()
+
+      for (each in configurables) {
+        each.disposeUIResources()
+        each.reset()
+        (each as? MasterDetailsComponent)?.setHistory(myHistory)
+      }
+
+      myHistory.clear()
+
+      val toSelect = myUiState.lastEditedConfigurable?.let { lastConfigurableDisplayname -> configurables.firstOrNull { it.displayName == lastConfigurableDisplayname } }
+                     ?: configurables.firstOrNull()
+
+      removeSelected()
+
+      navigateTo(if (toSelect != null) createPlaceFor(toSelect) else null, false)
+
+      if (myUiState.proportion > 0) {
+        mySplitter!!.proportion = myUiState.proportion
+      }
+    }
+    finally {
+      token.finish()
+    }
+  }
+
+  override fun disposeUIResources() {
+    if (!myUiInitialized) return
+    try {
+
+      myUiState.proportion = mySplitter!!.proportion
+      (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
+      myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
+
+      myUiState.save(myProject)
+
+      Disposer.dispose(myDisposable)
+    }
+    finally {
+      myConfigurables.clear()
+      myUiInitialized = false
+    }
+  }
+
+  fun getHistory(): History? = myHistory
+
+  fun add(listener: ProjectStructureChangeListener, parentDisposable: Disposable) =
+    myChangeEventDispatcher.addListener(listener, parentDisposable)
+
+  fun add(listener: ProjectStructureChangeListener) = myChangeEventDispatcher.addListener(listener)
+
+  fun remove(listener: ProjectStructureChangeListener) = myChangeEventDispatcher.removeListener(listener)
+
+  private inner class MyPanel internal constructor() : JPanel(BorderLayout()), DataProvider {
+    override fun getData(@NonNls dataId: String): Any? = if (History.KEY.`is`(dataId)) getHistory() else null
+  }
+
+  private class UIState {
+    var proportion: Float = 0.toFloat()
+    var sideProportion: Float = 0.toFloat()
+    var lastEditedConfigurable: String? = null
+
+    fun save(project: Project) {
+      val propertiesComponent = PropertiesComponent.getInstance(project)
+      propertiesComponent.setValue(LAST_EDITED_PROPERTY, lastEditedConfigurable)
+      propertiesComponent.setValue(PROPORTION_PROPERTY, proportion.toString())
+      propertiesComponent.setValue(SIDE_PROPORTION_PROPERTY, sideProportion.toString())
+    }
+
+    fun load(project: Project) {
+      val propertiesComponent = PropertiesComponent.getInstance(project)
+      lastEditedConfigurable = propertiesComponent.getValue(LAST_EDITED_PROPERTY)
+      proportion = parseFloatValue(propertiesComponent.getValue(PROPORTION_PROPERTY))
+      sideProportion = parseFloatValue(propertiesComponent.getValue(SIDE_PROPORTION_PROPERTY))
+    }
+  }
+
+  private class MyDisposable : Disposable {
+    @Volatile
+    internal var disposed: Boolean = false
+
+    override fun dispose() {
+      disposed = true
+    }
+  }
+
+  interface ProjectStructureChangeListener : EventListener {
+    fun projectStructureChanged()
+  }
+
+  private fun logUsageOpen() {
+    UsageTracker.log(
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
+        .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002))
+        .withProjectId(myProject))
+  }
+
+  private fun logUsageApply() {
+    val duration = System.currentTimeMillis() - myOpenTimeMs
+    UsageTracker.log(
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
+        .setPsdEvent(
+          PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002).setDurationMs(duration)
+        )
+        .withProjectId(myProject))
+  }
+
+  private fun logUsageLeftNavigateTo(toSelect: Configurable) {
+    if (toSelect is TrackedConfigurable) {
+      val psdEvent = PSDEvent
+        .newBuilder()
+        .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+      toSelect.applyTo(psdEvent)
+      UsageTracker.log(
+        AndroidStudioEvent
+          .newBuilder()
+          .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+          .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
+          .setPsdEvent(psdEvent)
+          .withProjectId(myProject))
+    }
   }
 
   companion object {
-    @JvmStatic
-    val KEY = DataKey.create<ProjectStructureConfigurable>("ProjectStructureConfiguration")
-
-    @NonNls
-    const val CATEGORY = "category"
-
     @NonNls
     const val CATEGORY_NAME = "categoryName"
 
     @NonNls
-    private val LAST_EDITED_PROPERTY = "project.structure.last.edited"
+    private const val LAST_EDITED_PROPERTY = "project.structure.last.edited"
 
     @NonNls
-    private val PROPORTION_PROPERTY = "project.structure.proportion"
+    private const val PROPORTION_PROPERTY = "project.structure.proportion"
 
     @NonNls
-    private val SIDE_PROPORTION_PROPERTY = "project.structure.side.proportion"
+    private const val SIDE_PROPORTION_PROPERTY = "project.structure.side.proportion"
 
     @JvmStatic
-    fun getInstance(project: Project): ProjectStructureConfigurable {
-      return ServiceManager.getService(project, ProjectStructureConfigurable::class.java)
-    }
+    fun getInstance(project: Project): ProjectStructureConfigurable =
+      ServiceManager.getService(project, ProjectStructureConfigurable::class.java)
 
-    private fun parseFloatValue(value: String?): Float {
-      if (value != null) {
-        try {
-          return java.lang.Float.parseFloat(value)
-        }
-        catch (ignored: NumberFormatException) {
-        }
-
-      }
-      return 0f
-    }
+    private fun parseFloatValue(value: String?): Float = value?.toFloatOrNull() ?: 0f
 
     @JvmStatic
     fun putPath(place: Place, configurable: Configurable) {
       place.putPath(CATEGORY_NAME, configurable.displayName)
     }
 
-    private fun createPlaceFor(configurable: Configurable): Place {
-      return Place().putPath(CATEGORY, configurable)
-    }
+    private fun createPlaceFor(configurable: Configurable): Place = Place().putPath(CATEGORY_NAME, configurable.displayName)
   }
 }
