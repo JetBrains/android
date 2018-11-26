@@ -301,15 +301,16 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private fun addConfigurables() {
     if (myDisposable.disposed) myDisposable = MyDisposable()
 
-    val additionalConfigurableGroups = mutableListOf<ProjectStructureItemGroup>()
-    for (contributor in AndroidConfigurableContributor.EP_NAME.extensions) {
-      contributor.getMainConfigurables(myProject, myDisposable).forEach(Consumer<Configurable> { this.addConfigurable(it) })
-      additionalConfigurableGroups.addAll(contributor.additionalConfigurableGroups)
-    }
-    for (group in additionalConfigurableGroups) {
-      val name = group.groupName
-      mySidePanel!!.addSeparator(name)
-      group.items.forEach(Consumer<Configurable> { this.addConfigurable(it) })
+    val configurables =
+      AndroidConfigurableContributor.EP_NAME.extensions
+        .asSequence()
+        .flatMap { it.getConfigurables(myProject, myDisposable).asSequence() }
+        .groupBy { it.groupName }
+        .mapValues { entry -> entry.value.flatMap { it.items } }
+
+    configurables.entries.forEachIndexed { index, (name, items) ->
+      if (index > 0) mySidePanel!!.addSeparator("--")
+      items.forEach { addConfigurable(it) }
     }
   }
 
