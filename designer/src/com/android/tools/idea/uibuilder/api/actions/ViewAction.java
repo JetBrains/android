@@ -32,6 +32,8 @@ public interface ViewAction extends Comparable<ViewAction> {
    * Method invoked by the system right before this action is about to be changed,
    * or if the action is already showing, when something relevant has changed
    * such as the set of selected children.
+   * By default, this method will set the {@link ViewAction} icon and label into the
+   * passed {@link ViewActionPresentation}.
    *
    * @param presentation     the presentation to apply visual changes to
    * @param editor           the associated IDE editor
@@ -40,12 +42,15 @@ public interface ViewAction extends Comparable<ViewAction> {
    * @param selectedChildren any selected children of the component
    * @param modifiers        modifiers currently in effect
    */
-  void updatePresentation(@NotNull ViewActionPresentation presentation,
+  default void updatePresentation(@NotNull ViewActionPresentation presentation,
                           @NotNull ViewEditor editor,
                           @NotNull ViewHandler handler,
                           @NotNull NlComponent component,
                           @NotNull List<NlComponent> selectedChildren,
-                          @JdkConstants.InputEventMask int modifiers);
+                          @JdkConstants.InputEventMask int modifiers) {
+    presentation.setIcon(getIcon());
+    presentation.setLabel(getLabel());
+  }
 
   /**
    * The relative sorting order of this action. Should be unique for all actions

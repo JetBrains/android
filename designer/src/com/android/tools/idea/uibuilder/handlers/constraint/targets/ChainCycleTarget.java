@@ -34,11 +34,12 @@ import java.util.List;
 public class ChainCycleTarget extends ActionTarget {
   // TODO: add new icon to StudioIcons and replace this icon
   private static final NlIcon CHAIN_ICON = new NlIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE, AndroidIcons.SherpaIcons.ChainBlue);
+  private static final String CHAIN_LABEL = "Cycle Chain mode";
 
   private ChainChecker myChainChecker = new ChainChecker();
 
   public ChainCycleTarget(Action action) {
-    super(CHAIN_ICON, action);
+    super(CHAIN_LABEL, CHAIN_ICON, action);
   }
 
   @Override
@@ -65,10 +66,5 @@ public class ChainCycleTarget extends ActionTarget {
                                                      SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, myComponent);
       }
     }
-  }
-
-  @Override
-  public String getToolTipText() {
-     return "Cycle Chain mode";
   }
 }
