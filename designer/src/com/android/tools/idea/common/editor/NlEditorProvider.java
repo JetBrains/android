@@ -33,7 +33,7 @@ public class NlEditorProvider extends DesignerEditorProvider {
   @NotNull
   @Override
   public String getEditorTypeId() {
-    return NlEditor.NL_EDITOR_ID;
+    return NlEditorKt.NL_EDITOR_ID;
   }
 
   @Override

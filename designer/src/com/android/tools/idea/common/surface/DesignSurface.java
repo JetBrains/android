@@ -258,6 +258,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   protected abstract void layoutContent();
 
+  /**
+   * When not null, returns a {@link JPanel} to be rendered next to the primary panel of the editor.
+   */
+  public JPanel getAccessoryPanel() {
+    return null;
+  }
+
   @NotNull
   public Project getProject() {
     return myProject;

@@ -69,7 +69,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> myToolWindowDefinitions;
 
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
-                             @NotNull WorkBench<DesignSurface> workBench, @NotNull DesignSurface surface, @Nullable JPanel accessoryPanel,
+                             @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions) {
     super(new BorderLayout());
     myEditor = editor;
@@ -79,8 +79,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myWorkBench.setOpaque(true);
 
     myContentPanel = new AdtPrimaryPanel(new BorderLayout());
-    mySurface = surface;
+    mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
+    myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
@@ -90,7 +91,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     add(mySplitter);
     Disposer.register(editor, myWorkBench);
 
-    myAccessoryPanel = accessoryPanel;
     myToolWindowDefinitions = toolWindowDefinitions;
   }
 
@@ -148,7 +148,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       }
       else {
         myWorkBench.loadingStopped("Failed to initialize editor");
-        Logger.getInstance(DesignerEditorPanel.class).warn(String.format("Failed to initialize %s", getClass().getSimpleName()), exception);
+        Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
       }
     });
   }

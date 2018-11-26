@@ -262,6 +262,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @NotNull
+  @Override
   public AccessoryPanel getAccessoryPanel() {
     return myAccessoryPanel;
   }
