@@ -27,7 +27,7 @@ import java.util.List;
  * A group of mutually exclusive toggle actions. When one is invoked, the others
  * are cleared.
  */
-public class ToggleViewActionGroup extends ViewAction {
+public class ToggleViewActionGroup extends AbstractViewAction {
   private final List<ToggleViewAction> myActions;
 
   /**
@@ -36,6 +36,7 @@ public class ToggleViewActionGroup extends ViewAction {
    * @param actions  the set of toggle actions in this group
    */
   public ToggleViewActionGroup(@NotNull List<ToggleViewAction> actions) {
+    super(null, "");
     myActions = actions;
   }
 

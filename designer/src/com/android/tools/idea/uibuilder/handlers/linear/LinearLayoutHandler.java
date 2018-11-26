@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 import static com.android.utils.XmlUtils.formatFloatAttribute;
 
 /**
@@ -290,11 +291,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     int rank = 0;
-    actions.add(new ToggleOrientationAction().setRank(rank += 20));
-    actions.add(new BaselineAction().setRank(rank += 20));
-    actions.add(new DistributeWeightsAction().setRank(rank += 20));
-    actions.add(new ClearWeightsAction().setRank(rank += 20));
-    actions.add(new ViewActionSeparator().setRank(rank += 20));
+    actions.add(withRank(new ToggleOrientationAction(), rank += 20));
+    actions.add(withRank(new BaselineAction(), rank += 20));
+    actions.add(withRank(new DistributeWeightsAction(), rank += 20));
+    actions.add(withRank(new ClearWeightsAction(), rank += 20));
+    actions.add(withRank(new ViewActionSeparator(), rank += 20));
     addDefaultViewActions(actions, rank);
   }
 

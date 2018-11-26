@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * A {@link ViewAction} which toggles state
  */
-public abstract class ToggleViewAction extends ViewAction {
+public abstract class ToggleViewAction extends AbstractViewAction {
   private final Icon mySelectedIcon;
   private final String mySelectedLabel;
 
@@ -44,7 +44,7 @@ public abstract class ToggleViewAction extends ViewAction {
                           @NotNull Icon selectedIcon,
                           @NotNull String unselectedLabel,
                           @Nullable String selectedLabel) {
-    super(-1, unselectedIcon, unselectedLabel);
+    super(unselectedIcon, unselectedLabel);
     mySelectedIcon = selectedIcon;
     mySelectedLabel = selectedLabel;
   }
@@ -81,7 +81,7 @@ public abstract class ToggleViewAction extends ViewAction {
    */
   @Nullable
   public final Icon getUnselectedIcon() {
-    return myIcon;
+    return getIcon();
   }
 
   /**
@@ -121,14 +121,14 @@ public abstract class ToggleViewAction extends ViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers,
                                  boolean selected) {
-    presentation.setIcon(selected ? mySelectedIcon : myIcon);
+    presentation.setIcon(selected ? mySelectedIcon : getIcon());
   }
 
   /**
    * Returns the unselected label
    */
   public final String getUnselectedLabel() {
-    return myLabel;
+    return getLabel();
   }
 
   /**

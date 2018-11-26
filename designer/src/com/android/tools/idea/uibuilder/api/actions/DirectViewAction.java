@@ -35,7 +35,7 @@ import java.util.List;
  * These actions are typically shown in the layout actions toolbar but can also
  * be included in context menus for actions.
  */
-public abstract class DirectViewAction extends ViewAction {
+public abstract class DirectViewAction extends AbstractViewAction {
   /**
    * Performs the given action. Invoked when the user clicks a view action
    * toolbar button or invokes a view action menu action.
@@ -58,19 +58,7 @@ public abstract class DirectViewAction extends ViewAction {
    * to set an icon or label just-in-time.
    */
   public DirectViewAction() {
-    this(-1, null, "");
-  }
-
-  /**
-   * Creates a new view action. If you use this method you must also override
-   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
-   * to set an icon or label just-in-time.
-   *
-   * @param rank the relative sorting order of this action; see {@link #getRank()}
-   *             for details.
-   */
-  public DirectViewAction(int rank) {
-    this(rank, null, "");
+    this(null, "");
   }
 
   /**
@@ -80,19 +68,7 @@ public abstract class DirectViewAction extends ViewAction {
    * @param label the menu label (if in a context menu) or the tooltip (if in a toolbar)
    */
   public DirectViewAction(@Nullable Icon icon, @NotNull String label) {
-    this(-1, icon, label);
-  }
-
-  /**
-   * Creates a new view action with a given icon and label.
-   *
-   * @param rank the relative sorting order of this action; see {@link #getRank()}
-   *             for details.
-   * @param icon        the icon to be shown if in the toolbar
-   * @param label the menu label (if in a context menu) or the tooltip (if in a toolbar)
-   */
-  public DirectViewAction(int rank, @Nullable Icon icon, @NotNull String label) {
-    super(rank, icon, label);
+    super(icon, label);
   }
 
   @Override

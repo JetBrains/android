@@ -49,7 +49,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
-import static com.android.tools.idea.uibuilder.api.actions.ActionUtils.getViewOptionsAction;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_MENU;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
@@ -340,18 +340,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
 
     @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setLabel(myLabel);
-      boolean enable = isEnabled(selectedChildren);
-      presentation.setVisible(enable);
-    }
-
-    @Override
     public boolean isEnabled(List<NlComponent> selected) {
       for (ViewAction action : myActions) {
         if (action instanceof EnabledAction) {
@@ -545,7 +533,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       NlUsageTracker.getInstance(editor.getScene().getDesignSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
-      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Delete all the constraints in the current layout?", getLabel(), getDefaultIcon()) == Messages.YES) {
+      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Delete all the constraints in the current layout?", getLabel(), getIcon()) == Messages.YES) {
         viewEditor.getScene().clearAllConstraints();
         ensureLayersAreShown(editor, 1000);
       }
@@ -1116,7 +1104,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private Icon myMarginIcon;
 
     public MarginSelector() {
-      setLabel("Default Margins"); // tooltip
+      super(null, "Default Margins"); // tooltip
       myMarginPopup.setActionListener((e) -> setMargin());
     }
 
@@ -1526,13 +1514,19 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                      @NotNull NlComponent component,
                                      @NotNull List<NlComponent> selectedChildren,
                                      int modifiers) {
+        String label;
         if (selectedChildren.size() > mIndex) {
-          myLabel = selectedChildren.get(mIndex).getId();
-          if (myLabel == null) {
-            myLabel = selectedChildren.get(mIndex).getTagName();
+          label = selectedChildren.get(mIndex).getId();
+          if (label == null) {
+            label = selectedChildren.get(mIndex).getTagName();
           }
         }
-        super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
+        else {
+          label = getLabel();
+        }
+
+        presentation.setLabel(label);
+        presentation.setVisible(isEnabled(selectedChildren));
       }
     }
 

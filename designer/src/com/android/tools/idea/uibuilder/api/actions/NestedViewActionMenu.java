@@ -31,7 +31,7 @@ import java.util.List;
  * However, if there is just a single row, it will be shown as a plain
  * menu instead.
  */
-public class NestedViewActionMenu extends ViewAction {
+public class NestedViewActionMenu extends AbstractViewAction {
   private final List<List<ViewAction>> myActions;
 
   /**
@@ -41,20 +41,8 @@ public class NestedViewActionMenu extends ViewAction {
    * @param icon     the (optional) icon
    * @param actions  the list of action-lists to be shown in this popup. Each list is shown on its own line.
    */
-  public NestedViewActionMenu(@NotNull String menuName, @NotNull Icon icon, @NotNull List<List<ViewAction>> actions) {
-    this(-1, menuName, icon, actions);
-  }
-
-  /**
-   * Creates a new view action.
-   *
-   * @param rank     the sorting order of this action
-   * @param menuName the menu label
-   * @param icon     the (optional) icon
-   * @param actions  the list of action-lists to be shown in this popup. Each list is shown on its own line.
-   */
-  public NestedViewActionMenu(int rank, @NotNull String menuName, @Nullable Icon icon, @NotNull List<List<ViewAction>> actions) {
-    super(rank, icon, menuName);
+  public NestedViewActionMenu(@NotNull String menuName, @Nullable Icon icon, @NotNull List<List<ViewAction>> actions) {
+    super(icon, menuName);
     myActions = actions;
   }
 
@@ -75,6 +63,6 @@ public class NestedViewActionMenu extends ViewAction {
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers) {
-    presentation.setIcon(myIcon);
+    presentation.setIcon(getIcon());
   }
 }

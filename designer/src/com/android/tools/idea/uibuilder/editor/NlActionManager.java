@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
@@ -320,11 +322,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         if (!isEmpty()) {
           ViewAction prev = get(size() - 1);
           if (viewAction.getRank() == prev.getRank() || viewAction.getRank() == -1) {
-            viewAction.setRank(prev.getRank() + 5);
+            viewAction = withRank(viewAction, prev.getRank() + 5);
           }
         }
         else if (viewAction.getRank() == -1) {
-          viewAction.setRank(0);
+          viewAction =  withRank(viewAction, 0);
         }
 
         return super.add(viewAction);
@@ -411,7 +413,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       myComponent = component;
       mySelectedChildren = selectedChildren;
       Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getDefaultIcon());
+      presentation.setIcon(action.getIcon());
       presentation.setText(action.getLabel());
     }
 
@@ -601,7 +603,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       myComponent = component;
       mySelectedChildren = selectedChildren;
       Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getDefaultIcon());
+      presentation.setIcon(action.getIcon());
       presentation.setText(action.getLabel());
     }
 
@@ -662,14 +664,14 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                         @NotNull ViewHandler handler,
                                         @NotNull NlComponent component,
                                         @NotNull List<NlComponent> selectedChildren) {
-      super("", action.getLabel(), action.getDefaultIcon());
+      super("", action.getLabel(), action.getIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
       myComponent = component;
       mySelectedChildren = selectedChildren;
       Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getDefaultIcon());
+      presentation.setIcon(action.getIcon());
       presentation.setDescription(action.getLabel());
     }
 
