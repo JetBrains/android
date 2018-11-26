@@ -34,7 +34,7 @@ public class NavEditorProvider extends DesignerEditorProvider {
   @NotNull
   @Override
   public String getEditorTypeId() {
-    return NavEditor.NAV_EDITOR_ID;
+    return NavEditorKt.NAV_EDITOR_ID;
   }
 
   @Override

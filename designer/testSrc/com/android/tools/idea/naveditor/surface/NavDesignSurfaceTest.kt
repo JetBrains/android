@@ -35,6 +35,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
 import com.android.tools.idea.naveditor.analytics.NavNopTracker
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.editor.NAV_EDITOR_ID
 import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
@@ -103,7 +104,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     fileEditorManager.setSelectedEditor(file, TextEditorProvider.getInstance().editorTypeId)
     verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_XML_TAB).build())
-    fileEditorManager.setSelectedEditor(file, NavEditor.NAV_EDITOR_ID)
+    fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
     verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB).build())
   }
 

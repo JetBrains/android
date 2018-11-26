@@ -101,11 +101,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import javax.swing.JPanel;
 import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link DesignSurface} for the navigation editor.
@@ -122,6 +124,7 @@ public class NavDesignSurface extends DesignSurface {
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
   private static final Set<Project> PROJECTS_WITH_LISTENERS = ContainerUtil.createWeakSet();
 
+  @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     this(project, null, parentDisposable);
   }
@@ -171,10 +174,6 @@ public class NavDesignSurface extends DesignSurface {
     }
     getScheduleRef().set(null);
     super.dispose();
-  }
-
-  public void setEditorPanel(DesignerEditorPanel editorPanel) {
-    myEditorPanel = editorPanel;
   }
 
   @Override
