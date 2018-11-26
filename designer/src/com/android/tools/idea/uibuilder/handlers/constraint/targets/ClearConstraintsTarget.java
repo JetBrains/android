@@ -33,8 +33,7 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
     new NlIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
 
   public ClearConstraintsTarget() {
-    super(CLEAR_ICON, null);
-    setAction(this);
+    super(CLEAR_ICON, (component) -> ConstraintComponentUtilities.clearAttributes(component.getAuthoritativeNlComponent()));
   }
 
   @Override
@@ -50,6 +49,7 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
       String val = component.getAttribute(SHERPA_URI, attr);
       if (val != null) {
         myIsVisible = true;
+        break;
       }
     }
     super.layout(sceneTransform, l, t, r, b);
