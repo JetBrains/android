@@ -16,19 +16,15 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.ui
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.view.DesignAssetCellRenderer
-import com.android.tools.idea.resourceExplorer.view.DrawableResourceCellRenderer
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.update.MergingUpdateQueue
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -66,15 +62,11 @@ const val DOCUMENT_HEADER = "Document"
  * The view in the MVP pattern developed for the Sketch Importer UI, deals with the actual interface and doesn't know anything about the
  * model. It doesn't contain any logic.
  */
-class SketchImporterView : Disposable, JPanel(BorderLayout()) {
-
-  override fun dispose() {}
+class SketchImporterView : JPanel(BorderLayout()) {
 
   lateinit var presenter: SketchImporterPresenter
   private val pageViews = mutableListOf<PageView>()
   private lateinit var documentView: DocumentView
-  private val renderHelper = ImageCache(
-    mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
   private val resourcesPanel = JPanel(VerticalFlowLayout())
 
@@ -100,18 +92,18 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
   }
 
   /**
-   * Add a new [PageView] to the [SketchImporterView], associating it to the [pagePresenter].
+   * Adds a new [PageView] to the [SketchImporterView], associating it to the [pagePresenter].
    */
-  fun createPageView(pagePresenter: PagePresenter) {
-    val pageView = PageView(DrawableResourceCellRenderer(pagePresenter::fetchImage, renderHelper) { resourcesPanel.repaint() },
+  fun addPageView(pagePresenter: PagePresenter) {
+    val pageView = PageView(DesignAssetCellRenderer(pagePresenter.assetPreviewManager),
                             ColorAssetCellRenderer())
     pagePresenter.view = pageView
     pageViews.add(pageView)
     resourcesPanel.add(pageView)
   }
 
-  fun createDocumentView(documentPresenter: DocumentPresenter) {
-    documentView = DocumentView(DrawableResourceCellRenderer(documentPresenter::fetchImage, renderHelper) { resourcesPanel.repaint() },
+  fun addDocumentView(documentPresenter: DocumentPresenter) {
+    documentView = DocumentView(DesignAssetCellRenderer(documentPresenter.assetPreviewManager),
                                 ColorAssetCellRenderer())
     documentPresenter.view = documentView
     resourcesPanel.add(documentView)
@@ -119,9 +111,9 @@ class SketchImporterView : Disposable, JPanel(BorderLayout()) {
   }
 }
 
-open class ChildView(protected val drawableResourceCellRenderer: DrawableResourceCellRenderer,
+open class ChildView(protected val designAssetCellRenderer: DesignAssetCellRenderer,
                      protected val colorAssetCellRenderer: ColorAssetCellRenderer) : JPanel(BorderLayout()) {
-  protected var resourcesView = ResourcesView(emptyList(), emptyList(), drawableResourceCellRenderer, colorAssetCellRenderer)
+  protected var resourcesView = ResourcesView(emptyList(), emptyList(), designAssetCellRenderer, colorAssetCellRenderer)
 
   fun getSelectedDrawables(): List<DesignAssetSet> {
     return resourcesView.drawables?.selectedValuesList?.map { it as DesignAssetSet } ?: listOf()
@@ -132,9 +124,9 @@ open class ChildView(protected val drawableResourceCellRenderer: DrawableResourc
   }
 }
 
-class PageView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
+class PageView(designAssetCellRenderer: DesignAssetCellRenderer,
                colorAssetCellRenderer: ColorAssetCellRenderer
-) : ChildView(drawableResourceCellRenderer, colorAssetCellRenderer) {
+) : ChildView(designAssetCellRenderer, colorAssetCellRenderer) {
   /**
    * Create/refresh the preview panel associated with the page.
    */
@@ -143,7 +135,7 @@ class PageView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
               colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(pageName), BorderLayout.NORTH)
-    resourcesView = ResourcesView(drawableAssets, colorAssets, drawableResourceCellRenderer, colorAssetCellRenderer)
+    resourcesView = ResourcesView(drawableAssets, colorAssets, designAssetCellRenderer, colorAssetCellRenderer)
     add(resourcesView)
     revalidate()
     repaint()
@@ -153,9 +145,9 @@ class PageView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
 /**
  * The document view is currently just like a page called "Document", but it is created separately so it can be changed easily in the future.
  */
-class DocumentView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
+class DocumentView(designAssetCellRenderer: DesignAssetCellRenderer,
                    colorAssetCellRenderer: ColorAssetCellRenderer
-) : ChildView(drawableResourceCellRenderer, colorAssetCellRenderer) {
+) : ChildView(designAssetCellRenderer, colorAssetCellRenderer) {
   /**
    * Create/refresh the preview panel associated with the document.
    */
@@ -163,7 +155,7 @@ class DocumentView(drawableResourceCellRenderer: DrawableResourceCellRenderer,
               colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(DOCUMENT_HEADER), BorderLayout.NORTH)
-    resourcesView = ResourcesView(drawableAssets, colorAssets, drawableResourceCellRenderer, colorAssetCellRenderer)
+    resourcesView = ResourcesView(drawableAssets, colorAssets, designAssetCellRenderer, colorAssetCellRenderer)
     add(resourcesView)
     revalidate()
     repaint()
@@ -184,10 +176,10 @@ private fun createHeader(pageName: String): JComponent {
 
 class ResourcesView(drawableAssets: List<DesignAssetSet>,
                     colorAssets: List<Pair<Color, String>>,
-                    drawableResourceCellRenderer: DrawableResourceCellRenderer,
+                    designAssetCellRenderer: DesignAssetCellRenderer,
                     colorResourceCellRenderer: ColorAssetCellRenderer
 ) : JTabbedPane(JTabbedPane.NORTH) {
-  val drawables = createDrawablesPreviewsList(drawableAssets, drawableResourceCellRenderer)
+  val drawables = createDrawablesPreviewsList(drawableAssets, designAssetCellRenderer)
   val colors = createColorsPreviewsList(colorAssets, colorResourceCellRenderer)
 
   init {

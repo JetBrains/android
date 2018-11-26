@@ -36,10 +36,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.swing.ImageIcon
 
 class ProjectResourcesBrowserViewModelTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -61,17 +62,21 @@ class ProjectResourcesBrowserViewModelTest {
   }
 
   @Test
-  fun getResourceResolver() {
-    val viewModel = createViewModel(projectRule.module)
-    Truth.assertThat(viewModel.resourceResolver).isNotNull()
-  }
-
-  @Test
   fun getDrawablePreview() {
+    val latch = CountDownLatch(1)
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module)
-    val drawableFuture = viewModel.getPreview(Dimension(32, 32), DesignAsset(pngDrawable))
-    val image = drawableFuture.get(1, TimeUnit.SECONDS) as BufferedImage
+    val asset = DesignAsset(pngDrawable)
+    val iconSize = 32 // To compensate the 10% margin around the icon
+    viewModel.assetPreviewManager
+      .getPreviewProvider(ResourceType.DRAWABLE)
+      .getIcon(asset, iconSize, iconSize, { latch.countDown() })
+    Truth.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
+
+    val icon = viewModel.assetPreviewManager
+      .getPreviewProvider(ResourceType.DRAWABLE)
+      .getIcon(asset, iconSize, iconSize, { println("CALLBACK") }) as ImageIcon
+    val image = icon.image as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
   }
 
@@ -115,6 +120,8 @@ class ProjectResourcesBrowserViewModelTest {
 
   private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
     val facet = AndroidFacet.getInstance(module)!!
-    return ProjectResourcesBrowserViewModel(facet)
+    val viewModel = ProjectResourcesBrowserViewModel(facet)
+    Disposer.register(disposable, viewModel)
+    return viewModel
   }
 }

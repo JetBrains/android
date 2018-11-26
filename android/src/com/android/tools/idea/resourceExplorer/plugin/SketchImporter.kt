@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.plugin
 
+import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.SketchParser
 import com.android.tools.idea.resourceExplorer.sketchImporter.ui.IMPORT_DIALOG_TITLE
 import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterPresenter
@@ -24,6 +26,7 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchImporterV
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.apache.commons.io.FilenameUtils
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JOptionPane
@@ -52,8 +55,11 @@ class SketchImporter : ResourceImporter {
     }
     else {
       val view = SketchImporterView()
-      view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet)
+      val imageCache = ImageCache()
+      val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache)
+      view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet, assetPreviewManager)
       showImportDialog(view)
+      Disposer.dispose(imageCache)
     }
   }
 

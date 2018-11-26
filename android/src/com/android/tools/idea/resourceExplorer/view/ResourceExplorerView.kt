@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
@@ -54,12 +53,10 @@ import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
 import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
-import javax.swing.ListCellRenderer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -247,9 +244,9 @@ class ResourceExplorerView(
     sectionListModel.clear()
     val sections = resourcesBrowserViewModel.getResourcesLists()
       .filterNot { it.assets.isEmpty() }
-      .map { (type, libName, assets): ResourceSection ->
+      .map { (_, libName, assets): ResourceSection ->
         AssetSection(libName, AssetListView(assets).apply {
-          cellRenderer = getRendererForType(type, this)
+          cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
           dragHandler.registerSource(this)
           addMouseListener(popupHandler)
           addMouseListener(doubleClickListener)
@@ -283,22 +280,6 @@ class ResourceExplorerView(
 
   interface SelectionListener {
     fun onDesignAssetSetSelected(designAssetSet: DesignAssetSet?)
-  }
-
-  private fun getRendererForType(type: ResourceType, list: JList<*>): ListCellRenderer<DesignAssetSet> {
-    val refreshCallBack = { index: Int ->
-      list.repaint(list.getCellBounds(index, index))
-    }
-    return when (type) {
-      ResourceType.DRAWABLE, ResourceType.LAYOUT -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getPreview, imageCache,
-                                                                                 refreshCallBack)
-      ResourceType.COLOR -> ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project,
-                                                      resourcesBrowserViewModel.resourceResolver)
-      ResourceType.SAMPLE_DATA -> DrawableResourceCellRenderer(resourcesBrowserViewModel::getPreview, imageCache, refreshCallBack)
-      else -> ListCellRenderer { _, value, _, _, _ ->
-        JLabel(value.name)
-      }
-    }
   }
 
   private class AssetSection<T>(
