@@ -137,7 +137,9 @@ public class TimeLine extends JPanel {
         g.drawLine(ix, top + text_height, ix, h - ins_botom);
         String str = df.format(i);
         int sw = fm.stringWidth(str) / 2;
-
+        if (i == 0) {
+          str = "%" + str;
+        }
         g.drawString(str, ix - sw, ascent + top);
       }
       return tcount;

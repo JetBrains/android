@@ -36,6 +36,7 @@ import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
@@ -105,8 +106,11 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTar
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
+import com.android.tools.idea.uibuilder.scout.ScoutMotionConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -287,8 +291,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                   ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
                   ImmutableList.of(new ViewActionSeparator()),
                   ConstraintViewActions.CENTER_ACTIONS)
-              .flatMap(list -> list.stream())
-              .collect(Collectors.toList()))) {
+          .flatMap(list -> list.stream())
+          .collect(Collectors.toList()))) {
         @Override
         public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                        @NotNull ViewEditor editor,
@@ -363,6 +367,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new DisappearingActionMenu("Helpers", VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
 
+    if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
+      actions.add(new ConvertToMotionLayoutComponentsAction());
+    }
     return true;
   }
 
@@ -555,6 +562,46 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @InputEventMask int modifiers) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
       presentation.setLabel("Clear Constraints of Selection");
+    }
+  }
+
+
+  private static class ConvertToMotionLayoutComponentsAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
+      // Todo we should log
+      String cl_name = DependencyManagementUtil.mapAndroidxName(component.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT);
+      if (!component.getTag().getName().equals(cl_name)) {
+        NlComponent parent = component.getParent();
+        if (parent != null) {
+          component = parent;
+        }
+      }
+      if (!component.getTag().getName().equals(cl_name)) {
+        Messages.showErrorDialog(editor.getScene().getDesignSurface(), "You can only convert ConstraintLayout not "+component.getTag().getName(), getLabel());
+        return;
+      }
+      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", getLabel(),null) ==
+          Messages.YES) {
+
+        ScoutMotionConvert.convert(component);
+      }
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD);
+      presentation.setLabel("Convert to MotionLayout");
     }
   }
 
@@ -1149,8 +1196,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
-                    .setRequestFocus(true)
-                    .createPopup().show(relativePoint);
+        .setRequestFocus(true)
+        .createPopup().show(relativePoint);
     }
 
     @Override

@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.END_CONSTRAINT;
 import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.START_CONSTRAINT;
 
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.uibuilder.handlers.motion.Debug;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
@@ -42,6 +45,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -51,7 +58,6 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.AttributeSet;
@@ -65,7 +71,7 @@ import org.jetbrains.annotations.NotNull;
  * Provides the TimeLine panel
  */
 public class Gantt extends JPanel implements GanttCommands {
-
+  private static final boolean DEBUG = false;
   public static final int HEADER_HEIGHT = JBUI.scale(30);
   private static final JBDimension SLIDER_DIMENSION = JBUI.size(140, 16);
 
@@ -133,9 +139,7 @@ public class Gantt extends JPanel implements GanttCommands {
         myChart.setTimeCursorMs(clamp(timeCursorMs, 0, myChart.myAnimationTotalTimeMs));
         float percent = myChart.getTimeCursorMs() / myChart.myAnimationTotalTimeMs;
 
-        JViewport viewPort = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, myRowGraphc);
         Rectangle rec = myRowGraphc.getVisibleRect();
-        clearSelectedKey();
         myGanttController.framePosition(percent);
         int dx = 0;
         if (pos + 1 < rec.x) {
@@ -184,10 +188,15 @@ public class Gantt extends JPanel implements GanttCommands {
     return myChart.mySelectedKeyFrame;
   }
 
+  public MotionSceneModel.ConstraintView getSelectedConstraintView(String id) {
+    return myChart.mySelectedConstraint;
+  }
+
   public void clearSelectedKey() {
     myChart.mySelectedKeyView = null;
     myChart.mySelectedKeyFrame = null;
     myChart.mySelectedKeyFrameTag = null;
+    myChart.mySelectedConstraintTag = null;
   }
 
   public MotionSceneModel.TransitionTag getTransitionTag() {
@@ -202,6 +211,27 @@ public class Gantt extends JPanel implements GanttCommands {
       return null;
     }
     return myChart.myModel.getOnSwipeTag();
+  }
+
+  public void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    List<NlComponent> views = myMotionSceneModel != null ? myMotionSceneModel.getViews() : Collections.emptyList();
+    if (views.isEmpty()) {
+      return;
+    }
+    NlComponent motion = views.get(0).getParent();
+    if (motion == null) {
+      return;
+    }
+    List<String> ids = new ArrayList<>(selection.size());
+    for (NlComponent selected : selection) {
+      if (selected.getParent() == motion) {
+        String id = selected.getId();
+        if (id != null) {
+          ids.add(id);
+        }
+      }
+    }
+    myViewList.handleSelection(ids);
   }
 
   static class IntFilter extends DocumentFilter {
@@ -271,8 +301,9 @@ public class Gantt extends JPanel implements GanttCommands {
     JBTabbedPane myPropTabb;
     OnPanelCreate myCreate;
     OnSwipePanel mySwipePanel;
+    OnClickPanel[] onClickPanel = new OnClickPanel[0];
     ComboBox<String> myTransition;
-    Dimension mDimensions;
+    final Dimension mDimensions;
     Chart myChart;
     Gantt myGantt;
 
@@ -328,20 +359,69 @@ public class Gantt extends JPanel implements GanttCommands {
     }
 
     void addOnClickPanel() {
-      OnClickPanel swipePanel = new OnClickPanel();
+      if (DEBUG) {
+        Debug.println("addOnClickPanel");
+      }
+      MotionSceneModel.OnClickTag onClickTag = myGantt.myMotionSceneModel.createOnClick();
+      OnClickPanel clickPanel = new OnClickPanel(mDimensions);
       int index = myPropTabb.indexOfComponent(myCreate);
-      myPropTabb.insertTab("onClick", null, swipePanel, "Support swiping", index);
+      myPropTabb.insertTab("onClick", null, clickPanel, "Support swiping", index);
       myPropTabb.setSelectedIndex(index);
+      clickPanel.setOnClick(onClickTag);
     }
 
     private void addOnSwipePanel() {
+      if (DEBUG) {
+        Debug.println(2, "addOnSwipePanel");
+      }
+      MotionSceneModel.OnSwipeTag onSwipeTag = myGantt.myMotionSceneModel.createOnSwipe();
       mySwipePanel = new OnSwipePanel(mDimensions);
       int index = myPropTabb.indexOfComponent(myCreate);
+
       myPropTabb.insertTab("onSwipe", null, mySwipePanel, "Support swiping", index);
       myPropTabb.setSelectedIndex(index);
+      mySwipePanel.setOnSwipeTag(onSwipeTag);
     }
 
     private void plusHit(ChangeEvent c) {
+      if (DEBUG) {
+        Debug.println("plusHit +");
+      }
+    }
+
+    public void updateOnClicks(ArrayList<MotionSceneModel.OnClickTag> onClickTags) {
+      if (DEBUG) {
+        Debug.println("  updateOnClicks " + onClickTags.size());
+      }
+      if (onClickTags == null) {
+        for (OnClickPanel ui : onClickPanel) {
+          myPropTabb.remove(ui);
+        }
+        return;
+      }
+      if (onClickPanel.length != onClickTags.size()) {
+        if (DEBUG) {
+          Debug.println("updateOnClicks resize ");
+        }
+
+        for (OnClickPanel ui : onClickPanel) {
+          myPropTabb.remove(ui);
+        }
+
+        int oldLen = onClickPanel.length;
+        onClickPanel = Arrays.copyOf(onClickPanel, onClickTags.size());
+        for (int i = oldLen; i < onClickPanel.length; i++) {
+          onClickPanel[i] = new OnClickPanel(mDimensions);
+        }
+        int index = myPropTabb.indexOfComponent(myCreate);
+        for (int i = 0; i < onClickPanel.length; i++) {
+          myPropTabb.insertTab("onClick" + (i + 1), null, onClickPanel[i], "Support onClick", index + i);
+        }
+      }
+
+      for (int i = 0; i < onClickPanel.length; i++) {
+        onClickPanel[i].setOnClick(onClickTags.get(i));
+      }
     }
 
     public void rebuildTransitionName(String[] names) {
@@ -428,31 +508,6 @@ public class Gantt extends JPanel implements GanttCommands {
       }
     }
 
-
-    static class OnSwipePanel extends JPanel {
-      OnSwipeUI mOnSwipeUI;
-
-      OnSwipePanel(Dimension size) {
-        super(new BorderLayout());
-        setBackground(Chart.ourSecondaryPanelBackground);
-        mOnSwipeUI = new OnSwipeUI();
-        JBScrollPane scrollPane = new JBScrollPane(mOnSwipeUI);
-        scrollPane.setPreferredSize(size);
-        add(scrollPane);
-      }
-
-      public void setOnSwipeTag(MotionSceneModel.OnSwipeTag tag) {
-        mOnSwipeUI.setOnSwipeTag(tag);
-      }
-    }
-
-    static class OnClickPanel extends JPanel {
-      OnClickPanel() {
-        setBackground(Chart.ourSecondaryPanelBackground);
-        add(new JLabel("OnClick...TODO"));
-      }
-    }
-
     static class PropPanel extends JPanel {
       JTextField myDuration;
       ComboBox<String> myStartConstraint;
@@ -486,13 +541,11 @@ public class Gantt extends JPanel implements GanttCommands {
         myEndConstraint = new ComboBox<>(new String[]{"@+id/start", "new..."});
         add(myEndConstraint, gbc);
 
-
         label = new JLabel("Duration(ms)");
         myDuration = new JTextField();
         myDuration.setText("XXXXX"); // This sets the Preferred size to the size needed to fit 5 X characters
         myDuration.setPreferredSize(myDuration.getPreferredSize());
         myDuration.setText("600");
-
 
         gbc.gridx = 3;
         gbc.gridy = 0;
@@ -502,7 +555,6 @@ public class Gantt extends JPanel implements GanttCommands {
         gbc.weightx = 1;
 
         add(myDuration, gbc);
-
 
         gbc.gridx = 3;
         gbc.gridy = 1;
@@ -564,13 +616,14 @@ public class Gantt extends JPanel implements GanttCommands {
       add(right, BorderLayout.EAST);
     }
 
-
     @Override
     public void update(Reason reason) {
       MotionSceneModel.OnSwipeTag onSwipeTag = null;
+      ArrayList<MotionSceneModel.OnClickTag> onClickTags = null;
       String[] transitionNames = null;
       if (myChart != null && myChart.myModel != null) {
         onSwipeTag = myChart.myModel.getOnSwipeTag();
+        onClickTags = myChart.myModel.getOnClickTags();
         transitionNames = myChart.myModel.getTransitionsNames();
       }
       if (motionSceneUI.mySwipePanel == null) {
@@ -590,6 +643,7 @@ public class Gantt extends JPanel implements GanttCommands {
         else {
           motionSceneUI.mySwipePanel.setOnSwipeTag(onSwipeTag);
         }
+        motionSceneUI.updateOnClicks(onClickTags);
       }
       if (transitionNames != null) {
         motionSceneUI.rebuildTransitionName(transitionNames);

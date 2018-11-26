@@ -42,8 +42,6 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPositionPath_perpendicularPath_percent;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPositionTitle;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPosition_transitionEasing;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPosition_type;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPosition_type_cartesian;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeAttribute;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeCycle;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypePosition;
@@ -52,8 +50,14 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionNameSpace;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneKeyFrameSet;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneOnClick;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneOnSwipe;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneTransition;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.OnClickAttr_target;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.OnClickTitle;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.OnSwipeAttr_dragDirection;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.OnSwipeAttr_touchAnchorId;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.OnSwipeAttr_touchAnchorSide;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.OnSwipeTitle;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetEnd;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetStart;
@@ -70,6 +74,8 @@ import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
+import com.android.tools.idea.uibuilder.handlers.motion.Debug;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -111,7 +117,7 @@ public class MotionSceneModel {
   private Project myProject;
   private NlModel myNlModel;
   private String myName;
-  private String []myTransitionNames = null;
+  private String[] myTransitionNames = null;
   private List<NlComponent> myViews;
 
   public String getName() {
@@ -130,13 +136,16 @@ public class MotionSceneModel {
     return (myCurrentTransition == null) ? null : myCurrentTransition.myOnSwipeTag;
   }
 
-  private XmlFile motionSceneFile() {
-    return (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
+  public ArrayList<OnClickTag> getOnClickTags() {
+    return (myCurrentTransition == null) ? null : myCurrentTransition.myOnClickTags;
   }
 
-  public ConstraintSet getStartConstraintSet() {
-    TransitionTag tag = myTransition.get(0);
-    return tag.getConstraintSetStart();
+  public List<NlComponent> getViews() {
+    return myViews;
+  }
+
+  private XmlFile motionSceneFile() {
+    return (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
   }
 
   /**
@@ -164,6 +173,14 @@ public class MotionSceneModel {
     return str.toArray(new String[0]);
   }
 
+  public static String stripID(String id) {
+    int index = id.indexOf('/');
+    if (index < 0) {
+      return id;
+    }
+    return id.substring(index + 1);
+  }
+
   /**
    * Returns the current Transition's end id or null.
    *
@@ -177,8 +194,11 @@ public class MotionSceneModel {
   }
 
   public ConstraintSet getEndConstraintSet() {
-    TransitionTag tag = myTransition.get(0);
-    return tag.getConstraintSetEnd();
+    return myCurrentTransition.getConstraintSetEnd();
+  }
+
+  public ConstraintSet getStartConstraintSet() {
+    return myCurrentTransition.getConstraintSetStart();
   }
 
   public ArrayList<TransitionTag> getTransitions() {
@@ -205,8 +225,8 @@ public class MotionSceneModel {
     String[] ret = new String[myTransition.size()];
     for (int i = 0; i < ret.length; i++) {
       TransitionTag transition = myTransition.get(i);
-      String start = transition.myConstraintSetStart.substring(transition.myConstraintSetStart.indexOf('/') + 1);
-      String end = transition.myConstraintSetEnd.substring(transition.myConstraintSetEnd.indexOf('/') + 1);
+      String start = stripID(transition.myConstraintSetStart);
+      String end = stripID(transition.myConstraintSetEnd);
       ret[i] = start + " - " + end;
     }
 
@@ -219,7 +239,6 @@ public class MotionSceneModel {
       ret[i] = myViews.get(i).getId();
     }
     return ret;
-
   }
 
   public MotionSceneView getSceneView(String s) {
@@ -228,7 +247,6 @@ public class MotionSceneModel {
     }
     return myCurrentTransition.mViewsMap.get(s);
   }
-
 
   // Represents a single view in the motion scene
   public static class MotionSceneView {
@@ -329,7 +347,9 @@ public class MotionSceneModel {
   public void createConstraint(String type, boolean startSet) {
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
     final NlComponent component = myNlModel.find(type);
-    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+    TransactionGuard.submitTransaction(myProject, () ->
+    {
+      WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
         String name;
@@ -352,9 +372,9 @@ public class MotionSceneModel {
     if (myNlModel != null) {
       // TODO: we may want to do live edits instead, but LayoutLib needs
       // anyway to save the file to disk, so...
-      saveAndNotify(xmlFile, myNlModel );
-
+      saveAndNotify(xmlFile, myNlModel);
     }
+    });
   }
 
   /**
@@ -429,6 +449,19 @@ public class MotionSceneModel {
    */
   @Nullable
   public SmartPsiElementPointer<XmlTag> createKeyFrame(String type, int framePosition, String id) {
+    return createKeyFrame(type, framePosition, id, null);
+  }
+
+  /**
+   * Create a new Keyframe tag
+   *
+   * @param nlModel
+   * @param type
+   * @param framePosition
+   * @param id
+   */
+  @Nullable
+  public SmartPsiElementPointer<XmlTag> createKeyFrame(String type, int framePosition, String id, KeyFrame copyFrom) {
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
     switch (type) {
       case KeyTypePosition:
@@ -450,7 +483,7 @@ public class MotionSceneModel {
       if (myTransition.isEmpty()) {
         return null;
       }
-      XmlTag transition = getTransitionTag(0).getTag().getElement();
+      XmlTag transition = myCurrentTransition.getTag().getElement();
       if (transition == null) {
         return null;
       }
@@ -472,11 +505,17 @@ public class MotionSceneModel {
 
       XmlTag createdTag1 = keyFrame.createChildTag(type, null, null, false);
       createdTag1 = keyFrame.addSubTag(createdTag1, false);
+      if (copyFrom != null) {
+        for (AttrName attribute : copyFrom.myAttributes.keySet()) {
+          Object value = copyFrom.myAttributes.get(attribute);
+          createdTag1.setAttribute(attribute.getName(), attribute.getNamespace(), value.toString());
+          if (DEBUG) {
+            System.out.println(attribute.getNamespace() + " " + attribute.getName() + " = " + value.toString());
+          }
+        }
+      }
       createdTag1.setAttribute(KeyAttributes_framePosition, AUTO_URI, Integer.toString(framePosition));
       createdTag1.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + id);
-      if (type.equals(KeyTypePosition)) {
-        createdTag1.setAttribute(KeyPosition_type, AUTO_URI, KeyPosition_type_cartesian);
-      }
       return createdTag1;
     });
     if (myNlModel != null) {
@@ -488,7 +527,121 @@ public class MotionSceneModel {
   }
 
   /**
+   * Create a new onSwipe tag
+   */
+  @Nullable
+  public OnSwipeTag createOnSwipe() {
+    if (myCurrentTransition.myOnSwipeTag != null) {
+      if (DEBUG) {
+        Debug.println(" You can only have one on swipe tag");
+      }
+      return myCurrentTransition.myOnSwipeTag;
+    }
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
+
+    XmlTag createdTag = WriteCommandAction.<XmlTag>runWriteCommandAction(myProject, () -> {
+      if (DEBUG) {
+        Debug.println("WriteCommandAction  createOnSwipe");
+      }
+      XmlTag transitionTag = myCurrentTransition.getTag().getElement();
+      if (DEBUG) {
+        Debug.println("myCurrentTransition  XmlTag " + transitionTag);
+      }
+
+      XmlTag onSwipeTag = transitionTag.createChildTag(OnSwipeTitle, null, null, false);
+      onSwipeTag = transitionTag.addSubTag(onSwipeTag, false);
+
+      onSwipeTag.setAttribute(OnSwipeAttr_dragDirection, AUTO_URI, "dragRight");
+      onSwipeTag.setAttribute(OnSwipeAttr_touchAnchorId, AUTO_URI, "@+id/" + myViews.get(0).getId());
+      onSwipeTag.setAttribute(OnSwipeAttr_touchAnchorSide, AUTO_URI, "top");
+      if (DEBUG) {
+        Debug.println("WriteCommandAction  createOnSwipe " + onSwipeTag);
+      }
+
+      return onSwipeTag;
+    });
+
+    if (myNlModel != null) {
+      if (DEBUG) {
+        Debug.println("saveAndNotify  myNlModel " + xmlFile);
+      }
+
+      // TODO: we may want to do live edits instead, but LayoutLib needs
+      // anyway to save the file to disk, so...
+      saveAndNotify(xmlFile, myNlModel);
+    }
+    else {
+      if (DEBUG) {
+        Debug.println("myNlModel  null?");
+      }
+    }
+
+    if (DEBUG) {
+      Debug.println("createdTag " + createdTag);
+    }
+
+    OnSwipeTag onSwipeTag = new OnSwipeTag(myCurrentTransition.myMotionSceneModel, createdTag);
+
+    myCurrentTransition.myOnSwipeTag = onSwipeTag;
+    return onSwipeTag;
+  }
+
+  /**
+   * Create a new  OnClick tag
+   */
+  @Nullable
+  public OnClickTag createOnClick() {
+
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
+
+    XmlTag createdTag = WriteCommandAction.<XmlTag>runWriteCommandAction(myProject, () -> {
+      if (DEBUG) {
+        Debug.println("WriteCommandAction  onClick");
+      }
+
+      XmlTag transitionTag = myCurrentTransition.getTag().getElement();
+      if (DEBUG) {
+        Debug.println("myCurrentTransition  XmlTag " + transitionTag);
+      }
+
+      XmlTag onClickTag = transitionTag.createChildTag(OnClickTitle, null, null, false);
+      onClickTag = transitionTag.addSubTag(onClickTag, false);
+      onClickTag.setAttribute(OnClickAttr_target, AUTO_URI, "@+id/" + myViews.get(0).getId());
+      if (DEBUG) {
+        Debug.println("WriteCommandAction  createOnSwipe " + onClickTag);
+      }
+
+      return onClickTag;
+    });
+
+    if (myNlModel != null) {
+      if (DEBUG) {
+        Debug.println("saveAndNotify  myNlModel " + xmlFile);
+      }
+
+      // TODO: we may want to do live edits instead, but LayoutLib needs
+      // anyway to save the file to disk, so...
+      saveAndNotify(xmlFile, myNlModel);
+    }
+    else {
+      if (DEBUG) {
+        Debug.println("myNlModel  null?");
+      }
+    }
+
+    if (DEBUG) {
+      Debug.println("createdTag " + createdTag);
+    }
+
+    OnClickTag onSwipeTag = new OnClickTag(myCurrentTransition.myMotionSceneModel, createdTag);
+
+    myCurrentTransition.myOnClickTags.add(onSwipeTag);
+    return onSwipeTag;
+  }
+
+  /**
    * Save file if necessary
+   *
    * @param xmlFile
    * @param nlModel
    */
@@ -496,9 +649,14 @@ public class MotionSceneModel {
     LayoutPullParsers.saveFileIfNecessary(xmlFile);
     nlModel.notifyModified(NlModel.ChangeType.EDIT);
   }
+
+  interface TagAccess {
+    public SmartPsiElementPointer<XmlTag> getTag();
+  }
+
   /* ===========================BaseTag===================================*/
 
-  public static abstract class BaseTag {
+  public static abstract class BaseTag implements TagAccess {
     protected final MotionSceneModel myMotionSceneModel;
     protected final String myTitle;
     protected final SmartPsiElementPointer<XmlTag> myTag;
@@ -523,6 +681,7 @@ public class MotionSceneModel {
       return myTag.getElement();
     }
 
+    @Override
     public SmartPsiElementPointer<XmlTag> getTag() {
       return myTag;
     }
@@ -530,7 +689,6 @@ public class MotionSceneModel {
     protected void completeSceneModelUpdate() {
       // Temporary for LayoutLib:
       saveAndNotify(myMotionSceneModel.motionSceneFile(), myMotionSceneModel.myNlModel);
-
     }
 
     public boolean deleteTag(@NotNull String command) {
@@ -793,6 +951,8 @@ public class MotionSceneModel {
     public String getEasingCurve() {
       return (String)myAttributes.get(AttrName.motionAttr(KeyPosition_transitionEasing));
     }
+
+    public abstract KeyFrame cloneKeyFrame();
   }
 
   /* ============================KeyPos==================================*/
@@ -854,7 +1014,6 @@ public class MotionSceneModel {
       {"0.5"}
     };
 
-
     @Override
     public String[] getDefault(AttrName key) {
       for (int i = 0; i < ourPossibleAttr.length; i++) {
@@ -903,8 +1062,14 @@ public class MotionSceneModel {
         percentY = Float.parseFloat(value);
       }
     }
-  }
 
+    @Override
+    public KeyFrame cloneKeyFrame() {
+      KeyPosition ret = new KeyPosition(myMotionSceneModel, myTag.getElement());
+      ret.myAttributes.putAll(myAttributes);
+      return ret;
+    }
+  }
 
   /* ===========================KeyAttributes===================================*/
   public static class KeyAttributes extends KeyFrame {
@@ -1011,6 +1176,13 @@ public class MotionSceneModel {
       else {
         super.parse(node, value);
       }
+    }
+
+    @Override
+    public KeyFrame cloneKeyFrame() {
+      KeyAttributes ret = new KeyAttributes(myMotionSceneModel, myTag.getElement());
+      ret.myAttributes.putAll(myAttributes);
+      return ret;
     }
 
     @Override
@@ -1140,6 +1312,13 @@ public class MotionSceneModel {
         waveShape = value;
       }
       super.parse(node, value);
+    }
+
+    @Override
+    public KeyFrame cloneKeyFrame() {
+      KeyCycle ret = new KeyCycle(myMotionSceneModel, myTag.getElement());
+      ret.myAttributes.putAll(myAttributes);
+      return ret;
     }
   }
 
@@ -1322,7 +1501,7 @@ public class MotionSceneModel {
     }
 
     void setId(String id) {
-      mId = id.substring(id.indexOf('/') + 1);
+      mId = stripID(id);
     }
 
     HashMap<String, ConstraintView> myConstraintViews = new HashMap<>();
@@ -1335,7 +1514,7 @@ public class MotionSceneModel {
     @Override
     public void parse(AttrName name, String value) {
       if (name.isId()) {
-        mId = value;
+        mId = stripID(value);
       }
     }
   }
@@ -1346,13 +1525,13 @@ public class MotionSceneModel {
     String myConstraintSetEnd;
     String myConstraintSetStart;
     OnSwipeTag myOnSwipeTag = null;
+    ArrayList<OnClickTag> myOnClickTags = new ArrayList<>();
     int duration;
     public ArrayList<KeyPos> myKeyPositions = new ArrayList<>();
     public ArrayList<KeyAttributes> myKeyAttributes = new ArrayList<>();
     public ArrayList<KeyCycle> myKeyCycles = new ArrayList<>();
     public HashMap<String, MotionSceneView> mViewsMap = new HashMap<>();
     HashMap<AttrName, Object> myAllAttributes = new HashMap<>();
-
 
     public static AttrName[] ourPossibleAttr = {
       AttrName.motionAttr("constraintSetStart"),
@@ -1423,10 +1602,13 @@ public class MotionSceneModel {
       myAllAttributes.put(name, value);
       // TODO: Handle namespace case i.e. replace AUTO_URI with conditional namespace of ConstraintLayout
       if (name.isMotionAttr(TransitionConstraintSetEnd)) {
-        myConstraintSetEnd = value;
+        if (DEBUG) {
+          System.out.println("  TransitionConstraintSetEnd " + value);
+        }
+        myConstraintSetEnd = stripID(value);
       }
       else if (name.isMotionAttr(TransitionConstraintSetStart)) {
-        myConstraintSetStart = value;
+        myConstraintSetStart = stripID(value);
       }
       else if (name.isMotionAttr(TransitionDuration)) {
         duration = Integer.parseInt(value);
@@ -1467,6 +1649,64 @@ public class MotionSceneModel {
       }
       myAllAttributes.remove(attributeName);
       return true;
+    }
+  }
+  // =================================OnClick====================================== //
+
+  public static class OnClickTag extends BaseTag implements AttributeParse {
+    HashMap<AttrName, Object> myAllAttributes = new HashMap<>();
+    public static AttrName[] ourPossibleAttr = {
+      AttrName.motionAttr(OnClickAttr_target),
+      AttrName.motionAttr(OnSwipeAttr_touchAnchorSide),
+    };
+    public AttrName[] myPossibleAttr = ourPossibleAttr;
+
+    public AttrName[] getPossibleAttr() {
+      return myPossibleAttr;
+    }
+
+    public HashMap<AttrName, Object> getAttributes() {
+      return myAllAttributes;
+    }
+
+    OnClickTag(@NotNull MotionSceneModel model, XmlTag tag) {
+      super(model, tag, OnClickTitle);
+      myPossibleAttr = ourPossibleAttr;
+    }
+
+    @Override
+    public void parse(AttrName name, String value) {
+      if (DEBUG) {
+        System.out.println("=================");
+        System.out.println("parse (" + name + "  ,  " + value + " )");
+      }
+      myAllAttributes.put(name, value);
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull AttrName key) {
+      Object value = myAllAttributes.get(key);
+      return value != null ? value.toString() : null;
+    }
+
+    @Override
+    @NotNull
+    public Set<AttrName> getAttributeNames() {
+      return myAllAttributes.keySet();
+    }
+
+    @Override
+    public boolean deleteAttribute(@NotNull AttrName attributeName) {
+      if (!super.deleteAttribute(attributeName)) {
+        return false;
+      }
+      myAllAttributes.remove(attributeName);
+      return true;
+    }
+
+    public boolean deleteTag() {
+      return deleteTag("Delete OnClick");
     }
   }
 
@@ -1534,12 +1774,21 @@ public class MotionSceneModel {
 
   // =================================ConstraintView====================================== //
 
-  public static class ConstraintView implements AttributeParse {
+  /**
+   * This contains <MotionScene> <ConstraintSet><Constraint\></ConstraintSet></MotionScene>
+   */
+  public static class ConstraintView implements AttributeParse, TagAccess {
     String mId;
+    SmartPsiElementPointer<XmlTag> mTag;
+
+    public ConstraintView(@NotNull XmlTag tag) {
+      mTag = SmartPointerManager.getInstance(tag.getProject()).createSmartPsiElementPointer(tag);
+    }
+
     HashMap<AttrName, Object> myAllAttributes = new HashMap<>();
 
     void setId(String id) {
-      mId = id.substring(id.indexOf('/') + 1);
+      mId = stripID(id);
     }
 
     HashMap<String, String> myConstraintViews = new HashMap<>();
@@ -1562,6 +1811,11 @@ public class MotionSceneModel {
     @Override
     public void parse(AttrName name, String value) {
       myAllAttributes.put(name, value);
+    }
+
+    @Override
+    public SmartPsiElementPointer<XmlTag> getTag() {
+      return mTag;
     }
   }
 
@@ -1617,7 +1871,7 @@ public class MotionSceneModel {
       for (int j = 0; j < subTags.length; j++) {
         XmlTag subtag = subTags[j];
         if (ConstraintSetConstraint.equals(subtag.getName())) {
-          ConstraintView view = new ConstraintView();
+          ConstraintView view = new ConstraintView(subtag);
           view.setId(subtag.getAttributeValue("android:id"));
           parse(view, subtag.getAttributes());
           set.myConstraintViews.put(view.mId, view);
@@ -1639,7 +1893,7 @@ public class MotionSceneModel {
        * Populate transition with views
        */
       for (NlComponent view : motionSceneModel.myViews) {
-        String id = view.getId();
+        String id = stripID(view.getId());
         MotionSceneView motionView = transition.mViewsMap.get(id);
         if (motionView == null) {
           motionView = new MotionSceneView();
@@ -1653,17 +1907,27 @@ public class MotionSceneModel {
       parse(transition, tag.getAttributes());
       motionSceneModel.myTransition.add(transition);
       motionSceneModel.myCurrentTransition = transition;
-      XmlTag[] onSwipeTags = tag.findSubTags(MotionSceneOnSwipe);
-      if (onSwipeTags.length > 1) {
-        System.err.println("Should only have one tag");
+      {
+        XmlTag[] onSwipeTags = tag.findSubTags(MotionSceneOnSwipe);
+        if (onSwipeTags.length > 1) {
+          System.err.println("Should only have one tag");
+        }
+        for (XmlTag onSwipeTag1 : onSwipeTags) {
+          OnSwipeTag onSwipeTag = new OnSwipeTag(motionSceneModel, onSwipeTag1);
+          transition.myOnSwipeTag = onSwipeTag;
+          XmlTag swipeTag = onSwipeTag1;
+          parse(onSwipeTag, swipeTag.getAttributes());
+          transition.myOnSwipeTag = onSwipeTag;
+        }
       }
-      // TODO add onClick
-      for (XmlTag onSwipeTag1 : onSwipeTags) {
-        OnSwipeTag onSwipeTag = new OnSwipeTag(motionSceneModel, onSwipeTag1);
-        transition.myOnSwipeTag = onSwipeTag;
-        XmlTag swipeTag = onSwipeTag1;
-        parse(onSwipeTag, swipeTag.getAttributes());
-        transition.myOnSwipeTag = onSwipeTag;
+
+      XmlTag[] tags = tag.findSubTags(MotionSceneOnClick);
+
+      for (XmlTag onClickTag : tags) {
+        OnClickTag onClick = new OnClickTag(motionSceneModel, onClickTag);
+        transition.myOnClickTags.add(onClick);
+
+        parse(onClick, onClickTag.getAttributes());
       }
 
       // process all the key frames

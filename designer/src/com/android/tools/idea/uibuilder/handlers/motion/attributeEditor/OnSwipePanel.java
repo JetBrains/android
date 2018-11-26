@@ -76,7 +76,6 @@ public class OnSwipePanel extends TagPanel {
       }
     });
 
-
     myPopupMenu.add(new JMenuItem("test1"));
     myAddRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
       @Override
@@ -111,7 +110,6 @@ public class OnSwipePanel extends TagPanel {
     gbc.anchor = GridBagConstraints.WEST;
     add(myAddRemovePanel, gbc);
   }
-
 
   @Override
   protected void deleteAttr(int selection) {
