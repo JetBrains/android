@@ -162,6 +162,10 @@ public class CreateCppKotlinProjectTest {
             ".gradle",
             ".gitignore",
             ".externalNativeBuild",
+            /*
+             * Cmake Compiler caches are ignored. Builds with and without the cache are checked
+             * in CmakeAndroidGradleBuildExtensionsTest. See discussion in b/119871858 for more detail.
+             */
             ".cxx", // CMake compiler caches
             "gradle-wrapper.jar",
             "gradlew.bat",
