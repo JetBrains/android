@@ -172,12 +172,4 @@ public interface Target {
   default List<SceneComponent> newSelection() {
     return null;
   }
-
-  /**
-   * Notified when the associated component changes the status of selection.
-   *
-   * @param selection the new selection status of associated component
-   */
-  default void onComponentSelectionChanged(boolean selection) {
-  }
 }
