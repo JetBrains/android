@@ -70,9 +70,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
     popup.show(button.preferredPopupPoint!!)
   }
 
-  override fun apply() {
-    context.project.applyChanges()
-  }
+  override fun apply() = context.applyChanges()
 
   override fun isModified(): Boolean = context.project.isModified
 
