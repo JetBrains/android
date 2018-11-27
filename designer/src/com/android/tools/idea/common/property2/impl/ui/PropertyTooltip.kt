@@ -47,15 +47,13 @@ private const val MAX_COLUMN_WIDTH = 50 // Measured in 'em'
  * This implementation only works when running in the IDE, since we are using
  * the IJ IdeTooltipManager.
  */
-class PropertyTooltip : IdeTooltip(null, Point(), TooltipComponent()) {
+class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(component, point, TooltipComponent()) {
   private val tip = tipComponent as TooltipComponent
 
-  private fun reset() {
-    component = null
-  }
-
   override fun onHidden() {
-    reset()
+    // Remove references to this custom tool tip
+    val manager = IdeTooltipManager.getInstance()
+    manager.setCustomTooltip(component, null)
   }
 
   companion object {
@@ -66,40 +64,44 @@ class PropertyTooltip : IdeTooltip(null, Point(), TooltipComponent()) {
         manager.hideCurrent(event)
       }
       else {
-        val tooltip = createToolTip(property, forValue, text)
-        tooltip?.component = component
-        tooltip?.point = event.point
+        val tooltip = createToolTip(component, event.point, property, forValue, text)
         manager.setCustomTooltip(component, tooltip)
       }
       return null
     }
 
-    private fun createToolTip(property: PropertyItem, forValue: Boolean, currentText: String): PropertyTooltip? {
+    private fun createToolTip(component: JComponent,
+                              point: Point,
+                              property: PropertyItem,
+                              forValue: Boolean,
+                              currentText: String): PropertyTooltip? {
       if (!forValue) {
         val text = property.tooltipForName.nullize() ?: return null
-        return createTooltipWithContent(text)
+        return createTooltipWithContent(component, point, text)
       }
 
       val validation = property.editingSupport.validation(currentText)
       when (validation.first) {
         EditingErrorCategory.ERROR ->
-          return createTooltipWithContent(validation.second, StudioIcons.Common.ERROR_INLINE,
+          return createTooltipWithContent(component, point, validation.second, StudioIcons.Common.ERROR_INLINE,
                                           ERROR_BUBBLE_BORDER_COLOR, ERROR_BUBBLE_TEXT_COLOR, ERROR_BUBBLE_FILL_COLOR)
         EditingErrorCategory.WARNING ->
-          return createTooltipWithContent(validation.second, StudioIcons.Common.WARNING_INLINE)
+          return createTooltipWithContent(component, point, validation.second, StudioIcons.Common.WARNING_INLINE)
         else -> {
           val text = property.tooltipForValue.nullize() ?: return null
-          return createTooltipWithContent(text, null, null, null, null)
+          return createTooltipWithContent(component, point, text, null, null, null, null)
         }
       }
     }
 
-    private fun createTooltipWithContent(text: String,
+    private fun createTooltipWithContent(component: JComponent,
+                                         point: Point,
+                                         text: String,
                                          icon: Icon? = null,
                                          border: Color? = null,
                                          foreground: Color? = null,
                                          background: Color? = null): PropertyTooltip {
-      val tooltip = PropertyTooltip()
+      val tooltip = PropertyTooltip(component, point)
       tooltip.tip.icon = icon
       tooltip.tip.text = text
       tooltip.borderColor = border
