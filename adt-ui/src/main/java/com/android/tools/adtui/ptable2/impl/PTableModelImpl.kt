@@ -30,7 +30,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     tableModel.addListener(object : PTableModelUpdateListener {
       override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
         if (!modelChanged) {
-          fireTableDataChanged()
+          fireTableChanged(PTableModelRepaintEvent(this@PTableModelImpl))
         }
         else {
           items.clear()
