@@ -597,6 +597,9 @@ public class AttributeProcessingUtil {
       }
 
       definitions = manager.getAttributeDefinitions();
+      if (definitions == null) {
+        return;
+      }
     }
     else {
       definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
