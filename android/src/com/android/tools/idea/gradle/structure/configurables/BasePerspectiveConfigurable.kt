@@ -348,7 +348,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   override fun isModified(): Boolean = context.project.isModified
 
-  override fun apply() = context.project.applyChanges()
+  final override fun apply() = context.applyChanges()
 
   override fun setHistory(history: History?) = super<MasterDetailsComponent>.setHistory(history)
 

@@ -120,4 +120,10 @@ class PsContextImpl constructor(
     }
     requestGradleModels()
   }
+
+  override fun applyChanges() {
+    if (project.isModified) {
+      project.applyChanges()
+    }
+  }
 }
