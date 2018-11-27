@@ -356,6 +356,15 @@ class PTableTest {
     assertThat(model!!.editedItem).isNull()
   }
 
+  @Test
+  fun testSelectionRemainsAfterRepaintEvent() {
+    table!!.selectionModel.setSelectionInterval(2, 2)
+    assertThat(table!!.selectedRow).isEqualTo(2)
+
+    table!!.tableChanged(PTableModelRepaintEvent(table!!.model))
+    assertThat(table!!.selectedRow).isEqualTo(2)
+  }
+
   private fun dispatchAction(action: String) {
     table!!.actionMap[action].actionPerformed(ActionEvent(table, 0, action))
   }
