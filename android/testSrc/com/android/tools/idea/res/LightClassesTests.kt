@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
+import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
@@ -30,11 +31,13 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -366,6 +369,36 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       assertThat(myFixture.javaFacade.findClass("com.example.someLib.R", GlobalSearchScope.everythingScope(project)))
         .isNotNull()
+    }
+    
+    fun testResourceRename() {
+      val strings = myFixture.addFileToProject(
+        "/res/values/strings.xml",
+        // language=xml
+        """
+        <resources>
+          <string name="f${caret}oo">foo</string>
+        </resources>
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(strings.virtualFile)
+      assertThat(
+        myFixture.javaFacade
+          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
+          .fields
+          .map(PsiField::getName)
+      ).containsExactly("appString", "foo")
+
+      myFixture.renameElementAtCaretUsingHandler("bar")
+      UIUtil.dispatchAllInvocationEvents()
+
+      assertThat(
+        myFixture.javaFacade
+          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
+          .fields
+          .map(PsiField::getName)
+      ).containsExactly("appString", "bar")
     }
   }
 

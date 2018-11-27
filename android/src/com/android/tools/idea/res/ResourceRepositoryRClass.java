@@ -91,6 +91,12 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
     return result.toArray(PsiClass.EMPTY_ARRAY);
   }
 
+  @NotNull
+  @Override
+  protected Object[] getInnerClassesDependencies() {
+    return new Object[]{mySource.getResourceRepository()};
+  }
+
   /**
    * {@inheritDoc}
    *
