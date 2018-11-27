@@ -20,59 +20,38 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.*
-import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.*
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
+import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Strings.nullToEmpty
-import com.google.common.collect.ArrayListMultimap
 import com.intellij.xml.util.XmlStringUtil.escapeString
 import java.util.regex.Pattern
 
-class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidModule>(context) {
+class PsAndroidModuleAnalyzer() : PsModelAnalyzer<PsAndroidModule>() {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
-  override fun doAnalyze(model: PsAndroidModule, issueCollection: PsIssueCollection) {
-    val issuesByData = ArrayListMultimap.create<String, SyncIssue>()
-    val gradleModel = model.resolvedModel
-    transferSyncIssues(gradleModel, issuesByData)
-    analyzeDeclaredDependencies(model, issuesByData, issueCollection)
-    analyzeLibraryVersionPromotions(model, issueCollection)
+  override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
+    return analyzeDeclaredDependencies(model) + analyzeLibraryVersionPromotions(model)
   }
 
-  private fun transferSyncIssues(gradleModel: AndroidModuleModel?,
-                                 issuesByData: ArrayListMultimap<String, SyncIssue>) {
-    val syncIssues = gradleModel?.androidProject?.syncIssues
-    syncIssues?.forEach { syncIssue ->
-      val data = nullToEmpty(syncIssue.data)
-      issuesByData.put(data, syncIssue)
-    }
-  }
-
-  private fun analyzeDeclaredDependencies(model: PsAndroidModule,
-                                          issuesByData: ArrayListMultimap<String, SyncIssue>,
-                                          issueCollection: PsIssueCollection) {
-    model.dependencies.forEachLibraryDependency { dependency ->
-      val path = dependency.path
-
+  private fun analyzeDeclaredDependencies(model: PsAndroidModule): Sequence<PsIssue> {
+    val issuesByData = transferSyncIssues(model.resolvedModel)
+    return model.dependencies.libraries.asSequence().flatMap { dependency ->
       val issueKey = dependency.spec.group + GRADLE_PATH_SEPARATOR + dependency.spec.name
-      val librarySyncIssues = issuesByData.get(issueKey)
-      for (syncIssue in librarySyncIssues) {
-        val issue = createIssueFrom(syncIssue, path)
-        issueCollection.add(issue)
-      }
-      analyzeDeclaredDependency(dependency, issueCollection)
+      analyzeDeclaredDependency(dependency) +
+      (issuesByData[issueKey]?.asSequence()?.map { issue -> createIssueFrom(issue, dependency.path) } ?: sequenceOf())
     }
   }
 
-  private fun analyzeLibraryVersionPromotions(model: PsAndroidModule,
-                                              issueCollection: PsIssueCollection) {
+  private fun analyzeLibraryVersionPromotions(model: PsAndroidModule): Sequence<PsIssue> {
     val promotedLibraries =
       model
         .variants
@@ -90,7 +69,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
 
     val scopeAggregator = createScopeAggregator(model)
 
-    promotedLibraries.forEach { (promotion, resolvedDependencies) ->
+    return promotedLibraries.asSequence().map { (promotion, resolvedDependencies) ->
       val (path, spec, promotedTo) = promotion
       val scopes = scopeAggregator.aggregate(
         resolvedDependencies
@@ -98,12 +77,12 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
           .toSet())
       val declaredVersion = spec.version
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.
-      issueCollection.add(PsGeneralIssue(
+      PsGeneralIssue(
         "Gradle promoted library version from $declaredVersion to ${promotedTo.version}",
         "in: ${scopes.joinToString("\n") { it.toString() }}",
         path,
         PROJECT_ANALYSIS,
-        INFO))
+        INFO)
     }
   }
 
@@ -146,3 +125,7 @@ private fun getSeverity(issue: SyncIssue): PsIssue.Severity {
   }
   return INFO
 }
+
+private fun transferSyncIssues(gradleModel: AndroidModuleModel?) =
+  gradleModel?.androidProject?.syncIssues?.filter { !it.data.isNullOrEmpty() }?.groupBy { it.data!! }.orEmpty()
+
