@@ -25,7 +25,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
@@ -144,7 +143,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class LocalResourceRepository extends AbstractResourceRepository implements Disposable, ModificationTracker {
+public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements Disposable, ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
 
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
@@ -400,16 +399,19 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   /**
-   * Package accessible version of {@link #getMap(ResourceNamespace, ResourceType)}. Do not call outside of {@link MultiResourceRepository}.
+   * Package accessible version of {@link #getOrCreateMap(ResourceNamespace, ResourceType)}.
+   * Do not call outside of {@link MultiResourceRepository}.
    */
+  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
   @NonNull
-  ListMultimap<String, ResourceItem> getMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
-    return getMap(namespace, type);
+  ListMultimap<String, ResourceItem> getOrCreateMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    return getOrCreateMap(namespace, type);
   }
 
   /**
    * Package accessible version of {@link #getFullTable()}. Do not call outside of {@link MultiResourceRepository}.
    */
+  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
   @NonNull
   ResourceTable getFullTablePackageAccessible() {
     return getFullTable();

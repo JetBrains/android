@@ -300,7 +300,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
 
       if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
-        return myLocalResources.get(0).getMapPackageAccessible(namespace, type);
+        return myLocalResources.get(0).getOrCreateMapPackageAccessible(namespace, type);
       }
 
       ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);

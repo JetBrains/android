@@ -40,6 +40,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -187,8 +188,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   private void populatePublicResourcesMap() {
-    Map<ResourceType, ListMultimap<String, ResourceItem>> mapByType = getMapByType();
-    for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : mapByType.entrySet()) {
+    for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : myResources.entrySet()) {
       ResourceType resourceType = entry.getKey();
       ImmutableSet.Builder<ResourceItem> setBuilder = null;
       ListMultimap<String, ResourceItem> items = entry.getValue();
@@ -224,7 +224,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       List<ResourceMergerItem> items = resourceItems.get(key);
       for (int i = items.size(); --i >= 0;) {
         ResourceItem item = items.get(i);
-        ListMultimap<String, ResourceItem> multimap = myFullTable.getOrPutEmpty(item.getNamespace(), item.getType());
+        ListMultimap<String, ResourceItem> multimap = myResources.computeIfAbsent(item.getType(), type -> ArrayListMultimap.create());
         if (!multimap.containsEntry(item.getName(), item)) {
           multimap.put(item.getName(), item);
         }
@@ -502,16 +502,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
   }
 
-  @NotNull
-  private ListMultimap<String, ResourceItem> getMap(@NotNull ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> map = super.getMap(ANDROID_NAMESPACE, type, create);
-    return map == null ? ImmutableListMultimap.of() : map;
-  }
-
   @Override
   @NotNull
   public Set<ResourceType> getResourceTypes(@NotNull ResourceNamespace namespace) {
-    return namespace == ANDROID_NAMESPACE ? Sets.immutableEnumSet(getMapByType().keySet()) : ImmutableSet.of();
+    return namespace == ANDROID_NAMESPACE ? Sets.immutableEnumSet(myResources.keySet()) : ImmutableSet.of();
   }
 
   /**
@@ -593,7 +587,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       int numTypes = in.readUnsignedByte();
       for (int i = 0; i < numTypes; i++) {
         ResourceType resourceType = in.readResourceType();
-        ListMultimap<String, ResourceItem> map = getMap(resourceType, true);
+        ListMultimap<String, ResourceItem> map = getOrCreateMap(resourceType);
         int numResources = in.readUnsignedShort();
         for (int j = 0; j < numResources; j++) {
           String resourceName = in.readUTF();
@@ -629,7 +623,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       int numPublic = in.readUnsignedByte();
       for (int i = 0; i < numPublic; i++) {
         ResourceType resourceType = in.readResourceType();
-        ListMultimap<String, ResourceItem> map = getMap(resourceType, false);
+        ListMultimap<String, ResourceItem> map = myResources.getOrDefault(resourceType, ImmutableListMultimap.of());
         int m = in.readUnsignedShort();
         for (int j = 0; j < m; j++) {
           String resourceName = in.readUTF();
@@ -657,7 +651,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       return false;
     } finally {
       if (!myLoadedFromCache) {
-        getMapByType().clear();  // Remove partially loaded data.
+        myResources.clear();  // Remove partially loaded data.
       }
     }
 
@@ -799,7 +793,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       ObjectIntHashMap<FolderConfiguration> folderConfigurationIndexes = new ObjectIntHashMap<>();
       List<ResourceFile> multiResourceFiles = new ArrayList<>();
       ObjectIntHashMap<File> multiResourceFileIndexes = new ObjectIntHashMap<>();
-      Map<ResourceType, ListMultimap<String, ResourceItem>> mapByType = getMapByType();
+      Map<ResourceType, ListMultimap<String, ResourceItem>> mapByType = myResources;
       for (ListMultimap<String, ResourceItem> map : mapByType.values()) {
         for (ResourceItem resourceItem : map.values()) {
           // All items in this repo are ResourceMergerItems (for now).
@@ -945,11 +939,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       Files.deleteIfExists(tempFile);
     } catch (IOException ignored) {
     }
-  }
-
-  @NotNull
-  private Map<ResourceType, ListMultimap<String, ResourceItem>> getMapByType() {
-    return myFullTable.row(ANDROID_NAMESPACE);
   }
 
   @NotNull
