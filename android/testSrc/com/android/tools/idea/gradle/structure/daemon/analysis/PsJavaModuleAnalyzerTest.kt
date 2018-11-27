@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.util.Disposer
@@ -28,9 +28,9 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 
 /**
- * Tests for [PsAndroidModuleAnalyzer].
+ * Tests for [PsJavaModuleAnalyzerTest].
  */
-class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
+class PsJavaModuleAnalyzerTest : DependencyTestCase() {
 
   fun testPromotionMessages() {
     loadProject(PSD_DEPENDENCY)
@@ -39,10 +39,10 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
     try {
-      val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
-      val analyzer = PsAndroidModuleAnalyzer()
+      val javaModule = project.findModuleByName("jModuleK") as PsJavaModule
+      val analyzer = PsJavaModuleAnalyzer()
       val messageCollection = PsIssueCollection()
-      analyzer.analyze(mainModule, messageCollection)
+      analyzer.analyze(javaModule, messageCollection)
 
       val messages = messageCollection
         .values
@@ -52,13 +52,8 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
         }
         .map { it.text to it.description!! }
         .toSet()
-
-      assertThat(messages, equalTo(setOf(
-        "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation",
-        "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
-        "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
-        "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation"
-      )))
+      // No promoton analysis so far.
+      assertThat(messages, equalTo(emptySet()))
     }
     finally {
       Disposer.dispose(disposable)
