@@ -50,6 +50,21 @@ class CommonDragTargetTest : SceneTest() {
     assertEquals(1, myScreen.screen.selectionModel.selection.size)
   }
 
+  fun testDragComponentInSameLayoutWillKeepOriginalPosition() {
+    val textView2 = myScreen.get("@id/textView2").sceneComponent!!
+    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
+
+    myInteraction.select(textView2)
+    myInteraction.mouseDown("textView2")
+    myInteraction.mouseRelease(60f, 60f)
+
+    textView2.authoritativeNlComponent.let {
+      assertEquals("10dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+      assertEquals("10dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    }
+    assertEquals(constraintLayout.children[1], textView2)
+  }
+
   fun testDragMultipleComponentsInConstraintLayout() {
     // Test drag multiple components inside constraint layout
     val textView = myScreen.get("@id/textView").sceneComponent!!
