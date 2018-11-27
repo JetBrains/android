@@ -70,10 +70,10 @@ class EnergyMonitorTest {
     profilerService.addDevice(deviceOreo)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    profilers.device = deviceNougat
+    profilers.setProcess(deviceNougat, null)
     assertThat(profilers.device!!.serial).isEqualTo("FakeDeviceNougat")
     assertThat(monitor.isEnabled).isFalse()
-    profilers.device = deviceOreo
+    profilers.setProcess(deviceOreo, null)
     assertThat(profilers.device!!.serial).isEqualTo("FakeDeviceOreo")
     assertThat(monitor.isEnabled).isTrue()
 

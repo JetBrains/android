@@ -173,7 +173,6 @@ public class MemoryProfilerTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myStudioProfiler.setDevice(device);
-    myStudioProfiler.setProcess(process);
+    myStudioProfiler.setProcess(device, process);
   }
 }

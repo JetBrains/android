@@ -138,7 +138,7 @@ class CpuProfilingConfigurationViewTest {
   @Test
   fun nullProcessShouldNotThrowException() {
     // Set a device to null (e.g. when stop profiling) should not crash the CpuProfilerStage
-    stage.studioProfilers.device = null
+    stage.studioProfilers.setProcess(null, null)
     assertThat(stage.studioProfilers.device as kotlin.Any?).isNull()
 
     // Open the profiling configurations dialog with null device shouldn't crash CpuProfilerStage.

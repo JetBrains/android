@@ -172,7 +172,6 @@ public class SessionsView extends AspectObserver {
     myProcessSelectionDropDown.setAlignmentY(Component.CENTER_ALIGNMENT);
     myProcessSelectionDropDown.setBorder(TOOLBAR_ICON_BORDER);
     myProfilers.addDependency(this)
-               .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
                .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
 
     mySessionsManager.addDependency(this)
@@ -370,7 +369,7 @@ public class SessionsView extends AspectObserver {
     myProfilers.setAutoProfilingEnabled(false);
     // Unselect the device and process which stops the session. This also avoids them from appearing to be selected in the process
     // selection dropdown even after the session has stopped.
-    myProfilers.setDevice(null);
+    myProfilers.setProcess(null, null);
     myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
   }
 
@@ -426,8 +425,7 @@ public class SessionsView extends AspectObserver {
                 stopProfilingSession();
               }
 
-              myProfilers.setDevice(device);
-              myProfilers.setProcess(process);
+              myProfilers.setProcess(device, process);
               myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.FULL,
                                                                                   SessionsManager.SessionCreationSource.MANUAL);
             });
