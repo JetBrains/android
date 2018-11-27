@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.platform;
 
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.api.*;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidTargetHash;
@@ -46,18 +53,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
-import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -143,17 +149,6 @@ public class AndroidVersionsInfo {
   public List<UpdatablePackage> loadInstallPackageList(@NotNull List<AndroidVersionsInfo.VersionItem> installItems) {
     Set<String> requestedPaths = Sets.newHashSet();
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-
-    // TODO: remove once maven dependency downloading is available in studio
-    GradleCoordinate constraintCoordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    RepositoryPackages packages = sdkHandler.getSdkManager(REPO_LOG).getPackages();
-    RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getLocalPackages().values());
-    if (constraintPackage == null) {
-      constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getRemotePackages().values());
-      if (constraintPackage != null) {
-        requestedPaths.add(constraintPackage.getPath());
-      }
-    }
 
     // Install build tools, if not already installed
     requestedPaths.add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)));
