@@ -85,4 +85,10 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
                                  AndroidLightField.FieldModifier.NON_FINAL,
                                  null);
   }
+
+  @NotNull
+  @Override
+  protected Object[] getFieldsDependencies() {
+    return new Object[] {mySource.getResourceRepository()};
+  }
 }
