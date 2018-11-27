@@ -164,8 +164,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   @Override
   @NotNull
   @VisibleForTesting
-  public DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
-                                               @Nullable NlComponent leafComponent) {
+  public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     SceneView screenView = mySurface.getCurrentSceneView();
@@ -181,11 +180,17 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       createLayoutOnlyActions(leafComponent, group);
     }
 
-    group.add(actionManager.getAction(IdeActions.ACTION_CUT));
-    group.add(actionManager.getAction(IdeActions.ACTION_COPY));
-    group.add(actionManager.getAction(IdeActions.ACTION_PASTE));
+    // getRegisteredActionByName can return null if the action id does not exist. For these ones,
+    // we know they are always present.
+    //noinspection ConstantConditions
+    group.add(getRegisteredActionByName(IdeActions.ACTION_CUT));
+    //noinspection ConstantConditions
+    group.add(getRegisteredActionByName(IdeActions.ACTION_COPY));
+    //noinspection ConstantConditions
+    group.add(getRegisteredActionByName(IdeActions.ACTION_PASTE));
     group.addSeparator();
-    group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
+    //noinspection ConstantConditions
+    group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE));
     group.addSeparator();
     group.add(myGotoComponentAction);
 
@@ -213,7 +218,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                      @NotNull List<NlComponent> selection) {
     // Look up view handlers
     int prevCount = group.getChildrenCount();
-    addActions(group, component, selection, false);
+    addPopupMenuActions(group, component, selection);
     if (group.getChildrenCount() > prevCount) {
       group.addSeparator();
     }
@@ -238,9 +243,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     return parent;
   }
 
-  @Override
-  public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
-                         @NotNull List<NlComponent> newSelection, boolean toolbar) {
+  private void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
+                          @NotNull List<NlComponent> newSelection, boolean toolbar) {
     NlComponent parent;
     if (component == null) {
       parent = findSharedParent(newSelection);
@@ -274,6 +278,22 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
       addViewActionsForHandler(group, parent, selectedChildren, editor, handler, toolbar);
     }
+  }
+
+  private void addPopupMenuActions(@NotNull DefaultActionGroup group,
+                                     @Nullable NlComponent component,
+                                     @NotNull List<NlComponent> newSelection) {
+    addActions(group, component, newSelection, false);
+  }
+
+  @Override
+  @NotNull
+  public DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
+                                @NotNull List<NlComponent> newSelection) {
+    DefaultActionGroup group = new DefaultActionGroup();
+    addActions(group, component, newSelection, true);
+
+    return group;
   }
 
   private void addViewActionsForHandler(@NotNull DefaultActionGroup group,

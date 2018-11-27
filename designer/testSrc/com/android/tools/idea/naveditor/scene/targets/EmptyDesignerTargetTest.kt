@@ -23,8 +23,10 @@ import com.android.tools.idea.naveditor.editor.AddDestinationMenu
 import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import java.util.Collections
 
 class EmptyDesignerTargetTest : NavTestCase() {
   fun testEmptyDesignerTarget() {
@@ -42,6 +44,10 @@ class EmptyDesignerTargetTest : NavTestCase() {
 
     `when`(surface.actionManager).thenReturn(actionManager)
     doReturn(menu).`when`(actionManager).addDestinationMenu
+    `when`(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
+    // complain during the null checking
+    `when`(actionManager.getToolbarActions(any(), any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
 
     val scene = surface.scene!!
     val root = scene.getSceneComponent("root")!!

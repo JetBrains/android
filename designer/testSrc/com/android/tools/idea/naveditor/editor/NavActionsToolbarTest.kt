@@ -21,9 +21,12 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.isNull
+import org.mockito.Mockito
 import org.mockito.Mockito.*
+import java.util.Collections
 
 class NavActionsToolbarTest : NavTestCase() {
 
@@ -47,22 +50,25 @@ class NavActionsToolbarTest : NavTestCase() {
     val issueModel = mock(IssueModel::class.java)
     `when`(surface.issueModel).thenReturn(issueModel)
     `when`(surface.actionManager).thenReturn(actionManager)
-
+    `when`(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
+    // complain during the null checking
+    `when`(actionManager.getToolbarActions(Mockito.any(), Mockito.any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
     ActionsToolbar(project, surface)
 
     val components = listOf(model.find("root")!!)
 
-    verify(actionManager).addActions(any(), isNull<NlComponent>(), eq(components), eq(true))
+    verify(actionManager).getToolbarActions(isNull<NlComponent>(), eq(components))
 
     val f1 = listOf(model.find("f1")!!)
     surface.selectionModel.setSelection(f1)
 
-    verify(actionManager).addActions(any(), isNull<NlComponent>(), eq(f1), eq(true))
+    verify(actionManager).getToolbarActions(isNull<NlComponent>(), eq(f1))
 
     val f1AndRoot = listOf(model.find("f1")!!, model.components[0])
     surface.selectionModel.setSelection(f1AndRoot)
 
-    verify(actionManager).addActions(any(), isNull<NlComponent>(), eq(f1AndRoot), eq(true))
+    verify(actionManager).getToolbarActions(isNull<NlComponent>(), eq(f1AndRoot))
   }
 
   fun <T> any(): T = ArgumentMatchers.any() as T

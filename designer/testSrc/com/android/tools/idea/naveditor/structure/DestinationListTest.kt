@@ -28,6 +28,7 @@ import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.ColoredListCellRenderer
 import icons.StudioIcons
 import org.mockito.Mockito.*
@@ -164,12 +165,16 @@ class DestinationListTest : NavTestCase() {
   fun testRightClickActivity() {
     val actionManager = mock(NavActionManager::class.java)
     `when`(model.surface.actionManager).thenReturn(actionManager)
+    `when`(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
+    // complain during the null checking
+    `when`(actionManager.getToolbarActions(any(), any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
     val nlComponent = model.find("fragment2")!!
     val listModel = list.myList.model
     val point = list.myList.indexToLocation((0 until listModel.size).indexOfFirst { listModel.getElementAt(it) == nlComponent })
     val event = MouseEvent(list.myList, MouseEvent.MOUSE_CLICKED, 1, 0, point.x, point.y, 1, true)
     list.myList.dispatchEvent(event)
-    verify(actionManager).showPopup(event, nlComponent)
+    verify(actionManager).getPopupMenuActions(any())
   }
 
   fun testRendering() {

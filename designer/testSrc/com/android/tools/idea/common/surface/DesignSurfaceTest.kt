@@ -95,13 +95,9 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
   override fun createActionManager() = object: ActionManager<DesignSurface>(this) {
     override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
 
-    override fun createPopupMenu(actionManager: com.intellij.openapi.actionSystem.ActionManager,
-                                 leafComponent: NlComponent?) = DefaultActionGroup()
+    override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 
-    override fun addActions(group: DefaultActionGroup,
-                            component: NlComponent?,
-                            newSelection: MutableList<NlComponent>,
-                            toolbar: Boolean) = Unit
+    override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
   }
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
