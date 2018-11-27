@@ -148,31 +148,6 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     return mIsOver && !myComponent.isSelected();
   }
 
-  @Override
-  public void onComponentSelectionChanged(boolean selection) {
-    String dir;
-    switch (myType) {
-      case LEFT:
-        dir = DecoratorUtilities.LEFT_CONNECTION;
-        break;
-      case TOP:
-        dir = DecoratorUtilities.TOP_CONNECTION;
-        break;
-      case RIGHT:
-        dir = DecoratorUtilities.RIGHT_CONNECTION;
-        break;
-      case BOTTOM:
-        dir = DecoratorUtilities.BOTTOM_CONNECTION;
-        break;
-      default:
-        dir = DecoratorUtilities.BASELINE_CONNECTION;
-        break;
-    }
-    DecoratorUtilities.ViewStates mode = (selection) ? DecoratorUtilities.ViewStates.SELECTED : DecoratorUtilities.ViewStates.NORMAL;
-
-    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
