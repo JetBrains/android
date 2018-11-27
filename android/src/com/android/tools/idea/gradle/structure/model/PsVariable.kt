@@ -180,7 +180,7 @@ class PsVariable(
         val propertyCore = property.bind(model) as? GradleModelCoreProperty<*, *> ?: return
         var propertyModel: GradlePropertyModel = propertyCore.getParsedProperty()?.unresolvedModel ?: return
         val seen = mutableSetOf<GradlePropertyModel>()
-        while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE) {
+        while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE && propertyModel.dependencies.isNotEmpty()) {
           if (!seen.add(propertyModel)) return
           propertyModel = propertyModel.dependencies[0]!!
           if (resolvedProperty?.fullyQualifiedName == propertyModel.fullyQualifiedName &&
