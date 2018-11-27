@@ -23,6 +23,7 @@ import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
 import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.psi.PsiClass
@@ -59,6 +60,8 @@ class NamespacedAarRClass(
       .mapNotNull { if (it.hasInnerClass) NamespacedAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
       .toTypedArray()
   }
+
+  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
@@ -81,6 +84,8 @@ private class NamespacedAarInnerRClass(
       containingClass
     )
   }
+
+  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
@@ -125,6 +130,8 @@ class NonNamespacedAarRClass(
   companion object {
     private val LOG: Logger = Logger.getInstance(NonNamespacedAarRClass::class.java)
   }
+
+  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
@@ -157,4 +164,6 @@ private class NonNamespacedInnerRClass(
     SymbolJavaType.INT -> PsiType.INT
     SymbolJavaType.INT_LIST -> InnerRClassBase.INT_ARRAY
   }
+
+  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
