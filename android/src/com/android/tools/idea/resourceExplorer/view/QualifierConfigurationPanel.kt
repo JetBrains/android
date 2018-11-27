@@ -91,9 +91,8 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
         .map { (qualifier, configuration) -> ConfigurationRow(viewModel, qualifier, configuration) }
         .forEach { qualifierContainer.add(it) }
     }
-  }
+    addQualifierButton.isEnabled = canAddConfigurationRow()
 
-  init {
     add(JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)).apply {
       add(qualifierTypeLabel)
       add(qualifierValueLabel)
@@ -182,6 +181,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
         override fun actionPerformed(e: AnActionEvent) {
           (qualifierCombo.selectedItem as? ResourceQualifier)?.let { viewModel.deselectQualifier(it) }
           if (parent.componentCount > 1) deleteRow() else reset()
+          addQualifierButton.isEnabled = canAddConfigurationRow()
         }
       }
       return ActionButton(action, action.templatePresentation, "Resource Explorer", ADD_BUTTON_SIZE)
