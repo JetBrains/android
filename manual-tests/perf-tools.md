@@ -87,6 +87,8 @@ effects.**
 
 ### Native Code
 
+**(This test is expected to work only on Android O+, API >= 26)**
+
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Native Code" scenario.
 1. In the CPU profiler, make sure the selected configuration is set to
@@ -116,6 +118,8 @@ effects.**
 
 ### Startup Profiling
 
+**(This test is expected to work only on Android O+, API >= 26)**
+
 1. Edit the run configuration for "app", going to the "Profiling" tab.
 1. Check the "Start recording a method trace on startup" option
    * Feel free to leave the particular trace config on "Sampled (Java)", but if
@@ -138,7 +142,7 @@ effects.**
 
 ### System Tracing
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Code With Trace Markers" scenario.
@@ -162,6 +166,8 @@ effects.**
 ![CPU - Systrace][cpu-systrace]
 
 ### Automatic Recording
+
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Automatic Recording" scenario.
@@ -220,7 +226,7 @@ effects.**
 
 ### Live Allocation Sampling
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
 1. In the QA App, select the "Java Memory Allocation" scenario.
@@ -266,7 +272,7 @@ effects.**
 
 ### JNI References Allocation
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
 1. In the QA App, select the "JNI References Allocation" scenario.
@@ -337,7 +343,7 @@ effects.**
 
 ## Energy
 
-(All energy tests are expected to work only on Android O+, API >= 26)
+**(All energy tests are expected to work only on Android O+, API >= 26)**
 
 ### Basic Profiling
 
@@ -472,7 +478,7 @@ of whichever profiler you have selected.
 
 ### Fragment Indicators
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the QA App, select the "Switch Activities" scenario.
 1. Press the "run" button
