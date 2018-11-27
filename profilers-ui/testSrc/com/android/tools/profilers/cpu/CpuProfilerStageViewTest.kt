@@ -155,9 +155,8 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
-    myIdeServices.enableSessionsView(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
     // Set a capture of type atrace.
@@ -174,9 +173,8 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun importTraceModeShouldShowCpuCaptureView() {
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
-    myIdeServices.enableSessionsView(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 

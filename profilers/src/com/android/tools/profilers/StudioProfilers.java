@@ -458,8 +458,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Chooses a process, and starts profiling it if not already (and stops profiling the previous one).
    *
-   * @param process the process that will be selected. If it is null, a process will be determined
-   *                automatically by heuristics.
+   * @param process the process that will be selected. If it is null, a process will be determined automatically by heuristics.
    */
   public void setProcess(@Nullable Common.Process process) {
     List<Common.Process> processes = myProcesses.get(myDevice);
@@ -473,11 +472,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setAutoProfilingEnabled(false);
     }
 
-    // Even if the process stays as null, the selected session could be changed.
-    // e.g. When the user stops a profiling session (session remains selected, but device + process are set to null). Then, when the user
-    // switches to a different device without processes (new process == null), SessionsManager need to reset the session to default.
-    // TODO(b/77649021): This is an edge case only for pre-sessions workflow.
-    if (process == null || !Objects.equals(process, myProcess)) {
+    if (!Objects.equals(process, myProcess)) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
 
@@ -485,9 +480,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       changed(ProfilerAspect.PROCESSES);
       myIdeServices.getFeatureTracker().trackChangeProcess(myProcess);
 
-      // In the case the device becomes null, keeps the previously stopped session.
-      // This happens when the user explicitly stops an ongoing session or the profiler.
-      if (myDevice != null) {
+      // Only start a new session if the process is valid.
+      if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
         if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
           mySessionsManager.beginSession(myStreamIds.get(myDevice), myDevice, myProcess);
         }

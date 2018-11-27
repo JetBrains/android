@@ -34,7 +34,6 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isSessionImportEnabled();
-  boolean isSessionsEnabled();
   boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();

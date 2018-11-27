@@ -35,20 +35,12 @@ import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_
  */
 public class NullMonitorStageView extends StageView<NullMonitorStage> {
   private static final String ANDROID_PROFILER_TITLE = "Android Profiler";
-  private static final String DEVICE_NOT_SUPPORTED_TITLE = "Device not supported";
-  private static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device, or launch the emulator.";
-  private static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for the selected device.";
-  private static final String DEVICE_NOT_SUPPORTED_MESSAGE = "Android Profiler requires a device with API 21 (Lollipop) or higher.";
-
-  @NotNull
-  private NullMonitorStage myStage;
 
   private JLabel myTitle;
   @NotNull private final JPanel myInstructionsWrappingPanel;
 
   public NullMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull NullMonitorStage stage) {
     super(profilersView, stage);
-    myStage = stage;
 
     JPanel topPanel = new JPanel();
     BoxLayout layout = new BoxLayout(topPanel, BoxLayout.Y_AXIS);
@@ -78,19 +70,14 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     topPanel.add(Box.createVerticalGlue());
 
     getComponent().add(topPanel, BorderLayout.CENTER);
-
-    stage.getAspect().addDependency(this).onChange(NullMonitorStage.Aspect.NULL_MONITOR_TYPE, this::updateTitleAndMessage);
-    updateTitleAndMessage();
+    initializeStageView();
   }
 
-  private void updateTitleAndMessage() {
-    myTitle.setText(getTitle());
-    myInstructionsWrappingPanel.removeAll();
+  private void initializeStageView() {
+    myTitle.setText(ANDROID_PROFILER_TITLE);
     myInstructionsWrappingPanel.add(new InstructionsPanel.Builder(getMessageInstructions())
                                       .setPaddings(0, 0)
                                       .setColors(ProfilerColors.MESSAGE_COLOR, ProfilerColors.DEFAULT_BACKGROUND).build());
-    myInstructionsWrappingPanel.revalidate();
-    myInstructionsWrappingPanel.repaint();
   }
 
   @Override
@@ -103,45 +90,13 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     return true;
   }
 
-  public String getTitle() {
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      return ANDROID_PROFILER_TITLE;
-    }
-
-    switch (myStage.getType()) {
-      case UNSUPPORTED_DEVICE:
-        return DEVICE_NOT_SUPPORTED_TITLE;
-      case NO_DEVICE:
-      case NO_DEBUGGABLE_PROCESS:
-      default:
-        return ANDROID_PROFILER_TITLE;
-    }
-  }
-
-  public RenderInstruction[] getMessageInstructions() {
+  private RenderInstruction[] getMessageInstructions() {
     Font font = myTitle.getFont().deriveFont(12.0f);
     List<RenderInstruction> instructions = new ArrayList<>();
     FontMetrics metrics = UIUtilities.getFontMetrics(myInstructionsWrappingPanel, font);
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      instructions.add(new TextInstruction(metrics, "Click "));
-      instructions.add(new IconInstruction(StudioIcons.Common.ADD, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
-      instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
-    }
-    else {
-      switch (myStage.getType()) {
-        case NO_DEVICE:
-          instructions.add(new TextInstruction(metrics, NO_DEVICE_MESSAGE));
-          break;
-        case UNSUPPORTED_DEVICE:
-          instructions.add(new TextInstruction(metrics, DEVICE_NOT_SUPPORTED_MESSAGE));
-          break;
-        case NO_DEBUGGABLE_PROCESS:
-        default:
-          instructions.add(new TextInstruction(metrics, NO_DEBUGGABLE_PROCESS_MESSAGE));
-          break;
-      }
-    }
-
+    instructions.add(new TextInstruction(metrics, "Click "));
+    instructions.add(new IconInstruction(StudioIcons.Common.ADD, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
+    instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
     instructions.add(new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN));
     instructions.add(new UrlInstruction(font, "Learn More", "https://developer.android.com/r/studio-ui/about-profilers.html"));
 

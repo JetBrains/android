@@ -55,9 +55,8 @@ class CpuUsageImportModeViewTest {
     profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    // Enable import trace flag which is required for import-trace-mode.
     ideServices.enableImportTrace(true)
-    ideServices.enableSessionsView(true)
 
     stage = CpuProfilerStage(profilers, File("FakePathToTraceFile.trace"))
     stage.studioProfilers.stage = stage

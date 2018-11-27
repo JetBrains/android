@@ -98,31 +98,18 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 
-  @Test
-  fun testBeginSessionWithNullProcess() {
-    beginSessionHelper(Common.Device.getDefaultInstance(), null)
-    assertThat(myManager.sessionArtifacts).isEmpty()
-    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
-    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
-    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(0)
-    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
+  @Test(expected = AssertionError::class)
+  fun testBeginSessionWithOfflineDevice() {
+    val offlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.DISCONNECTED).build()
+    val onlineProcess = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.DEAD).build()
+    beginSessionHelper(offlineDevice, onlineProcess)
   }
 
-  @Test
-  fun testBeginSessionWithOfflineDeviceOrProcess() {
-    val offlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.DISCONNECTED).build()
+  @Test(expected = AssertionError::class)
+  fun testBeginSessionWithDeadProcess() {
     val onlineDevice = Common.Device.newBuilder().setDeviceId(2).setState(Common.Device.State.ONLINE).build()
     val offlineProcess = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.DEAD).build()
-    val onlineProcess = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.DEAD).build()
-    beginSessionHelper(offlineDevice, offlineProcess)
-    beginSessionHelper(offlineDevice, onlineProcess)
     beginSessionHelper(onlineDevice, offlineProcess)
-    assertThat(myManager.sessionArtifacts).isEmpty()
-    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
-    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
-    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
   }
 
   @Test
@@ -551,7 +538,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myManager.sessionArtifacts[0].session).isEqualTo(session2)
   }
 
-  fun beginSessionHelper(device: Common.Device, process: Common.Process?) {
+  fun beginSessionHelper(device: Common.Device, process: Common.Process) {
     if (useUnifiedEvents) {
       myManager.beginSession(1, device, process)
       myManager.update()

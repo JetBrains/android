@@ -45,7 +45,6 @@ class ImportedTraceThreadDataSeriesTest {
 
     // Enable import trace flags to allow initiating CpuProfilerStage in import trace mode
     ideServices.enableImportTrace(true)
-    ideServices.enableSessionsView(true)
     val stage = CpuProfilerStage(profilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"))
     stage.enter()
     myCapture = stage.capture!!
