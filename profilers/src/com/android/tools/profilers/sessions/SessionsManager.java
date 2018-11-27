@@ -316,25 +316,15 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * Request to begin a new session using the input device and process.
    */
-  public void beginSession(@NotNull Common.Device device, @Nullable Common.Process process) {
+  public void beginSession(@NotNull Common.Device device, @NotNull Common.Process process) {
     beginSession(0, device, process);
   }
 
-  public void beginSession(long streamId, @NotNull Common.Device device, @Nullable Common.Process process) {
+  public void beginSession(long streamId, @NotNull Common.Device device, @NotNull Common.Process process) {
     // We currently don't support more than one profiling session at a time.
     assert Common.Session.getDefaultInstance().equals(myProfilingSession);
-
-    // No process is specified, starts a default empty session.
-    if (process == null) {
-      setProfilingSession(Common.Session.getDefaultInstance());
-      setSessionInternal(myProfilingSession);
-      return;
-    }
-
-    // TODO(b/77649021): This part is currently only for backward compatibility.
-    if (device.getState() != Common.Device.State.ONLINE || process.getState() != Common.Process.State.ALIVE) {
-      return;
-    }
+    assert device.getState() == Device.State.ONLINE;
+    assert process.getState() == Common.Process.State.ALIVE;
 
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       assert streamId != 0;

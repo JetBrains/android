@@ -79,9 +79,6 @@ public class NetworkProfilerStageViewTest {
   public void setUp() {
     myTimer = new FakeTimer();
     FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
-    // TODO b/76100366 temporarily disable the sessions panel as the spliiter's divider can interfere with the mouse events targeting over
-    // the LineChart.
-    ideProfilerServices.enableSessionsView(false);
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
     myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
@@ -135,6 +132,9 @@ public class NetworkProfilerStageViewTest {
   @Test
   public void dragSelectionToggleInfoPanelVisibility() {
     NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
+    // Fades out the instruction panel so that it does not interfere with the mouse interaction on the selection component.
+    // For the purpose of this test, we only care about the info panel showing when the selection is created over a range with no data.
+    stageView.getStage().getInstructionsEaseOutModel().setCurrentPercentage(1f);
     TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
     JComponent infoPanel = (JComponent)treeWalker.descendantStream().filter(c -> "Info".equals(c.getName())).findFirst().get();
     assertFalse(infoPanel.isVisible());

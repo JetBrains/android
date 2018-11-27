@@ -117,11 +117,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldParseLongTraces = false;
 
   /**
-   * Toggle for faking sessions UI support in tests.
-   */
-  private boolean mySessionsViewEnabled = true;
-
-  /**
    * Toggle for faking session import support in tests.
    */
   private boolean mySessionsImportEnabled = true;
@@ -302,11 +297,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSessionsEnabled() {
-        return mySessionsViewEnabled;
-      }
-
-      @Override
       public boolean isSimpleperfHostEnabled() {
         return mySimpleperfHostEnabled;
       }
@@ -449,10 +439,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLiveAllocationTracking(boolean enabled) {
     myLiveTrackingEnabled = enabled;
-  }
-
-  public void enableSessionsView(boolean enabled) {
-    mySessionsViewEnabled = enabled;
   }
 
   public void enableStartupCpuProfiling(boolean enabled) {

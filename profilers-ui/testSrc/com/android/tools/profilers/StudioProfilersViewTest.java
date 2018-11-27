@@ -190,108 +190,6 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void testDeviceRendering() throws IOException {
-    StudioProfilersView.DeviceComboBoxRenderer renderer = new StudioProfilersView.DeviceComboBoxRenderer();
-    JList<Common.Device> list = new JList<>();
-    // Null device
-    Common.Device device = null;
-    Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
-
-    // Standard case
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234)");
-
-    // Suffix not serial
-    device = Common.Device.newBuilder()
-      .setModel("Model-9999")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
-
-    // Suffix serial
-    device = Common.Device.newBuilder()
-      .setModel("Model-1234")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234)");
-
-    // With manufacturer
-    device = Common.Device.newBuilder()
-      .setManufacturer("Manufacturer")
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Manufacturer Model (1234)");
-
-    // Disconnected
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.DISCONNECTED)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234) [DISCONNECTED]");
-
-    // Offline
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.OFFLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234) [OFFLINE]");
-
-    // Unspecifed
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.UNSPECIFIED)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234)");
-  }
-
-  @Test
-  public void testProcessRendering() throws IOException {
-    StudioProfilersView.ProcessComboBoxRenderer renderer = new StudioProfilersView.ProcessComboBoxRenderer();
-    JList<Common.Process> list = new JList<>();
-    // Null process
-    Common.Process process = null;
-    Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
-
-    // Process
-    process = Common.Process.newBuilder()
-      .setName("MyProcessName")
-      .setPid(1234)
-      .setState(Common.Process.State.ALIVE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
-
-    // Dead process
-    process = Common.Process.newBuilder()
-      .setName("MyDeadProcessName")
-      .setPid(4444)
-      .setState(Common.Process.State.DEAD)
-      .build();
-    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertThat(component.toString()).isEqualTo("MyDeadProcessName (4444) [DEAD]");
-  }
-
-  @Test
   public void testMonitorStage() throws Exception {
     transitionStage(new StudioMonitorStage(myProfilers));
   }
@@ -321,28 +219,6 @@ public class StudioProfilersViewTest {
     StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     JLayeredPane component = view.getComponent();
     new ReferenceWalker(myProfilers).assertNotReachable(view, component);
-  }
-
-  @Test
-  public void testSessionsViewHiddenBehindFlag() {
-    FakeTimer timer = new FakeTimer();
-    FakeIdeProfilerServices services = new FakeIdeProfilerServices();
-    services.enableSessionsView(false);
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
-    StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    assertThat(view.getComponent().getComponentCount()).isEqualTo(1);
-    Component splitter = view.getComponent().getComponent(0);
-    assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
-    assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNull();
-
-    // Test the true case as well.
-    services.enableSessionsView(true);
-    profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
-    view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    assertThat(view.getComponent().getComponentCount()).isEqualTo(1);
-    splitter = view.getComponent().getComponent(0);
-    assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
-    assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNotNull();
   }
 
   @Test

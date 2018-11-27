@@ -1678,20 +1678,18 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void importTraceModeOnlyEnabledWhenImportAndSessionsFlagsAreSet() {
+  public void importTraceModeOnlyEnabledWhenImportSessionFlagIsSet() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(false);
-    myServices.enableSessionsView(false);
 
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    // Import trace flag is not set. Nor is sessions flag. Inspect trace mode should be disabled.
+    // Import trace flag is not set. Inspect trace mode should be disabled.
     assertThat(stage.isImportTraceMode()).isFalse();
 
     myServices.enableImportTrace(true);
-    myServices.enableSessionsView(true);
     stage = new CpuProfilerStage(profilers, traceFile);
-    // Both flags are enabled, passing a non-null file to the constructor will set the stage to inspect trace mode.
+    // Flag is enabled, passing a non-null file to the constructor will set the stage to inspect trace mode.
     assertThat(stage.isImportTraceMode()).isTrue();
 
     stage = new CpuProfilerStage(profilers, null);
@@ -1701,25 +1699,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     stage = new CpuProfilerStage(profilers);
     // Not specifying whether the stage is initiated in inspect trace mode is the same as initializing it in normal mode.
     assertThat(stage.isImportTraceMode()).isFalse();
-
-    myServices.enableImportTrace(true);
-    myServices.enableSessionsView(false);
-    stage = new CpuProfilerStage(profilers, traceFile);
-    // Import trace flag is set, but sessions flag isn't. Inspect trace mode should be disabled.
-    assertThat(stage.isImportTraceMode()).isFalse();
-
-    myServices.enableImportTrace(false);
-    myServices.enableSessionsView(true);
-    stage = new CpuProfilerStage(profilers, traceFile);
-    // Sessions flag is not set, but Import trace flag isn't. Inspect trace mode should be disabled.
-    assertThat(stage.isImportTraceMode()).isFalse();
   }
 
   @Test
   public void corruptedTraceInImportTraceModeShowsABalloon() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
-    myServices.enableSessionsView(true);
 
     FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
     // Sanity check to verify the last import trace status was not set yet
@@ -1743,7 +1728,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void abortParsingImportTraceFileShowsABalloon() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
-    myServices.enableSessionsView(true);
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
 
     FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
@@ -1787,7 +1771,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void captureIsSetWhenOpeningStageInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
-    myServices.enableSessionsView(true);
 
     FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
     // Sanity check to verify the last import trace status was not set yet
@@ -1817,7 +1800,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void threadsDataComesFromCaptureInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
-    myServices.enableSessionsView(true);
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
     stage.enter();
@@ -1841,7 +1823,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void captureAlwaysSelectedInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
-    myServices.enableSessionsView(true);
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
     stage.enter();

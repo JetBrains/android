@@ -258,11 +258,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSessionsEnabled() {
-        return StudioFlags.PROFILER_SHOW_SESSIONS.get();
-      }
-
-      @Override
       public boolean isSimpleperfHostEnabled() {
         return StudioFlags.PROFILER_SIMPLEPERF_HOST.get();
       }

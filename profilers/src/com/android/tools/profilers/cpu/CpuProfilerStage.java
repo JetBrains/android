@@ -213,9 +213,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myImportedTrace = importedTrace;
     mySession = profilers.getSession();
     // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
-    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()
-                          && getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()
-                          && importedTrace != null;
+    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled() && importedTrace != null;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);

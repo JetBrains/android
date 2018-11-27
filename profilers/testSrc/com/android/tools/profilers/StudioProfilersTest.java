@@ -121,12 +121,6 @@ public final class StudioProfilersTest {
     profilers.setProcess(process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getStageClass()).isSameAs(StudioMonitorStage.class);
-    // Add a second device with no processes, and select that device.
-    device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice2", Common.Device.State.ONLINE);
-    myProfilerService.addDevice(device);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
-    assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
   }
 
   @Test
@@ -898,12 +892,12 @@ public final class StudioProfilersTest {
     assertThat(profilers.getSession().getSessionId()).isEqualTo(session.getSessionId());
     assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
 
-    // Setting the device without processes should go to the NullMonitorStage.
+    // Setting the device without processes should maintain the current session.
     profilers.setDevice(device2);
     assertThat(profilers.getDevice()).isEqualTo(device2);
     assertThat(profilers.getProcess()).isEqualTo(null);
-    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
-    assertThat(profilers.getStageClass()).isEqualTo(NullMonitorStage.class);
+    assertThat(profilers.getSession().getSessionId()).isEqualTo(session.getSessionId());
+    assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
   }
 
   @Test
@@ -1045,16 +1039,17 @@ public final class StudioProfilersTest {
     process = process.toBuilder().setState(Common.Process.State.DEAD).build();
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getSession()).isNotNull();
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
-    assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
+    Common.Session session = profilers.getSession();
+    assertThat(session).isNotNull();
+    assertThat(session.getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(session.getPid()).isEqualTo(process.getPid());
 
     // The same process coming alive should not start a new session automatically.
     myProfilerService.removeProcess(device, process);
     process = process.toBuilder().setState(Common.Process.State.ALIVE).build();
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+    assertThat(profilers.getSession()).isEqualTo(session);
   }
 
   @Test

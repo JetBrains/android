@@ -102,11 +102,6 @@ public final class StudioFlags {
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
     false);
 
-  public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
-    PROFILER, "show.session", "Enable the sessions panel",
-    "Shows the sessions panel used for managing and navigating profiling data.",
-    true);
-
   public static final Flag<Boolean> PROFILER_IMPORT_SESSION = Flag.create(
     PROFILER, "import.session", "Enable the session import dialog",
     "Shows the file open drop down menu for session import.",
