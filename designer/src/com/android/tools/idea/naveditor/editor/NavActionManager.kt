@@ -89,10 +89,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
   }
 
-  override fun createPopupMenu(
-    actionManager: com.intellij.openapi.actionSystem.ActionManager,
-    leafComponent: NlComponent?
-  ): DefaultActionGroup {
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
     val group = DefaultActionGroup()
 
     if (leafComponent == null) {
@@ -100,28 +97,27 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     }
 
     when {
-      mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group, actionManager)
+      mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group)
       leafComponent == mySurface.currentNavigation -> addSurfaceGroup(group)
-      leafComponent.isDestination -> addDestinationGroup(group, leafComponent, actionManager)
-      leafComponent.isAction -> addActionGroup(group, leafComponent, actionManager)
+      leafComponent.isDestination -> addDestinationGroup(group, leafComponent)
+      leafComponent.isAction -> addActionGroup(group, leafComponent)
     }
 
     return group
   }
 
-  private fun addMultiSelectionGroup(group: DefaultActionGroup, actionManager: com.intellij.openapi.actionSystem.ActionManager) {
+  private fun addMultiSelectionGroup(group: DefaultActionGroup) {
     group.add(createNestedGraphGroup(mySurface.selectionModel.selection))
 
     group.addSeparator()
-    addCutCopyPasteDeleteGroup(group, actionManager)
+    addCutCopyPasteDeleteGroup(group)
   }
 
-  private fun addCutCopyPasteDeleteGroup(group: DefaultActionGroup,
-                                         actionManager: com.intellij.openapi.actionSystem.ActionManager) {
-    group.add(actionManager.getAction(IdeActions.ACTION_CUT))
-    group.add(actionManager.getAction(IdeActions.ACTION_COPY))
-    group.add(actionManager.getAction(IdeActions.ACTION_PASTE))
-    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
+  private fun addCutCopyPasteDeleteGroup(group: DefaultActionGroup) {
+    group.add(getRegisteredActionByName(IdeActions.ACTION_CUT)!!)
+    group.add(getRegisteredActionByName(IdeActions.ACTION_COPY)!!)
+    group.add(getRegisteredActionByName(IdeActions.ACTION_PASTE)!!)
+    group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE)!!)
   }
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
@@ -141,8 +137,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addDestinationGroup(
     group: DefaultActionGroup,
-    component: NlComponent,
-    actionManager: com.intellij.openapi.actionSystem.ActionManager
+    component: NlComponent
   ) {
     val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component)
     group.add(activateComponentAction)
@@ -153,7 +148,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(StartDestinationAction(component))
 
     group.addSeparator()
-    addCutCopyPasteDeleteGroup(group, actionManager)
+    addCutCopyPasteDeleteGroup(group)
 
     group.addSeparator()
     group.add(gotoComponentAction)
@@ -161,14 +156,13 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addActionGroup(
     group: DefaultActionGroup,
-    component: NlComponent,
-    actionManager: com.intellij.openapi.actionSystem.ActionManager
+    component: NlComponent
   ) {
     val parent = component.parent ?: throw IllegalStateException()
     group.add(EditExistingAction(mySurface, parent, component))
 
     group.addSeparator()
-    addCutCopyPasteDeleteGroup(group, actionManager)
+    addCutCopyPasteDeleteGroup(group)
   }
 
   private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
@@ -201,22 +195,18 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     return group
   }
 
-  override fun addActions(
-    group: DefaultActionGroup,
-    component: NlComponent?,
-    newSelection: List<NlComponent>,
-    toolbar: Boolean
-  ) {
-    // This is called whenever the selection changes, but since our contents are static they can be cached.
-    group.add(addDestinationMenu)
-    group.add(nestedGraphToolbarAction)
+  override fun getToolbarActions(component: NlComponent?, newSelection: List<NlComponent>) =
+    DefaultActionGroup().apply {
+      // This is called whenever the selection changes, but since our contents are static they can be cached.
+      add(addDestinationMenu)
+      add(nestedGraphToolbarAction)
 
-    group.addSeparator()
-    group.add(startDestinationToolbarAction)
-    group.add(deepLinkToolbarAction)
-    group.add(addActionToolbarAction)
+      addSeparator()
+      add(startDestinationToolbarAction)
+      add(deepLinkToolbarAction)
+      add(addActionToolbarAction)
 
-    group.addSeparator()
-    group.add(autoArrangeAction)
-  }
+      addSeparator()
+      add(autoArrangeAction)
+    }
 }

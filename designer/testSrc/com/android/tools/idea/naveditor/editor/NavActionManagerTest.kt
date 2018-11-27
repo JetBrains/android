@@ -119,7 +119,7 @@ class NavActionManagerTest : NavTestCase() {
 
     surface.model = model
     val actionManager = NavActionManager(surface)
-    var menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), model.find("fragment1"))
+    var menuGroup = actionManager.getPopupMenuActions(model.find("fragment1"))
 
     var items = menuGroup.getChildren(null)
 
@@ -150,12 +150,12 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(nestedGraphItems[1], Separator::class.java, null, true)
     validateItem(nestedGraphItems[2], AddToExistingGraphAction::class.java, "subflow", true)
 
-    menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), model.find("fragment2"))
+    menuGroup = actionManager.getPopupMenuActions(model.find("fragment2"))
     items = menuGroup.getChildren(null)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", false)
 
-    menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), model.find("fragment3"))
+    menuGroup = actionManager.getPopupMenuActions(model.find("fragment3"))
     items = menuGroup.getChildren(null)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", true)
@@ -170,7 +170,7 @@ class NavActionManagerTest : NavTestCase() {
 
     surface.model = model
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), model.find("activity"))
+    val menuGroup = actionManager.getPopupMenuActions(model.find("activity"))
 
     val items = menuGroup.getChildren(null)
 
@@ -202,7 +202,7 @@ class NavActionManagerTest : NavTestCase() {
 
     surface.model = model
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), model.find("subflow"))
+    val menuGroup = actionManager.getPopupMenuActions(model.find("subflow"))
 
     val items = menuGroup.getChildren(null)
 
@@ -241,7 +241,7 @@ class NavActionManagerTest : NavTestCase() {
 
     surface.model = model
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), model.find("nav"))
+    val menuGroup = actionManager.getPopupMenuActions(model.find("nav"))
 
     val items = menuGroup.getChildren(null)
 
@@ -276,7 +276,7 @@ class NavActionManagerTest : NavTestCase() {
     val subnav = model.find("subnav")!!
     surface.currentNavigation = subnav
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), subnav)
+    val menuGroup = actionManager.getPopupMenuActions(subnav)
 
     val items = menuGroup.getChildren(null)
 
@@ -303,7 +303,7 @@ class NavActionManagerTest : NavTestCase() {
     val actionManager = NavActionManager(surface)
     val fragment1 = model.find("fragment1")!!
     surface.selectionModel.setSelection(listOf(fragment1, model.find("fragment2")!!))
-    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), fragment1)
+    val menuGroup = actionManager.getPopupMenuActions(fragment1)
     val items = menuGroup.getChildren(null)
 
     assertEquals(6, items.size)
@@ -332,7 +332,7 @@ class NavActionManagerTest : NavTestCase() {
     surface.model = model
     val actionManager = NavActionManager(surface)
     val action1 = model.find("action1")!!
-    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), action1)
+    val menuGroup = actionManager.getPopupMenuActions(action1)
     val items = menuGroup.getChildren(null)
 
     assertEquals(6, items.size)

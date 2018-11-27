@@ -39,42 +39,14 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ActionManager<S extends DesignSurface> {
   protected final S mySurface;
 
-  public ActionManager(@NotNull S surface) {
+  protected ActionManager(@NotNull S surface) {
     mySurface = surface;
   }
 
-  /**
-   * Register keyboard shortcuts onto the provided component.
-   *
-   * @param component        The component onto which shortcut should be registered.
-   * @param parentDisposable A disposable used to unregister the actions. If the parameter is null but
-   *                         component is a {@link Disposable}, component will be used as the parent disposable.
-   */
-  public abstract void registerActionsShortcuts(@NotNull JComponent component,
-                                                @Nullable Disposable parentDisposable);
-
-  protected void registerAction(@NotNull AnAction action,
-                                @NonNls String actionId,
-                                @NotNull JComponent component,
-                                @Nullable Disposable parentDisposable) {
-    registerAction(action,
-                   com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-                   component,
-                   parentDisposable
-    );
-  }
-
-  protected void registerAction(@NotNull AnAction action,
-                                @NotNull KeyStroke keyStroke,
-                                @NotNull JComponent component,
-                                @Nullable Disposable parentDisposable) {
-    registerAction(action, new CustomShortcutSet(keyStroke), component, parentDisposable);
-  }
-
-  protected void registerAction(@NotNull AnAction action,
-                                @NotNull ShortcutSet shortcutSet,
-                                @NotNull JComponent component,
-                                @Nullable Disposable parentDisposable) {
+  private void registerAction(@NotNull AnAction action,
+                              @NotNull ShortcutSet shortcutSet,
+                              @NotNull JComponent component,
+                              @Nullable Disposable parentDisposable) {
     Disposable disposable;
     if (parentDisposable != null) {
       disposable = parentDisposable;
@@ -88,31 +60,71 @@ public abstract class ActionManager<S extends DesignSurface> {
     action.registerCustomShortcutSet(shortcutSet, component, disposable);
   }
 
+  protected final void registerAction(@NotNull AnAction action,
+                                      @NonNls String actionId,
+                                      @NotNull JComponent component,
+                                      @Nullable Disposable parentDisposable) {
+    registerAction(action,
+                   com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
+                   component,
+                   parentDisposable
+    );
+  }
+
+  protected final void registerAction(@NotNull AnAction action,
+                                      @NotNull KeyStroke keyStroke,
+                                      @NotNull JComponent component,
+                                      @Nullable Disposable parentDisposable) {
+    registerAction(action, new CustomShortcutSet(keyStroke), component, parentDisposable);
+  }
+
   @NotNull
   public JComponent createToolbar() {
-    ActionsToolbar actionsToolbar = createActionsToolbar();
-    return actionsToolbar.getToolbarComponent();
+    return new ActionsToolbar(mySurface, mySurface).getToolbarComponent();
   }
 
-  @NotNull
-  protected ActionsToolbar createActionsToolbar() {
-    return new ActionsToolbar(mySurface, mySurface);
-  }
+  public final void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
+    DefaultActionGroup group = getPopupMenuActions(leafComponent);
+    if (group.getChildrenCount() == 0) {
+      return;
+    }
 
-  public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
     com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
-
-    DefaultActionGroup group = createPopupMenu(actionManager, leafComponent);
     ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
     Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
     popupMenu.getComponent().show(invoker, event.getX(), event.getY());
   }
 
+  /**
+   * Returns a pre-registered action for the given action name. See {@link com.intellij.openapi.actionSystem.IdeActions}
+   */
+  @Nullable
+  protected static AnAction getRegisteredActionByName(@NotNull String actionName) {
+    return com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionName);
+  }
+
+
+  /**
+   * Register keyboard shortcuts onto the provided component.
+   *
+   * @param component        The component onto which shortcut should be registered.
+   * @param parentDisposable A disposable used to unregister the actions. If the parameter is null but
+   *                         component is a {@link Disposable}, component will be used as the parent disposable.
+   */
+  public abstract void registerActionsShortcuts(@NotNull JComponent component,
+                                                @Nullable Disposable parentDisposable);
+
+  /**
+   * Creates a pop-up menu for the given component
+   */
   @VisibleForTesting
   @NotNull
-  public abstract DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
-                                                        @Nullable NlComponent leafComponent);
+  public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent);
 
-  public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
-                                  @NotNull List<NlComponent> newSelection, boolean toolbar);
+  /**
+   * Creates the toolbar actions for the given component
+   */
+  @NotNull
+  public abstract DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
+                                                       @NotNull List<NlComponent> newSelection);
 }
