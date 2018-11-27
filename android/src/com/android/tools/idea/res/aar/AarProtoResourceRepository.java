@@ -448,7 +448,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   }
 
   private void addResourceItem(@NotNull ResourceItem item) {
-    ListMultimap<String, ResourceItem> multimap = getFullTable().getOrPutEmpty(myNamespace, item.getType());
+    ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
     multimap.put(item.getName(), item);
   }
 
@@ -608,20 +608,6 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     sourceFile = new AarSourceFile(null, new AarConfiguration(this, configuration));
     cache.put(configMsg, sourceFile);
     return sourceFile;
-  }
-
-  @NotNull
-  private AarConfiguration getConfiguration(@NotNull Configuration configMsg, @NotNull Map<Configuration, AarConfiguration> cache) {
-    AarConfiguration aarConfiguration = cache.get(configMsg);
-    if (aarConfiguration != null) {
-      return aarConfiguration;
-    }
-
-    FolderConfiguration configuration = ProtoConfigurationDecoder.getConfiguration(configMsg);
-
-    aarConfiguration = new AarConfiguration(this, configuration);
-    cache.put(configMsg, aarConfiguration);
-    return aarConfiguration;
   }
 
   // For debugging only.

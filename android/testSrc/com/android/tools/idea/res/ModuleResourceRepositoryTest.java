@@ -35,6 +35,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -79,7 +80,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res3, res1);
 
     ModuleResourceRepository resources =
-      ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
 
     // Check that values are handled correctly. First a plain value (not overridden anywhere).
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
@@ -152,11 +153,12 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> ids = resources.getResources(RES_AUTO, ResourceType.ID, "my_id");
     assertNotNull(ids);
     assertSize(2, ids);
-    Collections.sort(ids, Comparator.comparing(item -> item.getSource().getFileName()));
+    List<ResourceItem> sorted = new ArrayList<>(ids);
+    Collections.sort(sorted, Comparator.comparing(item -> item.getSource().getFileName()));
     //noinspection ConstantConditions
-    assertEquals("layout_ids1.xml", ids.get(0).getSource().getFileName());
+    assertEquals("layout_ids1.xml", sorted.get(0).getSource().getFileName());
     //noinspection ConstantConditions
-    assertEquals("layout_ids2.xml", ids.get(1).getSource().getFileName());
+    assertEquals("layout_ids2.xml", sorted.get(1).getSource().getFileName());
   }
 
   public void testOverlayUpdates1() {

@@ -162,7 +162,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private final VirtualFile myResourceDir;
   @NotNull private final ResourceNamespace myNamespace;
 
-  @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
+  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
   private final ResourceTable myFullTable = new ResourceTable();
 
   private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> sources = new HashMap<>();
@@ -852,7 +852,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   @NotNull
-  @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
+  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
   protected ResourceTable getFullTable() {
     return myFullTable;
   }
@@ -860,7 +860,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @Override
   @Nullable
   @Contract("_, _, true -> !null")
-  @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
+  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {

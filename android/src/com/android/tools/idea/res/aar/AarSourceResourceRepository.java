@@ -42,6 +42,7 @@ import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -51,11 +52,12 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.DuplicateDataException;
+import com.android.ide.common.resources.MergeConsumer;
 import com.android.ide.common.resources.MergingException;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceMerger;
-import com.android.ide.common.resources.ResourceRepositories;
+import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.ResourceSet;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ValueResourceNameValidator;
@@ -117,6 +119,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -250,10 +253,45 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         LOG.warn(e);
       }
       merger.addDataSet(resourceSet);
-      ResourceRepositories.updateTableFromMerger(merger, myFullTable);
+      updateTableFromMerger(merger);
     }
     catch (Exception e) {
       LOG.error("Failed to load resources from " + myResourceDirectory.toString(), e);
+    }
+  }
+
+  public void updateTableFromMerger(@NonNull ResourceMerger merger) {
+    MergeConsumer<ResourceMergerItem> consumer =
+      new MergeConsumer<ResourceMergerItem>() {
+        @Override
+        public void start(@NonNull DocumentBuilderFactory factory) {}
+
+        @Override
+        public void end() {}
+
+        @Override
+        public void addItem(@NonNull ResourceMergerItem item) {
+          ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
+          if (!multimap.containsEntry(item.getName(), item)) {
+            multimap.put(item.getName(), item);
+          }
+        }
+
+        @Override
+        public void removeItem(@NonNull ResourceMergerItem removedItem, @Nullable ResourceMergerItem replacedBy) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean ignoreItemInMerge(ResourceMergerItem item) {
+          return false; // Never ignore any item.
+        }
+      };
+
+    try {
+      merger.mergeData(consumer, true);
+    } catch (MergingException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -278,7 +316,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   private void addResourceItem(@NotNull ResourceItem item) {
-    ListMultimap<String, ResourceItem> multimap = myFullTable.getOrPutEmpty(myNamespace, item.getType());
+    ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
     multimap.put(item.getName(), item);
   }
 
@@ -443,7 +481,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * Called when an attempt to load from persistent cache fails after some data may have already been loaded.
    */
   protected void cleanupAfterFailedLoadingFromCache() {
-    myFullTable.row(myNamespace).clear();  // Remove partially loaded data.
+    myResources.clear();  // Remove partially loaded data.
   }
 
   /**
@@ -477,7 +515,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     writeSourceFiles(sourceFileIndexes, stream, qualifierStringIndexes);
     writeNamespaceResolvers(namespaceResolverIndexes, stream);
 
-    Collection<ListMultimap<String, ResourceItem>> resourceMaps = myFullTable.row(myNamespace).values();
+    Collection<ListMultimap<String, ResourceItem>> resourceMaps = myResources.values();
     int itemCount = 0;
     for (ListMultimap<String, ResourceItem> resourceMap : resourceMaps) {
       itemCount += resourceMap.size();
@@ -1002,19 +1040,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       AarStyleableResourceItem item = new AarStyleableResourceItem(name, sourceFile, visibility, attrs);
       item.setNamespaceResolver(namespaceResolver);
       return item;
-    }
-
-    private void replaceOrAddResourceItem(@NotNull AbstractAarValueResourceItem item) {
-      AarSourceFile sourceFile = item.getSourceFile();
-      List<ResourceItem> items = getResources(myNamespace, item.getResourceType(), item.getName());
-      for (int i = 0; i < items.size(); i++) {
-        ResourceItem oldItem = items.get(i);
-        if (oldItem instanceof AbstractAarValueResourceItem && ((AbstractAarValueResourceItem)oldItem).getSourceFile().equals(sourceFile)) {
-          items.set(i, item);
-          return;
-        }
-      }
-      addValueResourceItem(item);
     }
 
     @NotNull
