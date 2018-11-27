@@ -236,7 +236,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // The following lines trigger aspect changes and, therefore, can make many models to update. That might cause an exception to be thrown
     // and make some models inconsistent. In this case, we want future calls to this method to return early, as we can only make the
     // inconsistency worse if we call these lines again.
-    setDevice(null);
+    setProcess(null, null);
     changed(ProfilerAspect.STAGE);
   }
 
@@ -284,8 +284,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myAutoProfilingEnabled = enabled;
 
     if (myAutoProfilingEnabled) {
-      setDevice(findPreferredDevice());
-      setProcess(null);
+      setProcess(findPreferredDevice(), null);
     }
   }
 
@@ -359,12 +358,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
-        // Find and set preferred device
-        setDevice(findPreferredDevice());
-        setProcess(null);
+        setProcess(findPreferredDevice(), null);
 
         // These need to be fired every time the process list changes so that the device/process dropdown always reflects the latest.
-        changed(ProfilerAspect.DEVICES);
         changed(ProfilerAspect.PROCESSES);
       }
 
@@ -395,8 +391,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Finds and returns the preferred device if there is an online device with a matching name. Otherwise, we attempt to maintain the
-   * currently selected device. Otherwise if no preferred device is specified, return any device that has live processes in it.
+   * Finds and returns the preferred device if there is an online device with a matching name.
+   * Otherwise, we attempt to maintain the currently selected device.
    */
   @Nullable
   private Common.Device findPreferredDevice() {
@@ -425,15 +421,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return null;
   }
 
+  public void setMonitoringStage() {
+    setStage(new StudioMonitorStage(this));
+  }
+
   /**
-   * Chooses the given device.
+   * Chooses a device+process combination, and starts profiling it if not already (and stops profiling the previous one).
+   *
+   * @param device the device that will be selected. If it is null, no device and process will be selected for profiling.
+   * @param process the process that will be selected. Note that the process is expected to be spawned from the specified device.
+   *                If it is null, a process will be determined automatically by heuristics.
    */
-  public void setDevice(@Nullable Common.Device device) {
+  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
     if (device != null) {
       // Device can be not null in the following scenarios:
       // 1. User explicitly sets a device from the dropdown.
       // 2. The update loop has found the preferred device, in which case it will stay selected until the user selects something else.
-      // 3. There was no preferred device and the update loop found a device with live processes.
       // All of these cases mean that we can unset the preferred device.
       myPreferredDeviceName = null;
     }
@@ -443,24 +446,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // First, end the current session on the previous device.
       mySessionsManager.endCurrentSession();
       myDevice = device;
-      changed(ProfilerAspect.DEVICES);
       myIdeServices.getFeatureTracker().trackChangeDevice(myDevice);
-
-      // Then set a new process.
-      setProcess(null);
     }
-  }
 
-  public void setMonitoringStage() {
-    setStage(new StudioMonitorStage(this));
-  }
-
-  /**
-   * Chooses a process, and starts profiling it if not already (and stops profiling the previous one).
-   *
-   * @param process the process that will be selected. If it is null, a process will be determined automatically by heuristics.
-   */
-  public void setProcess(@Nullable Common.Process process) {
     List<Common.Process> processes = myProcesses.get(myDevice);
     if (process == null || processes == null || !processes.contains(process)) {
       process = getPreferredProcess(processes);

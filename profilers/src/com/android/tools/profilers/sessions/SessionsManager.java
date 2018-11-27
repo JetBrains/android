@@ -423,8 +423,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     // Selected session can change after we stop profiling so caching the value first.
     boolean sessionIsSelectedSession = mySelectedSession.equals(session);
     if (myProfilingSession.equals(session)) {
-      // Route to StudioProfiler to set a null device, which will stop the session properly.
-      myProfilers.setDevice(null);
+      // Route to StudioProfiler to set a null device + process, which will stop the session properly.
+      myProfilers.setProcess(null, null);
     }
 
     // When deleting a currently selected session, set the session back to default so the profilers will go to the null stage.

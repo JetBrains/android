@@ -231,6 +231,6 @@ class CpuProfilerConfigModelTest {
 
   private fun setDevice(featureLevel: Int) {
     val device = Device.newBuilder().setFeatureLevel(featureLevel).setSerial("TestSerial").setState(Device.State.ONLINE).build()
-    myProfilers?.device = device
+    myProfilers?.setProcess(device, null)
   }
 }

@@ -82,7 +82,7 @@ public final class StudioProfilersCommonTest {
                                         .build();
     myProfilerService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
 
@@ -94,8 +94,7 @@ public final class StudioProfilersCommonTest {
                                            .build();
     myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
 
     assertThat(profilers.getProcess()).isEqualTo(process);
     return profilers;

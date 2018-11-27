@@ -73,7 +73,7 @@ public final class StudioProfilersTest {
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     myProfilerService.addDevice(device);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     // Validate that just because we add a device, we still have not left the  null monitor stage.
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
@@ -88,7 +88,7 @@ public final class StudioProfilersTest {
     // Add a process and validate the stage goes to the monitor stage.
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Test that the process was attached correctly
@@ -107,7 +107,7 @@ public final class StudioProfilersTest {
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     myProfilerService.addDevice(device);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     // Validate that just because we add a device, we still have not left the  null monitor stage.
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
@@ -117,8 +117,7 @@ public final class StudioProfilersTest {
     // Add a process and validate the stage goes to the monitor stage.
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getStageClass()).isSameAs(StudioMonitorStage.class);
   }
@@ -137,7 +136,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     // We are waiting for the preferred process so the process should not be selected.
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getProcess()).isNull();
@@ -173,7 +172,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, earlierProcess);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     // The process start time is before the time we start looking for preferred process, so profiler should not have started.
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
@@ -214,7 +213,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
     assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
@@ -255,8 +254,7 @@ public final class StudioProfilersTest {
 
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), myIdeProfilerServices, myTimer);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
   }
@@ -274,8 +272,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
     assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
@@ -314,8 +311,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process1);
     myProfilerService.addProcess(device, process2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process1);
+    profilers.setProcess(device, process1);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getProcess()).isEqualTo(process1);
@@ -323,7 +319,7 @@ public final class StudioProfilersTest {
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(1);
 
     // Test that manually setting a process fires an agent status change
-    profilers.setProcess(process2);
+    profilers.setProcess(device, process2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isSameAs(process2);
     assertThat(profilers.getAgentStatus()).isEqualTo(attachedResponse);
@@ -364,8 +360,7 @@ public final class StudioProfilersTest {
 
     // Test that the status changed is fired when the process first gets selected.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getDevice()).isSameAs(device);
@@ -374,8 +369,7 @@ public final class StudioProfilersTest {
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(1);
 
     // Test that resetting the same device/process would not trigger the status changed event.
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     assertThat(profilers.getDevice()).isSameAs(device);
     assertThat(profilers.getProcess()).isEqualTo(process);
     assertThat(profilers.isAgentAttached()).isFalse();
@@ -448,13 +442,13 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, otherProcess);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(otherProcess);
+    profilers.setProcess(device, otherProcess);
     // The user selected the other process explicitly
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
 
     // Should select the other process again
-    profilers.setProcess(null);
+    profilers.setProcess(device, null);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
   }
@@ -476,8 +470,7 @@ public final class StudioProfilersTest {
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getProcess().getPid()).isEqualTo(20);
@@ -493,8 +486,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getProcess().getPid()).isEqualTo(20);
@@ -525,8 +517,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
   }
@@ -539,8 +530,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     ProfilerTimeline timeline = profilers.getTimeline();
     assertTrue(timeline.isStreaming());
@@ -562,8 +552,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isEqualTo(process);
 
@@ -605,7 +594,7 @@ public final class StudioProfilersTest {
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice);
 
     // Selecting device manually should keep it selected
-    profilers.setDevice(device);
+    profilers.setProcess(device, null);
     assertThat(profilers.getDevice()).isEqualTo(device);
 
     // Changing states on the preferred device should have no effects.
@@ -683,7 +672,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device2, process2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    profilers.setDevice(device2);
+    profilers.setProcess(device2, null);
     assertThat(profilers.getDevice()).isEqualTo(device2);
     // Update device1 state to disconnect
     Common.Device disconnectedDevice = Common.Device.newBuilder()
@@ -721,15 +710,14 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device1, process1);
     myProfilerService.addProcess(device1, process2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device1);
-    profilers.setProcess(process1);
+    profilers.setProcess(device1, process1);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getProcess()).isEqualTo(process1);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
 
     // Switch to another process.
-    profilers.setProcess(process2);
+    profilers.setProcess(device1, process2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
@@ -743,9 +731,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Switch to the new device + process
-    profilers.setDevice(device2);
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
-    profilers.setProcess(process3);
+    profilers.setProcess(device2, process3);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
     assertThat(profilers.getProcess()).isEqualTo(process3);
@@ -759,9 +745,7 @@ public final class StudioProfilersTest {
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
 
     // Switch back to the first device.
-    profilers.setDevice(device1);
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
-    profilers.setProcess(process1);
+    profilers.setProcess(device1, process1);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
 
@@ -784,8 +768,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process1);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process1);
+    profilers.setProcess(device, process1);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getDevice()).isEqualTo(device);
@@ -804,8 +787,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process1);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process1);
+    profilers.setProcess(device, process1);
 
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isEqualTo(process1);
@@ -828,8 +810,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process1);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process1);
+    profilers.setProcess(device, process1);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getDevice()).isEqualTo(device);
@@ -876,8 +857,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device1, process);
     myProfilerService.addDevice(device2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device1);
-    profilers.setProcess(process);
+    profilers.setProcess(device1, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session = profilers.getSession();
     assertThat(profilers.getDevice()).isEqualTo(device1);
@@ -885,16 +865,9 @@ public final class StudioProfilersTest {
     assertThat(session).isNotEqualTo(Common.Session.getDefaultInstance());
     assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
 
-    // Setting device to null should maintain the current session.
-    profilers.setDevice(null);
+    // Setting device and process to null should maintain the current session.
+    profilers.setProcess(null, null);
     assertThat(profilers.getDevice()).isEqualTo(null);
-    assertThat(profilers.getProcess()).isEqualTo(null);
-    assertThat(profilers.getSession().getSessionId()).isEqualTo(session.getSessionId());
-    assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
-
-    // Setting the device without processes should maintain the current session.
-    profilers.setDevice(device2);
-    assertThat(profilers.getDevice()).isEqualTo(device2);
     assertThat(profilers.getProcess()).isEqualTo(null);
     assertThat(profilers.getSession().getSessionId()).isEqualTo(session.getSessionId());
     assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
@@ -913,8 +886,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
 
     assertThat(myTimer.isRunning()).isTrue();
 
@@ -971,8 +943,7 @@ public final class StudioProfilersTest {
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
@@ -1000,8 +971,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
@@ -1030,8 +1000,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // End the session.
@@ -1062,8 +1031,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getSession()).isNotNull();
@@ -1092,7 +1060,7 @@ public final class StudioProfilersTest {
     process = process.toBuilder().setState(Common.Process.State.ALIVE).build();
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getSession()).isNotNull();
@@ -1111,7 +1079,7 @@ public final class StudioProfilersTest {
     Common.Device deviceNougat = createDevice(AndroidVersion.VersionCodes.N_MR1, "FakeDeviceN", Common.Device.State.ONLINE);
     myProfilerService.addDevice(deviceNougat);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(deviceNougat);
+    profilers.setProcess(deviceNougat, null);
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceN");
 
     assertThat(profilers.getDirectStages()).containsExactly(
@@ -1123,7 +1091,7 @@ public final class StudioProfilersTest {
     Common.Device deviceOreo = createDevice(AndroidVersion.VersionCodes.O, "FakeDeviceO", Common.Device.State.ONLINE);
     myProfilerService.addDevice(deviceOreo);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(deviceOreo);
+    profilers.setProcess(deviceOreo, null);
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
 
     assertThat(profilers.getDirectStages()).containsExactly(
@@ -1244,8 +1212,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getSession()).isNotEqualTo(Common.Session.getDefaultInstance());
     assertThat(profilers.getSelectedAppName()).isEqualTo("FakeProcess");
@@ -1259,8 +1226,7 @@ public final class StudioProfilersTest {
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setDevice(device);
-    profilers.setProcess(process);
+    profilers.setProcess(device, process);
 
     profilers.getSessionsManager().setSession(Common.Session.getDefaultInstance());
     assertThat(profilers.getSelectedAppName()).isEqualTo("FakeProcess");

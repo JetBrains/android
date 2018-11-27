@@ -2004,7 +2004,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myProfilerService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
-    myStage.getStudioProfilers().setDevice(device);
+    myStage.getStudioProfilers().setProcess(device, null);
     // Setting the device will change the stage. We need to go back to CpuProfilerStage
     myStage.getStudioProfilers().setStage(myStage);
   }

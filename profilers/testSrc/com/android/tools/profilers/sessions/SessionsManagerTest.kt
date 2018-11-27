@@ -434,12 +434,11 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     myProfilerService.addProcess(device, process2)
     myProfilerService.addProcess(device, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myProfilers.device = device
-    myProfilers.process = process1
+    myProfilers.setProcess(device, process1)
 
     // Create a finished session and a ongoing profiling session.
     endSessionHelper()
-    myProfilers.process = process2
+    myProfilers.setProcess(device, process2)
     myManager.update()
     val session1 = myManager.sessionArtifacts[1].session
     val session2 = myManager.selectedSession
@@ -461,8 +460,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myManager.sessionArtifacts[0].session).isEqualTo(session1)
 
     // Begin another profiling session and delete it while it is still selected
-    myProfilers.device = device
-    myProfilers.process = process3
+    myProfilers.setProcess(device, process3)
     myManager.update()
     val session3 = myManager.selectedSession
     assertThat(myManager.profilingSession).isEqualTo(session3)
@@ -513,11 +511,10 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     myProfilerService.addProcess(device, process1)
     myProfilerService.addProcess(device, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myProfilers.device = device
-    myProfilers.process = process1
+    myProfilers.setProcess(device, process1)
     // Create a finished session and a ongoing profiling session.
     endSessionHelper()
-    myProfilers.process = process2
+    myProfilers.setProcess(device, process2)
     myManager.update()
     val session1 = myManager.sessionArtifacts[1].session
     val session2 = myManager.selectedSession

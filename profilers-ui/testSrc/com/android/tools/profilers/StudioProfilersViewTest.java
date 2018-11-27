@@ -438,7 +438,7 @@ public class StudioProfilersViewTest {
                                            .build();
     myService.addProcess(FAKE_DEVICE, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.setProcess(process);
+    myProfilers.setProcess(FAKE_DEVICE, process);
 
     // Agent is detached, the UI should wait and show the loading panel.
     assertThat(myView.getStageViewComponent().isVisible()).isFalse();

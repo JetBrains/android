@@ -168,7 +168,7 @@ class SessionsViewTest {
 
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myProfilers.process = process1
+    myProfilers.setProcess(device1, process1)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isEnabled).isTrue()
@@ -297,8 +297,7 @@ class SessionsViewTest {
     myProfilerService.addDevice(device1)
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myProfilers.device = device1
-    myProfilers.process = process1
+    myProfilers.setProcess(device1, process1)
 
     val session = myProfilers.session
     assertThat(stopProfilingButton.isEnabled).isTrue()

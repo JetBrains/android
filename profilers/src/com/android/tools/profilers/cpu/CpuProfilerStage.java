@@ -429,7 +429,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     navigator.addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, myProfilerConfigModel::updateProfilingConfigurations);
+    getStudioProfilers().addDependency(this).onChange(ProfilerAspect.PROCESSES, myProfilerConfigModel::updateProfilingConfigurations);
 
     // This actions are here instead of in the constructor, because only after this method the UI (i.e {@link CpuProfilerStageView}
     // will be visible to the user. As well as, the feature tracking will link the correct stage to the events that happened
