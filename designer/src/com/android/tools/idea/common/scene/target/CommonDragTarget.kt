@@ -317,7 +317,12 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val primaryNlComponent = myComponent.authoritativeNlComponent
     val model = primaryNlComponent.model
     val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
-    val anchor = placeholder.nextComponent?.nlComponent
+    // If there is no next component and component is move within same parent, we keep its original order in xml file.
+    val anchor = placeholder.nextComponent?.nlComponent ?: if (primaryNlComponent.parent != parent) null else {
+      val siblings = parent.children
+      val currentPosition = siblings.indexOf(primaryNlComponent)
+      siblings.getOrNull(currentPosition + 1)
+    }
 
     if (model.canAddComponents(componentsToAdd, parent, anchor)) {
       val attributesTransactions = draggedComponents.map {
