@@ -975,12 +975,26 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface) {
+    addComponents(toAdd, receiver, before, insertType, surface, null);
+  }
+
+  /**
+   * Adds components to the specified receiver before the given sibling.
+   * If insertType is a move the components specified should be components from this model.
+   */
+  public void addComponents(@NotNull List<NlComponent> toAdd,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            @NotNull InsertType insertType,
+                            @Nullable DesignSurface surface,
+                            @Nullable Runnable attributeUpdatingTask) {
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
 
     NlDependencyManager.Companion.get().addDependencies(
-      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface));
+      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask)
+    );
   }
 
   @Nullable
@@ -988,10 +1002,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                           @NotNull NlComponent receiver,
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
-                                          @Nullable DesignSurface surface) {
+                                          @Nullable DesignSurface surface,
+                                          @Nullable Runnable attributeUpdatingTask) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
-      NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
-                               () -> handleAddition(toAdd, receiver, before, insertType, surface));
+      NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+        if (attributeUpdatingTask != null) {
+          // Update the attribute before adding components, if need.
+          attributeUpdatingTask.run();
+        }
+        handleAddition(toAdd, receiver, before, insertType, surface);
+      });
 
       notifyModified(ChangeType.ADD_COMPONENTS);
     });
