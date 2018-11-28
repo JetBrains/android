@@ -23,6 +23,7 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -128,7 +129,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_SIMPLEPERF_HOST = Flag.create(
     PROFILER, "cpu.simpleperf.host", "Enable simpleperf report-sample to be run on the host.",
     "If enabled, simpleperf report-sample commands are going to be run on the host instead of the device.",
-    true);
+    // TODO(b/120140674): Enable running 'simplperf report-sample' command on Windows (not device).
+    !SystemInfo.isWindows);
 
   public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
     PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
