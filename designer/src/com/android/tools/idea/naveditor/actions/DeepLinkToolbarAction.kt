@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.property.inspector.AddDeeplinkDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.DeeplinkElement
@@ -37,6 +40,8 @@ class DeepLinkToolbarAction(surface: NavDesignSurface) :
       val dialog = AddDeeplinkDialog(null, it)
       if (dialog.showAndGet()) {
         dialog.save()
+        NavUsageTracker.getInstance(surface).createEvent(CREATE_DEEP_LINK)
+          .withSource(NavEditorEvent.Source.TOOLBAR).log()
       }
     }
   }
