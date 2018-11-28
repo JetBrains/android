@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.ptable2.impl
 
+import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.item.Group
 import com.android.tools.adtui.ptable2.item.Item
 import com.android.tools.adtui.ptable2.item.createModel
@@ -34,5 +35,25 @@ class PTableModelImplTest {
     assertThat(impl.depth(model.find("some")!!)).isEqualTo(2)
     assertThat(impl.depth(model.find("more")!!)).isEqualTo(2)
     assertThat(impl.depth(model.find("stuff")!!)).isEqualTo(3)
+  }
+
+  @Test
+  fun testRestoreExpandedGroups() {
+    val model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
+    val groupBefore = model.items[4] as PTableGroupItem
+    val impl = PTableModelImpl(model)
+    impl.expand(4)
+    model.updateTo(true, Item("weight"), Item("size"), Item("readonly"), Group("weiss", Item("siphon"), Item("extra")), Item("zebra"))
+    val groupAfter = model.items[3] as PTableGroupItem
+
+    assertThat(impl.isExpanded(groupAfter)).isTrue()
+    assertThat(impl.isExpanded(groupBefore)).isTrue()
+    assertThat(impl.expandedItems).containsExactly(groupAfter)
+
+    // Verify that the old expanded group is no longer in the expandedItems:
+    assertThat(impl.expandedItems.first()).isNotSameAs(groupBefore)
+
+    // Verify that the new expanded group is now in the expandedItems:
+    assertThat(impl.expandedItems.first()).isSameAs(groupAfter)
   }
 }
