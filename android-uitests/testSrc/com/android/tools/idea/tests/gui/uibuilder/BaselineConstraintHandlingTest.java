@@ -49,7 +49,7 @@ public class BaselineConstraintHandlingTest {
    *   4. Click on the thin rectangle of one widget and create a constraint with similar rectangle in another widget
    *   5. Repeat steps 3 and 4 by aligning widgets in blue print mode (Verify 1)
    *   Verify:
-   *   1. Should be able to baseline the widgets in both design view and blueprint mode. Verfiy the same in xml view by checking
+   *   1. Should be able to baseline the widgets in both design view and blueprint mode. Verify the same in xml view by checking
    *      for "layout_constraintBaseline_toBaselineOf"
    *   </pre>
    */
