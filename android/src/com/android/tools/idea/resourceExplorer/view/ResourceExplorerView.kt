@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.ImageCache
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
@@ -70,9 +71,6 @@ private val LIST_CELL_SIZE = JBUI.scale(60)
 private val MIN_CELL_WIDTH = JBUI.scale(150)
 private const val DEFAULT_GRID_MODE = false
 private val DEFAULT_CELL_WIDTH = LIST_CELL_SIZE
-private val SECTION_CELL_MARGIN = JBUI.scale(4)
-private val SECTION_CELL_MARGIN_LEFT = JBUI.scale(8)
-private val COLORED_BORDER_WIDTH = JBUI.scale(4)
 private val SECTION_HEADER_SECONDARY_COLOR = JBColor.border()
 
 private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
@@ -104,8 +102,11 @@ class ResourceExplorerView(
     return resourcesBrowserViewModel.getData(dataId, getSelectedAssets())
   }
 
-  private fun getSelectedAssets(): List<DesignAssetSet> {
-    return sectionList.getLists().flatMap { it.selectedValuesList }.filterIsInstance<DesignAssetSet>()
+  private fun getSelectedAssets(): List<DesignAsset> {
+    return sectionList.getLists()
+      .flatMap { it.selectedValuesList }
+      .filterIsInstance<DesignAssetSet>()
+      .flatMap(DesignAssetSet::designAssets)
   }
 
   private var previewSize = DEFAULT_CELL_WIDTH
