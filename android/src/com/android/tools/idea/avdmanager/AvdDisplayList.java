@@ -348,7 +348,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     String path;
     HighlightableIconPair thisClassPair;
     if (id.contains("android-")) {
-      path = String.format("/studio/icons/avd/device-%s-large.png", id.substring("android-".length()));
+      path = String.format("/studio/icons/avd/device-%s-large.svg", id.substring("android-".length()));
       thisClassPair = myDeviceClassIcons.get(path);
       if (thisClassPair == null) {
         thisClassPair = new HighlightableIconPair(IconLoader.getIcon(path, AvdDisplayList.class));
