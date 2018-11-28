@@ -131,7 +131,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
       AndroidFacet facet = AndroidFacet.getInstance(file);
       assert facet != null;
-      return NlModel.create(myEditor, facet, myFile, mySurface.getConfigurationManager(facet));
+      return NlModel.create(myEditor, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
     });
     CompletableFuture<?> complete = mySurface.goingToSetModel(model);
     complete.whenComplete((unused, exception) -> {

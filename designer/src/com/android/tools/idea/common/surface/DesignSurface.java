@@ -89,6 +89,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -858,6 +859,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public void notifyComponentActivate(@NotNull NlComponent component) {
     activatePreferredEditor(component);
   }
+
+  /**
+   * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
+   */
+  @NotNull
+  public abstract Consumer<NlComponent> getComponentRegistrar();
 
   protected void activatePreferredEditor(@NotNull NlComponent component) {
     for (DesignSurfaceListener listener : new ArrayList<>(myListeners)) {

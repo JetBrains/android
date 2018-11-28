@@ -54,6 +54,7 @@ import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.editor.NavEditor;
+import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
@@ -105,6 +106,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
@@ -535,6 +537,12 @@ public class NavDesignSurface extends DesignSurface {
       }
     }
     super.notifyComponentActivate(component);
+  }
+
+  @NotNull
+  @Override
+  public Consumer<NlComponent> getComponentRegistrar() {
+    return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
   @VisibleForTesting(visibility = Visibility.PROTECTED)

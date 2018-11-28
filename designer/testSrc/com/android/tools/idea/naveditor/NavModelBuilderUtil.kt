@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.naveditor.model.NavComponentHelper
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -37,6 +38,7 @@ import org.mockito.Mockito.mock
 import java.awt.Dimension
 import java.awt.Point
 import java.util.function.BiConsumer
+import java.util.function.Consumer
 import java.util.function.Function
 
 @DslMarker
@@ -83,7 +85,7 @@ object NavModelBuilderUtil {
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory,
                         BiConsumer<NlModel, NlModel> { model, newModel -> NavSceneManager.updateHierarchy(model, newModel) }, path,
-                        NavDesignSurface::class.java)
+                        NavDesignSurface::class.java, Consumer<NlComponent> { NavComponentHelper.registerComponent(it) })
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,

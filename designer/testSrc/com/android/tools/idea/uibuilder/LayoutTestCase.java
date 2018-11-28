@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -84,7 +85,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
                                                  model),
-                            "layout", NlDesignSurface.class);
+                            "layout", NlDesignSurface.class, (component) -> NlComponentHelper.INSTANCE.registerComponent(component));
   }
 
   private static List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {

@@ -55,6 +55,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -639,9 +640,7 @@ public class NlModelTest extends LayoutTestCase {
                                                   "     android:layout_width=\"match_parent\"" +
                                                   "     android:layout_height=\"match_parent\" />" +
                                                   "</merge>");
-    DesignSurface surface = createSurface(NlDesignSurface.class);
-    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, mergeXml.getVirtualFile());
-    when(surface.getModel()).thenReturn(model);
+    NlModel model = createModel(mergeXml);
 
     XmlTag parentRoot = parentXml.getRootTag();
     TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(parentRoot, null);
@@ -674,9 +673,7 @@ public class NlModelTest extends LayoutTestCase {
                                                             "               android:layout_width=\"match_parent\"" +
                                                             "               android:layout_height=\"48dp\" />" +
                                                             "</LinearLayout>");
-    DesignSurface surface = createSurface(NlDesignSurface.class);
-    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
-    when(surface.getModel()).thenReturn(model);
+    NlModel model = createModel(modelXml);
 
     TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(modelXml.getRootTag(), null);
     ViewInfo rootViewInfo = new ViewInfo("android.widget.LinearLayout", rootSnapshot, 0, 0, 500, 500);
@@ -697,7 +694,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -750,7 +747,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
 
     notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
@@ -763,7 +760,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -798,7 +795,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
     ModelListener listener1 = mock(ModelListener.class);
     model.addListener(listener1);
 
@@ -837,7 +834,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</RelativeLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
 
     long expectedModificationCount = model.getModificationCount();
     for (NlModel.ChangeType changeType : NlModel.ChangeType.values()) {
@@ -845,6 +842,13 @@ public class NlModelTest extends LayoutTestCase {
       expectedModificationCount += 1;
       assertEquals(expectedModificationCount, model.getModificationCount());
     }
+  }
+
+  @NotNull
+  private SyncNlModel createModel(XmlFile modelXml) {
+    DesignSurface surface = createSurface(NlDesignSurface.class);
+    when(surface.getComponentRegistrar()).thenReturn(component -> NlComponentHelper.INSTANCE.registerComponent(component));
+    return SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
   }
 
   @Override

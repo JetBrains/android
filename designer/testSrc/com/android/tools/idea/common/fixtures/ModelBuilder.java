@@ -43,6 +43,7 @@ import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import java.util.function.Consumer;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -75,6 +76,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
+  @NotNull private final Consumer<NlComponent> myComponentConsumer;
   private Device myDevice;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
@@ -84,7 +86,8 @@ public class ModelBuilder {
                       @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
-                      @NotNull Class<? extends DesignSurface> surfaceClass) {
+                      @NotNull Class<? extends DesignSurface> surfaceClass,
+                      @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;
@@ -94,6 +97,7 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
+    myComponentConsumer = componentRegistrar;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -168,8 +172,9 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
-      DesignSurface surface = model.getSurface();
+      DesignSurface surface = createSurface(mySurfaceClass);
+      when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
       Disposer.register(project, surface);
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());
