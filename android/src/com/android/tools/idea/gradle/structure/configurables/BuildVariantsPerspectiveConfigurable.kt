@@ -23,7 +23,6 @@ import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
 
 const val BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME = "Build Variants"
-const val BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME = "build_variants.place"
 
 class BuildVariantsPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
@@ -35,8 +34,6 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     if (module is PsAndroidModule) createConfigurable(module)
     else JavaModuleUnsupportedConfigurable(context, module)
-
-  override val navigationPathName: String = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME
 
   override fun getDisplayName() = BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME
 

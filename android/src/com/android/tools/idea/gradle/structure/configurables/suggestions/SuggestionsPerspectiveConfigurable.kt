@@ -42,8 +42,6 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
         else -> JavaModuleUnsupportedConfigurable(context, module)
       }
 
-  override val navigationPathName: String = "suggestions.place"
-
   override fun getDisplayName(): String = "Suggestions"
 
 
