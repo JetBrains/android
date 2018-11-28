@@ -16,7 +16,11 @@
 package com.android.tools.adtui.ptable2.impl
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.ptable2.*
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableGroupItem
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.ptable2.PTableModelUpdateListener
 import javax.swing.table.AbstractTableModel
 
 /**
@@ -43,7 +47,9 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
           items.addAll(tableModel.items)
           recomputeParents()
           expandedItems.retainAll { isGroupItem(it) }
-          expandedItems.forEach { restoreExpanded(it) }
+          val previousExpandedItems = HashSet(expandedItems)
+          expandedItems.clear()
+          restoreExpanded(previousExpandedItems)
           val index = if (nextEditedItem != null) items.indexOf(nextEditedItem) else -1
           fireTableChanged(PTableModelEvent(this@PTableModelImpl, index))
         }
@@ -109,10 +115,26 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     return if (isGroupItem(item)) item as PTableGroupItem else null
   }
 
-  private fun restoreExpanded(item: PTableGroupItem) {
-    val index = items.indexOf(item)
-    if (index >= 0) {
-      items.addAll(index + 1, item.children)
+  private fun restoreExpanded(previousExpandedItems: Set<PTableGroupItem>) {
+    previousExpandedItems.forEach { restoreExpandedInnerGroup(it) }
+    previousExpandedItems.forEach { restoreExpandedOuterGroup(it) }
+  }
+
+  private fun restoreExpandedInnerGroup(oldItem: PTableGroupItem) {
+    val newParent = parentItems[oldItem] ?: return
+    val index = newParent.children.indexOf(oldItem)
+    // Note that the item added may be a different instance than oldItem:
+    expandedItems.add(newParent.children[index] as PTableGroupItem)
+  }
+
+  private fun restoreExpandedOuterGroup(oldItem: PTableGroupItem) {
+    if (!expandedItems.contains(oldItem)) {
+      val index = items.indexOf(oldItem)
+      if (index >= 0) {
+        // Note that the item expanded may be a different instance than oldItem:
+        val newItem = items[index] as PTableGroupItem
+        expand(newItem, index)
+      }
     }
   }
 
