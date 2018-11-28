@@ -98,7 +98,15 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
         return emptySet()
       }
 
+      override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
+        return CapabilitySupported()
+      }
+
       override fun registerDependency(coordinate: GradleCoordinate) {
+        registerDependency(coordinate, DependencyType.IMPLEMENTATION)
+      }
+
+      override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
         dependenciesByModule.put(module, coordinate)
       }
 

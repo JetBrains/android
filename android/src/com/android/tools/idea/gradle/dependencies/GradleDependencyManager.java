@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
+import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
+import static com.intellij.openapi.util.text.StringUtil.join;
+import static com.intellij.openapi.util.text.StringUtil.pluralize;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -33,19 +39,12 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
-import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
-import static com.intellij.openapi.util.text.StringUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.pluralize;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleDependencyManager {
   private static final String ADD_DEPENDENCY = "Add Dependency";
@@ -57,7 +56,7 @@ public class GradleDependencyManager {
 
   /**
    * Returns the dependencies that are NOT defined in the build files.
-   * 
+   *
    * Note: A dependency is still regarded as missing even if it's available
    * by a transitive dependency.
    * Also: the version of the dependency is disregarded.
@@ -147,7 +146,7 @@ public class GradleDependencyManager {
   public boolean addDependenciesAndSync(@NotNull Module module,
                                         @NotNull Iterable<GradleCoordinate> dependencies,
                                         @Nullable Runnable callback) {
-    return addDependenciesInTransaction(module, dependencies, true, callback);
+    return addDependenciesInTransaction(module, dependencies, true, callback, null);
   }
 
   /**
@@ -159,7 +158,23 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
-    return addDependenciesInTransaction(module, dependencies, false, null);
+    return addDependenciesInTransaction(module, dependencies, false, null, null);
+  }
+
+  /**
+   * Like {@link #addDependenciesWithoutSync(Module, Iterable)} but allows you to customize the configuration
+   * name of the inserted dependencies.
+   *
+   * @param module       the module to add dependencies to
+   * @param dependencies the dependencies of interest
+   * @param nameMapper   a factory to produce configuration names and artifact specsc
+   * @return true if the dependencies were successfully added or were already present in the module.
+   */
+  public boolean addDependenciesWithoutSync(
+    @NotNull Module module,
+    @NotNull Iterable<GradleCoordinate> dependencies,
+    @Nullable ConfigurationNameMapper nameMapper) {
+    return addDependenciesInTransaction(module, dependencies, false, null, nameMapper);
   }
 
   /**
@@ -189,7 +204,8 @@ public class GradleDependencyManager {
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<GradleCoordinate> coordinates,
                                                boolean performSync,
-                                               @Nullable Runnable callback) {
+                                               @Nullable Runnable callback,
+                                               @Nullable ConfigurationNameMapper nameMapper) {
     // callback method should never be provided when a sync is not requested.
     if (!performSync && callback != null) {
       throw new IllegalArgumentException("Callback must be null if sync is not requested.");
@@ -209,7 +225,7 @@ public class GradleDependencyManager {
           return;
         }
 
-        addDependencies(buildModel, module, missing);
+        addDependencies(buildModel, module, missing, nameMapper);
 
         if (performSync) {
           requestProjectSync(project, callback);
@@ -221,11 +237,16 @@ public class GradleDependencyManager {
 
   private static void addDependencies(@NotNull GradleBuildModel buildModel,
                                       @NotNull Module module,
-                                      @NotNull List<GradleCoordinate> coordinates) {
+                                      @NotNull List<GradleCoordinate> coordinates,
+                                      @Nullable ConfigurationNameMapper nameMapper) {
     updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate coordinate : coordinates) {
-        String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+        String name = COMPILE;
+        if (nameMapper != null) {
+          name = nameMapper.mapName(module, name, coordinate);
+        }
+        name = GradleUtil.mapConfigurationName(name, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
         dependenciesModel.addArtifact(name, coordinate.toString());
       }
       buildModel.applyChanges();

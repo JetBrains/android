@@ -111,6 +111,7 @@
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 
         <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
+        <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.android.tools.idea">
