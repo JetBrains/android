@@ -75,9 +75,7 @@ public class ActionsToolbarTest extends LayoutTestCase {
     doReturn(NlLayoutType.LAYOUT).when(surface).getLayoutType();
     when(surface.getIssuePanel()).thenReturn(issuePanel);
     when(surface.getIssueModel()).thenReturn(issueModel);
-    ActionsToolbar toolbar = new ActionsToolbar(getTestRootDisposable(), surface);
-    toolbar.getToolbarComponent();  // creates the toolbar components
-    return toolbar;
+    return new ActionsToolbar(getTestRootDisposable(), surface);
   }
 
   // Lookup some private fields via reflections.
