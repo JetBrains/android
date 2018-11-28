@@ -60,7 +60,7 @@ public class NetworkUsage extends LineChartModel {
                                         trafficType == NetworkTrafficDataSeries.Type.BYTES_SENT
                                         ? Common.Event.EventGroupIds.NETWORK_TX_VALUE
                                         : Common.Event.EventGroupIds.NETWORK_RX_VALUE,
-                                        event -> event.getNetworkSpeed().getThroughput());
+                                        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> event.getNetworkSpeed().getThroughput()));
     }
     else {
       NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
