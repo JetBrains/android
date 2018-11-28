@@ -28,7 +28,8 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
-import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +42,11 @@ public class DataBindingScopeTest {
   @Rule
   public final AndroidGradleProjectRule myProjectRule = new AndroidGradleProjectRule();
 
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
+
   @Test
+  @RunsInEdt
   public void testAccessFromInaccessibleScope() {
     myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
     myProjectRule.load(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
@@ -56,33 +61,31 @@ public class DataBindingScopeTest {
     assertTrue(myProjectRule.getModules().hasModule("lib2"));
     // app depends on lib depends on lib2
 
-    EdtTestUtil.runInEdtAndWait(() -> {
-      // trigger initialization
-      ResourceRepositoryManager.getModuleResources(facet);
+    // trigger initialization
+    ResourceRepositoryManager.getModuleResources(facet);
 
-      JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-      String appBindingClassName = "com.android.example.appwithdatabinding.databinding.ActivityMainBinding";
-      assertNotNull(javaPsiFacade.findClass(appBindingClassName, facet.getModule().getModuleWithDependenciesScope()));
-      assertNull(
-        javaPsiFacade.findClass(appBindingClassName, myProjectRule.getModules().getModule("lib").getModuleWithDependenciesScope()));
-      assertNull(
-        javaPsiFacade.findClass(appBindingClassName, myProjectRule.getModules().getModule("lib2").getModuleWithDependenciesScope()));
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+    String appBindingClassName = "com.android.example.appwithdatabinding.databinding.ActivityMainBinding";
+    assertNotNull(javaPsiFacade.findClass(appBindingClassName, facet.getModule().getModuleWithDependenciesScope()));
+    assertNull(
+      javaPsiFacade.findClass(appBindingClassName, myProjectRule.getModules().getModule("lib").getModuleWithDependenciesScope()));
+    assertNull(
+      javaPsiFacade.findClass(appBindingClassName, myProjectRule.getModules().getModule("lib2").getModuleWithDependenciesScope()));
 
-      // only exists in lib
-      String libLayoutBindingClassName = "com.foo.bar.databinding.LibLayoutBinding";
-      assertNotNull(javaPsiFacade.findClass(libLayoutBindingClassName, facet.getModule().getModuleWithDependenciesScope()));
-      assertNotNull(
-        javaPsiFacade.findClass(libLayoutBindingClassName, myProjectRule.getModules().getModule("lib").getModuleWithDependenciesScope()));
-      assertNull(
-        javaPsiFacade.findClass(libLayoutBindingClassName, myProjectRule.getModules().getModule("lib2").getModuleWithDependenciesScope()));
+    // only exists in lib
+    String libLayoutBindingClassName = "com.foo.bar.databinding.LibLayoutBinding";
+    assertNotNull(javaPsiFacade.findClass(libLayoutBindingClassName, facet.getModule().getModuleWithDependenciesScope()));
+    assertNotNull(
+      javaPsiFacade.findClass(libLayoutBindingClassName, myProjectRule.getModules().getModule("lib").getModuleWithDependenciesScope()));
+    assertNull(
+      javaPsiFacade.findClass(libLayoutBindingClassName, myProjectRule.getModules().getModule("lib2").getModuleWithDependenciesScope()));
 
-      // only exists in lib2
-      String lib2LayoutBindingClassName = "com.foo.bar2.databinding.Lib2LayoutBinding";
-      assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, facet.getModule().getModuleWithDependenciesScope()));
-      assertNotNull(
-        javaPsiFacade.findClass(lib2LayoutBindingClassName, myProjectRule.getModules().getModule("lib").getModuleWithDependenciesScope()));
-      assertNotNull(
-        javaPsiFacade.findClass(lib2LayoutBindingClassName, myProjectRule.getModules().getModule("lib2").getModuleWithDependenciesScope()));
-    });
+    // only exists in lib2
+    String lib2LayoutBindingClassName = "com.foo.bar2.databinding.Lib2LayoutBinding";
+    assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, facet.getModule().getModuleWithDependenciesScope()));
+    assertNotNull(
+      javaPsiFacade.findClass(lib2LayoutBindingClassName, myProjectRule.getModules().getModule("lib").getModuleWithDependenciesScope()));
+    assertNotNull(
+      javaPsiFacade.findClass(lib2LayoutBindingClassName, myProjectRule.getModules().getModule("lib2").getModuleWithDependenciesScope()));
   }
 }

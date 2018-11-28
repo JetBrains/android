@@ -37,9 +37,11 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.refactoring.actions.RenameElementAction;
-import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.util.ui.UIUtil;
+import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -56,6 +58,9 @@ import org.junit.runners.Parameterized;
 public class DataBindingRenameTest {
   @Rule
   public final AndroidGradleProjectRule myProjectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
 
   @Parameterized.Parameters(name = "{0}")
   public static List<DataBindingMode> getParameters() {
@@ -103,37 +108,36 @@ public class DataBindingRenameTest {
    * @see com.android.tools.idea.databinding.DataBindingRenamer
    */
   @Test
-  public void assertRenameFieldDerivedFromResource() {
-    EdtTestUtil.runInEdtAndWait(() -> {
-      // Temporary fix until test model can detect dependencies properly.
-      GradleInvocationResult assembleDebug = myProjectRule.invokeTasks(myProjectRule.getProject(), "assembleDebug");
-      assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful());
+  @RunsInEdt
+  public void assertRenameFieldDerivedFromResource() throws IOException {
+    // Temporary fix until test model can detect dependencies properly.
+    GradleInvocationResult assembleDebug = myProjectRule.invokeTasks(myProjectRule.getProject(), "assembleDebug");
+    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful());
 
-      GradleSyncState syncState = GradleSyncState.getInstance(myProjectRule.getProject());
-      assertFalse(syncState.isSyncNeeded().toBoolean());
-      assertEquals(ModuleDataBinding.getInstance(myProjectRule.getAndroidFacet()).getDataBindingMode(),
-                   myDataBindingMode);
+    GradleSyncState syncState = GradleSyncState.getInstance(myProjectRule.getProject());
+    assertFalse(syncState.isSyncNeeded().toBoolean());
+    assertEquals(ModuleDataBinding.getInstance(myProjectRule.getAndroidFacet()).getDataBindingMode(),
+                 myDataBindingMode);
 
-      // Make sure that all file system events up to this point have been processed.
-      VirtualFileManager.getInstance().syncRefresh();
-      UIUtil.dispatchAllInvocationEvents();
+    // Make sure that all file system events up to this point have been processed.
+    VirtualFileManager.getInstance().syncRefresh();
+    UIUtil.dispatchAllInvocationEvents();
 
-      VirtualFile file =
-        myProjectRule.getProject().getBaseDir()
-          .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/MainActivity.java");
-      myProjectRule.getFixture().configureFromExistingVirtualFile(file);
-      Editor editor = myProjectRule.getFixture().getEditor();
-      String text = editor.getDocument().getText();
-      int offset = text.indexOf("regularView");
-      assertTrue(offset > 0);
-      editor.getCaretModel().moveToOffset(offset);
-      VirtualFile layoutFile = myProjectRule.getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-      String layoutText = VfsUtilCore.loadText(layoutFile);
-      // Rename regularView to nameAfterRename in MainActivity.java.
-      checkAndRename("nameAfterRename");
-      // Check results.
-      assertEquals(text.replace("regularView", "nameAfterRename"), VfsUtilCore.loadText(file));
-      assertEquals(layoutText.replace("regular_view", "name_after_rename"), VfsUtilCore.loadText(layoutFile));
-    });
+    VirtualFile file =
+      myProjectRule.getProject().getBaseDir()
+        .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/MainActivity.java");
+    myProjectRule.getFixture().configureFromExistingVirtualFile(file);
+    Editor editor = myProjectRule.getFixture().getEditor();
+    String text = editor.getDocument().getText();
+    int offset = text.indexOf("regularView");
+    assertTrue(offset > 0);
+    editor.getCaretModel().moveToOffset(offset);
+    VirtualFile layoutFile = myProjectRule.getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    String layoutText = VfsUtilCore.loadText(layoutFile);
+    // Rename regularView to nameAfterRename in MainActivity.java.
+    checkAndRename("nameAfterRename");
+    // Check results.
+    assertEquals(text.replace("regularView", "nameAfterRename"), VfsUtilCore.loadText(file));
+    assertEquals(layoutText.replace("regular_view", "name_after_rename"), VfsUtilCore.loadText(layoutFile));
   }
 }
