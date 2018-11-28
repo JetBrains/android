@@ -300,7 +300,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     addToolbarActionsToMenu("LinearLayout", actions);
     return true;
   }

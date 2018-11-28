@@ -24,8 +24,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.target.ActionGroupTarget;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
@@ -239,19 +238,20 @@ public class NlComponentFixture {
 
   @NotNull
   public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
-    String expectedTooltipText = "Edit Baseline";
     SceneView sceneView = mySurface.getCurrentSceneView();
 
     // Find the position of the baseline target icon and click on it
     SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
-    Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
-      .filter(t -> t instanceof ActionGroupTarget)
-      .flatMap(t -> ((ActionGroupTarget)t).getActionTargets().stream())
-      .filter(t -> expectedTooltipText.equals(t.getToolTipText()))
-      .findFirst().get());
-    SceneContext context = SceneContext.get(sceneView);
-    Point p = new Point(context.getSwingXDip(target.getCenterX()), context.getSwingYDip(target.getCenterY()));
-    myComponentDriver.click(mySurface, p);
+    myComponentDriver.click(mySurface, new Point(sceneComponent.getCenterX(), sceneComponent.getCenterY()));
+    myComponentDriver.rightClick(mySurface);
+
+    JPopupMenuFixture popupMenuFixture = new JPopupMenuFixture(myRobot, myRobot.findActivePopupMenu());
+    popupMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem component) {
+        return "Show Baseline".equals(component.getText());
+      }
+    }).click();
 
     Point sourceBaseline = getTopCenterPoint();
     sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) + 1);
@@ -266,26 +266,17 @@ public class NlComponentFixture {
 
   @NotNull
   public ComponentAssistantFixture openComponentAssistant() {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    Point point = getMidPoint();
+    myComponentDriver.click(mySurface, point);
+    myRobot.click(mySurface, point, MouseButton.RIGHT_BUTTON, 1);
 
-    // Find the position of the baseline target icon and click on it
-    SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
-    Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
-                                                            .flatMap(t -> {
-                                                              // Flatten all the ActionTargets into one list. This includes
-                                                              // unpacking all the targets within the ActionGroupTarget
-                                                              if (t instanceof ActionGroupTarget) {
-                                                                return ((ActionGroupTarget)t).getActionTargets().stream();
-                                                              }
-                                                              else {
-                                                                return Stream.of(t);
-                                                              }
-                                                            })
-                                                            .filter(ComponentAssistantActionTarget.class::isInstance)
-                                                            .findFirst().get());
-    SceneContext context = SceneContext.get(sceneView);
-    Point p = new Point(context.getSwingXDip(target.getCenterX()), context.getSwingYDip(target.getCenterY()));
-    myComponentDriver.click(mySurface, p);
+    JPopupMenuFixture popupMenuFixture = new JPopupMenuFixture(myRobot, myRobot.findActivePopupMenu());
+    popupMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem component) {
+        return "Set Sample Data".equals(component.getText());
+      }
+    }).click();
 
     return new ComponentAssistantFixture(myRobot, waitUntilFound(myRobot, null,
                                                                  Matchers.byName(JComponent.class,"Component Assistant")));

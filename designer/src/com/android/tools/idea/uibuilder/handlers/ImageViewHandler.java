@@ -40,13 +40,13 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.ImageViewAssistant;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
@@ -216,21 +216,19 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   @Nullable
-  private ComponentAssistantFactory getComponentAssistant() {
+  private ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
     if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
     return (context) -> new ImageViewAssistant(context, this).getComponent();
   }
 
-  @NotNull
   @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory =
-      getComponentAssistant();
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    boolean cacheable = super.addPopupMenuActions(component, actions);
 
-    return panelFactory != null ?
-           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
-           ImmutableList.of();
+    actions.add(new ComponentAssistantViewAction(this::getComponentAssistant));
+
+    return cacheable;
   }
 }

@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.common.scene;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.ActionGroupTarget;
-import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -394,20 +402,34 @@ public class SceneMouseInteraction {
     repaint();
   }
 
-  public void clickAction(@NotNull String componentId, @NotNull Predicate<Target> selector) {
-    clickAction(myScene.getSceneComponent(componentId), selector);
+  private static List<ViewAction> getPopupActions(@Nullable SceneComponent component) {
+    if (component == null) {
+      return ImmutableList.of();
+    }
+
+    NlComponent nlComponent = component.getNlComponent();
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+    return handlerManager.getPopupMenuActions(component, viewHandler);
   }
 
-  public void clickAction(@NotNull SceneComponent component, @NotNull Predicate<Target> selector) {
-    ActionTarget actionTarget =
-      component.getTargets().stream()
-               .filter(target -> target instanceof ActionGroupTarget)
-               .map(target -> (ActionGroupTarget)target)
-               .flatMap(target -> target.getActionTargets().stream())
-               .filter(selector::test)
-               .findFirst().orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
-    mouseDown(actionTarget.getCenterX(), actionTarget.getCenterY());
-    mouseRelease(actionTarget.getCenterX(), actionTarget.getCenterY());
+  public void performViewAction(@NotNull SceneComponent component, @NotNull Predicate<ViewAction> selector) {
+    NlComponent nlComponent = component.getNlComponent();
+
+    ViewAction viewAction = Stream.concat(getPopupActions(component).stream(), getPopupActions(component.getParent()).stream())
+      .filter(selector)
+      .findFirst().orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
+
+    ViewEditor viewEditor = new ViewEditorImpl(nlComponent.getModel(), myScene);
+
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+
+    viewAction.perform(viewEditor, viewHandler, nlComponent, ImmutableList.of(nlComponent), 0);
+  }
+
+  public void performViewAction(@NotNull String componentId, @NotNull Predicate<ViewAction> selector) {
+    performViewAction(myScene.getSceneComponent(componentId), selector);
   }
 
   /**

@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -68,37 +68,26 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
   @NotNull
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
-
     sceneComponent.setNotchProvider(new ConstraintLayoutNotchProvider());
-
-    if (panelFactory != null) {
-      return ImmutableList.of(
-        new LassoTarget(),
-        new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
-        new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
-        new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
-        new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false),
-        new ComponentAssistantActionTarget(panelFactory)
-      );
-    } else {
-      return ImmutableList.of(
-        new LassoTarget(),
-        new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
-        new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
-        new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
-        new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
-      );
-    }
+    return ImmutableList.of(
+      new LassoTarget(),
+      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
+    );
   }
 
   @Override
-  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
-    MotionLayoutTimelinePanel panel = getTimeline(component);
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    MotionLayoutTimelinePanel panel = getTimeline(component.getNlComponent());
     if (panel == null || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_START
       || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_END) {
       super.addPopupMenuActions(component, actions);
     }
+
+    actions.add(new ComponentAssistantViewAction((nlComponent) -> getComponentAssistant(component.getScene().getDesignSurface(), nlComponent)));
+
     return false;
   }
 

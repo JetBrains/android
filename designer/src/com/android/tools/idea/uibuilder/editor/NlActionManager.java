@@ -25,6 +25,7 @@ import com.android.tools.idea.common.actions.GotoComponentAction;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
@@ -264,9 +265,10 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     ViewEditor editor = new ViewEditorImpl(screenView);
 
     // TODO: Perform caching
+    List<AnAction> actions = new ArrayList<>();
     if (component != null) {
       ViewHandler handler = ViewHandlerManager.get(mySurface.getProject()).getHandler(component);
-      addViewActionsForHandler(group, component, newSelection, editor, handler, toolbar);
+      actions.addAll(getViewActionsForHandler(component, newSelection, editor, handler, toolbar));
     }
     if (parent != null) {
       ViewHandler handler = ViewHandlerManager.get(mySurface.getProject()).getHandler(parent);
@@ -276,7 +278,19 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
           selectedChildren.add(selected);
         }
       }
-      addViewActionsForHandler(group, parent, selectedChildren, editor, handler, toolbar);
+      actions.addAll(getViewActionsForHandler(parent, selectedChildren, editor, handler, toolbar));
+    }
+
+    boolean lastWasSeparator = false;
+    for (AnAction action : actions) {
+      // Merge repeated separators
+      boolean isSeparator = action instanceof Separator;
+      if (isSeparator && lastWasSeparator) {
+        continue;
+      }
+
+      group.add(action);
+      lastWasSeparator = isSeparator;
     }
   }
 
@@ -296,14 +310,14 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     return group;
   }
 
-  private void addViewActionsForHandler(@NotNull DefaultActionGroup group,
-                                        @NotNull NlComponent component,
+  @NotNull
+  private List<AnAction> getViewActionsForHandler(@NotNull NlComponent component,
                                         @NotNull List<NlComponent> newSelection,
                                         @NotNull ViewEditor editor,
                                         @Nullable ViewHandler handler,
                                         boolean toolbar) {
     if (handler == null) {
-      return;
+      return Collections.emptyList();
     }
 
     List<ViewAction> viewActions = createViewActionList();
@@ -311,26 +325,20 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));
     }
     else {
-      viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getPopupMenuActions(component, handler));
+      SceneComponent sceneComponent = editor.getScene().getSceneComponent(component);
+      if (sceneComponent != null) {
+        viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getPopupMenuActions(sceneComponent, handler));
+      }
     }
+
     Collections.sort(viewActions);
 
-    group.removeAll();
     List<AnAction> target = Lists.newArrayList();
     for (ViewAction viewAction : viewActions) {
       addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
-    boolean lastWasSeparator = false;
-    for (AnAction action : target) {
-      // Merge repeated separators
-      boolean isSeparator = action instanceof Separator;
-      if (isSeparator && lastWasSeparator) {
-        continue;
-      }
 
-      group.add(action);
-      lastWasSeparator = isSeparator;
-    }
+    return target;
   }
 
   @NotNull

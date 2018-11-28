@@ -37,22 +37,6 @@ import java.util.List;
  */
 public abstract class DirectViewAction extends AbstractViewAction {
   /**
-   * Performs the given action. Invoked when the user clicks a view action
-   * toolbar button or invokes a view action menu action.
-   *
-   * @param editor           the associated IDE editor
-   * @param handler          the view handler
-   * @param component        the component this action is associated with
-   * @param selectedChildren any selected children of the component
-   * @param modifiers        modifiers in effect when the action was initiated
-   */
-  public abstract void perform(@NotNull ViewEditor editor,
-                               @NotNull ViewHandler handler,
-                               @NotNull NlComponent component,
-                               @NotNull List<NlComponent> selectedChildren,
-                               @InputEventMask int modifiers);
-
-  /**
    * Creates a new view action. If you use this method you must also override
    * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
    * to set an icon or label just-in-time.
@@ -69,14 +53,5 @@ public abstract class DirectViewAction extends AbstractViewAction {
    */
   public DirectViewAction(@Nullable Icon icon, @NotNull String label) {
     super(icon, label);
-  }
-
-  @Override
-  public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                 @NotNull ViewEditor editor,
-                                 @NotNull ViewHandler handler,
-                                 @NotNull NlComponent component,
-                                 @NotNull List<NlComponent> selectedChildren,
-                                 @InputEventMask int modifiers) {
   }
 }

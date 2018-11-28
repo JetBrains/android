@@ -62,4 +62,12 @@ public class ViewActionMenu extends AbstractViewAction {
                                  @InputEventMask int modifiers) {
     presentation.setLabel(getLabel());
   }
+
+  @Override
+  public void perform(@NotNull ViewEditor editor,
+                      @NotNull ViewHandler handler,
+                      @NotNull NlComponent component,
+                      @NotNull List<NlComponent> selectedChildren,
+                      int modifiers) {
+  }
 }

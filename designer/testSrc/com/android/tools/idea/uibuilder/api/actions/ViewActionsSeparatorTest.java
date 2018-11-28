@@ -87,6 +87,14 @@ public class ViewActionsSeparatorTest {
                                      int modifiers) {
         presentation.setVisible(visible);
       }
+
+      @Override
+      public void perform(@NotNull ViewEditor editor,
+                          @NotNull ViewHandler handler,
+                          @NotNull NlComponent component,
+                          @NotNull List<NlComponent> selectedChildren,
+                          int modifiers) {
+      }
     };
   }
 }

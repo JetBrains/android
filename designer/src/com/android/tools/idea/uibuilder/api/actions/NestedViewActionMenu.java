@@ -65,4 +65,12 @@ public class NestedViewActionMenu extends AbstractViewAction {
                                  @InputEventMask int modifiers) {
     presentation.setIcon(getIcon());
   }
+
+  @Override
+  public void perform(@NotNull ViewEditor editor,
+                      @NotNull ViewHandler handler,
+                      @NotNull NlComponent component,
+                      @NotNull List<NlComponent> selectedChildren,
+                      int modifiers) {
+  }
 }

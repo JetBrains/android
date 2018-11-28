@@ -66,7 +66,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
@@ -95,8 +94,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineActionTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleViewAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
@@ -108,7 +107,6 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -169,8 +167,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_LAYER = "Add Layer";
   private final static String ADD_GROUP = "Add Group";
   private final static String ADD_CONSTRAINTS_SET = "Add Set of Constraints";
-  @VisibleForTesting
-  public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
 
@@ -355,14 +351,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    actions.add(new BaseLineToggleViewAction());
+    actions.add(new ClearConstraintsSelectedComponentsAction());
+    actions.add(new ChainCycleViewAction());
+
     actions.add(new DisappearingActionMenu("Constrain", StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT, ConstraintViewActions.CONNECT_ACTIONS));
     actions.add(new DisappearingActionMenu("Organize", PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
     actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
     actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new DisappearingActionMenu("Helpers", VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
-    actions.add(new ClearConstraintsSelectedComponentsAction());
+
     return true;
   }
 
@@ -452,10 +452,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
     if (baseline > 0) {
       listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, true));
-      ActionTarget baselineActionTarget = new BaseLineActionTarget();
-      listBuilder.add(baselineActionTarget);
     }
-    listBuilder.add(new ChainCycleTarget(null));
 
     return listBuilder.build();
   }
@@ -543,7 +540,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
       for (NlComponent child : selectedChildren) {
         ConstraintComponentUtilities.clearAttributes(child);
       }

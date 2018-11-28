@@ -77,6 +77,14 @@ public final class ViewActionSeparator extends AbstractViewAction {
                                  @InputEventMask int modifiers) {
   }
 
+  @Override
+  public void perform(@NotNull ViewEditor editor,
+                      @NotNull ViewHandler handler,
+                      @NotNull NlComponent component,
+                      @NotNull List<NlComponent> selectedChildren,
+                      int modifiers) {
+  }
+
   public boolean isVisible(@NotNull ViewEditor editor,
                            @NotNull ViewHandler handler,
                            @NotNull NlComponent component,

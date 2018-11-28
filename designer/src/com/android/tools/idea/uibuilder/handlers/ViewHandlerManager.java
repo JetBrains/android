@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -562,7 +563,7 @@ public class ViewHandlerManager implements ProjectComponent {
   /**
    * Get the popup menu view actions for the given handler.
    * <p>
-   * This method will call {@link ViewHandler#addPopupMenuActions(NlComponent, List)} (String, List)}
+   * This method will call {@link ViewHandler#addPopupMenuActions(SceneComponent, List)} (String, List)}
    * but will cache results across invocations.
    *
    *
@@ -570,7 +571,8 @@ public class ViewHandlerManager implements ProjectComponent {
    * @param handler the handler to look up actions for
    * @return the associated view actions.
    */
-  public List<ViewAction> getPopupMenuActions(@NotNull NlComponent component, @NotNull ViewHandler handler) {
+  @NotNull
+  public List<ViewAction> getPopupMenuActions(@NotNull SceneComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
       actions = Lists.newArrayList();
