@@ -18,8 +18,12 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.BuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.navigation.PsBuildTypeNavigationPath
+import com.android.tools.idea.gradle.structure.navigation.PsBuildTypesNavigationPath
+import com.android.tools.idea.gradle.structure.navigation.PsBuildVariantsNavigationPath
 import java.io.File
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
@@ -41,6 +45,7 @@ open class PsBuildType(
   }
 
   override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  override val path: PsPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
   var embedMicroApp by BuildTypeDescriptors.embedMicroApp

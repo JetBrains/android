@@ -39,7 +39,7 @@ class PsResolvedModuleAndroidDependency internal constructor(
   gradlePath: String,
   val artifact: PsAndroidArtifact,
   internal val moduleVariant: String?,
-  private val targetModule: PsModule,
+  targetModule: PsModule,
   override val declaredDependencies: List<PsDeclaredDependency>
 ) : PsModuleAndroidDependency(
   parent, gradlePath, listOf(artifact)
@@ -50,7 +50,7 @@ class PsResolvedModuleAndroidDependency internal constructor(
 
 abstract class PsModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
-  override val gradlePath: String,
+  final override val gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>
 ) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
   override fun toText(): String = name

@@ -19,9 +19,11 @@ import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.gradle.structure.navigation.PsModuleDependencyNavigationPath
 
 interface PsModuleDependency : PsBaseDependency {
   val gradlePath: String
+  override val path: PsPath get() = PsModuleDependencyNavigationPath(this)
 }
 
 interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency

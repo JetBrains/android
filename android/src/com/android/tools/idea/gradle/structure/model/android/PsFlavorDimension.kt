@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.navigation.PsFlavorDimensionNavigationPath
 
 class PsFlavorDimension(
   override val parent: PsAndroidModule
@@ -27,7 +29,7 @@ class PsFlavorDimension(
   }
 
   override val name get() = parsedName.orEmpty()
-
+  override val path: PsPath get() = PsFlavorDimensionNavigationPath(parent.path.productFlavorsPath, name)
   override val isDeclared: Boolean get() = parsedName != null
 
 }
