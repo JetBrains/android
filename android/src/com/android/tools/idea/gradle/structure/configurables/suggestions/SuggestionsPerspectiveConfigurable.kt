@@ -31,6 +31,15 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   : AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
   private var messageCount: Int = 0
 
+  init {
+    fun issuesChanged() {
+      messageCount = getIssues(context, null).size
+      fireCountChangeListener()
+    }
+
+    context.analyzerDaemon.add({ invokeLaterIfNeeded { issuesChanged() } }, this)
+  }
+
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS
 
   override fun getId(): String = "android.psd.suggestions"
@@ -47,14 +56,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   override fun getCount(): Int = messageCount
 
-  override fun createComponent(): JComponent {
-    val component = super.createComponent().apply { name = "SuggestionsView" }
-    context.analyzerDaemon.add({
-      fireCountChangeListener()
-      invokeLaterIfNeeded { messageCount = getIssues(context, null).size }
-    }, this)
-    return component
-  }
+  override fun createComponent(): JComponent = super.createComponent().apply { name = "SuggestionsView" }
 
   private fun createConfigurable(module: PsModule) =
       AndroidModuleSuggestionsConfigurable(context, module).apply { setHistory(myHistory) }

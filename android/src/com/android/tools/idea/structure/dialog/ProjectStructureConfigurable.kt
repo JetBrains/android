@@ -62,6 +62,7 @@ import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import com.intellij.util.ui.UIUtil.requestFocus
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.EventListener
@@ -317,9 +318,13 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private fun addConfigurable(configurable: Configurable) {
     myConfigurables[configurable] = null
     (configurable as? Place.Navigator)?.setHistory(myHistory)
-    mySidePanel!!.addPlace(createPlaceFor(configurable), Presentation(configurable.displayName))
-    (configurable as? CounterDisplayConfigurable)
-      ?.add(CounterDisplayConfigurable.CountChangeListener { invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
+    val counterDisplayConfigurable = configurable.safeAs<CounterDisplayConfigurable>()
+    mySidePanel!!.addPlace(
+      createPlaceFor(configurable),
+      Presentation(configurable.displayName),
+      counterDisplayConfigurable?.let { { it.count } })
+    counterDisplayConfigurable?.add(
+      CounterDisplayConfigurable.CountChangeListener { invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
   }
 
   fun <T : Configurable> findConfigurable(type: Class<T>): T? = myConfigurables.keys.filterIsInstance(type).firstOrNull()

@@ -141,7 +141,7 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
     if (!isStopped) {
       analyzer.analyze(model, issues)
     }
-    resultsUpdaterQueue.queue(IssuesComputed(model))
+    resultsUpdaterQueue.queue(IssuesComputed(model, stop = true))
   }
 
   fun removeIssues(type: PsIssueType) {
@@ -170,15 +170,13 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
     }
   }
 
-  private inner class IssuesComputed(private val myModel: PsModel) : Update(myModel) {
+  private inner class IssuesComputed(private val myModel: PsModel, val stop: Boolean = false) : Update(myModel) {
 
     override fun run() {
-      if (isStopped) {
-        running.set(false)
-        return
-      }
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated(myModel)
-      running.set(false)
+      if (stop) {
+        running.set(false)
+      }
     }
   }
 

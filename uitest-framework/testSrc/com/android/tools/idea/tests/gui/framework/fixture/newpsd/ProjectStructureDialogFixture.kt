@@ -21,15 +21,13 @@ import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.intellij.ui.navigation.Place
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container
-
-import javax.swing.*
 import java.util.Arrays
+import javax.swing.JDialog
 
 class ProjectStructureDialogFixture(
     override val container: JDialog,
@@ -65,7 +63,7 @@ class ProjectStructureDialogFixture(
     val sidePanel = GuiTests.waitUntilFound(robot(), container, Matchers.byType(SidePanel::class.java))
     val sidePanelList = sidePanel.list
     val listFixture = JListFixture(robot(), sidePanelList)
-    listFixture.replaceCellReader { list, index -> sidePanel.descriptor.getTextFor(list.model.getElementAt(index) as Place) }
+    listFixture.replaceCellReader { list, index -> sidePanel.descriptor.getTextFor(list.model.getElementAt(index) as SidePanel.PlaceData) }
     println(Arrays.toString(listFixture.contents()))
     listFixture.clickItem(viewName)
     return this
