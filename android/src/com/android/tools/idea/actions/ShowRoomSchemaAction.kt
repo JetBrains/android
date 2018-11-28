@@ -51,7 +51,7 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
       }
       else {
         schema.databases.forEach(writer::println)
-        schema.entities.forEach(writer::println)
+        schema.tables.forEach(writer::println)
         schema.daos.forEach(writer::println)
       }
 

@@ -46,7 +46,7 @@ interface RoomColumnPsiReference : PsiReference {
 /**
  * A [PsiReference] pointing from the column name in SQL to the PSI element defining the column name.
  *
- * @see EntityColumn.nameElement
+ * @see RoomColumn.nameElement
  */
 class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
   override fun resolve(): PsiElement? = resolveColumn()?.resolveTo
@@ -118,7 +118,7 @@ private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
 /**
  * A [PsiReference] pointing from the selected table name in SQL to the PSI element defining the table name.
  *
- * @see Entity.nameElement
+ * @see RoomTable.nameElement
  */
 class RoomSelectedTablePsiReference(
   tableName: RoomSelectedTableName
@@ -199,7 +199,7 @@ class RoomParameterReference(parameter: RoomBindParameter) : PsiReferenceBase<Ro
 
   private fun findQueryMethod(): UMethod? {
     return (element.containingFile as? RoomSqlFile)
-      ?.hostRoomAnnotation
+      ?.findHostRoomAnnotation()
       ?.takeIf { RoomAnnotations.QUERY.isEquals(it.qualifiedName) }
       ?.getParentOfType<UAnnotated>()
       as? UMethod

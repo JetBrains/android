@@ -101,9 +101,9 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
 
   private fun getNameDefinition(element: PsiElement): SqlDefinition? {
     return when (element) {
-      is PsiClass -> getSchema(element)?.findEntity(element) ?: return null
+      is PsiClass -> getSchema(element)?.findTable(element) ?: return null
       is PsiField -> getSchema(element)
-        ?.findEntity(element.containingClass ?: return null)
+        ?.findTable(element.containingClass ?: return null)
         ?.columns
         ?.find { it.psiField.element == element }
           ?: return null

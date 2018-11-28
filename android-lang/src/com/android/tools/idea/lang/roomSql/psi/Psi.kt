@@ -19,6 +19,7 @@ import com.android.tools.idea.lang.roomSql.ROOM_ICON
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
+import com.android.tools.idea.lang.roomSql.resolution.IgnoreClassProcessor
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.android.tools.idea.lang.roomSql.resolution.SqlTable
 import com.intellij.extapi.psi.PsiFileBase
@@ -31,6 +32,8 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UClass
+import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.getUastParentOfType
 import javax.swing.Icon
 
@@ -50,31 +53,46 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
   override fun getIcon(flags: Int): Icon? = ROOM_ICON
 
-  val hostRoomAnnotation: UAnnotation?
-    get() {
-      return InjectedLanguageManager.getInstance(project)
-        .getInjectionHost(this)
-        ?.getUastParentOfType<UAnnotation>()
-        ?.takeIf {
-          val qualifiedName = it.qualifiedName
-          when {
-            RoomAnnotations.QUERY.isEquals(qualifiedName) -> true
-            RoomAnnotations.DATABASE_VIEW.isEquals(qualifiedName) -> true
-            else -> false
-          }
+  fun findHostRoomAnnotation(): UAnnotation? {
+    return InjectedLanguageManager.getInstance(project)
+      .getInjectionHost(this)
+      ?.getUastParentOfType<UAnnotation>()
+      ?.takeIf {
+        val qualifiedName = it.qualifiedName
+        when {
+          RoomAnnotations.QUERY.isEquals(qualifiedName) -> true
+          RoomAnnotations.DATABASE_VIEW.isEquals(qualifiedName) -> true
+          else -> false
         }
-    }
+      }
+  }
 
   fun processTables(processor: Processor<SqlTable>): Boolean {
+    val hostRoomAnnotation = findHostRoomAnnotation()
     if (hostRoomAnnotation != null) {
       // We are inside a Room annotation, let's use the Room schema.
-      val tables = RoomSchemaManager.getInstance(project)?.getSchema(this)?.entities ?: emptySet<SqlTable>()
-      return ContainerUtil.process(tables, processor)
+      return ContainerUtil.process(
+        RoomSchemaManager.getInstance(project)?.getSchema(this)?.tables ?: emptySet<SqlTable>(),
+        amendProcessor(hostRoomAnnotation, processor)
+      )
     }
 
     return true
   }
 
+  /**
+   * Picks the right [Processor] for tables in the schema. If this [RoomSqlFile] belongs to a `@DatabaseView` definition, skips the view
+   * being defined from completion, to avoid recursive definitions.
+   */
+  private fun amendProcessor(
+    hostRoomAnnotation: UAnnotation,
+    processor: Processor<SqlTable>
+  ): Processor<in SqlTable> {
+    return hostRoomAnnotation.takeIf { RoomAnnotations.DATABASE_VIEW.isEquals(it.qualifiedName) }
+             ?.getParentOfType<UClass>()
+             ?.let { IgnoreClassProcessor(it.javaPsi, processor) }
+           ?: processor
+  }
 }
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(RoomSqlLanguage.INSTANCE)
@@ -86,4 +104,3 @@ interface SqlTableElement : PsiElement {
 interface HasWithClause : PsiElement {
   val withClause: RoomWithClause?
 }
-
