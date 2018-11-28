@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static com.android.tools.idea.npw.dynamicapp.ModuleDownloadConditions.CONDITIONAL_MIN_SDK_CHECK_BOX_NAME;
+
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import javax.swing.JComboBox;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureDynamicFeatureDeliveryStepFixture, W> {
@@ -54,6 +56,20 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
   public ConfigureDynamicFeatureDeliveryStepFixture<W> setDownloadInstallKind(@NotNull DownloadInstallKind value) {
     JComboBox comboBox = robot().finder().findByType(JComboBox.class, true);
     new JComboBoxFixture(robot(), comboBox).selectItem(value.getDisplayName());
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> checkMinimumSdkApiCheckBox() {
+    selectCheckBoxWithName(CONDITIONAL_MIN_SDK_CHECK_BOX_NAME, true);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
+    ApiLevelComboBoxFixture apiLevelComboBox =
+      new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class));
+    apiLevelComboBox.selectApiLevel(api);
     return this;
   }
 }

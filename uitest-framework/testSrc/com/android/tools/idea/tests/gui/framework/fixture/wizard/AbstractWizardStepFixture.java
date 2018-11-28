@@ -67,6 +67,19 @@ public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixtu
     return checkBox;
   }
 
+  @NotNull
+  protected JCheckBoxFixture selectCheckBoxWithName(@NotNull String name, boolean select) {
+    JCheckBox cb = robot().finder().findByName(name, JCheckBox.class);
+    JCheckBoxFixture checkBox = new JCheckBoxFixture(robot(), cb);
+    if (select) {
+      checkBox.select();
+    }
+    else {
+      checkBox.deselect();
+    }
+    return checkBox;
+  }
+
   protected void replaceText(@NotNull JTextComponent textField, @NotNull String text) {
     new JTextComponentFixture(robot(), textField).selectAll().enterText(text);
   }
