@@ -35,6 +35,8 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleDownloadConditions {
+  public static final String CONDITIONAL_MIN_SDK_CHECK_BOX_NAME = "conditional.minSdk.checkBox";
+
   public JPanel myRootPanel;
   public JCheckBox myMinimumSDKLevelCheckBox;
   private JPanel myDeviceFeaturesContainer;
@@ -52,6 +54,9 @@ public class ModuleDownloadConditions {
     myDeviceFeaturesContainer.setLayout(new BoxLayout(myDeviceFeaturesContainer, BoxLayout.Y_AXIS));
 
     myAddDeviceFeatureLinkLabel.setIcon(null); // Clear default icon
+
+    // For UI testing
+    myMinimumSDKLevelCheckBox.setName(CONDITIONAL_MIN_SDK_CHECK_BOX_NAME);
 
     // Handle the "+ device-feature" button
     myAddDeviceFeatureLinkLabel.setListener(new LinkListener<Void>() {

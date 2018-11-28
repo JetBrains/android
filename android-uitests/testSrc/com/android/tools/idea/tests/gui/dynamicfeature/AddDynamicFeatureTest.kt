@@ -338,6 +338,57 @@ class AddDynamicFeatureTest {
   }
 
   /**
+   * Verifies that user is able to add a Dynamic Feature Module through the
+   * new module wizard, with conditional delivery specifying "minsdk = 24".
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(ideFrame)
+      .clickNextToDynamicFeature()
+      .enterFeatureModuleName("MyDynamicFeature")
+      .selectBaseApplication("app")
+      .selectMinimumSdkApi("26")
+      .clickNextToConfigureConditionalDelivery()
+      .enterName("My Dynamic Feature Title")
+      .setFusing(false)
+      .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
+      .checkMinimumSdkApiCheckBox()
+      .selectMinimumSdkApi("24")
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .projectView
+      .selectAndroidPane()
+      .clickPath("MyDynamicFeature")
+
+    ideFrame.editor
+      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<dist:delivery>""")
+      assertThat(this).contains("""<dist:install-time>""")
+      assertThat(this).contains("""<dist:conditions>""")
+      assertThat(this).contains("""<dist:min-sdk dist:value="24" />""")
+      assertThat(this).contains("""</dist:conditions>""")
+      assertThat(this).contains("""</dist:install-time>""")
+      assertThat(this).doesNotContain("""<dist:on-demand />""")
+      assertThat(this).contains("""</dist:delivery>""")
+      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/res/values/strings.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
+    }
+  }
+
+  /**
    * Verifies that user is able to add a New Login Activity to a Dynamic Feature Module
    *
    * <pre>
