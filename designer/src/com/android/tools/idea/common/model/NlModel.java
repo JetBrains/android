@@ -33,7 +33,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -41,7 +40,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelper;
 import com.android.tools.idea.util.ListenerCollection;
@@ -78,6 +76,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import kotlin.Unit;
@@ -108,29 +107,38 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
 
+  /**
+   * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
+   */
+  @NotNull private final Consumer<NlComponent> myComponentRegistrar;
+
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file,
-                               @NotNull ConfigurationManager configurationManager) {
-    return new NlModel(parent, facet, file, configurationManager.getConfiguration(file));
+                               @NotNull ConfigurationManager configurationManager,
+                               @NotNull Consumer<NlComponent> componentRegistrar) {
+    return new NlModel(parent, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
   }
 
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file) {
-    return create(parent, facet, file, ConfigurationManager.getOrCreateInstance(facet));
+                               @NotNull VirtualFile file,
+                               @NotNull Consumer<NlComponent> componentRegistrar) {
+    return create(parent, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
-                    @NotNull Configuration configuration) {
+                    @NotNull Configuration configuration,
+                    @NotNull Consumer<NlComponent> componentRegistrar) {
     myFacet = facet;
     myFile = file;
     myConfiguration = configuration;
+    myComponentRegistrar = componentRegistrar;
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
@@ -898,19 +906,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent component = new NlComponent(this, tag);
-    NlLayoutType layoutType = NlLayoutType.typeOf(getFile());
-    switch (layoutType) {
-      // TODO We should create a subclass of NlModel to differentiate NavEditor Behavior and Layout Editor Behaviors
-      // The difference was handled in DesignSurface before but we should not rely on the DesignSurface to add component, at
-      // least in the LayoutEditor, since it does already so many things.
-      case NAV:
-        NavComponentHelper.INSTANCE.registerComponent(component);
-        break;
-      case LAYOUT:
-      default:
-        NlComponentHelper.INSTANCE.registerComponent(component);
-        break;
-    }
+    myComponentRegistrar.accept(component);
     return component;
   }
 

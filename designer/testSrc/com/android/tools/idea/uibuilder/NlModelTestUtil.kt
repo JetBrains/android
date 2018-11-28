@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.vfs.VirtualFile
@@ -29,6 +30,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
+import java.util.function.Consumer
 
 /**
  * Utility method that creates a [NlModel] with the provided [xmlContent] as the root component.
@@ -50,7 +52,8 @@ fun createNlModelFromTagName(androidFacet: AndroidFacet,
   val model = NlModel.create(androidFacet.module,
                              androidFacet,
                              file,
-                             configurationManager)
+                             configurationManager,
+                             Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
   val rootComponent = createComponent(file.content.toString(), model)
   model.syncWithPsi(rootComponent.tag, listOf(StubTagSnapshotTreeNode(rootComponent)))
   return model

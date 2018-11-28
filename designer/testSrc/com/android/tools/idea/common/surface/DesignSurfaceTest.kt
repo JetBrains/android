@@ -28,6 +28,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
+import java.util.function.Consumer
 import javax.swing.JComponent
 
 class DesignSurfaceTest: LayoutTestCase() {
@@ -86,6 +87,8 @@ class DesignSurfaceTest: LayoutTestCase() {
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable): DesignSurface(project, SelectionModel(), disposible) {
+  override fun getComponentRegistrar() = Consumer<NlComponent> {}
+
   override fun createActionHandler(): DesignSurfaceActionHandler {
     throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
   }

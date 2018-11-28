@@ -54,6 +54,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -74,6 +75,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -524,6 +526,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       handler.onActivateInDesignSurface(component, getSceneManager().getViewEditor(), x, y);
     }
     super.notifyComponentActivate(component, x, y);
+  }
+
+  @NotNull
+  @Override
+  public Consumer<NlComponent> getComponentRegistrar() {
+    return component -> NlComponentHelper.INSTANCE.registerComponent(component);
   }
 
   public void setMockupVisible(boolean mockupVisible) {

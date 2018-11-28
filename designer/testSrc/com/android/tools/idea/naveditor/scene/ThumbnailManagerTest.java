@@ -21,6 +21,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.NavTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
@@ -49,10 +50,14 @@ import org.jetbrains.annotations.Nullable;
  * Tests for {@link ThumbnailManager}
  */
 public class ThumbnailManagerTest extends NavTestCase {
+
+  private NavDesignSurface mySurface;
+
   @Override
   public void setUp() {
     super.setUp();
     TestableThumbnailManager.register(myFacet, myRootDisposable);
+    mySurface = new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
   }
 
   public void testCaching() {
@@ -60,7 +65,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     BufferedImage image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
@@ -93,7 +98,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
     Configuration configuration = model.getConfiguration();
     RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
     BufferedImage orig = thumbnail.getTerminalImage();
@@ -153,7 +158,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
 
@@ -176,7 +181,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("../unitTest/res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getProject(), myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
     BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
 
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
