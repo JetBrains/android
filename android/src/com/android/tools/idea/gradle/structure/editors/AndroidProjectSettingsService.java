@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.ModulesPerspectiveConfigurableKt;
@@ -107,7 +108,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-            .putPath(ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_PLACE_NAME, module.getName())
+            .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
         );
       }
       else {
@@ -124,7 +125,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
           .putPath(ModulePanelKt.MODULE_PLACE_NAME, SigningConfigsPanelKt.SIGNING_CONFIGS_DISPLAY_NAME)
       );
     }
@@ -165,7 +166,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
           .putPath(String.format("dependencies.%s.place", module.getName()), dependency.toString())
       );
     }
@@ -180,7 +181,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
-            .putPath(BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME, module.getName())
+            .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
             .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, BuildTypesPanelKt.BUILD_TYPES_DISPLAY_NAME)
         );
     }
@@ -195,7 +196,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
-            .putPath(BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME, module.getName())
+            .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
             .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, ProductFlavorsPanelKt.PRODUCT_FLAVORS_DISPLAY_NAME)
         );
     }
@@ -210,7 +211,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_PLACE_NAME, module.getName())
+          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
       );
     }
     else {
@@ -306,7 +307,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-            .putPath(ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_PLACE_NAME, module.getName())
+            .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
         );
       }
       else {

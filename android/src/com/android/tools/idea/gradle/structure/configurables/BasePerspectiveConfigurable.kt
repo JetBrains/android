@@ -53,6 +53,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ToolTipManager
 
+const val BASE_PERSPECTIVE_MODULE_PLACE_NAME = "base_perspective.module"
+
 abstract class BasePerspectiveConfigurable protected constructor(
   protected val context: PsContext,
   val extraModules: List<PsModule>
@@ -74,7 +76,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var treeInitiated: Boolean = false
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
-  protected abstract val navigationPathName: String
+  val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
   val selectedModuleName: String? get() = selectedModule?.name
 

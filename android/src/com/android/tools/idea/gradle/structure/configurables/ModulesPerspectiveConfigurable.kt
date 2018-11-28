@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
 
-const val MODULES_PERSPECTIVE_PLACE_NAME: String = "modules.place"
 const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
 
 class ModulesPerspectiveConfigurable(context: PsContext)
@@ -35,8 +34,6 @@ class ModulesPerspectiveConfigurable(context: PsContext)
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
       if (module is PsAndroidModule) createConfigurable(module)
       else JavaModuleUnsupportedConfigurable(context, module)
-
-  override val navigationPathName: String = MODULES_PERSPECTIVE_PLACE_NAME
 
   override fun getDisplayName() = MODULES_PERSPECTIVE_DISPLAY_NAME
 
