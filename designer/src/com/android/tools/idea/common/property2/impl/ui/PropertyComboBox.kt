@@ -30,6 +30,7 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
+import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
@@ -53,6 +54,9 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
   var renderer: ListCellRenderer<in EnumValue>
     get() = comboBox.renderer
     set(value) { comboBox.renderer = value }
+
+  val editor: CommonTextField<*>
+    get() = comboBox.editor.editorComponent as CommonTextField<*>
 }
 
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)

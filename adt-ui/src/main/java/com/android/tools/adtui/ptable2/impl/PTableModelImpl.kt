@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.ptable2.impl
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.ptable2.*
 import javax.swing.table.AbstractTableModel
 
@@ -23,10 +24,15 @@ import javax.swing.table.AbstractTableModel
  */
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private val items = mutableListOf<PTableItem>()
-  private val expandedItems = mutableSetOf<PTableGroupItem>()
+  private val parentItems = mutableMapOf<PTableItem, PTableGroupItem>()
+
+  @VisibleForTesting
+  val expandedItems = mutableSetOf<PTableGroupItem>()
 
   init {
     items.addAll(tableModel.items)
+    recomputeParents()
+
     tableModel.addListener(object : PTableModelUpdateListener {
       override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
         if (!modelChanged) {
@@ -35,6 +41,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
         else {
           items.clear()
           items.addAll(tableModel.items)
+          recomputeParents()
           expandedItems.retainAll { isGroupItem(it) }
           expandedItems.forEach { restoreExpanded(it) }
           val index = if (nextEditedItem != null) items.indexOf(nextEditedItem) else -1
@@ -84,6 +91,16 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     collapse(item, index)
   }
 
+  fun depth(item: PTableItem): Int {
+    var parent = parentItems[item]
+    var depth = 0
+    while (parent != null) {
+      depth++
+      parent = parentItems[parent]
+    }
+    return depth
+  }
+
   private fun groupAt(index: Int): PTableGroupItem? {
     if (index < 0 || index >= items.size) {
       return null
@@ -110,6 +127,24 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     if (expandedItems.remove(item)) {
       items.subList(row + 1, row + 1 + item.children.size).clear()
       fireTableDataChanged()
+    }
+  }
+
+  private fun recomputeParents() {
+    parentItems.clear()
+    items.forEach {
+      if (it is PTableGroupItem) {
+        computeParents(it)
+      }
+    }
+  }
+
+  private fun computeParents(group: PTableGroupItem) {
+    group.children.forEach {
+      parentItems[it] = group
+      if (it is PTableGroupItem) {
+        computeParents(it)
+      }
     }
   }
 }

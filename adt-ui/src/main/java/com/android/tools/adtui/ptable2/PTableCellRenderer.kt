@@ -27,12 +27,22 @@ interface PTableCellRenderer {
    *
    * A return value of null means the cell is empty.
    */
-  fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, isSelected: Boolean, hasFocus: Boolean): JComponent?
+  fun getEditorComponent(table: PTable,
+                         item: PTableItem,
+                         column: PTableColumn,
+                         depth: Int,
+                         isSelected: Boolean,
+                         hasFocus: Boolean): JComponent?
 }
 
 class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
 
-  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, isSelected: Boolean, hasFocus: Boolean): JComponent? {
+  override fun getEditorComponent(table: PTable,
+                                  item: PTableItem,
+                                  column: PTableColumn,
+                                  depth: Int,
+                                  isSelected: Boolean,
+                                  hasFocus: Boolean): JComponent? {
     clear()
     setPaintFocusBorder(hasFocus)
     font = table.activeFont
@@ -47,7 +57,7 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     @Suppress("LiftReturnOrAssignment")
     if (column == PTableColumn.NAME) {
       append(item.name)
-      border = null
+      border = if (depth > 0) JBUI.Borders.emptyLeft(4 * depth) else null
     }
     else {
       append(item.value.orEmpty())
