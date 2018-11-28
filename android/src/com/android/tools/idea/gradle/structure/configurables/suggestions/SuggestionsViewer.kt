@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.structure.configurables.ui.enqueueTagged
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
-import java.util.*
 import java.util.Comparator.comparingInt
+import java.util.SortedMap
 import javax.swing.JPanel
 
 class SuggestionsViewer(
@@ -35,11 +35,14 @@ class SuggestionsViewer(
   val panel: JPanel get() = myMainPanel
 
   fun display(issues: List<PsIssue>, scope: PsPath?) {
-    val issuesBySeverity = issues.groupBy { it.severity }.toSortedMap(comparingInt { it.priority })
-    updateQueue.enqueueTagged(this) {
+
+    fun render() {
+      val issuesBySeverity = issues.groupBy { it.severity }.toSortedMap(comparingInt { it.priority })
       renderIssues(issuesBySeverity, scope)
       revalidateAndRepaint(panel)
     }
+
+    if (panel.isShowing) render() else updateQueue.enqueueTagged(this) { render() }
   }
 
   private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>, scope: PsPath?) {
