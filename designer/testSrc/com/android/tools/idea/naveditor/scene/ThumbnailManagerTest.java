@@ -87,7 +87,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     assertSame(image, imageFuture.getTerminalImage());
   }
-  
+
   public void testOldVersion() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
