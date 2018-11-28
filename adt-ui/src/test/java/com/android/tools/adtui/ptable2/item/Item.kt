@@ -66,6 +66,22 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override fun addListener(listener: PTableModelUpdateListener) {
     listeners.add(listener)
   }
+
+  fun find(name: String): PTableItem? {
+    return find(name, items)
+  }
+
+  private fun find(name: String, children: List<PTableItem>): PTableItem? {
+    return children.mapNotNull { find(name, it) }.firstOrNull()
+  }
+
+  private fun find(name: String, child: PTableItem): PTableItem? {
+    if (child.name == name) {
+      return child
+    }
+    val children = (child as? PTableGroupItem)?.children ?: return null
+    return find(name, children)
+  }
 }
 
 class DummyPTableCellEditor : DefaultPTableCellEditor() {

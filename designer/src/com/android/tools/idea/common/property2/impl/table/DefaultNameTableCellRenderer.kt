@@ -23,19 +23,20 @@ import java.awt.Insets
 import javax.swing.JComponent
 import kotlin.math.max
 
-const val LEFT_STANDARD_INDENT = 20
-private const val ICON_CENTER_X_POS = 12
-private const val MIN_SPACING = 2
+const val LEFT_STANDARD_INDENT = 2
+const val MIN_SPACING = 2
+const val DEPTH_INDENT = 8
 
 /**
  * Table cell renderer for the name of a [PTableItem].
  */
 class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
-  private val leftIconArea = JBUI.scale(LEFT_STANDARD_INDENT)
-  private val iconCenterXPos = JBUI.scale(ICON_CENTER_X_POS)
+  private val standardIndent = JBUI.scale(LEFT_STANDARD_INDENT)
   private val minSpacing = JBUI.scale(MIN_SPACING)
+  private val depthIndent = JBUI.scale(DEPTH_INDENT)
+  private val iconWidth = UIUtil.getTreeCollapsedIcon().iconWidth
 
-  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn,
+  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
                                   isSelected: Boolean, hasFocus: Boolean): JComponent {
     clear()
     append(item.name)
@@ -43,11 +44,13 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
     setFocusBorderAroundIcon(true)
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     myBorder = JBUI.Borders.empty()
-    var indent = leftIconArea
+    var indent = standardIndent + depth * depthIndent
     if (item is PTableGroupItem) {
       icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)
-      indent = max(iconCenterXPos - icon.iconWidth / 2, minSpacing)
-      iconTextGap = max(leftIconArea - indent - icon.iconWidth, minSpacing)
+      iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
+    }
+    else {
+      indent += iconWidth + minSpacing
     }
     if (isSelected && hasFocus) {
       foreground = UIUtil.getTreeSelectionForeground()

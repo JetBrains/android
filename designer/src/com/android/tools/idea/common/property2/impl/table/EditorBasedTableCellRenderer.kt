@@ -21,10 +21,13 @@ import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.ui.CellPanel
+import com.android.tools.idea.common.property2.impl.ui.PropertyComboBox
+import com.android.tools.idea.common.property2.impl.ui.PropertyTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.border.Border
 
@@ -41,17 +44,19 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
                                                         private val fontSize: UIUtil.FontSize,
                                                         private val defaultRenderer: PTableCellRenderer) : PTableCellRenderer {
   private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
+  private val leftSpacing = JBUI.scale(LEFT_STANDARD_INDENT) + JBUI.scale(MIN_SPACING) + UIUtil.getTreeCollapsedIcon().iconWidth
+  private val depthIndent = JBUI.scale(DEPTH_INDENT)
 
-  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn,
+  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
                                   isSelected: Boolean, hasFocus: Boolean): JComponent? {
     if (!itemClass.isInstance(item) || !table.tableModel.isCellEditable(item, column)) {
-      return defaultRenderer.getEditorComponent(table, item, column, isSelected, hasFocus)
+      return defaultRenderer.getEditorComponent(table, item, column, depth, isSelected, hasFocus)
     }
     val property = itemClass.cast(item)
     val controlType = controlTypeProvider(property)
     val hasBrowseButton = property.browseButton != null
     val key = ControlKey(controlType, hasBrowseButton)
-    val (model, editor) = componentCache[key] ?: createEditor(key, property, column, table.gridLineColor)
+    val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.property = property
     if (isSelected && hasFocus) {
       editor.foreground = UIUtil.getTreeSelectionForeground()
@@ -64,11 +69,15 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     return editor
   }
 
-  private fun createEditor(key: ControlKey, property: P, column: PTableColumn, gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
+  private fun createEditor(key: ControlKey,
+                           property: P,
+                           column: PTableColumn,
+                           depth: Int,
+                           gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
     val panel = CellPanel()
     panel.add(editor, BorderLayout.CENTER)
-    panel.border = createBorder(column, editor, gridLineColor)
+    panel.border = createBorder(column, depth, editor, gridLineColor)
     editor.font = UIUtil.getLabelFont(fontSize)
 
     val result = Pair(model, panel)
@@ -76,10 +85,19 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     return result
   }
 
-  private fun createBorder(column: PTableColumn, editor: JComponent, gridLineColor: Color): Border =
+  private fun createBorder(column: PTableColumn, depth: Int, editor: JComponent, gridLineColor: Color): Border =
     when (column) {
-      PTableColumn.NAME -> JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - editor.insets.left, 0, 0)
+      PTableColumn.NAME -> BorderFactory.createEmptyBorder(0, leftSpacing - editorLeftMargin(editor) + depth * depthIndent, 0, 0)
       PTableColumn.VALUE -> JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
+    }
+
+  // Somewhat dirty: Estimate the space to the left edge of the text in the component to align with other
+  // names in the table.
+  private fun editorLeftMargin(editor: JComponent): Int =
+    when (editor) {
+      is PropertyTextField -> editor.margin.left
+      is PropertyComboBox -> editor.editor.margin.left
+      else -> editor.insets.left
     }
 
   private data class ControlKey(val type: ControlType, val hasBrowseButton: Boolean)

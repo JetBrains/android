@@ -26,7 +26,8 @@ import javax.swing.JComponent
 
 class DefaultValueTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
 
-  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, isSelected: Boolean, hasFocus: Boolean): JComponent? {
+  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
+                                  isSelected: Boolean, hasFocus: Boolean): JComponent? {
     clear()
     setPaintFocusBorder(hasFocus)
     font = table.activeFont

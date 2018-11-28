@@ -35,6 +35,9 @@ class PTableCellRendererWrapper: TableCellRenderer {
     // PTable shows focus for the entire row. Not per cell.
     val rowIsLead = table.selectionModel.leadSelectionIndex == row
     val hasFocus = (table.hasFocus() || table.editingRow == row) && rowIsLead
-    return renderer.getEditorComponent(table as PTable, value as PTableItem, PTableColumn.fromColumn(column), isSelected, hasFocus)
+    val pTable = table as PTableImpl
+    val model = pTable.model
+    val item = value as PTableItem
+    return renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus)
   }
 }
