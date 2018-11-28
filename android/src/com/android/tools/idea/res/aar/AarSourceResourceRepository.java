@@ -42,7 +42,6 @@ import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
@@ -51,14 +50,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
-import com.android.ide.common.resources.DuplicateDataException;
-import com.android.ide.common.resources.MergeConsumer;
-import com.android.ide.common.resources.MergingException;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceMerger;
-import com.android.ide.common.resources.ResourceMergerItem;
-import com.android.ide.common.resources.ResourceSet;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -75,11 +68,8 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
 import com.android.tools.lint.detector.api.Lint;
-import com.android.utils.ILogger;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
@@ -119,7 +109,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -221,86 +210,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     return myResourceDirectory;
   }
 
-  private void loadUsingResourceMerger(@Nullable Collection<PathString> resourceFilesAndFolders) {
-    try {
-      ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
-      ResourceMerger merger = new ResourceMerger(0);
-
-      ResourceSet resourceSet = new ResourceSet(myResourceDirectory.getFileName().toString(), getNamespace(), myLibraryName, false);
-      if (myRTxtIds == null) {
-        resourceSet.setShouldParseResourceIds(true);
-      }
-
-      // The resourceFilesAndFolders collection contains resource files to be parsed.
-      // If it is null, all files in the resource folder are parsed.
-      if (resourceFilesAndFolders == null) {
-        resourceSet.addSource(myResourceDirectory.toFile());
-      }
-      else {
-        for (PathString resourceFile : resourceFilesAndFolders) {
-          resourceSet.addSource(resourceFile.toFile());
-        }
-      }
-      resourceSet.setTrackSourcePositions(false);
-      try {
-        resourceSet.loadFromFiles(logger);
-      }
-      catch (DuplicateDataException e) {
-        // This should not happen; resourceSet validation is disabled.
-        assert false;
-      }
-      catch (MergingException e) {
-        LOG.warn(e);
-      }
-      merger.addDataSet(resourceSet);
-      updateTableFromMerger(merger);
-    }
-    catch (Exception e) {
-      LOG.error("Failed to load resources from " + myResourceDirectory.toString(), e);
-    }
-  }
-
-  public void updateTableFromMerger(@NonNull ResourceMerger merger) {
-    MergeConsumer<ResourceMergerItem> consumer =
-      new MergeConsumer<ResourceMergerItem>() {
-        @Override
-        public void start(@NonNull DocumentBuilderFactory factory) {}
-
-        @Override
-        public void end() {}
-
-        @Override
-        public void addItem(@NonNull ResourceMergerItem item) {
-          ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
-          if (!multimap.containsEntry(item.getName(), item)) {
-            multimap.put(item.getName(), item);
-          }
-        }
-
-        @Override
-        public void removeItem(@NonNull ResourceMergerItem removedItem, @Nullable ResourceMergerItem replacedBy) {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean ignoreItemInMerge(ResourceMergerItem item) {
-          return false; // Never ignore any item.
-        }
-      };
-
-    try {
-      merger.mergeData(consumer, true);
-    } catch (MergingException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   private void load(@Nullable Collection<PathString> resourceFilesAndFolders) {
-    if (!StudioFlags.LIGHTWEIGHT_DATA_STRUCTURES_FOR_AAR.get()) {
-      loadUsingResourceMerger(resourceFilesAndFolders);
-      return;
-    }
-
     try {
       boolean shouldParseResourceIds = myRTxtIds == null;
 
