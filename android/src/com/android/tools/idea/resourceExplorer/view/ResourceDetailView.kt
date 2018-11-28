@@ -15,31 +15,48 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
 import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.Separator
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.JBColor
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+import com.intellij.ui.components.JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.WeakHashMap
 import javax.swing.AbstractAction
+import javax.swing.ActionMap
 import javax.swing.BorderFactory
+import javax.swing.FocusManager
 import javax.swing.ImageIcon
+import javax.swing.InputMap
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.KeyStroke
+import javax.swing.SwingConstants
 
 private val ASSET_CARD_WIDTH = JBUI.scale(150)
 
@@ -65,7 +82,10 @@ class ResourceDetailView(
   private val imageCache: ImageCache,
   private val viewModel: ProjectResourcesBrowserViewModel,
   private val backCallback: (ResourceDetailView) -> Unit)
-  : JPanel(BorderLayout()) {
+  : JPanel(BorderLayout()), DataProvider {
+
+  private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.designAssets.size)
+  private var lastFocusedAsset: AssetView? = null
 
   private val backAction = object : AnAction(StudioIcons.Common.BACK_ARROW) {
     init {
@@ -76,22 +96,48 @@ class ResourceDetailView(
     override fun isDumbAware(): Boolean = true
   }
 
-  /**
-   * The header component showing a button to navigate back and the name of the [designAssetSet]
-   */
-  private val header = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
-    border = HEADER_PANEL_BORDER
-    add(ActionButton(backAction, backAction.templatePresentation.clone(), "Resource Explorer", BACK_BUTTON_SIZE))
-    add(Separator(SEPARATOR_BORDER))
-    add(JBLabel(designAssetSet.name))
+  private val sharedInputMap = InputMap().apply { put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), backAction) }
+
+  private val sharedActionMap = ActionMap().apply {
+    put(backAction, object : AbstractAction("VK_ESCAPE") {
+      override fun actionPerformed(e: ActionEvent?) {
+        navigateBack()
+      }
+    })
+  }
+
+  private val cardFocusListener = object : FocusListener {
+    override fun focusLost(e: FocusEvent?) {
+    }
+
+    override fun focusGained(e: FocusEvent?) {
+      (e?.source as? SingleAssetCard)?.let { assetCard ->
+        if (lastFocusedAsset != assetCard) {
+          lastFocusedAsset?.selected = false
+          assetCard.selected = true
+          lastFocusedAsset = assetCard
+        }
+      }
+    }
   }
 
   /**
+   * The header component showing a button to navigate back and the name of the [designAssetSet]
+   */
+  private val header = JPanel(HorizontalLayout(0, SwingConstants.CENTER)).apply {
+    border = HEADER_PANEL_BORDER
+    add(HorizontalLayout.LEFT, ActionButton(backAction, backAction.templatePresentation.clone(), "Resource Explorer", BACK_BUTTON_SIZE))
+    add(HorizontalLayout.LEFT, Separator(SEPARATOR_BORDER))
+    add(HorizontalLayout.LEFT, JBLabel(designAssetSet.name))
+  }
+  /**
    * The panel which displays all the [DesignAsset]
    */
-  private val content = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+  private val content = JPanel(WrappedFlowLayout(FlowLayout.LEFT)).apply {
     designAssetSet.designAssets.forEach { asset ->
-      add(createAssetCard(asset))
+      val assetCard = createAssetCard(asset)
+      add(assetCard)
+      viewToAsset[assetCard] = asset
     }
     registerBackOnEscape()
     registerFocusOnClick()
@@ -99,7 +145,9 @@ class ResourceDetailView(
 
   init {
     add(header, BorderLayout.NORTH)
-    add(content)
+    add(JBScrollPane(content, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER).apply {
+      border = null
+    })
   }
 
   /**
@@ -107,27 +155,21 @@ class ResourceDetailView(
    * the ESC key is pressed.
    */
   private fun JComponent.registerBackOnEscape() {
-    val condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
-    val inputMap = getInputMap(condition)
+    setInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, sharedInputMap)
+    actionMap = sharedActionMap
+  }
 
-    val backAction = "VK_ESCAPE"
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), backAction)
-    this.actionMap.put(backAction, object : AbstractAction(backAction) {
-      override fun actionPerformed(e: ActionEvent?) {
-        navigateBack()
-      }
-    })
+  private val focusRequestMouseAdapter = object : MouseAdapter() {
+    override fun mousePressed(e: MouseEvent) {
+      (e.source as JComponent).requestFocusInWindow()
+    }
   }
 
   /**
    * Register a [MouseAdapter] to request the focus in [content] on click.
    */
   private fun JComponent.registerFocusOnClick() {
-    addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(e: MouseEvent) {
-        (e.source as JComponent).requestFocusInWindow()
-      }
-    })
+    addMouseListener(focusRequestMouseAdapter)
   }
 
   /**
@@ -158,13 +200,27 @@ class ResourceDetailView(
     thumbnail = JBLabel(ImageIcon(image))
 
     // Mouse listener to open the file on double click
+    addFocusListener(cardFocusListener)
     addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent) {
+        requestFocusInWindow()
         if (e.clickCount == 2) {
           viewModel.openFile(asset)
         }
+        e.consume()
       }
     })
+
+    registerBackOnEscape()
+    isFocusable = true
+    isRequestFocusEnabled = true
+    PopupHandler.installPopupHandler(this, "ResourceExplorer", "ResourceExplorer")
+  }
+
+
+  override fun getData(dataId: String): Any? {
+    val assetList = viewToAsset[lastFocusedAsset]?.let { listOf(it) } ?: return null
+    return viewModel.getData(dataId, assetList)
   }
 
   override fun requestFocusInWindow(): Boolean {
