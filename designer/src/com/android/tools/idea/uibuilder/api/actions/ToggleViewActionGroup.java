@@ -58,5 +58,13 @@ public class ToggleViewActionGroup extends AbstractViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers) {
   }
+
+  @Override
+  public void perform(@NotNull ViewEditor editor,
+                      @NotNull ViewHandler handler,
+                      @NotNull NlComponent component,
+                      @NotNull List<NlComponent> selectedChildren,
+                      int modifiers) {
+  }
 }
 

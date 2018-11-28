@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.api.actions
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.actions.ToggleShowDecorationsAction
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.google.common.collect.ImmutableList
 import icons.StudioIcons
 import javax.swing.Icon
@@ -26,6 +29,8 @@ import javax.swing.Icon
 abstract class AbstractViewAction
 /**
  * Creates a new view action with a given icon and label.
+ * By default, this class will make the action visible and set the {@link ViewAction} icon
+ * and label into the passed {@link ViewActionPresentation}.
  *
  * @param myRank the relative sorting order of this action; see [.getRank]
  * for details
@@ -40,6 +45,17 @@ constructor(protected val myIcon: Icon?,
   override fun getLabel(): String = myLabel
   override fun getIcon(): Icon? = myIcon
   override fun affectsUndo(): Boolean = true
+
+  override fun updatePresentation(presentation: ViewActionPresentation,
+                                  editor: ViewEditor,
+                                  handler: ViewHandler,
+                                  component: NlComponent,
+                                  selectedChildren: MutableList<NlComponent>,
+                                  modifiers: Int) {
+    presentation.setIcon(icon)
+    presentation.setLabel(label)
+    presentation.setVisible(true)
+  }
 
   fun setRank(rank: Int) {
     // For now the rank for classes implementing AbstractViewAction is mutable. This is to allow instanceof checks on the children.
@@ -59,7 +75,8 @@ private class ViewActionWithRank(private val delegate: ViewAction, private val n
 fun ViewAction.withRank(rank: Int): ViewAction = if (this is AbstractViewAction) {
   setRank(rank)
   this
-} else {
+}
+else {
   ViewActionWithRank(this, rank)
 }
 

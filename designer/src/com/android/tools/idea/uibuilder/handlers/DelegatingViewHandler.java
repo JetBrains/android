@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -64,7 +65,7 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     return myHandler.addPopupMenuActions(component, actions);
   }
 

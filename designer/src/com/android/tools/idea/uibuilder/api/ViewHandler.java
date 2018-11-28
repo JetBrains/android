@@ -127,7 +127,7 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
    * @return true if the actions should be cached, false otherwise
    */
-  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     return true;
   }
 

@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.BUTTON;
@@ -31,8 +30,7 @@ public class SceneComplexBaselineConnectionTest extends SceneTest {
 
   public void testConnectBaseline() {
     myInteraction.select("button1", true);
-    myInteraction.clickAction("button1", target -> ConstraintLayoutHandler.EDIT_BASELINE_ACTION_TOOLTIP
-      .equalsIgnoreCase(target.getToolTipText()));
+    myInteraction.performViewAction("button1", target -> target instanceof BaseLineToggleViewAction);
     myInteraction.mouseDown("button1", AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button2", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button1")

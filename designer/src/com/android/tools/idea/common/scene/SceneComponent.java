@@ -80,7 +80,6 @@ public class SceneComponent {
 
   @GuardedBy("myTargets")
   private final ArrayList<Target> myTargets = new ArrayList<>();
-  private final ActionGroupTarget myActionTargets = new ActionGroupTarget(this);
 
   @GuardedBy("myTargets")
   @Nullable private ImmutableList<Target> myCachedTargetList;
@@ -690,11 +689,6 @@ public class SceneComponent {
 
   protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
-    if (target instanceof ActionTarget) {
-      // Action Targets are laid out by the ActionTargetGroup
-      myActionTargets.addAction((ActionTarget)target);
-      return;
-    }
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.add(target);
@@ -875,8 +869,6 @@ public class SceneComponent {
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.clear();
-      myActionTargets.clear();
-      myTargets.add(myActionTargets);
     }
 
     // update the Targets created by parent's TargetProvider

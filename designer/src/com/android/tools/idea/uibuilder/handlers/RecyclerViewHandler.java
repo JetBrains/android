@@ -19,10 +19,9 @@ import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.google.common.collect.ImmutableList;
@@ -60,7 +59,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   }
 
   @Nullable
-  public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  private static ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
     if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
@@ -73,14 +72,13 @@ public class RecyclerViewHandler extends ViewGroupHandler {
     return RecyclerViewAssistant::createComponent;
   }
 
-  @NotNull
   @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    boolean cacheable = super.addPopupMenuActions(component, actions);
 
-    return panelFactory != null ?
-           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
-           ImmutableList.of();
+    actions.add(new ComponentAssistantViewAction(RecyclerViewHandler::getComponentAssistant));
+
+    return cacheable;
   }
 
   @Override

@@ -76,6 +76,16 @@ public abstract class ToggleViewAction extends AbstractViewAction {
                                    @NotNull List<NlComponent> selectedChildren,
                                    boolean selected);
 
+  @Override
+  public final void perform(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            int modifiers) {
+    boolean selected = isSelected(editor, handler, parent, selectedChildren);
+    setSelected(editor, handler, parent, selectedChildren, !selected);
+  }
+
   /**
    * Returns the unselected icon
    */
