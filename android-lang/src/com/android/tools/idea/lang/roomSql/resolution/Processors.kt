@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiManager
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 
@@ -53,5 +55,16 @@ class AllColumnsProcessor(private val delegate: Processor<SqlColumn>) : Processo
 }
 
 class IgnoreViewsProcessor(private val delegate: Processor<SqlTable>) : Processor<SqlTable> {
-  override fun process(t: SqlTable): Boolean = if (!t.isView) delegate.process(t) else true
+  override fun process(t: SqlTable): Boolean = t.isView || delegate.process(t)
+}
+
+class IgnoreClassProcessor(private val toSkip: PsiClass, private val delegate: Processor<SqlTable>) : Processor<SqlTable> {
+  private val psiManager: PsiManager = PsiManager.getInstance(toSkip.project)
+
+  override fun process(t: SqlTable?): Boolean {
+    val definingClass = (t as? RoomTable)?.psiClass?.element ?: return true
+    // During code completion the two classes may not be equal, because the file being edited is copied for completion purposes. But they
+    // are equivalent according to the PsiManager.
+    return psiManager.areElementsEquivalent(definingClass, toSkip) || delegate.process(t)
+  }
 }

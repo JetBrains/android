@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
+import com.android.tools.idea.lang.roomSql.resolution.RoomTable.Type
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -29,13 +30,16 @@ data class RoomDatabase(
   /** Annotated class. */
   val psiClass: PsiClassPointer,
 
-  /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
+  /** Classes mentioned in the `tables` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
   val entities: Set<PsiClassPointer>
 )
 
-data class Entity(
+data class RoomTable(
   /** Annotated class. */
   val psiClass: PsiClassPointer,
+
+  /** [Type] of the table. */
+  val type: Type,
 
   /** Name of the table: take from the class name or the annotation parameter. */
   override val name: String,
@@ -48,15 +52,23 @@ data class Entity(
   val nameElement: PsiElementPointer = psiClass,
 
   /** Columns present in the table representing this entity. */
-  val columns: Set<EntityColumn> = emptySet()
+  val columns: Set<RoomColumn> = emptySet()
 ) : SqlTable {
   override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
   override val definingElement: PsiElement get() = psiClass.element!!
   override val resolveTo: PsiElement get() = nameElement.element!!
-  override val isView: Boolean get() = false
+  override val isView = type == Type.VIEW
+
+  enum class Type {
+    /** Created from a class annotated with `@Entity`. */
+    ENTITY,
+
+    /** Created from a class annotated with `@DatabaseView`. */
+    VIEW,
+  }
 }
 
-data class EntityColumn(
+data class RoomColumn(
   /** Field that defines this column. */
   val psiField: PsiFieldPointer,
 
@@ -78,8 +90,8 @@ data class Dao(val psiClass: PsiClassPointer)
  */
 data class RoomSchema(
   val databases: Set<RoomDatabase>,
-  val entities: Set<Entity>,
+  val tables: Set<RoomTable>,
   val daos: Set<Dao>
 ) {
-  fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass.element == psiClass }
+  fun findTable(psiClass: PsiClass) = tables.find { it.psiClass.element == psiClass }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.psi.RoomTableAliasName
 import com.android.tools.idea.lang.roomSql.psi.RoomTableDefinitionName
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
@@ -368,10 +369,10 @@ class TableReferencesTest : RoomLightTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+    assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
         .containsExactly(
-            Pair("people", myFixture.findClass("com.example.User")),
-            Pair("Address", myFixture.findClass("com.example.Address")))
+          "people" to myFixture.findClass("com.example.User"),
+          "Address" to myFixture.findClass("com.example.Address"))
   }
 
   fun testCodeCompletion_escaping() {
@@ -393,11 +394,11 @@ class TableReferencesTest : RoomLightTestCase() {
 
     val lookupElements = myFixture.completeBasic()
 
-    assertThat(lookupElements.map { Pair(it.lookupString, it.psiElement) })
+    assertThat(lookupElements.map { it.lookupString to it.psiElement })
         .containsExactly(
-            Pair("`funny people`", userClass),
-            Pair("Address", myFixture.findClass("com.example.Address")),
-            Pair("`Order`", myFixture.findClass("com.example.Order"))) // ORDER is a keyword in SQL.
+          "`funny people`" to userClass,
+          "Address" to myFixture.findClass("com.example.Address"),
+          "`Order`" to myFixture.findClass("com.example.Order")) // ORDER is a keyword in SQL.
 
     myFixture.lookup.currentItem = lookupElements.find { it.psiElement === userClass }
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
@@ -820,5 +821,57 @@ class TableReferencesTest : RoomLightTestCase() {
           List<Integer> getIds();
         }
     """.trimIndent())
+  }
+
+  fun testViews_inDao() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.addClass("""
+      package com.example;
+
+      import androidx.room.DatabaseView;
+
+      @DatabaseView(value = "select id from user", viewName = "ids")
+      public class Ids {
+        public int id;
+      }
+    """.trimIndent() )
+
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT * FROM <caret>")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
+      .containsExactly(
+        "ids" to myFixture.findClass("com.example.Ids"),
+        "User" to myFixture.findClass("com.example.User"))
+  }
+
+  fun testViews_inTheViewItself() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("Ids.java", """
+      package com.example;
+
+      import androidx.room.DatabaseView;
+
+      @DatabaseView(value = "select id from $caret", viewName = "ids")
+      public class Ids {
+        public int id;
+      }
+    """.trimIndent() )
+
+    assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
+      .containsExactly("User" to myFixture.findClass("com.example.User"))
   }
 }
