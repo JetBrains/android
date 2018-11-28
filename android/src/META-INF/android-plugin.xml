@@ -1085,6 +1085,8 @@
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
+    <codeInsight.unresolvedReferenceQuickFixProvider implementation="com.android.tools.idea.imports.AndroidMavenImportJavaResolver"/>
+
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
 
     <!-- Finder for light R classes, runs before the default finder. -->

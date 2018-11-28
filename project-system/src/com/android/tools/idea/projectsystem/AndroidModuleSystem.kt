@@ -90,6 +90,9 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
 
+  /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
+  fun canRegisterDependency(type: DependencyType): CapabilityStatus
+
   /**
    * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
    * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
@@ -97,6 +100,11 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    * **Note**: This function will perform a write action.
    */
   fun registerDependency(coordinate: GradleCoordinate)
+
+  /**
+   * Like [registerDependency] where you can specify the type of dependency to add
+   */
+  fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
 
   /**
    * Returns the resolved libraries that this module depends on.
@@ -115,4 +123,11 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    * Determines whether or not the underlying build system supports instant run.
    */
   fun getInstantRunSupport(): CapabilityStatus
+}
+
+/** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */
+enum class DependencyType {
+  IMPLEMENTATION,
+  // TODO: Add "API," & support in build systems
+  ANNOTATION_PROCESSOR
 }

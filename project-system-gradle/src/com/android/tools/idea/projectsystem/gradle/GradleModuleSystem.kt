@@ -29,7 +29,9 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
+import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -76,8 +78,30 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
     return javaLibraries + androidLibraries
   }
 
+  override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
+    return CapabilitySupported()
+  }
+
   override fun registerDependency(coordinate: GradleCoordinate) {
-    GradleDependencyManager.getInstance(module.project).addDependenciesWithoutSync(module, Collections.singletonList(coordinate))
+    registerDependency(coordinate, DependencyType.IMPLEMENTATION)
+  }
+
+  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
+    val manager = GradleDependencyManager.getInstance(module.project)
+    val coordinates = Collections.singletonList(coordinate)
+
+    if (type == DependencyType.ANNOTATION_PROCESSOR) {
+      // addDependenciesWithoutSync doesn't support this: more direct implementation
+      manager.addDependenciesWithoutSync(module, coordinates) { _, name, _ ->
+        when {
+          name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
+          name.startsWith("test") -> "testAnnotationProcessor"
+          else -> "annotationProcessor"
+        }
+      }
+    } else {
+      manager.addDependenciesWithoutSync(module, coordinates)
+    }
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
