@@ -99,7 +99,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress || syncResultPublisher.sourceGenerationExpected
+  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress || syncResultPublisher.isSourceGenerationInProgress()
   override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded != ThreeState.NO
   override fun getLastSyncResult() = syncResultPublisher.lastSyncResult
 }

@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.projectsystem.SyncWithSourceGenerationListener;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,7 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
     AtomicBoolean setupStarted = new AtomicBoolean(false);
     AtomicBoolean syncSucceeded = new AtomicBoolean(false);
     AtomicBoolean sourceGenerationFinished = new AtomicBoolean(false);
+    AtomicBoolean syncFinished = new AtomicBoolean(false);
     GradleSyncState.subscribe(getProject(), new GradleSyncListener() {
       @Override
       public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
@@ -77,6 +80,14 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
       }
     });
 
+    // Register a SyncWithSourceGenerationListener to guarantee sync finished is invoked
+    GradleSyncState.subscribe(getProject(), new SyncWithSourceGenerationListener() {
+      @Override
+      public void syncFinished(boolean sourceGenerationRequested, @NotNull ProjectSystemSyncManager.SyncResult result) {
+        syncFinished.set(true);
+      }
+    });
+
     assertSourcesNotGenerated("app");
 
     // Invoke sync with source generation
@@ -87,7 +98,7 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
     assertTrue(setupStarted.get());
     assertTrue(syncSucceeded.get());
     assertTrue(sourceGenerationFinished.get());
-
+    assertTrue(syncFinished.get());
     // Gradle build was not invoked
     assertFalse(buildStarted.get());
   }
