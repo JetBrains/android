@@ -19,6 +19,7 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
@@ -28,6 +29,7 @@ import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
@@ -362,6 +364,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
       }
       if (psiClass != null) {
+        NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT).log()
+
         val tags = schema.getTagsForDestinationClass(psiClass) ?: return@runWhenSmart
         val tag = if (tags.size == 1) tags.first()
         else schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT) ?: return@runWhenSmart
@@ -374,7 +378,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
   }
 
-  private fun addDestination(destination: Destination) {
+  @VisibleForTesting
+  fun addDestination(destination: Destination) {
     if (creatingInProgress) {
       return
     }
@@ -383,11 +388,18 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     balloon?.hide()
     lateinit var component: NlComponent
     WriteCommandAction.runWriteCommandAction(surface.project, "Add ${destination.label}", null, Runnable {
-        destination.addToGraph()
-        component = destination.component ?: return@Runnable
-        component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
-        // explicitly update so the new SceneComponent is created
-        surface.sceneManager!!.update()
+      destination.addToGraph()
+      component = destination.component ?: return@Runnable
+      if (component.isInclude) {
+        NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
+      }
+      else {
+        NavUsageTracker.getInstance(surface).createEvent(
+          NavEditorEvent.NavEditorEventType.ADD_DESTINATION).withDestinationInfo(component).log()
+      }
+      component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+      // explicitly update so the new SceneComponent is created
+      surface.sceneManager!!.update()
     }, surface.model?.file)
     surface.selectionModel.setSelection(ImmutableList.of(component))
   }

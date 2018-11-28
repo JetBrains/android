@@ -70,7 +70,8 @@ sealed class Destination : Comparable<Destination> {
   abstract val destinationOrder: DestinationOrder
   abstract val inProject: Boolean
 
-  var component: NlComponent? = null
+  // open for testing
+  open var component: NlComponent? = null
 
   override fun compareTo(other: Destination): Int {
     return comparator.compare(this, other)
