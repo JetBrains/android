@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
 
 /**
  * A [SyncWithSourceGenerationListener] is a sync listener which only considers syncs with source generation to be finished after
@@ -32,12 +33,13 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
   /**
    * This field keeps track of whether source generation was requested for the last sync and whether or not that source generation
    * has already completed.
+   * It is null if source generation was not requested, and if source generation was requested, sourceGenerationFuture.isDone indicates
+   * whether or not the source generation task has completed.
    *
    * This gives us a way of connecting the "source generation requested" attribute of a sync request with the source generation
    * that is obtained from a successful build, and allows us to ignore builds that are unrelated to the last sync.
    */
-  var sourceGenerationExpected = false
-    private set
+  private var sourceGenerationFuture: CompletableFuture<ProjectSystemSyncManager.SyncResult>? = null
 
   abstract fun syncFinished(sourceGenerationRequested: Boolean, result: ProjectSystemSyncManager.SyncResult)
 
@@ -45,42 +47,44 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
   }
 
   override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) {
-    sourceGenerationExpected = sourceGenerationRequested
+    sourceGenerationFuture = if (sourceGenerationRequested) CompletableFuture() else null
   }
 
-  override fun setupStarted(project: Project) { }
+  override fun setupStarted(project: Project) {}
 
-  override fun syncSucceeded(project: Project) {
-    if (!sourceGenerationExpected) {
-      syncFinished(false, ProjectSystemSyncManager.SyncResult.SUCCESS)
+  override fun syncSucceeded(project: Project) = syncFinished(project, ProjectSystemSyncManager.SyncResult.SUCCESS)
+
+  override fun syncFailed(project: Project, errorMessage: String) = syncFinished(project, ProjectSystemSyncManager.SyncResult.FAILURE)
+
+  override fun syncSkipped(project: Project) = syncFinished(project, ProjectSystemSyncManager.SyncResult.SKIPPED)
+
+  private fun syncFinished(project: Project, syncResult: ProjectSystemSyncManager.SyncResult) {
+    val sourceGenerationRequested = sourceGenerationFuture != null
+    if (!sourceGenerationRequested || !syncResult.isSuccessful) {
+      syncFinished(sourceGenerationRequested, syncResult)
+    }
+    else {
+      sourceGenerationFuture?.whenComplete { result, _ -> if (!project.isDisposed) syncFinished(sourceGenerationRequested, result) }
     }
   }
 
-  override fun syncFailed(project: Project, errorMessage: String) {
-    val sourceGenerationRequested = sourceGenerationExpected
-
-    sourceGenerationExpected = false
-    syncFinished(sourceGenerationRequested, ProjectSystemSyncManager.SyncResult.FAILURE)
-  }
-
-  override fun syncSkipped(project: Project) {
-    if (!sourceGenerationExpected) {
-      syncFinished(false, ProjectSystemSyncManager.SyncResult.SKIPPED)
-    }
+  override fun sourceGenerationFinished(project: Project) {
+    // With compound sync, the source generation result is always success, otherwise syncFailed would be called.
+    sourceGenerationFuture?.complete(ProjectSystemSyncManager.SyncResult.SUCCESS)
   }
 
   override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-    if (sourceGenerationExpected) {
-      sourceGenerationExpected = false
-
-      val result = when(status) {
-        BuildStatus.CANCELED -> ProjectSystemSyncManager.SyncResult.CANCELLED
-        BuildStatus.FAILED   -> ProjectSystemSyncManager.SyncResult.SOURCE_GENERATION_FAILURE
-        BuildStatus.SKIPPED  -> ProjectSystemSyncManager.SyncResult.SKIPPED
-        BuildStatus.SUCCESS  -> ProjectSystemSyncManager.SyncResult.SUCCESS
-      }
-
-      syncFinished(true, result)
+    val result = when (status) {
+      BuildStatus.CANCELED -> ProjectSystemSyncManager.SyncResult.CANCELLED
+      BuildStatus.FAILED   -> ProjectSystemSyncManager.SyncResult.SOURCE_GENERATION_FAILURE
+      BuildStatus.SKIPPED  -> ProjectSystemSyncManager.SyncResult.SKIPPED
+      BuildStatus.SUCCESS  -> ProjectSystemSyncManager.SyncResult.SUCCESS
     }
+    sourceGenerationFuture?.complete(result)
   }
+
+  /**
+   * @return true if source generation is requested and not completed yet.
+   */
+  fun isSourceGenerationInProgress(): Boolean = sourceGenerationFuture?.isDone == false
 }
