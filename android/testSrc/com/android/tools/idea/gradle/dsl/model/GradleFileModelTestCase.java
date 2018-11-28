@@ -74,7 +74,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -222,7 +221,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
     final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
     assumeTrue(testFile.exists());
-    return FileUtils.readFileToString(testFile, StandardCharsets.UTF_8);
+    return loadFile(testFile);
   }
 
   protected String getSubModuleSettingsText() {
