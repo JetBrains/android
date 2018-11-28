@@ -26,6 +26,7 @@ import com.google.common.base.Strings;
 import com.intellij.build.FileNavigatable;
 import com.intellij.build.FilePosition;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -39,14 +40,13 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
@@ -86,8 +86,12 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   protected void handleNavigate(@NotNull CodeLocation location) {
     // Gets the navigatable in another thread, so we don't block the UI while potentially performing heavy operations, such as searching for
     // the java class/method in the PSI tree or using llvm-symbolizer to get a native function name.
+    //
+    // Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need to wrap the action in a ReadAction.
+    // Hence all PSI-reading code inside getNavigatable() will need to wrapped in a ReadAction.
+    // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html
     CompletableFuture.supplyAsync(
-      () -> getNavigatable(location), ApplicationManager.getApplication()::executeOnPooledThread)
+      () -> ReadAction.compute(() -> getNavigatable(location)), ApplicationManager.getApplication()::executeOnPooledThread)
       .thenAcceptAsync(nav -> {
         if (nav != null) {
           nav.navigate(true);

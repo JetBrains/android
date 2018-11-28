@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,16 +46,19 @@ public final class NavigateToCodeAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
     CodeLocation codeLocation = myLocationSupplier.get();
-    // Disable the entry initially to prevent users clicking on the button and trying to navigate if it's not navigatable.
-    e.getPresentation().setEnabled(false);
     if (codeLocation == null) {
+      e.getPresentation().setEnabled(false);
       return;
     }
+    // Because update() is also called right before actonPerformed for another check, if we disable the button here it would cause the
+    // action to be ignored. Therefore we always enable the button before checking isNavigatable asynchronously.
+    e.getPresentation().setEnabled(true);
     // Check if the code is navigatable in another thread and enable the button accordingly. In most cases, the change from disabled to
     // enabled shouldn't be perceptible. However, we do it as a safe measure as some heavy operations might happen (e.g. searching for the
     // java class/method in the PSI tree or using llvm-symbolizer to get a native function name).
     CompletableFuture.supplyAsync(
-      () -> myCodeNavigator.isNavigatable(codeLocation), ApplicationManager.getApplication()::executeOnPooledThread)
+      () -> ReadAction.compute(() -> myCodeNavigator.isNavigatable(codeLocation)),
+      ApplicationManager.getApplication()::executeOnPooledThread)
       .thenAcceptAsync(isNavigatable -> e.getPresentation().setEnabled(isNavigatable), ApplicationManager.getApplication()::invokeLater);
   }
 
