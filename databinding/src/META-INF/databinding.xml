@@ -29,6 +29,11 @@
     <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
+
+    <intentionAction>
+      <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
+      <category>Android</category>
+    </intentionAction>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">

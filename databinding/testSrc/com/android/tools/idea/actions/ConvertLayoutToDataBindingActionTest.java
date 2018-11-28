@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,27 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.databinding.TestDataPaths;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
-import static com.android.SdkConstants.DOT_XML;
-
-public class ConvertLayoutToDataBindingActionTest extends AndroidTestCase {
-  private static final String BASE_PATH = "convertToDataBinding/";
-
+public final class ConvertLayoutToDataBindingActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
   }
 
   public void testLayout() throws IOException {
-    String path = "res/layout/layout.xml";
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + DOT_XML, path);
-    doTest("layout_after.xml", path, file);
+    String path = "res/layout/classic_layout.xml";
+    VirtualFile file = myFixture.copyFileToProject("classic_layout.xml", path);
+    doTest("classic_layout_after.xml", path, file);
   }
 
   private void doTest(@NotNull String after,
@@ -52,11 +49,12 @@ public class ConvertLayoutToDataBindingActionTest extends AndroidTestCase {
         return true;
       }
     };
+
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), xmlFile));
     Project project = getProject();
     CommandProcessor processor = CommandProcessor.getInstance();
     processor.executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(()
            -> action.invoke(myFixture.getProject(), myFixture.getEditor(), xmlFile)), "", "");
-    myFixture.checkResultByFile(afterPath, BASE_PATH + after, false);
+    myFixture.checkResultByFile(afterPath, after, false);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 
 package com.android.tools.idea.actions;
+
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.XMLNS_PREFIX;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
@@ -32,10 +37,23 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.*;
-
 /**
- * Converts layout to a data binding layout
+ * Converts a classic Android layout to a data binding layout, e.g.
+ *
+ * <pre>
+ *    &lt;LinearLayout&gt;
+ *       ...
+ *    &lt;/LinearLayout&gt;
+ * </pre>
+ * to
+ * <pre>
+ *    &lt;layout&gt;
+ *       &lt;data&gt;...&lt;/data&gt;
+ *       &lt;LinearLayout&gt;
+ *          ...
+ *       &lt;/LinearLayout&gt;
+ *    &lt;/layout&gt;
+ * </pre>
  * <p>
  * TODO:
  * <ul>
