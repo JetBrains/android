@@ -17,21 +17,30 @@ package com.android.tools.idea.actions;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.databinding.DataBindingMode;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.TestDataPaths;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.collect.Lists;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public final class ConvertLayoutToDataBindingActionTest {
   private final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk().initAndroid(true);
   private final AndroidDomRule myDomRule = new AndroidDomRule("res/layout", () -> myProjectRule.fixture);
@@ -42,20 +51,30 @@ public final class ConvertLayoutToDataBindingActionTest {
   @Rule
   public final EdtRule myEdtRule = new EdtRule();
 
+  @NotNull
+  private final DataBindingMode myDataBindingMode;
+
+  @Parameterized.Parameters(name = "{0}")
+  public static List<DataBindingMode> getModes() {
+    return Lists.newArrayList(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX);
+  }
+
+  public ConvertLayoutToDataBindingActionTest(@NotNull DataBindingMode mode) {
+    myDataBindingMode = mode;
+  }
+
   @Before
   public void setUp() {
     myProjectRule.fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
+
+    AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID);
+    ModuleDataBinding.getInstance(androidFacet).setMode(myDataBindingMode);
   }
 
   @Test
   @RunsInEdt
   public void classicLayoutCanBeConvertedToDataBindingLayout() {
-    final ConvertLayoutToDataBindingAction action = new ConvertLayoutToDataBindingAction() {
-      @Override
-      protected boolean isUsingDataBinding(@NotNull Project project) {
-        return true;
-      }
-    };
+    final ConvertLayoutToDataBindingAction action = new ConvertLayoutToDataBindingAction();
     myDomRule.testWriteAction("classic_layout.xml", "classic_layout_after.xml", () -> {
       Project project = myProjectRule.getProject();
       Editor editor = myProjectRule.fixture.getEditor();

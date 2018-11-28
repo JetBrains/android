@@ -64,7 +64,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li> Have lint warning for referencing a layout directly (setContentLayout) when that layout is using data binding? </li>
  * </ul>
  */
-public class ConvertLayoutToDataBindingAction extends AbstractIntentionAction implements HighPriorityAction {
+public final class ConvertLayoutToDataBindingAction extends AbstractIntentionAction implements HighPriorityAction {
 
   @Override
   @NotNull
@@ -110,10 +110,6 @@ public class ConvertLayoutToDataBindingAction extends AbstractIntentionAction im
       return false;
     }
 
-    return isUsingDataBinding(project);
-  }
-
-  protected boolean isUsingDataBinding(@NotNull Project project) {
     DataBindingProjectComponent component = project.getComponent(DataBindingProjectComponent.class);
     return component != null && component.hasAnyDataBindingEnabledFacet();
   }
