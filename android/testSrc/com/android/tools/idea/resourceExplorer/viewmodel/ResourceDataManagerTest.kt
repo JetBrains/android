@@ -23,7 +23,6 @@ import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.resourceExplorer.getPNGResourceItem
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.CopyProvider
@@ -60,17 +59,17 @@ class ResourceDataManagerTest {
       .getAppResources(true)!!
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()
-    val colorAssetSet = DesignAssetSet("name", listOf(DesignAsset.fromResourceItem(colorItem)!!))
+    val colorAsset = DesignAsset.fromResourceItem(colorItem)!!
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAssetSet)) as Array<PsiElement> }
+    val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAsset)) as Array<PsiElement> }
     assertEquals("colorPrimary", runInEdtAndGet { (psiArray[0] as XmlAttributeValue).value })
 
-    val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAssetSet)) as CopyProvider
+    val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAsset)) as CopyProvider
     assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
 
     val usageTargetKey = runInEdtAndGet {
-      dataManager.getData(UsageView.USAGE_TARGETS_KEY.name, listOf(colorAssetSet)) as Array<UsageTarget?>
+      dataManager.getData(UsageView.USAGE_TARGETS_KEY.name, listOf(colorAsset)) as Array<UsageTarget?>
     }
     assertTrue { usageTargetKey.isNotEmpty() }
 
@@ -81,17 +80,17 @@ class ResourceDataManagerTest {
   @Test
   fun getFilePsiElement() {
     val pngItem = rule.getPNGResourceItem()
-    val colorAssetSet = DesignAssetSet("name", listOf(DesignAsset.fromResourceItem(pngItem)!!))
+    val colorAsset = DesignAsset.fromResourceItem(pngItem)!!
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAssetSet)) as Array<PsiElement> }
+    val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAsset)) as Array<PsiElement> }
     assertEquals(pngItem.getSourceAsVirtualFile(), runInEdtAndGet { PsiUtil.getVirtualFile(psiArray[0].containingFile)!! })
 
-    val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAssetSet)) as CopyProvider
+    val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAsset)) as CopyProvider
     assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
 
     val usageTargetKey = runInEdtAndGet {
-      dataManager.getData(UsageView.USAGE_TARGETS_KEY.name, listOf(colorAssetSet)) as Array<UsageTarget?>
+      dataManager.getData(UsageView.USAGE_TARGETS_KEY.name, listOf(colorAsset)) as Array<UsageTarget?>
     }
     assertTrue { usageTargetKey.isNotEmpty() }
   }

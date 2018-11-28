@@ -22,7 +22,6 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.DataContext
@@ -51,12 +50,10 @@ private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.str
  */
 class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
-  private var selectedItems: List<DesignAssetSet>? = null
+  private var selectedItems: List<DesignAsset>? = null
 
-
-  fun getData(dataId: String?, selectedAssets: List<DesignAssetSet>): Any? {
+  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
     this.selectedItems = selectedAssets
-
     return when (dataId) {
       LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
       LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
@@ -69,8 +66,8 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   override fun performCopy(dataContext: DataContext) {
     selectedItems?.let {
       if (it.isNotEmpty()) {
-        val designAssetSet = it.first()
-        CopyPasteManager.getInstance().setContents(createTransferable(designAssetSet))
+        val designAsset = it.first()
+        CopyPasteManager.getInstance().setContents(createTransferable(designAsset))
       }
     }
   }
@@ -81,7 +78,6 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
   private fun assetsToArrayPsiElements(): Array<out PsiElement> =
     selectedItems
-      ?.flatMap(DesignAssetSet::designAssets)
       ?.mapNotNull(DesignAsset::resourceItem)
       ?.mapNotNull(this::findPsiElement)
       ?.filter { it.manager.isInProject(it) }
@@ -122,7 +118,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   }
 }
 
-fun createTransferable(assetSet: DesignAssetSet): Transferable {
+fun createTransferable(assetSet: DesignAsset): Transferable {
   return object : Transferable {
     override fun getTransferData(flavor: DataFlavor?): Any? = when (flavor) {
       RESOURCE_URL_FLAVOR -> getResourceUrl(assetSet)
@@ -137,5 +133,5 @@ fun createTransferable(assetSet: DesignAssetSet): Transferable {
   }
 }
 
-private fun getResourceUrl(assetSet: DesignAssetSet) =
-  assetSet.getHighestDensityAsset().resourceItem.referenceToSelf.resourceUrl
+private fun getResourceUrl(asset: DesignAsset) =
+  asset.resourceItem.referenceToSelf.resourceUrl

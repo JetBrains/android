@@ -210,7 +210,7 @@ class ProjectResourcesBrowserViewModel(
     unsubscribeListener(facet)
   }
 
-  fun getData(dataId: String?, selectedAssets: List<DesignAssetSet>): Any? {
+  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
     return dataManager.getData(dataId, selectedAssets)
   }
 

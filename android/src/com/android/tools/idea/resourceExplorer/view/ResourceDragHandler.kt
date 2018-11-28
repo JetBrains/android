@@ -85,7 +85,7 @@ private class ResourceDragGestureListener : DragGestureListener {
       DragSource.DefaultLinkDrop,
       image,
       Point(0, 0),
-      createTransferable(assetSet),
+      createTransferable(assetSet.designAssets.first()),
       dragSourceListener
     )
   }
