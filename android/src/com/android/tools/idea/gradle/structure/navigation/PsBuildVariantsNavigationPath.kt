@@ -78,3 +78,13 @@ data class PsProductFlavorNavigationPath(override val parent: PsProductFlavorsNa
 
   override fun toString(): String = productFlavorName
 }
+
+data class PsFlavorDimensionNavigationPath(override val parent: PsProductFlavorsNavigationPath, val flavorDimensionName: String)
+  : PsPlaceBasedPath() {
+  override fun queryPlace(place: Place, context: PsContext) {
+    parent.queryPlace(place, context)
+    place.putPath(PRODUCT_FLAVORS_PLACE_NAME, flavorDimensionName)
+  }
+
+  override fun toString(): String = flavorDimensionName
+}

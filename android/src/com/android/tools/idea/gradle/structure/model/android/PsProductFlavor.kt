@@ -16,6 +16,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
 import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
@@ -47,6 +48,7 @@ import com.android.tools.idea.gradle.structure.model.meta.listProperty
 import com.android.tools.idea.gradle.structure.model.meta.mapProperty
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.navigation.PsProductFlavorNavigationPath
 import com.google.common.util.concurrent.Futures.immediateFuture
 import java.io.File
 
@@ -69,6 +71,7 @@ open class PsProductFlavor(
   }
 
   override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  override val path: PsPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
 
   /**
    * The dimension the product flavor belongs to, i.e. either the configured dimension or the default dimension.
