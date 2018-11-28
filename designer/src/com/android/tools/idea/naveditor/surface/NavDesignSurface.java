@@ -18,6 +18,11 @@ package com.android.tools.idea.naveditor.surface;
 import static com.android.SdkConstants.ATTR_GRAPH;
 import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED;
+import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_XML_TAB;
 
@@ -62,7 +67,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.wireless.android.sdk.stats.NavEditorEvent;
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -255,7 +260,7 @@ public class NavDesignSurface extends DesignSurface {
   public CompletableFuture<Void> setModel(@Nullable NlModel model) {
     CompletableFuture<Void> future = super.setModel(model);
     NavUsageTracker.Companion.getInstance(this)
-      .createEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE)
+      .createEvent(OPEN_FILE)
       .withNavigationContents()
       .log();
     return future;
@@ -475,9 +480,12 @@ public class NavDesignSurface extends DesignSurface {
       return;
     }
     String id;
+    NavEditorEventType metricsEventType = null;
+
     if (NavComponentHelperKt.isNavigation(component)) {
       if (NavComponentHelperKt.isInclude(component)) {
         id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
+        metricsEventType = ACTIVATE_INCLUDE;
         if (id == null) {
           // includes are always supposed to have a graph specified, but if not, give up.
           return;
@@ -485,11 +493,13 @@ public class NavDesignSurface extends DesignSurface {
       }
       else {
         setCurrentNavigation(component);
+        NavUsageTracker.Companion.getInstance(this).createEvent(ACTIVATE_NESTED).log();
         return;
       }
     }
     else {
       id = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT);
+      metricsEventType = ACTIVATE_LAYOUT;
     }
     if (id != null) {
       Configuration configuration = getConfiguration();
@@ -502,6 +512,7 @@ public class NavDesignSurface extends DesignSurface {
           VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
           if (virtualFile != null) {
             FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+            NavUsageTracker.Companion.getInstance(this).createEvent(metricsEventType).log();
             return;
           }
         }
@@ -517,6 +528,7 @@ public class NavDesignSurface extends DesignSurface {
           VirtualFile virtualFile = file.getVirtualFile();
           if (virtualFile != null) {
             FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+            NavUsageTracker.Companion.getInstance(this).createEvent(ACTIVATE_CLASS).log();
             return;
           }
         }
