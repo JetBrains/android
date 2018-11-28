@@ -15,46 +15,55 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.databinding.TestDataPaths;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
+import com.android.tools.idea.testing.AndroidDomRule;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import java.io.IOException;
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
-public final class ConvertLayoutToDataBindingActionTest extends AndroidTestCase {
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
+public final class ConvertLayoutToDataBindingActionTest {
+  private final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk().initAndroid(true);
+  private final AndroidDomRule myDomRule = new AndroidDomRule("res/layout", () -> myProjectRule.fixture);
+
+  @Rule
+  public final TestRule myRuleChain = RuleChain.outerRule(myProjectRule).around(myDomRule);
+
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
+
+  @Before
+  public void setUp() {
+    myProjectRule.fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
   }
 
-  public void testLayout() throws IOException {
-    String path = "res/layout/classic_layout.xml";
-    VirtualFile file = myFixture.copyFileToProject("classic_layout.xml", path);
-    doTest("classic_layout_after.xml", path, file);
-  }
-
-  private void doTest(@NotNull String after,
-                      @NotNull String afterPath,
-                      @NotNull VirtualFile resourceFile) {
-    myFixture.configureFromExistingVirtualFile(resourceFile);
-    final PsiFile xmlFile = myFixture.getFile();
+  @Test
+  @RunsInEdt
+  public void classicLayoutCanBeConvertedToDataBindingLayout() {
     final ConvertLayoutToDataBindingAction action = new ConvertLayoutToDataBindingAction() {
       @Override
       protected boolean isUsingDataBinding(@NotNull Project project) {
         return true;
       }
     };
+    myDomRule.testWriteAction("classic_layout.xml", "classic_layout_after.xml", () -> {
+      Project project = myProjectRule.getProject();
+      Editor editor = myProjectRule.fixture.getEditor();
+      PsiFile file = myProjectRule.fixture.getFile();
 
-    assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), xmlFile));
-    Project project = getProject();
-    CommandProcessor processor = CommandProcessor.getInstance();
-    processor.executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(()
-           -> action.invoke(myFixture.getProject(), myFixture.getEditor(), xmlFile)), "", "");
-    myFixture.checkResultByFile(afterPath, after, false);
+      assertThat(action.isAvailable(project, editor, file)).isTrue();
+      action.invoke(project, editor, file);
+    });
   }
+
 }
