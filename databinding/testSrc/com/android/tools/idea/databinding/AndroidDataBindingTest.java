@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -28,7 +27,8 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameterList;
-import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -52,6 +52,9 @@ public class AndroidDataBindingTest {
   @NotNull
   @Rule
   public final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk().initAndroid(true);
+
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
 
   @NotNull
   private final DataBindingMode myDataBindingMode;
@@ -118,6 +121,7 @@ public class AndroidDataBindingTest {
   }
 
   @Test
+  @RunsInEdt
   public void testSimpleVariableResolution() {
     copyLayout("basic_binding");
     copyClass(DUMMY_CLASS_QNAME);
@@ -125,17 +129,16 @@ public class AndroidDataBindingTest {
     PsiClass aClass = getFixture().findClass("p1.p2.databinding.BasicBindingBinding");
     assertNotNull(aClass);
 
-    EdtTestUtil.runInEdtAndWait(() -> {
-      assertNotNull(aClass.findFieldByName("view1", false));
-      assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
-      assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
-    });
+    assertNotNull(aClass.findFieldByName("view1", false));
+    assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
   }
 
   /**
    * Tests symbol resolution in the scenario described in https://issuetracker.google.com/65467760.
    */
   @Test
+  @RunsInEdt
   public void testPropertyResolution() {
     if (myDataBindingMode == DataBindingMode.SUPPORT) {
       copyClass("p1.p2.ClassWithBindableProperty");
@@ -144,14 +147,13 @@ public class AndroidDataBindingTest {
     }
     getFixture().configureByFile("res/layout/data_binding_property_reference.xml");
 
-    EdtTestUtil.runInEdtAndWait(() -> {
-      PsiElement element = getFixture().getElementAtCaret();
-      assertTrue(element instanceof PsiMethod);
-      assertEquals("getProperty", ((PsiMethod)element).getName());
-    });
+    PsiElement element = getFixture().getElementAtCaret();
+    assertTrue(element instanceof PsiMethod);
+    assertEquals("getProperty", ((PsiMethod)element).getName());
   }
 
   @Test
+  @RunsInEdt
   public void testImportResolution() {
     copyLayout("import_variable");
     copyClass(DUMMY_CLASS_QNAME);
@@ -159,25 +161,24 @@ public class AndroidDataBindingTest {
     PsiClass aClass = getFixture().findClass("p1.p2.databinding.ImportVariableBinding");
     assertNotNull(aClass);
 
-    EdtTestUtil.runInEdtAndWait(() -> {
-      assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
-      assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
 
-      assertMethod(aClass, "setDummyList", "void", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
-      assertMethod(aClass, "getDummyList", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setDummyList", "void", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "getDummyList", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
 
-      assertMethod(aClass, "setDummyMap", "void", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
-      assertMethod(aClass, "getDummyMap", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setDummyMap", "void", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "getDummyMap", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
 
-      assertMethod(aClass, "setDummyArray", "void", DUMMY_CLASS_QNAME + "[]");
-      assertMethod(aClass, "getDummyArray", DUMMY_CLASS_QNAME + "[]");
+    assertMethod(aClass, "setDummyArray", "void", DUMMY_CLASS_QNAME + "[]");
+    assertMethod(aClass, "getDummyArray", DUMMY_CLASS_QNAME + "[]");
 
-      assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
-      assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
-    });
+    assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
+    assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
   }
 
   @Test
+  @RunsInEdt
   public void testImportAliasResolution() {
     copyLayout("import_via_alias");
     copyClass(DUMMY_CLASS_QNAME);
@@ -185,39 +186,36 @@ public class AndroidDataBindingTest {
     PsiClass aClass = getFixture().findClass("p1.p2.databinding.ImportViaAliasBinding");
     assertNotNull(aClass);
 
-    EdtTestUtil.runInEdtAndWait(() -> {
-      assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
-      assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
 
-      assertMethod(aClass, "setDummyList", "void", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
-      assertMethod(aClass, "getDummyList", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setDummyList", "void", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "getDummyList", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
 
-      assertMethod(aClass, "setDummyMap", "void", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
-      assertMethod(aClass, "getDummyMap", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setDummyMap", "void", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "getDummyMap", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
 
-      assertMethod(aClass, "setDummyMap2", "void", "java.util.Map<" + DUMMY_CLASS_QNAME + ",java.lang.String>");
-      assertMethod(aClass, "getDummyMap2", "java.util.Map<" + DUMMY_CLASS_QNAME + ",java.lang.String>");
+    assertMethod(aClass, "setDummyMap2", "void", "java.util.Map<" + DUMMY_CLASS_QNAME + ",java.lang.String>");
+    assertMethod(aClass, "getDummyMap2", "java.util.Map<" + DUMMY_CLASS_QNAME + ",java.lang.String>");
 
-      assertMethod(aClass, "setDummyArray", "void", DUMMY_CLASS_QNAME + "[]");
-      assertMethod(aClass, "getDummyArray", DUMMY_CLASS_QNAME + "[]");
+    assertMethod(aClass, "setDummyArray", "void", DUMMY_CLASS_QNAME + "[]");
+    assertMethod(aClass, "getDummyArray", DUMMY_CLASS_QNAME + "[]");
 
-      assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
-      assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
-    });
+    assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
+    assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
   }
 
   @Test
+  @RunsInEdt
   public void testDataBindingComponentContainingFileIsNotNull() {
-    EdtTestUtil.runInEdtAndWait(() -> {
-      PsiClass aClass;
-      if (myDataBindingMode == DataBindingMode.SUPPORT) {
-        aClass = getFixture().findClass("android.databinding.DataBindingComponent");
-      }
-      else {
-        aClass = getFixture().findClass("androidx.databinding.DataBindingComponent");
-      }
-      assertNotNull(aClass);
-      assertNotNull(aClass.getContainingFile());
-    });
+    PsiClass aClass;
+    if (myDataBindingMode == DataBindingMode.SUPPORT) {
+      aClass = getFixture().findClass("android.databinding.DataBindingComponent");
+    }
+    else {
+      aClass = getFixture().findClass("androidx.databinding.DataBindingComponent");
+    }
+    assertNotNull(aClass);
+    assertNotNull(aClass.getContainingFile());
   }
 }

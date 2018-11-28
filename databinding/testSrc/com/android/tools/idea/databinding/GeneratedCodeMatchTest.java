@@ -48,7 +48,8 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
-import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -106,6 +107,10 @@ public class GeneratedCodeMatchTest {
 
   @Rule
   public final AndroidGradleProjectRule myProjectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
+
   @NotNull
   private final TestParameters myParameters;
 
@@ -145,6 +150,7 @@ public class GeneratedCodeMatchTest {
   }
 
   @Test
+  @RunsInEdt
   public void testGeneratedCodeMatchesExpected() throws Exception {
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = myProjectRule.invokeTasks(myProjectRule.getProject(), "assembleDebug");
@@ -164,49 +170,47 @@ public class GeneratedCodeMatchTest {
     assertTrue("if we cannot find any class, something is wrong with the test", classes.size() > 0);
     ClassReader viewDataBindingClass = findViewDataBindingClass();
 
-    EdtTestUtil.runInEdtAndWait(() -> {
-      Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<>());
+    Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<>());
 
-      JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myProjectRule.getProject());
-      Set<String> missingClasses = new HashSet<>();
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myProjectRule.getProject());
+    Set<String> missingClasses = new HashSet<>();
 
-      Map<String, ClassReader> klassMap = classes.stream().map((file) -> {
-        try {
-          return new ClassReader(FileUtils.readFileToByteArray(file));
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-          fail(e.getMessage());
-        }
-        return null;
-      }).filter(kls -> kls != null)
-        .collect(Collectors.toMap(
-          kls -> kls.getClassName(),
-          kls -> kls
-        ));
-
-      int verifiedClassCount = 0;
-      for (ClassReader classReader : klassMap.values()) {
-        if (!shouldVerify(viewDataBindingClass, classReader)) {
-          continue;
-        }
-        verifiedClassCount++;
-        String className = classReader.getClassName();
-        PsiClass psiClass = javaPsiFacade
-          .findClass(className.replace("/", "."),
-                     myProjectRule.getAndroidFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false));
-        if (psiClass == null) {
-          missingClasses.add(className);
-          continue;
-        }
-        assertNotNull(psiClass);
-        String asmInfo = collectDescriptions(classReader, baseClassInfo);
-        String psiInfo = collectDescriptions(psiClass);
-        assertEquals(className, asmInfo, psiInfo);
+    Map<String, ClassReader> klassMap = classes.stream().map((file) -> {
+      try {
+        return new ClassReader(FileUtils.readFileToByteArray(file));
       }
-      assertTrue("test sanity, should be able to find some data binding generated classes", verifiedClassCount > 3);
-      assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
-    });
+      catch (IOException e) {
+        e.printStackTrace();
+        fail(e.getMessage());
+      }
+      return null;
+    }).filter(kls -> kls != null)
+      .collect(Collectors.toMap(
+        kls -> kls.getClassName(),
+        kls -> kls
+      ));
+
+    int verifiedClassCount = 0;
+    for (ClassReader classReader : klassMap.values()) {
+      if (!shouldVerify(viewDataBindingClass, classReader)) {
+        continue;
+      }
+      verifiedClassCount++;
+      String className = classReader.getClassName();
+      PsiClass psiClass = javaPsiFacade
+        .findClass(className.replace("/", "."),
+                   myProjectRule.getAndroidFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false));
+      if (psiClass == null) {
+        missingClasses.add(className);
+        continue;
+      }
+      assertNotNull(psiClass);
+      String asmInfo = collectDescriptions(classReader, baseClassInfo);
+      String psiInfo = collectDescriptions(psiClass);
+      assertEquals(className, asmInfo, psiInfo);
+    }
+    assertTrue("test sanity, should be able to find some data binding generated classes", verifiedClassCount > 3);
+    assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
   }
 
   private boolean shouldVerify(ClassReader viewDataBindingClass, ClassReader classReader) {

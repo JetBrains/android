@@ -30,7 +30,8 @@ import com.intellij.psi.impl.JavaPsiFacadeEx;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.move.moveFilesOrDirectories.JavaMoveFilesOrDirectoriesHandler;
-import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.AndroidResourceRenameResourceProcessor;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,10 @@ public class AndroidRenameTest {
   @NotNull
   @Rule
   public final AndroidProjectRule myProject = AndroidProjectRule.withSdk().initAndroid(true);
+
+  @NotNull
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
 
   @Before
   public void setUp() {
@@ -60,13 +65,12 @@ public class AndroidRenameTest {
   }
 
   @Test
-  public void testMoveDataBindingClass() {
-    EdtTestUtil.runInEdtAndWait(() -> {
-      getFixture().copyFileToProject("src/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
-      getFixture().copyFileToProject("res/layout/basic_binding.xml", "res/layout/basic_binding.xml");
-      moveClassNoTextReferences("p1.p2.DummyClass", "p1");
-      getFixture().checkResultByFile("res/layout/basic_binding.xml", "res/layout/basic_binding_after.xml", true);
-    });
+  @RunsInEdt
+  public void testMoveDataBindingClass() throws Exception {
+    getFixture().copyFileToProject("src/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
+    getFixture().copyFileToProject("res/layout/basic_binding.xml", "res/layout/basic_binding.xml");
+    moveClassNoTextReferences("p1.p2.DummyClass", "p1");
+    getFixture().checkResultByFile("res/layout/basic_binding.xml", "res/layout/basic_binding_after.xml", true);
   }
 
   /**
@@ -75,7 +79,7 @@ public class AndroidRenameTest {
    *
    * @see #moveClass(String, String)
    */
-  private void moveClassNoTextReferences(String className, String newPackageName) throws Exception {
+  private void moveClassNoTextReferences(String className, String newPackageName) {
     JavaPsiFacadeEx myJavaFacade = JavaPsiFacadeEx.getInstanceEx(myProject.getProject());
     final PsiElement element = myJavaFacade.findClass(className, GlobalSearchScope.projectScope(myProject.getProject()));
     assertThat(element).isNotNull();
