@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.UIUtil;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -74,6 +75,8 @@ public class ModuleDownloadDeviceFeature {
     myFeatureNameCombo.setModel(new DefaultComboBoxModel<>(DeviceFeatureKind.values()));
     myFeatureValueTextField = TextFieldWithAutoCompletion.create(project, new ArrayList<>(), true, null);
     myFeatureValueContainer.add(myFeatureValueTextField, BorderLayout.CENTER);
+
+    myRemoveFeatureLinkLabel.setIcon(StudioIcons.Common.CLOSE);
 
     UIUtil.addParentChangeListener(myRootPanel, new ActivationListener());
 

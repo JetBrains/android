@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.dynamicfeature
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
@@ -374,6 +375,64 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("""<dist:install-time>""")
       assertThat(this).contains("""<dist:conditions>""")
       assertThat(this).contains("""<dist:min-sdk dist:value="24" />""")
+      assertThat(this).contains("""</dist:conditions>""")
+      assertThat(this).contains("""</dist:install-time>""")
+      assertThat(this).doesNotContain("""<dist:on-demand />""")
+      assertThat(this).contains("""</dist:delivery>""")
+      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/res/values/strings.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
+    }
+  }
+
+  /**
+   * Verifies that user is able to add a Dynamic Feature Module through the
+   * new module wizard, with conditional delivery specifying a couple of
+   * device feature conditions
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(ideFrame)
+      .clickNextToDynamicFeature()
+      .enterFeatureModuleName("MyDynamicFeature")
+      .selectBaseApplication("app")
+      .selectMinimumSdkApi("26")
+      .clickNextToConfigureConditionalDelivery()
+      .enterName("My Dynamic Feature Title")
+      .setFusing(false)
+      .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
+      .uncheckMinimumSdkApiCheckBox()
+      .addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
+      .addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
+      .addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
+      .removeConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .projectView
+      .selectAndroidPane()
+      .clickPath("MyDynamicFeature")
+
+    ideFrame.editor
+      .open("MyDynamicFeature/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<dist:delivery>""")
+      assertThat(this).contains("""<dist:install-time>""")
+      assertThat(this).contains("""<dist:conditions>""")
+      assertThat(this).doesNotContain("""<dist:min-sdk""")
+      assertThat(this).contains("""<dist:device-feature dist:name="test" />""")
+      assertThat(this).contains("""<dist:device-feature dist:glEsVersion="0x2000000" />""")
+      assertThat(this).doesNotContain("""<dist:device-feature dist:name="test2" />""")
       assertThat(this).contains("""</dist:conditions>""")
       assertThat(this).contains("""</dist:install-time>""")
       assertThat(this).doesNotContain("""<dist:on-demand />""")

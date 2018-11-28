@@ -67,4 +67,9 @@ public class EditorTextFieldFixture extends AbstractJComponentFixture<EditorText
     driver().replaceText(target(), text);
     return this;
   }
+
+  @NotNull
+  public String getText() {
+    return driver().textOf(target());
+  }
 }
