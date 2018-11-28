@@ -17,8 +17,12 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ARGUMENT
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 
@@ -38,6 +42,8 @@ class NavDestinationArgumentsInspectorProvider(
 
     if (argumentDialog.showAndGet()) {
       argumentDialog.save()
+      NavUsageTracker.getInstance(surface).createEvent(if (existing == null) CREATE_ARGUMENT else EDIT_ARGUMENT)
+        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
     }
   }
 
