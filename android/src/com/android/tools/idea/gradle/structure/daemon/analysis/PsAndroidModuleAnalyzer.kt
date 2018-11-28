@@ -20,6 +20,7 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
@@ -34,7 +35,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.xml.util.XmlStringUtil.escapeString
 import java.util.regex.Pattern
 
-class PsAndroidModuleAnalyzer() : PsModelAnalyzer<PsAndroidModule>() {
+class PsAndroidModuleAnalyzer(val context: PsContext) : PsModelAnalyzer<PsAndroidModule>(context) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 

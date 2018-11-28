@@ -17,17 +17,25 @@ package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.GradleResolver
+import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.continueOnEdt
 import com.android.tools.idea.gradle.structure.configurables.ui.handleFailureOnEdt
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
+import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.navigation.Place
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ExceptionUtil
 import java.util.function.Consumer
@@ -122,8 +130,40 @@ class PsContextImpl constructor(
   }
 
   override fun applyChanges() {
+
+    fun activateSuggestionsView() {
+      val place = Place()
+      val suggestionsView = mainConfigurable.findConfigurable(SuggestionsPerspectiveConfigurable::class.java)
+      place.putPath(ProjectStructureConfigurable.CATEGORY_NAME, suggestionsView?.displayName.orEmpty())
+      place.putPath(BASE_PERSPECTIVE_MODULE_PLACE_NAME, suggestionsView?.extraModules?.first()?.name.orEmpty())
+      mainConfigurable.navigateTo(place, false)
+    }
+
     if (project.isModified) {
-      project.applyChanges()
+      val validationIssues =
+        project.modules.asSequence().flatMap { analyzerDaemon.validate(it) }.filter { it.severity == PsIssue.Severity.ERROR }.toList()
+      if (validationIssues.isNotEmpty()) {
+        activateSuggestionsView()
+        // Display errors and make sure the view is refreshed before the message box below changes the current modality.
+        ApplicationManager.getApplication().invokeAndWait(
+          {
+            analyzerDaemon.issues.remove(PsIssueType.PROJECT_ANALYSIS)
+            analyzerDaemon.addAll(validationIssues, now = true)
+          },
+          ModalityState.any() // Any modality to let the UI update itself while showing the message box.
+        )
+        if (Messages.showDialog(project.ideProject,
+                                "Potential problems found in the configuration. Would you like to review them?",
+                                "Problems Found",
+                                arrayOf("Review", "Ignore and Apply"),
+                                0,
+                                null)
+          == 1) {
+          project.applyChanges()
+          return
+        }
+        throw ProcessCanceledException()
+      }
     }
   }
 }
