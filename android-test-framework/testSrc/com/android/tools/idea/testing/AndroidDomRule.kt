@@ -16,6 +16,8 @@
 package com.android.tools.idea.testing
 
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.CommandProcessor
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.inspections.AndroidDomInspection
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection
@@ -44,7 +46,7 @@ class AndroidDomRule(
    * under, e.g. 'res/layout'. The location of a file gives the system more context about which
    * sort of completions should be enabled.
    */
-  private val projectRoot: String,
+  private val pathRoot: String,
 
   /**
    * A callback that returns a completed fixture. This won't get called until [before] happens,
@@ -64,13 +66,34 @@ class AndroidDomRule(
   }
 
   /**
+   * Convenience method for copying the target `file` over and calling
+   * [CodeInsightTestFixture.configureFromExistingVirtualFile] on it.
+   */
+  private fun copyAndConfigure(file: String) {
+    val virtualFile = fixture.copyFileToProject(file, "$pathRoot/$file")
+    fixture.configureFromExistingVirtualFile(virtualFile)
+  }
+
+  /**
    * Given a properly formatted file with highlight warnings and errors marked within it, verify
    * that its state matches what actually happens when you execute a highlight pass.
    */
   fun testHighlighting(file: String) {
-    val virtualFile = fixture.copyFileToProject(file, "$projectRoot/$file")
-    fixture.configureFromExistingVirtualFile(virtualFile)
+    copyAndConfigure(file)
     fixture.checkHighlighting(true, false, false)
+  }
+
+  /**
+   * Assert that an expected code transformation happens after executing a target write action,
+   * given a before / after set of files, with the prior indicating a caret position and the latter
+   * indicating what the file should look like after executing a write action at that caret
+   * position.
+   */
+  fun testWriteAction(fileBefore: String, fileAfter: String, writeAction: Runnable) {
+    copyAndConfigure(fileBefore)
+    val runWriteAction = { ApplicationManager.getApplication().runWriteAction(writeAction) }
+    CommandProcessor.getInstance().executeCommand(fixture.project, runWriteAction, "", "")
+    fixture.checkResultByFile(fileAfter)
   }
 
   /**
@@ -82,8 +105,7 @@ class AndroidDomRule(
    * test for multiple possible completion matches, use [getCompletionResults] instead.
    */
   fun testCompletion(fileBefore: String, fileAfter: String) {
-    val virtualFile = fixture.copyFileToProject(fileBefore, "$projectRoot/$fileBefore")
-    fixture.configureFromExistingVirtualFile(virtualFile)
+    copyAndConfigure(fileBefore)
     fixture.complete(CompletionType.BASIC)
     fixture.checkResultByFile(fileAfter)
   }
@@ -93,10 +115,8 @@ class AndroidDomRule(
    * should show up when executing a completion action at that caret position.
    */
   fun getCompletionResults(file: String): List<String> {
-    val virtualFile = fixture.copyFileToProject(file, "$projectRoot/$file")
-    fixture.configureFromExistingVirtualFile(virtualFile)
+    copyAndConfigure(file)
     fixture.complete(CompletionType.BASIC)
     return fixture.lookupElementStrings!!
   }
-
 }
