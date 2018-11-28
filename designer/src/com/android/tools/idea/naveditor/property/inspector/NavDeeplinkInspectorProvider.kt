@@ -17,8 +17,11 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
 import icons.StudioIcons.NavEditor.Toolbar.DEEPLINK
 import org.jetbrains.annotations.TestOnly
 
@@ -34,6 +37,8 @@ class NavDeeplinkInspectorProvider(
 
     if (deeplinkDialog.showAndGet()) {
       deeplinkDialog.save()
+      NavUsageTracker.getInstance(surface).createEvent(if (existing == null) CREATE_DEEP_LINK else EDIT_DEEP_LINK)
+        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
     }
   }
 
