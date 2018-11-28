@@ -1,9 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 52.3 (67297) - http://www.bohemiancoding.com/sketch -->
-    <title>timeline-keyframe-selected</title>
-    <desc>Created with Sketch.</desc>
-    <g id="timeline-keyframe-selected" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <polygon id="Path-3" stroke="#3476DC" stroke-width="2" fill="#FFFFFF" points="7.92608956 2 3 8.45683133 7.92608956 14 13 8.45683133"></polygon>
-    </g>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><path d="M7.926 2L3 8.457 7.926 14 13 8.457z" fill="#FFF" stroke="#3476DC" stroke-width="2" fill-rule="evenodd"/></svg>

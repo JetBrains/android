@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
+import static icons.StudioIcons.Common.WARNING_INLINE;
 
 /**
  * @author Eugene.Kudelevsky
@@ -86,6 +87,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @VisibleForTesting
   JComboBox myModuleCombo;
   private JPanel myGradlePanel;
+  private JBLabel myGradleWarning;
   private HyperlinkLabel myCloseAndUpdateLink;
   private JBLabel myKeyStorePathLabel;
   private JBLabel myKeyStorePasswordLabel;
@@ -139,6 +141,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         setIcon(ModuleType.get(module).getIcon());
       }
     });
+    myGradleWarning.setIcon(WARNING_INLINE);
     myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
     myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
       @Override

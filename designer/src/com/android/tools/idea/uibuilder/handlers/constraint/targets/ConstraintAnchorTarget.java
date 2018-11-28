@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BASELINE_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_BOTTOM;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_TOP;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_END;
@@ -751,7 +751,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
                 break;
               case BASELINE:
                 addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBaseLineToBaseLine, "Baseline ", " baseline",
-                               CONSTRAIN_BASELINE_DES);
+                               BASELINE_ALIGNED_CONSTRAINT);
                 break;
             }
           }

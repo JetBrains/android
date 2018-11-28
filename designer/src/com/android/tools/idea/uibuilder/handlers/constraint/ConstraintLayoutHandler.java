@@ -50,8 +50,8 @@ import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
+import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_MENU;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
@@ -356,7 +356,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   @Override
   public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
-    actions.add(new DisappearingActionMenu("Constrain", CONSTRAIN_MENU, ConstraintViewActions.CONNECT_ACTIONS));
+    actions.add(new DisappearingActionMenu("Constrain", StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT, ConstraintViewActions.CONNECT_ACTIONS));
     actions.add(new DisappearingActionMenu("Organize", PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
     actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
     actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
@@ -1583,7 +1583,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         new DisappearingActionMenu("end to", StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_END,
                                    ConstraintViewActions.connectEndHorizontal(reverse)),
         new ConnectAction(Scout.Connect.ConnectBaseLineToBaseLine,
-                          StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BASELINE_DES,
+                          BASELINE_ALIGNED_CONSTRAINT,
                           "to baseline", reverse)
       );
     }
