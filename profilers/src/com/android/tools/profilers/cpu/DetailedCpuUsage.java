@@ -31,7 +31,8 @@ public class DetailedCpuUsage extends CpuUsage {
 
     myThreadRange = new Range(0, 8);
 
-    CpuUsageDataSeries others = new CpuUsageDataSeries(profilers.getClient().getCpuClient(), true, profilers.getSession());
+    CpuUsageDataSeries others =
+      new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, true));
     myOtherCpuSeries = new RangedContinuousSeries("Others", profilers.getTimeline().getViewRange(), getCpuRange(), others);
 
     CpuThreadCountDataSeries threads = new CpuThreadCountDataSeries(profilers.getClient().getCpuClient(), profilers.getSession());

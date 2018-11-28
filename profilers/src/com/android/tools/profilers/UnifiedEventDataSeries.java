@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,20 +41,20 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
   @NotNull private final Common.Session mySession;
   @NotNull private final Common.Event.Kind myKind;
   private final int myGroupId;
-  @NotNull private final Function<Common.Event, Long> myDataExtractor;
+  @NotNull private final Function<List<Common.Event>, Stream<SeriesData<Long>>> myDataExtractor;
 
   /**
    * @param client        the grpc client to request data from.
    * @param session       the session to query.
    * @param kind          the data kind ot query.
    * @param groupId       the group id within the data kind to query. If the data don't have group distinction, use {@link DEFAULT_GROUP_ID}.
-   * @param dataExtractor the function to extract the numeric field from an event to build the data series with.
+   * @param dataExtractor the function to extract data from a list of events to build the list of series data as a stream.
    */
   public UnifiedEventDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client,
                                 @NotNull Common.Session session,
                                 @NotNull Common.Event.Kind kind,
                                 int groupId,
-                                @NotNull Function<Common.Event, Long> dataExtractor) {
+                                @NotNull Function<List<Common.Event>, Stream<SeriesData<Long>>> dataExtractor) {
     myClient = client;
     mySession = session;
     myKind = kind;
@@ -73,16 +75,25 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
                                                                            .setFromTimestamp(minNs)
                                                                            .setToTimestamp(maxNs)
                                                                            .build();
-    List<SeriesData<Long>> series = new ArrayList<>();
     Profiler.GetEventGroupsResponse response = myClient.getEventGroups(request);
     // We don't expect more than one data group in our numeric data series. This is to avoid having to sort the data from multiple groups
     // after they are added to the list. We can re-evaluate if the need arises.
     assert response.getGroupsCount() <= 1;
-    for (Profiler.EventGroup group : response.getGroupsList()) {
-      for (Common.Event event : group.getEventsList()) {
-        series.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), myDataExtractor.apply(event)));
-      }
+    if (response.getGroupsCount() == 0) {
+      return new ArrayList<>();
     }
-    return series;
+    return myDataExtractor.apply(response.getGroups(0).getEventsList()).collect(Collectors.toList());
+  }
+
+  /**
+   * Helper function that constructs list data extractor from a field extractor for the simple case of extracting one field out of every
+   * {@link Common.Event}.
+   *
+   * @param fieldExtractor a {@link Function} that extracts a Long field from an {@link Common.Event}.
+   * @return a {@link Function} that converts a list of events into a list of {@link SeriesData}.
+   */
+  public static Function<List<Common.Event>, Stream<SeriesData<Long>>> fromFieldToDataExtractor(Function<Common.Event, Long> fieldExtractor) {
+    return events -> events.stream()
+      .map(event -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), fieldExtractor.apply(event)));
   }
 }

@@ -39,7 +39,8 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void thisProcessCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, ProfilersTestData.SESSION_DATA);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA,
+                                      dataList -> CpuUsage.extractData(dataList, false));
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
@@ -74,7 +75,8 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void otherProcessesCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), true, ProfilersTestData.SESSION_DATA);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA,
+                                      dataList -> CpuUsage.extractData(dataList, true));
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
@@ -104,7 +106,8 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void emptyData() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, ProfilersTestData.SESSION_DATA);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA,
+                                      dataList -> CpuUsage.extractData(dataList, false));
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForXRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);

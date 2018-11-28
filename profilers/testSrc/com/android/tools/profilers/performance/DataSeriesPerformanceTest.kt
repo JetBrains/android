@@ -35,6 +35,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
+import com.android.tools.profilers.cpu.CpuUsage
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.ThreadStateDataSeries
@@ -56,7 +57,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
@@ -111,7 +111,7 @@ class DataSeriesPerformanceTest {
   @Test
   fun runPerformanceTest() {
     val timer = FakeTimer()
-    val studioProfilers = StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), timer)
+    val studioProfilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
     val dataSeriesToTest = mapOf(Pair("Event-Activities",
                                       LifecycleEventDataSeries(client, session, false)),
@@ -120,16 +120,17 @@ class DataSeriesPerformanceTest {
                                  Pair("Energy-Events",
                                       MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
                                                                    EnergyDuration.Kind.JOB)),
-                                 Pair("Cpu-Usage", CpuUsageDataSeries(client.cpuClient, false, session)),
+                                 Pair("Cpu-Usage",
+                                      CpuUsageDataSeries(client.cpuClient, session) { dataList -> CpuUsage.extractData(dataList, false) }),
                                  Pair("Cpu-Thread-Count", CpuThreadCountDataSeries(client.cpuClient, session)),
                                  Pair("Cpu-Thread-State", ThreadStateDataSeries(client.cpuClient, session, 1)),
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
                                  Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
-                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session, { sample -> sample.timestamp })),
+                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
-                                      AllocStatsDataSeries(studioProfilers, client.memoryClient, { sample -> sample.timestamp })),
+                                      AllocStatsDataSeries(studioProfilers, client.memoryClient) { sample -> sample.timestamp }),
                                  Pair("Memory-LiveAllocation", TestLiveAllocationSeries(grpcChannel, client, session))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
@@ -181,7 +182,7 @@ class DataSeriesPerformanceTest {
     val liveAllocation: LiveAllocationCaptureObject
 
     init {
-      val stage = MemoryProfilerStage(StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), FakeTimer()))
+      val stage = MemoryProfilerStage(StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), FakeTimer()))
       liveAllocation = LiveAllocationCaptureObject(client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(), stage)
     }
   }
