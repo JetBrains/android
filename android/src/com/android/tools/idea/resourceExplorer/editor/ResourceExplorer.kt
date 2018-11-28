@@ -40,7 +40,7 @@ import kotlin.properties.Delegates
 
 private const val withExternalBrowser: Boolean = false
 private const val withDetailView: Boolean = false
-internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "true")?.toBoolean() ?: false
+internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
 
 /**
  * The resource explorer lets the user browse resources from the provided [AndroidFacet]
