@@ -71,12 +71,6 @@ public class LayersManager extends NlAbstractWindowManager {
   }
 
   @Override
-  public Object getToolWindowContent(@NotNull DesignerEditorPanelFacade designer) {
-    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
-    return toolWindow != null ? toolWindow.getContent() : myLayersPanel;
-  }
-
-  @Override
   protected ToolWindowAnchor getAnchor() {
     return ToolWindowAnchor.LEFT;
   }
