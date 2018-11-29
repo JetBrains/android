@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.annotations.concurrency.Immutable;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ref.GCUtil;
 import org.jetbrains.android.AndroidTestCase;
@@ -37,7 +39,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
-    List<Locale> locales = manager.getLocales();
+    ImmutableList<Locale> locales = manager.getLocales();
     assertEquals(Arrays.asList(Locale.create("no"), Locale.create("no-rNO"), Locale.create("se")), locales);
   }
 

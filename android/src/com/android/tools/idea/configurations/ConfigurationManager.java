@@ -20,7 +20,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -32,6 +31,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -43,6 +43,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -78,13 +79,16 @@ public class ConfigurationManager implements Disposable {
   private Map<String,Device> myDeviceMap;
   private final UserDeviceManager myUserDeviceManager;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
-  private List<Locale> myLocales;
+  private final Object myLocalesLock = new Object();
+  @GuardedBy("myLocalesLock")
+  @NotNull private ImmutableList<Locale> myLocales = ImmutableList.of();
+  @GuardedBy("myLocalesLock")
+  private long myLocalesCacheStamp = -1;
   private Device myDefaultDevice;
   private Locale myLocale;
   private IAndroidTarget myTarget;
   private int myStateVersion;
   private ResourceResolverCache myResolverCache;
-  private long myLocaleCacheStamp;
 
   @NotNull
   public static ConfigurationManager getOrCreateInstance(@NotNull AndroidFacet androidFacet) {
@@ -424,23 +428,28 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public List<Locale> getLocales() {
+  public ImmutableList<Locale> getLocales() {
     // Get locales from modules, but not libraries!
     LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(getModule());
     assert projectResources != null;
-    if (projectResources.getModificationCount() != myLocaleCacheStamp) {
-      myLocales = null;
-    }
-    if (myLocales == null) {
-      List<Locale> locales = new ArrayList<>();
-      for (LocaleQualifier locale : ResourceRepositoryUtil.getLocales(projectResources)) {
-        locales.add(Locale.create(locale));
+    synchronized (myLocalesLock) {
+      if (projectResources.getModificationCount() == myLocalesCacheStamp) {
+        return myLocales;
       }
-      myLocales = locales;
-      myLocaleCacheStamp = projectResources.getModificationCount();
     }
 
-    return myLocales;
+    long modificationCount = projectResources.getModificationCount();
+    ImmutableList<Locale> locales = ResourceRepositoryUtil.getLocales(projectResources)
+      .stream()
+      .map(Locale::create)
+      .collect(ImmutableList.toImmutableList());
+
+    synchronized (myLocalesLock) {
+      myLocales = locales;
+      myLocalesCacheStamp = modificationCount;
+
+      return myLocales;
+    }
   }
 
   @Nullable

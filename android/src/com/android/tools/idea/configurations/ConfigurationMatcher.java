@@ -32,6 +32,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseIntArray;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -276,7 +277,7 @@ public class ConfigurationMatcher {
   /** Like {@link ConfigurationManager#getLocales()}, but ensures that the currently selected locale is first in the list */
   @NotNull
   public List<Locale> getPrioritizedLocales() {
-    List<Locale> projectLocales = myManager.getLocales();
+    ImmutableList<Locale> projectLocales = myManager.getLocales();
     List<Locale> locales = new ArrayList<>(projectLocales.size() + 1); // Locale.ANY is not in getLocales() list
     Locale current = myManager.getLocale();
     locales.add(current);
@@ -561,7 +562,7 @@ public class ConfigurationMatcher {
       String currentLanguage = defaultLocale.getLanguage();
       String currentRegion = defaultLocale.getCountry();
 
-      List<Locale> localeList = myManager.getLocales();
+      ImmutableList<Locale> localeList = myManager.getLocales();
       final int count = localeList.size();
       for (int l = 0; l < count; l++) {
         Locale locale = localeList.get(l);
