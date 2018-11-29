@@ -31,7 +31,7 @@ class AddGlobalAction(private val mySurface: DesignSurface, private val componen
       val action = component.parent?.createAction(component.id)
       mySurface.selectionModel.setSelection(listOf(action))
       if (action != null) {
-        NavUsageTracker.getInstance(mySurface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        NavUsageTracker.getInstance(mySurface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)
           .withSource(NavEditorEvent.Source.CONTEXT_MENU)
           .log()

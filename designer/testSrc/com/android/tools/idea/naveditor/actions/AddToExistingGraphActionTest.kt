@@ -62,7 +62,7 @@ class AddToExistingGraphActionTest : NavTestCase() {
     val root = model.components[0]
     val navigation1 = model.find("navigation1")!!
     val action = AddToExistingGraphAction(surface, "navigation", navigation1)
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       action.actionPerformed(mock(AnActionEvent::class.java))
 
       verifyZeroInteractions(tracker)

@@ -34,7 +34,7 @@ class ReturnToSourceActionTest : NavTestCase() {
         fragment("f2")
       }
     }
-    TestNavUsageTracker.create(model.surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       val f2 = model.find("f2")!!
       ReturnToSourceAction(model.surface, f2).actionPerformed(Mockito.mock(AnActionEvent::class.java))
       val action = f2.children.first { it.isAction }

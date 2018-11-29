@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.analytics
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.model.NlModel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.testFramework.EdtRule
@@ -37,7 +37,7 @@ class NavUsageTrackerImplTest : BareTestFixtureTestCase() {
   fun testLogEvent() {
     lateinit var eventProto: AndroidStudioEvent
     val logger = Consumer { event: AndroidStudioEvent.Builder -> eventProto = event.build() }
-    val tracker = NavUsageTrackerImpl(Executor { it.run() }, mock(DesignSurface::class.java), logger)
+    val tracker = NavUsageTrackerImpl(Executor { it.run() }, mock(NlModel::class.java), logger)
     val event = NavEditorEvent.newBuilder().build()
     tracker.logEvent(event)
     assertEquals(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT, eventProto.kind)

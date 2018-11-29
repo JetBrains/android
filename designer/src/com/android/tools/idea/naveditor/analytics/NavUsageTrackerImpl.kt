@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.analytics
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.model.NlModel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import java.util.concurrent.Executor
@@ -24,7 +24,7 @@ import java.util.function.Consumer
 
 class NavUsageTrackerImpl(
   private val executor: Executor,
-  override val surface: DesignSurface?,
+  override val model: NlModel?,
   private val eventLogger: Consumer<AndroidStudioEvent.Builder>
 ) : NavUsageTracker {
 

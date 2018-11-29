@@ -33,7 +33,7 @@ class NestedGraphToolbarAction(surface: NavDesignSurface) :
 
   override fun actionPerformed(e: AnActionEvent) {
     if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
-      NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
+      NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
         .withSource(NavEditorEvent.Source.TOOLBAR)
         .log()
     }

@@ -40,7 +40,7 @@ class DeepLinkToolbarAction(surface: NavDesignSurface) :
       val dialog = AddDeeplinkDialog(null, it)
       if (dialog.showAndGet()) {
         dialog.save()
-        NavUsageTracker.getInstance(surface).createEvent(CREATE_DEEP_LINK)
+        NavUsageTracker.getInstance(surface.model).createEvent(CREATE_DEEP_LINK)
           .withSource(NavEditorEvent.Source.TOOLBAR).log()
       }
     }

@@ -29,7 +29,7 @@ class ReturnToSourceAction(private val mySurface: DesignSurface, private val com
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createReturnToSourceAction()
       mySurface.selectionModel.setSelection(listOf(action))
-      NavUsageTracker.getInstance(mySurface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+      NavUsageTracker.getInstance(mySurface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
         .withActionInfo(action)
         .withSource(NavEditorEvent.Source.CONTEXT_MENU)
         .log()

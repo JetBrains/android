@@ -26,7 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 class AddToNewGraphAction(val surface: NavDesignSurface) : AnAction("New Graph") {
   override fun actionPerformed(e: AnActionEvent) {
     if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
-      NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
+      NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
         .withSource(NavEditorEvent.Source.CONTEXT_MENU)
         .log()
     }

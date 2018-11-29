@@ -51,7 +51,7 @@ fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurfac
   if (actionDialog.showAndGet()) {
     val action = actionDialog.writeUpdatedAction()
     surface?.selectionModel?.setSelection(listOf(action))
-    NavUsageTracker.getInstance(surface).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
+    NavUsageTracker.getInstance(surface?.model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
       .withActionInfo(action)
       .withSource(source)
       .log()

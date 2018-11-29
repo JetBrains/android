@@ -58,7 +58,7 @@ class NestedGraphToolbarActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf())
     val action = NestedGraphToolbarAction(surface)
 
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
 
       val navigation1 = model.find("navigation1")!!

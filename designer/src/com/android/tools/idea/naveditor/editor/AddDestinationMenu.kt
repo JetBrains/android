@@ -364,7 +364,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
       }
       if (psiClass != null) {
-        NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT).log()
+        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT).log()
 
         val tags = schema.getTagsForDestinationClass(psiClass) ?: return@runWhenSmart
         val tag = if (tags.size == 1) tags.first()
@@ -391,10 +391,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       destination.addToGraph()
       component = destination.component ?: return@Runnable
       if (component.isInclude) {
-        NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
+        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
       }
       else {
-        NavUsageTracker.getInstance(surface).createEvent(
+        NavUsageTracker.getInstance(surface.model).createEvent(
           NavEditorEvent.NavEditorEventType.ADD_DESTINATION).withDestinationInfo(component).log()
       }
       component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)

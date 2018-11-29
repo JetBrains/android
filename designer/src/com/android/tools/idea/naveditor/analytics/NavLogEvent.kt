@@ -77,7 +77,7 @@ import java.util.stream.Collectors
 class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker: NavUsageTracker) {
 
   private val navEventBuilder: NavEditorEvent.Builder = NavEditorEvent.newBuilder()
-  private val schema: NavigationSchema? = tracker.surface?.model?.schema
+  private val schema: NavigationSchema? = tracker.model?.schema
 
   init {
     navEventBuilder.type = event
@@ -219,8 +219,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
   }
 
   private fun getCustomAttributeCount(): Int {
-    val surface = tracker.surface ?: return 0
-    val model = surface.model ?: return 0
+    val model = tracker.model ?: return 0
     if (schema == null) {
       return 0
     }
@@ -239,8 +238,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
 
   fun withNavigationContents(): NavLogEvent {
     val builder = navEventBuilder.contentsBuilder
-    val surface = tracker.surface ?: return this
-    val model = surface.model ?: return this
+    val model = tracker.model ?: return this
     var fragments = 0
     var activities = 0
     var customDestinations = 0

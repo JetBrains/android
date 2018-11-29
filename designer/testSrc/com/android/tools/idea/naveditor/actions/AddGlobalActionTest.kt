@@ -34,7 +34,7 @@ class AddGlobalActionTest : NavTestCase() {
         fragment("f2")
       }
     }
-    TestNavUsageTracker.create(model.surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       AddGlobalAction(model.surface, model.find("f2")!!).actionPerformed(mock(AnActionEvent::class.java))
       val root = model.components[0]
       val action = root.children.first { it.isAction }

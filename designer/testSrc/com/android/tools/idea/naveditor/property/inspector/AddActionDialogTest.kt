@@ -14,8 +14,7 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.AUTO_URI
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.SelectionModel
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
@@ -633,7 +632,7 @@ class AddActionDialogTest : NavTestCase() {
     val action = model.find("a1")!!
     doReturn(action).`when`(dialog).writeUpdatedAction()
 
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, true)
       assertSameElements(surface.selectionModel.selection, action)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
@@ -662,7 +661,7 @@ class AddActionDialogTest : NavTestCase() {
     val action = model.find("a1")!!
     doReturn(action).`when`(dialog).writeUpdatedAction()
 
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, false)
       assertSameElements(surface.selectionModel.selection, action)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
@@ -677,9 +676,10 @@ class AddActionDialogTest : NavTestCase() {
   }
 
   fun testShowAndUpdateFromDialogCancel() {
+    val model = mock(NlModel::class.java)
     val surface = mock(NavDesignSurface::class.java)
     val dialog = mock(AddActionDialog::class.java)
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       `when`(dialog.showAndGet()).thenReturn(false)
       showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, false)
       verifyZeroInteractions(tracker)
