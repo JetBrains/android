@@ -91,7 +91,7 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
-  fun canRegisterDependency(type: DependencyType): CapabilityStatus
+  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
 
   /**
    * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
