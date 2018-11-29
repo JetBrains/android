@@ -49,6 +49,7 @@ class ModuleTestRClass(
     override fun getPackageName() = AndroidManifestUtils.getTestPackageName(facet)
     override fun getResourceRepository() = ResourceRepositoryManager.getOrCreateInstance(facet).testAppResources
     override fun getResourceNamespace() = ResourceRepositoryManager.getOrCreateInstance(facet).namespace
+    override fun isForTest() = true
   }
 }
 

@@ -99,6 +99,7 @@ public class LightBrClass extends AndroidLightClassBase {
             return new PsiField[]{createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all")};
           }
         }, false);
+    setModuleInfo(facet.getModule(), false);
   }
 
   private Set<String> collectVariableNamesFromBindables() {

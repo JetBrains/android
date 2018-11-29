@@ -73,4 +73,10 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   protected PsiField[] doGetFields() {
     return buildLocalResourceFields(myFacet, myResourceType, mySource, this);
   }
+
+  @NotNull
+  @Override
+  protected Object[] getFieldsDependencies() {
+    return new Object[] {mySource.getResourceRepository()};
+  }
 }
