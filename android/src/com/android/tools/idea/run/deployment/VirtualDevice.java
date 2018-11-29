@@ -95,12 +95,20 @@ final class VirtualDevice extends Device {
   }
 
   @Nullable
-  private static String getName(@NotNull Path snapshot) {
-    try (InputStream in = Files.newInputStream(snapshot.resolve("snapshot.pb"))) {
-      return getName(Snapshot.parseFrom(in), snapshot.getFileName().toString());
+  @VisibleForTesting
+  static String getName(@NotNull Path snapshotDirectory) {
+    Path snapshotProtocolBuffer = snapshotDirectory.resolve("snapshot.pb");
+    String snapshotDirectoryName = snapshotDirectory.getFileName().toString();
+
+    if (!Files.exists(snapshotProtocolBuffer)) {
+      return snapshotDirectoryName;
+    }
+
+    try (InputStream in = Files.newInputStream(snapshotProtocolBuffer)) {
+      return getName(Snapshot.parseFrom(in), snapshotDirectoryName);
     }
     catch (IOException exception) {
-      Logger.getInstance(VirtualDevice.class).warn(snapshot.toString(), exception);
+      Logger.getInstance(VirtualDevice.class).warn(snapshotDirectory.toString(), exception);
       return null;
     }
   }

@@ -21,9 +21,23 @@ import static org.junit.Assert.assertSame;
 
 import com.android.emulator.SnapshotOuterClass.Image;
 import com.android.emulator.SnapshotOuterClass.Snapshot;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import org.junit.Test;
 
 public final class VirtualDeviceTest {
+  @Test
+  public void getNameSnapshotProtocolBufferDoesntExist() {
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Path directory = fileSystem.getPath("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
+
+    Object actualName = VirtualDevice.getName(directory);
+
+    assertEquals("default_boot", actualName);
+  }
+
   @Test
   public void getNameImageCountEqualsZero() {
     assertNull(VirtualDevice.getName(Snapshot.getDefaultInstance(), ""));
