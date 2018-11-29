@@ -281,6 +281,7 @@ object AndroidAttributeFact {
       "textEditSideNoPasteWindowLayout" -> return NelePropertyType.LAYOUT
       "textEditSidePasteWindowLayout" -> return NelePropertyType.LAYOUT
       "textEditSuggestionItemLayout" -> return NelePropertyType.LAYOUT
+      "textFontWeight" -> return NelePropertyType.STRING
       "textSelectHandle" -> return NelePropertyType.DRAWABLE
       "textSelectHandleLeft" -> return NelePropertyType.DRAWABLE
       "textSelectHandleRight" -> return NelePropertyType.DRAWABLE
