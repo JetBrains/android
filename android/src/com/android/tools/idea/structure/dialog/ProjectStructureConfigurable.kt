@@ -322,7 +322,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     mySidePanel!!.addPlace(
       createPlaceFor(configurable),
       Presentation(configurable.displayName),
-      counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors())} })
+      counterDisplayConfigurable?.let { { it.count } })
     counterDisplayConfigurable?.add(
       CounterDisplayConfigurable.CountChangeListener { invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
   }

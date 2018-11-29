@@ -22,7 +22,6 @@ import java.util.EventListener;
 
 public interface CounterDisplayConfigurable {
   int getCount();
-  boolean containsErrors();
 
   void add(@NotNull CountChangeListener listener, @NotNull Disposable parentDisposable);
 
