@@ -13,10 +13,12 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-       android:shape="rectangle">
-    <corners android:radius="@dimen/design_snackbar_background_corner_radius"/>
-    <solid android:color="@color/design_snackbar_background_color"/>
+    android:shape="rectangle" >
+
+    <corners android:radius="@dimen/design_snackbar_background_corner_radius" />
+
+    <solid android:color="@color/design_snackbar_background_color" />
+
 </shape>

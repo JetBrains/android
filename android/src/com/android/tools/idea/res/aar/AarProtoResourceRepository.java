@@ -119,7 +119,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
    *
    * @param apkFileOrFolder the res.apk file or a folder with its unzipped contents
    * @param libraryName the name of the library
-   * @return the created resource repository, or null if {@code aarFolder} does not contain either "res.apk" or "resources.pb"
+   * @return the created resource repository
    */
   @NotNull
   public static AarProtoResourceRepository create(@NotNull File apkFileOrFolder, @NotNull String libraryName) {
@@ -128,18 +128,12 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       loader.load();
     } catch (IOException e) {
       LOG.error(e);
-      return new AarProtoResourceRepository(apkFileOrFolder.toPath(), getNamespace(loader.packageName), libraryName); // Return an empty repository.
+      return new AarProtoResourceRepository(apkFileOrFolder.toPath(), loader.getNamespace(), libraryName); // Return an empty repository.
     }
 
-    AarProtoResourceRepository repository =
-        new AarProtoResourceRepository(apkFileOrFolder.toPath(), getNamespace(loader.packageName), libraryName);
+    AarProtoResourceRepository repository = new AarProtoResourceRepository(apkFileOrFolder.toPath(), loader.getNamespace(), libraryName);
     repository.load(loader);
     return repository;
-  }
-
-  @NotNull
-  private static ResourceNamespace getNamespace(@Nullable String packageName) {
-    return packageName == null ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
   }
 
   private void load(@NotNull DataLoader loader) {
@@ -358,11 +352,13 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   private AarStyleResourceItem createStyle(@NotNull Resources.Style styleMsg, @NotNull String resourceName,
                                            @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
     String parentStyle = styleMsg.getParent().getName();
+    myUrlParser.parseResourceUrl(parentStyle);
+    parentStyle = myUrlParser.getQualifiedName();
     List<StyleItemResourceValue> styleItems = new ArrayList<>(styleMsg.getEntryCount());
     for (Resources.Style.Entry entryMsg : styleMsg.getEntryList()) {
       String url = entryMsg.getKey().getName();
       myUrlParser.parseResourceUrl(url);
-      String name = myUrlParser.withoutType();
+      String name = myUrlParser.getQualifiedName();
       String value = decode(entryMsg.getItem());
       StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(myNamespace, name, value, myLibraryName);
       styleItems.add(itemValue);
@@ -378,7 +374,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
       myUrlParser.parseResourceUrl(url);
-      String packageName = myUrlParser.getPackageName();
+      String packageName = myUrlParser.getNamespacePrefix();
       ResourceNamespace attrNamespace = packageName == null ? myNamespace : ResourceNamespace.fromPackageName(packageName);
       String comment = entryMsg.getComment();
       AarAttrReference attr =
@@ -484,8 +480,8 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     }
     if (referenceMsg.getType() == Resources.Reference.Type.ATTRIBUTE) {
       myUrlParser.parseResourceUrl(name);
-      if (myUrlParser.isType(ResourceType.ATTR.getName())) {
-        name = myUrlParser.withoutType();
+      if (myUrlParser.hasType(ResourceType.ATTR.getName())) {
+        name = myUrlParser.getQualifiedName();
       }
       return '?' + name;
     }
@@ -616,80 +612,6 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResApkFileOrFolder;
   }
 
-  /**
-   * Parser of resource URLs. Unlike {@link com.android.resources.ResourceUrl}, this class creates virtually no GC overhead.
-   */
-  private static class ResourceUrlParser {
-    @NotNull String resourceUrl = "";
-    int prefixEnd;
-    int colonPos;
-    int slashPos;
-
-    /**
-     * Parses resource URL and sets the fields of this object to point to different parts of the URL.
-     *
-     * @param resourceUrl the resource URL to parse
-     */
-    void parseResourceUrl(@NotNull String resourceUrl) {
-      this.resourceUrl = resourceUrl;
-      if (resourceUrl.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        if (resourceUrl.startsWith("@+")) {
-          prefixEnd = 2;
-        } else {
-          prefixEnd = 1;
-        }
-      } else if (resourceUrl.startsWith(SdkConstants.PREFIX_THEME_REF)) {
-        prefixEnd = 1;
-      } else {
-        prefixEnd = 0;
-      }
-      if (resourceUrl.startsWith("*", prefixEnd)) {
-        prefixEnd++;
-      }
-      slashPos = resourceUrl.lastIndexOf('/');
-      if (slashPos >= 0) {
-        colonPos = resourceUrl.lastIndexOf(':', slashPos);
-      } else {
-        colonPos = resourceUrl.lastIndexOf(':');
-      }
-    }
-
-    @Nullable
-    String getPackageName() {
-      return colonPos > prefixEnd ? resourceUrl.substring(prefixEnd, colonPos) : null;
-    }
-
-    int getTypeStart() {
-      return colonPos >= 0 ? colonPos + 1 : prefixEnd;
-    }
-
-    boolean isType(@NotNull String type) {
-      if (slashPos < 0) {
-        return false;
-      }
-      int typeStart = getTypeStart();
-      return resourceUrl.startsWith(type) && slashPos == typeStart + type.length();
-    }
-
-    @NotNull
-    String getName() {
-      int nameStart = slashPos >= 0 ? slashPos + 1 : colonPos >= 0 ? colonPos + 1 : prefixEnd;
-      return resourceUrl.substring(nameStart);
-    }
-
-    @NotNull
-    String withoutType() {
-      if (slashPos < 0) {
-        return resourceUrl;
-      }
-      int typeStart = getTypeStart();
-      if (typeStart == 0) {
-        return resourceUrl.substring(slashPos + 1);
-      }
-      return resourceUrl.substring(0, typeStart) + resourceUrl.substring(slashPos + 1);
-    }
-  }
-
   private static class DataLoader {
     private final File resApkFileOrFolder;
     Resources.ResourceTable resourceTableMsg;
@@ -712,6 +634,11 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
         }
         loadedFromResApk = true;
       }
+    }
+
+    @NotNull
+    ResourceNamespace getNamespace() {
+      return packageName == null ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
     }
 
     /**

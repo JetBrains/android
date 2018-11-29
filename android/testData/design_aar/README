@@ -1,0 +1,10 @@
+This is data for AarProtoResourceRepositoryTest. The contents of the res subfolder and res.apk were
+produced by running:
+
+cd $SRC
+pushd tools && ./gradlew :b:b-s:i:a:te --tests AutoNamespaceTest; popd
+rm -rf tools/adt/idea/android/testData/design_aar/res
+cp -r out/build/base/build-system/integration-test/application/build/tests/AutoNamespaceTest/rewriteJavaBytecodeRClassesAndResources/namespacedApp/build/intermediates/incremental/autoNamespaceDebugDependencies/namespaced_res/com.android.support_design_27.1.1 tools/adt/idea/android/testData/design_aar/res
+cp out/build/base/build-system/integration-test/application/build/tests/AutoNamespaceTest/rewriteJavaBytecodeRClassesAndResources/namespacedApp/build/intermediates/res_converted_non_namespaced_remote_dependencies/debug/autoNamespaceDebugDependencies/out/com.android.support_design_27.1.1.apk tools/adt/idea/android/testData/design_aar/res.apk
+
+The public.txt file is taken from prebuilts/tools/common/m2/repository/com/android/support/design/27.1.1/design-27.1.1.aar
