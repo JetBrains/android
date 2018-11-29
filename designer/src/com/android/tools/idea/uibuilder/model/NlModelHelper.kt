@@ -173,17 +173,3 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
   }
   return activityClass != null
 }
-
-object NlModelHelper {
-  fun handleDeletion(parent: NlComponent, children: Collection<NlComponent>): Boolean {
-    if (parent.hasNlComponentInfo) {
-      val viewHandlerManager = ViewHandlerManager.get(parent.model.facet)
-
-      val handler = viewHandlerManager.getHandler(parent)
-      if (handler is ViewGroupHandler) {
-        return handler.deleteChildren(parent, children)
-      }
-    }
-    return false
-  }
-}

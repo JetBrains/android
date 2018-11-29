@@ -25,6 +25,7 @@ import com.android.SdkConstants.ATTR_NULLABLE
 import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NAVIGATION_PREFIX
+import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
@@ -32,10 +33,17 @@ import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_ACTION
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_ARGUMENT
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_DEEPLINK
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_DESTINATION
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_INCLUDE
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_NESTED
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
@@ -43,6 +51,7 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import java.io.File
 import kotlin.streams.toList
 
@@ -383,6 +392,22 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent)
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
+
+  override fun maybeHandleDeletion(children: Collection<NlComponent>): Boolean {
+    children.forEach {
+      val tracker = NavUsageTracker.getInstance(it.model)
+      when {
+        it.isAction -> tracker.createEvent(DELETE_ACTION).withActionInfo(it)
+        it.isInclude -> tracker.createEvent(DELETE_INCLUDE)
+        it.isNavigation -> tracker.createEvent(DELETE_NESTED)
+        it.isDestination -> tracker.createEvent(DELETE_DESTINATION).withDestinationInfo(it)
+        it.tagName == TAG_DEEP_LINK -> tracker.createEvent(DELETE_DEEPLINK)
+        it.tagName == TAG_ARGUMENT -> tracker.createEvent(DELETE_ARGUMENT)
+        else -> null
+      }?.log()
+    }
+    return false
+  }
 
   private val includeAttrs: Table<String, String, String>? by lazy(fun(): Table<String, String, String>? {
     val xmlFile = component.includeFile ?: return null

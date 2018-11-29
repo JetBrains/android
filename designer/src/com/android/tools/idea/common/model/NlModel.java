@@ -41,7 +41,6 @@ import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModelHelper;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -52,7 +51,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -815,13 +813,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", getFile()) {
-      @Override
-      protected void run(@NotNull Result<Void> result) {
-        handleDeletion(components);
-      }
-    };
-    action.execute();
+    WriteCommandAction.runWriteCommandAction(getProject(), "Delete Component", null, () -> handleDeletion(components), getFile());
     notifyModified(ChangeType.DELETE);
   }
 
@@ -836,7 +828,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
 
       Collection<NlComponent> children = siblingLists.get(parent);
-      if (!NlModelHelper.INSTANCE.handleDeletion(parent, children)) {
+
+      if (!parent.getMixin().maybeHandleDeletion(children)) {
         for (NlComponent component : children) {
           NlComponent p = component.getParent();
           if (p != null) {
