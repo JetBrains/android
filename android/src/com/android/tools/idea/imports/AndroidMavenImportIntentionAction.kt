@@ -38,7 +38,7 @@ import org.jetbrains.android.refactoring.isAndroidx
  *
  * TODO: Support in XML files
  */
-open class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
+class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private var artifact: String? = null
 
   override fun invoke(project: Project, editor: Editor, element: PsiElement) {
@@ -46,13 +46,13 @@ open class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   fun perform(project: Project, element: PsiElement, offset: Int, sync: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
-    val module = getModule(element) ?: return null
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
     // this.artifact should be the same, but make absolutely certain
     val artifact = findArtifact(project, element, offset) ?: return null
     addDependency(module, artifact)
 
     // Also add dependent annotation processor?
-    findAnnotationProcessor(artifact)?.let { it ->
+    MavenClassRegistry.findAnnotationProcessor(artifact)?.let { it ->
       val annotationProcessor = if (project.isAndroidx()) {
         AndroidxNameUtils.getCoordinateMapping(it)
       } else {
@@ -82,7 +82,7 @@ open class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
-    val module = getModule(element) ?: return false
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
     artifact = findArtifact(project, element, editor?.caretModel?.offset ?: -1)
     artifact?.let { artifact ->
       // Make sure we aren't already depending on it
@@ -91,8 +91,6 @@ open class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
     return false
   }
-
-  open fun getModule(element: PsiElement) = ModuleUtil.findModuleForPsiElement(element)
 
   private fun addDependency(module: Module, artifact: String, type: DependencyType = DependencyType.IMPLEMENTATION) {
     val coordinate = getCoordinate(artifact) ?: return
@@ -144,7 +142,7 @@ open class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // whether you're importing from a Kotlin file, not whether the project
       // contains Kotlin.
       if (isKotlin(element)) {
-        androidx = findKtxLibrary(androidx) ?: androidx
+        androidx = MavenClassRegistry.findKtxLibrary(androidx) ?: androidx
 
       }
 
@@ -153,13 +151,5 @@ open class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     else {
       artifact
     }
-  }
-
-  private fun findAnnotationProcessor(artifact: String): String? {
-    return MavenClassRegistry.findAnnotationProcessor(artifact) ?: return null
-  }
-
-  private fun findKtxLibrary(artifact: String): String? {
-    return MavenClassRegistry.findKtxLibrary(artifact) ?: return null
   }
 }
