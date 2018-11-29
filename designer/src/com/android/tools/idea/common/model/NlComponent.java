@@ -953,5 +953,7 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     public void postCreateFromTransferrable(DnDTransferComponent dndComponent) {}
+
+    public abstract boolean maybeHandleDeletion(@NotNull Collection<NlComponent> children);
   }
 }

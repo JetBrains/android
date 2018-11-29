@@ -434,6 +434,17 @@ internal data class NlComponentData(
 @VisibleForTesting
 class NlComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
+
+  override fun maybeHandleDeletion(children: Collection<NlComponent>): Boolean {
+    val viewHandlerManager = ViewHandlerManager.get(component.model.facet)
+
+    val handler = viewHandlerManager.getHandler(this.component)
+    if (handler is ViewGroupHandler) {
+      return handler.deleteChildren(component, children)
+    }
+    return false
+  }
+
   internal val data: NlComponentData = NlComponentData()
 
   override fun toString(): String {

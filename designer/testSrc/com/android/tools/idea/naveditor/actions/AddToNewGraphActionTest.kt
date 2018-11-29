@@ -81,7 +81,7 @@ class AddToNewGraphActionTest : NavTestCase() {
       assertSameElements(root.children.map { it.id }, "fragment1", "navigation1", "navigation")
 
       assertEquals(newNavigation.startDestinationId, "fragment2")
-      
+
       val fragment1 = model.find("fragment1")!!
       val fragment4 = model.find("fragment4")!!
 

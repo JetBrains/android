@@ -19,11 +19,16 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
+import com.google.wireless.android.sdk.stats.NavActionInfo
+import com.google.wireless.android.sdk.stats.NavDestinationInfo
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.command.WriteCommandAction
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class NavComponentHelperTest {
 
@@ -316,5 +321,60 @@ class NavComponentHelperTest2 : NavTestCase() {
     assertEquals(f1, newAction.parent)
     assertNull(newAction.actionDestinationId)
     assertEquals("f1", newAction.popUpTo)
+  }
+
+  fun testDeleteMetrics() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1", layout = "foo") {
+          action("action", destination = "f1")
+          argument("arg")
+        }
+        navigation("subnav") {
+          deeplink("foo")
+        }
+        include("navigation")
+      }
+    }
+
+    TestNavUsageTracker.create(model).use { tracker ->
+      model.delete(listOf(model.find("action")!!))
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.DELETE_ACTION)
+                                 .setActionInfo(NavActionInfo.newBuilder()
+                                                  .setCountSame(1)
+                                                  .setType(NavActionInfo.ActionType.SELF)
+                                                  .setCountToDestination(1)
+                                                  .setCountFromSource(1))
+                                 .build())
+
+      model.delete(listOf(model.find("f1")!!.children[0]))
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.DELETE_ARGUMENT)
+                                 .build())
+
+      model.delete(listOf(model.find("f1")!!))
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.DELETE_DESTINATION)
+                                 .setDestinationInfo(NavDestinationInfo.newBuilder()
+                                                       .setType(NavDestinationInfo.DestinationType.FRAGMENT)
+                                                       .setHasLayout(true))
+                                 .build())
+
+      model.delete(listOf(model.find("subnav")!!.children[0]))
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.DELETE_DEEPLINK)
+                                 .build())
+
+      model.delete(listOf(model.find("subnav")!!))
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.DELETE_NESTED)
+                                 .build())
+
+      model.delete(listOf(model.find("nav")!!))
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.DELETE_INCLUDE)
+                                 .build())
+    }
   }
 }
