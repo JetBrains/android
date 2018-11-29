@@ -17,9 +17,9 @@ package com.android.tools.idea.structure.dialog
 
 import com.android.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.roots.ui.configuration.SidePanelCountLabel
 import com.intellij.openapi.roots.ui.configuration.SidePanelSeparator
 import com.intellij.openapi.ui.popup.ListItemDescriptor
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
@@ -31,15 +31,20 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.Navigator
 import com.intellij.ui.popup.list.GroupedItemsListRenderer
 import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Font
+import java.awt.Graphics
 import javax.swing.CellRendererPane
 import javax.swing.DefaultListModel
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
@@ -47,11 +52,13 @@ import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.border.EmptyBorder
 
 class SidePanel(private val myNavigator: Navigator, private val myHistory: History) : JPanel(BorderLayout()) {
+  data class ProblemStats(val count: Int, val containsErrors: Boolean)
+
   data class PlaceData(
     val place: Place,
     val separator: String?,
     val presentation: Presentation,
-    val countProvider: (() -> Int)?
+    val countProvider: (() -> ProblemStats)?
   )
 
   private val listModel: DefaultListModel<PlaceData> = DefaultListModel()
@@ -67,7 +74,11 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
   private val cellRenderer: ListCellRenderer<PlaceData> = object : GroupedItemsListRenderer<PlaceData>(descriptor) {
     var extraPanel: JPanel? = null
-    var countLabel: SidePanelCountLabel? = null
+    var countLabel: JLabel? = null
+    private var containsErrors: Boolean = false
+    private var isSelected: Boolean = false
+    private val textBorders = JBUI.Borders.empty(2, 5, 2, 6 + 6)
+    private val emptyBorders = JBUI.Borders.empty()
 
     init {
       mySeparatorComponent.setCaptionCentered(false)
@@ -78,6 +89,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     override fun createSeparator(): SeparatorWithText = SidePanelSeparator()
 
     override fun layout() {
+      countLabel?.border = if (countLabel?.text.isNullOrEmpty()) emptyBorders else textBorders
       val extraPanel = extraPanel ?: return
       myRendererComponent.add(mySeparatorComponent, BorderLayout.NORTH)
       extraPanel.add(myComponent, BorderLayout.CENTER)
@@ -99,7 +111,33 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
     override fun createItemComponent(): JComponent {
       extraPanel = NonOpaquePanel(BorderLayout())
-      countLabel = SidePanelCountLabel()
+      countLabel = object : JLabel() {
+        init {
+          font = UIUtil.getListFont().deriveFont(Font.BOLD)
+        }
+
+        override fun paintComponent(g: Graphics) {
+          g.color = if (isSelected) UIUtil.getListSelectionBackground() else UIUtil.SIDE_PANEL_BACKGROUND
+          g.fillRect(0, 0, width, height)
+          if (StringUtil.isEmpty(text)) return
+          val deepBlue = JBColor(Color(0x97A4B2), Color(92, 98, 113))
+          g.color = when {
+            isSelected -> Gray._255.withAlpha(if (UIUtil.isUnderDarcula()) 100 else 220)
+            containsErrors -> JBColor.RED.darker()
+            else -> deepBlue
+          }
+          val config = GraphicsUtil.setupAAPainting(g)
+          g.fillRoundRect(0, 3, width - 6 - 1, height - 6, height - 6, height - 6)
+          config.restore()
+          foreground = when {
+            isSelected && containsErrors -> JBColor.RED.darker()
+            isSelected -> deepBlue.darker()
+            else -> UIUtil.getListForeground(true)
+          }
+          super.paintComponent(g)
+        }
+
+      }
       val component = super.createItemComponent()
 
       myTextLabel.foreground = Gray._240
@@ -112,8 +150,11 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
     private fun updateCountLabel(isSelected: Boolean, value: PlaceData) {
       val countLabel = countLabel ?: return
-      countLabel.isSelected = isSelected
-      val count = value.countProvider?.invoke() ?: 0
+      val problemStats = value.countProvider?.invoke()
+      val count = problemStats?.count ?: 0
+
+      this.isSelected = isSelected
+      containsErrors = problemStats?.containsErrors ?: false
       countLabel.text = when {
         count == 0 -> ""
         count > 100 -> "100+"
@@ -144,7 +185,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     add(createScrollPane(list, true), BorderLayout.CENTER)
   }
 
-  fun addPlace(place: Place, presentation: Presentation, counterProvider: (() -> Int)?) {
+  fun addPlace(place: Place, presentation: Presentation, counterProvider: (() -> ProblemStats)?) {
     listModel.addElement(PlaceData(place, pendingSeparator, presentation, counterProvider))
     pendingSeparator = null
   }

@@ -64,7 +64,6 @@
               </grid>
             </constraints>
             <properties>
-              <icon value="studio/icons/common/error.png"/>
               <text value=""/>
             </properties>
           </component>
