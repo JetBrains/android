@@ -15,24 +15,14 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumValue
-import com.android.tools.idea.common.property2.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
-import javax.swing.ListCellRenderer
+import com.intellij.openapi.actionSystem.AnActionEvent
 
-class TestEnumSupport(vararg elements: String, action: AnAction? = null) : EnumSupport {
+class TestAction(text: String): AnAction(text) {
+  var actionPerformedCount = 0
+    private set
 
-  override val values = mutableListOf<EnumValue>()
-
-  override val renderer: ListCellRenderer<EnumValue> by lazy {
-    EnumValueListCellRenderer()
-  }
-
-  init {
-    values.addAll(elements.map { EnumValue.item(it) })
-    if (action != null) {
-      values.add(EnumValue.action(action))
-    }
+  override fun actionPerformed(e: AnActionEvent) {
+    actionPerformedCount++
   }
 }
