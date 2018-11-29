@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
@@ -29,6 +30,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
     myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
+    setModuleInfo(sdk);
     myFrameworkResourceManager = new FrameworkResourceManager(psiManager.getProject(), platform, false);
 
     final ResourceType[] types = ResourceType.values();
@@ -90,6 +92,12 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
       return buildResourceFields(myFrameworkResourceManager.getResourceRepository(), ResourceNamespace.ANDROID,
                                  FieldModifier.FINAL, (type, s) -> myFrameworkResourceManager.isResourcePublic(type.getName(), s),
                                  myResourceType, AndroidInternalRClass.this);
+    }
+
+    @NotNull
+    @Override
+    protected Object[] getFieldsDependencies() {
+      return new Object[]{ModificationTracker.NEVER_CHANGED};
     }
   }
 

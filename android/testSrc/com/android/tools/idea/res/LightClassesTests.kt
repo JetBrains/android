@@ -31,11 +31,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.VfsTestUtil.createFile
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -368,7 +371,37 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(myFixture.javaFacade.findClass("com.example.someLib.R", GlobalSearchScope.everythingScope(project)))
         .isNotNull()
     }
-  }
+    
+    fun testResourceRename() {
+      val strings = myFixture.addFileToProject(
+        "/res/values/strings.xml",
+        // language=xml
+        """
+        <resources>
+          <string name="f${caret}oo">foo</string>
+        </resources>
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(strings.virtualFile)
+      assertThat(
+        myFixture.javaFacade
+          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
+          .fields
+          .map(PsiField::getName)
+      ).containsExactly("appString", "foo")
+
+      myFixture.renameElementAtCaretUsingHandler("bar")
+      UIUtil.dispatchAllInvocationEvents()
+
+      assertThat(
+        myFixture.javaFacade
+          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
+          .fields
+          .map(PsiField::getName)
+      ).containsExactly("appString", "bar")
+   }
+ }
 
   class SingleModuleNamespaced : SingleModule() {
     override fun setUp() {
@@ -665,6 +698,37 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       val firstSuggestion = myFixture.lookupElements?.first()?.psiElement
       assertThat(firstSuggestion).isInstanceOf(ResourceRepositoryRClass::class.java)
       assertThat((firstSuggestion as PsiClass).qualifiedName).isEqualTo("p1.p2.R")
+
+      assertThat(
+        this.myFixture.lookupElements!!
+          .mapNotNull { it.psiElement as? PsiClass }
+          .filter { it.name == "R" }
+          .map { it.qualifiedName }
+      ).containsExactly(
+        "p1.p2.R",
+        "com.example.mylibrary.R",
+        "com.example.anotherLib.R"
+      )
+    }
+
+    /**
+     *  Regression test for b/118485835.
+     */
+    fun testKotlinCompletion_b118485835() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/sub/test.kt",
+        // language=kotlin
+        """
+        package p1.p2.sub
+
+        fun test() {
+          R${caret}
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.completeBasic()
 
       assertThat(
         this.myFixture.lookupElements!!

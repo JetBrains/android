@@ -431,7 +431,7 @@ public class GradleFileSimpleMerger {
       pullDependenciesIntoMap(originalDependencies, null);
       other.pullDependenciesIntoMap(dependencies, unparseableDependencies);
 
-      removeExistingDependencies(dependencies, originalDependencies);
+      updateExistingDependencies(dependencies, originalDependencies, null, null);
 
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 

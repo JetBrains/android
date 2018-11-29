@@ -114,6 +114,8 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
           return CachedValueProvider.Result.create(result, myManager.getModificationTracker().getJavaStructureModificationTracker());
         }
       , false);
+
+    setModuleInfo(facet.getModule(), false);
   }
 
   @Override

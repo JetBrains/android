@@ -38,6 +38,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.libraries.LibraryTable
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
@@ -57,6 +60,10 @@ private data class ResourceClasses(
   val testNonNamespaced: PsiClass?
 ) {
   val all = sequenceOf(namespaced, nonNamespaced, testNonNamespaced)
+
+  companion object {
+    val Empty = ResourceClasses(null, null, null)
+  }
 }
 
 /**
@@ -97,14 +104,20 @@ class ProjectLightResourceClassService(
     }, false)
 
     // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep
-    // hard references to ExternalLibrary keys, otherwise the entries will be collected. We can release unused light classes after a sync
-    // removes a library from the project.
+    // hard references to ExternalLibrary keys, otherwise the entries will be collected.
     project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent?) {
         val aars = aarsByPackage.value.values()
         aarPackageNamesCache.retainAll(aars)
-        aarClassesCache.retainAll(aars)
       }
+    })
+
+    // Light classes for AARs store a reference to the Library in UserData. These Library instances can become stale during sync, which
+    // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.
+    LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(object : LibraryTable.Listener {
+      override fun afterLibraryAdded(newLibrary: Library) = aarClassesCache.invalidateAll()
+      override fun afterLibraryRenamed(library: Library) = aarClassesCache.invalidateAll()
+      override fun afterLibraryRemoved(library: Library) = aarClassesCache.invalidateAll()
     })
   }
 
@@ -181,25 +194,37 @@ class ProjectLightResourceClassService(
   }
 
   private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
+    val ideaLibrary = findIdeaLibrary(aarLibrary) ?: return ResourceClasses.Empty
+
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
+
       ResourceClasses(
         namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
           NamespacedAarRClass(
             psiManager,
+            ideaLibrary,
             packageName,
             aarResourceRepositoryCache.getProtoRepository(resApk, aarLibrary.address),
             ResourceNamespace.fromPackageName(packageName)
           )
         },
         nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
-          NonNamespacedAarRClass(psiManager, packageName, symbolFile)
+          NonNamespacedAarRClass(psiManager, ideaLibrary, packageName, symbolFile)
         },
 
         testNonNamespaced = null
       )
     }
+  }
+
+  private fun findIdeaLibrary(modelLibrary: ExternalLibrary): Library? {
+    // TODO(b/118485835): Store this mapping at sync time and use it here.
+    return LibraryTablesRegistrar.getInstance()
+      .getLibraryTable(project)
+      .libraries
+      .firstOrNull { it.name?.endsWith(modelLibrary.address) == true }
   }
 
   override fun findRClassPackage(packageName: String): PsiPackage? {
