@@ -200,6 +200,6 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
   }
 
   fun select(place: Place) {
-    list.setSelectedValue(place, true)
+    list.setSelectedValue(listModel.elements().asSequence().find { it.place == place }, true)
   }
 }
