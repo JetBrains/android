@@ -18,11 +18,15 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.idea.common.property2.api.EnumSupport
+import com.android.tools.idea.common.property2.impl.model.util.TestAction
 import com.android.tools.idea.common.property2.impl.model.util.TestEnumSupport
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.*
 import javax.swing.event.ListDataEvent
@@ -30,9 +34,15 @@ import javax.swing.event.ListDataListener
 
 class ComboBoxPropertyEditorModelTest {
 
+  @JvmField @Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
   private fun createModel(): ComboBoxPropertyEditorModel {
+    return createModel(TestEnumSupport("visible", "invisible", "gone"))
+  }
+
+  private fun createModel(enumSupport: EnumSupport): ComboBoxPropertyEditorModel {
     val property = TestPropertyItem(SdkConstants.ANDROID_URI, ATTR_VISIBILITY, "visible")
-    val enumSupport = TestEnumSupport("visible", "invisible", "gone")
     return ComboBoxPropertyEditorModel(property, enumSupport, true)
   }
 
@@ -90,6 +100,25 @@ class ComboBoxPropertyEditorModelTest {
     // test
     model.popupMenuWillBecomeInvisible(false)
     assertThat(model.property.value).isEqualTo("gone")
+    assertThat(model.isPopupVisible).isFalse()
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testEnterInPopupOnAction() {
+    // setup
+    val action = TestAction("testAction")
+    val enumSupport = TestEnumSupport("visible", "invisible", action = action)
+    val model = createModel(enumSupport)
+    model.isPopupVisible = true
+    model.selectedItem = enumSupport.values.last()
+    val listener = mock(ValueChangedListener::class.java)
+    model.addListener(listener)
+
+    // test
+    model.popupMenuWillBecomeInvisible(false)
+    assertThat(action.actionPerformedCount).isEqualTo(1)
+    assertThat(model.property.value).isEqualTo("visible")
     assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
   }

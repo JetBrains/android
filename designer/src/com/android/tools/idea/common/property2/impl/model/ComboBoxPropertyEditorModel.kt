@@ -118,8 +118,8 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
     val newValue = selectedValue
     if (!ignoreChanges && newValue != null) {
-      text = newValue.value
-      value = text
+      newValue.select(property)
+      fireValueChanged()
     }
     _popupVisible = false
   }
