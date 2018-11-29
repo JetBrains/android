@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.JavaModuleUnsupport
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
+import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
@@ -30,10 +31,13 @@ import javax.swing.JComponent
 class SuggestionsPerspectiveConfigurable(context: PsContext)
   : AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
   private var messageCount: Int = 0
+  private var errorCount: Int = 0
 
   init {
     fun issuesChanged() {
-      messageCount = getIssues(context, null).size
+      val issues = getIssues(context, null)
+      messageCount = issues.size
+      errorCount = issues.count { it.severity == PsIssue.Severity.ERROR }
       fireCountChangeListener()
     }
 
@@ -53,8 +57,9 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   override fun getDisplayName(): String = "Suggestions"
 
-
   override fun getCount(): Int = messageCount
+
+  override fun containsErrors(): Boolean = errorCount > 0
 
   override fun createComponent(): JComponent = super.createComponent().apply { name = "SuggestionsView" }
 
