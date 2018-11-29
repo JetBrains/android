@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.naveditor.property
 
+import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.collect.HashBasedTable
 import com.intellij.util.ui.UIUtil
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -50,5 +56,37 @@ class NavPropertiesPanelTest : NavTestCase() {
 
     verify(inspector1).refresh()
     verify(inspector1).refresh()
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  fun testPropertiesWrapped() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+      }
+    }
+
+    val navPropertiesManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
+    val inspectorProviders = mock(NavInspectorProviders::class.java)
+    val selectedItems = listOf(model.find("f1")!!)
+    navPropertiesManager.myProviders = inspectorProviders
+    val property1 = mock(NlPropertyItem::class.java)
+    doReturn("p1").`when`(property1).name
+    val property2 = mock(NlPropertyItem::class.java)
+
+    val properties = HashBasedTable.create<String, String, NlPropertyItem>()
+    properties.put("", "p1", property1)
+    properties.put("myns", "p2", property2)
+    navPropertiesManager.propertiesPanel.setItems(selectedItems, properties)
+
+    val propertiesCaptor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(eq(selectedItems), propertiesCaptor.capture(), eq(navPropertiesManager))
+    val wrappedProperties = propertiesCaptor.value
+    // All properties either must be wrapped or be marker properties
+    assertTrue(wrappedProperties.values.all { it is NavPropertyWrapper || it is SimpleProperty })
+
+    // make sure the properties are connected correctly
+    wrappedProperties["p1"]?.setValue("foo")
+    verify(property1).setValue("foo")
   }
 }
