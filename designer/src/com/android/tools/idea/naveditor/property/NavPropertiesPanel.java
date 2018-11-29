@@ -16,10 +16,12 @@
 package com.android.tools.idea.naveditor.property;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesPanel;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
@@ -64,7 +66,14 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
   @Override
   public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties) {
-    myInspectorPanel.setComponent(components, properties, myPropertiesManager);
+    Table<String, String, NlProperty> wrappedProperties = HashBasedTable.create();
+    for (String rowKey : properties.rowKeySet()) {
+      for (String columnKey : properties.row(rowKey).keySet()) {
+        NlProperty wrapped = new NavPropertyWrapper(properties.get(rowKey, columnKey));
+        wrappedProperties.put(rowKey, columnKey, wrapped);
+      }
+    }
+    myInspectorPanel.setComponent(components, wrappedProperties, myPropertiesManager);
   }
 
   @Override

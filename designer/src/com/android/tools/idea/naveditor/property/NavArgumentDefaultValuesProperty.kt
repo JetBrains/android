@@ -103,7 +103,7 @@ class NavArgumentDefaultValuesProperty(components: List<NlComponent>, val proper
                              }
                            }
                          }
-      NavArgumentDefaultValueProperty(propertyBase, name, type)
+      NavArgumentDefaultValueProperty(NavPropertyWrapper(propertyBase), name, type)
     }
   }
 
