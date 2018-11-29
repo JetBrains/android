@@ -34,18 +34,15 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +57,6 @@ import static com.android.tools.idea.gradle.util.ContentEntries.findParentConten
 import static com.android.tools.idea.gradle.util.GradleProjects.*;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.util.ThreeState.YES;
 
 /**
@@ -74,7 +70,6 @@ import static com.intellij.util.ThreeState.YES;
  * Both JPS and the "direct Gradle invocation" build strategies ares supported.
  */
 public class PostProjectBuildTasksExecutor {
-  private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
   private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY = Key.create("android.gradle.project.last.build.timestamp");
 
   @NotNull private final Project myProject;
@@ -173,8 +168,6 @@ public class PostProjectBuildTasksExecutor {
 
       myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
 
-      syncJavaLangLevel();
-
       if (isSyncNeeded(buildMode, errorCount)) {
         GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
         request.generateSourcesOnSuccess = false;
@@ -212,6 +205,7 @@ public class PostProjectBuildTasksExecutor {
 
   /**
    * Run task once other pending events have finished.
+   *
    * @param task to be run
    */
   private static void runWhenEventsFinished(@NotNull Runnable task) {
@@ -311,56 +305,5 @@ public class PostProjectBuildTasksExecutor {
         rootDir.refresh(true, true);
       }
     }
-  }
-
-  public void updateJavaLangLevelAfterBuild() {
-    myProject.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, true);
-  }
-
-  private void syncJavaLangLevel() {
-    Boolean updateJavaLangLevel = myProject.getUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD);
-    if (updateJavaLangLevel == null || !updateJavaLangLevel.booleanValue()) {
-      return;
-    }
-
-    myProject.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, null);
-
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-      @Override
-      public void execute() {
-        if (myProject.isOpen()) {
-          //noinspection TestOnlyProblems
-          LanguageLevel langLevel = getMaxJavaLangLevel();
-          if (langLevel != null) {
-            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(myProject);
-            if (langLevel != ext.getLanguageLevel()) {
-              ext.setLanguageLevel(langLevel);
-            }
-          }
-        }
-      }
-    });
-  }
-
-  @VisibleForTesting
-  @Nullable
-  LanguageLevel getMaxJavaLangLevel() {
-    LanguageLevel maxLangLevel = null;
-
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    for (Module module : modules) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        continue;
-      }
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
-        if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {
-          maxLangLevel = langLevel;
-        }
-      }
-    }
-    return maxLangLevel;
   }
 }
