@@ -52,14 +52,17 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     addDependency(module, artifact)
 
     // Also add dependent annotation processor?
-    MavenClassRegistry.findAnnotationProcessor(artifact)?.let { it ->
-      val annotationProcessor = if (project.isAndroidx()) {
-        AndroidxNameUtils.getCoordinateMapping(it)
-      } else {
-        it
-      }
+    if (module.getModuleSystem().canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
+      MavenClassRegistry.findAnnotationProcessor(artifact)?.let { it ->
+        val annotationProcessor = if (project.isAndroidx()) {
+          AndroidxNameUtils.getCoordinateMapping(it)
+        }
+        else {
+          it
+        }
 
-      addDependency(module, annotationProcessor, DependencyType.ANNOTATION_PROCESSOR)
+        addDependency(module, annotationProcessor, DependencyType.ANNOTATION_PROCESSOR)
+      }
     }
 
     return if (sync) {
@@ -85,6 +88,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
     artifact = findArtifact(project, element, editor?.caretModel?.offset ?: -1)
     artifact?.let { artifact ->
+      if (!module.getModuleSystem().canRegisterDependency().isSupported()) {
+        return false
+      }
+
       // Make sure we aren't already depending on it
       return !dependsOn(module, artifact)
     }
