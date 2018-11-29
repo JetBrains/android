@@ -108,7 +108,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javax.swing.JPanel;
 import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -163,7 +162,7 @@ public class NavDesignSurface extends DesignSurface {
           public void selectionChanged(@NotNull FileEditorManagerEvent event) {
             // skip the initial opening
             if (event.getOldEditor() != null && event.getNewEditor() != null) {
-              NavUsageTracker.Companion.getInstance(NavDesignSurface.this)
+              NavUsageTracker.Companion.getInstance(getModel())
                 .createEvent(event.getNewEditor() instanceof NavEditor ? SELECT_DESIGN_TAB : SELECT_XML_TAB)
                 .log();
             }
@@ -261,7 +260,7 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public CompletableFuture<Void> setModel(@Nullable NlModel model) {
     CompletableFuture<Void> future = super.setModel(model);
-    NavUsageTracker.Companion.getInstance(this)
+    NavUsageTracker.Companion.getInstance(model)
       .createEvent(OPEN_FILE)
       .withNavigationContents()
       .log();
@@ -482,7 +481,7 @@ public class NavDesignSurface extends DesignSurface {
       return;
     }
     String id;
-    NavEditorEventType metricsEventType = null;
+    NavEditorEventType metricsEventType;
 
     if (NavComponentHelperKt.isNavigation(component)) {
       if (NavComponentHelperKt.isInclude(component)) {
@@ -495,7 +494,7 @@ public class NavDesignSurface extends DesignSurface {
       }
       else {
         setCurrentNavigation(component);
-        NavUsageTracker.Companion.getInstance(this).createEvent(ACTIVATE_NESTED).log();
+        NavUsageTracker.Companion.getInstance(getModel()).createEvent(ACTIVATE_NESTED).log();
         return;
       }
     }
@@ -514,7 +513,7 @@ public class NavDesignSurface extends DesignSurface {
           VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
           if (virtualFile != null) {
             FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
-            NavUsageTracker.Companion.getInstance(this).createEvent(metricsEventType).log();
+            NavUsageTracker.Companion.getInstance(getModel()).createEvent(metricsEventType).log();
             return;
           }
         }
@@ -530,7 +529,7 @@ public class NavDesignSurface extends DesignSurface {
           VirtualFile virtualFile = file.getVirtualFile();
           if (virtualFile != null) {
             FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
-            NavUsageTracker.Companion.getInstance(this).createEvent(ACTIVATE_CLASS).log();
+            NavUsageTracker.Companion.getInstance(getModel()).createEvent(ACTIVATE_CLASS).log();
             return;
           }
         }

@@ -37,7 +37,7 @@ class NavDeeplinkInspectorProvider(
 
     if (deeplinkDialog.showAndGet()) {
       deeplinkDialog.save()
-      NavUsageTracker.getInstance(surface).createEvent(if (existing == null) CREATE_DEEP_LINK else EDIT_DEEP_LINK)
+      NavUsageTracker.getInstance(surface?.model).createEvent(if (existing == null) CREATE_DEEP_LINK else EDIT_DEEP_LINK)
         .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
     }
   }

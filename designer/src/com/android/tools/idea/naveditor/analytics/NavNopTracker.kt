@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.analytics
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.model.NlModel
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 
 /**
@@ -29,5 +29,5 @@ open class NavNopTracker : NavUsageTracker {
     // nothing
   }
 
-  override val surface: DesignSurface? = null
+  override val model: NlModel? = null
 }

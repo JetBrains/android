@@ -42,7 +42,7 @@ class NavDestinationArgumentsInspectorProvider(
 
     if (argumentDialog.showAndGet()) {
       argumentDialog.save()
-      NavUsageTracker.getInstance(surface).createEvent(if (existing == null) CREATE_ARGUMENT else EDIT_ARGUMENT)
+      NavUsageTracker.getInstance(surface?.model).createEvent(if (existing == null) CREATE_ARGUMENT else EDIT_ARGUMENT)
         .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
     }
   }

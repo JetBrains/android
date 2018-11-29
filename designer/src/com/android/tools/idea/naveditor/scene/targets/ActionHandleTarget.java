@@ -46,7 +46,6 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.geom.Point2D;
@@ -133,7 +132,7 @@ public class ActionHandleTarget extends NavBaseTarget {
         StringUtil.isNotEmpty(closestComponent.getId())) {
       NlComponent action = createAction(closestComponent);
       if (action != null) {
-        NavUsageTracker.Companion.getInstance(scene.getDesignSurface()).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        NavUsageTracker.Companion.getInstance(action.getModel()).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)
           .withSource(NavEditorEvent.Source.DESIGN_SURFACE)
           .log();

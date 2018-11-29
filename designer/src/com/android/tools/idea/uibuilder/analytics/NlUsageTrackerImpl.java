@@ -65,8 +65,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Class to manage anonymous stats logging for the layout editor. If global stats logging is disabled, no stats will be logged
  * (see {@link UsageTracker}).
- *
- * TODO: factor out nav/layout specific parts
  */
 public class NlUsageTrackerImpl implements NlUsageTracker {
   private static final Pattern STYLE_PATTERN = Pattern.compile("style=\"(.*)\"");

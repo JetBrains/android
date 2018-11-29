@@ -28,19 +28,17 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.layout
-import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
-import com.google.wireless.android.sdk.stats.NavDestinationInfo.DestinationType.*
+import com.google.wireless.android.sdk.stats.NavDestinationInfo.DestinationType.FRAGMENT
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ADD_DESTINATION
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ADD_INCLUDE
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.JavaPsiFacade
@@ -53,7 +51,6 @@ import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
@@ -61,7 +58,6 @@ import java.awt.event.MouseEvent
 import java.io.File
 import java.util.stream.Collectors
 import javax.swing.JPanel
-import kotlin.test.assertTrue
 
 // TODO: testing with custom navigators
 class AddDestinationMenuTest : NavTestCase() {
@@ -260,7 +256,7 @@ class AddDestinationMenuTest : NavTestCase() {
         createdFiles.add(File(root, "res/layout/frag_layout.xml"))
       }
     }
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       menu.createNewDestination(event, action)
 
       val added = model.find("frag")!!
@@ -292,7 +288,7 @@ class AddDestinationMenuTest : NavTestCase() {
         createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
       }
     }
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       menu.createNewDestination(event, action)
 
       val added = model.find("frag")!!
@@ -313,7 +309,7 @@ class AddDestinationMenuTest : NavTestCase() {
     val cell0Bounds = gallery.getCellBounds(1, 1)
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       gallery.dispatchEvent(MouseEvent(
         gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
         cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
@@ -333,7 +329,7 @@ class AddDestinationMenuTest : NavTestCase() {
     val destination = mock(Destination::class.java)
     val component = model.find("fragment")!!
     `when`(destination.component).thenReturn(component)
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
       Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
@@ -347,7 +343,7 @@ class AddDestinationMenuTest : NavTestCase() {
     val component = spy(model.find("fragment")!!)
     `when`(component.tagName).thenReturn(TAG_INCLUDE)
     `when`(destination.component).thenReturn(component)
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
       Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(ADD_INCLUDE).build())

@@ -23,7 +23,6 @@ import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -204,7 +203,7 @@ class NavLogEventTest : NavTestCase() {
       }
     }
 
-    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), model.surface, Consumer { })
+    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), model, Consumer { })
     val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
       .withNavigationContents()
       .getProtoForTest().contents
@@ -289,7 +288,7 @@ class NavLogEventTest : NavTestCase() {
                                          listOf(component),
                                          null)
 
-    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), (component.model as SyncNlModel).surface, Consumer { })
+    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), component.model, Consumer { })
     val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
       .withPropertyInfo(property, wasEmpty)
       .getProtoForTest().propertyInfo
@@ -333,7 +332,7 @@ class NavLogEventTest : NavTestCase() {
         custom("mycustomdestination")
       }
     }
-    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), model.surface, Consumer { })
+    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), model, Consumer { })
     val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
       .withSchemaInfo()
       .getProtoForTest().schemaInfo

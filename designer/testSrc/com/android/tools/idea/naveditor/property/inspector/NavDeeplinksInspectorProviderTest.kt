@@ -103,7 +103,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     `when`(dialog.autoVerify).thenReturn(true)
     doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model.surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), model.surface)
       assertEquals(1, fragment.childCount)
       val deeplink = fragment.getChild(0)!!
@@ -131,7 +131,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     `when`(dialog.autoVerify).thenReturn(true)
     doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model.surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(fragment.children[0], listOf(fragment), model.surface)
       assertEquals(1, fragment.childCount)
       val deeplink = fragment.getChild(0)!!

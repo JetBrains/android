@@ -35,7 +35,7 @@ public class DesignerUsageTrackerManagerTest extends AndroidTestCase {
 
   public void testGetInstance() {
     Object nopTracker = new Object();
-    DesignerUsageTrackerManager<Object> manager =  new DesignerUsageTrackerManager<>((a, b, c) -> new Object(), nopTracker);
+    DesignerUsageTrackerManager<Object, Object> manager =  new DesignerUsageTrackerManager<>((a, b, c) -> new Object(), nopTracker);
     // Because we are testing the actual getInstanceInner instantiation, we tell the method
     assertEquals(nopTracker, manager.getInstanceInner(null, true));
 

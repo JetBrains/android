@@ -114,7 +114,7 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     `when`(dialog.defaultValue).thenReturn("1234")
     doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model.surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       NavDestinationArgumentsInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), model.surface)
       assertEquals(1, fragment.childCount)
       val argument = fragment.getChild(0)!!
@@ -143,7 +143,7 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     `when`(dialog.defaultValue).thenReturn("4321")
     doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model.surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       NavDestinationArgumentsInspectorProvider { _, _ -> dialog }.addItem(fragment.children[0], listOf(fragment), model.surface)
       assertEquals(1, fragment.childCount)
       val argument = fragment.getChild(0)!!

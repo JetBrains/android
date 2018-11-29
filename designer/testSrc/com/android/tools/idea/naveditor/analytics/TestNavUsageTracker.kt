@@ -17,24 +17,24 @@ package com.android.tools.idea.naveditor.analytics
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.model.NlModel
 import org.mockito.Mockito
 import java.io.Closeable
 
 // Open for testing
-open class TestNavUsageTracker private constructor(override val surface: DesignSurface) : NavNopTracker(), Closeable {
+open class TestNavUsageTracker private constructor(override val model: NlModel) : NavNopTracker(), Closeable {
   override fun close() {
-    NavUsageTracker.MANAGER.cleanAfterTesting(surface)
+    NavUsageTracker.MANAGER.cleanAfterTesting(model)
   }
 
   companion object {
-    fun create(surface: DesignSurface): TestNavUsageTracker {
+    fun create(model: NlModel): TestNavUsageTracker {
       val settings = AnalyticsSettingsData()
       settings.optedIn = true
       AnalyticsSettings.setInstanceForTest(settings)
-      val realTracker = TestNavUsageTracker(surface)
+      val realTracker = TestNavUsageTracker(model)
       val tracker = Mockito.spy(realTracker)
-      NavUsageTracker.MANAGER.setInstanceForTest(surface, tracker)
+      NavUsageTracker.MANAGER.setInstanceForTest(model, tracker)
       return tracker
     }
 

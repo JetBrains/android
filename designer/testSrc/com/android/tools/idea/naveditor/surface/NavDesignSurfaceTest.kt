@@ -31,7 +31,6 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
-import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.editor.NAV_EDITOR_ID
 import com.android.tools.idea.naveditor.editor.NavEditor
@@ -90,14 +89,21 @@ import kotlin.test.assertNotEquals
 class NavDesignSurfaceTest : NavTestCase() {
 
   fun testSwitchTabMetrics() {
-    val file = model("nav.xml") { navigation() }.virtualFile
+    val model = model("nav.xml") { navigation() }
+    val file = model.virtualFile
     val fileEditorManager = FileEditorManagerImpl(project, DockManager.getInstance(project))
     (project as ComponentManagerImpl).registerComponentInstance(FileEditorManager::class.java, fileEditorManager)
 
     val editors = fileEditorManager.openFile(file, true)
     val surface = editors.firstIsInstance<NavEditor>().component.surface
-
-    TestNavUsageTracker.create(surface).use { tracker ->
+    // When the file is opened we create the surface synchronously but initialize the model asynchronously. We have to wait until it's set
+    // to continue, since metrics logging depends on it.
+    // If there's some problem, stop after three seconds.
+    val startTime = System.currentTimeMillis()
+    while (surface.model == null && System.currentTimeMillis() < startTime + TimeUnit.SECONDS.toMillis(3)) {
+      UIUtil.dispatchAllInvocationEvents()
+    }
+    TestNavUsageTracker.create(surface.model!!).use { tracker ->
       fileEditorManager.setSelectedEditor(file, TextEditorProvider.getInstance().editorTypeId)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_XML_TAB).build())
       fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
@@ -108,13 +114,14 @@ class NavDesignSurfaceTest : NavTestCase() {
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
 
-    TestNavUsageTracker.create(surface).use { tracker ->
-      surface.model = model("nav2.xml") {
-        navigation {
-          fragment("f1")
-          activity("a1")
-        }
+    val model = model("nav2.xml") {
+      navigation {
+        fragment("f1")
+        activity("a1")
       }
+    }
+    TestNavUsageTracker.create(model).use { tracker ->
+      surface.model = model
 
       val expectedEvent = NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
         .withNavigationContents()
@@ -172,7 +179,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
     surface.model = model
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("activity_main.xml", editorManager.openFiles[0].name)
@@ -193,7 +200,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
     surface.model = model
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("MainActivity.java", editorManager.openFiles[0].name)
@@ -215,7 +222,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
     surface.model = model
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       assertEquals(model.components[0], surface.currentNavigation)
       val subnav = model.find("subnav")!!
       surface.notifyComponentActivate(subnav)
@@ -232,7 +239,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
     surface.model = model
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.find("nav")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("navigation.xml", editorManager.openFiles[0].name)

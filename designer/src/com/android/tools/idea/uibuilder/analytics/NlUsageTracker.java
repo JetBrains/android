@@ -36,7 +36,7 @@ import java.util.List;
 public interface NlUsageTracker {
 
   @VisibleForTesting NlUsageTracker NOP_TRACKER = new NlNopTracker();
-  @VisibleForTesting DesignerUsageTrackerManager<NlUsageTracker> MANAGER = new DesignerUsageTrackerManager<>(
+  @VisibleForTesting DesignerUsageTrackerManager<NlUsageTracker, DesignSurface> MANAGER = new DesignerUsageTrackerManager<>(
     (a, b, c) -> new NlUsageTrackerImpl(a, b, c), NOP_TRACKER
   );
 

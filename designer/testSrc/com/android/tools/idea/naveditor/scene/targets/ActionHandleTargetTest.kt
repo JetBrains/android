@@ -46,7 +46,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       actionHandleTarget.mouseDown(0, 0)
       actionHandleTarget.mouseRelease(fragment2x, fragment2y, listOf())
 
@@ -82,7 +82,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       actionHandleTarget.mouseDown(0, 0)
       actionHandleTarget.mouseRelease(fragment2x, fragment2y, listOf())
 
@@ -117,7 +117,7 @@ class ActionHandleTargetTest : NavTestCase() {
     val fragment1y = sceneComponent.drawY
 
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       actionHandleTarget.mouseDown(0, 0)
       actionHandleTarget.mouseRelease(fragment1x, fragment1y, listOf())
 
@@ -152,7 +152,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       actionHandleTarget.mouseDown(0, 0)
       // drag release to a point over the root and verify no action is created
       actionHandleTarget.mouseRelease(sceneComponent.drawX - 50, sceneComponent.drawY - 50, listOf())
@@ -177,7 +177,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
-    TestNavUsageTracker.create(surface).use { tracker ->
+    TestNavUsageTracker.create(model).use { tracker ->
       actionHandleTarget.mouseDown(0, 0)
       val invalidFragment = scene.getSceneComponent(model.find { it.id == null })!!
       actionHandleTarget.mouseRelease(invalidFragment.centerX, invalidFragment.centerY, listOf())
