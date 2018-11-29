@@ -265,7 +265,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT = Flag.create(
     ASSISTANT, "whats.new.download", "Downloads \"What's New\" assistant content from web",
     "If enabled, the \"What's New\" assistant will update its contents from the web whenever it is opened.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
