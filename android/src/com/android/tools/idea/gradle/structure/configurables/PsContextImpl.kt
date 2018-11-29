@@ -54,7 +54,7 @@ class PsContextImpl constructor(
     GradleSyncListener::class.java)
   private var disableSync: Boolean = false
 
-  override var selectedModule: String? = null ; private set
+  override var selectedModule: String? = null; private set
 
   override val uiSettings: PsUISettings
     get() = PsUISettings.getInstance(project.ideProject)
@@ -158,12 +158,11 @@ class PsContextImpl constructor(
                                 arrayOf("Review", "Ignore and Apply"),
                                 0,
                                 null)
-          == 1) {
-          project.applyChanges()
-          return
+          != 1) {
+          throw ProcessCanceledException()
         }
-        throw ProcessCanceledException()
       }
+      project.applyChanges()
     }
   }
 }
