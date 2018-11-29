@@ -47,13 +47,11 @@ import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.border.EmptyBorder
 
 class SidePanel(private val myNavigator: Navigator, private val myHistory: History) : JPanel(BorderLayout()) {
-  data class ProblemStats(val count: Int, val containsErrors: Boolean)
-
   data class PlaceData(
     val place: Place,
     val separator: String?,
     val presentation: Presentation,
-    val countProvider: (() -> ProblemStats)?
+    val countProvider: (() -> Int)?
   )
 
   private val listModel: DefaultListModel<PlaceData> = DefaultListModel()
@@ -114,11 +112,8 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
     private fun updateCountLabel(isSelected: Boolean, value: PlaceData) {
       val countLabel = countLabel ?: return
-      val problemStats = value.countProvider?.invoke()
-      val count = problemStats?.count ?: 0
-
       countLabel.isSelected = isSelected
-      countLabel.containsErrors = problemStats?.containsErrors ?: false
+      val count = value.countProvider?.invoke() ?: 0
       countLabel.text = when {
         count == 0 -> ""
         count > 100 -> "100+"
@@ -149,7 +144,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     add(createScrollPane(list, true), BorderLayout.CENTER)
   }
 
-  fun addPlace(place: Place, presentation: Presentation, counterProvider: (() -> ProblemStats)?) {
+  fun addPlace(place: Place, presentation: Presentation, counterProvider: (() -> Int)?) {
     listModel.addElement(PlaceData(place, pendingSeparator, presentation, counterProvider))
     pendingSeparator = null
   }
