@@ -213,6 +213,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                      .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
                      .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
+    addDependency(this)
+      .onChange(ProfilerAspect.PROCESSES, () -> myIdeServices.getFeatureTracker().trackChangeProcess(getProcess()))
+      .onChange(ProfilerAspect.DEVICES, () -> myIdeServices.getFeatureTracker().trackChangeDevice(getDevice()));
+
     myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
       .setGlobalRange(myTimeline.getDataRange()).build();
 
