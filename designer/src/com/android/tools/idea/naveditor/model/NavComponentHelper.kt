@@ -342,12 +342,12 @@ val NlComponent.idPath: List<String?>
  * Moves the currently selected destinations into the nested graph returned from newParent
  * Since newParent may create a new NlComponent it is evaluated inside the run command
  */
-fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent) {
+fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent): Boolean {
   val currentNavigation = surface.currentNavigation
   val components = surface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
 
   if (components.isEmpty()) {
-    return
+    return false
   }
 
   WriteCommandAction.runWriteCommandAction(surface.project, "Add to Nested Graph", null, Runnable {
@@ -377,6 +377,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent)
     surface.selectionModel.setSelection(listOf(graph))
 
   }, surface.model!!.file)
+  return true
 }
 
 @VisibleForTesting

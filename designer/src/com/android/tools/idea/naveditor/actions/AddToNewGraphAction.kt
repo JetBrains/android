@@ -15,12 +15,20 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.createNestedGraph
+import com.android.tools.idea.naveditor.model.moveIntoNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 
-class AddToNewGraphAction(mySurface: NavDesignSurface) : AddToGraphAction(mySurface, "New Graph") {
-  override fun newParent(): NlComponent {
-    return mySurface.currentNavigation.createNestedGraph()
+class AddToNewGraphAction(val surface: NavDesignSurface) : AnAction("New Graph") {
+  override fun actionPerformed(e: AnActionEvent) {
+    if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
+      NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
+        .withSource(NavEditorEvent.Source.CONTEXT_MENU)
+        .log()
+    }
   }
 }

@@ -16,17 +16,20 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
+import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 
 class AddToExistingGraphActionTest : NavTestCase() {
   /**
@@ -56,69 +59,44 @@ class AddToExistingGraphActionTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf())
+    val root = model.components[0]
     val navigation1 = model.find("navigation1")!!
     val action = AddToExistingGraphAction(surface, "navigation", navigation1)
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    TestNavUsageTracker.create(surface).use { tracker ->
+      action.actionPerformed(mock(AnActionEvent::class.java))
 
-    assertEquals(
-      """
-        NlComponent{tag=<navigation>, instance=0}
-            NlComponent{tag=<fragment>, instance=1}
-                NlComponent{tag=<action>, instance=2}
-            NlComponent{tag=<fragment>, instance=3}
-                NlComponent{tag=<action>, instance=4}
-            NlComponent{tag=<fragment>, instance=5}
-            NlComponent{tag=<navigation>, instance=6}
-                NlComponent{tag=<fragment>, instance=7}
-                    NlComponent{tag=<action>, instance=8}
-      """.trimIndent(),
-      NlTreeDumper().toTree(model.components)
-    )
+      verifyZeroInteractions(tracker)
+      assertSameElements(navigation1.children.map { it.id }, "fragment4")
+      assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 
-    val fragment2 = model.find("fragment2")!!
-    val fragment3 = model.find("fragment3")!!
+      val fragment2 = model.find("fragment2")!!
+      val fragment3 = model.find("fragment3")!!
 
-    surface.selectionModel.setSelection(listOf(fragment2, fragment3))
-    action.actionPerformed(mock(AnActionEvent::class.java))
+      surface.selectionModel.setSelection(listOf(fragment2, fragment3))
+      action.actionPerformed(mock(AnActionEvent::class.java))
 
-    assertEquals(
-      """
-        NlComponent{tag=<navigation>, instance=0}
-            NlComponent{tag=<fragment>, instance=1}
-                NlComponent{tag=<action>, instance=2}
-            NlComponent{tag=<navigation>, instance=3}
-                NlComponent{tag=<fragment>, instance=4}
-                    NlComponent{tag=<action>, instance=5}
-                NlComponent{tag=<fragment>, instance=6}
-                    NlComponent{tag=<action>, instance=7}
-                NlComponent{tag=<fragment>, instance=8}
-      """.trimIndent(),
-      NlTreeDumper().toTree(model.components)
-    )
+      assertSameElements(navigation1.children.map { it.id }, "fragment4", "fragment2", "fragment3")
+      assertSameElements(root.children.map { it.id }, "fragment1", "navigation1")
 
-    assertEquals(navigation1.startDestinationId, "fragment4")
+      assertEquals(navigation1.startDestinationId, "fragment4")
 
-    val root = surface.currentNavigation
-    val fragment1 = model.find("fragment1")!!
-    assertEquals(fragment1.parent, root)
+      val action1 = model.find("action1")!!
+      assertEquals(action1.parent?.id, "fragment1")
+      assertEquals(action1.actionDestinationId, "navigation1")
 
-    assertEquals(fragment2.parent, navigation1)
-    assertEquals(fragment3.parent, navigation1)
+      val action2 = model.find("action2")!!
+      assertEquals(action2.parent, fragment2)
+      assertEquals(action2.actionDestinationId, "fragment3")
 
-    val fragment4 = model.find("fragment4")!!
-    assertEquals(fragment4.parent, navigation1)
+      val action3 = model.find("action3")!!
+      assertEquals(action3.parent?.id, "fragment4")
+      assertEquals(action3.actionDestinationId, "fragment2")
 
-    val action1 = model.find("action1")!!
-    assertEquals(action1.parent, fragment1)
-    assertEquals(action1.actionDestinationId, "navigation1")
-
-    val action2 = model.find("action2")!!
-    assertEquals(action2.parent, fragment2)
-    assertEquals(action2.actionDestinationId, "fragment3")
-
-    val action3 = model.find("action3")!!
-    assertEquals(action3.parent, fragment4)
-    assertEquals(action3.actionDestinationId, "fragment2")
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.MOVE_TO_GRAPH)
+                                 .setSource(NavEditorEvent.Source.CONTEXT_MENU)
+                                 .build())
+    }
   }
 
   fun testUndo() {
