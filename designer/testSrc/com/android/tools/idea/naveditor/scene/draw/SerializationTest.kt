@@ -220,6 +220,16 @@ class SerializationTest : TestCase() {
                                        11f, 12f, 13f, 14f, 15, Color.GREEN, Color.ORANGE), factory)
   }
 
+  fun testDrawHorizontalAction() {
+    val factory = { s: String -> DrawHorizontalAction(s) }
+
+    testSerialization("DrawHorizontalAction,0,10.0x20.0x30.0x40.0,ffff0000",
+                      DrawHorizontalAction(0, Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED), factory)
+
+    testSerialization("DrawHorizontalAction,1,50.0x60.0x70.0x80.0,ff0000ff",
+                      DrawHorizontalAction(1, Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE), factory)
+  }
+
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()
