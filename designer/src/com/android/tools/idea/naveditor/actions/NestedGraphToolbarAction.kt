@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.createNestedGraph
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.moveIntoNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
@@ -30,6 +32,10 @@ class NestedGraphToolbarAction(surface: NavDesignSurface) :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }
+    if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
+      NavUsageTracker.getInstance(surface).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
+        .withSource(NavEditorEvent.Source.TOOLBAR)
+        .log()
+    }
   }
 }
