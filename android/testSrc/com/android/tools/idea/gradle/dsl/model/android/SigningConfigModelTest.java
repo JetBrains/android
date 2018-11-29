@@ -489,4 +489,30 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.storePassword(), "store_password", PLAIN_TEXT);
     verifyPasswordModel(signingConfig.keyPassword(), "key_password", PLAIN_TEXT);
   }
+
+  @Test
+  public void testRenameSigningConfigModel() throws Exception {
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("release", signingConfigs.get(0).name());
+    assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+
+    String expectedName = "newName";
+    signingConfigs.get(0).rename(expectedName);
+
+    applyChangesAndReparse(buildModel);
+
+    androidModel = buildModel.android();
+    assertNotNull(androidModel);
+
+    signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("newName", signingConfigs.get(0).name());
+    assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+  }
 }

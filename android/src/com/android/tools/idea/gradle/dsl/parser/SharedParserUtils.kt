@@ -101,9 +101,13 @@ import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslEle
 /**
  * Get the block element that is given be repeat
  */
-fun GradleDslFile.getBlockElement(nameParts: List<String>, parentElement: GradlePropertiesDslElement): GradlePropertiesDslElement? {
+fun GradleDslFile.getBlockElement(
+    nameParts: List<String>,
+    parentElement: GradlePropertiesDslElement,
+    nameElement: GradleNameElement? = null
+): GradlePropertiesDslElement? {
   return nameParts.map { namePart -> namePart.trim { it <= ' ' } }.fold(parentElement) { resultElement, nestedElementName ->
-    val elementName = GradleNameElement.fake(nestedElementName)
+    val elementName = nameElement ?: GradleNameElement.fake(nestedElementName)
     val element = resultElement.getElement(nestedElementName)
 
     if (element is GradlePropertiesDslElement) {
