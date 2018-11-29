@@ -119,12 +119,6 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     throw new RuntimeException(designer.getClass().getName());
   }
 
-  @NotNull
-  protected static NlLayoutType getLayoutType(@NotNull DesignerEditorPanelFacade designer) {
-    DesignSurface designSurface = getDesignSurface(designer);
-    return designSurface != null ? designSurface.getLayoutType() : NlLayoutType.UNKNOWN;
-  }
-
   protected void createWindowContent(@NotNull JComponent contentPane, @NotNull JComponent focusedComponent, @Nullable AnAction[] actions) {
     ContentManager contentManager = myToolWindow.getContentManager();
     Content content = contentManager.getFactory().createContent(contentPane, null, false);
@@ -136,36 +130,5 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     }
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-  }
-
-  @Nullable
-  public abstract Object getToolWindowContent(@NotNull DesignerEditorPanelFacade designer);
-
-  public void activateToolWindow(@NotNull DesignerEditorPanelFacade designer, @NotNull Runnable runnable) {
-    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
-    if (toolWindow != null) {
-      restore(toolWindow);
-      runnable.run();
-    }
-    else {
-      myToolWindow.show(runnable);
-    }
-  }
-
-  // TODO: Add a restore method in LightToolWindow
-  private static void restore(@NotNull LightToolWindow toolWindow) {
-    try {
-      // When LightToolWindow#restore() is added to the base platform and upstreamed,
-      // replace this:
-      Method updateContent = LightToolWindow.class.getDeclaredMethod("updateContent", Boolean.TYPE, Boolean.TYPE);
-      if (updateContent != null) {
-        updateContent.setAccessible(true);
-        updateContent.invoke(toolWindow, Boolean.TRUE, Boolean.TRUE);
-      }
-      // with toolWindow.restore();
-    }
-    catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-      // ignore...
-    }
   }
 }
