@@ -253,8 +253,10 @@ public class GroovyDslParser implements GradleDslParser {
 
   @Nullable
   @Override
-  public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts, @NotNull GradlePropertiesDslElement parentElement) {
-    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, parentElement);
+  public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
+                                                    @NotNull GradlePropertiesDslElement parentElement,
+                                                    @Nullable GradleNameElement nameElement) {
+    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, parentElement, nameElement);
   }
 
   private void parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
@@ -283,7 +285,7 @@ public class GroovyDslParser implements GradleDslParser {
     GradleNameElement name = GradleNameElement.from(element);
 
     if (name.isQualified()) {
-      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), dslElement);
+      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), dslElement, null);
       if (nestedElement != null) {
         dslElement = nestedElement;
       }
@@ -311,7 +313,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     if (name.isQualified()) {
-      dslElement = getBlockElement(name.qualifyingParts(), dslElement);
+      dslElement = getBlockElement(name.qualifyingParts(), dslElement, null);
     }
 
     if (dslElement == null) {
@@ -346,7 +348,7 @@ public class GroovyDslParser implements GradleDslParser {
       name = GradleNameElement.create("subprojects");
     }
 
-    GradlePropertiesDslElement blockElement = getBlockElement(ImmutableList.of(name.name()), dslElement);
+    GradlePropertiesDslElement blockElement = getBlockElement(ImmutableList.of(name.name()), dslElement, name);
     if (blockElement != null) {
       blockElement.setPsiElement(closableBlock);
       blockElements.add(blockElement);
@@ -412,7 +414,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     if (name.isQualified()) {
-      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), blockElement);
+      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), blockElement, null);
       if (nestedElement != null) {
         blockElement = nestedElement;
       }
@@ -528,7 +530,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     if (name.isQualified()) {
-      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), blockElement);
+      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), blockElement, null);
       if (nestedElement != null) {
         blockElement = nestedElement;
       }

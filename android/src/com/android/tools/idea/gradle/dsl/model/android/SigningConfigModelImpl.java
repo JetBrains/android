@@ -46,6 +46,12 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   }
 
   @Override
+  public void rename(@NotNull String newName) {
+    myDslElement.getNameElement().rename(newName);
+    myDslElement.setModified();
+  }
+
+  @Override
   @NotNull
   public ResolvedPropertyModel storeFile() {
     return GradlePropertyModelBuilder.create(myDslElement, STORE_FILE).asMethod(true)

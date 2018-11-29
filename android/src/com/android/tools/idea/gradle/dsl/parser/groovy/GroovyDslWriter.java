@@ -420,6 +420,11 @@ public class GroovyDslWriter implements GradleDslWriter {
     maybeUpdateName(expressionMap);
   }
 
+  @Override
+  public void applyDslPropertiesElement(@NotNull GradlePropertiesDslElement element) {
+    maybeUpdateName(element);
+  }
+
   private PsiElement createDslLiteralOrReference(@NotNull GradleDslSettableExpression expression) {
     GradleDslElement parent = expression.getParent();
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.application.Application;
@@ -114,7 +115,8 @@ public interface GradleDslParser {
    */
   @Nullable
   GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
-                                             @NotNull GradlePropertiesDslElement parentElement);
+                                             @NotNull GradlePropertiesDslElement parentElement,
+                                             @Nullable GradleNameElement nameElement);
 
   class Adapter implements GradleDslParser {
     @Override
@@ -157,7 +159,8 @@ public interface GradleDslParser {
     @Override
     @Nullable
     public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
-                                                      @NotNull GradlePropertiesDslElement parentElement) {
+                                                      @NotNull GradlePropertiesDslElement parentElement,
+                                                      @Nullable GradleNameElement nameElement) {
       return null;
     }
   }

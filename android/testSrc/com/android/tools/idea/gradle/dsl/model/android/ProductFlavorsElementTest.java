@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
@@ -209,5 +210,23 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     checkForValidPsiElement(buildModel.android().productFlavors().get(0), ProductFlavorModelImpl.class);
     verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED);
+  }
+
+  @Test
+  public void testRenameProductFlavor() throws Exception {
+    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ProductFlavorModel> productFlavors = buildModel.android().productFlavors();
+    assertThat(productFlavors).hasSize(2);
+
+    ProductFlavorModel flavor1 = productFlavors.get(0);
+    flavor1.rename("newAndImproved");
+
+    applyChangesAndReparse(buildModel);
+
+    assertEquals("newAndImproved", buildModel.android().productFlavors().get(0).name());
+    assertEquals("com.example.myFlavor1", buildModel.android().productFlavors().get(0).applicationId().toString());
   }
 }
