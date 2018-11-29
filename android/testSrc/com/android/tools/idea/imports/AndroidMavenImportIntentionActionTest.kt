@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.openapi.module.Module
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import org.jetbrains.android.loadNewFile
+import org.jetbrains.android.moveCaret
 
 class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
   fun testUnresolvedSymbolInKotlin() {
@@ -32,7 +35,7 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.MIGRATE_TO_ANDROID_X) // project not using AndroidX
     assertBuildGradle { !it.contains("com.android.support:recyclerview-v7:") } // not already using recyclerview
 
-    val file = loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+    myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       import android.support.v7.app.AppCompatActivity;
       class MainActivity2 : AppCompatActivity() {
@@ -40,15 +43,15 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
       }
       """.trimIndent())
 
-    val action = createAction()
-    val element = moveCaret(file, "R|ecyclerView")
+    val action = AndroidMavenImportIntentionAction()
+    val element = myFixture.moveCaret("R|ecyclerView")
     val available = action.isAvailable(project, myFixture.editor, element)
     assertTrue(available)
     assertEquals("Add dependency on com.android.support:recyclerview-v7", action.text)
 
     // Check corner case: if the caret is at the very end of the word, the element is the element on
     // the right. Make sure we support that one as well:
-    val next = moveCaret(file, "RecyclerView|")
+    val next = myFixture.moveCaret("RecyclerView|")
     assertEquals("(", next.text)
     assertTrue(action.isAvailable(project, myFixture.editor, next))
 
@@ -57,25 +60,25 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     assertBuildGradle { it.contains("implementation 'com.android.support:recyclerview-v7:") }
 
     // Also make sure the action doesn't apply elsewhere, such as on the "MainActivity2" identifier:
-    assertFalse(action.isAvailable(project, myFixture.editor, moveCaret(file, "Main|Activity2")))
+    assertFalse(action.isAvailable(project, myFixture.editor, myFixture.moveCaret("Main|Activity2")))
 
     // Now make sure the action doesn't apply on RecyclerView, since we've already imported it:
-    assertFalse(action.isAvailable(project, myFixture.editor, moveCaret(file, "Recycler|View")))
+    assertFalse(action.isAvailable(project, myFixture.editor, myFixture.moveCaret("Recycler|View")))
   }
 
   fun testUnresolvedSymbolInJava() {
     // Like testUnresolvedSymbolInKotlin but in a Java file
     loadProject(TestProjectPaths.MIGRATE_TO_ANDROID_X)
     assertBuildGradle { !it.contains("com.android.support:recyclerview-v7:") }
-    val file = loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
+    myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
           private RecyclerView view;
       }
       """.trimIndent())
 
-    val action = createAction()
-    val element = moveCaret(file, "RecyclerView|")
+    val action = AndroidMavenImportIntentionAction()
+    val element = myFixture.moveCaret("RecyclerView|")
     val available = action.isAvailable(project, myFixture.editor, element)
     assertTrue(available)
     assertEquals("Add dependency on com.android.support:recyclerview-v7", action.text)
@@ -89,14 +92,14 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
     loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
     assertBuildGradle { !it.contains("androidx.recyclerview:recyclerview:") }
-    val file = loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+    myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       val view = RecyclerView() // Here RecyclerView is an unresolvable symbol
       """.trimIndent())
 
 
-    val action = createAction()
-    val element = moveCaret(file, "RecyclerView|")
+    val action = AndroidMavenImportIntentionAction()
+    val element = myFixture.moveCaret("RecyclerView|")
     val available = action.isAvailable(project, myFixture.editor, element)
     assertTrue(available)
     assertEquals("Add dependency on androidx.recyclerview:recyclerview", action.text)
@@ -111,14 +114,13 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     // Make sure that if we import a symbol from Kotlin and a ktx library is available, we pick it
     loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
     assertBuildGradle { !it.contains("androidx.palette:palette:") }
-    val file = loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+    myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       val palette = Palette() // Here "Palette" is an unresolvable symbol
       """.trimIndent())
 
-
-    val action = createAction()
-    val element = moveCaret(file, "Palette|")
+    val action = AndroidMavenImportIntentionAction()
+    val element = myFixture.moveCaret("Palette|")
     val available = action.isAvailable(project, myFixture.editor, element)
     assertTrue(available)
     assertEquals("Add dependency on androidx.palette:palette-ktx", action.text)
@@ -133,15 +135,15 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     // Make sure that if we import a symbol from Java and a ktx library is available, we don't pick the ktx version
     loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
     assertBuildGradle { !it.contains("androidx.palette:palette:") }
-    val file = loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
+    myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
           private Palette palette;
       }
       """.trimIndent())
 
-    val action = createAction()
-    val element = moveCaret(file, "Palette|")
+    val action = AndroidMavenImportIntentionAction()
+    val element = myFixture.moveCaret("Palette|")
     val available = action.isAvailable(project, myFixture.editor, element)
     assertTrue(available)
     assertEquals("Add dependency on androidx.palette:palette", action.text)
@@ -156,15 +158,15 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     // Ensure that if an annotation processor is available, we also add it
     loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
     assertBuildGradle { !it.contains("androidx.palette:palette-v7:") }
-    val file = loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
+    myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
           private RoomDatabase database;
       }
       """.trimIndent())
 
-    val action = createAction()
-    val element = moveCaret(file, "Room|Database")
+    val action = AndroidMavenImportIntentionAction()
+    val element = myFixture.moveCaret("Room|Database")
     val available = action.isAvailable(project, myFixture.editor, element)
     assertTrue(available)
     assertEquals("Add dependency on androidx.room:room-runtime", action.text)
@@ -178,47 +180,19 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
 
   // Testing infrastructure
 
-  private fun moveCaret(file: PsiFile, window: String): PsiElement {
-    val text = file.text
-    val delta = window.indexOf("|")
-    assertTrue("Not caret marker found in the window", delta != -1)
-    val target = window.substring(0, delta) + window.substring(delta + 1)
-    val start = text.indexOf(target)
-    assertTrue("Didn't find the string $target in the source $text", start != -1)
-    val offset = start + delta
-    myFixture.editor.caretModel.moveToOffset(offset)
-    // myFixture.elementAtCaret seems to do something else
-    return file.findElementAt(offset)!!
-  }
-
-  private fun loadNewFile(path: String, contents: String): PsiFile {
-    val file = myFixture.addFileToProject(path, contents)
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    return file
-  }
-
   private fun perform(action: AndroidMavenImportIntentionAction, element: PsiElement) {
     action.perform(project, element, myFixture.editor.caretModel.offset, false)
   }
 
   private fun performAndSync(action: AndroidMavenImportIntentionAction, element: PsiElement) {
     val syncFuture = action.perform(project, element, myFixture.editor.caretModel.offset, true)
-    syncFuture?.get()
+    val result = syncFuture?.get()
+    assertThat(result).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
   }
 
   private fun assertBuildGradle(check: (String) -> Unit) {
-    val buildGradle = project.baseDir.findFileByRelativePath("/app/build.gradle")
+    val buildGradle = project.guessProjectDir()!!.findFileByRelativePath("/app/build.gradle")
     val buildGradlePsi = PsiManager.getInstance(project).findFile(buildGradle!!)
     check(buildGradlePsi!!.text)
-  }
-
-  private fun createAction(): AndroidMavenImportIntentionAction {
-    val module = myModules.appModule
-    return object : AndroidMavenImportIntentionAction() {
-      override fun getModule(element: PsiElement): Module? {
-        // because ModuleUtil.findModuleForPsiElement isn't working in AndroidGradleTest
-        return module
-      }
-    }
   }
 }
