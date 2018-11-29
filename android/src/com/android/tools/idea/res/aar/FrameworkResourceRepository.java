@@ -18,16 +18,12 @@ package com.android.tools.idea.res.aar;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -47,12 +43,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -88,7 +79,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
 
   private final boolean myWithLocaleResources;
-  private final Map<ResourceType, Set<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
   private Future myCacheCreatedFuture;
 
   private FrameworkResourceRepository(@NotNull Path resFolder, boolean withLocaleResources) {
@@ -127,24 +117,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private void load() {
     Loader loader = new MyLoader();
     loader.load(ImmutableList.of(myResourceDirectory), true);
-    populatePublicResourcesMap();
-  }
-
-  private void populatePublicResourcesMap() {
-    for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : myResources.entrySet()) {
-      ResourceType resourceType = entry.getKey();
-      ImmutableSet.Builder<ResourceItem> setBuilder = null;
-      ListMultimap<String, ResourceItem> items = entry.getValue();
-      for (ResourceItem item : items.values()) {
-        if (((ResourceItemWithVisibility)item).getVisibility() == ResourceVisibility.PUBLIC) {
-          if (setBuilder == null) {
-            setBuilder = ImmutableSet.builder();
-          }
-          setBuilder.add(item);
-        }
-      }
-      myPublicResources.put(resourceType, setBuilder == null ? ImmutableSet.of() : setBuilder.build());
-    }
   }
 
   private void createPersistentCacheAsynchronously() {
@@ -161,26 +133,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   @NotNull
   public String getDisplayName() {
     return "Android framework";
-  }
-
-  @Override
-  @NotNull
-  public Collection<ResourceItem> getPublicResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
-    if (!namespace.equals(ANDROID_NAMESPACE)) {
-      return Collections.emptySet();
-    }
-    Set<ResourceItem> resourceItems = myPublicResources.get(type);
-    return resourceItems == null ? Collections.emptySet() : resourceItems;
-  }
-
-  public boolean isPublic(@NotNull ResourceType type, @NotNull String name) {
-    List<ResourceItem> items = getResources(ANDROID_NAMESPACE, type, name);
-    if (items.isEmpty()) {
-      return false;
-    }
-
-    Set<ResourceItem> publicSet = myPublicResources.get(type);
-    return publicSet != null && publicSet.contains(items.get(0));
   }
 
   @VisibleForTesting
@@ -222,12 +174,6 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private boolean loadFromPersistentCache() {
     byte[] header = getCacheFileHeader();
     return loadFromPersistentCache(getCacheFile(), header);
-  }
-
-  @Override
-  protected void loadFromStream(@NotNull Base128InputStream stream) throws IOException {
-    super.loadFromStream(stream);
-    populatePublicResourcesMap();
   }
 
   private void createPersistentCache() {
@@ -359,6 +305,15 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
       } catch (Exception e) {
         LOG.error("Can't read and parse public attribute list " + publicXmlFile.toString(), e);
       }
+    }
+
+    @Override
+    @NotNull
+    protected String getKeyForVisibilityLookup(@NotNull String resourceName) {
+      // This class obtains names of public resources from public.xml where all resource names are preserved
+      // in their original form. This is different from the superclass that obtains the names from public.txt
+      // where the names are transformed by replacing dots, colons and dashes with underscores.
+      return resourceName;
     }
   }
 }

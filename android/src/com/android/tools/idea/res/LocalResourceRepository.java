@@ -32,6 +32,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.aar.AarResourceRepository;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,6 +45,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -396,6 +398,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
         }
       }
     }
+  }
+
+  @Override
+  @NotNull
+  public Collection<ResourceItem> getPublicResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    // TODO(namespaces): Implement.
+    throw new UnsupportedOperationException("Not implemented yet");
   }
 
   /**

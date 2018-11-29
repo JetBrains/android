@@ -146,6 +146,8 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       myResourcePathPrefix = myResApkFileOrFolder.toString() + File.separatorChar;
     }
     myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix.replace(File.separatorChar, '/');
+
+    populatePublicResourcesMap();
   }
 
   private void loadResourceTable(@NotNull Resources.ResourceTable resourceTableMsg) {

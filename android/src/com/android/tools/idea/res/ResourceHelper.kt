@@ -65,7 +65,7 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.rendering.GutterIconCache
-import com.android.tools.idea.res.aar.AarProtoResourceRepository
+import com.android.tools.idea.res.aar.AarResourceRepository
 import com.android.tools.idea.res.aar.FrameworkResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
@@ -1110,17 +1110,10 @@ fun ResourceRepository.getResourceItems(
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
 
-  // TODO(namespaces): Only AarProtoResourceRepository properly supports resource visibility. We need to make all repositories support it.
+  // TODO(namespaces): Only AarResourceRepository and its subclasses properly support resource visibility.
+  //                   We need to make all repositories support it.
   return when {
-    this is FrameworkResourceRepository -> when {
-      namespace != ResourceNamespace.ANDROID -> emptySet()
-      minVisibility != ResourceVisibility.PUBLIC -> getResources(ResourceNamespace.ANDROID, type).keySet()
-      else -> {
-        val public = getPublicResources(ResourceNamespace.ANDROID, type)
-        public.mapTo(HashSet(public.size), ResourceItem::getName)
-      }
-    }
-    this is AarProtoResourceRepository -> {
+    this is AarResourceRepository -> {
       // Resources in AarProtoResourceRepository know their visibility.
       val items = getResources(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
@@ -1173,7 +1166,9 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
   val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
-    (repoManager.getFrameworkResources(false) as FrameworkResourceRepository).isPublic(type, name)
+    val repo = repoManager.getFrameworkResources(false) as FrameworkResourceRepository
+    val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
+    items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
   else {
     !repoManager.resourceVisibility.isPrivate(type, name)
