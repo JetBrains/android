@@ -52,6 +52,7 @@ import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceNameKeyedMap;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -374,6 +375,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       }
       stream.setStringCache(Maps.newHashMapWithExpectedSize(10000)); // Enable string instance sharing to minimize memory consumption.
       loadFromStream(stream);
+      populatePublicResourcesMap();
       myLoadedFromCache = true;
       return true;
     }
@@ -559,6 +561,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           loadResourceFile(file, folderInfo, configuration, shouldParseResourceIds);
         }
       }
+
+      populatePublicResourcesMap();
     }
 
     @Override
@@ -946,8 +950,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           }
         }
       });
-      ResourceVisibility visibility = getVisibility(ResourceType.STYLEABLE, name);
-      AarStyleableResourceItem item = new AarStyleableResourceItem(name, sourceFile, visibility, attrs);
+      // AAPT2 always treats styleable resources as public.
+      // See https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt2/ResourceParser.cpp#1539
+      AarStyleableResourceItem item = new AarStyleableResourceItem(name, sourceFile, ResourceVisibility.PUBLIC, attrs);
       item.setNamespaceResolver(namespaceResolver);
       return item;
     }
@@ -1021,7 +1026,16 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     @NotNull
     private ResourceVisibility getVisibility(@NotNull ResourceType resourceType, @NotNull String resourceName) {
       Set<String> names = myPublicResources.get(resourceType);
-      return names != null && names.contains(resourceName) ? ResourceVisibility.PUBLIC : myDefaultVisibility;
+      return names != null && names.contains(getKeyForVisibilityLookup(resourceName)) ? ResourceVisibility.PUBLIC : myDefaultVisibility;
+    }
+
+    /**
+     * Transforms the given resource name to a key for lookup in myPublicResources.
+     */
+    @NotNull
+    protected String getKeyForVisibilityLookup(@NotNull String resourceName) {
+      // In public.txt all resource names are transformed by replacing dots, colons and dashes with underscores.
+      return ResourceNameKeyedMap.flattenResourceName(resourceName);
     }
 
     @NotNull

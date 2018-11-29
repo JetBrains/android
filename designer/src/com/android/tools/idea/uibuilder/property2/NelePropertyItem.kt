@@ -26,8 +26,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
+import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.resources.ResourceVisibility
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
@@ -38,6 +40,7 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.aar.AarResourceItem
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
@@ -68,7 +71,7 @@ import java.awt.Color
 import javax.swing.Icon
 
 /**
- * [PropertyItem] for Nele layouts, menues, preferences.
+ * [PropertyItem] for Nele layouts, menus, preferences.
  *
  * Enables editing of attributes from an XmlTag that is wrapped
  * in one or more [NlComponent]s. If there are multiple components
@@ -306,12 +309,27 @@ open class NelePropertyItem(
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
+      // Local resources.
       for (type in types) {
+        // TODO(namespaces): Exclude non-public resources from library modules.
         localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(values, toName)
       }
-      for (type in types) {
-        localRepository.getPublicResources(ResourceNamespace.TODO(), type).filter { it.libraryName != null }.mapTo(values, toName)
-      }
+
+      // AAR resources.
+      localRepository.accept(object : ResourceVisitor {
+        override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
+          if (resourceItem is AarResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
+            values.add(toName(resourceItem))
+          }
+          return ResourceVisitor.VisitResult.CONTINUE
+        }
+
+        override fun shouldVisitResourceType(resourceType: ResourceType): Boolean {
+          return types.contains(resourceType)
+        }
+      })
+
+      // Framework resources.
       for (type in types) {
         frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
       }

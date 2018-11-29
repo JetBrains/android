@@ -4,6 +4,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.res.ResourcesTestsUtil;
+import com.android.utils.FileUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -33,6 +34,7 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.containers.HashSet;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1303,6 +1305,26 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testAarDependencyCompletion() throws Throwable {
     // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
     PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
+    doTestCompletion();
+  }
+
+  public void testAarVisibilitySensitiveCompletion() throws Throwable {
+    ResourcesTestsUtil.addAarDependency(myModule, "myaar", "com.example.myaar", resDir -> {
+      try {
+        FileUtils.writeToFile(new File(resDir, "values/strings.xml"),
+                              "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                              "<resources>\n" +
+                              "  <string name=\"my_aar_private_string\">private</string>\n" +
+                              "  <string name=\"my_aar_public_string\">private</string>\n" +
+                              "</resources>\n");
+        FileUtils.writeToFile(new File(resDir.getParent(), "public.txt"),
+                              "string my_aar_public_string");
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return null;
+    });
     doTestCompletion();
   }
 

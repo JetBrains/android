@@ -20,5 +20,5 @@ import com.android.ide.common.resources.ResourceItemWithVisibility;
 /**
  * Interface to be implemented by all AAR resource items.
  */
-interface AarResourceItem extends ResourceItemWithVisibility {
+public interface AarResourceItem extends ResourceItemWithVisibility {
 }
