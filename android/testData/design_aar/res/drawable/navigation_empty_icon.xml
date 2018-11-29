@@ -14,11 +14,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<shape
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@android:color/transparent"/>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle" >
+
+    <solid android:color="@android:color/transparent" />
+
     <size
-        android:width="@dimen/design_navigation_icon_size"
-        android:height="@dimen/design_navigation_icon_size" />
+        android:height="@dimen/design_navigation_icon_size"
+        android:width="@dimen/design_navigation_icon_size" />
+
 </shape>

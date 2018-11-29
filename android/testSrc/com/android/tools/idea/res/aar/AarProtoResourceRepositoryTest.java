@@ -64,7 +64,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   /** Enables printing of repository loading statistics. */
   private static final boolean PRINT_STATS = false;
 
-  private static final String LIBRARY_NAME = "design-27.0.2";
+  private static final String LIBRARY_NAME = "design-27.1.1";
   private static final String LIBRARY_PACKAGE = "android.support.design";
   private static final ResourceNamespace LIBRARY_NAMESPACE = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
 

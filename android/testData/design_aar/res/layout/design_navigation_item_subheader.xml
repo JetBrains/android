@@ -15,11 +15,11 @@
   ~ limitations under the License.
 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-          android:layout_width="match_parent"
-          android:layout_height="?attr/listPreferredItemHeightSmall"
-          android:gravity="center_vertical|start"
-          android:maxLines="1"
-          android:paddingLeft="?attr/listPreferredItemPaddingLeft"
-          android:paddingRight="?attr/listPreferredItemPaddingRight"
-          android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-          android:textColor="?android:textColorSecondary"/>
+    android:layout_width="match_parent"
+    android:layout_height="?android.support.v7.appcompat:attr/listPreferredItemHeightSmall"
+    android:gravity="center_vertical|start"
+    android:maxLines="1"
+    android:paddingLeft="?android.support.v7.appcompat:attr/listPreferredItemPaddingLeft"
+    android:paddingRight="?android.support.v7.appcompat:attr/listPreferredItemPaddingRight"
+    android:textAppearance="@*android.support.v7.appcompat:style/TextAppearance.AppCompat.Body2"
+    android:textColor="?android:textColorSecondary" />

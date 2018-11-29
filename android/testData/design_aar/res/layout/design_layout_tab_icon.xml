@@ -13,9 +13,8 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
+-->
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
-           android:layout_width="24dp"
-           android:layout_height="24dp"
-           android:scaleType="centerInside"/>
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    android:scaleType="centerInside" />

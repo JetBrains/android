@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res.aar;
 
-import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_ID;
@@ -440,7 +440,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   private static void writeStrings(@NotNull ObjectIntHashMap<String> qualifierStringIndexes, @NotNull Base128OutputStream stream)
-    throws IOException {
+      throws IOException {
     String[] strings = new String[qualifierStringIndexes.size()];
     qualifierStringIndexes.forEachEntry((str, index2) -> { strings[index2] = str; return true; });
     stream.writeInt(strings.length);
@@ -539,6 +539,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     @NotNull private final Map<FolderConfiguration, AarConfiguration> myConfigCache = new HashMap<>();
     @NotNull private final ValueResourceXmlParser myParser = new ValueResourceXmlParser();
     @NotNull private final XmlTextExtractor myTextExtractor = new XmlTextExtractor();
+    @NotNull private final ResourceUrlParser myUrlParser = new ResourceUrlParser();
     // Used to keep track of resources defined in the current value resource file.
     @NotNull private final Table<ResourceType, String, AbstractAarValueResourceItem> myValueFileResources =
         Tables.newCustomTable(new EnumMap<>(ResourceType.class), () -> new LinkedHashMap<>());
@@ -798,23 +799,18 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     private AarAttrResourceItem createAttrItem(@NotNull String name, @NotNull AarSourceFile sourceFile)
         throws IOException, XmlPullParserException, XmlSyntaxException {
       ResourceNamespace.Resolver namespaceResolver = myParser.getNamespaceResolver();
-      ResourceNamespace attrNamespace = myNamespace;
-      int colonPos = name.indexOf(':');
-      if (colonPos >= 0) {
-        if (colonPos == name.length() - 1) {
-          throw new XmlSyntaxException("Invalid attr resource name \"" + name + "\"", myParser, getFile(sourceFile));
+      ResourceNamespace attrNamespace;
+      myUrlParser.parseResourceUrl(name);
+      if (myUrlParser.hasNamespacePrefix(ANDROID_NS_NAME)) {
+        attrNamespace = ResourceNamespace.ANDROID;
+      } else {
+        String prefix = myUrlParser.getNamespacePrefix();
+        attrNamespace = ResourceNamespace.fromNamespacePrefix(prefix, myNamespace, myParser.getNamespaceResolver());
+        if (attrNamespace == null) {
+          throw new XmlSyntaxException("Undefined prefix of attr resource name \"" + name + "\"", myParser, getFile(sourceFile));
         }
-        if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
-          attrNamespace = ResourceNamespace.ANDROID;
-        } else {
-          String prefix = name.substring(0, colonPos);
-          attrNamespace = ResourceNamespace.fromNamespacePrefix(prefix, myNamespace, myParser.getNamespaceResolver());
-          if (attrNamespace == null) {
-            throw new XmlSyntaxException("Undefined prefix of attr resource name \"" + name + "\"", myParser, getFile(sourceFile));
-          }
-        }
-        name = name.substring(colonPos + 1);
       }
+      name = myUrlParser.getName();
 
       String description = myParser.getLastComment();
       String groupName = myParser.getAttrGroupComment();
@@ -908,6 +904,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         throws IOException, XmlPullParserException {
       ResourceNamespace.Resolver namespaceResolver = myParser.getNamespaceResolver();
       String parentStyle = myParser.getAttributeValue(null, ATTR_PARENT);
+      if (parentStyle != null && !parentStyle.isEmpty()) {
+        myUrlParser.parseResourceUrl(parentStyle);
+        myUrlParser.getQualifiedName();
+      }
       List<StyleItemResourceValue> styleItems = new ArrayList<>();
       forSubTags(TAG_ITEM, () -> {
         ResourceNamespace.Resolver itemNamespaceResolver = myParser.getNamespaceResolver();
