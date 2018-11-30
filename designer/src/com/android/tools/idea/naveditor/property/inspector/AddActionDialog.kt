@@ -15,26 +15,50 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.AUTO_URI
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
-import com.android.tools.idea.naveditor.model.*
+import com.android.tools.idea.naveditor.model.actionDestinationId
+import com.android.tools.idea.naveditor.model.createAction
+import com.android.tools.idea.naveditor.model.findVisibleDestination
+import com.android.tools.idea.naveditor.model.generateActionId
+import com.android.tools.idea.naveditor.model.inclusive
+import com.android.tools.idea.naveditor.model.isFragment
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.parentSequence
+import com.android.tools.idea.naveditor.model.setActionDestinationIdAndLog
+import com.android.tools.idea.naveditor.model.setEnterAnimationAndLog
+import com.android.tools.idea.naveditor.model.setExitAnimationAndLog
+import com.android.tools.idea.naveditor.model.setInclusiveAndLog
+import com.android.tools.idea.naveditor.model.setPopEnterAnimationAndLog
+import com.android.tools.idea.naveditor.model.setPopExitAnimationAndLog
+import com.android.tools.idea.naveditor.model.setPopUpToAndLog
+import com.android.tools.idea.naveditor.model.setSingleTopAndLog
+import com.android.tools.idea.naveditor.model.singleTop
+import com.android.tools.idea.naveditor.model.uiName
+import com.android.tools.idea.naveditor.model.visibleDestinations
 import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ACTION
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ACTION
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Computable
 import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.ItemListener
@@ -47,13 +71,13 @@ import javax.swing.JList
  * Shows an [AddActionDialog] and then updates the corresponding model.
  */
 @VisibleForTesting
-fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, source: NavEditorEvent.Source, hadExisting: Boolean) {
+fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean) {
   if (actionDialog.showAndGet()) {
     val action = actionDialog.writeUpdatedAction()
     surface?.selectionModel?.setSelection(listOf(action))
     NavUsageTracker.getInstance(surface?.model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
       .withActionInfo(action)
-      .withSource(source)
+      .withSource(actionDialog.invocationSite)
       .log()
   }
 }
@@ -65,7 +89,9 @@ fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurfac
 open class AddActionDialog(
   defaultsType: Defaults,
   private val existingAction: NlComponent?,
-  private val parent: NlComponent
+  private val parent: NlComponent,
+  // open for testing
+  open val invocationSite: NavEditorEvent.Source
 ) : DialogWrapper(false) {
 
   private var previousPopTo: DestinationListEntry? = null
@@ -130,7 +156,8 @@ open class AddActionDialog(
 
     if (existingAction != null) {
       setupFromExisting()
-    } else {
+    }
+    else {
       setDefaults(defaultsType)
       generatedId = dialog.myIdTextField.text
     }
@@ -140,7 +167,8 @@ open class AddActionDialog(
     title = if (existingAction == null) {
       myOKAction.putValue(Action.NAME, "Add")
       "Add Action"
-    } else {
+    }
+    else {
       myOKAction.putValue(Action.NAME, "Update")
       "Update Action"
     }
@@ -171,7 +199,8 @@ open class AddActionDialog(
       dialog.myFromComboBox.addItem(sourceNav)
       dialog.myFromComboBox.selectedIndex = dialog.myFromComboBox.itemCount - 1
       selectItem(dialog.myDestinationComboBox, { it.component }, parent)
-    } else if (type == Defaults.RETURN_TO_SOURCE) {
+    }
+    else if (type == Defaults.RETURN_TO_SOURCE) {
       selectItem(dialog.myPopToComboBox, { it.component }, parent)
       dialog.myInclusiveCheckBox.isSelected = true
       selectItem(dialog.myDestinationComboBox, { entry -> entry.isReturnToSource }, true)
@@ -226,7 +255,7 @@ open class AddActionDialog(
     dialog.myDestinationComboBox.selectedIndex = 0
     dialog.myDestinationComboBox.isEnabled = false
 
-    selectItem(dialog.myPopToComboBox, { it.component?.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, existingAction)
+    selectItem(dialog.myPopToComboBox, { it.component?.getAttribute(ANDROID_URI, ATTR_ID) }, ATTR_POP_UP_TO, AUTO_URI, existingAction)
     dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive == true
     selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
@@ -279,7 +308,8 @@ open class AddActionDialog(
       override fun customize(list: JList<*>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
         if (value == null) {
           setText("None")
-        } else {
+        }
+        else {
           setText(value.uiName)
         }
       }
@@ -349,11 +379,12 @@ open class AddActionDialog(
       if (item != null && item.isReturnToSource) {
         previousPopTo = dialog.myPopToComboBox.selectedItem as DestinationListEntry?
         previousInclusive = dialog.myInclusiveCheckBox.isSelected
-        selectItem(dialog.myPopToComboBox, {it.component }, parent)
+        selectItem(dialog.myPopToComboBox, { it.component }, parent)
         dialog.myPopToComboBox.isEnabled = false
         dialog.myInclusiveCheckBox.isSelected = true
         dialog.myInclusiveCheckBox.isEnabled = false
-      } else {
+      }
+      else {
         if (!dialog.myPopToComboBox.isEnabled) {
           selectItem(dialog.myPopToComboBox, { it }, previousPopTo)
           dialog.myPopToComboBox.selectedItem = previousPopTo
@@ -376,11 +407,14 @@ open class AddActionDialog(
   override fun doValidate(): ValidationInfo? {
     return if (destination == null && popTo == null) {
       ValidationInfo("Destination must be set!", dialog.myDestinationComboBox)
-    } else if (id.isNullOrBlank()) {
+    }
+    else if (id.isNullOrBlank()) {
       ValidationInfo("ID must be set!", dialog.myIdTextField)
-    } else if (destination != null && destination?.id == null) {
+    }
+    else if (destination != null && destination?.id == null) {
       ValidationInfo("Destination has no ID", dialog.myDestinationComboBox)
-    } else if (dialog.myPopToComboBox.selectedItem != null && popTo == null) {
+    }
+    else if (dialog.myPopToComboBox.selectedItem != null && popTo == null) {
       // TODO: it would be nice if we could just disable those items in the popups, but JComboBox doesn't support disabling items
       ValidationInfo("Pop To destination has no ID", dialog.myDestinationComboBox)
     }
@@ -401,14 +435,14 @@ open class AddActionDialog(
     return WriteCommandAction.runWriteCommandAction(
       parent.model.project, Computable<NlComponent> {
       val actionSetup: NlComponent.() -> Unit = {
-        actionDestinationId = destination?.id
-        enterAnimation = enterTransition
-        exitAnimation = exitTransition
-        popUpTo = popTo
-        inclusive = if (isInclusive) true else null
-        popEnterAnimation = popEnterTransition
-        popExitAnimation = popExitTransition
-        singleTop = if (isSingleTop) true else null
+        setActionDestinationIdAndLog(destination?.id, invocationSite)
+        setEnterAnimationAndLog(enterTransition, invocationSite)
+        setExitAnimationAndLog(exitTransition, invocationSite)
+        setPopUpToAndLog(popTo, invocationSite)
+        setInclusiveAndLog(isInclusive, invocationSite)
+        setPopEnterAnimationAndLog(popEnterTransition, invocationSite)
+        setPopExitAnimationAndLog(popExitTransition, invocationSite)
+        setSingleTopAndLog(isSingleTop, invocationSite)
       }
       existingAction?.apply(actionSetup) ?: source.createAction(actionSetup = actionSetup, id = id.nullize(true))
     })

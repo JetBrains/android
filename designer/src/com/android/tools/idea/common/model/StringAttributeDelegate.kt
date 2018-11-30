@@ -16,14 +16,16 @@
 package com.android.tools.idea.common.model
 
 import com.android.SdkConstants
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class StringAttributeDelegate(private val namespace: String?, private val propertyName: String) {
-  operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
+open class StringAttributeDelegate(private val namespace: String?, private val propertyName: String)
+  : ReadWriteProperty<NlComponent, String?> {
+  override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
     return thisRef.resolveAttribute(namespace, propertyName)
   }
 
-  operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
+  override operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
     thisRef.setAttribute(namespace, propertyName, value)
   }
 }

@@ -16,14 +16,16 @@
 package com.android.tools.idea.common.model
 
 import com.android.SdkConstants
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class BooleanAttributeDelegate(private val namespace: String?, private val propertyName: String) {
-  operator fun getValue(thisRef: NlComponent, property: KProperty<*>): Boolean? {
+open class BooleanAttributeDelegate(private val namespace: String?, private val propertyName: String)
+  : ReadWriteProperty<NlComponent, Boolean?> {
+  override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): Boolean? {
     return thisRef.resolveAttribute(namespace, propertyName)?.toBoolean()
   }
 
-  operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: Boolean?) {
+  override operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: Boolean?) {
     thisRef.setAttribute(namespace, propertyName, value?.toString())
   }
 }

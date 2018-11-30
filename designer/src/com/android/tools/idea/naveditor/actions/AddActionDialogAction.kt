@@ -30,8 +30,8 @@ sealed class AddActionDialogAction(
   private val existingAction: NlComponent?
 ) : AnAction(text) {
   override fun actionPerformed(e: AnActionEvent) {
-    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, existingAction, parent)
-    showAndUpdateFromDialog(addActionDialog, surface, NavEditorEvent.Source.CONTEXT_MENU, existingAction != null)
+    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, existingAction, parent, NavEditorEvent.Source.CONTEXT_MENU)
+    showAndUpdateFromDialog(addActionDialog, surface, existingAction != null)
   }
 }
 

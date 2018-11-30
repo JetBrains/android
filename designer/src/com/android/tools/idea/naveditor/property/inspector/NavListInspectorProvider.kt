@@ -66,7 +66,8 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   : InspectorProvider<NavPropertiesManager> {
 
   val tooltip = "Add $objectName"
-  protected val inspector = NavListInspectorComponent()
+  @VisibleForTesting
+  val inspector = NavListInspectorComponent()
 
   private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(icon)
 

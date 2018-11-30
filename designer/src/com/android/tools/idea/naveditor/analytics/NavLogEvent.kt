@@ -92,9 +92,13 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     return navEventBuilder.build()
   }
 
-  fun withPropertyInfo(property: NlProperty, wasEmpty: Boolean): NavLogEvent {
+  fun withPropertyInfo(property: NlProperty, wasEmpty: Boolean) = withAttributeInfo(property.name, property.tagName, wasEmpty)
+
+  fun withAttributeInfo(attrName: String,
+                        tagName: String?,
+                        wasEmpty: Boolean): NavLogEvent {
     val builder = navEventBuilder.propertyInfoBuilder
-    builder.property = when (property.name) {
+    builder.property = when (attrName) {
       ATTR_ACTION -> NavPropertyInfo.Property.ACTION
       ATTR_ARG_TYPE -> NavPropertyInfo.Property.ARG_TYPE
       ATTR_AUTO_VERIFY -> NavPropertyInfo.Property.AUTO_VERIFY
@@ -121,7 +125,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
 
       else -> NavPropertyInfo.Property.CUSTOM
     }
-    property.tagName?.let { builder.setContainingTag(convertTag(it)) }
+    tagName?.let { builder.setContainingTag(convertTag(it)) }
     builder.wasEmpty = wasEmpty
     navEventBuilder.setPropertyInfo(builder)
     return this
@@ -298,8 +302,8 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     return this
   }
 
-  fun withSource(source: NavEditorEvent.Source): NavLogEvent {
-    navEventBuilder.source = source
+  fun withSource(source: NavEditorEvent.Source?): NavLogEvent {
+    source?.let { navEventBuilder.source = source }
     return this
   }
 }
