@@ -48,6 +48,7 @@ abstract class PsModule protected constructor(
   private var myParsedDependencies: PsParsedDependencies? = null
   private var myVariables: PsVariables? = null
   private val dependenciesChangeEventDispatcher = EventDispatcher.create(DependenciesChangeListener::class.java)
+  private val changedListener = EventDispatcher.create(ModuleChangedListener::class.java)
 
   abstract val dependencies: PsDependencyCollection<
     PsModule, PsDeclaredLibraryDependency, PsDeclaredJarDependency, PsDeclaredModuleDependency>
@@ -188,6 +189,17 @@ abstract class PsModule protected constructor(
     return repositories.toSet()
   }
 
+  fun onChange(disposable: Disposable, handler: (PsModule) -> Unit) {
+    changedListener.addListener(object : ModuleChangedListener {
+      override fun changed() = handler(this@PsModule)
+    }, disposable)
+  }
+
+  override fun changed() {
+    super.changed()
+    changedListener.multicaster.changed()
+  }
+
   fun add(listener: DependenciesChangeListener, parentDisposable: Disposable) {
     dependenciesChangeEventDispatcher.addListener(listener, parentDisposable)
   }
@@ -303,6 +315,10 @@ abstract class PsModule protected constructor(
       }
     }
     return null
+  }
+
+  interface ModuleChangedListener : EventListener {
+    fun changed()
   }
 
   interface DependenciesChangeListener : EventListener {

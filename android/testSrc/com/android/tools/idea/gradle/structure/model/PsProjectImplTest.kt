@@ -28,6 +28,8 @@ import org.junit.Assume.assumeThat
 
 class PsProjectImplTest : DependencyTestCase() {
 
+  val changedModules = mutableSetOf<String>()
+
   fun testModuleOrder() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
@@ -122,37 +124,59 @@ class PsProjectImplTest : DependencyTestCase() {
 
   fun testApplyRunAndReparse() {
     val newSuffix = "testApplyRunAndReparse"
+    val newSuffix2 = "testApplyRunAndReparse2"
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
+    // First remove :nested2:deep from the test project so that it can abe re-added later.
+    run {
+      val tempProjectInstance = PsProjectImpl(myFixture.project)
+      assumeThat(tempProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+      tempProjectInstance.removeModule(gradlePath = ":nested2:deep")
+      tempProjectInstance.applyChanges()
+    }
+
     val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
+    // Subscribe to notifications from the very beginning to ensure that new modules are auto-subscribed.
+    project.testSubscribeToNotifications()
+
     val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
+    // Make sure the test module has been removed.
+    assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
     // Make a random change.
     appModule.findBuildType("debug")!!.applicationIdSuffix = newSuffix.asParsed()
 
-    // Make an independent change to the configuration while in the "run" phase.
+    // Make an independent change (add :nested2:deep back) to the configuration while in the "run" phase.
     project.applyRunAndReparse {
       val anotherProjectInstance = PsProjectImpl(myFixture.project)
-      assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
-      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
       // Any previously pending changes should be applied and visible at this point.
       assertThat(
         (anotherProjectInstance.findModuleByGradlePath(":app") as PsAndroidModule).findBuildType("debug")!!.applicationIdSuffix,
         equalTo(newSuffix.asParsed()))
 
-      anotherProjectInstance.removeModule(gradlePath = ":nested2:deep")
+      // Add :nested2:deep back to the project.
+      anotherProjectInstance.parsedModel.projectSettingsModel!!.addModulePath(":nested2:deep")
+      anotherProjectInstance.isModified = true
       anotherProjectInstance.applyChanges()
 
       // Different DSL models are independent.
-      assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
-      // The removed module should disappear from the project which does not have a resolved Gradle model.
-      assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+      assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+      // Validate that the module has re-appeared in the project.
+      val validationProjectInstance = PsProjectImpl(myFixture.project)
+      assumeThat(validationProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
       true
     }
 
     // The module collection should be refreshed and the removed module should disappear.
-    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
     project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
-    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
+    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+
+    // Reset chnaged module set and assert that the change handler has been auto-subscribed to the notifications from the new module.
+    changedModules.clear()
+    val nested2DeppModule = project.findModuleByGradlePath(":nested2:deep") as PsAndroidModule
+    nested2DeppModule.findBuildType("debug")!!.applicationIdSuffix = newSuffix2.asParsed()
+    assertThat(changedModules.contains(":nested2:deep"), equalTo(true))
   }
 
   fun testApplyRunAndReparse_cancel() {
@@ -177,5 +201,9 @@ class PsProjectImplTest : DependencyTestCase() {
     }
     // The model is not reloaded if change cancelled, even when some real changes have been made.
     assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+  }
+
+  private fun PsProject.testSubscribeToNotifications() {
+    this.onModuleChanged(testRootDisposable) { module -> changedModules.add(module.gradlePath.orEmpty()) }
   }
 }

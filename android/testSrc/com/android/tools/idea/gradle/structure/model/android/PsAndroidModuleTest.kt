@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import java.io.File
@@ -35,7 +36,7 @@ import java.util.concurrent.TimeUnit
  * Tests for [PsAndroidModule].
  */
 class PsAndroidModuleTest : DependencyTestCase() {
-
+  val changedModules = mutableSetOf<String>()
   var buildTypesChanged = 0
   var productFlavorsChanged = 0
   var flavorDimensionsChanged = 0
@@ -706,6 +707,32 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(variantsChanged).isEqualTo(1)
   }
 
+  fun testModuleChanged() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+    val disposable = Disposer.newDisposable()
+    project.testSubscribeToNotifications(disposable)
+
+    val appModule = moduleWithSyncedModel(project, "app")
+    val libModule = moduleWithSyncedModel(project, "lib")
+
+
+    appModule.addNewBuildType("newBuildType")
+    libModule.addNewBuildType("newBuildType")
+
+    assertThat(changedModules).containsExactly(":app", ":lib")
+
+    Disposer.dispose(disposable)
+    changedModules.clear()
+
+    appModule.removeBuildType(appModule.findBuildType("newBuildType")!!)
+    libModule.removeBuildType(libModule.findBuildType("newBuildType")!!)
+
+    assertThat(changedModules).isEmpty()
+  }
+
   fun testImportantConfigurations() {
     loadProject(PSD_SAMPLE)
 
@@ -1108,8 +1135,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarAnnotationProcessor",
       "androidTestBasicOtherBarAnnotationProcessor",
       "androidTestPaidOtherBarAnnotationProcessor"
-    
     )
+  }
+
+  private fun PsProject.testSubscribeToNotifications(disposable: Disposable = testRootDisposable) {
+    this.onModuleChanged(disposable) { module -> changedModules.add(module.gradlePath.orEmpty()) }
   }
 
   private fun PsAndroidModule.testSubscribeToChangeNotifications() {
