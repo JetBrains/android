@@ -227,12 +227,12 @@ open class AddActionDialog(
     dialog.myDestinationComboBox.isEnabled = false
 
     selectItem(dialog.myPopToComboBox, { it.component?.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, existingAction)
-    dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive
+    dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive == true
     selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)
-    dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop
+    dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop == true
     dialog.myIdTextField.text = existingAction.id
   }
 
@@ -405,10 +405,10 @@ open class AddActionDialog(
         enterAnimation = enterTransition
         exitAnimation = exitTransition
         popUpTo = popTo
-        inclusive = isInclusive
+        inclusive = if (isInclusive) true else null
         popEnterAnimation = popEnterTransition
         popExitAnimation = popExitTransition
-        singleTop = isSingleTop
+        singleTop = if (isSingleTop) true else null
       }
       existingAction?.apply(actionSetup) ?: source.createAction(actionSetup = actionSetup, id = id.nullize(true))
     })
