@@ -15,6 +15,18 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
+import static com.android.SdkConstants.ATTR_NULLABLE;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_PARCELABLE;
+import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.getArgumentName;
+import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.getNullable;
+import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.getTypeAttr;
+import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.isArgument;
+import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.setArgumentName;
+import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.setTypeAttr;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -39,32 +51,19 @@ import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.MutableCollectionComboBoxModel;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import java.awt.CardLayout;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.naveditor.model.NavComponentHelperKt.*;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT;
-
 public class AddArgumentDialog extends DialogWrapper {
-  private JPanel myContentPanel;
-  @VisibleForTesting JCheckBox myNullableCheckBox;
-  private JTextField myNameTextField;
-  private JPanel myDefaultValuePanel;
-  @VisibleForTesting JComboBox<String> myDefaultValueComboBox;
-  @VisibleForTesting JTextField myDefaultValueTextField;
-  private JBLabel myNullableLabel;
-  private JComboBox<Type> myTypeComboBox;
   @Nullable private final NlComponent myExistingComponent;
   @NotNull private final NlComponent myParent;
 
-  private enum Type {
+  enum Type {
     INFERRED("<inferred type>", null),
     INTEGER("Integer", "integer"),
     LONG("Long", "long"),
@@ -91,6 +90,9 @@ public class AddArgumentDialog extends DialogWrapper {
   private Type mySelectedType;
   private MutableCollectionComboBoxModel<String> myDefaultValueComboModel = new MutableCollectionComboBoxModel<>();
 
+  @VisibleForTesting
+  AddArgumentDialogUI myDialogUI = new AddArgumentDialogUI();
+
   public AddArgumentDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
     init();
@@ -98,9 +100,9 @@ public class AddArgumentDialog extends DialogWrapper {
     myParent = parent;
     myExistingComponent = existing;
     for (Type t : Type.values()) {
-      myTypeComboBox.addItem(t);
+      myDialogUI.myTypeComboBox.addItem(t);
     }
-    myTypeComboBox.setRenderer(new ListCellRendererWrapper<Type>() {
+    myDialogUI.myTypeComboBox.setRenderer(new ListCellRendererWrapper<Type>() {
       @Override
       public void customize(JList list, Type value, int index, boolean isSelected, boolean hasFocus) {
         if (index == -1 && value == Type.CUSTOM) {
@@ -114,9 +116,9 @@ public class AddArgumentDialog extends DialogWrapper {
       }
     });
 
-    myTypeComboBox.setEditable(false);
+    myDialogUI.myTypeComboBox.setEditable(false);
 
-    myDefaultValueComboBox.setModel(myDefaultValueComboModel);
+    myDialogUI.myDefaultValueComboBox.setModel(myDefaultValueComboModel);
     if (existing != null) {
 
       setName(getArgumentName(existing));
@@ -128,18 +130,18 @@ public class AddArgumentDialog extends DialogWrapper {
       setTitle("Update Argument Link");
     }
     else {
-      ((CardLayout)myDefaultValuePanel.getLayout()).show(myDefaultValuePanel, "textDefaultValue");
+      ((CardLayout)myDialogUI.myDefaultValuePanel.getLayout()).show(myDialogUI.myDefaultValuePanel, "textDefaultValue");
       myOKAction.putValue(Action.NAME, "Add");
       setTitle("Add Argument Link");
     }
 
-    myTypeComboBox.addActionListener(event -> {
+    myDialogUI.myTypeComboBox.addActionListener(event -> {
       if ("comboBoxChanged".equals(event.getActionCommand())) {
         newTypeSelected();
       }
     });
 
-    myDefaultValueComboBox.setRenderer(new ListCellRendererWrapper<String>() {
+    myDialogUI.myDefaultValueComboBox.setRenderer(new ListCellRendererWrapper<String>() {
       @Override
       public void customize(JList list, String value, int index, boolean selected, boolean hasFocus) {
         setText(value == null ? "No default value" : value);
@@ -150,27 +152,27 @@ public class AddArgumentDialog extends DialogWrapper {
   @VisibleForTesting
   void setType(@Nullable String typeStr) {
     if (typeStr == null) {
-      myTypeComboBox.setSelectedItem(Type.INFERRED);
+      myDialogUI.myTypeComboBox.setSelectedItem(Type.INFERRED);
     }
     else {
       boolean found = false;
       for (Type type : Type.values()) {
         if (typeStr.equals(type.attrValue)) {
-          myTypeComboBox.setSelectedItem(type);
+          myDialogUI.myTypeComboBox.setSelectedItem(type);
           found = true;
           break;
         }
       }
       if (!found) {
         myCustomType = typeStr;
-        myTypeComboBox.setSelectedItem(Type.CUSTOM);
+        myDialogUI.myTypeComboBox.setSelectedItem(Type.CUSTOM);
       }
     }
     updateUi();
   }
 
   private void newTypeSelected() {
-    if (myTypeComboBox.getSelectedItem() == Type.CUSTOM) {
+    if (myDialogUI.myTypeComboBox.getSelectedItem() == Type.CUSTOM) {
       Project project = myParent.getModel().getProject();
       PsiClass parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE);
       PsiClass current = null;
@@ -190,32 +192,32 @@ public class AddArgumentDialog extends DialogWrapper {
         myCustomType = selection.getQualifiedName();
       }
       else {
-        myTypeComboBox.setSelectedItem(mySelectedType);
+        myDialogUI.myTypeComboBox.setSelectedItem(mySelectedType);
       }
     }
     updateUi();
   }
 
   private void updateUi() {
-    Type newType = (Type)myTypeComboBox.getSelectedItem();
+    Type newType = (Type)myDialogUI.myTypeComboBox.getSelectedItem();
     if (newType != mySelectedType) {
       boolean nullable = newType == Type.STRING || newType == Type.CUSTOM;
-      myNullableCheckBox.setEnabled(nullable);
-      myNullableLabel.setEnabled(nullable);
+      myDialogUI.myNullableCheckBox.setEnabled(nullable);
+      myDialogUI.myNullableLabel.setEnabled(nullable);
       if (!nullable) {
-        myNullableCheckBox.setSelected(false);
+        myDialogUI.myNullableCheckBox.setSelected(false);
       }
       if (newType == Type.BOOLEAN) {
-        ((CardLayout)myDefaultValuePanel.getLayout()).show(myDefaultValuePanel, "comboDefaultValue");
+        ((CardLayout)myDialogUI.myDefaultValuePanel.getLayout()).show(myDialogUI.myDefaultValuePanel, "comboDefaultValue");
         myDefaultValueComboModel.update(Lists.newArrayList(null, "true", "false"));
       }
       else if (newType == Type.CUSTOM) {
-        ((CardLayout)myDefaultValuePanel.getLayout()).show(myDefaultValuePanel, "comboDefaultValue");
+        ((CardLayout)myDialogUI.myDefaultValuePanel.getLayout()).show(myDialogUI.myDefaultValuePanel, "comboDefaultValue");
         myDefaultValueComboModel.update(Lists.newArrayList(null, "@null"));
       }
       else {
-        myDefaultValueTextField.setText("");
-        ((CardLayout)myDefaultValuePanel.getLayout()).show(myDefaultValuePanel, "textDefaultValue");
+        myDialogUI.myDefaultValueTextField.setText("");
+        ((CardLayout)myDialogUI.myDefaultValuePanel.getLayout()).show(myDialogUI.myDefaultValuePanel, "textDefaultValue");
       }
       mySelectedType = newType;
     }
@@ -224,7 +226,7 @@ public class AddArgumentDialog extends DialogWrapper {
   @NotNull
   @Override
   protected JComponent createCenterPanel() {
-    return myContentPanel;
+    return myDialogUI.myContentPanel;
   }
 
   @NotNull
@@ -236,7 +238,7 @@ public class AddArgumentDialog extends DialogWrapper {
   @VisibleForTesting
   @Nullable
   String getType() {
-    Type selectedType = (Type)myTypeComboBox.getSelectedItem();
+    Type selectedType = (Type)myDialogUI.myTypeComboBox.getSelectedItem();
     return selectedType == Type.CUSTOM ? myCustomType : selectedType.attrValue;
   }
 
@@ -244,41 +246,41 @@ public class AddArgumentDialog extends DialogWrapper {
   @Nullable
   String getDefaultValue() {
     if (mySelectedType == Type.BOOLEAN || mySelectedType == Type.CUSTOM) {
-      return (String)myDefaultValueComboBox.getSelectedItem();
+      return (String)myDialogUI.myDefaultValueComboBox.getSelectedItem();
     }
     else {
-      return myDefaultValueTextField.getText();
+      return myDialogUI.myDefaultValueTextField.getText();
     }
   }
 
   @VisibleForTesting
   void setDefaultValue(String defaultValue) {
     if (mySelectedType == Type.BOOLEAN || mySelectedType == Type.CUSTOM) {
-      myDefaultValueComboBox.setSelectedItem(defaultValue);
+      myDialogUI.myDefaultValueComboBox.setSelectedItem(defaultValue);
     }
     else {
-      myDefaultValueTextField.setText(defaultValue);
+      myDialogUI.myDefaultValueTextField.setText(defaultValue);
     }
   }
 
   @VisibleForTesting
   boolean isNullable() {
-    return myNullableCheckBox.isSelected();
+    return myDialogUI.myNullableCheckBox.isSelected();
   }
 
   @VisibleForTesting
   void setNullable(boolean nullable) {
-    myNullableCheckBox.setSelected(nullable);
+    myDialogUI.myNullableCheckBox.setSelected(nullable);
   }
 
   @VisibleForTesting
   String getName() {
-    return myNameTextField.getText();
+    return myDialogUI.myNameTextField.getText();
   }
 
   @VisibleForTesting
   void setName(@Nullable String name) {
-    myNameTextField.setText(name);
+    myDialogUI.myNameTextField.setText(name);
   }
 
   @Nullable
@@ -286,17 +288,17 @@ public class AddArgumentDialog extends DialogWrapper {
   protected ValidationInfo doValidate() {
     String name = getName();
     if (name == null || name.isEmpty()) {
-      return new ValidationInfo("Name must be set", myNameTextField);
+      return new ValidationInfo("Name must be set", myDialogUI.myNameTextField);
     }
     if (myParent.getChildren().stream()
                 .anyMatch(c -> c != myExistingComponent
                                && isArgument(c)
                                && getArgumentName(c).equals(name))) {
-      return new ValidationInfo("Name must be unique", myNameTextField);
+      return new ValidationInfo("Name must be unique", myDialogUI.myNameTextField);
     }
     String defaultValue = getDefaultValue();
     if (defaultValue != null && !defaultValue.isEmpty()) {
-      Object type = myTypeComboBox.getSelectedItem();
+      Object type = myDialogUI.myTypeComboBox.getSelectedItem();
       if (type == Type.LONG) {
         if (!defaultValue.endsWith("L")) {
           defaultValue += "L";
@@ -351,7 +353,7 @@ public class AddArgumentDialog extends DialogWrapper {
       }
       String defaultValue = getDefaultValue();
       if (defaultValue != null && !defaultValue.isEmpty()) {
-        if (myTypeComboBox.getSelectedItem() == Type.LONG && !defaultValue.endsWith("L")) {
+        if (myDialogUI.myTypeComboBox.getSelectedItem() == Type.LONG && !defaultValue.endsWith("L")) {
           defaultValue += "L";
         }
         NavComponentHelperKt.setDefaultValue(realComponent, defaultValue);
