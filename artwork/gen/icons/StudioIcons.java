@@ -546,8 +546,13 @@ public class StudioIcons {
     }
 
     public static class Telemetry {
+      public static final Icon SENTIMENT_DISSATISFIED = load("/studio/icons/shell/telemetry/sentiment-dissatisfied.svg"); // 24x24
       public static final Icon SENTIMENT_NEGATIVE = load("/studio/icons/shell/telemetry/sentiment-negative.svg"); // 16x16
+      public static final Icon SENTIMENT_NEUTRAL = load("/studio/icons/shell/telemetry/sentiment-neutral.svg"); // 24x24
       public static final Icon SENTIMENT_POSITIVE = load("/studio/icons/shell/telemetry/sentiment-positive.svg"); // 16x16
+      public static final Icon SENTIMENT_SATISFIED = load("/studio/icons/shell/telemetry/sentiment-satisfied.svg"); // 24x24
+      public static final Icon SENTIMENT_VERY_DISSATISFIED = load("/studio/icons/shell/telemetry/sentiment-very-dissatisfied.svg"); // 24x24
+      public static final Icon SENTIMENT_VERY_SATISFIED = load("/studio/icons/shell/telemetry/sentiment-very-satisfied.svg"); // 24x24
     }
 
     public static class ToolWindows {
