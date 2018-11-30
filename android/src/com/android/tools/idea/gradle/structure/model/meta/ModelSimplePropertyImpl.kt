@@ -46,6 +46,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
+  refresher: ModelT.() -> Unit = {},
   parser: (String) -> Annotated<ParsedValue<PropertyT>>,
   formatter: (PropertyT) -> String = { it.toString() },
   knownValuesGetter: ((ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { immediateFuture(listOf()) },
@@ -60,6 +61,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   parsedPropertyGetter,
   getter,
   setter,
+  refresher,
   parser,
   formatter,
   knownValuesGetter,
@@ -75,6 +77,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
+  private val refresher: ModelT.() -> Unit,
   override val parser: (String) -> Annotated<ParsedValue<PropertyT>>,
   override val formatter: (PropertyT) -> String,
   override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
@@ -125,6 +128,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     modelDescriptor.prepareForModification(this)
     block()
     modelDescriptor.setModified(this)
+    this.refresher()
   }
 }
 

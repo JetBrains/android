@@ -233,6 +233,10 @@ class PsAndroidModule(
     resetResolvedDependencies()
   }
 
+  fun resetProductFlavors() {
+    productFlavorCollection?.refresh()
+  }
+
   internal fun resetResolvedDependencies() {
     variants.forEach { variant -> variant.forEachArtifact { artifact -> artifact.resetDependencies() } }
   }
