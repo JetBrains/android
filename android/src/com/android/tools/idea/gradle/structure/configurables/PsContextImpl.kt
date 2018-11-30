@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaem
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
@@ -165,4 +166,7 @@ class PsContextImpl constructor(
       project.applyChanges()
     }
   }
+
+  override fun PsPath.renderNavigation(specificPlace: PsPath): String =
+    """<a href="${specificPlace.getHyperlinkDestination(this@PsContextImpl)}">${this@renderNavigation.toString()}</a>"""
 }
