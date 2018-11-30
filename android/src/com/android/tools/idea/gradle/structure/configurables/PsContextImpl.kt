@@ -85,6 +85,14 @@ class PsContextImpl constructor(
       project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
     }
 
+    project.onModuleChanged(this) { module ->
+      analyzerDaemon.queueCheck(module)
+      project
+        .modules
+        .filter { it.dependencies.modules.any { moduleDependency -> moduleDependency.gradlePath == module.gradlePath } }
+        .forEach { analyzerDaemon.queueCheck(it) }
+    }
+
     Disposer.register(parentDisposable, this)
   }
 

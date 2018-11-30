@@ -33,12 +33,16 @@ import java.util.*
 class PsIssueCollectionTest {
   private lateinit var issueCollection: PsIssueCollection
   private lateinit var testPath: PsPath
+  private lateinit var testParentPath: PsPath
+  private lateinit var testChildPath: PsPath
 
   @Before
   fun setUp() {
     initMocks(this)
     issueCollection = PsIssueCollection()
     testPath = TestPath("test path")
+    testParentPath = TestPath("test parent")
+    testChildPath = TestPath("test child", testParentPath)
   }
 
   @Test
@@ -211,6 +215,24 @@ class PsIssueCollectionTest {
     assertThat(issueCollection.values).containsExactly(issueA, issueB)
     issueCollection.remove(PROJECT_ANALYSIS)
     assertThat(issueCollection.values).containsExactly(issueB)
+  }
+
+  @Test
+  fun removeByPath() {
+    val issueA1 = PsGeneralIssue("a1", testPath, PROJECT_ANALYSIS, WARNING)
+    val issueA2 = PsGeneralIssue("a2", testParentPath, PROJECT_ANALYSIS, WARNING)
+    val issueA3 = PsGeneralIssue("a3", testChildPath, PROJECT_ANALYSIS, WARNING)
+    val issueB = PsGeneralIssue("b", testChildPath, LIBRARY_UPDATES_AVAILABLE, WARNING)
+    issueCollection.add(issueA1)
+    issueCollection.add(issueA2)
+    issueCollection.add(issueA3)
+    issueCollection.add(issueB)
+    assertThat(issueCollection.values.distinct()).containsExactly(issueA1, issueA2, issueA3, issueB)
+    issueCollection.remove(PROJECT_ANALYSIS, byPath = testParentPath)
+    assertThat(issueCollection.values.distinct()).containsExactly(issueA1, issueB)
+    assertThat(issueCollection.findIssues(testParentPath, comparator = null)).containsExactly(issueB)
+    assertThat(issueCollection.findIssues(testChildPath, comparator = null)).containsExactly(issueB)
+    assertThat(issueCollection.findIssues(testPath, comparator = null)).containsExactly(issueA1)
   }
 
   @Test
