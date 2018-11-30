@@ -23,10 +23,11 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.inspector.AddActionDialog.Defaults.*
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.Source.PROPERTY_INSPECTOR
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -47,12 +48,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
 
   override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     assert(parents.size == 1)
-    showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, existing, parents[0]), surface, true)
-  }
-
-  @VisibleForTesting
-  fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean = false) {
-    showAndUpdateFromDialog(actionDialog, surface, NavEditorEvent.Source.PROPERTY_INSPECTOR, hadExisting)
+    showAndUpdateFromDialog(AddActionDialog(NORMAL, existing, parents[0], PROPERTY_INSPECTOR), surface, true)
     inspector.refresh()
   }
 
@@ -129,12 +125,14 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
     val actions: MutableList<AnAction> = mutableListOf(
       object : AnAction("Add Action...") {
         override fun actionPerformed(e: AnActionEvent) {
-          showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, parent), surface)
+          showAndUpdateFromDialog(AddActionDialog(NORMAL, null, parent, PROPERTY_INSPECTOR), surface, false)
+          inspector.refresh()
         }
       },
       object : AnAction("Return to Source...") {
         override fun actionPerformed(e: AnActionEvent) {
-          showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.RETURN_TO_SOURCE, null, parent), surface)
+          showAndUpdateFromDialog(AddActionDialog(RETURN_TO_SOURCE, null, parent, PROPERTY_INSPECTOR), surface, false)
+          inspector.refresh()
         }
       }
     )
@@ -143,7 +141,8 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
       actions.add(
         object : AnAction("Add Global...") {
           override fun actionPerformed(e: AnActionEvent) {
-            showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, parent), surface)
+            showAndUpdateFromDialog(AddActionDialog(GLOBAL, null, parent, PROPERTY_INSPECTOR), surface, false)
+            inspector.refresh()
           }
         }
       )

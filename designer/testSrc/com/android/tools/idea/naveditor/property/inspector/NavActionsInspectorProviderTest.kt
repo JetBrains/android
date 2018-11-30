@@ -24,6 +24,7 @@ import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
+import com.google.wireless.android.sdk.stats.NavEditorEvent.Source.PROPERTY_INSPECTOR
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.util.Disposer
@@ -106,16 +107,21 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     panel.setComponent(listOf(f2), HashBasedTable.create<String, String, NlProperty>(), manager)
     assertEquals(0, actionsList.itemsCount)
 
-    val dialog = spy(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f2))
-    `when`(dialog.destination).thenReturn(f1)
-    doReturn(true).`when`(dialog).showAndGet()
+    val dialog = spy(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f2, PROPERTY_INSPECTOR))
+    try {
+      `when`(dialog.destination).thenReturn(f1)
+      doReturn(true).`when`(dialog).showAndGet()
 
-    provider.showAndUpdateFromDialog(dialog, manager.designSurface)
+      showAndUpdateFromDialog(dialog, manager.designSurface, false)
+      provider.inspector.refresh()
 
-    assertEquals(1, actionsList.itemsCount)
-    val newAction = model.find("action_f2_to_f1")!!
-    assertTrue(model.surface.selectionModel.selection.contains(newAction))
-    dialog.close(0)
+      assertEquals(1, actionsList.itemsCount)
+      val newAction = model.find("action_f2_to_f1")!!
+      assertTrue(model.surface.selectionModel.selection.contains(newAction))
+    }
+    finally {
+      dialog.close(0)
+    }
   }
 
   private fun getElementText(

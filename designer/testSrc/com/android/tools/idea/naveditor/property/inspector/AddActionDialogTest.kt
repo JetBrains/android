@@ -22,6 +22,14 @@ import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ACTION
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ACTION
+import com.google.wireless.android.sdk.stats.NavEditorEvent.Source.DESIGN_SURFACE
+import com.google.wireless.android.sdk.stats.NavPropertyInfo
+import com.google.wireless.android.sdk.stats.NavPropertyInfo.Property.LAUNCH_SINGLE_TOP
+import com.google.wireless.android.sdk.stats.NavPropertyInfo.Property.POP_UP_TO
+import com.google.wireless.android.sdk.stats.NavPropertyInfo.TagType.ACTION_TAG
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -46,11 +54,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(
-      AddActionDialog.Defaults.NORMAL,
-      null,
-      model.find("f1")!!
-    )
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE)
     val destinationCombo = dialog.dialog.myDestinationComboBox
     val f2 = model.find("f2")
     for (i in 0 until destinationCombo.itemCount) {
@@ -76,11 +80,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(
-      AddActionDialog.Defaults.NORMAL,
-      null,
-      model.find("f1")!!
-    )
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE)
     val destinationCombo = dialog.dialog.myDestinationComboBox
     val f2 = model.find("f2")
     for (i in 0 until destinationCombo.itemCount) {
@@ -111,11 +111,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        model.find("a1"),
-        model.find("f1")!!
-    )
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, DESIGN_SURFACE)
     dialog.close(0)
     assertEquals(model.find("f2"), dialog.destination)
     assertEquals("@anim/fade_in", dialog.enterTransition)
@@ -138,11 +134,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(
-      AddActionDialog.Defaults.NORMAL,
-      model.find("a1"),
-      model.find("f1")!!
-    )
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, DESIGN_SURFACE)
     dialog.close(0)
     assertEquals("f2", dialog.popTo)
     assertEquals("@anim/fade_in", dialog.enterTransition)
@@ -160,11 +152,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("f1")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     dialog.myDestinationComboBox.selectedIndex = 3
@@ -212,11 +200,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("f1")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     dialog.myDestinationComboBox.selectedIndex = 1
@@ -241,11 +225,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("f1")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     // Initial condition that will be restored
@@ -310,11 +290,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("subnav2")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     assertEquals(null, dialog.myDestinationComboBox.getItemAt(0))
@@ -354,11 +330,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("f4")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f4")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     val combo = dialog.myDestinationComboBox
@@ -389,11 +361,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("root")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("root")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     val combo = dialog.myDestinationComboBox
@@ -424,11 +392,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("subnav2")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     val combo = dialog.myDestinationComboBox
@@ -501,11 +465,7 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialogWrapper = AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        null,
-        model.find("subnav2")!!
-    )
+    val dialogWrapper = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, DESIGN_SURFACE)
     val dialog = dialogWrapper.dialog
 
     val combo = dialog.myPopToComboBox
@@ -566,7 +526,7 @@ class AddActionDialogTest : NavTestCase() {
 
     val f1 = model.find("f1")!!
 
-    var dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1)
+    var dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, DESIGN_SURFACE)
     assertEquals(null, dialog.destination)
     assertEquals(f1, dialog.source)
     assertFalse(dialog.isInclusive)
@@ -574,7 +534,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("", dialog.id)
     dialog.close(0)
 
-    dialog = AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, f1)
+    dialog = AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, f1, DESIGN_SURFACE)
     assertEquals(f1, dialog.destination)
     assertEquals(model.find("root"), dialog.source)
     assertFalse(dialog.isInclusive)
@@ -582,11 +542,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("action_global_f1", dialog.id)
     dialog.close(0)
 
-    dialog = AddActionDialog(
-        AddActionDialog.Defaults.RETURN_TO_SOURCE,
-        null,
-        f1
-    )
+    dialog = AddActionDialog(AddActionDialog.Defaults.RETURN_TO_SOURCE, null, f1, DESIGN_SURFACE)
     assertEquals(null, dialog.destination)
     assertEquals(f1, dialog.source)
     assertTrue(dialog.isInclusive)
@@ -605,7 +561,7 @@ class AddActionDialogTest : NavTestCase() {
 
     val f1 = model.find("f1")!!
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1)
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, DESIGN_SURFACE)
     assertEquals("", dialog.id)
     dialog.dialog.myDestinationComboBox.selectedIndex = 5
     assertEquals("action_f1_to_f2", dialog.id)
@@ -631,18 +587,19 @@ class AddActionDialogTest : NavTestCase() {
     `when`(dialog.showAndGet()).thenReturn(true)
     val action = model.find("a1")!!
     doReturn(action).`when`(dialog).writeUpdatedAction()
+    doReturn(DESIGN_SURFACE).`when`(dialog).invocationSite
 
     TestNavUsageTracker.create(model).use { tracker ->
-      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, true)
+      showAndUpdateFromDialog(dialog, surface, true)
       assertSameElements(surface.selectionModel.selection, action)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.EDIT_ACTION)
+                                 .setType(EDIT_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()
                                                   .setCountFromSource(1)
                                                   .setCountSame(1)
                                                   .setCountToDestination(1)
                                                   .setType(NavActionInfo.ActionType.REGULAR))
-                                 .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+                                 .setSource(DESIGN_SURFACE).build())
     }
   }
 
@@ -660,18 +617,19 @@ class AddActionDialogTest : NavTestCase() {
     `when`(dialog.showAndGet()).thenReturn(true)
     val action = model.find("a1")!!
     doReturn(action).`when`(dialog).writeUpdatedAction()
+    doReturn(DESIGN_SURFACE).`when`(dialog).invocationSite
 
     TestNavUsageTracker.create(model).use { tracker ->
-      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, false)
+      showAndUpdateFromDialog(dialog, surface, false)
       assertSameElements(surface.selectionModel.selection, action)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+                                 .setType(CREATE_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()
                                                   .setCountFromSource(1)
                                                   .setCountSame(1)
                                                   .setCountToDestination(1)
                                                   .setType(NavActionInfo.ActionType.REGULAR))
-                                 .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+                                 .setSource(DESIGN_SURFACE).build())
     }
   }
 
@@ -679,11 +637,44 @@ class AddActionDialogTest : NavTestCase() {
     val model = mock(NlModel::class.java)
     val surface = mock(NavDesignSurface::class.java)
     val dialog = mock(AddActionDialog::class.java)
+    `when`(dialog.showAndGet()).thenReturn(false)
+    doReturn(DESIGN_SURFACE).`when`(dialog).invocationSite
     TestNavUsageTracker.create(model).use { tracker ->
-      `when`(dialog.showAndGet()).thenReturn(false)
-      showAndUpdateFromDialog(dialog, surface, NavEditorEvent.Source.DESIGN_SURFACE, false)
+      showAndUpdateFromDialog(dialog, surface, false)
       verifyZeroInteractions(tracker)
     }
   }
 
+  fun testPropertyChangeMetrics() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, DESIGN_SURFACE)
+    dialog.dialog.myPopToComboBox.selectedIndex = 2
+    dialog.dialog.mySingleTopCheckBox.isSelected = true
+    dialog.close(0)
+
+    TestNavUsageTracker.create(model).use { tracker ->
+      dialog.writeUpdatedAction()
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                .setType(CHANGE_PROPERTY)
+                                .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                   .setWasEmpty(true)
+                                                   .setProperty(POP_UP_TO)
+                                                   .setContainingTag(ACTION_TAG))
+                                .setSource(DESIGN_SURFACE).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(CHANGE_PROPERTY)
+                                 .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                    .setWasEmpty(true)
+                                                    .setProperty(LAUNCH_SINGLE_TOP)
+                                                    .setContainingTag(ACTION_TAG))
+                                 .setSource(DESIGN_SURFACE).build())
+    }
+  }
 }

@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model
+package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class IdAttributeDelegate(private val namespace: String?, private val propertyName: String) {
-  operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
+open class IdAttributeDelegate(private val namespace: String?, private val propertyName: String) : ReadWriteProperty<NlComponent, String?> {
+  override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
     return NlComponent.stripId(thisRef.resolveAttribute(namespace, propertyName))
   }
 
-  operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
+  override operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
     thisRef.setAttribute(namespace, propertyName, value?.let { SdkConstants.ID_PREFIX + it })
   }
 }
