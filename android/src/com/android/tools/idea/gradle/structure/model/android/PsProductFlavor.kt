@@ -141,6 +141,7 @@ open class PsProductFlavor(
       parsedPropertyGetter = { dimension() },
       getter = { asString() },
       setter = { setValue(it) },
+      refresher = { parent.resetProductFlavors() },
       parser = ::parseString,
       knownValuesGetter = { model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) }
     )
