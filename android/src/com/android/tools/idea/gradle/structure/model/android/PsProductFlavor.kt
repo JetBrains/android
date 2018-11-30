@@ -111,6 +111,8 @@ open class PsProductFlavor(
 
     override fun getParsed(model: PsProductFlavor): ProductFlavorModel? = model.parsedModel
 
+    override fun prepareForModification(model: PsProductFlavor) = Unit
+
     override fun setModified(model: PsProductFlavor) {
       model.isModified = true
     }

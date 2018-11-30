@@ -123,6 +123,7 @@ class PsProjectImpl(
   object ProjectDescriptors: ModelDescriptor<PsProject, Nothing, Nothing> {
     override fun getResolved(model: PsProject): Nothing? = null
     override fun getParsed(model: PsProject): Nothing? = null
+    override fun prepareForModification(model: PsProject) = Unit
     override fun setModified(model: PsProject) { model.isModified = true }
     override fun enumerateModels(model: PsProject): Collection<PsModel> = model.modules
   }

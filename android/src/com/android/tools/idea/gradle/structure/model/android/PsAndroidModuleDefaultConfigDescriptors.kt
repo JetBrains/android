@@ -28,6 +28,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? =
     model.module.parsedModel?.android()?.defaultConfig()
 
+  override fun prepareForModification(model: PsAndroidModuleDefaultConfig) = Unit
+
   override fun setModified(model: PsAndroidModuleDefaultConfig) {
     model.module.isModified = true
   }

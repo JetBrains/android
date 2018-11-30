@@ -74,6 +74,8 @@ open class PsDeclaredLibraryAndroidDependency(
 
     override fun getParsed(model: PsDeclaredLibraryAndroidDependency): ArtifactDependencyModel? = model.parsedModel
 
+    override fun prepareForModification(model: PsDeclaredLibraryAndroidDependency) = Unit
+
     // TODO(solodkyy): Ensure setModified refreshes the resolved dependency collection when required.
     override fun setModified(model: PsDeclaredLibraryAndroidDependency) {
       // NOTE: There is no need to re-index the declared dependency collection. Version is not a part of the key.

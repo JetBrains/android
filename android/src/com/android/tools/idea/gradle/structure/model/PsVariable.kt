@@ -107,14 +107,14 @@ class PsVariable(
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
   // Note: the as? test is only to test whether the interface is implemented.
   // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { parent.isModified = true }
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { block -> block() ; parent.isModified = true }
 
   object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
     override fun getResolved(model: PsVariable): Nothing? = null
 
     override fun getParsed(model: PsVariable): ResolvedPropertyModel? = model.resolvedProperty
 
-    override fun setModified(model: PsVariable) {
+    override fun prepareForModification(model: PsVariable) {
       model.pendingListItemContainer?.let {
         val itemProperty = it.addListValue()
         model.property = itemProperty
@@ -126,6 +126,8 @@ class PsVariable(
       model.myListItems?.refresh()
       model.myMapEntries?.refresh()
     }
+
+    override fun setModified(model: PsVariable) = Unit
 
     val variableValue: SimpleProperty<PsVariable, Any> = property(
       "Value",

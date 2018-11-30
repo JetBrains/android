@@ -27,6 +27,8 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
 
+  override fun prepareForModification(model: PsAndroidModule) = Unit
+
   override fun setModified(model: PsAndroidModule) {
     model.isModified = true
   }

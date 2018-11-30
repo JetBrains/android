@@ -49,7 +49,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     matcher
   )
 
-class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
+class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
@@ -70,22 +70,28 @@ class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   private fun getEditableValues(model: ModelT): List<ModelPropertyCore<ValueT>> =
     model
       .getParsedProperty()
-      ?.asParsedListValue(getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { model.setModified() })
-      // TODO(b/72814329): Replace [null] with the matched value.
+      ?.asParsedListValue(
+        getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { model.modify { it() } })
+    // TODO(b/72814329): Replace [null] with the matched value.
     ?: listOf()
 
   private fun addItem(model: ModelT, index: Int): ModelPropertyCore<ValueT> =
-    model
-      .apply { setModified() }
-      .getParsedProperty()
-      ?.addListItem(index, getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { model.setModified() })
+    model.modify {
+      getParsedProperty()
+        ?.addListItem(
+          index,
+          getter,
+          setter,
+          { parsed, resolved -> matcher(model, parsed, resolved) },
+          { modify { it() } })
+    }
     ?: throw IllegalStateException()
 
   private fun deleteItem(model: ModelT, index: Int) =
-    model
-      .apply { setModified() }
-      .getParsedProperty()
+    model.modify {
+      getParsedProperty()
       ?.deleteListItem(index)
+    }
     ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): Annotated<ParsedValue<List<ValueT>>> {
@@ -133,20 +139,21 @@ private fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifiedSetter: () -> Unit
+  modifier: (() -> Unit) -> Unit
 ): List<ModelPropertyCore<T>>? =
   this
     .asResolvedPropertiesList()
-    ?.map { makeItemPropertyCore(it, getter, setter, { ResolvedValue.NotResolved() }, matcher, modifiedSetter) }
+    ?.map { makeItemPropertyCore(it, getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier) }
 
 private fun <T : Any> ResolvedPropertyModel.addListItem(
   index: Int,
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifiedSetter: () -> Unit
+  modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> =
-  makeItemPropertyCore(addListValueAt(index).resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifiedSetter)
+  makeItemPropertyCore(
+    addListValueAt(index).resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
 
 private fun ResolvedPropertyModel.deleteListItem(index: Int) = getValue(LIST_TYPE)?.get(index)?.delete() ?: throw IllegalStateException()
 

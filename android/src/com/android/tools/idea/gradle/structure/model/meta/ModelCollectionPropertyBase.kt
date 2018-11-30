@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 
-abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in CollectionT : Any, ValueT : Any> :
+abstract class ModelCollectionPropertyBase<ModelT, out ResolvedT, ParsedT, in CollectionT : Any, ValueT : Any> :
   ModelPropertyBase<ModelT, ValueT>() {
   abstract val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>
   abstract val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel
@@ -29,27 +29,33 @@ abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in
       ?.parsedPropertyGetter()
 
   fun setParsedValue(model: ModelT, value: ParsedValue<CollectionT>) {
-    model.setModified()
-    val parsedProperty = model.getParsedProperty() ?: throw IllegalStateException()
-    when (value) {
-      is ParsedValue.NotSet -> {
-        parsedProperty.delete()
-      }
-      is ParsedValue.Set.Parsed -> {
-        val dsl = value.dslText
-        when (dsl) {
-          // Dsl modes.
-          is DslText.Reference -> parsedProperty.setDslText(dsl)
-          is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)
-          is DslText.OtherUnparsedDslText -> parsedProperty.setDslText(dsl)
-          // Literal modes are not supported. getEditableValues() should be used.
-          DslText.Literal -> throw UnsupportedOperationException()
+    model.modify {
+      val parsedProperty = model.getParsedProperty() ?: throw IllegalStateException()
+      when (value) {
+        is ParsedValue.NotSet -> {
+          parsedProperty.delete()
+        }
+        is ParsedValue.Set.Parsed -> {
+          val dsl = value.dslText
+          when (dsl) {
+            // Dsl modes.
+            is DslText.Reference -> parsedProperty.setDslText(dsl)
+            is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)
+            is DslText.OtherUnparsedDslText -> parsedProperty.setDslText(dsl)
+            // Literal modes are not supported. getEditableValues() should be used.
+            DslText.Literal -> throw UnsupportedOperationException()
+          }
         }
       }
     }
   }
 
-  protected fun ModelT.setModified() = modelDescriptor.setModified(this)
+  protected fun <T> ModelT.modify(modifier: ModelT.() -> T) : T {
+    modelDescriptor.prepareForModification(this)
+    val result = modifier()
+    modelDescriptor.setModified(this)
+    return result
+  }
 }
 
 fun <T : Any> makeItemPropertyCore(
@@ -58,14 +64,14 @@ fun <T : Any> makeItemPropertyCore(
   setter: ResolvedPropertyModel.(T) -> Unit,
   resolvedValueGetter: () -> ResolvedValue<T>,
   matcher: (parsedValue: T?, resolvedValue: T)-> Boolean,
-  modifiedSetter: () -> Unit
+  modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> = object: ModelPropertyCoreImpl<T>(), ModelPropertyCore<T> {
   override val description: String get() = ""
   override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
   override val getter: ResolvedPropertyModel.() -> T? = getter
   override val setter: ResolvedPropertyModel.(T) -> Unit = setter
   override val nullifier: ResolvedPropertyModel.() -> Unit = { setValue("") }
-  override fun setModified() = modifiedSetter()
+  override fun modify(block: () -> Unit) = modifier(block)
   override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
   override val defaultValueGetter: (() -> T?)? = null
   override val isModified: Boolean? get() = resolvedProperty.isModified

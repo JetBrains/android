@@ -33,6 +33,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
   object Model : ModelDescriptor<Model, Model, Model> {
     override fun getResolved(model: Model): Model? = this
     override fun getParsed(model: Model): Model? = this
+    override fun prepareForModification(model: Model) = Unit
     override fun setModified(model: Model) = Unit
   }
 
@@ -198,12 +199,16 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt, resolvedValue = 26).bind(Model)
     val newResolvedProperty = extModel.findProperty("newVar").resolve()
     var localModified = false
+    var localModifying = false
     @Suppress("UNCHECKED_CAST")
-    val reboundProp = (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>).rebind(newResolvedProperty, { localModified = true })
+    val reboundProp =
+      (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
+        .rebind(newResolvedProperty) { localModifying = true; it(); localModified = true }
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
     reboundProp.setParsedValue(1.asParsed())
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
     assertThat(localModified, equalTo(true))
+    assertThat(localModifying, equalTo(true))
     assertThat(newResolvedProperty.isModified, equalTo(true))
     assertThat(newResolvedProperty.getValue(INTEGER_TYPE), equalTo(1))
 
