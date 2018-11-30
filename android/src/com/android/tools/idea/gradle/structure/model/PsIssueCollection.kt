@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.google.common.collect.HashMultimap
-import java.util.*
+import java.util.Comparator
 import javax.annotation.concurrent.GuardedBy
 
 class PsIssueCollection {
@@ -58,11 +57,16 @@ class PsIssueCollection {
         .toList()
     }
 
-  fun remove(type: PsIssueType) {
+  fun remove(type: PsIssueType, byPath: PsPath? = null) {
     synchronized(lock) {
+      val issuesToRemove =
+        (if (byPath != null) myIssues[byPath] else myIssues.values())
+          .filter { it.type == type }
+          .toCollection(HashSet())
+
       myIssues
         .entries()
-        .filter { (_, issue) -> issue.type == type }
+        .filter { issuesToRemove.contains(it.value)}
         .forEach { (path, issue) -> myIssues.remove(path, issue) }
     }
   }

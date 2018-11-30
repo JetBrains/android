@@ -24,10 +24,12 @@ import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.UPDATE
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE
+import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
@@ -124,8 +126,9 @@ class PsAnalyzerDaemon(
 
   override val isRunning: Boolean get() = running.get()
 
-  fun queueCheck(model: PsModel) {
-    mainQueue.queue(AnalyzeStructure(model))
+  fun queueCheck(model: PsModule) {
+    removeIssues(PROJECT_ANALYSIS, byPath = model.path)
+    mainQueue.queue(AnalyzeModuleStructure(model))
   }
 
   /**
@@ -147,8 +150,8 @@ class PsAnalyzerDaemon(
     resultsUpdaterQueue.queue(IssuesComputed(stop = true))
   }
 
-  fun removeIssues(type: PsIssueType) {
-    issues.remove(type)
+  fun removeIssues(type: PsIssueType, byPath: PsPath? = null) {
+    issues.remove(type, byPath)
     resultsUpdaterQueue.queue(IssuesComputed())
   }
 
@@ -158,7 +161,7 @@ class PsAnalyzerDaemon(
     else resultsUpdaterQueue.queue(IssuesComputed())
   }
 
-  private inner class AnalyzeStructure internal constructor(private val myModel: PsModel) : Update(myModel) {
+  private inner class AnalyzeModuleStructure internal constructor(private val myModel: PsModule) : Update(myModel) {
 
     override fun run() {
       try {
