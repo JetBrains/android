@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.tools.deployer.DeployerErrorMessagePresenter;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
@@ -72,11 +73,10 @@ class DeploymentErrorHandler {
   private String formatDeploymentErrors(@NotNull DeployAction action, @NotNull DeployerException exception) {
     StringBuilder builder = new StringBuilder();
     builder.append(action.getName());
-    if (exception.getMessage().isEmpty()) {
-      builder.append(" failed.");
-    } else {
-      builder.append(" failed.\n").append(exception.getMessage()).append("\n");
-    }
+    builder.append(" failed.\n");
+
+    builder.append(DeployerErrorMessagePresenter.createInstance().present(exception));
+    builder.append("\n");
 
     // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
     if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(exception.getError())) {
