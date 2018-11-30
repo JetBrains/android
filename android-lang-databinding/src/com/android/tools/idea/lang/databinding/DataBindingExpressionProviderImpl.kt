@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding
 
-import com.android.tools.idea.databinding.DataBindingExpressionProvider
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
 import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults
 import com.intellij.lang.injection.InjectedLanguageManager
@@ -26,7 +25,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import java.util.regex.Pattern
 
-class DataBindingLangExpressionProvider : DataBindingExpressionProvider {
+class DataBindingExpressionProviderImpl : DataBindingExpressionProvider {
   override fun getBindingExprDefault(expr: String): String? {
     if (!expr.contains(DbTokenTypes.DEFAULT_KEYWORD.toString())) {
       // A fast check since many expressions would likely not have a default.

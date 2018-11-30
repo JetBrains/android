@@ -15,33 +15,37 @@
  */
 @file:JvmName("DataBindingExpressionUtil")
 
-package com.android.tools.idea.databinding
+package com.android.tools.idea.lang.databinding
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.xml.XmlAttribute
 
 /**
- * Extension point for providing Data Binding Lang methods.
+ * Extension point which providing methods related to extracting information from data binding
+ * expressions.
  */
 interface DataBindingExpressionProvider {
   /**
-   * Given an entire expression, return the value in between parentheses {} after the "default:" keyword.
-   * If there is no default keyword in the given string, or if otherwise not applicable, return null.
+   * A data binding expression can optionally provide a default value, e.g. `@{..., default = xyz}`
+   * Given an entire expression (including the surrounding `"@{}"`), return the default value, if
+   * any was specified, or `null` otherwise.
    */
   fun getBindingExprDefault(expr: String): String?
 
   /**
-   * Gets the default data binding expression for the given [XmlAttribute].
-   * Returns null if there isn't one, or if there it's not applicable. ie: absence of language injectors.
+   * Similar to the [getBindingExprDefault] which takes a [String] parameter, but which instead
+   * receives the a PSI [XmlAttribute] that should be assigned to a data binding expression. If
+   * no default value was specified, or if no expression is assigned to this attribute, `null`
+   * is returned.
    */
   fun getBindingExprDefault(psiAttribute: XmlAttribute): String?
 }
 
 /**
- * Returns null if data binding lang plugin isn't enabled, or if no extension point implementation is found.
+ * Returns null if no extension point implementation is found.
  */
 fun getDataBindingExpressionProvider(): DataBindingExpressionProvider? {
   val extensionPoint: ExtensionPointName<DataBindingExpressionProvider> = ExtensionPointName(
-    "com.android.tools.idea.databinding.dataBindingExpressionProvider")
+    "com.android.tools.idea.lang.databinding.dataBindingExpressionProvider")
   return extensionPoint.extensionList.firstOrNull()
 }

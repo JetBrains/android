@@ -1283,10 +1283,10 @@
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
                     interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingExpressionProvider"
-                    interface="com.android.tools.idea.databinding.DataBindingExpressionProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionProvider"
                     interface="com.android.tools.idea.lang.databinding.DataBindingCompletionProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingExpressionProvider"
+                    interface="com.android.tools.idea.lang.databinding.DataBindingExpressionProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingSupport"
                     interface="com.android.tools.idea.databinding.DataBindingSupport"/>
   </extensionPoints>
