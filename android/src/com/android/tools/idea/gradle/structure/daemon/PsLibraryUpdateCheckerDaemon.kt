@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
@@ -33,7 +34,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
-import java.util.*
+import java.util.EventListener
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
@@ -80,8 +81,10 @@ class PsLibraryUpdateCheckerDaemon(
 
   override val isRunning: Boolean get() = running.get()
 
-  private fun search(repositories: Collection<ArtifactRepository>,
-                     ids: Collection<LibraryUpdateId>) {
+  private fun search(
+    repositories: Collection<ArtifactRepository>,
+    ids: Collection<LibraryUpdateId>
+  ) {
     running.set(true)
     getAvailableUpdates().clear()
 

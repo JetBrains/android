@@ -46,7 +46,7 @@ import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 
-class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon) : PsDaemon(context) {
+class PsAnalyzerDaemon(context: PsContext, private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon) : PsDaemon(context) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
   val issues: PsIssueCollection = PsIssueCollection()
@@ -67,9 +67,8 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
   }
 
   private fun addApplicableUpdatesAsIssues() {
-    val context = context
     UIUtil.invokeAndWaitIfNeeded(Runnable {
-      context.project.forEachModule (Consumer { module ->
+      context.project.forEachModule(Consumer { module ->
         var updatesFound = false
         if (module is PsAndroidModule) {
           module.dependencies.forEachLibraryDependency { dependency ->
@@ -89,15 +88,14 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
         }
 
         if (updatesFound) {
-          resultsUpdaterQueue.queue(IssuesComputed(module))
+          resultsUpdaterQueue.queue(IssuesComputed())
         }
       })
     })
   }
 
   private fun checkForUpdates(dependency: PsLibraryDependency): Boolean {
-    val context = context
-    val results = context.libraryUpdateCheckerDaemon.getAvailableUpdates()
+    val results = libraryUpdateCheckerDaemon.getAvailableUpdates()
     val spec = dependency.spec
     val update = results.findUpdateFor(spec)
     if (update != null) {
@@ -113,9 +111,9 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
     return false
   }
 
-  fun add(listener: (PsModel) -> Unit, parentDisposable: Disposable) {
+  fun onIssuesChange(parentDisposable: Disposable, listener: () -> Unit) {
     issuesUpdatedEventDispatcher.addListener(object : IssuesUpdatedListener {
-      override fun issuesUpdated(model: PsModel) = listener(model)
+      override fun issuesUpdated() = listener()
     }, parentDisposable)
   }
 
@@ -141,18 +139,18 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
     if (!isStopped) {
       analyzer.analyze(model, issues)
     }
-    resultsUpdaterQueue.queue(IssuesComputed(model, stop = true))
+    resultsUpdaterQueue.queue(IssuesComputed(stop = true))
   }
 
   fun removeIssues(type: PsIssueType) {
     issues.remove(type)
-    resultsUpdaterQueue.queue(IssuesComputed(context.project))
+    resultsUpdaterQueue.queue(IssuesComputed())
   }
 
   fun addAll(newIssues: List<PsIssue>, now: Boolean = true) {
     newIssues.forEach(issues::add)
-    if (now) issuesUpdatedEventDispatcher.multicaster.issuesUpdated(context.project)
-    else resultsUpdaterQueue.queue(IssuesComputed(context.project))
+    if (now) issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
+    else resultsUpdaterQueue.queue(IssuesComputed())
   }
 
   private inner class AnalyzeStructure internal constructor(private val myModel: PsModel) : Update(myModel) {
@@ -170,10 +168,10 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
     }
   }
 
-  private inner class IssuesComputed(private val myModel: PsModel, val stop: Boolean = false) : Update(myModel) {
+  private inner class IssuesComputed(val stop: Boolean = false) : Update(IssuesComputed::class.java) {
 
     override fun run() {
-      issuesUpdatedEventDispatcher.multicaster.issuesUpdated(myModel)
+      issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
       if (stop) {
         running.set(false)
       }
@@ -181,7 +179,7 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
   }
 
   private interface IssuesUpdatedListener : EventListener {
-    fun issuesUpdated(model: PsModel)
+    fun issuesUpdated()
   }
 }
 

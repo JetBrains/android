@@ -94,14 +94,13 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }, this)
 
     @Suppress("LeakingThis")
-    context.analyzerDaemon.add(
-      {
-        if (myTree.isShowing) {
-          // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
-          invokeLaterIfNeeded { revalidateAndRepaint(myTree) }
-        }
-        Unit
-      }, this)
+    context.analyzerDaemon.onIssuesChange(this) {
+      if (myTree.isShowing) {
+        // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
+        invokeLaterIfNeeded { revalidateAndRepaint(myTree) }
+      }
+      Unit
+    }
 
     @Suppress("LeakingThis")
     context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
