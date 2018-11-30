@@ -27,5 +27,7 @@ object RoomAnnotations {
   val QUERY = AndroidxName.of(PACKAGE_NAME, "Query")
   val DATABASE_VIEW = AndroidxName.of(PACKAGE_NAME, "DatabaseView")
   val EMBEDDED = AndroidxName.of(PACKAGE_NAME, "Embedded")
+  val FTS3 = AndroidxName.of(PACKAGE_NAME, "Fts3")
+  val FTS4 = AndroidxName.of(PACKAGE_NAME, "Fts4")
 }
 

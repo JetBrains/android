@@ -46,7 +46,7 @@ interface RoomColumnPsiReference : PsiReference {
 /**
  * A [PsiReference] pointing from the column name in SQL to the PSI element defining the column name.
  *
- * @see RoomColumn.nameElement
+ * @see RoomFieldColumn.nameElement
  */
 class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
   override fun resolve(): PsiElement? = resolveColumn()?.resolveTo

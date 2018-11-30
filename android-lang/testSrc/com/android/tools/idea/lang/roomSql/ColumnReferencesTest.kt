@@ -1294,7 +1294,10 @@ class ColumnReferencesTest : RoomLightTestCase() {
       }
       """)
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
         package com.example;
 
         import androidx.room.Dao;
@@ -1304,8 +1307,100 @@ class ColumnReferencesTest : RoomLightTestCase() {
         public interface SomeDao {
           @Query("SELECT * FROM aaa WHERE <caret>") List<String> getStrings();
         }
-    """.trimIndent())
+      """.trimIndent()
+    )
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "bbb_b", "bbb_c", "bbb_ccc_c")
+  }
+
+  fun testFts_completion() {
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      @Fts4
+      class Mail {
+        String subject;
+        String body;
+      }
+      """
+    )
+
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.addClass(
+        //language=JAVA
+        """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM mail WHERE <caret>") List<String> getStrings();
+      }
+      """.trimIndent()
+      ).containingFile.virtualFile
+    )
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("Mail", "subject", "body")
+  }
+
+  fun testFts_rename() {
+    val mail = myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      @Fts4
+      class Mail {
+        String subject;
+        String body;
+      }
+      """
+    )
+
+    val dao = myFixture.addClass(
+      //language=JAVA
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM mail WHERE mail MATCH 'foo'") List<String> getStrings();
+      }
+      """.trimIndent()
+    )
+
+    myFixture.openFileInEditor(mail.containingFile.virtualFile)
+    myFixture.findClass("com.example.Mail").navigate(true)
+    myFixture.renameElementAtCaret("Post")
+
+    myFixture.openFileInEditor(dao.containingFile.virtualFile)
+
+    myFixture.checkResult(
+      //language=JAVA
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM Post WHERE Post MATCH 'foo'") List<String> getStrings();
+      }
+      """.trimIndent()
+    )
   }
 }

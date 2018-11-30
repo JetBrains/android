@@ -101,13 +101,17 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
 
   private fun getNameDefinition(element: PsiElement): SqlDefinition? {
     return when (element) {
-      is PsiClass -> getSchema(element)?.findTable(element) ?: return null
-      is PsiField -> getSchema(element)
-        ?.findTable(element.containingClass ?: return null)
-        ?.columns
-        ?.find { it.psiField.element == element }
-          ?: return null
-      else -> return null
+      is PsiClass -> {
+        // TODO(b/119563792): Classes also define FTS columns.
+        getSchema(element)?.findTable(element)
+      }
+      is PsiField -> {
+        getSchema(element)
+          ?.findTable(element.containingClass ?: return null)
+          ?.columns
+          ?.find { it.definingElement == element }
+      }
+      else -> null
     }
   }
 }

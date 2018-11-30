@@ -125,11 +125,30 @@ class RoomSchemaManager(val project: Project) {
       type,
       tableName,
       pointerManager.createSmartPsiElementPointer(tableNameElement),
-      findColumns(psiClass).toSet()
+      createColumns(psiClass, tableName)
     )
   }
 
-  private fun findColumns(psiClass: PsiClass, namePrefix: String = ""): Sequence<RoomColumn> {
+  private fun createColumns(psiClass: PsiClass, tableName: String): Set<SqlColumn> {
+    val fromFields = createColumnsFromFields(psiClass)
+
+    return if (psiClass.annotations.any(::isFtsAnnotation)) {
+      fromFields + RoomFtsColumn(pointerManager.createSmartPsiElementPointer(psiClass), tableName)
+    } else {
+      fromFields
+    }.toSet()
+  }
+
+  private fun isFtsAnnotation(psiAnnotation: PsiAnnotation): Boolean {
+    val qName = psiAnnotation.qualifiedName
+    return when {
+      RoomAnnotations.FTS3.isEquals(qName) -> true
+      RoomAnnotations.FTS4.isEquals(qName) -> true
+      else -> false
+    }
+  }
+
+  private fun createColumnsFromFields(psiClass: PsiClass, namePrefix: String = ""): Sequence<RoomFieldColumn> {
     return psiClass.allFields
       .asSequence()
       .filterNot { it.modifierList?.hasModifierProperty(PsiModifier.STATIC) == true }
@@ -137,7 +156,7 @@ class RoomSchemaManager(val project: Project) {
       .flatMap { psiField ->
         val embeddedAnnotation = psiField.modifierList?.findAnnotation(RoomAnnotations.EMBEDDED)
         if (embeddedAnnotation != null) {
-          findEmbeddedFields(psiField, embeddedAnnotation, namePrefix)
+          createColumnsFromEmbeddedField(psiField, embeddedAnnotation, namePrefix)
         } else {
           val thisField = getNameAndNameElement(
             psiField,
@@ -145,7 +164,7 @@ class RoomSchemaManager(val project: Project) {
             annotationAttributeName = "name"
           )
             ?.let { (columnName, columnNameElement) ->
-              RoomColumn(
+              RoomFieldColumn(
                 pointerManager.createSmartPsiElementPointer(psiField),
                 namePrefix + columnName,
                 pointerManager.createSmartPsiElementPointer(columnNameElement)
@@ -157,11 +176,11 @@ class RoomSchemaManager(val project: Project) {
       }
   }
 
-  private fun findEmbeddedFields(
+  private fun createColumnsFromEmbeddedField(
     embeddedField: PsiField,
     embeddedAnnotation: PsiAnnotation,
     currentPrefix: String
-  ): Sequence<RoomColumn> {
+  ): Sequence<RoomFieldColumn> {
     val newPrefix = embeddedAnnotation.findAttributeValue("prefix")
       ?.let { constantEvaluationHelper.computeConstantExpression(it) }
       ?.toString()
@@ -169,7 +188,7 @@ class RoomSchemaManager(val project: Project) {
 
     val embeddedClass = PsiUtil.resolveClassInClassTypeOnly(embeddedField.type) ?: return emptySequence()
 
-    return findColumns(embeddedClass, currentPrefix + newPrefix)
+    return createColumnsFromFields(embeddedClass, currentPrefix + newPrefix)
   }
 
   private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager): RoomDatabase? {

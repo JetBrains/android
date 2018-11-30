@@ -94,6 +94,22 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
       public @interface Embedded { String prefix() default ""; }
       """.trimIndent()
     )
+
+    myFixture.addClass(
+      """
+      package androidx.room;
+
+      public @interface Fts3 {}
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      """
+      package androidx.room;
+
+      public @interface Fts4 {}
+      """.trimIndent()
+    )
   }
 
   protected data class FieldDefinition(val name: String, val type: String, val columnName: String? = null)
