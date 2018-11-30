@@ -19,7 +19,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -65,7 +65,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private ActionToolbar myEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
   private Configuration myConfiguration;
-  private NlLayoutType myLayoutType;
+  private DesignerEditorFileType myLayoutType;
   private ToolbarActionGroups myToolbarActionGroups;
 
   public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface surface) {
@@ -113,7 +113,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     return panel;
   }
 
-  private void updateActionGroups(@NotNull NlLayoutType layoutType) {
+  private void updateActionGroups(@NotNull DesignerEditorFileType layoutType) {
    myToolbarComponent.removeAll();
     if (myToolbarActionGroups != null) {
       Disposer.dispose(myToolbarActionGroups);
@@ -226,7 +226,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
         myConfiguration.addListener(this);
       }
     }
-    NlLayoutType surfaceLayoutType = surface.getLayoutType();
+    DesignerEditorFileType surfaceLayoutType = surface.getLayoutType();
     if (surfaceLayoutType != myLayoutType) {
       myLayoutType = surfaceLayoutType;
       updateActionGroups(myLayoutType);

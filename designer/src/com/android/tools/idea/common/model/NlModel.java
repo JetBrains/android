@@ -29,7 +29,9 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -99,7 +101,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final long myId;
   private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
   private final ModelVersion myModelVersion = new ModelVersion();
-  private final NlLayoutType myType;
+  private final DesignerEditorFileType myType;
   private long myConfigurationModificationCount;
 
   // Variable to track what triggered the latest render (if known)
@@ -142,7 +144,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       Disposer.register(parent, this);
     }
-    myType = NlLayoutType.typeOf(getFile());
+    myType = DesignerEditorFileTypeKt.typeOf(getFile());
   }
 
   /**
@@ -220,7 +222,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  public NlLayoutType getType() {
+  public DesignerEditorFileType getType() {
     return myType;
   }
 

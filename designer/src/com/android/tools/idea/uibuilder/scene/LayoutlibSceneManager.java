@@ -30,7 +30,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -56,12 +56,14 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -307,9 +309,9 @@ public class LayoutlibSceneManager extends SceneManager {
   protected SceneView doCreateSceneView() {
     NlModel model = getModel();
 
-    NlLayoutType type = model.getType();
+    DesignerEditorFileType type = model.getType();
 
-    if (type.equals(NlLayoutType.MENU)) {
+    if (type == MenuFileType.INSTANCE) {
       return createSceneViewsForMenu();
     }
 
@@ -317,7 +319,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
 
-    if (!type.equals(NlLayoutType.PREFERENCE_SCREEN)) {
+    if (type != PreferenceScreenFileType.INSTANCE) {
       mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
     }
 
@@ -710,7 +712,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @NotNull
   private List<ViewInfo> getRootViews(@NotNull RenderResult result) {
-    return getModel().getType() == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
+    return getModel().getType() == MenuFileType.INSTANCE ? result.getSystemRootViews() : result.getRootViews();
   }
 
   @VisibleForTesting

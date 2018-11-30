@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ public class ScreenView extends ScreenViewBase {
 
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
-    myShowBorder = !getSurface().isPreviewSurface() || surface.getLayoutType() == NlLayoutType.LAYOUT;
+    myShowBorder = !getSurface().isPreviewSurface() || surface.getLayoutType() == LayoutFileType.INSTANCE;
   }
 
   @NotNull
@@ -53,7 +53,7 @@ public class ScreenView extends ScreenViewBase {
     SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
-    if (getSceneManager().getModel().getType().isSupportedByDesigner()) {
+    if (getSceneManager().getModel().getType().isEditable()) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
     }
 

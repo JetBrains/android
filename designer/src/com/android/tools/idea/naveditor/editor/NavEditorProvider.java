@@ -16,14 +16,26 @@
 package com.android.tools.idea.naveditor.editor;
 
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.editor.ToolbarActionGroups;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.common.type.DesignerTypeRegistrar;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class NavEditorProvider extends DesignerEditorProvider {
+
+  @NotNull
+  private static final NavigationFileType SUPPORTED_FILE_TYPE = new NavigationFileType();
+
+  public NavEditorProvider() {
+    DesignerTypeRegistrar.INSTANCE.register(SUPPORTED_FILE_TYPE);
+  }
 
   @NotNull
   @Override
@@ -39,6 +51,25 @@ public class NavEditorProvider extends DesignerEditorProvider {
 
   @Override
   protected boolean acceptAndroidFacetXml(@NotNull XmlFile xmlFile) {
-    return NlLayoutType.typeOf(xmlFile) == NlLayoutType.NAV;
+    return SUPPORTED_FILE_TYPE.isResourceTypeOf(xmlFile);
+  }
+
+  private static class NavigationFileType implements DesignerEditorFileType {
+
+    @Override
+    public boolean isResourceTypeOf(@NotNull PsiFile file) {
+      return file instanceof XmlFile && NavigationDomFileDescription.isNavFile((XmlFile)file);
+    }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      return new NavToolbarActionGroups(surface);
+    }
+
+    @Override
+    public boolean isEditable() {
+      return true;
+    }
   }
 }

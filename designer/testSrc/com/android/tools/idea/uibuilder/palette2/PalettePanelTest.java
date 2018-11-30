@@ -19,9 +19,9 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -31,6 +31,9 @@ import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.palette.Palette;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
+import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
@@ -135,7 +138,7 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testCopy() throws Exception {
-    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
+    myPanel.setToolContext(createDesignSurface(LayoutFileType.INSTANCE));
 
     DataContext context = mock(DataContext.class);
     CopyProvider provider = (CopyProvider)myPanel.getData(PlatformDataKeys.COPY_PROVIDER.getName());
@@ -200,13 +203,13 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testLayoutTypes() {
-    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
+    myPanel.setToolContext(createDesignSurface(LayoutFileType.INSTANCE));
     assertThat(isCategoryListVisible()).isTrue();
 
-    myPanel.setToolContext(createDesignSurface(NlLayoutType.MENU));
+    myPanel.setToolContext(createDesignSurface(MenuFileType.INSTANCE));
     assertThat(isCategoryListVisible()).isFalse();
 
-    myPanel.setToolContext(createDesignSurface(NlLayoutType.PREFERENCE_SCREEN));
+    myPanel.setToolContext(createDesignSurface(PreferenceScreenFileType.INSTANCE));
     assertThat(isCategoryListVisible()).isTrue();
   }
 
@@ -429,13 +432,13 @@ public class PalettePanelTest extends LayoutTestCase {
   private DesignSurface setUpLayoutDesignSurface() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
-    DesignSurface surface = createDesignSurface(NlLayoutType.LAYOUT);
+    DesignSurface surface = createDesignSurface(LayoutFileType.INSTANCE);
     myPanel.setToolContext(surface);
     return surface;
   }
 
   @NotNull
-  private DesignSurface createDesignSurface(@NotNull NlLayoutType layoutType) {
+  private DesignSurface createDesignSurface(@NotNull DesignerEditorFileType layoutType) {
     myModel = createModel().build();
     DesignSurface surface = myModel.getSurface();
     LayoutTestUtilities.createScreen(myModel);

@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -28,7 +27,9 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHand
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -50,6 +51,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -64,7 +66,6 @@ import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -124,7 +125,7 @@ public class NlPaletteModel implements Disposable {
     }
   }
 
-  private final Map<NlLayoutType, Palette> myTypeToPalette;
+  private final Map<LayoutEditorFileType, Palette> myTypeToPalette;
   private final Module myModule;
   private UpdateListener myListener;
 
@@ -134,7 +135,7 @@ public class NlPaletteModel implements Disposable {
   }
 
   public interface UpdateListener {
-    void update(@NotNull NlPaletteModel paletteModel, @NotNull NlLayoutType layoutType);
+    void update(@NotNull NlPaletteModel paletteModel, @NotNull LayoutEditorFileType layoutType);
   }
 
   public static NlPaletteModel get(@NotNull AndroidFacet facet) {
@@ -142,14 +143,13 @@ public class NlPaletteModel implements Disposable {
   }
 
   private NlPaletteModel(@NotNull Module module) {
-    myTypeToPalette = Collections.synchronizedMap(new EnumMap<>(NlLayoutType.class));
+    myTypeToPalette = Collections.synchronizedMap(new HashMap<>());
     myModule = module;
     Disposer.register(module, this);
   }
 
   @NotNull
-  public Palette getPalette(@NotNull NlLayoutType type) {
-    assert type.isSupportedByDesigner();
+  public Palette getPalette(@NotNull LayoutEditorFileType type) {
     Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {
@@ -160,13 +160,13 @@ public class NlPaletteModel implements Disposable {
     return palette;
   }
 
-  private void saveInPaletteMap(@NotNull NlLayoutType type, @NotNull Palette palette) {
+  private void saveInPaletteMap(@NotNull LayoutEditorFileType type, @NotNull Palette palette) {
     myTypeToPalette.put(type, palette);
     notifyUpdateListener(type);
   }
 
   // Load 3rd party components asynchronously now and whenever a build finishes.
-  private void registerAdditionalComponents(@NotNull NlLayoutType type) {
+  private void registerAdditionalComponents(@NotNull LayoutEditorFileType type) {
     loadAdditionalComponents(type, VIEW_CLASSES_QUERY);
 
     // Reload the additional components after every build to find new custom components
@@ -178,7 +178,7 @@ public class NlPaletteModel implements Disposable {
     myListener = updateListener;
   }
 
-  private void notifyUpdateListener(@NotNull NlLayoutType layoutType) {
+  private void notifyUpdateListener(@NotNull LayoutEditorFileType layoutType) {
     UpdateListener listener = myListener;
     if (listener != null) {
       ApplicationManager.getApplication().invokeLater(() -> listener.update(this, layoutType));
@@ -186,7 +186,7 @@ public class NlPaletteModel implements Disposable {
   }
 
   @NotNull
-  private Palette loadPalette(@NotNull NlLayoutType type) {
+  private Palette loadPalette(@NotNull LayoutEditorFileType type) {
     try {
       String metadata = type.getPaletteFileName();
       URL url = NlPaletteModel.class.getResource(metadata);
@@ -206,7 +206,7 @@ public class NlPaletteModel implements Disposable {
    * components from the project.
    */
   @VisibleForTesting
-  void loadAdditionalComponents(@NotNull NlLayoutType type,
+  void loadAdditionalComponents(@NotNull LayoutEditorFileType type,
                                 @NotNull Function<Project, Query<PsiClass>> viewClasses) {
     Application application = ApplicationManager.getApplication();
     Project project = myModule.getProject();
@@ -231,7 +231,7 @@ public class NlPaletteModel implements Disposable {
       });
   }
 
-  private void replaceProjectComponents(@NotNull NlLayoutType type, Collection<CustomViewInfo> viewInfos) {
+  private void replaceProjectComponents(@NotNull LayoutEditorFileType type, Collection<CustomViewInfo> viewInfos) {
     // Reload the palette first
     Palette palette = loadPalette(type);
 
@@ -248,7 +248,7 @@ public class NlPaletteModel implements Disposable {
    * Adds a new component to the palette with the given properties. This method is used to add 3rd party and project components
    */
   @VisibleForTesting
-  boolean addAdditionalComponent(@NotNull NlLayoutType type,
+  boolean addAdditionalComponent(@NotNull LayoutEditorFileType type,
                                  @NotNull String groupName,
                                  @NotNull Palette palette,
                                  @Nullable Icon icon16,
@@ -271,7 +271,7 @@ public class NlPaletteModel implements Disposable {
     ViewHandler handler = manager.createBuiltInHandler(tagName);
 
     // For now only support layouts
-    if (type != NlLayoutType.LAYOUT ||
+    if (type != LayoutFileType.INSTANCE ||
         handler instanceof PreferenceHandler ||
         handler instanceof PreferenceCategoryHandler ||
         handler instanceof MenuHandler ||

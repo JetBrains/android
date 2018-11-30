@@ -21,7 +21,6 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.editor.ActionsToolbar;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -39,6 +38,7 @@ import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.type.AdaptativeIconFileType;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -435,7 +435,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myPendingFile = new Pending(xmlFile, myModel);
 
       // Set the default density to XXXHDPI for adaptive icon preview
-      if (myModel.getType() == NlLayoutType.ADAPTIVE_ICON) {
+      if (myModel.getType() == AdaptativeIconFileType.INSTANCE) {
         Device device = myModel.getConfiguration().getDevice();
         if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
           NlModelHelperKt.overrideConfigurationDensity(myModel, Density.XXXHIGH);
@@ -494,7 +494,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
       myContentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
 
-      if (!model.getType().isSupportedByDesigner()) {
+      if (!model.getType().isEditable()) {
         mySceneMode = mySurface.getSceneMode();
         mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
         myWorkBench.setMinimizePanelsVisible(false);
