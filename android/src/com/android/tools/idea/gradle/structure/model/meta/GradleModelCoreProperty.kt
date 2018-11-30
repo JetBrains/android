@@ -25,7 +25,7 @@ interface GradleModelCoreProperty<PropertyT : Any, out ModelPropertyCoreT : Mode
    * Returns a new core property bound to the given [resolvedProperty]. The receiver property is used as a prototype for the binding
    * configuration.
    */
-  fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCoreT
+  fun rebind(resolvedProperty: ResolvedPropertyModel, modifier: (() -> Unit) -> Unit): ModelPropertyCoreT
 
   fun getParsedProperty(): ResolvedPropertyModel?
 }

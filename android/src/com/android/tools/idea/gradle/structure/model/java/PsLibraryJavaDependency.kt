@@ -83,6 +83,8 @@ class PsDeclaredLibraryJavaDependency(
 
     override fun getParsed(model: PsDeclaredLibraryJavaDependency): ArtifactDependencyModel? = model.parsedModel
 
+    override fun prepareForModification(model: PsDeclaredLibraryJavaDependency) = Unit
+
     // TODO(b/118814130): Java resolved dependency collection is not refreshed when requested version changes
     override fun setModified(model: PsDeclaredLibraryJavaDependency) {
       model.isModified = true

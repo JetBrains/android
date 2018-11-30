@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
@@ -52,7 +51,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     matcher
   )
 
-class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
+class ModelMapPropertyImpl<ModelT, ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
@@ -77,30 +76,31 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
     val resolvedValue = modelDescriptor.getResolved(model)?.getResolvedValue()
     return model
       .getParsedProperty()
-             ?.asParsedMapValue(getter, setter, matcher, { model.setModified() }, resolvedValue)
+             ?.asParsedMapValue(getter, setter, matcher, modifier(model), resolvedValue)
            ?: mapOf()
   }
 
   private fun addEntry(model: ModelT, key: String): ModelPropertyCore<ValueT> =
-    model
-      .apply { setModified() }
-      .getParsedProperty()
-      ?.addMapEntry(key, getter, setter, matcher, { model.setModified() })
+    model.modify {
+      model.getParsedProperty()
+        ?.addMapEntry(key, getter, setter, matcher, modifier(model))
+    }
     ?: throw IllegalStateException()
 
+
   private fun deleteEntry(model: ModelT, key: String) =
-    model
-      .apply { setModified() }
-      .getParsedProperty()
-      ?.deleteMapEntry(key)
+    model.modify {
+      getParsedProperty()
+        ?.deleteMapEntry(key)
+    }
     ?: throw IllegalStateException()
 
   private fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<ValueT> =
   // Both make the property modify-aware and make the model modified since both operations involve changing the model.
-    model
-      .apply { setModified() }
-      .getParsedProperty()
-      ?.changeMapEntryKey(old, new, getter, setter, matcher, { model.setModified() })
+    model.modify {
+      getParsedProperty()
+        ?.changeMapEntryKey(old, new, getter, setter, matcher, modifier(model))
+    }
     ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): Annotated<ParsedValue<Map<String, ValueT>>> {
@@ -124,6 +124,8 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
       else -> ResolvedValue.Set(resolved)
     }
   }
+
+  private fun modifier(model: ModelT): (() -> Unit) -> Unit = { block -> model.modify<Unit> { block() } }
 
   override fun bind(model: ModelT): ModelMapPropertyCore<ValueT> = object : ModelMapPropertyCore<ValueT> {
     override val description: String = this@ModelMapPropertyImpl.description
@@ -157,7 +159,7 @@ private fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifiedSetter: () -> Unit,
+  modifier: (() -> Unit) -> Unit,
   resolvedValues: Map<String, T>?
 ): Map<String, ModelPropertyCore<T>>? =
   this
@@ -169,7 +171,7 @@ private fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(
         setter,
         { resolvedValues?.get(it.key)?.let { ResolvedValue.Set(it) } ?: ResolvedValue.NotResolved() },
         matcher,
-        modifiedSetter)
+        modifier)
     }
 
 private fun <T : Any> ResolvedPropertyModel.addMapEntry(
@@ -177,9 +179,10 @@ private fun <T : Any> ResolvedPropertyModel.addMapEntry(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifiedSetter: () -> Unit
+  modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> =
-  makeItemPropertyCore(getMapValue(key).resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifiedSetter)
+  makeItemPropertyCore(
+    getMapValue(key).resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
 
 private fun ResolvedPropertyModel.deleteMapEntry(key: String) = getMapValue(key).delete()
 
@@ -189,7 +192,7 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifiedSetter: () -> Unit
+  modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> {
   val oldProperty = getMapValue(old)
   // TODO(b/73057388): Simplify to plain oldProperty.getRawValue(OBJECT_TYPE).
@@ -203,5 +206,6 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   val newProperty = getMapValue(new)
   if (oldValue != null) newProperty.setValue(oldValue)
   // TODO(b/72814329): Match resolved value.
-  return makeItemPropertyCore(newProperty.resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifiedSetter)
+  return makeItemPropertyCore(
+    newProperty.resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
 }

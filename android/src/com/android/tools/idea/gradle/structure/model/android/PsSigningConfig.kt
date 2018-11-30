@@ -58,8 +58,11 @@ class PsSigningConfig(
 
     override fun getParsed(model: PsSigningConfig): SigningConfigModel? = model.parsedModel
 
-    override fun setModified(model: PsSigningConfig) {
+    override fun prepareForModification(model: PsSigningConfig) {
       model.ensureDeclared()
+    }
+
+    override fun setModified(model: PsSigningConfig) {
       model.isModified = true
     }
 

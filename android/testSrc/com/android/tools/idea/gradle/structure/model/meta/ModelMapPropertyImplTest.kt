@@ -26,10 +26,14 @@ import org.junit.Test
 
 class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   var modifiedCount: Int = 0
+  var prepareForModificationCount: Int = 0
 
   object TestModelDescriptor : ModelDescriptor<ModelMapPropertyImplTest, ModelMapPropertyImplTest, ModelMapPropertyImplTest> {
     override fun getResolved(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
     override fun getParsed(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
+    override fun prepareForModification(model: ModelMapPropertyImplTest) {
+      model.prepareForModificationCount++
+    }
     override fun setModified(model: ModelMapPropertyImplTest) {
       model.modifiedCount++
     }
@@ -124,6 +128,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     editableValues["propRef"]?.testSetValue("D")
     editableValues["interpolated"]?.testSetValue("E")
     assertThat(modifiedCount, equalTo(5))
+    assertThat(prepareForModificationCount, equalTo(5))
 
     editableValues = map.getEditableValues()
     val propA = editableValues["one"]
@@ -174,6 +179,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     new2.testSetReference("propC1")
     val newChanged = map.changeEntryKey("new2", "newChanged")
     assertThat(modifiedCount, equalTo(10))
+    assertThat(prepareForModificationCount, equalTo(10))
 
     assertThat(newOne.testValue(), equalTo("1"))
     assertThat(newPropC.testValue(), equalTo("3"))

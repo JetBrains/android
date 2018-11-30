@@ -96,6 +96,7 @@ class PsJavaModule(
   object JavaModuleDescriptors: ModelDescriptor<PsJavaModule, Nothing, Nothing> {
     override fun getResolved(model: PsJavaModule): Nothing? = null
     override fun getParsed(model: PsJavaModule): Nothing? = null
+    override fun prepareForModification(model: PsJavaModule) = Unit
     override fun setModified(model: PsJavaModule) { model.isModified = true }
     override fun enumerateModels(model: PsJavaModule): Collection<PsModel> = model.dependencies.items
   }

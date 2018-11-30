@@ -78,8 +78,11 @@ open class PsBuildType(
 
     override fun getParsed(model: PsBuildType): BuildTypeModel? = model.parsedModel
 
-    override fun setModified(model: PsBuildType) {
+    override fun prepareForModification(model: PsBuildType) {
       model.ensureDeclared()
+    }
+
+    override fun setModified(model: PsBuildType) {
       model.isModified = true
     }
 

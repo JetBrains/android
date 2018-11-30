@@ -62,6 +62,8 @@ class PsDeclaredJarAndroidDependency private constructor(
   object Descriptor : ModelDescriptor<PsDeclaredJarAndroidDependency, Nothing, DependencyModel> {
     override fun getResolved(model: PsDeclaredJarAndroidDependency): Nothing? = null
     override fun getParsed(model: PsDeclaredJarAndroidDependency): DependencyModel? = model.parsedModel
+    override fun prepareForModification(model: PsDeclaredJarAndroidDependency) = Unit
+
     override fun setModified(model: PsDeclaredJarAndroidDependency) {
       TODO("NOTE: There is no need to re-index the declared dependency collection. Version is not a part of the key.")
       model.isModified = true

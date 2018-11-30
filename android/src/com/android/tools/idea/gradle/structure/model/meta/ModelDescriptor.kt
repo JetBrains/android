@@ -39,6 +39,12 @@ interface ModelDescriptor<in ModelT, out ResolvedT, out ParsedT> {
    * Returns null if the configuration cannot be found in the build files.
    */
   fun getParsed(model: ModelT): ParsedT?
+
+  /**
+   * Notifies the PSD that a [model] is baout to be modified.
+   */
+  fun prepareForModification(model: ModelT)
+
   /**
    * Notifies the PSD that a [model] has been modified and that the changes need to be saved.
    */
