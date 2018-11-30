@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.property2.api.PropertiesPanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
@@ -30,6 +31,7 @@ import java.awt.BorderLayout
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
+import javax.swing.KeyStroke
 
 /**
  * Create the models and views for the properties tool content.
@@ -43,6 +45,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
   private val properties = PropertiesPanel(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
+  private var toolWindow: ToolWindowCallback? = null
 
   init {
     Disposer.register(parentDisposable, this)
@@ -51,11 +54,17 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     properties.addView(motionEditorView)
     registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerKeyAction({ toolWindow?.startFiltering("") }, KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.META_MASK), "search",
+                      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {
     componentModel.surface = toolContext as? NlDesignSurface
     motionModel.surface = toolContext as? NlDesignSurface
+  }
+
+  override fun registerCallbacks(callback: ToolWindowCallback) {
+    toolWindow = callback
   }
 
   override fun getComponent() = this

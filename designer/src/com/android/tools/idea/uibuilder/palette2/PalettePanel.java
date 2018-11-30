@@ -225,8 +225,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     return new KeyAdapter() {
       @Override
       public void keyTyped(@NotNull KeyEvent event) {
-        if (event.getKeyChar() >= KeyEvent.VK_0 && myToolWindow != null) {
-          myToolWindow.startFiltering(String.valueOf(event.getKeyChar()));
+        if (event.getKeyChar() >= KeyEvent.VK_0) {
+          startFiltering(String.valueOf(event.getKeyChar()));
         }
       }
     };
@@ -240,6 +240,16 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myItemList.registerKeyboardAction(event -> keyboardActionPerformed(event, myAndroidDocAction),
                                       KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK),
                                       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    registerKeyboardAction(event -> startFiltering(""),
+                           KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.META_MASK),
+                           JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+  }
+
+  private void startFiltering(@NotNull String initialSearchString) {
+    if (myToolWindow != null) {
+      myToolWindow.startFiltering(initialSearchString);
+    }
   }
 
   private void keyboardActionPerformed(@NotNull ActionEvent event, @NotNull AnAction action) {

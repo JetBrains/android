@@ -218,6 +218,19 @@ public class PalettePanelTest extends LayoutTestCase {
     checkTypingStartsFiltering(myPanel.getItemList());
   }
 
+  public void testCommandFStartsFiltering() {
+    TestToolWindow toolWindow = new TestToolWindow();
+    myPanel.registerCallbacks(toolWindow);
+
+    ActionListener listener = myPanel.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.META_MASK));
+    assertThat(listener).isNotNull();
+
+    ActionEvent event = mock(ActionEvent.class);
+    listener.actionPerformed(event);
+
+    assertThat(toolWindow.getInitialSearchString()).isEqualTo("");
+  }
+
   public void testShiftHelpOnPaletteItem() {
     setUpLayoutDesignSurface();
 
