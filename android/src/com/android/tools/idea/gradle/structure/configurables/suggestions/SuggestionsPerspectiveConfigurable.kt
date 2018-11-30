@@ -41,7 +41,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
       fireCountChangeListener()
     }
 
-    context.analyzerDaemon.add({ invokeLaterIfNeeded { issuesChanged() } }, this)
+    context.analyzerDaemon.onIssuesChange(this) { invokeLaterIfNeeded { issuesChanged() } }
   }
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS

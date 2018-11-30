@@ -24,8 +24,10 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener
+import com.android.tools.idea.gradle.structure.configurables.ui.createMergingUpdateQueue
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView
+import com.android.tools.idea.gradle.structure.configurables.ui.enqueueTagged
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -42,7 +44,6 @@ import com.intellij.openapi.util.text.StringUtil.isEmpty
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.navigation.Place
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
 import javax.swing.JComponent
 
@@ -54,7 +55,7 @@ const val MODULE_DEPENDENCIES_PLACE_NAME = "module.dependencies.place"
 internal class DeclaredDependenciesPanel(
   val module: PsModule, context: PsContext
 ) : AbstractDependenciesPanel("Declared Dependencies", context, module), DependencySelection {
-
+  private val updateQueue = createMergingUpdateQueue("declaredDependenciesUpdates", context, this)
   private val dependenciesTableModel: DeclaredDependenciesTableModel
   private val dependenciesTable: DeclaredDependenciesTableView<PsBaseDependency>
   private val placeName: String
@@ -64,12 +65,9 @@ internal class DeclaredDependenciesPanel(
   private var skipSelectionChangeNotification: Boolean = false
 
   init {
-    context.analyzerDaemon.add(
-      { model ->
-        if (model === module) {
-          invokeLaterIfNeeded { this.updateDetailsAndIssues() }
-        }
-      }, this)
+    context.analyzerDaemon.onIssuesChange(this) {
+      updateQueue.enqueueTagged(DeclaredDependenciesPanel::class.java) { updateDetailsAndIssues() }
+    }
 
     placeName = createPlaceName(module.name)
 

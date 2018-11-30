@@ -54,13 +54,13 @@ class AndroidModuleSuggestionsConfigurable(
     return SuggestionsForm(context, issueRenderer).apply {
       renderIssues(getIssues(context, psModulePath), psModulePath)
 
-      context.analyzerDaemon.add( {
+      context.analyzerDaemon.onIssuesChange(this) {
         invokeLaterIfNeeded {
           if (!uiDisposed) {
             renderIssues(getIssues(context, psModulePath), psModulePath)
           }
         }
-      }, this)
+      }
     }
   }
 
