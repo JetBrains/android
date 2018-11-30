@@ -368,6 +368,36 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
   }
 
+  fun testCodeCompletion_insert() {
+    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("INSERT INTO user(f<caret>) VALUES ('Bob')") void insertBob();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("INSERT INTO user(firstName) VALUES ('Bob')") void insertBob();
+        }
+    """.trimIndent())
+  }
+
   fun testCodeCompletion_delete() {
     myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
 
