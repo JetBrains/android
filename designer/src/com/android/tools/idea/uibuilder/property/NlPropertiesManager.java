@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
@@ -68,8 +69,8 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   }
 
   @Override
-  public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
-    getPropertiesPanel().setRestoreToolWindow(restoreToolWindowCallback);
+  public void registerCallbacks(@NotNull ToolWindowCallback toolWindow) {
+    getPropertiesPanel().registerToolWindow(toolWindow);
   }
 
   @NotNull

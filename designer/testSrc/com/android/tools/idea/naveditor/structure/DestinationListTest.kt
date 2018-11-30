@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.structure
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessListUI
+import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
@@ -213,7 +214,11 @@ class DestinationListTest : NavTestCase() {
 
   fun testKeyStartsFiltering() {
     var called = false
-    list.setStartFiltering { called = true }
+    list.registerCallbacks(object : ToolWindowCallback {
+      override fun startFiltering(initialSearchString: String) {
+        called = true
+      }
+    })
 
     val ui = FakeUi(list)
     list.myList.ui = HeadlessListUI()

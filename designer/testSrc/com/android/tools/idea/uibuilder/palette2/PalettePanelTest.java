@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.adtui.workbench.StartFilteringListener;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -46,6 +46,7 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 
 import javax.swing.*;
@@ -403,12 +404,12 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   private void checkTypingStartsFiltering(@NotNull JComponent component) {
-    StartFiltering filtering = new StartFiltering();
-    myPanel.setStartFiltering(filtering);
+    TestToolWindow toolWindow = new TestToolWindow();
+    myPanel.registerCallbacks(toolWindow);
     for (KeyListener listener : component.getKeyListeners()) {
       listener.keyTyped(new KeyEvent(component, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, 'u'));
     }
-    assertThat(filtering.getChar()).isEqualTo('u');
+    assertThat(toolWindow.getInitialSearchString()).isEqualTo("u");
   }
 
   @NotNull
@@ -443,16 +444,17 @@ public class PalettePanelTest extends LayoutTestCase {
     return myPanel.getCategoryList().getParent().getParent().isVisible();
   }
 
-  private static class StartFiltering implements StartFilteringListener {
-    private char myChar;
+  private static class TestToolWindow implements ToolWindowCallback {
+    private String myInitialSearchString;
 
     @Override
-    public void startFiltering(char character) {
-      myChar = character;
+    public void startFiltering(@NotNull String initialSearchString) {
+      myInitialSearchString = initialSearchString;
     }
 
-    public char getChar() {
-      return myChar;
+    @Nullable
+    public String getInitialSearchString() {
+      return myInitialSearchString;
     }
   }
 

@@ -15,10 +15,25 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
+import static icons.StudioIcons.NavEditor.Tree.ACTIVITY;
+import static icons.StudioIcons.NavEditor.Tree.FRAGMENT;
+import static icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH;
+import static icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH;
+import static icons.StudioIcons.NavEditor.Tree.PLACEHOLDER;
+import static java.awt.event.KeyEvent.VK_BACK_SPACE;
+import static java.awt.event.KeyEvent.VK_DELETE;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.adtui.workbench.StartFilteringListener;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
@@ -36,20 +51,31 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.util.List;
-
-import static icons.StudioIcons.NavEditor.Tree.*;
-import static java.awt.event.KeyEvent.*;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 /**
  * Left panel for the nav editor, showing a list of available destinations.
@@ -77,8 +103,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   private MouseListener myMouseListener;
   private NavDesignSurface myDesignSurface;
 
-  private StartFilteringListener myStartFilteringListener;
-  private Runnable myStopFilteringListener;
+  private ToolWindowCallback myToolWindow = null;
 
   private static final Map<Icon, Icon> WHITE_ICONS = ImmutableMap.of(
     FRAGMENT, ColoredIconGenerator.INSTANCE.generateWhiteIcon(FRAGMENT),
@@ -131,12 +156,12 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myList.addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {
-        if (Character.isAlphabetic(e.getKeyChar()) && myStartFilteringListener != null) {
-          myStartFilteringListener.startFiltering(e.getKeyChar());
+        if (Character.isAlphabetic(e.getKeyChar()) && myToolWindow != null) {
+          myToolWindow.startFiltering(String.valueOf(e.getKeyChar()));
           e.consume();
         }
-        if (e.getKeyChar() == VK_ESCAPE && myStopFilteringListener != null) {
-          myStopFilteringListener.run();
+        if (e.getKeyChar() == VK_ESCAPE && myToolWindow != null) {
+          myToolWindow.stopFiltering();
         }
       }
     });
@@ -263,12 +288,8 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myListModel.setFilter(c -> NavComponentHelperKt.getUiName(c).toLowerCase(getLocale()).contains(filter.toLowerCase(getLocale())));
   }
 
-  public void setStartFiltering(@NotNull StartFilteringListener listener) {
-    myStartFilteringListener = listener;
-  }
-
-  public void setStopFiltering(@NotNull Runnable stopFilteringListener) {
-    myStopFilteringListener = stopFilteringListener;
+  public void registerCallbacks(@NotNull ToolWindowCallback toolWindow) {
+    myToolWindow = toolWindow;
   }
 
   // ---- Implements DataProvider ----

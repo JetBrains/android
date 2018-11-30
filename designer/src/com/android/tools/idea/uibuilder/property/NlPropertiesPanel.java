@@ -31,6 +31,7 @@ import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -111,7 +112,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   private List<NlPropertyItem> myProperties;
   @NotNull
   private PropertiesViewMode myPropertiesViewMode;
-  private Runnable myRestoreToolWindowCallback;
+  private ToolWindowCallback myToolWindow;
 
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.EAST_PANEL, false);
 
@@ -203,8 +204,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     return myPropertiesManager;
   }
 
-  public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
-    myRestoreToolWindowCallback = restoreToolWindowCallback;
+  public void registerToolWindow(@NotNull ToolWindowCallback toolWindow) {
+    myToolWindow = toolWindow;
   }
 
   public int getFilterMatchCount() {
@@ -458,8 +459,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   public void activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
     Runnable selectEditor = () -> {
       // Restore a possibly minimized tool window
-      if (myRestoreToolWindowCallback != null) {
-        myRestoreToolWindowCallback.run();
+      if (myToolWindow != null) {
+        myToolWindow.restore();
       }
       // Set focus on the editor of preferred property
       myInspectorPanel.activatePreferredEditor(propertyName, afterload);
