@@ -48,7 +48,7 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUT
  *
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
-class AttachedToolWindow<T> implements Disposable {
+class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
   static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";
@@ -274,22 +274,21 @@ class AttachedToolWindow<T> implements Disposable {
       myContent = myDefinition.getFactory().apply(this);
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
-      myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
-      myContent.setRestoreToolWindow(this::restore);
-      myContent.setStartFiltering(this::startFiltering);
-      myContent.setStopFiltering(this::stopFiltering);
+      myContent.registerCallbacks(this);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
   }
 
-  private void restore() {
+  @Override
+  public void restore() {
     if (!isDetached() && isMinimized()) {
       setPropertyAndUpdate(PropertyType.MINIMIZED, false);
     }
   }
 
-  private void closeAutoHideWindow() {
+  @Override
+  public void autoHide() {
     if (!isDetached() && isAutoHide() && !isMinimized()) {
       setPropertyAndUpdate(PropertyType.MINIMIZED, true);
     }
@@ -334,15 +333,17 @@ class AttachedToolWindow<T> implements Disposable {
     mySearchActionButton.setVisible(!show);
   }
 
-  private void startFiltering(char character) {
+  @Override
+  public void startFiltering(@NotNull String initialSearchString) {
     if (myContent == null || !myContent.supportsFiltering()) {
       return;
     }
-    mySearchField.setText(String.valueOf(character));
+    mySearchField.setText(initialSearchString);
     showSearchField(true);
   }
 
-  private void stopFiltering() {
+  @Override
+  public void stopFiltering() {
     if (myContent == null || !myContent.supportsFiltering()) {
       return;
     }

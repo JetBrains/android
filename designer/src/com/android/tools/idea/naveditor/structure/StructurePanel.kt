@@ -19,8 +19,8 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
-import com.android.tools.adtui.workbench.StartFilteringListener
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -91,14 +91,9 @@ class StructurePanel(parentDisposable: Disposable) : AdtSecondaryPanel(BorderLay
     destinationList?.setFilter(filter)
   }
 
-  override fun setStartFiltering(listener: StartFilteringListener) {
-    destinationList?.setStartFiltering(listener)
+  override fun registerCallbacks(callback: ToolWindowCallback) {
+    destinationList?.registerCallbacks(callback)
   }
-
-  override fun setStopFiltering(stopFilteringListener: Runnable) {
-    destinationList?.setStopFiltering(stopFilteringListener)
-  }
-
 
   class StructurePanelDefinition : ToolWindowDefinition<DesignSurface>("Destinations", AllIcons.Toolwindows.ToolWindowHierarchy,
                                                                        "structure", Side.LEFT, Split.TOP, AutoHide.DOCKED,

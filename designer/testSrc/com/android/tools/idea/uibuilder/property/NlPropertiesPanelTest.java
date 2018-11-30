@@ -36,6 +36,7 @@ import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
@@ -329,16 +330,16 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   }
 
   public void testActivatePreferredEditor() {
-    boolean[] called = new boolean[1];
     List<NlComponent> components = Collections.singletonList(myTextView);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    TestToolWindow toolWindow = new TestToolWindow();
     myPanel.setAllPropertiesPanelVisible(true);
-    myPanel.setRestoreToolWindow(() -> called[0] = true);
+    myPanel.registerToolWindow(toolWindow);
     myPanel.setItems(components, properties);
 
     myPanel.activatePreferredEditor(ATTR_TEXT, false);
     assertThat(myPanel.isAllPropertiesPanelMode()).isFalse();
-    assertThat(called[0]).isTrue();
+    assertThat(toolWindow.isRestoreCalled()).isTrue();
     verify(myInspector).activatePreferredEditor(ATTR_TEXT, false);
   }
 
@@ -370,7 +371,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   private static class MyTable extends PTable {
     private int myRequestFocusCount;
 
-    public MyTable(@NotNull PTableModel model) {
+    private MyTable(@NotNull PTableModel model) {
       super(model);
     }
 
@@ -386,6 +387,19 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
 
     private int getRequestFocusCount() {
       return myRequestFocusCount;
+    }
+  }
+
+  private static class TestToolWindow implements ToolWindowCallback {
+    private boolean myRestoreCalled = false;
+
+    @Override
+    public void restore() {
+      myRestoreCalled = true;
+    }
+
+    private boolean isRestoreCalled() {
+      return myRestoreCalled;
     }
   }
 }

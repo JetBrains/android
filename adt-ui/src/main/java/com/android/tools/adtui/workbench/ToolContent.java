@@ -71,15 +71,9 @@ public interface ToolContent<T> extends Disposable {
   }
 
   /**
-   * The tool window system will register a callback for restoring a hidden tool window.
-   * TODO: Replace this callback with a callback for all 3 actions: restore, autoHide, startFiltering, stopFiltering
+   * Registers callbacks into the AttachedToolWindow from the Content implementation.
    */
-  default void setRestoreToolWindow(@NotNull Runnable runnable) {}
-
-  /**
-   * The tool window system will register a callback for closing a tool window in auto hide mode.
-   */
-  default void setCloseAutoHideWindow(@NotNull Runnable runnable) {}
+  default void registerCallbacks(@NotNull ToolWindowCallback callback) {}
 
   /**
    * Returns true if filtering is supported.
@@ -100,16 +94,4 @@ public interface ToolContent<T> extends Disposable {
   default KeyListener getFilterKeyListener() {
     return null;
   }
-
-  /**
-   * The tool window system will register a listener for starting filtering.
-   * A content window choose to use this listener to initiate filtering with an initial character.
-   * The search control will take focus and start filtering with the specified character.
-   */
-  default void setStartFiltering(@NotNull StartFilteringListener listener) {}
-
-  /**
-   * The tool window system will register a callback for stopping filtering.
-   */
-  default void setStopFiltering(@NotNull Runnable runnable) {}
 }
