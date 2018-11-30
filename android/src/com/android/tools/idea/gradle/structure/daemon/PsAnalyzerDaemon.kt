@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
@@ -28,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
@@ -46,13 +46,18 @@ import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 
-class PsAnalyzerDaemon(context: PsContext, private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon) : PsDaemon(context) {
+class PsAnalyzerDaemon(
+  parentDisposable: Disposable,
+  private val project: PsProject,
+  private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
+) :
+  PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
   val issues: PsIssueCollection = PsIssueCollection()
 
   private val modelAnalyzers: Map<Class<*>, PsModelAnalyzer<out PsModule>> =
-    analyzersMapOf(PsAndroidModuleAnalyzer(context), PsJavaModuleAnalyzer(context))
+    analyzersMapOf(PsAndroidModuleAnalyzer(parentDisposable), PsJavaModuleAnalyzer(parentDisposable))
   private val running = AtomicBoolean(true)
 
   private val issuesUpdatedEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
@@ -68,7 +73,7 @@ class PsAnalyzerDaemon(context: PsContext, private val libraryUpdateCheckerDaemo
 
   private fun addApplicableUpdatesAsIssues() {
     UIUtil.invokeAndWaitIfNeeded(Runnable {
-      context.project.forEachModule(Consumer { module ->
+      project.forEachModule(Consumer { module ->
         var updatesFound = false
         if (module is PsAndroidModule) {
           module.dependencies.forEachLibraryDependency { dependency ->
