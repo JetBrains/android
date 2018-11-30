@@ -52,14 +52,14 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   private String myToolName;
   private Side mySide;
 
-  public LayeredPanel(@NotNull String benchName, @NotNull JComponent defaultLayer, @NotNull SideModel<T> model) {
+  LayeredPanel(@NotNull String benchName, @NotNull JComponent defaultLayer, @NotNull SideModel<T> model) {
     this(benchName, defaultLayer, model, PropertiesComponent.getInstance());
   }
 
-  public LayeredPanel(@NotNull String benchName,
-                      @NotNull JComponent defaultLayer,
-                      @NotNull SideModel<T> model,
-                      @NotNull PropertiesComponent propertiesComponent) {
+  LayeredPanel(@NotNull String benchName,
+               @NotNull JComponent defaultLayer,
+               @NotNull SideModel<T> model,
+               @NotNull PropertiesComponent propertiesComponent) {
     myBenchName = benchName;
     myPropertiesComponent = propertiesComponent;
     myDefaultLayer = defaultLayer;

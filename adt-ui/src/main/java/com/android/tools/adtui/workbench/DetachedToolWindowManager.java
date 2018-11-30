@@ -64,7 +64,6 @@ public class DetachedToolWindowManager implements ProjectComponent {
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
-    //noinspection unchecked
     myDetachedToolWindowFactory = DetachedToolWindow::new;
   }
 

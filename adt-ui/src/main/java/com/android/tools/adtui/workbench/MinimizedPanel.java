@@ -35,7 +35,7 @@ class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
   private final Component myFiller;
   private boolean myHasVisibleButtons;
 
-  public MinimizedPanel(@NotNull Side side, @NotNull SideModel<T> model) {
+  MinimizedPanel(@NotNull Side side, @NotNull SideModel<T> model) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     setBorder(IdeBorderFactory.createBorder(side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
     setPreferredSize(new Dimension(JBUI.scale(20), 0));

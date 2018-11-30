@@ -505,7 +505,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
   private class AddToDesignAction extends AnAction {
 
-    public AddToDesignAction() {
+    private AddToDesignAction() {
       super("Add to Design");
       setShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)));
     }
@@ -562,7 +562,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
   private class FavoriteAction extends ToggleAction {
 
-    public FavoriteAction() {
+    private FavoriteAction() {
       super("Favorite");
     }
 
@@ -589,7 +589,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private class MaterialDocAction extends AnAction {
     private static final String MATERIAL_DEFAULT_REFERENCE = "https://material.io/guidelines/material-design/introduction.html";
 
-    public MaterialDocAction() {
+    private MaterialDocAction() {
       super("Material Guidelines");
     }
 

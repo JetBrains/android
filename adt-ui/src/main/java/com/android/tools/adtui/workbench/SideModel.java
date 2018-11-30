@@ -45,7 +45,7 @@ class SideModel<T> {
   private T myContext;
   private AttachedToolWindow<T> myVisibleAutoHideTool;
 
-  public SideModel(@NotNull Project project) {
+  SideModel(@NotNull Project project) {
     myAllTools = new ArrayList<>(8);
     myLeftVisibleTools = new VisiblePair<>();
     myRightVisibleTools = new VisiblePair<>();
