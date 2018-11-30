@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.sdk.install;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.RepoPackage;
+import com.android.repository.api.SettingsController;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,14 +30,22 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class StudioSdkInstallerUtil {
 
+  private final SettingsController mySettingsController;
+
   /**
    * Find the best {@link InstallerFactory} for the given {@link RepoPackage}.
    */
   @NotNull
   public static InstallerFactory createInstallerFactory(@NotNull AndroidSdkHandler sdkHandler) {
+    return new StudioSdkInstallerUtil().doCreateInstallerFactory(sdkHandler);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  InstallerFactory doCreateInstallerFactory(@NotNull AndroidSdkHandler sdkHandler) {
     InstallerFactory factory;
     InstallerFactory basicFactory = new BasicInstallerFactory();
-    if (Boolean.getBoolean("sdk.patches.disable")) {
+    if (mySettingsController.getDisableSdkPatches()) {
       factory = basicFactory;
     }
     else {
@@ -45,5 +56,12 @@ public final class StudioSdkInstallerUtil {
     return factory;
   }
 
-  private StudioSdkInstallerUtil() {}
+  private StudioSdkInstallerUtil() {
+    this(StudioSettingsController.getInstance());
+  }
+
+  @VisibleForTesting
+  StudioSdkInstallerUtil(@NotNull SettingsController settingsController) {
+    mySettingsController = settingsController;
+  }
 }
