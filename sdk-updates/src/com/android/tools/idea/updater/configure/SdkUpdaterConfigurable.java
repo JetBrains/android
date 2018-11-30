@@ -320,7 +320,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       // There is not much we can do in this case, but it should "never be reached".
       return Pair.of(0L, false);
     }
-    if (localPackage != null) {
+    if (localPackage != null && !StudioSettingsController.getInstance().getDisableSdkPatches()) {
       Archive.PatchType patch = archive.getPatch(localPackage.getVersion());
       if (patch != null) {
         return Pair.of(patch.getSize(), true);
