@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Used to suggest completions related to data-binding. This is used in the expressions ({@code @{...}}) and in the {@code <data>} tag.
  */
-public class DataBindingCompletionProviderImpl implements DataBindingCompletionProvider {
+public class DataBindingCompletionSupportImpl implements DataBindingCompletionSupport {
   @Override
   public void addCompletions(@NotNull CompletionParameters params, @NotNull CompletionResultSet resultSet) {
     final PsiElement originalPosition = params.getOriginalPosition();

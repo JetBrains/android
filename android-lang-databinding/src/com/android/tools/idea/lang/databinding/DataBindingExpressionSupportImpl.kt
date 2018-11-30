@@ -25,7 +25,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import java.util.regex.Pattern
 
-class DataBindingExpressionProviderImpl : DataBindingExpressionProvider {
+class DataBindingExpressionSupportImpl : DataBindingExpressionSupport {
   override fun getBindingExprDefault(expr: String): String? {
     if (!expr.contains(DbTokenTypes.DEFAULT_KEYWORD.toString())) {
       // A fast check since many expressions would likely not have a default.
