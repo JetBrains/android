@@ -50,7 +50,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   private boolean myAdditionalActionPerformed;
   private String myFilter;
 
-  public PalettePanelToolContent(@NotNull Disposable parentDisposable) {
+  private PalettePanelToolContent(@NotNull Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
     myComponent = new JPanel();
     myFocusComponent = new JLabel();
