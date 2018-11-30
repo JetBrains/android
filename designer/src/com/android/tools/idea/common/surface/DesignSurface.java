@@ -32,7 +32,8 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.type.DefaultDesignerFileType;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -272,9 +273,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  public NlLayoutType getLayoutType() {
+  public DesignerEditorFileType getLayoutType() {
     NlModel model = getModel();
-    return model == null ? NlLayoutType.UNKNOWN : model.getType();
+    return model == null ? DefaultDesignerFileType.INSTANCE : model.getType();
   }
 
   @NotNull
@@ -449,7 +450,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Update the status of {@link InteractionManager}. It will start or stop listening depending on the current layout type.
    */
   private void reactivateInteractionManager() {
-    if (getLayoutType().isSupportedByDesigner()) {
+    if (getLayoutType().isEditable()) {
       myInteractionManager.startListening();
     }
     else {
@@ -1125,7 +1126,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
 
-      if (!getLayoutType().isSupportedByDesigner()) {
+      if (!getLayoutType().isEditable()) {
         return;
       }
 

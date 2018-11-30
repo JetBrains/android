@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -177,7 +178,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       group.addSeparator();
     }
 
-    if (mySurface.getLayoutType().isLayout()) {
+    if (mySurface.getLayoutType() == LayoutFileType.INSTANCE) {
       createLayoutOnlyActions(leafComponent, group);
     }
 

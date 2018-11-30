@@ -35,6 +35,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
@@ -113,22 +114,10 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
       return builder.build();
     }
 
-    switch (surface.getLayoutType()) {
-      case LAYOUT:
-        builder.setType(LayoutEditorState.Type.LAYOUT);
-        break;
-      case MENU:
-        builder.setType(LayoutEditorState.Type.MENU);
-        break;
-      case PREFERENCE_SCREEN:
-        builder.setType(LayoutEditorState.Type.PREFERENCE_SCREEN);
-        break;
-      case VECTOR:
-        // TODO
-        break;
-      default:
-        break;
+    if (surface.getLayoutType() instanceof LayoutEditorFileType) {
+      builder.setType(((LayoutEditorFileType)surface.getLayoutType()).getLayoutEditorStateType());
     }
+    // TODO(b/120469076): track VECTOR type as well
 
     double scale = surface.getScale();
     if (SystemInfo.isMac && UIUtil.isRetina()) {

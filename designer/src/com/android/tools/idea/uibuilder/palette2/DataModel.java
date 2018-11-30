@@ -27,9 +27,10 @@ import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Condition;
@@ -63,7 +64,7 @@ public class DataModel {
   private final DependencyManager myDependencyManager;
   private final List<String> myFavoriteItems;
   private NlPaletteModel myPaletteModel;
-  private NlLayoutType myLayoutType;
+  private LayoutEditorFileType myLayoutType;
   private Palette myPalette;
   private Palette.Group myCurrentSelectedGroup;
 
@@ -72,7 +73,6 @@ public class DataModel {
     myItemModel = new ItemListModel();
     myFavoriteItems = readFavoriteItems();
     myDependencyManager = dependencyManager;
-    myLayoutType = NlLayoutType.UNKNOWN;
     myPalette = Palette.EMPTY;
     myCurrentSelectedGroup = COMMON;
     myDependencyManager.addDependencyChangeListener(() -> onDependenciesChanged());
@@ -103,9 +103,9 @@ public class DataModel {
     return myItemModel;
   }
 
-  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull NlLayoutType layoutType) {
+  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull LayoutEditorFileType layoutType) {
     NlPaletteModel paletteModel = NlPaletteModel.get(facet);
-    if (myLayoutType.equals(layoutType) && paletteModel == myPaletteModel) {
+    if (layoutType.equals(myLayoutType) && paletteModel == myPaletteModel) {
       return;
     }
 
@@ -179,13 +179,14 @@ public class DataModel {
     return Lists.newArrayList(favorites);
   }
 
-  private void update(@NotNull NlPaletteModel paletteModel, @NotNull NlLayoutType layoutType) {
+  private void update(@NotNull NlPaletteModel paletteModel, @NotNull DesignerEditorFileType layoutType) {
     if (myPaletteModel == paletteModel && layoutType == myLayoutType) {
       update();
     }
   }
 
   private void update() {
+    assert myLayoutType != null;
     myPalette = myPaletteModel.getPalette(myLayoutType);
     boolean isUserSearch = myFilterPattern.hasPattern();
     List<Palette.Group> groups = new ArrayList<>();

@@ -16,12 +16,10 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.designer.DesignerEditorPanelFacade;
-import com.intellij.designer.LightToolWindow;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -40,8 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 

@@ -20,7 +20,6 @@ import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.common.model.NlLayoutType
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.projectsystem.EP_NAME
@@ -30,6 +29,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel
 import com.android.tools.idea.uibuilder.palette.Palette
+import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -60,7 +60,7 @@ class DependencyManagerTest : AndroidTestCase() {
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME, testProjectSystem,
                                                                      testRootDisposable)
     panel = mock(PalettePanel::class.java)
-    palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT)
+    palette = NlPaletteModel.get(myFacet).getPalette(LayoutFileType)
     disposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, disposable!!)
 

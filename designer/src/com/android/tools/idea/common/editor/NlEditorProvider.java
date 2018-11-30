@@ -15,14 +15,34 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.type.DesignerTypeRegistrar;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.uibuilder.type.AdaptativeIconFileType;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
+import com.android.tools.idea.uibuilder.type.StateListFileType;
+import com.android.tools.idea.uibuilder.type.VectorFileType;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+// TODO(b/120407029): move this to uibuilder module.
 public class NlEditorProvider extends DesignerEditorProvider {
+
+  @NotNull
+  private final List<DesignerEditorFileType> myRegisteredTypes;
+
+  public NlEditorProvider() {
+    myRegisteredTypes = ImmutableList.of(AdaptativeIconFileType.INSTANCE, LayoutFileType.INSTANCE, MenuFileType.INSTANCE,
+                                         PreferenceScreenFileType.INSTANCE, StateListFileType.INSTANCE, VectorFileType.INSTANCE);
+    myRegisteredTypes.forEach(DesignerTypeRegistrar.INSTANCE::register);
+  }
 
   @NotNull
   @Override
@@ -38,6 +58,6 @@ public class NlEditorProvider extends DesignerEditorProvider {
 
   @Override
   protected boolean acceptAndroidFacetXml(@NotNull XmlFile xmlFile) {
-    return NlLayoutType.canBeOpenInLayoutEditor(xmlFile);
+    return myRegisteredTypes.stream().anyMatch(type -> type instanceof LayoutEditorFileType && type.isResourceTypeOf(xmlFile));
   }
 }

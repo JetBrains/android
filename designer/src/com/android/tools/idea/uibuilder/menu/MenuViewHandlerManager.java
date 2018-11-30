@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +27,7 @@ public final class MenuViewHandlerManager {
 
   @Nullable
   public static ViewHandler getHandler(@NotNull NlComponent component) {
-    if (!component.getModel().getType().equals(NlLayoutType.MENU)) {
+    if (component.getModel().getType() != MenuFileType.INSTANCE) {
       return null;
     }
 

@@ -16,11 +16,14 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiClass;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -33,8 +36,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -74,9 +75,11 @@ public class NlPaletteModelTest {
 
   @Test
   public void addIllegalThirdPartyComponent() {
-    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
-    boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, LINEAR_LAYOUT, LINEAR_LAYOUT, null, null,
-                                                 SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
+    LayoutFileType layoutFileType = LayoutFileType.INSTANCE;
+    Palette palette = model.getPalette(layoutFileType);
+    boolean added = model.addAdditionalComponent(layoutFileType, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, LINEAR_LAYOUT,
+                                                 LINEAR_LAYOUT, null, null, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null,
+                                                 Collections.emptyList(), Collections.emptyList());
     assertThat(added).isFalse();
     assertThat(getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP)).isNull();
 
@@ -88,10 +91,10 @@ public class NlPaletteModelTest {
   public void addThirdPartyComponent() throws InterruptedException {
     registerJavaClasses();
     registerFakeBaseViewHandler();
-    Palette palette = getPaletteWhenAdditionalComponentsReady(model, NlLayoutType.LAYOUT);
+    Palette palette = getPaletteWhenAdditionalComponentsReady(model, LayoutFileType.INSTANCE);
     String tag = "com.example.FakeCustomView";
     boolean added = model
-      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, tag, tag,
+      .addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, tag, tag,
                               getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
                               "family", ImmutableList.of("family", "size"), Collections.emptyList());
     Palette.Group thirdParty = getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP);
@@ -126,7 +129,7 @@ public class NlPaletteModelTest {
     CountDownLatch latch = new CountDownLatch(1);
     model.setUpdateListener((paletteModel, layoutType) -> latch.countDown());
 
-    model.loadAdditionalComponents(NlLayoutType.LAYOUT, (project) -> {
+    model.loadAdditionalComponents(LayoutFileType.INSTANCE, (project) -> {
       PsiClass customView = mock(PsiClass.class);
       when(customView.getName()).thenReturn("FakeCustomView");
       when(customView.getQualifiedName()).thenReturn("com.example.FakeCustomView");
@@ -152,12 +155,12 @@ public class NlPaletteModelTest {
 
   @Test
   public void idsAreUnique() {
-    checkIdsAreUniqueInPalette(NlLayoutType.LAYOUT);
-    checkIdsAreUniqueInPalette(NlLayoutType.MENU);
-    checkIdsAreUniqueInPalette(NlLayoutType.PREFERENCE_SCREEN);
+    checkIdsAreUniqueInPalette(LayoutFileType.INSTANCE);
+    checkIdsAreUniqueInPalette(MenuFileType.INSTANCE);
+    checkIdsAreUniqueInPalette(PreferenceScreenFileType.INSTANCE);
   }
 
-  private void checkIdsAreUniqueInPalette(@NotNull NlLayoutType layoutType) {
+  private void checkIdsAreUniqueInPalette(@NotNull LayoutEditorFileType layoutType) {
     Palette palette = model.getPalette(layoutType);
     Set<String> ids = new HashSet<>();
     palette.accept(item -> assertTrue("ID is not unique: " + item.getId() + " with layoutType: " + layoutType, ids.add(item.getId())));
@@ -166,7 +169,7 @@ public class NlPaletteModelTest {
 
   @Nullable
   private Palette.Group getGroupByName(@NotNull String name) {
-    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
+    Palette palette = model.getPalette(LayoutFileType.INSTANCE);
     List<Palette.BaseItem> groups = palette.getItems();
     return groups.stream()
       .filter(Palette.Group.class::isInstance)
@@ -176,7 +179,8 @@ public class NlPaletteModelTest {
       .orElse(null);
   }
 
-  private static Palette getPaletteWhenAdditionalComponentsReady(NlPaletteModel model, NlLayoutType type) throws InterruptedException {
+  private static Palette getPaletteWhenAdditionalComponentsReady(NlPaletteModel model,
+                                                                 LayoutEditorFileType type) throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(2);
     // We should receive two updates: one for the initial palette that doesn't include
     // any third-party components, and then another once the additional components are registered.

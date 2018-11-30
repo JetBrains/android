@@ -38,7 +38,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ide.util.PropertiesComponent;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testCommonLayoutGroup() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel)).isEmpty();
@@ -98,7 +99,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testAddFavorite() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
@@ -111,7 +112,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testRemoveFavorite() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
@@ -121,7 +122,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testButtonsGroup() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
@@ -132,7 +133,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testContainersGroup() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
@@ -144,7 +145,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testSearch() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("ima");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Widgets").inOrder();
@@ -164,7 +165,7 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
     assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo(FLOATING_ACTION_BUTTON.newName());
-    
+
     myUseAndroidxDependencies = false;
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
@@ -174,7 +175,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testMetaSearch() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("material");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
@@ -198,7 +199,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testMenuType() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.MENU);
+    myDataModel.setLayoutType(myFacet, MenuFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(1);
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
@@ -206,7 +207,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testUsingAndroidxDependencies() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     myUseAndroidxDependencies = true;
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
@@ -225,7 +226,7 @@ public class DataModelTest extends AndroidTestCase {
   public void testUsingOldDependencies() {
     myUseAndroidxDependencies = false;
 
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));

@@ -77,7 +77,6 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.idea.common.analytics.UsageTrackerUtilTest;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
@@ -90,6 +89,7 @@ import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -460,7 +460,7 @@ public class NlUsageTrackerImplTest extends AndroidTestCase {
 
   private NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
-    when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
+    when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
     when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
@@ -641,7 +641,7 @@ public class NlUsageTrackerImplTest extends AndroidTestCase {
 
   private static Palette getPalette() throws Exception {
     Project project = mock(Project.class);
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(LayoutFileType.INSTANCE.getPaletteFileName()))) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }
   }

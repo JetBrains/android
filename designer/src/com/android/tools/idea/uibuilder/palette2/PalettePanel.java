@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.DataManager;
@@ -89,7 +90,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private final KeyListener myFilterKeyListener;
 
   @NotNull private WeakReference<DesignSurface> myDesignSurface = new WeakReference<>(null);
-  private NlLayoutType myLayoutType;
+  private LayoutEditorFileType myLayoutType;
   private ToolWindowCallback myToolWindow;
   private Palette.Group myLastSelectedGroup;
 
@@ -142,7 +143,6 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myItemList.addKeyListener(keyListener);
     registerKeyboardActions();
 
-    myLayoutType = NlLayoutType.UNKNOWN;
     myLastSelectedGroup = DataModel.COMMON;
   }
 
@@ -360,7 +360,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
-      myLayoutType = designSurface.getLayoutType();
+      assert designSurface.getLayoutType() instanceof LayoutEditorFileType;
+      myLayoutType = (LayoutEditorFileType)designSurface.getLayoutType();
       myDataModel.setLayoutType(facet, myLayoutType);
       if (myDataModel.getCategoryListModel().hasExplicitGroups()) {
         setCategoryListVisible(true);
@@ -382,7 +383,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   @Nullable
   private static Module getModule(@Nullable DesignSurface designSurface) {
     Configuration configuration =
-      designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface.getConfiguration() : null;
+      designSurface != null && designSurface.getLayoutType().isEditable() ? designSurface.getConfiguration() : null;
     return configuration != null ? configuration.getModule() : null;
   }
 

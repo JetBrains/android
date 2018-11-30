@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.palette2;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -26,6 +25,7 @@ import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -35,8 +35,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,9 +108,9 @@ public class PreviewProviderTest extends LayoutTestCase {
     assertNull(myPreviewProvider.renderDragImage(myTextViewItem));
   }
 
-  private Palette loadPalette() throws Exception {
+  private Palette loadPalette() {
     NlPaletteModel model = NlPaletteModel.get(myFacet);
-    return model.getPalette(NlLayoutType.LAYOUT);
+    return model.getPalette(LayoutFileType.INSTANCE);
   }
 
   @NotNull
