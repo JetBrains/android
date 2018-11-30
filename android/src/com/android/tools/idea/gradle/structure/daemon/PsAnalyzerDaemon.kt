@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
@@ -51,15 +52,14 @@ private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 class PsAnalyzerDaemon(
   parentDisposable: Disposable,
   private val project: PsProject,
-  private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
+  private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon,
+  private val modelAnalyzers: Map<Class<*>, PsModelAnalyzer<out PsModule>>
 ) :
   PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
   val issues: PsIssueCollection = PsIssueCollection()
 
-  private val modelAnalyzers: Map<Class<*>, PsModelAnalyzer<out PsModule>> =
-    analyzersMapOf(PsAndroidModuleAnalyzer(parentDisposable), PsJavaModuleAnalyzer(parentDisposable))
   private val running = AtomicBoolean(true)
 
   private val issuesUpdatedEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
@@ -191,5 +191,3 @@ class PsAnalyzerDaemon(
   }
 }
 
-private fun analyzersMapOf(vararg analyzers: PsModelAnalyzer<out PsModule>): Map<Class<*>, PsModelAnalyzer<out PsModule>> =
-  analyzers.associateBy { it.supportedModelType }
