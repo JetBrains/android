@@ -17,15 +17,15 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
 import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -55,7 +55,7 @@ public class InspectionsFixture extends ToolWindowFixture {
     return GuiQuery.getNonNull(
       () -> {
         StringBuilder sb = new StringBuilder();
-        InspectionsFixture.describe(myTree.getRoot(), sb, 0);
+        InspectionsFixture.describe(myTree.getInspectionTreeModel().getRoot(), sb, 0);
         return sb.toString();
       });
   }
@@ -69,11 +69,8 @@ public class InspectionsFixture extends ToolWindowFixture {
 
     // The exact order of the results sometimes varies so sort the children alphabetically
     // instead to ensure stable test output
-    List<InspectionTreeNode> children = Lists.newArrayListWithExpectedSize(node.getChildCount());
-    for (int i = 0, n = node.getChildCount(); i < n; i++) {
-      children.add((InspectionTreeNode)node.getChildAt(i));
-    }
-    Collections.sort(children, (node1, node2) -> node1.toString().compareTo(node2.toString()));
+    List<InspectionTreeNode> children = ContainerUtil.newArrayList(node.getChildren());
+    Collections.sort(children, Comparator.comparing(Object::toString));
     for (InspectionTreeNode child : children) {
       describe(child, sb, depth + 1);
     }
