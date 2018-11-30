@@ -255,7 +255,6 @@ public interface RoomPsiTypes {
   IElementType RIGHT = new RoomTokenType("RIGHT");
   IElementType ROLLBACK = new RoomTokenType("ROLLBACK");
   IElementType ROW = new RoomTokenType("ROW");
-  IElementType ROWID = new RoomTokenType("ROWID");
   IElementType RPAREN = new RoomTokenType(")");
   IElementType SAVEPOINT = new RoomTokenType("SAVEPOINT");
   IElementType SELECT = new RoomTokenType("SELECT");

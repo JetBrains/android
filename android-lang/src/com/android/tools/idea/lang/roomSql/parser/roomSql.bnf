@@ -211,7 +211,7 @@ collation_name ::= name
 create_table_statement ::=
   CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
   ( database_name '.' )? table_definition_name
-  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS with_clause_select_statement )
+  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement )
 
 column_definition ::= column_definition_name ( type_name )? ( column_constraint )*
 
