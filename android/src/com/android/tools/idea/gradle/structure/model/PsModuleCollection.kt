@@ -22,13 +22,17 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.util.Disposer
 import java.io.File
 
 enum class ModuleKind { ANDROID, JAVA }
 data class ModuleKey(val kind: ModuleKind, val gradlePath: String)
 
 class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, ModuleKey, PsProjectImpl>(parent) {
+  private val onModuleChangedHandlers = mutableListOf<Pair<Disposable, (PsModule) -> Unit>>()
+
   init {
     refresh()
   }
@@ -65,6 +69,8 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
   override fun create(key: ModuleKey): PsModule = when (key.kind) {
     ModuleKind.ANDROID -> PsAndroidModule(parent, key.gradlePath)
     ModuleKind.JAVA -> PsJavaModule(parent, key.gradlePath)
+  }.also { module ->
+    onModuleChangedHandlers.forEach { (disposable, handler) -> module.onChange(disposable, handler) }
   }
 
   override fun update(key: ModuleKey, model: PsModule) {
@@ -110,6 +116,12 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
         ?.let { return it.value }
     }
     return null
+  }
+
+  fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit) {
+    Disposer.register(disposable, Disposable { onModuleChangedHandlers.remove(disposable to handler) })
+    onModuleChangedHandlers.add(disposable to handler)
+    forEach { module -> module.onChange(disposable, handler) }
   }
 }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 
@@ -35,4 +36,6 @@ interface PsProject : PsModel {
   fun applyChanges()
 
   fun removeModule(gradlePath: String)
+
+  fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit)
 }

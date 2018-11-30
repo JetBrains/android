@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFac
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -126,5 +127,9 @@ class PsProjectImpl(
     override fun prepareForModification(model: PsProject) = Unit
     override fun setModified(model: PsProject) { model.isModified = true }
     override fun enumerateModels(model: PsProject): Collection<PsModel> = model.modules
+  }
+
+  override fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit) {
+    moduleCollection.onModuleChanged(disposable, handler)
   }
 }

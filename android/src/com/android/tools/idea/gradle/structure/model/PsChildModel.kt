@@ -20,9 +20,11 @@ abstract class PsChildModel protected constructor() : PsModel {
     set(value) {
       field = value
       if (value) {
+        changed()
         parent?.isModified = true
       }
     }
 
+  open fun changed() = Unit
   override fun toString(): String = name
 }
