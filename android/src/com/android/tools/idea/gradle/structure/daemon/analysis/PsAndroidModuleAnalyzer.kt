@@ -32,10 +32,11 @@ import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.xml.util.XmlStringUtil.escapeString
 import java.util.regex.Pattern
 
-class PsAndroidModuleAnalyzer(val context: PsContext) : PsModelAnalyzer<PsAndroidModule>(context) {
+class PsAndroidModuleAnalyzer(val parentDisposable: Disposable) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 

@@ -73,13 +73,13 @@ class PsContextImpl constructor(
     // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
     requestGradleModels()
 
-    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, cachingRepositorySearchFactory)
+    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
       libraryUpdateCheckerDaemon.reset()
       libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
     }
 
-    analyzerDaemon = PsAnalyzerDaemon(this, libraryUpdateCheckerDaemon)
+    analyzerDaemon = PsAnalyzerDaemon(this, project, libraryUpdateCheckerDaemon)
     if (!disableAnalysis) {
       analyzerDaemon.reset()
       project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
@@ -94,7 +94,7 @@ class PsContextImpl constructor(
     gradleSync
       .requestProjectResolved(project, this)
       .handleFailureOnEdt {
-        gradleSyncEventDispatcher.multicaster.syncFailed(project, it?.let { ExceptionUtil.getRootCause(it).message }.orEmpty())
+        gradleSyncEventDispatcher.multicaster.syncFailed(project, it?.let { e -> ExceptionUtil.getRootCause(e).message }.orEmpty())
       }
       .continueOnEdt {
         this.project.refreshFrom(it)

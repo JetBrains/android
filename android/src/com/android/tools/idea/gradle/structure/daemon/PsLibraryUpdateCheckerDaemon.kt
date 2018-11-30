@@ -42,9 +42,10 @@ import java.util.function.Consumer
 private val LOG = Logger.getInstance(PsLibraryUpdateCheckerDaemon::class.java)
 
 class PsLibraryUpdateCheckerDaemon(
-  context: PsContext,
+  parentDisposable: Disposable,
+  private val project: PsProject,
   private val repositorySearchFactory: RepositorySearchFactory
-) : PsDaemon(context) {
+) : PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
 
@@ -52,7 +53,7 @@ class PsLibraryUpdateCheckerDaemon(
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
 
-  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(context.project.ideProject).getState()
+  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(project.ideProject).getState()
 
   fun queueAutomaticUpdateCheck() {
     val searchTimeMillis = getAvailableUpdates().lastSearchTimeMillis
@@ -112,12 +113,12 @@ class PsLibraryUpdateCheckerDaemon(
     resultsUpdaterQueue.queue(UpdatesAvailable())
   }
 
-  private inner class SearchForAvailableUpdates : Update(context.project) {
+  private inner class SearchForAvailableUpdates : Update(project) {
     override fun run() {
       val repositories = mutableSetOf<ArtifactRepository>()
       val ids = mutableSetOf<LibraryUpdateId>()
       UIUtil.invokeAndWaitIfNeeded(Runnable {
-        context.project.forEachModule(Consumer { module ->
+        project.forEachModule(Consumer { module ->
           repositories.addAll(module.getArtifactRepositories())
           if (module is PsAndroidModule) {
             module.dependencies.forEachLibraryDependency { dependency ->
@@ -140,7 +141,7 @@ class PsLibraryUpdateCheckerDaemon(
     }
   }
 
-  private inner class UpdatesAvailable : Update(context.project) {
+  private inner class UpdatesAvailable : Update(project) {
 
     override fun run() {
       eventDispatcher.multicaster.availableUpdates()

@@ -18,8 +18,9 @@ package com.android.tools.idea.gradle.structure.daemon.analysis
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.intellij.openapi.Disposable
 
-class PsJavaModuleAnalyzer(context: PsContext) : PsModelAnalyzer<PsJavaModule>(context) {
+class PsJavaModuleAnalyzer(parentDisposable: Disposable) : PsModelAnalyzer<PsJavaModule>(parentDisposable) {
   override val supportedModelType: Class<PsJavaModule> = PsJavaModule::class.java
 
   override fun analyze(model: PsJavaModule): Sequence<PsIssue> =

@@ -25,7 +25,7 @@ import com.intellij.util.ui.update.Update
 import javax.swing.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-abstract class PsDaemon protected constructor(protected val context: PsContext) : Disposable {
+abstract class PsDaemon protected constructor(protected val parentDisposable: Disposable) : Disposable {
   protected abstract val mainQueue: MergingUpdateQueue
   protected abstract val resultsUpdaterQueue: MergingUpdateQueue
   protected val isStopped: Boolean get() = stopped.get()
@@ -34,7 +34,7 @@ abstract class PsDaemon protected constructor(protected val context: PsContext) 
   private val stopped = AtomicBoolean(false)
 
   init {
-    Disposer.register(context, @Suppress("LeakingThis") this)
+    Disposer.register(parentDisposable, @Suppress("LeakingThis") this)
   }
 
   protected fun createQueue(name: String, modalityStateComponent: JComponent?): MergingUpdateQueue =
