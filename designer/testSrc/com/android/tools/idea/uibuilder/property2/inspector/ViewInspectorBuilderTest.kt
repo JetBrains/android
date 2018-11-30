@@ -54,7 +54,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(8)
+    assertThat(util.inspector.lines).hasSize(9)
     checkTitle(util.inspector.lines[0], "Button")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
@@ -63,6 +63,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_BACKGROUND)
     checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_BACKGROUND_TINT)
     checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -74,12 +75,13 @@ class ViewInspectorBuilderTest {
     util.removeProperty(ANDROID_URI, ATTR_BACKGROUND_TINT)
     util.removeProperty(ANDROID_URI, ATTR_ON_CLICK)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(5)
+    assertThat(util.inspector.lines).hasSize(6)
     checkTitle(util.inspector.lines[0], "Button")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
     checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_ELEVATION)
     checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -88,7 +90,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     addImageViewProperties(util, true)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(8)
+    assertThat(util.inspector.lines).hasSize(9)
     checkTitle(util.inspector.lines[0], "ImageView")
     checkProperty(util.inspector.lines[1], AUTO_URI, ATTR_SRC_COMPAT)
     checkProperty(util.inspector.lines[2], TOOLS_URI, ATTR_SRC_COMPAT)
@@ -97,6 +99,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_SCALE_TYPE)
     checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS)
     checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_CROP_TO_PADDING)
+    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -105,7 +108,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     addImageViewProperties(util, false)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(8)
+    assertThat(util.inspector.lines).hasSize(9)
     checkTitle(util.inspector.lines[0], "ImageView")
     checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_SRC)
     checkProperty(util.inspector.lines[2], TOOLS_URI, ATTR_SRC)
@@ -114,6 +117,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_SCALE_TYPE)
     checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS)
     checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_CROP_TO_PADDING)
+    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -124,7 +128,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(8)
+    assertThat(util.inspector.lines).hasSize(9)
     checkTitle(util.inspector.lines[0], "BottomAppBar")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_BACKGROUND_TINT)
@@ -133,6 +137,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_FAB_CRADLE_MARGIN)
     checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS)
     checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_FAB_CRADLE_VERTICAL_OFFSET)
+    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -144,7 +149,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(22)
+    assertThat(util.inspector.lines).hasSize(23)
     checkTitle(util.inspector.lines[0], "MaterialButton")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
@@ -167,6 +172,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[19], AUTO_URI, ATTR_STROKE_WIDTH)
     checkProperty(util.inspector.lines[20], AUTO_URI, ATTR_CORNER_RADIUS)
     checkProperty(util.inspector.lines[21], AUTO_URI, ATTR_RIPPLE_COLOR)
+    checkProperty(util.inspector.lines[22], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -177,7 +183,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(8)
+    assertThat(util.inspector.lines).hasSize(9)
     checkTitle(util.inspector.lines[0], "ChipGroup")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_CHIP_SPACING)
@@ -186,6 +192,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_SINGLE_LINE)
     checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_SINGLE_SELECTION)
     checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_CHECKED_CHIP)
+    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -197,7 +204,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(10)
+    assertThat(util.inspector.lines).hasSize(11)
     checkTitle(util.inspector.lines[0], "Chip")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_CHECKABLE)
@@ -208,6 +215,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_CHECKED_ICON_VISIBLE)
     checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_CLOSE_ICON)
     checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_CLOSE_ICON_VISIBLE)
+    checkProperty(util.inspector.lines[10], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -218,7 +226,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(9)
+    assertThat(util.inspector.lines).hasSize(10)
     checkTitle(util.inspector.lines[0], "BottomNavigationView")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
@@ -228,6 +236,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_ITEM_BACKGROUND)
     checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_ITEM_TEXT_COLOR)
     checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_ELEVATION)
+    checkProperty(util.inspector.lines[9], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -239,7 +248,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(9)
+    assertThat(util.inspector.lines).hasSize(10)
     checkTitle(util.inspector.lines[0], "BottomNavigationView")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
@@ -249,6 +258,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_ITEM_BACKGROUND)
     checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_ITEM_TEXT_COLOR)
     checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_ELEVATION)
+    checkProperty(util.inspector.lines[9], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -260,7 +270,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(17)
+    assertThat(util.inspector.lines).hasSize(18)
     checkTitle(util.inspector.lines[0], "FloatingActionButton")
     checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_SRC)
     checkProperty(util.inspector.lines[2], "", ATTR_STYLE)
@@ -278,6 +288,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_MAX_IMAGE_SIZE)
     checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_SHOW_MOTION_SPEC)
     checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_HIDE_MOTION_SPEC)
+    checkProperty(util.inspector.lines[17], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -289,7 +300,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(17)
+    assertThat(util.inspector.lines).hasSize(18)
     checkTitle(util.inspector.lines[0], "FloatingActionButton")
     checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_SRC)
     checkProperty(util.inspector.lines[2], "", ATTR_STYLE)
@@ -307,6 +318,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_MAX_IMAGE_SIZE)
     checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_SHOW_MOTION_SPEC)
     checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_HIDE_MOTION_SPEC)
+    checkProperty(util.inspector.lines[17], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -317,7 +329,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(29)
+    assertThat(util.inspector.lines).hasSize(30)
     checkTitle(util.inspector.lines[0], "TabLayout")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
@@ -347,6 +359,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[26], AUTO_URI, ATTR_TAB_UNBOUNDED_RIPPLE)
     checkProperty(util.inspector.lines[27], ANDROID_URI, ATTR_THEME)
     checkProperty(util.inspector.lines[28], ANDROID_URI, ATTR_BACKGROUND)
+    checkProperty(util.inspector.lines[29], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -357,7 +370,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(29)
+    assertThat(util.inspector.lines).hasSize(30)
     checkTitle(util.inspector.lines[0], "TabLayout")
     checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
     checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
@@ -387,6 +400,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[26], AUTO_URI, ATTR_TAB_UNBOUNDED_RIPPLE)
     checkProperty(util.inspector.lines[27], ANDROID_URI, ATTR_THEME)
     checkProperty(util.inspector.lines[28], ANDROID_URI, ATTR_BACKGROUND)
+    checkProperty(util.inspector.lines[29], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -397,7 +411,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(25)
+    assertThat(util.inspector.lines).hasSize(26)
     checkTitle(util.inspector.lines[0], "TextInputLayout")
     checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_TEXT_COLOR_HINT)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_HINT)
@@ -423,6 +437,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[22], AUTO_URI, ATTR_BOX_STROKE_COLOR)
     checkProperty(util.inspector.lines[23], AUTO_URI, ATTR_BOX_BACKGROUND_COLOR)
     checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_BOX_STROKE_WIDTH)
+    checkProperty(util.inspector.lines[25], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   @Test
@@ -433,7 +448,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(25)
+    assertThat(util.inspector.lines).hasSize(26)
     checkTitle(util.inspector.lines[0], "TextInputLayout")
     checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_TEXT_COLOR_HINT)
     checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_HINT)
@@ -459,6 +474,7 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[22], AUTO_URI, ATTR_BOX_STROKE_COLOR)
     checkProperty(util.inspector.lines[23], AUTO_URI, ATTR_BOX_BACKGROUND_COLOR)
     checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_BOX_STROKE_WIDTH)
+    checkProperty(util.inspector.lines[25], ANDROID_URI, ATTR_VISIBILITY)
   }
 
   private fun checkTitle(line: FakeInspectorLine, title: String) {
@@ -484,5 +500,6 @@ class ViewInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NelePropertyType.THREE_STATE_BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NelePropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
   }
 }

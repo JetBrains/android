@@ -29,6 +29,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
@@ -94,7 +95,7 @@ class AdvancedInspectorBuilderTest {
     // Check all 6 attributes:
     assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_MARGIN, ATTR_CONTENT_DESCRIPTION,
-                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
+                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE, ATTR_VISIBILITY).inOrder()
 
     // Layout Margin is a group:
     val margin = util.inspector.lines[3].tableModel!!.items[2] as PTableGroupItem
@@ -134,7 +135,7 @@ class AdvancedInspectorBuilderTest {
     // Check all 6 attributes:
     assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_MARGIN, ATTR_CONTENT_DESCRIPTION,
-                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
+                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE, ATTR_VISIBILITY).inOrder()
 
     // Layout Margin is a group:
     val margin = util.inspector.lines[3].tableModel!!.items[2] as PTableGroupItem
@@ -295,6 +296,7 @@ class AdvancedInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, NelePropertyType.DIMENSION)
     util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, NelePropertyType.DIMENSION)
     util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, NelePropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
 
     util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
     util.properties[ANDROID_URI, ATTR_LAYOUT_WIDTH].value = VALUE_WRAP_CONTENT

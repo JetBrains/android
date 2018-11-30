@@ -45,7 +45,7 @@ class TextViewInspectorBuilderTest {
     val builder = TextViewInspectorBuilder(util.editorProvider)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(10)
+    assertThat(util.inspector.lines).hasSize(11)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("TextView")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
@@ -59,6 +59,7 @@ class TextViewInspectorBuilderTest {
     assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_LINE_SPACING_EXTRA)
     assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_TEXT_COLOR)
     assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_TEXT_STYLE)
+    assertThat(util.inspector.lines[10].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
   }
 
   @Test
@@ -69,7 +70,7 @@ class TextViewInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(12)
+    assertThat(util.inspector.lines).hasSize(13)
     assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
     assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
   }
@@ -81,7 +82,7 @@ class TextViewInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(12)
+    assertThat(util.inspector.lines).hasSize(13)
     assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
     val line = util.inspector.lines[10].editorModel as HorizontalEditorPanelModel
     assertThat(line.models).hasSize(3)
@@ -134,13 +135,13 @@ class TextViewInspectorBuilderTest {
     addRequiredProperties(util)
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(11)
+    assertThat(util.inspector.lines).hasSize(12)
     val title = util.inspector.lines[0]
     val textAppearance = util.inspector.lines[4]
     assertThat(title.expandable).isTrue()
     assertThat(title.expanded).isTrue()
     assertThat(title.childProperties)
-      .containsExactly(ATTR_TEXT, ATTR_TEXT, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE).inOrder()
+      .containsExactly(ATTR_TEXT, ATTR_TEXT, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE, ATTR_VISIBILITY).inOrder()
     assertThat(textAppearance.expandable).isTrue()
     assertThat(textAppearance.expanded).isFalse()
     assertThat(textAppearance.childProperties)
@@ -159,6 +160,7 @@ class TextViewInspectorBuilderTest {
     util.addFlagsProperty(ANDROID_URI, ATTR_TEXT_STYLE, listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC))
     util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NelePropertyType.THREE_STATE_BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
   }
 
   private fun addOptionalProperties(util: InspectorTestUtil) {
