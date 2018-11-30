@@ -121,7 +121,8 @@ public class AddArgumentDialog extends DialogWrapper {
 
       setName(getArgumentName(existing));
       setType(getTypeAttr(existing));
-      setNullable(getNullable(existing));
+      Boolean nullable = getNullable(existing);
+      setNullable(nullable != null && nullable);
       setDefaultValue(NavComponentHelperKt.getDefaultValue(existing));
       myOKAction.putValue(Action.NAME, "Update");
       setTitle("Update Argument Link");

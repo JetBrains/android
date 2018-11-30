@@ -155,7 +155,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     if (actionComponent.popUpTo != null) {
       builder.hasPop = true
     }
-    if (actionComponent.inclusive) {
+    if (actionComponent.inclusive == true) {
       builder.inclusive = true
     }
     builder.countFromSource = actionComponent.parent?.children?.count { it.isAction } ?: 0

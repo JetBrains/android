@@ -222,13 +222,13 @@ var NlComponent.layout: String? by StringAttributeDelegate(TOOLS_URI, ATTR_LAYOU
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
 var NlComponent.popUpTo: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
-var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
+var NlComponent.inclusive: Boolean? by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
 var NlComponent.popEnterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_ENTER_ANIM)
 var NlComponent.popExitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_EXIT_ANIM)
-var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
+var NlComponent.singleTop: Boolean? by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
 var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_ARG_TYPE)
 var NlComponent.defaultValue: String? by StringAttributeDelegate(ANDROID_URI, ATTR_DEFAULT_VALUE)
-var NlComponent.nullable: Boolean by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
+var NlComponent.nullable: Boolean? by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
 
 var NlComponent.startDestinationId: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
 
@@ -264,7 +264,7 @@ fun NlComponent.createAction(destinationId: String? = null, id: String? = null, 
   newAction.actionSetup()
   // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
   // we could update the id as a refactoring so references are also updated.
-  newAction.assignId(id ?: generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive))
+  newAction.assignId(id ?: generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive ?: false))
   return newAction
 }
 
@@ -327,7 +327,7 @@ private fun NlComponent.createChild(tagName: String): NlComponent {
 val NlComponent.effectiveDestinationId: String?
   get() {
     actionDestinationId?.let { return it }
-    return if (inclusive) null else popUpTo
+    return if (inclusive == true) null else popUpTo
   }
 
 /**
@@ -412,7 +412,7 @@ class NavComponentMixin(component: NlComponent)
   private val includeAttrs: Table<String, String, String>? by lazy(fun(): Table<String, String, String>? {
     val xmlFile = component.includeFile ?: return null
     val result: Table<String, String, String> = HashBasedTable.create()
-    xmlFile.rootTag?.attributes?.forEach { result.put(it.namespace, it.localName, it.value) }
+    xmlFile.rootTag?.attributes?.forEach { it.value?.let { value -> result.put(it.namespace, it.localName, value) } }
     return result
   })
 
