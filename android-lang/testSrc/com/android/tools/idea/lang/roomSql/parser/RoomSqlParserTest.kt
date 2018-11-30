@@ -395,7 +395,7 @@ class MiscParserTest : RoomSqlParserTest() {
             PsiElement(IDENTIFIER)('auto_vacuum')
           PsiElement(=)('=')
           RoomPragmaValueImpl(PRAGMA_VALUE)
-            PsiElement(IDENTIFIER)('FULL')
+            PsiElement(FULL)('FULL')
       """.trimIndent(),
       toParseTreeText("PRAGMA auto_vacuum=FULL")
     )
@@ -1737,6 +1737,104 @@ class ErrorMessagesTest : RoomSqlParserTest() {
                     PsiElement(END)('END')
       """.trimIndent(),
       toParseTreeText("SELECT CASE 1 AND 0 WHEN 1 THEN 'true' ELSE 'false' END")
+    )
+  }
+
+  fun testRowId() {
+    assertEquals(
+      """
+      FILE
+        RoomSelectStatementImpl(SELECT_STATEMENT)
+          RoomSelectCoreImpl(SELECT_CORE)
+            RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              RoomResultColumnsImpl(RESULT_COLUMNS)
+                RoomResultColumnImpl(RESULT_COLUMN)
+                  RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                    RoomColumnNameImpl(COLUMN_NAME)
+                      PsiElement(IDENTIFIER)('rowId')
+                PsiElement(comma)(',')
+                RoomResultColumnImpl(RESULT_COLUMN)
+                  PsiElement(*)('*')
+              RoomFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('FROM')
+                RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  RoomFromTableImpl(FROM_TABLE)
+                    RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('mail')
+      """.trimIndent(),
+      toParseTreeText("SELECT rowId, * FROM mail")
+    )
+
+    assertEquals(
+      """
+      FILE
+        RoomCreateTableStatementImpl(CREATE_TABLE_STATEMENT)
+          PsiElement(CREATE)('CREATE')
+          PsiElement(TABLE)('TABLE')
+          PsiElement(IF)('IF')
+          PsiElement(NOT)('NOT')
+          PsiElement(EXISTS)('EXISTS')
+          RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+            PsiElement(IDENTIFIER)('wordcount')
+          PsiElement(()('(')
+          RoomColumnDefinitionImpl(COLUMN_DEFINITION)
+            RoomColumnDefinitionNameImpl(COLUMN_DEFINITION_NAME)
+              PsiElement(IDENTIFIER)('word')
+            RoomTypeNameImpl(TYPE_NAME)
+              PsiElement(IDENTIFIER)('TEXT')
+            RoomColumnConstraintImpl(COLUMN_CONSTRAINT)
+              PsiElement(PRIMARY)('PRIMARY')
+              PsiElement(KEY)('KEY')
+              RoomConflictClauseImpl(CONFLICT_CLAUSE)
+                <empty list>
+          PsiElement(comma)(',')
+          RoomColumnDefinitionImpl(COLUMN_DEFINITION)
+            RoomColumnDefinitionNameImpl(COLUMN_DEFINITION_NAME)
+              PsiElement(IDENTIFIER)('cnt')
+            RoomTypeNameImpl(TYPE_NAME)
+              PsiElement(IDENTIFIER)('INTEGER')
+          PsiElement())(')')
+          PsiElement(WITHOUT)('WITHOUT')
+          PsiElement(IDENTIFIER)('ROWID')
+      """.trimIndent(),
+      toParseTreeText("CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT ROWID")
+    )
+
+    assertEquals(
+      """
+      FILE
+        RoomCreateTableStatementImpl(CREATE_TABLE_STATEMENT)
+          PsiElement(CREATE)('CREATE')
+          PsiElement(TABLE)('TABLE')
+          PsiElement(IF)('IF')
+          PsiElement(NOT)('NOT')
+          PsiElement(EXISTS)('EXISTS')
+          RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+            PsiElement(IDENTIFIER)('wordcount')
+          PsiElement(()('(')
+          RoomColumnDefinitionImpl(COLUMN_DEFINITION)
+            RoomColumnDefinitionNameImpl(COLUMN_DEFINITION_NAME)
+              PsiElement(IDENTIFIER)('word')
+            RoomTypeNameImpl(TYPE_NAME)
+              PsiElement(IDENTIFIER)('TEXT')
+            RoomColumnConstraintImpl(COLUMN_CONSTRAINT)
+              PsiElement(PRIMARY)('PRIMARY')
+              PsiElement(KEY)('KEY')
+              RoomConflictClauseImpl(CONFLICT_CLAUSE)
+                <empty list>
+          PsiElement(comma)(',')
+          RoomColumnDefinitionImpl(COLUMN_DEFINITION)
+            RoomColumnDefinitionNameImpl(COLUMN_DEFINITION_NAME)
+              PsiElement(IDENTIFIER)('cnt')
+            RoomTypeNameImpl(TYPE_NAME)
+              PsiElement(IDENTIFIER)('INTEGER')
+          PsiElement())(')')
+        PsiElement(WITHOUT)('WITHOUT')
+        PsiErrorElement:ROWID expected, got 'MADEUP'
+          PsiElement(IDENTIFIER)('MADEUP')
+      """.trimIndent(),
+      toParseTreeText("CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT MADEUP")
     )
   }
 }

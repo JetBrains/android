@@ -949,7 +949,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
   //   ( database_name '.' )? table_definition_name
-  //   ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS with_clause_select_statement )
+  //   ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement )
   public static boolean create_table_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement")) return false;
     if (!nextTokenIs(builder, CREATE)) return false;
@@ -1017,7 +1017,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS with_clause_select_statement
+  // '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement
   private static boolean create_table_statement_6(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement_6")) return false;
     boolean result;
@@ -1028,7 +1028,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )?
+  // '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )?
   private static boolean create_table_statement_6_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement_6_0")) return false;
     boolean result;
@@ -1087,19 +1087,20 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // ( WITHOUT ROWID )?
+  // ( WITHOUT "ROWID" )?
   private static boolean create_table_statement_6_0_5(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement_6_0_5")) return false;
     create_table_statement_6_0_5_0(builder, level + 1);
     return true;
   }
 
-  // WITHOUT ROWID
+  // WITHOUT "ROWID"
   private static boolean create_table_statement_6_0_5_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement_6_0_5_0")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeTokens(builder, 0, WITHOUT, ROWID);
+    result = consumeToken(builder, WITHOUT);
+    result = result && consumeToken(builder, "ROWID");
     exit_section_(builder, marker, null, result);
     return result;
   }
