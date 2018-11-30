@@ -24,7 +24,7 @@ import com.intellij.psi.xml.XmlAttribute
  * Extension point which providing methods related to extracting information from data binding
  * expressions.
  */
-interface DataBindingExpressionProvider {
+interface DataBindingExpressionSupport {
   /**
    * A data binding expression can optionally provide a default value, e.g. `@{..., default = xyz}`
    * Given an entire expression (including the surrounding `"@{}"`), return the default value, if
@@ -44,8 +44,8 @@ interface DataBindingExpressionProvider {
 /**
  * Returns null if no extension point implementation is found.
  */
-fun getDataBindingExpressionProvider(): DataBindingExpressionProvider? {
-  val extensionPoint: ExtensionPointName<DataBindingExpressionProvider> = ExtensionPointName(
-    "com.android.tools.idea.lang.databinding.dataBindingExpressionProvider")
+fun getDataBindingExpressionSupport(): DataBindingExpressionSupport? {
+  val extensionPoint: ExtensionPointName<DataBindingExpressionSupport> = ExtensionPointName(
+    "com.android.tools.idea.lang.databinding.dataBindingExpressionSupport")
   return extensionPoint.extensionList.firstOrNull()
 }

@@ -24,7 +24,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 /**
  * Extension point interface for providing utilities related to code completion.
  */
-interface DataBindingCompletionProvider {
+interface DataBindingCompletionSupport {
   /**
    * Used to suggest completions related to data-binding. This is used in the expressions ({@code @{...}}) and in the {@code <data>} tag.
    * Should be a no-op if no data binding plugin is enabled, or if any other conditions arise that makes completion impossible.
@@ -33,11 +33,11 @@ interface DataBindingCompletionProvider {
 }
 
 /**
- * Calls the first plugin's [DataBindingCompletionProvider.addCompletions].
- * No-op if data binding lang plugin isn't enabled, or if no extension point implementation is found.
+ * Calls the first plugin's [DataBindingCompletionSupport.addCompletions].
+ * No-op if no extension point implementation is found.
  */
 fun addCompletions(params: CompletionParameters, resultSet: CompletionResultSet) {
-  val extensionPoint: ExtensionPointName<DataBindingCompletionProvider> = ExtensionPointName(
-    "com.android.tools.idea.lang.databinding.dataBindingCompletionProvider")
+  val extensionPoint: ExtensionPointName<DataBindingCompletionSupport> = ExtensionPointName(
+    "com.android.tools.idea.lang.databinding.dataBindingCompletionSupport")
   extensionPoint.extensionList.first()?.addCompletions(params, resultSet)
 }

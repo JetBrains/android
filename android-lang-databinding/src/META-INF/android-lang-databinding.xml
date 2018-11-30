@@ -25,7 +25,7 @@
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.lang.databinding">
-    <dataBindingCompletionProvider implementation="com.android.tools.idea.lang.databinding.DataBindingCompletionProviderImpl"/>
-    <dataBindingExpressionProvider implementation="com.android.tools.idea.lang.databinding.DataBindingExpressionProviderImpl"/>
+    <dataBindingCompletionSupport implementation="com.android.tools.idea.lang.databinding.DataBindingCompletionSupportImpl"/>
+    <dataBindingExpressionSupport implementation="com.android.tools.idea.lang.databinding.DataBindingExpressionSupportImpl"/>
   </extensions>
 </idea-plugin>
