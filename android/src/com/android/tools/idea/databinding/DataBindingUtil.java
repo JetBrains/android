@@ -20,6 +20,8 @@ import static com.android.SdkConstants.ATTR_ALIAS;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lang.databinding.DataBindingExpressionProvider;
+import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
