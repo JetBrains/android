@@ -61,7 +61,9 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
       inspector.addComponent(custom, titleModel)
     }
 
-    for (propertyName in attributes) {
+    val effectiveAttributes = addCommonAttributes(attributes, properties)
+
+    for (propertyName in effectiveAttributes) {
       val property = findProperty(propertyName, properties)
       if (property != null) {
         inspector.addEditor(editorProvider.createEditor(property), titleModel)
@@ -90,12 +92,6 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
            ?: properties.getOrNull("", attrName)
   }
 
-  private fun getTagName(properties: PropertiesTable<NelePropertyItem>): String? {
-    val property = properties.first ?: return null
-    val tagName = property.components.firstOrNull()?.tagName ?: return null
-    return if (property.components.any { it.tagName == tagName }) tagName else null
-  }
-
   private fun getFirstComponent(properties: PropertiesTable<NelePropertyItem>): NlComponent? {
     return properties.first?.components?.firstOrNull()
   }
@@ -115,5 +111,15 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     val panel = handler?.customPanel ?: DummyCustomPanel.INSTANCE
     cachedCustomPanels[tagName] = panel
     return panel
+  }
+
+  private fun addCommonAttributes(attributes: List<String>, properties: PropertiesTable<NelePropertyItem>): List<String> {
+    if (attributes.contains(ATTR_VISIBILITY) && TextViewInspectorBuilder.isApplicable(properties)) {
+      return attributes
+    }
+    val modified = mutableListOf<String>()
+    modified.addAll(attributes)
+    modified.add(ATTR_VISIBILITY)
+    return modified
   }
 }

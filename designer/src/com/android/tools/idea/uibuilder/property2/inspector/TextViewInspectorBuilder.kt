@@ -62,6 +62,8 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_COLOR], textAppearanceLabel)
     addTextStyle(inspector, properties, textAppearanceLabel)
     addAlignment(inspector, properties, textAppearanceLabel)
+
+    addEditor(inspector, properties[ANDROID_URI, ATTR_VISIBILITY], textViewLabel)
   }
 
   private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
@@ -107,10 +109,6 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     return model to editor
   }
 
-  private fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
-    return properties.getByNamespace(ANDROID_URI).keys.containsAll(REQUIRED_PROPERTIES)
-  }
-
   private fun getDesignProperty(properties: PropertiesTable<NelePropertyItem>, attribute: String): NelePropertyItem {
     return properties.getOrNull(TOOLS_URI, attribute) ?: properties[ANDROID_URI, attribute].designProperty
   }
@@ -130,5 +128,9 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
       ATTR_TEXT_STYLE,
       ATTR_TEXT_ALL_CAPS,
       ATTR_TEXT_COLOR)
+
+    fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
+      return properties.getByNamespace(ANDROID_URI).keys.containsAll(REQUIRED_PROPERTIES)
+    }
   }
 }

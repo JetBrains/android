@@ -19,7 +19,6 @@ import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.PropertiesView
 import com.android.tools.idea.common.property2.api.Watermark
 import com.android.tools.idea.uibuilder.property2.inspector.AdvancedInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.ProgressBarInspectorBuilder
@@ -50,7 +49,6 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
     basic.builders.add(ViewInspectorBuilder(model.facet.module.project, editorProvider))
     basic.builders.add(TextViewInspectorBuilder(editorProvider))
     basic.builders.add(ProgressBarInspectorBuilder(editorProvider))
-    basic.builders.add(FavoritesInspectorBuilder(editorProvider))
     val advanced = addTab(ADVANCED_PAGE)
     advanced.builders.add(AdvancedInspectorBuilder(model, controlTypeProvider, editorProvider))
   }
