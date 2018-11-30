@@ -23,6 +23,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.continueOnEdt
 import com.android.tools.idea.gradle.structure.configurables.ui.handleFailureOnEdt
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
+import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer
+import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer
+import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -79,7 +82,14 @@ class PsContextImpl constructor(
       libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
     }
 
-    analyzerDaemon = PsAnalyzerDaemon(this, project, libraryUpdateCheckerDaemon)
+    analyzerDaemon = PsAnalyzerDaemon(
+      this,
+      project,
+      libraryUpdateCheckerDaemon,
+      analyzersMapOf(
+        PsAndroidModuleAnalyzer(this),
+        PsJavaModuleAnalyzer(this))
+    )
     if (!disableAnalysis) {
       analyzerDaemon.reset()
       project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
@@ -178,3 +188,6 @@ class PsContextImpl constructor(
   override fun PsPath.renderNavigation(specificPlace: PsPath): String =
     """<a href="${specificPlace.getHyperlinkDestination(this@PsContextImpl)}">${this@renderNavigation.toString()}</a>"""
 }
+
+private fun analyzersMapOf(vararg analyzers: PsModelAnalyzer<out PsModule>): Map<Class<*>, PsModelAnalyzer<out PsModule>> =
+  analyzers.associateBy { it.supportedModelType }
