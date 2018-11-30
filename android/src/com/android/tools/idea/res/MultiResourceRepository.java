@@ -318,7 +318,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
             if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
                 !seenQualifiers.containsEntry(name, qualifiers)) {
               // We only add a duplicate item if there isn't an item with the same qualifiers and it is
-              // not a styleable or an id. Styleables and ids and are allowed to be defined in multiple
+              // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
               // places even with the same qualifiers.
               map.put(name, item);
               seenQualifiers.put(name, qualifiers);
