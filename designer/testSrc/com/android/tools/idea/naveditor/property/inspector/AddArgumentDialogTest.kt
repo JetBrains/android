@@ -109,17 +109,17 @@ class AddArgumentDialogTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val dialog = AddArgumentDialog(fragment1.children[0], fragment1)
 
-    assertTrue(dialog.myDefaultValueComboBox.isVisible)
-    assertFalse(dialog.myDefaultValueTextField.isVisible)
+    assertTrue(dialog.myDialogUI.myDefaultValueComboBox.isVisible)
+    assertFalse(dialog.myDialogUI.myDefaultValueTextField.isVisible)
 
     for (t in listOf("integer", "long", "string", "reference", null)) {
       dialog.type = t
-      assertFalse(dialog.myDefaultValueComboBox.isVisible)
-      assertTrue(dialog.myDefaultValueTextField.isVisible)
+      assertFalse(dialog.myDialogUI.myDefaultValueComboBox.isVisible)
+      assertTrue(dialog.myDialogUI.myDefaultValueTextField.isVisible)
     }
     dialog.type = "boolean"
-    assertTrue(dialog.myDefaultValueComboBox.isVisible)
-    assertFalse(dialog.myDefaultValueTextField.isVisible)
+    assertTrue(dialog.myDialogUI.myDefaultValueComboBox.isVisible)
+    assertFalse(dialog.myDialogUI.myDefaultValueTextField.isVisible)
     dialog.close(0)
   }
 
@@ -134,13 +134,13 @@ class AddArgumentDialogTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val dialog = AddArgumentDialog(fragment1.children[0], fragment1)
 
-    assertTrue(dialog.myNullableCheckBox.isEnabled)
+    assertTrue(dialog.myDialogUI.myNullableCheckBox.isEnabled)
     dialog.type = "string"
-    assertTrue(dialog.myNullableCheckBox.isEnabled)
+    assertTrue(dialog.myDialogUI.myNullableCheckBox.isEnabled)
 
     for (t in listOf("integer", "long", "boolean", "reference", null)) {
       dialog.type = t
-      assertFalse(dialog.myNullableCheckBox.isEnabled)
+      assertFalse(dialog.myDialogUI.myNullableCheckBox.isEnabled)
     }
     dialog.close(0)
   }
