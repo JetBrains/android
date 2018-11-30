@@ -52,7 +52,7 @@ data class RoomTable(
   val nameElement: PsiElementPointer = psiClass,
 
   /** Columns present in the table representing this entity. */
-  val columns: Set<RoomColumn> = emptySet()
+  val columns: Set<SqlColumn> = emptySet()
 ) : SqlTable {
   override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
   override val definingElement: PsiElement get() = psiClass.element!!
@@ -68,7 +68,7 @@ data class RoomTable(
   }
 }
 
-data class RoomColumn(
+data class RoomFieldColumn(
   /** Field that defines this column. */
   val psiField: PsiFieldPointer,
 
@@ -81,6 +81,14 @@ data class RoomColumn(
   override val type: SqlType? get() = psiField.element?.type?.presentableText?.let(::JavaFieldSqlType)
   override val definingElement: PsiElement get() = psiField.element!!
   override val resolveTo: PsiElement get() = nameElement.element!!
+}
+
+data class RoomFtsColumn(
+  val psiClass: PsiClassPointer,
+  override val name: String
+) : SqlColumn {
+  override val type = FtsSqlType
+  override val definingElement: PsiElement get() = psiClass.element!!
 }
 
 data class Dao(val psiClass: PsiClassPointer)

@@ -16,8 +16,9 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.resolution.Dao
-import com.android.tools.idea.lang.roomSql.resolution.RoomColumn
 import com.android.tools.idea.lang.roomSql.resolution.RoomDatabase
+import com.android.tools.idea.lang.roomSql.resolution.RoomFieldColumn
+import com.android.tools.idea.lang.roomSql.resolution.RoomFtsColumn
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchema
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.android.tools.idea.lang.roomSql.resolution.RoomTable
@@ -284,7 +285,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
     assertThat(RoomSchemaManager.getInstance(project)!!.getSchema(psiClass.containingFile)).isNull()
   }
 
-  fun testColums() {
+  fun testColumns() {
     val user = myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
 
 
@@ -296,13 +297,13 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
               name = "User",
               type = ENTITY,
               columns = setOf(
-                      RoomColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
-                      RoomColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
+                RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                RoomFieldColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
           databases = emptySet(),
           daos = emptySet()))
   }
 
-  fun testColums_ignore() {
+  fun testColumns_ignore() {
     val user = myFixture.addClass(
         """
         package com.example;
@@ -324,12 +325,12 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
                     myFixture.classPointer("com.example.User"),
                     name = "User",
                     type = ENTITY,
-                    columns = setOf(RoomColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+                    columns = setOf(RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
           databases = emptySet(),
           daos = emptySet()))
   }
 
-  fun testColums_static() {
+  fun testColumns_static() {
     val user = myFixture.addClass(
         """
         package com.example;
@@ -351,12 +352,12 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
                     myFixture.classPointer("com.example.User"),
                     name = "User",
                     type = ENTITY,
-                    columns = setOf(RoomColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+                    columns = setOf(RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
           databases = emptySet(),
           daos = emptySet()))
   }
 
-  fun testColums_inheritance() {
+  fun testColumns_inheritance() {
     val psiClass = myFixture.addClass(
         """
         package com.example;
@@ -388,9 +389,43 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
                     name = "User",
                     type = ENTITY,
                     columns = setOf(
-                      RoomColumn(myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
-                      RoomColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
+                      RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
+                      RoomFieldColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
           databases = emptySet(),
           daos = emptySet()))
+  }
+  
+  fun testFts() {
+    val psiClass = myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      @Fts4
+      public class Mail {
+        String body;
+      }
+      """.trimIndent()
+    )
+
+    assertThat(getSchema(psiClass)).isEqualTo(
+      RoomSchema(
+        tables = setOf(
+          RoomTable(
+            myFixture.classPointer("com.example.Mail"),
+            name = "Mail",
+            type = ENTITY,
+            columns = setOf(
+              RoomFieldColumn(myFixture.fieldPointer("com.example.Mail", "body"), "body"),
+              RoomFtsColumn(myFixture.classPointer("com.example.Mail"), "Mail")
+            )
+          )),
+        databases = emptySet(),
+        daos = emptySet()
+      )
+    )
   }
 }
