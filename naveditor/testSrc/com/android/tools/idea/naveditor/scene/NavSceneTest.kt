@@ -786,9 +786,7 @@ class NavSceneTest : NavTestCase() {
       "DrawHorizontalAction,2,384.0x461.0x12.0x6.0,b2a7a7a7,false\n" +
       "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
       "DrawPlaceholder,5,401.0x401.0x74.5x126.0\n" +
-      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:127\n" +
-      "DrawFilledCircle,7,478.5x464.0,ff1886f7,2.5:2.5:0\n" +
-      "DrawActionHandleDrag,479,464\n" +
+      "DrawActionHandleDrag,8,478.5x464.0,0.0,3.5,2.5,127\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )

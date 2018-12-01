@@ -66,13 +66,6 @@ class SerializationTest : TestCase() {
       JBColor.WHITE), factory)
   }
 
-  fun testDrawActionHandleDrag() {
-    val factory = { s: String -> DrawActionHandleDrag(s) }
-
-    testSerialization("DrawActionHandleDrag,10,20", DrawActionHandleDrag(10, 20), factory)
-    testSerialization("DrawActionHandleDrag,30,50", DrawActionHandleDrag(30, 50), factory)
-  }
-
   fun testDrawTruncatedText() {
     val factory = { s: String -> DrawTruncatedText(s) }
 
@@ -220,6 +213,15 @@ class SerializationTest : TestCase() {
                                        11f, 12f, 13f, 14f, 15, Color.GREEN, Color.ORANGE), factory)
   }
 
+  fun testDrawActionHandleDrag() {
+    val factory = { s: String -> DrawActionHandleDrag(s) }
+
+    testSerialization("DrawActionHandleDrag,0,10.0x20.0,1.0,2.0,3.0,4", DrawActionHandleDrag(0, Point2D.Float(10f, 20f),
+                                                                         1f, 2f, 3f, 4), factory)
+    testSerialization("DrawActionHandleDrag,1,30.0x40.0,11.0,12.0,13.0,4", DrawActionHandleDrag(1, Point2D.Float(30f, 40f),
+                                                                         11f, 12f, 13f, 4), factory)
+  }
+
   fun testDrawHorizontalAction() {
     val factory = { s: String -> DrawHorizontalAction(s) }
 
@@ -228,6 +230,13 @@ class SerializationTest : TestCase() {
 
     testSerialization("DrawHorizontalAction,1,50.0x60.0x70.0x80.0,ff0000ff,true",
                       DrawHorizontalAction(1, Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE, true), factory)
+  }
+
+  fun testLineToMouse() {
+    val factory = { s: String -> DrawLineToMouse(s) }
+
+    testSerialization("DrawLineToMouse,0,10.0x20.0", DrawLineToMouse(0, Point2D.Float(10f, 20f)), factory)
+    testSerialization("DrawLineToMouse,0,30.0x40.0", DrawLineToMouse(0, Point2D.Float(30f, 40f)), factory)
   }
 
   companion object {
