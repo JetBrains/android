@@ -22,6 +22,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -168,11 +170,15 @@ public class NewInstantAppModuleTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
+    // Make sure minSdkVersion in the new module is the same with app module.
+    GradleBuildModel buildModel = ProjectBuildModel.get(ideFrame.getProject()).getModuleBuildModel(ideFrame.getModule("app"));
+    assertNotNull(buildModel);
+
     ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> configureAndroidModuleStep = newModuleWizardFixture
       .chooseModuleType("Instant App Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
-      .selectMinimumSdkApi("23");
+      .selectMinimumSdkApi(String.valueOf(buildModel.android().defaultConfig().minSdkVersion()));
 
     if (moduleName != null) {
       configureAndroidModuleStep.enterModuleName(moduleName);
