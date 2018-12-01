@@ -284,6 +284,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                   myProfiler::getDevices,
                                                   myProfiler::getDevice,
                                                   myProfiler::setDevice);
+      myProfiler.addDependency(this)
+                .onChange(ProfilerAspect.DEVICES,
+                          () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice(myProfiler.getDevice()));
       devices.bind();
       deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
@@ -292,6 +295,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                     myProfiler::getProcesses,
                                                     myProfiler::getProcess,
                                                     myProfiler::setProcess);
+      myProfiler.addDependency(this)
+                .onChange(ProfilerAspect.PROCESSES,
+                          () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
       processes.bind();
       processCombo.setRenderer(new ProcessComboBoxRenderer());
 
