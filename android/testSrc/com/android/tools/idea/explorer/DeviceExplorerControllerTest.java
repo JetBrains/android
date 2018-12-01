@@ -1629,7 +1629,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Check the file system tree is showing the first level of entries of the file system
     pumpEventsAndWaitForFuture(myMockView.getTreeModelChangedTracker().consume());
     pumpEventsAndWaitForFuture(myMockView.getTreeStructureChangedTacker().consume());
-    assertEquals(activeDevice.getRoot().getMockEntries().size(), rootEntry.getChildCount());
+    assertEquals("mock: " + activeDevice.getRoot().getMockEntries() + " rootEntry: " + rootEntry.getChildEntryNodes(),
+                 activeDevice.getRoot().getMockEntries().size(), rootEntry.getChildCount());
   }
 
   public void downloadFile(Runnable trigger) throws Exception {
