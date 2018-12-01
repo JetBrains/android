@@ -1,0 +1,1574 @@
+package org.jetbrains.android.dom
+
+import com.android.SdkConstants
+import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.res.addBinaryAarDependency
+import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.TargetElementUtil
+import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.codeInsight.documentation.DocumentationManager
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
+import com.intellij.lang.documentation.DocumentationProvider
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiJavaFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.spellchecker.inspections.SpellCheckingInspection
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.UsefulTestCase
+import junit.framework.TestCase
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
+import org.jetbrains.android.inspections.CreateFileResourceQuickFix
+import org.jetbrains.android.inspections.CreateValueResourceQuickFix
+import java.io.IOException
+import java.util.ArrayList
+import java.util.Arrays
+
+/**
+ * Tests semantic highlighting and completion in layout XML files.
+ */
+class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
+  @Language("JAVA")
+  private val recyclerView =
+      """
+      package android.support.v7.widget;
+
+      import android.widget.ViewGroup;
+
+      public class RecyclerView extends ViewGroup {
+        public abstract static class LayoutManager {
+        }
+      }
+
+      public class GridLayoutManager extends RecyclerView.LayoutManager {
+      }
+
+      public class LinearLayoutManager extends RecyclerView.LayoutManager {
+      }
+      """.trimIndent()
+
+  @Language("XML")
+  private val recyclerViewAttrs =
+      """
+      <resources>
+        <declare-styleable name="RecyclerView">
+          <attr name="layoutManager" format="string" />
+        </declare-styleable>
+      </resources>
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val myLayoutManager =
+      """
+      package p1.p2;
+
+      import android.support.v7.widget.LinearLayoutManager;
+
+      class MyLayoutManager extends LinearLayoutManager {
+      }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val restrictText =
+      """
+      package android.support.annotation;
+
+      import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+      import static java.lang.annotation.ElementType.CONSTRUCTOR;
+      import static java.lang.annotation.ElementType.FIELD;
+      import static java.lang.annotation.ElementType.METHOD;
+      import static java.lang.annotation.ElementType.PACKAGE;
+      import static java.lang.annotation.ElementType.TYPE;
+      import static java.lang.annotation.RetentionPolicy.CLASS;
+
+      import java.lang.annotation.Retention;
+      import java.lang.annotation.Target;
+
+      @Retention(CLASS)
+      @Target({ANNOTATION_TYPE,TYPE,METHOD,CONSTRUCTOR,FIELD,PACKAGE})
+      public @interface RestrictTo {
+        Scope[] value();
+
+        enum Scope {
+          LIBRARY,
+          LIBRARY_GROUP,
+          @Deprecated
+          GROUP_ID,
+          TESTS,
+          SUBCLASSES,
+        }
+      }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val protectedView =
+      """
+      package p1.p2;
+
+      import android.content.Context;
+      import android.widget.ImageView;
+
+      class MyAddedProtectedImageView extends ImageView {
+        MyAddedProtectedImageView(Context context) {
+          super(context);
+        }
+      }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val restrictedView =
+      """
+      package p1.p2;
+
+      import android.content.Context;
+      import android.support.annotation.RestrictTo;
+      import android.widget.ImageView;
+
+      @RestrictTo(RestrictTo.Scope.SUBCLASSES)
+      public class MyAddedHiddenImageView extends ImageView {
+        public MyAddedHiddenImageView(Context context) {
+          super(context);
+        }
+      }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val view =
+      """
+      package p1.p2;
+
+      import android.content.Context;
+      import android.widget.ImageView;
+
+      public class MyAddedImageView extends ImageView {
+        public MyAddedImageView(Context context) {
+          super(context);
+        }
+      }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val innerClass =
+      """
+      package p1.p2;
+
+      import android.content.Context;
+      import android.widget.ImageView;
+      import android.widget.LinearLayout;
+      import android.widget.TextView;
+
+      public class MyImageView extends ImageView {
+        public MyImageView(Context context) {
+          super(context);
+        }
+        public static class MyTextView extends TextView {
+          public MyTextView(Context context) {
+            super(context);
+          }
+        }
+        public static class MyLinearLayout extends LinearLayout {
+          public MyLinearLayout(Context context) {
+            super(context);
+          }
+        }
+      }
+      """.trimIndent()
+
+  override fun providesCustomManifest(): Boolean {
+    return true
+  }
+
+  override fun setUp() {
+    super.setUp()
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
+  }
+
+  override fun getPathToCopy(testFileName: String): String {
+    return "res/layout/$testFileName"
+  }
+
+  fun testAttributeNameCompletion1() {
+    doTestCompletionVariants("an1.xml", "layout_weight", "layout_width")
+  }
+
+  fun testAttributeNameCompletion2() {
+    toTestCompletion("an2.xml", "an2_after.xml")
+  }
+
+  fun testAttributeNameCompletion3() {
+    toTestCompletion("an3.xml", "an3_after.xml")
+  }
+
+  fun testAttributeNameCompletion4() {
+    toTestCompletion("an4.xml", "an4_after.xml")
+  }
+
+  fun testAttributeNameCompletion5() {
+    toTestCompletion("an5.xml", "an5_after.xml")
+  }
+
+  fun testAttributeNameCompletion6() {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("an6.xml"))
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type("\n")
+    myFixture.checkResultByFile("$myTestFolder/an6_after.xml")
+  }
+
+  fun testAttributeNameCompletion7() {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("an7.xml"))
+    myFixture.complete(CompletionType.BASIC)
+    val lookupElementStrings = myFixture.lookupElementStrings!!.subList(0, 5)
+    UsefulTestCase.assertSameElements(
+      lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
+      "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft")
+  }
+
+  fun testOpenDrawerAttributeNameCompletion() {
+    // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
+    myFixture.copyFileToProject("$myTestFolder/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java")
+    toTestCompletion("drawer_layout.xml", "drawer_layout_after.xml")
+  }
+
+  // Deprecated attributes should be crossed out in the completion
+  // This test specifically checks for "android:editable" attribute on TextView
+  fun testDeprecatedAttributeNamesCompletion() {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("text_view_editable.xml"))
+    myFixture.complete(CompletionType.BASIC)
+
+    // LookupElement that corresponds to "android:editable" attribute
+    var editableElement: LookupElement? = null
+    for (element in myFixture.lookupElements!!) {
+      if ("android:editable" == element.lookupString) {
+        editableElement = element
+      }
+    }
+
+    TestCase.assertEquals("android:editable", editableElement!!.lookupString)
+    val presentation = LookupElementPresentation()
+    editableElement.renderElement(presentation)
+    TestCase.assertTrue(presentation.isStrikeout)
+  }
+
+  // "conDes" is completed to "android:contentDescription", "xmlns:android" with right value is inserted
+  fun testAutoAddNamespaceCompletion() {
+    toTestCompletion("android_content.xml", "android_content_after.xml")
+  }
+
+  // "tools:" inside tag should autocomplete to available tools attributes, only "tools:targetApi" in this case
+  fun testToolsPrefixedAttributeCompletion() {
+    toTestCompletion("tools_namespace_attrs.xml", "tools_namespace_attrs_after.xml")
+  }
+
+  // ListView has some specific autocompletion attributes, like "listfooter", they should be autocompleted as well
+  fun testToolsListViewAttributes() {
+    doTestCompletionVariantsContains("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader",
+                                     "tools:listitem")
+  }
+
+  // tools:targetApi values are autocompleted
+  fun testTargetApiValueCompletion() {
+    doTestCompletionVariants("tools_targetapi.xml", "HONEYCOMB", "HONEYCOMB_MR1", "HONEYCOMB_MR2")
+  }
+
+  // test @tools:sample datasources completion
+  fun testToolsSampleCompletion() {
+    doTestCompletionVariantsContains("tools_sample_completion.xml", "@tools:sample/full_names", "@tools:sample/lorem")
+  }
+
+  fun testToolsSampleHighlighting() {
+    doTestHighlighting(getTestName(true) + ".xml")
+  }
+
+  // "-1" is not a valid tools:targetApi value
+  fun testTargetApiErrorMessage1() {
+    doTestHighlighting("tools_targetapi_error1.xml")
+  }
+
+  // "apple_pie" is not a valid tools:targetApi value as well
+  fun testTargetApiErrorMessage2() {
+    doTestHighlighting("tools_targetapi_error2.xml")
+  }
+
+  // Designtime attributes completion is showing completion variants
+  fun testDesigntimeAttributesCompletion() {
+    doTestCompletionVariants("tools_designtime_completion.xml", "src", "nextFocusRight")
+  }
+
+  // Designtime attributes completion is completing attribute names correctly
+  fun testDesigntimeAttributesCompletion2() {
+    toTestFirstCompletion("tools_designtime_completion_background.xml",
+                          "tools_designtime_completion_background_after.xml")
+  }
+
+  fun testToolsUseHandlerAttribute() {
+    doTestCompletionVariants("tools_use_handler_completion.xml", "android.view.TextureView",
+                             "android.widget.AutoCompleteTextView",
+                             "android.widget.CheckedTextView",
+                             "android.widget.MultiAutoCompleteTextView",
+                             "android.widget.TextView")
+  }
+
+  // fontFamily attribute values are autocompleted
+  fun testFontFamilyCompletion() {
+    doTestCompletionVariants("text_view_font_family.xml", "monospace", "serif-monospace")
+  }
+
+  fun testCommonPrefixIdea63531() {
+    val file = copyFileToProject("commonPrefixIdea63531.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "commonPrefixIdea63531_after.xml")
+  }
+
+  fun testHighlighting() {
+    doTestHighlighting("hl.xml")
+  }
+
+  fun testHighlighting2() {
+    copyFileToProject("integers.xml", "res/values/integers.xml")
+    doTestHighlighting("hl2.xml")
+  }
+
+  fun testWrongEnumValuesHighlighting() {
+    doTestHighlighting("wrong_enum_value.xml")
+  }
+
+  fun testTableRowRootTag() {
+    doTestHighlighting()
+  }
+
+  fun testCheckLayoutAttrs() {
+    doTestHighlighting("layoutAttrs.xml")
+  }
+
+  fun testCheckLayoutAttrs1() {
+    doTestHighlighting("layoutAttrs1.xml")
+  }
+
+  fun testCheckLayoutAttrs1_appStyleable() {
+    // Having a styleable in res-auto that references a framework attr may cause AttributeDefinitions to be wrong. See b/111547198.
+    copyFileToProject("layoutAttrs1_styleable.xml", "res/values/styleable.xml")
+    doTestHighlighting("layoutAttrs1.xml")
+  }
+
+  fun testCheckLayoutAttrs2() {
+    doTestHighlighting("layoutAttrs2.xml")
+  }
+
+  fun testCheckLayoutAttrs3() {
+    doTestHighlighting("layoutAttrs3.xml")
+  }
+
+  fun testUnknownAttribute() {
+    doTestHighlighting("hl1.xml")
+  }
+
+  fun testMissingRequired() {
+    doTestHighlighting("missing_attrs.xml")
+  }
+
+  fun testLayoutManagerAttribute() {
+    // RecyclerView has a "layoutManager" attribute that should give completions that extend
+    // the RecyclerView.LayoutManager class.
+    myFixture.addClass(recyclerView)
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
+    doTestCompletionVariants("recycler_view.xml",
+                             "android.support.v7.widget.GridLayoutManager",
+                             "android.support.v7.widget.LinearLayoutManager")
+  }
+
+  fun testLayoutManagerAttributeHighlighting() {
+    // Check the highlighting of the "layoutManager" attribute values for a RecyclerView.
+    myFixture.addClass(recyclerView)
+    myFixture.addClass(myLayoutManager)
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
+    doTestHighlighting("recycler_view_1.xml")
+  }
+
+  fun testCustomTagCompletion() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("ctn.xml", "ctn_after.xml")
+  }
+
+  fun testCustomTagCompletion0() {
+    val labelViewJava = copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+
+    val lf1 = myFixture.copyFileToProject(myTestFolder + '/'.toString() + "ctn0.xml", "res/layout/layout1.xml")
+    myFixture.configureFromExistingVirtualFile(lf1)
+    myFixture.complete(CompletionType.BASIC)
+    var variants = myFixture.lookupElementStrings
+    TestCase.assertTrue(variants!!.contains("p1.p2.LabelView"))
+
+    val psiLabelViewFile = PsiManager.getInstance(project).findFile(labelViewJava)
+    UsefulTestCase.assertInstanceOf(psiLabelViewFile, PsiJavaFile::class.java)
+    myFixture.renameElement((psiLabelViewFile as PsiJavaFile).classes[0], "LabelView1")
+
+    val lf2 = myFixture.copyFileToProject(myTestFolder + '/'.toString() + "ctn0.xml", "res/layout/layout2.xml")
+    myFixture.configureFromExistingVirtualFile(lf2)
+    myFixture.complete(CompletionType.BASIC)
+    variants = myFixture.lookupElementStrings
+    TestCase.assertFalse(variants!!.contains("p1.p2.LabelView"))
+    TestCase.assertTrue(variants.contains("p1.p2.LabelView1"))
+
+    WriteCommandAction.runWriteCommandAction(null) {
+      try {
+        labelViewJava.delete(null)
+      }
+      catch (e: IOException) {
+        throw RuntimeException(e)
+      }
+    }
+
+    val lf3 = myFixture.copyFileToProject(myTestFolder + '/'.toString() + "ctn0.xml", "res/layout/layout3.xml")
+    myFixture.configureFromExistingVirtualFile(lf3)
+    myFixture.complete(CompletionType.BASIC)
+    variants = myFixture.lookupElementStrings
+    TestCase.assertFalse(variants!!.contains("p1.p2.LabelView"))
+    TestCase.assertFalse(variants.contains("p1.p2.LabelView1"))
+  }
+
+  fun testCustomTagCompletion1() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
+    copyFileToProject("IncorrectView.java", "src/p1/p2/IncorrectView.java")
+    doTestCompletionVariants("ctn1.xml", "p2.LabelView", "p2.LabelView1")
+  }
+
+  fun testCustomTagCompletion2() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    val file = copyFileToProject("ctn2.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type("p1\n")
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "ctn2_after.xml")
+  }
+
+  fun testCustomTagCompletion3() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("ctn3.xml", "ctn3_after.xml")
+  }
+
+  fun testCustomTagCompletion4() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    doTestCompletionVariants("ctn4.xml", "LabelView")
+  }
+
+  fun testCustomTagCompletion5() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    val file = copyFileToProject("ctn5.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type("p1\n")
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "ctn5_after.xml")
+  }
+
+  fun testCustomTagCompletion6() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("ctn6.xml", "ctn6_after.xml")
+  }
+
+  fun testCustomTagCompletion7() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("ctn7.xml", "ctn6_after.xml")
+  }
+
+  fun testCustomTagCompletion8() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
+    doTestCompletionVariants("ctn8.xml", "LabelView")
+  }
+
+  fun testCustomTagCompletion9() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("ctn9.xml", "ctn9_after.xml")
+  }
+
+  fun testCustomTagCompletion10() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
+    doTestCompletionVariants("ctn10.xml", "LabelView")
+  }
+
+  fun testCustomAttributeNameCompletion() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    doTestCompletionVariants("can.xml", "text", "textColor", "textSize")
+  }
+
+  fun testCustomAttributeNameCompletion1() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    doTestCompletionVariants("can1.xml",
+                             "context", "contextClickable", "text", "textAlignment", "textColor", "textDirection", "textSize",
+                             "tooltipText")
+  }
+
+  fun testCustomAttributeNameCompletion2() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    val file = copyFileToProject("can2.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type("text")
+
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+        "android:contextClickable", "android:textAlignment", "android:textDirection", "android:tooltipText", "text", "textColor",
+        "textSize")
+  }
+
+  fun testCustomAttributeNameCompletion3() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("can3.xml", "can3_after.xml")
+  }
+
+  fun testCustomAttributeNameCompletion4() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("can4.xml", "can4_after.xml")
+  }
+
+  fun testCustomAttributeNameCompletion5() {
+    myFacet.configuration.projectType = PROJECT_TYPE_LIBRARY
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    toTestCompletion("can5.xml", "can5_after.xml")
+  }
+
+  fun testToolsAttributesCompletion() {
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity.java", "src/p1/p2/Activity1.java")
+    // Create layout that we will use to test the layout completion
+    myFixture.copyFileToProject("$myTestFolder/tools_context_completion_after.xml", "res/layout/other_layout.xml")
+    toTestFirstCompletion("tools_context_completion.xml", "tools_context_completion_after.xml")
+    toTestCompletion("tools_showIn_completion.xml", "tools_showIn_completion_after.xml")
+    toTestCompletion("tools_parentTag_completion.xml", "tools_parentTag_completion_after.xml")
+  }
+
+  fun testCustomAttributeValueCompletion() {
+    doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2")
+  }
+
+  fun testIdea64993() {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
+    doTestHighlighting()
+  }
+
+  fun testTagNameCompletion1() {
+    val file = copyFileToProject("tn1.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type('\n')
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "tn1_after.xml")
+  }
+
+  fun testFlagCompletion() {
+    doTestCompletionVariants("av1.xml", "center", "center_horizontal", "center_vertical")
+    doTestCompletionVariants("av2.xml", "fill_horizontal", "fill_vertical")
+  }
+
+  fun testFlagCompletion1() {
+    doTestCompletionVariants("flagCompletion1.xml", "center", "center_horizontal", "center_vertical", "center|bottom",
+                             "center|center_horizontal", "center|center_vertical", "center|clip_horizontal", "center|clip_vertical",
+                             "center|end", "center|fill", "center|fill_horizontal", "center|fill_vertical", "center|left",
+                             "center|right", "center|start", "center|top")
+  }
+
+  fun testFlagCompletion2() {
+    doTestCompletionVariants("flagCompletion2.xml", "center", "center_horizontal", "center_vertical", "center|center_horizontal",
+                             "center|center_vertical", "center|clip_horizontal", "center|clip_vertical", "center|end", "center|fill",
+                             "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|start",
+                             "center|top")
+    myFixture.type("|fill")
+
+    assertThat(myFixture.lookupElementStrings).containsExactly("center|fill", "center|fill_horizontal", "center|fill_vertical")
+  }
+
+  fun testResourceCompletion() {
+    doTestCompletionVariantsContains("av3.xml", "@color/color0", "@color/color1", "@android:", "@drawable/picture2", "@drawable/picture1")
+    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen",
+                                     "@drawable/picture1", "@layout/av3", "@layout/av8", "@string/itStr", "@string/hello", "@style/style1")
+  }
+
+  fun testLocalResourceCompletion1() {
+    doTestCompletionVariants("av4.xml", "@color/color0", "@color/color1", "@color/color2")
+  }
+
+  fun testLocalResourceCompletion2() {
+    doTestCompletionVariants("av5.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3", "@drawable/cdrawable")
+  }
+
+  fun testLocalResourceCompletion3() {
+    doTestCompletionVariants("av7.xml", "@android:", "@string/hello", "@string/hello1", "@string/welcome", "@string/welcome1",
+                             "@string/itStr")
+  }
+
+  fun testLocalResourceCompletion4() {
+    doTestCompletionVariants("av7.xml", "@android:", "@string/hello", "@string/hello1", "@string/welcome", "@string/welcome1",
+                             "@string/itStr")
+  }
+
+  fun testLocalResourceCompletion5() {
+    doTestCompletionVariants("av12.xml", "@android:", "@anim/anim1", "@anim/anim2")
+  }
+
+  fun testLocalResourceCompletion6() {
+    doTestCompletionVariants("av14.xml", "@android:", "@color/color0", "@color/color1", "@color/color2", "@drawable/cdrawable",
+                             "@drawable/picture1", "@drawable/picture2", "@drawable/picture3")
+  }
+
+  fun testForceLocalResourceCompletion() {
+    // No system colors are suggested as completion.
+    doTestCompletionVariants("av13.xml", "@color/color0", "@color/color1", "@color/color2")
+  }
+
+  fun testSystemResourceCompletion() {
+    doTestCompletionVariantsContains("av6.xml", "@android:color/primary_text_dark", "@android:drawable/menuitem_background")
+  }
+
+  fun testCompletionSpecialCases() {
+    doTestCompletionVariants("av9.xml", "@string/hello", "@string/hello1")
+  }
+
+  fun testLayoutAttributeValuesCompletion() {
+    doTestCompletionVariants("av10.xml", "fill_parent", "match_parent", "wrap_content", "@android:", "@dimen/myDimen")
+    doTestCompletionVariants("av11.xml", "center", "center_horizontal", "center_vertical")
+    doTestCompletionVariants("av15.xml", "horizontal", "vertical")
+  }
+
+  fun testFloatAttributeValuesCompletion() {
+    copyFileToProject("myIntResource.xml", "res/values/myIntResource.xml")
+    doTestCompletionVariants("floatAttributeValues.xml", "@android:", "@integer/my_integer")
+  }
+
+  fun testDrawerLayoutOpenDrawerCompletion() {
+    // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
+    myFixture.copyFileToProject("$myTestFolder/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java")
+    doTestCompletionVariants("drawer_layout_attr_completion.xml", "start", "end", "left", "right")
+  }
+
+  fun testTagNameCompletion2() {
+    val file = copyFileToProject("tn2.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.assertPreferredCompletionItems(0, "EditText", "ExpandableListView", "android.inputmethodservice.ExtractEditText")
+  }
+
+  fun testTagNameCompletion3() {
+    doTestCompletionVariants("tn3.xml", "ActionMenuView", "AdapterViewFlipper", "AutoCompleteTextView", "CalendarView", "CheckedTextView",
+                             "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "ListView", "MultiAutoCompleteTextView",
+                             "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
+                             "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
+                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
+                             "android.opengl.GLSurfaceView")
+  }
+
+  /*public void testTagNameCompletion4() throws Throwable {
+    toTestCompletion("tn4.xml", "tn4_after.xml");
+  }*/
+
+  fun testTagNameCompletion5() {
+    toTestFirstCompletion("tn5.xml", "tn5_after.xml")
+  }
+
+  fun testTagNameCompletion6() {
+    val file = copyFileToProject("tn6.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+
+    TestCase.assertFalse(myFixture.lookupElementStrings!!.contains("android.widget.Button"))
+  }
+
+  fun testTagNameCompletion7() {
+    toTestCompletion("tn7.xml", "tn7_after.xml")
+  }
+
+  fun testTagNameCompletion8() {
+    val file = copyFileToProject("tn8.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+
+    TestCase.assertTrue(myFixture.lookupElementStrings!!.contains("widget.Button"))
+  }
+
+  fun testTagNameCompletion9() {
+    toTestCompletion("tn9.xml", "tn9_after.xml")
+  }
+
+  fun testTagNameCompletion10() {
+    val file = copyFileToProject("tn10.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+
+    TestCase.assertFalse(myFixture.lookupElementStrings!!.contains("android.widget.Button"))
+  }
+
+  fun testTagNameCompletion11() {
+    toTestCompletion("tn11.xml", "tn11_after.xml")
+  }
+
+  fun testDeprecatedTagsAreLastInCompletion() {
+    val file = copyFileToProject("tagName_letter_G.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+
+    // Gallery is deprecated and thus should be the last in completion list
+    myFixture.assertPreferredCompletionItems(0, "GridLayout", "GridView", "android.gesture.GestureOverlayView",
+                                             "android.opengl.GLSurfaceView", "Gallery")
+  }
+
+  // Completion by simple class name in layouts should work, inserting fully-qualified names
+  // http://b.android.com/179380
+  fun testTagNameCompletionBySimpleName() {
+    toTestCompletion("tn13.xml", "tn13_after.xml")
+  }
+
+  // Test that support library component alternatives are pushed higher in completion
+  fun testSupportLibraryCompletion() {
+    myFixture.copyFileToProject("$myTestFolder/GridLayout.java", "src/android/support/v7/widget/GridLayout.java")
+    val file = copyFileToProject("tn14.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    val completionResult = myFixture.lookupElementStrings
+
+    // Check the elements are in the right order
+    TestCase.assertEquals("android.support.v7.widget.GridLayout", completionResult!![0])
+    TestCase.assertEquals("GridLayout", completionResult[1])
+  }
+
+  // Test android:layout_width and android:layout_height highlighting for framework and library layouts
+  fun testWidthHeightHighlighting() {
+    // For unit tests there are no support libraries, copy dummy classes that imitate support library ones
+    myFixture.copyFileToProject("$myTestFolder/PercentRelativeLayout.java", "src/android/support/percent/PercentRelativeLayout.java")
+    myFixture.copyFileToProject("$myTestFolder/PercentFrameLayout.java", "src/android/support/percent/PercentFrameLayout.java")
+
+    doTestHighlighting("dimensions_layout.xml")
+  }
+
+  fun testTagNameIcons1() {
+    doTestTagNameIcons("tn10.xml")
+  }
+
+  fun testTagNameIcons2() {
+    doTestTagNameIcons("tn12.xml")
+  }
+
+  private fun doTestTagNameIcons(fileName: String) {
+    val file = copyFileToProject(fileName)
+    myFixture.configureFromExistingVirtualFile(file)
+    val elements = myFixture.complete(CompletionType.BASIC)
+    val elementsToCheck = HashSet(Arrays.asList(
+      "view", "include", "requestFocus", "fragment", "Button"))
+
+    for (element in elements) {
+      val s = element.lookupString
+      val obj = element.getObject()
+
+      if (elementsToCheck.contains(s)) {
+        val presentation = LookupElementPresentation()
+        element.renderElement(presentation)
+        TestCase.assertNotNull("no icon for element: $element", presentation.icon)
+
+        if ("Button" == s) {
+          UsefulTestCase.assertInstanceOf(obj, PsiClass::class.java)
+        }
+      }
+    }
+  }
+
+  fun testIdCompletion1() {
+    doTestCompletionVariants("idcompl1.xml", "@android:", "@+id/")
+  }
+
+  fun testIdCompletion2() {
+    doTestCompletionVariantsContains("idcompl2.xml",
+                                     "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
+                                     "@android:id/selectTextMode", "@android:id/startSelectingText", "@android:id/stopSelectingText")
+  }
+
+  fun testNestedScrollView() {
+    myFixture.copyFileToProject("$myTestFolder/NestedScrollView.java", "src/android/support/v4/widget/NestedScrollView.java")
+    toTestCompletion("nestedScrollView.xml", "nestedScrollView_after.xml")
+  }
+
+  fun testExtendedNestedScrollView() {
+    myFixture.copyFileToProject("$myTestFolder/NestedScrollView.java", "src/android/support/v4/widget/NestedScrollView.java")
+    myFixture.copyFileToProject("$myTestFolder/ExtendedNestedScrollView.java", "src/p1/p2/ExtendedNestedScrollView.java")
+    toTestCompletion("extendedNestedScrollView.xml", "extendedNestedScrollView_after.xml")
+  }
+
+  fun testNewIdCompletion1() {
+    toTestCompletion("newIdCompl1.xml", "newIdCompl1_after.xml")
+  }
+
+  fun testNewIdCompletion2() {
+    toTestCompletion("newIdCompl2.xml", "newIdCompl2_after.xml")
+  }
+
+  fun testIdHighlighting() {
+    doTestHighlighting("idh.xml")
+  }
+
+  fun testIdHighlighting1() {
+    val virtualFile = copyFileToProject("idh.xml", "res/layout-large/idh.xml")
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.checkHighlighting(true, false, false)
+  }
+
+  fun testStyleNamespaceHighlighting() {
+    val virtualFile = copyFileToProject("stylesNamespaceHighlight.xml", "res/values/stylesNamespaceHighlight.xml")
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.checkHighlighting(true, false, false)
+  }
+
+  // Regression test for http://b.android.com/175619
+  fun testStyleShortNameCompletion() {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("StyleNameCompletion_layout.xml", "res/layout/layout.xml"))
+    copyFileToProject("StyleNameCompletion_style.xml", "res/values/styles.xml")
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.checkResultByFile("$myTestFolder/StyleNameCompletion_layout_after.xml")
+  }
+
+  fun testIdReferenceCompletion() {
+    toTestCompletion("idref1.xml", "idref1_after.xml")
+  }
+
+  fun testSystemIdReferenceCompletion() {
+    toTestCompletion("idref2.xml", "idref2_after.xml")
+  }
+
+  fun testSystemResourcesHighlighting() {
+    doTestHighlighting("systemRes.xml")
+  }
+
+  fun testViewClassCompletion() {
+    toTestCompletion("viewclass.xml", "viewclass_after.xml")
+  }
+
+  fun testViewElementHighlighting() {
+    doTestHighlighting()
+  }
+
+  fun testPrimitiveValues() {
+    doTestHighlighting("primValues.xml")
+  }
+
+  fun testTableCellAttributes() {
+    toTestCompletion("tableCell.xml", "tableCell_after.xml")
+  }
+
+  fun testTextViewRootTag_IDEA_62889() {
+    doTestCompletionVariants("textViewRootTag.xml", "AutoCompleteTextView", "CheckedTextView", "MultiAutoCompleteTextView", "TextView",
+                             "TextureView")
+  }
+
+  fun testRequestFocus() {
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testMerge() {
+    doTestHighlighting("merge.xml")
+  }
+
+  fun testMerge1() {
+    doTestCompletion()
+  }
+
+  fun testMerge2() {
+    doTestCompletion()
+  }
+
+  fun testMerge3() {
+    doTestHighlighting()
+  }
+
+  fun testFragmentHighlighting() {
+    copyFileToProject("MyFragmentActivity.java", "src/p1/p2/MyFragmentActivity.java")
+    doTestHighlighting(getTestName(true) + ".xml")
+  }
+
+  fun testFragmentHighlighting1() {
+    copyFileToProject("MyFragmentActivity.java", "src/p1/p2/MyFragmentActivity.java")
+    doTestHighlighting(getTestName(true) + ".xml")
+  }
+
+  fun testFragmentCompletion1() {
+    copyFileToProject("MyFragmentActivity.java", "src/p1/p2/MyFragmentActivity.java")
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testFragmentCompletion2() {
+    toTestFirstCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testFragmentCompletion3() {
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testFragmentCompletion4() {
+    copyFileToProject("MyFragmentActivity.java", "src/p1/p2/MyFragmentActivity.java")
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testFragmentCompletion5() {
+    toTestFirstCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testFragmentCompletion6() {
+    val file = copyFileToProject(getTestName(true) + ".xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type('\n')
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + getTestName(true) + "_after.xml")
+  }
+
+  fun testFragmentCompletion7() {
+    doTestCompletionVariants("fragmentCompletion7.xml",
+                             "tools:layout",
+                             "tools:targetApi")
+  }
+
+  fun testCustomAttrsPerformance() {
+    myFixture.copyFileToProject("dom/resources/bigfile.xml", "res/values/bigfile.xml")
+    myFixture.copyFileToProject("dom/resources/bigattrs.xml", "res/values/bigattrs.xml")
+    myFixture.copyFileToProject("dom/resources/bigattrs.xml", "res/values/bigattrs1.xml")
+    myFixture.copyFileToProject("dom/resources/bigattrs.xml", "res/values/bigattrs2.xml")
+    myFixture.copyFileToProject("dom/resources/bigattrs.xml", "res/values/bigattrs3.xml")
+    val f = copyFileToProject("bigfile.xml")
+    myFixture.configureFromExistingVirtualFile(f)
+
+    PlatformTestUtil.startPerformanceTest("android custom attrs highlighting", 800) { myFixture.doHighlighting() }.attempts(
+      2).usesAllCPUCores().assertTiming()
+  }
+
+  fun testSupportGridLayoutCompletion() {
+    myFixture.copyFileToProject("dom/layout/GridLayout.java", "src/android/support/v7/widget/GridLayout.java")
+    myFixture.copyFileToProject("dom/resources/attrs_gridlayout.xml", "res/values/attrs_gridlayout.xml")
+    doTestCompletionVariants(getTestName(true) + ".xml", "rowCount", "rowOrderPreserved")
+  }
+
+  fun testSupportGridLayoutCompletion2() {
+    myFixture.copyFileToProject("dom/layout/GridLayout.java", "src/android/support/v7/widget/GridLayout.java")
+    myFixture.copyFileToProject("dom/resources/attrs_gridlayout.xml", "res/values/attrs_gridlayout.xml")
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
+  }
+
+  fun testViewClassReference() {
+    val file = myFixture.copyFileToProject("$myTestFolder/vcr.xml", getPathToCopy("vcr.xml"))
+    myFixture.configureFromExistingVirtualFile(file)
+    val psiFile = myFixture.file
+    val text = psiFile.text
+    val rootOffset = text.indexOf("ScrollView")
+    val rootViewClass = psiFile.findReferenceAt(rootOffset)!!.resolve()
+    TestCase.assertTrue("Must be PsiClass reference", rootViewClass is PsiClass)
+    val childOffset = text.indexOf("LinearLayout")
+    val childViewClass = psiFile.findReferenceAt(childOffset)!!.resolve()
+    TestCase.assertTrue("Must be PsiClass reference", childViewClass is PsiClass)
+  }
+
+  fun testViewClassReference1() {
+    val file = myFixture.copyFileToProject("$myTestFolder/vcr1.xml", getPathToCopy("vcr1.xml"))
+    myFixture.testHighlighting(true, false, true, file)
+  }
+
+  fun testViewClassReference2() {
+    val file = myFixture.copyFileToProject("$myTestFolder/vcr2.xml", getPathToCopy("vcr2.xml"))
+    myFixture.configureFromExistingVirtualFile(file)
+    val psiFile = myFixture.file
+    val text = psiFile.text
+    val rootOffset = text.indexOf("ScrollView")
+
+    val rootViewClass = psiFile.findReferenceAt(rootOffset)!!.resolve()
+    TestCase.assertTrue("Must be PsiClass reference", rootViewClass is PsiClass)
+  }
+
+  fun testOnClickCompletion() {
+    copyOnClickClasses()
+    doTestCompletionVariants(getTestName(true) + ".xml", "clickHandler1", "clickHandler7")
+  }
+
+  fun testOnClickHighlighting() {
+    myFixture.allowTreeAccessForAllFiles()
+    copyOnClickClasses()
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    doTestHighlighting()
+  }
+
+  fun testOnClickHighlighting1() {
+    myFixture.allowTreeAccessForAllFiles()
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity3.java", "src/p1/p2/Activity1.java")
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity4.java", "src/p1/p2/Activity2.java")
+    doTestHighlighting()
+  }
+
+  fun testOnClickHighlighting2() {
+    copyOnClickClasses()
+    doTestHighlighting()
+  }
+
+  fun testOnClickHighlighting3() {
+    myFixture.allowTreeAccessForAllFiles()
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity5.java", "src/p1/p2/Activity1.java")
+    doTestHighlighting()
+  }
+
+  fun testOnClickHighlighting4() {
+    myFixture.allowTreeAccessForAllFiles()
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity6.java", "src/p1/p2/Activity1.java")
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity4.java", "src/p1/p2/Activity2.java")
+    doTestHighlighting()
+  }
+
+  fun testOnClickHighlighting5() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=76262
+    myFixture.allowTreeAccessForAllFiles()
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity7.java", "src/p1/p2/Activity1.java")
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity8.java", "src/p1/p2/Activity2.java")
+    doTestHighlighting()
+  }
+
+  // b/78423832
+  fun ignore_testOnClickHighlighting6() {
+    // Like testOnClickHighlighting5, but instead of having the activity be found
+    // due to a setContentView call, it's declared explicitly with a tools:context
+    // attribute instead
+    myFixture.allowTreeAccessForAllFiles()
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity7.java", "src/p1/p2/Activity1.java")
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity9.java", "src/p1/p2/Activity2.java")
+    doTestHighlighting()
+  }
+
+  fun testOnClickHighlightingJava() {
+    myFixture.enableInspections(UnusedDeclarationInspection())
+    val f = myFixture.copyFileToProject(myTestFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java")
+    myFixture.configureFromExistingVirtualFile(f)
+    myFixture.checkHighlighting(true, false, false)
+  }
+
+  fun testMinHeightCompletion() {
+    doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen")
+  }
+
+  fun testOnClickNavigation() {
+    copyOnClickClasses()
+    val file = copyFileToProject(getTestName(true) + ".xml")
+    myFixture.configureFromExistingVirtualFile(file)
+
+    val reference = TargetElementUtil.findReference(myFixture.editor, myFixture.caretOffset)
+    UsefulTestCase.assertInstanceOf(reference, PsiPolyVariantReference::class.java)
+    val results = (reference as PsiPolyVariantReference).multiResolve(false)
+    TestCase.assertEquals(2, results.size)
+    for (result in results) {
+      UsefulTestCase.assertInstanceOf(result.element, PsiMethod::class.java)
+    }
+  }
+
+  fun testRelativeIdsCompletion() {
+    doTestCompletionVariants(getTestName(false) + ".xml", "@+id/", "@android:", "@id/btn1", "@id/btn2")
+  }
+
+  fun testCreateResourceFromUsage() {
+    val virtualFile = copyFileToProject(getTestName(true) + ".xml")
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    val infos = myFixture.doHighlighting()
+    val actions = ArrayList<IntentionAction>()
+
+    for (info in infos) {
+      val ranges = info.quickFixActionRanges
+
+      if (ranges != null) {
+        for (pair in ranges) {
+          val action = pair.getFirst().action
+          if (action is CreateValueResourceQuickFix) {
+            actions.add(action)
+          }
+        }
+      }
+    }
+    TestCase.assertEquals(1, actions.size)
+
+    WriteCommandAction.runWriteCommandAction(project) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    myFixture.checkResultByFile("res/values/drawables.xml", myTestFolder + '/'.toString() + getTestName(true) + "_drawable_after.xml", true)
+  }
+
+  fun testXsdFile1() {
+    val virtualFile = copyFileToProject("XsdFile.xsd", "res/raw/XsdFile.xsd")
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.checkHighlighting(true, false, false)
+  }
+
+  fun testXsdFile2() {
+    val virtualFile = copyFileToProject("XsdFile.xsd", "res/assets/XsdFile.xsd")
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.checkHighlighting(true, false, false)
+  }
+
+  @Throws(IOException::class)
+  private fun copyOnClickClasses() {
+    copyFileToProject("OnClick_Class1.java", "src/p1/p2/OnClick_Class1.java")
+    copyFileToProject("OnClick_Class2.java", "src/p1/p2/OnClick_Class2.java")
+    copyFileToProject("OnClick_Class3.java", "src/p1/p2/OnClick_Class3.java")
+    copyFileToProject("OnClick_Class4.java", "src/p1/p2/OnClick_Class4.java")
+  }
+
+  fun testJavaCompletion1() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaCompletion("p1.p2")
+  }
+
+  fun testJavaCompletion2() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaCompletion("p1.p2")
+  }
+
+  fun testJavaCompletion3() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaCompletion("p1.p2")
+  }
+
+  fun testJavaIdCompletion() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaCompletion("p1.p2")
+  }
+
+  fun testJavaHighlighting1() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaHighlighting("p1.p2")
+  }
+
+  fun testJavaHighlighting2() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaHighlighting("p1")
+  }
+
+  fun testJavaHighlighting3() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaHighlighting("p1.p2")
+  }
+
+  fun testJavaHighlighting4() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaHighlighting("p1.p2")
+  }
+
+  fun testJavaHighlighting5() {
+    copyFileToProject("main.xml", "res/layout/main.xml")
+    doTestJavaHighlighting("p1")
+  }
+
+  fun testJavaCreateResourceFromUsage() {
+    val virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(true) + ".java")
+    doCreateFileResourceFromUsage(virtualFile)
+    myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_layout_after.xml", true)
+  }
+
+  fun testAndroidPrefixCompletion1() {
+    doTestAndroidPrefixCompletion("android:")
+  }
+
+  fun testAndroidPrefixCompletion2() {
+    doTestAndroidPrefixCompletion("android:")
+  }
+
+  fun testAndroidPrefixCompletion3() {
+    doTestAndroidPrefixCompletion(null)
+  }
+
+  fun testAndroidPrefixCompletion4() {
+    doTestAndroidPrefixCompletion("andr:")
+  }
+
+  fun testAndroidPrefixCompletion5() {
+    doTestAndroidPrefixCompletion(null)
+  }
+
+  fun testCreateResourceFromUsage1() {
+    val virtualFile = copyFileToProject(getTestName(true) + ".xml")
+    doCreateFileResourceFromUsage(virtualFile)
+    myFixture.type("selector")
+    myFixture.checkResultByFile("res/drawable/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_drawable_after.xml", true)
+  }
+
+  fun testPrivateAndPublicResources() {
+    doTestHighlighting()
+  }
+
+  fun testPrivateAttributesCompletion() {
+    doTestCompletion()
+  }
+
+  fun testPrivateAttributesHighlighting() {
+    doTestHighlighting()
+  }
+
+  fun testResourceValidationErrors() {
+    copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
+    doTestHighlighting()
+  }
+
+  fun testAttrReferences1() {
+    copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
+    doTestHighlighting()
+  }
+
+  fun testAttrReferences2() {
+    doTestAttrReferenceCompletionVariants("?")
+  }
+
+  fun testAttrReferences3() {
+    doTestAttrReferenceCompletionVariants("attr")
+  }
+
+  private fun doTestAttrReferenceCompletionVariants(prefix: String) {
+    copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
+    val file = copyFileToProject(getTestName(true) + ".xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    val variants = myFixture.lookupElementStrings
+
+    TestCase.assertTrue(!variants!!.isEmpty())
+    TestCase.assertFalse(containElementStartingWith(variants, prefix))
+  }
+
+  fun testAttrReferences4() {
+    doTestAttrReferenceCompletion("myA\n")
+  }
+
+  fun testAttrReferences5() {
+    doTestAttrReferenceCompletion("textAppear\n")
+  }
+
+  fun testAttrReferences6() {
+    doTestAttrReferenceCompletion("myA\n")
+  }
+
+  fun testAttrReferences7() {
+    doTestAttrReferenceCompletion("android:textAppear\n")
+  }
+
+  fun testAttrReferences8() {
+    doTestAttrReferenceCompletion("attr\n")
+  }
+
+  fun testAttrReferences9() {
+    doTestAttrReferenceCompletion("android:attr\n")
+  }
+
+  fun testNamespaceCompletion() {
+    doTestNamespaceCompletion()
+  }
+
+  fun testDimenUnitsCompletion1() {
+    val file = copyFileToProject(getTestName(true) + ".xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+
+    assertThat(myFixture.lookupElementStrings).containsExactly("3dp", "3px", "3sp", "3pt", "3mm", "3in")
+
+    val originalElement = myFixture.file.findElementAt(
+      myFixture.editor.caretModel.offset)
+
+    val lookup = myFixture.lookup
+    var dpElement: LookupElement? = null
+    var pxElement: LookupElement? = null
+
+    for (element in lookup.items) {
+      if (element.lookupString.endsWith("dp")) {
+        dpElement = element
+      }
+      else if (element.lookupString.endsWith("px")) {
+        pxElement = element
+      }
+    }
+    var provider: DocumentationProvider
+    var docTargetElement: PsiElement?
+
+    lookup.setCurrentItem(dpElement)
+    docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, originalElement)
+    provider = DocumentationManager.getProviderFromElement(docTargetElement)
+    TestCase.assertEquals(
+      "<html><body><b>Density-independent Pixels</b> - an abstract unit that is based on the physical " + "density of the screen.</body></html>",
+      provider.generateDoc(docTargetElement, originalElement))
+
+    lookup.setCurrentItem(pxElement)
+    docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, originalElement)
+    provider = DocumentationManager.getProviderFromElement(docTargetElement)
+    TestCase.assertEquals("<html><body><b>Pixels</b> - corresponds to actual pixels on the screen. Not recommended.</body></html>",
+                          provider.generateDoc(docTargetElement, originalElement))
+  }
+
+  fun testDimenUnitsCompletion2() {
+    doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen")
+  }
+
+  fun testDimenUnitsCompletion3() {
+    doTestCompletionVariants(getTestName(true) + ".xml", "3pt", "3px")
+  }
+
+  fun testOnClickIntention() {
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity.java", "src/p1/p2/Activity1.java")
+    val file = copyFileToProject("onClickIntention.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    val action = AndroidCreateOnClickHandlerAction()
+    TestCase.assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+    WriteCommandAction.runWriteCommandAction(null) { action.invoke(myFixture.project, myFixture.editor, myFixture.file) }
+    myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity_after.java", false)
+  }
+
+  fun testOnClickIntentionIncorrectName() {
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java")
+    val file = copyFileToProject("onClickIntentionIncorrectName.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    val action = AndroidCreateOnClickHandlerAction()
+    TestCase.assertFalse(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+  }
+
+  fun testOnClickQuickFix1() {
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity.java", "src/p1/p2/Activity1.java")
+    val file = copyFileToProject("onClickIntention.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    val fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
+    UsefulTestCase.assertEmpty(fixes)
+  }
+
+  fun testOnClickQuickFix2() {
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity1.java", "src/p1/p2/Activity1.java")
+    val file = copyFileToProject("onClickIntention.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
+    TestCase.assertEquals(1, actions.size)
+    WriteCommandAction.runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+
+    myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity1_after.java", false)
+  }
+
+  fun testOnClickQuickFix3() {
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity1.java", "src/p1/p2/Activity1.java")
+    val file = copyFileToProject("onClickIntention.xml")
+    doTestOnClickQuickfix(file)
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity2_after.java", false)
+  }
+
+  fun testOnClickQuickFix4() {
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity1.java", "src/p1/p2/Activity1.java")
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivity4.java", "src/p1/p2/Activity2.java")
+    val file = copyFileToProject("onClickIntention.xml")
+    doTestOnClickQuickfix(file)
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity1_after.java", false)
+  }
+
+  fun testOnClickQuickFixIncorrectName() {
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java")
+    val file = copyFileToProject("onClickIntentionIncorrectName.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    val fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
+    UsefulTestCase.assertEmpty(fixes)
+  }
+
+  fun testSpellchecker() {
+    enableInspection(SpellCheckingInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/spellchecker_resources.xml", "res/values/sr.xml")
+    doTestHighlighting()
+  }
+
+  fun testSpellcheckerQuickfix() {
+    myFixture.copyFileToProject("$myTestFolder/spellchecker_resources.xml", "res/values/sr.xml")
+    doTestSpellcheckerQuickFixes()
+  }
+
+  fun testAarDependencyCompletion() {
+    // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
+    PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar",
+                           "res")
+    doTestCompletion()
+  }
+
+  fun testAarVisibilitySensitiveCompletion() {
+    addAarDependency(myModule, "myaar", "com.example.myaar") { resDir ->
+      @Language("XML")
+      val stringsXml =
+          """
+          <resources>
+            <string name="my_aar_private_string">private</string>
+            <string name="my_aar_public_string">private</string>
+          </resources>
+          """.trimIndent()
+      resDir.resolve("values/strings.xml").writeText(stringsXml)
+      resDir.resolveSibling("public.txt").writeText("string my_aar_public_string")
+    }
+    doTestCompletion()
+  }
+
+  fun testAarDependencyHighlightingNamespaced() {
+    enableNamespacing("myapp")
+    addBinaryAarDependency(myModule)
+    doTestHighlighting()
+  }
+
+  // Regression test for http://b/37128688
+  fun testToolsCompletion() {
+    // Don't offer tools: completion for the mockup editor yet.
+    // Also tests that the current expected set of tools attributes are offered.
+    doTestCompletionVariants("toolsCompletion.xml",
+                             "tools:listfooter",
+                             "tools:listheader",
+                             "tools:listitem",
+                             "tools:targetApi")
+  }
+
+  // Regression test for http://b/66240917
+  fun testToolsCompletion2() {
+    doTestPresentableCompletionVariants("toolsCompletion2.xml",
+                                        "listfooter",
+                                        "listheader",
+                                        "listitem",
+                                        "listSelector",
+                                        "stateListAnimator")
+  }
+
+  fun testIncludeCompletion() {
+    // <include> tag should support auto-completion of android:layout_XXX attributes.
+    // The actual supported attributes depend on the type of parent.
+    // (e.g. <include> tag in RelativeLayout support android:layout_alignXXX attributes
+    //  and <include> tag in AbsoluteLayout support android:layout_x/y attributes.
+
+    // Check all attributes here
+    doTestCompletionVariants("include_in_linear_layout.xml",
+                             "android:id",
+                             "android:layout_gravity",
+                             "android:layout_height",
+                             "android:layout_margin",
+                             "android:layout_marginBottom",
+                             "android:layout_marginEnd",
+                             "android:layout_marginHorizontal",
+                             "android:layout_marginLeft",
+                             "android:layout_marginRight",
+                             "android:layout_marginStart",
+                             "android:layout_marginTop",
+                             "android:layout_marginVertical",
+                             "android:layout_weight",
+                             "android:layout_width",
+                             "android:visibility")
+
+    // The duplicated attributes have been tested, only test the specified attributes for the remaining test cases.
+
+    doTestCompletionVariantsContains("include_in_relative_layout.xml",
+                                     "android:layout_above",
+                                     "android:layout_alignBaseline",
+                                     "android:layout_alignBottom",
+                                     "android:layout_alignEnd",
+                                     "android:layout_alignLeft",
+                                     "android:layout_alignParentBottom",
+                                     "android:layout_alignParentEnd",
+                                     "android:layout_alignParentLeft",
+                                     "android:layout_alignParentRight",
+                                     "android:layout_alignParentStart",
+                                     "android:layout_alignParentTop",
+                                     "android:layout_alignRight",
+                                     "android:layout_alignStart",
+                                     "android:layout_alignTop",
+                                     "android:layout_alignWithParentIfMissing",
+                                     "android:layout_centerHorizontal",
+                                     "android:layout_centerInParent",
+                                     "android:layout_centerVertical",
+                                     "android:layout_toEndOf",
+                                     "android:layout_toLeftOf",
+                                     "android:layout_toRightOf",
+                                     "android:layout_toStartOf")
+
+    doTestCompletionVariantsContains("include_in_absolute_layout.xml",
+                                     "android:layout_x",
+                                     "android:layout_y")
+
+    doTestCompletionVariantsContains("include_in_frame_layout.xml",
+                                     "android:layout_gravity")
+
+    // <include> tag should also support auto-completion of layout_XXX attributes with cusomized domain name.
+    // For example, app:layout_constraintXXX attributes should be supported when it is in the ConstraintLayout.
+
+    // TODO: Improve the test framework and test the cusomized domain case.
+  }
+
+  fun testRestricted() {
+    myFixture.addClass(restrictText)
+    myFixture.addClass(protectedView)
+    myFixture.addClass(restrictedView)
+    myFixture.addClass(view)
+
+    toTestCompletion("restricted.xml", "restricted_after.xml")
+  }
+
+  fun testProtected() {
+    myFixture.addClass(protectedView)
+    myFixture.addClass(view)
+
+    doTestCompletionVariants("protected.xml", "p1.p2.MyAddedImageView")
+  }
+
+  fun testTagCompletionUsingInnerClass() {
+    myFixture.addClass(innerClass)
+
+    toTestCompletion("innerClass1.xml", "innerClass1_after.xml")
+  }
+
+  fun testTagReplacementUsingInnerClass() {
+    myFixture.addClass(innerClass)
+
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("innerClass2.xml"))
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type("\t")
+    myFixture.checkResultByFile("$myTestFolder/innerClass2_after.xml")
+  }
+
+  fun testTagLayoutCompletionUsingInnerClass() {
+    myFixture.addClass(innerClass)
+
+    toTestCompletion("innerClass3.xml", "innerClass3_after.xml")
+  }
+
+  private fun doTestAttrReferenceCompletion(textToType: String) {
+    copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
+    val file = copyFileToProject(getTestName(true) + ".xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.complete(CompletionType.BASIC)
+    myFixture.type(textToType)
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + getTestName(true) + "_after.xml")
+  }
+
+  private fun containElementStartingWith(elements: List<String>, prefix: String): Boolean {
+    for (element in elements) {
+      if (element.startsWith(prefix)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private fun doCreateFileResourceFromUsage(virtualFile: VirtualFile) {
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    val actions = highlightAndFindQuickFixes(CreateFileResourceQuickFix::class.java)
+    TestCase.assertEquals(1, actions.size)
+
+    WriteCommandAction.runWriteCommandAction(project) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+  }
+
+  private fun enableInspection(inspectionClass: Class<out LocalInspectionTool>) {
+    myFixture.enableInspections(setOf(inspectionClass))
+  }
+}
