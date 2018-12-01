@@ -67,6 +67,6 @@ fun addTable(inspector: InspectorPanel,
              uiProvider: TableUIProvider,
              vararg actions: AnAction,
              searchable: Boolean): TableLineModel {
-  val titleModel = inspector.addExpandableTitle(title, true, *actions)
+  val titleModel = inspector.addExpandableTitle(title, false, *actions)
   return inspector.addTable(tableModel, searchable, uiProvider, titleModel)
 }

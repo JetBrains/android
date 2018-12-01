@@ -20,24 +20,24 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 
-class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, getTitleLine: () -> InspectorLineModel) {
     if (!isApplicable(properties)) return
 
-    val progressBarLabel = inspector.addExpandableTitle("ProgressBar")
-    inspector.addEditor(editorProvider.createEditor(properties["", ATTR_STYLE]), progressBarLabel)
-    val drawable = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS_DRAWABLE]), progressBarLabel)
+    val titleLine = getTitleLine()
+    inspector.addEditor(editorProvider.createEditor(properties["", ATTR_STYLE]), titleLine)
+    val drawable = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS_DRAWABLE]), titleLine)
     val drawableInt = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE]),
-                                          progressBarLabel)
-    val tint = addOptionalEditor(inspector, properties.getOrNull(ANDROID_URI, ATTR_PROGRESS_TINT), progressBarLabel)
-    val tintInt = addOptionalEditor(inspector, properties.getOrNull(ANDROID_URI, ATTR_INDETERMINATE_TINT), progressBarLabel)
-    val max = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_MAXIMUM]), progressBarLabel)
-    val progress = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS]), progressBarLabel)
-    inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_VISIBILITY]), progressBarLabel)
-    inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_VISIBILITY].designProperty), progressBarLabel)
+                                          titleLine)
+    val tint = addOptionalEditor(inspector, properties.getOrNull(ANDROID_URI, ATTR_PROGRESS_TINT), titleLine)
+    val tintInt = addOptionalEditor(inspector, properties.getOrNull(ANDROID_URI, ATTR_INDETERMINATE_TINT), titleLine)
+    val max = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_MAXIMUM]), titleLine)
+    val progress = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS]), titleLine)
+    inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_VISIBILITY]), titleLine)
+    inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_VISIBILITY].designProperty), titleLine)
     val indeterminate = properties[ANDROID_URI, ATTR_INDETERMINATE]
-    val model = addEditorAndReturnEditorModel(inspector, indeterminate, progressBarLabel)
+    val model = addEditorAndReturnEditorModel(inspector, indeterminate, titleLine)
     val updater = StateUpdater(indeterminate, listOf(drawable, tint, max, progress), listOf(drawableInt, tintInt))
     model.addListener(updater)
     updater.valueChanged()
