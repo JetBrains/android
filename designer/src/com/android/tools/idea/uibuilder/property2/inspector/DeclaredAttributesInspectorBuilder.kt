@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.EditorProvider
+import com.android.tools.idea.common.property2.api.EnumSupportProvider
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
-import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.api.InspectorBuilder
 import com.android.tools.idea.common.property2.api.InspectorPanel
 import com.android.tools.idea.common.property2.api.PropertiesTable
@@ -29,36 +28,25 @@ import com.android.tools.idea.common.property2.impl.support.SimpleControlTypePro
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.inspector.groups.ConstraintGroup
-import com.android.tools.idea.uibuilder.property2.inspector.groups.MarginGroup
-import com.android.tools.idea.uibuilder.property2.inspector.groups.PaddingGroup
-import com.android.tools.idea.uibuilder.property2.inspector.groups.ThemeGroup
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 private const val DECLARED_TITLE = "Declared Attributes"
-private const val ALL_ATTRIBUTES_TITLE = "All Attributes"
 private const val ADD_PROPERTY_ACTION_TITLE = "Add Property"
 private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Property"
 
-class AdvancedInspectorBuilder(private val model: NelePropertiesModel,
-                               controlTypeProvider: NeleControlTypeProvider,
-                               editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
-
+class DeclaredAttributesInspectorBuilder(private val model: NelePropertiesModel,
+                                         enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable())
   private val nameControlTypeProvider = SimpleControlTypeProvider<NeleNewPropertyItem>(ControlType.TEXT_EDITOR)
   private val nameEditorProvider = EditorProvider.createForNames<NeleNewPropertyItem>()
-  private val enumSupportProvider = controlTypeProvider.enumSupportProvider
-  private val declaredTableControlTypeProvider = NeleTwoStateBooleanControlTypeProvider(enumSupportProvider)
-  private val declaredTableEditorProvider = EditorProvider.create(enumSupportProvider, declaredTableControlTypeProvider)
-  private val allTableUIProvider = TableUIProvider.create(
-    NelePropertyItem::class.java, controlTypeProvider, editorProvider)
-  private val declaredTableUIProvider = TableUIProvider.create(
+  private val controlTypeProvider = NeleTwoStateBooleanControlTypeProvider(enumSupportProvider)
+  private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+  private val tableUIProvider = TableUIProvider.create(
     NeleNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
-    NelePropertyItem::class.java, declaredTableControlTypeProvider, declaredTableEditorProvider)
+    NelePropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     if (properties.isEmpty) {
@@ -69,32 +57,10 @@ class AdvancedInspectorBuilder(private val model: NelePropertiesModel,
     val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null })
     val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
     val deleteRowAction = DeleteRowAction(declaredTableModel)
-    val tableLineModel = addTable(inspector, DECLARED_TITLE, declaredTableModel, declaredTableUIProvider,
+    val tableLineModel = addTable(inspector, DECLARED_TITLE, declaredTableModel, tableUIProvider,
                                   addNewRow, deleteRowAction, searchable = false)
     addNewRow.lineModel = tableLineModel
     deleteRowAction.lineModel = tableLineModel
-
-    val allTableModel = FilteredPTableModel.create(model, { true }, createGroups(properties))
-    addTable(inspector, ALL_ATTRIBUTES_TITLE, allTableModel, allTableUIProvider, searchable = true)
-  }
-
-  private fun addTable(inspector: InspectorPanel,
-                       title: String,
-                       tableModel: PTableModel,
-                       uiProvider: TableUIProvider,
-                       vararg actions: AnAction,
-                       searchable: Boolean): TableLineModel {
-    val titleModel = inspector.addExpandableTitle(title, true, *actions)
-    return inspector.addTable(tableModel, searchable, uiProvider, titleModel)
-  }
-
-  private fun createGroups(properties: PropertiesTable<NelePropertyItem>): List<GroupSpec<NelePropertyItem>> {
-    val groups = mutableListOf<GroupSpec<NelePropertyItem>>()
-    groups.add(PaddingGroup(properties))
-    groups.add(MarginGroup(properties))
-    groups.add(ConstraintGroup(properties))
-    groups.add(ThemeGroup(model.facet, properties))
-    return groups
   }
 }
 
