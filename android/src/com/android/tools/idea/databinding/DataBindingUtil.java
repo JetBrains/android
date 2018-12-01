@@ -61,6 +61,10 @@ interface DataBindingSupport {
   @NotNull
   DataBindingMode getDataBindingMode(@NotNull AndroidFacet facet);
 
+  /**
+   * Return a {@link ModificationTracker} that is incremented every time the setting for whether
+   * data binding is enabled or disabled changes.
+   */
   @NotNull
   ModificationTracker getDataBindingEnabledTracker();
 }
@@ -68,7 +72,7 @@ interface DataBindingSupport {
 /**
  * Utility class that handles the interaction between Data Binding and the IDE.
  */
-public class DataBindingUtil {
+public final class DataBindingUtil {
   public static final String BR = "BR";
   private static List<String> VIEW_PACKAGE_ELEMENTS = ImmutableList.of(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
                                                                        SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
@@ -110,11 +114,15 @@ public class DataBindingUtil {
     return support == null ? (() -> 0) : support.getDataBindingEnabledTracker();
   }
 
+  /**
+   * Helper method that convert a type from a String value to a {@link PsiType}, returning
+   * {@code null} instead of throwing an exception if the result is a reference to an invalid type.
+   */
   @Nullable
-  static PsiType parsePsiType(@NotNull String text, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
+  static PsiType parsePsiType(@NotNull String typeStr, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
     PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
     try {
-      PsiType type = instance.createTypeFromText(text, context);
+      PsiType type = instance.createTypeFromText(typeStr, context);
       if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {
         // Ensure that if the type is a reference, it's a reference to a valid type.
         return null;
@@ -127,7 +135,12 @@ public class DataBindingUtil {
     }
   }
 
-  public static PsiType resolveViewPsiType(DataBindingInfo.ViewWithId viewWithId, AndroidFacet facet) {
+  /**
+   * Convert a view tag (e.g. &lt;TextView... /&gt;) to its PSI type, if possible, or return {@code null}
+   * otherwise.
+   */
+  @Nullable
+  public static PsiType resolveViewPsiType(@NotNull DataBindingInfo.ViewWithId viewWithId, @NotNull AndroidFacet facet) {
     String viewClassName = getViewClassName(viewWithId.tag, facet);
     if (StringUtil.isNotEmpty(viewClassName)) {
       return parsePsiType(viewClassName, facet, null);
@@ -136,13 +149,13 @@ public class DataBindingUtil {
   }
 
   /**
-   * Receives an {@linkplain XmlTag} and returns the View class that is represented by the tag.
+   * Receives an {@link XmlTag} and returns the View class that is represented by the tag.
    * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
    *
-   * @param tag The {@linkplain XmlTag} that represents the View
+   * @param tag The {@link XmlTag} that represents the View
    */
   @Nullable
-  private static String getViewClassName(XmlTag tag, AndroidFacet facet) {
+  private static String getViewClassName(@NotNull XmlTag tag, @NotNull AndroidFacet facet) {
     final String elementName = getViewName(tag);
     if (elementName != null && elementName.indexOf('.') == -1) {
       if (VIEW_PACKAGE_ELEMENTS.contains(elementName)) {
@@ -150,9 +163,9 @@ public class DataBindingUtil {
       } else if (SdkConstants.WEB_VIEW.equals(elementName)) {
         return SdkConstants.ANDROID_WEBKIT_PKG + elementName;
       } else if (SdkConstants.VIEW_MERGE.equals(elementName)) {
-        return getViewClassNameFromMerge(tag, facet);
+        return getViewClassNameFromMergeTag(tag, facet);
       } else if (SdkConstants.VIEW_INCLUDE.equals(elementName)) {
-        return getViewClassNameFromInclude(tag, facet);
+        return getViewClassNameFromIncludeTag(tag, facet);
       } else if (SdkConstants.VIEW_STUB.equals(elementName)) {
         DataBindingMode mode = getDataBindingMode(facet);
         return mode.viewStubProxy;
@@ -163,16 +176,19 @@ public class DataBindingUtil {
     }
   }
 
-  private static String getViewClassNameFromInclude(XmlTag tag, AndroidFacet facet) {
-    String reference = getViewClassNameFromLayoutReferenceTag(tag, facet);
+  @NotNull
+  private static String getViewClassNameFromIncludeTag(@NotNull XmlTag tag, @NotNull AndroidFacet facet) {
+    String reference = getViewClassNameFromLayoutAttribute(tag, facet);
     return reference == null ? SdkConstants.CLASS_VIEW : reference;
   }
 
-  private static String getViewClassNameFromMerge(XmlTag tag, AndroidFacet facet) {
-    return getViewClassNameFromLayoutReferenceTag(tag, facet);
+  @Nullable
+  private static String getViewClassNameFromMergeTag(@NotNull XmlTag tag, @NotNull AndroidFacet facet) {
+    return getViewClassNameFromLayoutAttribute(tag, facet);
   }
 
-  private static String getViewClassNameFromLayoutReferenceTag(XmlTag tag, AndroidFacet facet) {
+  @Nullable
+  private static String getViewClassNameFromLayoutAttribute(@NotNull XmlTag tag, @NotNull AndroidFacet facet) {
     String layout = tag.getAttributeValue(SdkConstants.ATTR_LAYOUT);
     if (layout == null) {
       return null;
@@ -193,7 +209,7 @@ public class DataBindingUtil {
   }
 
   @Nullable // when passed <view/>
-  private static String getViewName(XmlTag tag) {
+  private static String getViewName(@NotNull XmlTag tag) {
     String viewName = tag.getName();
     if (SdkConstants.VIEW_TAG.equals(viewName)) {
       viewName = tag.getAttributeValue(SdkConstants.ATTR_CLASS, SdkConstants.ANDROID_URI);
@@ -207,7 +223,8 @@ public class DataBindingUtil {
    * @param name The name of the file
    * @return The class name that will represent the given file
    */
-  public static String convertToJavaClassName(String name) {
+  @NotNull
+  public static String convertToJavaClassName(@NotNull String name) {
     int dotIndex = name.indexOf('.');
     if (dotIndex >= 0) {
       name = name.substring(0, dotIndex);
@@ -227,7 +244,8 @@ public class DataBindingUtil {
    * @param name The variable name.
    * @return The java field name for the given variable name.
    */
-  public static String convertToJavaFieldName(String name) {
+  @NotNull
+  public static String convertToJavaFieldName(@NotNull String name) {
     int dotIndex = name.indexOf('.');
     if (dotIndex >= 0) {
       name = name.substring(0, dotIndex);
@@ -251,23 +269,29 @@ public class DataBindingUtil {
   /**
    * Returns the qualified name for the BR file for the given Facet.
    *
-   * @param facet The {@linkplain AndroidFacet} to check.
+   * @param facet The {@link AndroidFacet} to check.
    * @return The qualified name for the BR class of the given Android Facet.
    */
-  public static String getBrQualifiedName(AndroidFacet facet) {
+  @NotNull
+  public static String getBrQualifiedName(@NotNull AndroidFacet facet) {
     return getGeneratedPackageName(facet) + "." + BR;
   }
 
   /**
    * Returns the package name that will be use to generate R file or BR file.
    *
-   * @param facet The {@linkplain AndroidFacet} to check.
+   * @param facet The {@link AndroidFacet} to check.
    * @return The package name that can be used to generate R and BR classes.
    */
-  public static String getGeneratedPackageName(AndroidFacet facet) {
+  @Nullable
+  public static String getGeneratedPackageName(@NotNull AndroidFacet facet) {
     return MergedManifest.get(facet).getPackage();
   }
 
+  /**
+   * Get the default value, if specified, for a data binding expression associated with the target
+   * {@link XmlAttribute}, or {@code null} otherwise.
+   */
   @Nullable
   public static String getBindingExprDefault(@NotNull XmlAttribute psiAttribute) {
     DataBindingExpressionSupport expressionSupport = DataBindingExpressionUtil.getDataBindingExpressionSupport();
@@ -278,13 +302,15 @@ public class DataBindingUtil {
   }
 
   /**
-   * @param exprn Data binding expression enclosed in @{}
+   * Get the default value, if specified, for the target expression.
+   *
+   * @param expression Data binding expression enclosed in @{}
    */
   @Nullable
-  public static String getBindingExprDefault(@NotNull String exprn) {
+  public static String getBindingExprDefault(@NotNull String expression) {
     DataBindingExpressionSupport expressionSupport = DataBindingExpressionUtil.getDataBindingExpressionSupport();
     if (expressionSupport != null) {
-      return expressionSupport.getBindingExprDefault(exprn);
+      return expressionSupport.getBindingExprDefault(expression);
     }
     return null;
   }
@@ -293,7 +319,16 @@ public class DataBindingUtil {
     return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
 
-  @Nullable/*invalid type*/
+  /**
+   * The &lt;import&gt; tag supports an optional alias tag in addition to the required type tag.
+   * This method fetches a final type, which is either set to the alias (if present) or the simple
+   * type name from the type attribute.
+   *
+   * Could possibly return {@code null} if the type string is not valid.
+   *
+   * See also <a href=https://developer.android.com/topic/libraries/data-binding/expressions#imports>import docs</a>.
+   */
+  @Nullable
   public static String getAlias(@NotNull Import anImport) {
     String aliasValue = null;
     String typeValue = null;
@@ -311,17 +346,26 @@ public class DataBindingUtil {
     return getAlias(typeValue, aliasValue);
   }
 
+  /**
+   * See docs for {@link #getAlias(Import)}
+   */
   @Nullable
   public static String getAlias(@NotNull PsiDataBindingResourceItem anImport) {
     return getAlias(anImport.getTypeDeclaration(), anImport.getExtra(ATTR_ALIAS));
   }
 
+  /**
+   * Delegate method for other {@code getAlias} methods to call. Returns the alias directly or
+   * extracts the simple type name from the {@code type} variable. Can return {@code null} if
+   * the passed-in type is invalid, e.g. ends with "." or "$"
+   */
+  @Nullable
   private static String getAlias(@Nullable String type, @Nullable String alias) {
     if (alias != null || type == null) {
       return alias;
     }
     int i = type.lastIndexOf('.');
-    int d = type.lastIndexOf('$');
+    int d = type.lastIndexOf('$'); // Catch inner-class types, e.g. a.b.c$D
     i = i > d ? i : d;
     if (i < 0) {
       return type;
@@ -362,6 +406,7 @@ public class DataBindingUtil {
     }
 
     class UnresolvedClassNameException extends RuntimeException {}
+
     StringBuilder result = new StringBuilder();
     int[] offset = new int[1];
     try {
@@ -401,6 +446,10 @@ public class DataBindingUtil {
     return result.toString();
   }
 
+  /**
+   * Given a class name as a String, return its fully qualified name. This may return {@code null}
+   * if the associated {@link PsiClassType} cannot be resolved.
+   */
   @Nullable
   private static String qualifyClassName(@NotNull String className, @NotNull PsiJavaParserFacade parser) {
     PsiType psiType = parser.createTypeFromText(className, null);

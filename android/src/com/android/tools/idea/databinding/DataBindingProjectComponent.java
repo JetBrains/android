@@ -20,29 +20,46 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiArrayInitializerMemberValue;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
-import com.intellij.psi.util.*;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.ParameterizedCachedValue;
+import com.intellij.psi.util.PsiModificationTracker;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Keeps data binding information related to a project
  */
-public class DataBindingProjectComponent implements ModificationTracker {
+public final class DataBindingProjectComponent implements ModificationTracker {
   final CachedValue<AndroidFacet[]> myDataBindingEnabledModules;
   final ParameterizedCachedValue<Collection<? extends PsiModifierListOwner>, Module> myBindingAdapterAnnotations;
   final Project myProject;
   private AtomicLong myModificationCount = new AtomicLong(0);
   private Map<String, PsiPackage> myDataBindingPsiPackages = Maps.newConcurrentMap();
 
-  public DataBindingProjectComponent(final Project project) {
+  public DataBindingProjectComponent(@NotNull final Project project) {
     myProject = project;
     myDataBindingEnabledModules = CachedValuesManager.getManager(project).createCachedValue(() -> {
       Module[] modules = ModuleManager.getInstance(myProject).getModules();
@@ -81,7 +98,7 @@ public class DataBindingProjectComponent implements ModificationTracker {
         psiElements = Collections.emptyList();
       }
       else {
-        // ProjectScope used. ModuleWithDepencies does not seem to work
+        // ProjectScope used. ModuleWithDependencies does not seem to work
         psiElements = AnnotatedElementsSearch.searchElements(adapterClass, ProjectScope.getAllScope(myProject), PsiMethod.class).findAll();
       }
 
@@ -100,6 +117,7 @@ public class DataBindingProjectComponent implements ModificationTracker {
     return getDataBindingEnabledFacets().length > 0;
   }
 
+  @NotNull
   public AndroidFacet[] getDataBindingEnabledFacets() {
     return myDataBindingEnabledModules.getValue();
   }
@@ -117,7 +135,8 @@ public class DataBindingProjectComponent implements ModificationTracker {
    * @param packageName The qualified package name
    * @return A {@linkplain PsiPackage} that represents the given qualified name
    */
-  public synchronized PsiPackage getOrCreateDataBindingPsiPackage(String packageName) {
+  @NotNull
+  public synchronized PsiPackage getOrCreateDataBindingPsiPackage(@NotNull String packageName) {
     PsiPackage pkg = myDataBindingPsiPackages.get(packageName);
     if (pkg == null) {
       pkg = new PsiPackageImpl(PsiManager.getInstance(myProject), packageName) {
