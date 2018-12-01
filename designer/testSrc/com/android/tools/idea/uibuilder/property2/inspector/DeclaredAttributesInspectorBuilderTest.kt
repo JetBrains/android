@@ -35,16 +35,13 @@ import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.PTableModelUpdateListener
-import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.testutils.FakeTableLine
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
@@ -60,7 +57,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 @RunsInEdt
-class AdvancedInspectorBuilderTest {
+class DeclaredAttributesInspectorBuilderTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.inMemory()
 
@@ -68,80 +65,50 @@ class AdvancedInspectorBuilderTest {
   val edtRule = EdtRule()
 
   @Test
-  fun testAdvancedInspector() {
+  fun testDeclaredAttributes() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(4)
+    assertThat(util.inspector.lines).hasSize(2)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
     assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TABLE)
-    assertThat(util.inspector.lines[2].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[3].type).isEqualTo(LineType.TABLE)
 
     assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
     assertThat(util.inspector.lines[0].expandable).isTrue()
-    assertThat(util.inspector.lines[2].title).isEqualTo("All Attributes")
-    assertThat(util.inspector.lines[2].expandable).isTrue()
 
-    // Check the 3 declared attributes
+    // Check that there are 3 attributes
     assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
 
-    // Also check the values of the 3 declared attributes
+    // Also check the values
     assertThat(util.inspector.lines[1].tableModel?.items?.map { it.value })
       .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing").inOrder()
-
-    // Check all 6 attributes:
-    assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_MARGIN, ATTR_CONTENT_DESCRIPTION,
-                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE, ATTR_VISIBILITY).inOrder()
-
-    // Layout Margin is a group:
-    val margin = util.inspector.lines[3].tableModel!!.items[2] as PTableGroupItem
-    assertThat(margin.children.map { it.name })
-      .containsExactly(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_TOP,
-                       ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_BOTTOM).inOrder()
   }
 
   @Test
-  fun testAdvancedInspectorWithAddedNewProperty() {
+  fun testInspectorWithAddedNewProperty() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
-    assertThat(util.inspector.lines).hasSize(4)
+    assertThat(util.inspector.lines).hasSize(2)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
     assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TABLE)
-    assertThat(util.inspector.lines[2].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[3].type).isEqualTo(LineType.TABLE)
 
     assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
     assertThat(util.inspector.lines[0].expandable).isTrue()
     assertThat(util.inspector.lines[0].actions.size).isEqualTo(2)
-    assertThat(util.inspector.lines[2].title).isEqualTo("All Attributes")
-    assertThat(util.inspector.lines[2].expandable).isTrue()
 
-    // Check the 4 declared attributes including a new property place holder
+    // Check that there are 4 attributes
     assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT, "").inOrder()
 
-    // Also check the values of the 4 declared attributes including a new property place holder (which value is blank)
+    // Also check the values
     assertThat(util.inspector.lines[1].tableModel?.items?.map { it.value })
       .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing", null).inOrder()
-
-    // Check all 6 attributes:
-    assertThat(util.inspector.lines[3].tableModel?.items?.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_MARGIN, ATTR_CONTENT_DESCRIPTION,
-                       ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE, ATTR_VISIBILITY).inOrder()
-
-    // Layout Margin is a group:
-    val margin = util.inspector.lines[3].tableModel!!.items[2] as PTableGroupItem
-    assertThat(margin.children.map { it.name })
-      .containsExactly(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_TOP,
-                       ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_BOTTOM).inOrder()
   }
 
   @Test
@@ -266,11 +233,9 @@ class AdvancedInspectorBuilderTest {
     assertThat(listener.called).isTrue()
   }
 
-  private fun createBuilder(model: NelePropertiesModel): AdvancedInspectorBuilder {
+  private fun createBuilder(model: NelePropertiesModel): DeclaredAttributesInspectorBuilder {
     val enumSupportProvider = NeleEnumSupportProvider()
-    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
-    val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-    return AdvancedInspectorBuilder(model, controlTypeProvider, editorProvider)
+    return DeclaredAttributesInspectorBuilder(model, enumSupportProvider)
   }
 
   private class RecursiveUpdateListener(private val model: PTableModel) : PTableModelUpdateListener {
