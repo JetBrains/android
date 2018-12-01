@@ -14,6 +14,7 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
+import com.android.SdkConstants.TAG_INCLUDE
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.api.InsertType
@@ -28,6 +29,8 @@ import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_TEXT_COLOR
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
@@ -49,7 +52,7 @@ private const val THUMBNAIL_OUTER_RADIUS = 5f
 private const val THUMBNAIL_INNER_RADIUS = 3f
 private val THUMBNAIL_BORDER_STROKE = BasicStroke(THUMBNAIL_BORDER_THICKNESS)
 
-sealed class Destination : Comparable<Destination> {
+sealed class Destination(protected open val parent: NlComponent) : Comparable<Destination> {
   /**
    * Add this to the graph. Must be called in a write action.
    */
@@ -77,9 +80,22 @@ sealed class Destination : Comparable<Destination> {
     return comparator.compare(this, other)
   }
 
-  abstract class ScreenShapedDestination(private val _parent: NlComponent) : Destination() {
+  protected fun createComponent(tagName: String): NlComponent? {
+    val model = parent.model
+
+    val tag = parent.tag.createChildTag(tagName, null, null, true)
+    val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
+    if (newComponent == null) {
+      ApplicationManager.getApplication().invokeLater {
+        Messages.showErrorDialog(parent.model.project, "Failed to create Destination!", "Error")
+      }
+    }
+    return newComponent
+  }
+
+  abstract class ScreenShapedDestination(parent: NlComponent) : Destination(parent) {
     override val thumbnail: Image by lazy {
-      val model = _parent.model
+      val model = parent.model
       val screenSize = model.configuration.deviceState?.orientation?.let { model.configuration.device?.getScreenSize(it) }
                        ?: error("No device in configuration!")
       val ratio = THUMBNAIL_MAX_DIMENSION / maxOf(screenSize.height, screenSize.width)
@@ -123,7 +139,7 @@ sealed class Destination : Comparable<Destination> {
 
   @VisibleForTesting
   data class RegularDestination @JvmOverloads constructor(
-    val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val destinationClass: PsiClass,
+    override val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val destinationClass: PsiClass,
     val idBase: String = destinationClass.name ?: tag, private val layoutFile: XmlFile? = null,
     override val inProject: Boolean = true)
     : ScreenShapedDestination(parent) {
@@ -164,10 +180,8 @@ sealed class Destination : Comparable<Destination> {
     override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: destinationClass.name ?: tag
 
     override fun addToGraph() {
-      val model = parent.model
+      val newComponent = createComponent(tag) ?: return
 
-      val tag = parent.tag.createChildTag(tag, null, null, true)
-      val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
       newComponent.assignId(idBase)
       newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, destinationClass.qualifiedName)
       newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
@@ -183,12 +197,10 @@ sealed class Destination : Comparable<Destination> {
     }
   }
 
-  data class IncludeDestination(val graph: String, val parent: NlComponent) : Destination() {
+  data class IncludeDestination(val graph: String, override val parent: NlComponent) : Destination(parent) {
     override fun addToGraph() {
-      val model = parent.model
+      val newComponent = createComponent(TAG_INCLUDE) ?: return
 
-      val tag = parent.tag.createChildTag(SdkConstants.TAG_INCLUDE, null, null, true)
-      val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
       newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_GRAPH,
                                 "@${ResourceType.NAVIGATION.getName()}/${FileUtil.getNameWithoutExtension(graph)}")
       component = newComponent
@@ -209,12 +221,10 @@ sealed class Destination : Comparable<Destination> {
     override val inProject = true
   }
 
-  data class PlaceholderDestination(val parent: NlComponent) : ScreenShapedDestination(parent) {
+  data class PlaceholderDestination(override val parent: NlComponent) : ScreenShapedDestination(parent) {
     override fun addToGraph() {
-      val model = parent.model
+      val newComponent = createComponent("fragment") ?: return
 
-      val tag = parent.tag.createChildTag("fragment", null, null, true)
-      val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
       newComponent.assignId("placeholder")
       if (parent.startDestinationId == null) {
         newComponent.setAsStartDestination()

@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBLabel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-class AddArgumentDialogUI {
+@VisibleForTesting
+public class AddArgumentDialogUI {
   JPanel myContentPanel;
   JCheckBox myNullableCheckBox;
   JTextField myNameTextField;

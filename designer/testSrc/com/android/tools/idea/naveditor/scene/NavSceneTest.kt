@@ -31,7 +31,6 @@ import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
@@ -450,14 +449,12 @@ class NavSceneTest : NavTestCase() {
     }
     val surface = model.surface
     val rootComponent = model.components[0]
-    object : WriteCommandAction<Any?>(project, "Add") {
-      override fun run(result: Result<Any?>) {
-        val tag = rootComponent.tag.createChildTag("fragment", null, null, true)
-        val newComponent = surface.model!!.createComponent(surface, tag, rootComponent, null, InsertType.CREATE)
-        surface.selectionModel.setSelection(ImmutableList.of(newComponent))
-        newComponent.assignId("myId")
-      }
-    }.execute()
+    WriteCommandAction.runWriteCommandAction(project) {
+      val tag = rootComponent.tag.createChildTag("fragment", null, null, true)
+      val newComponent = surface.model!!.createComponent(surface, tag, rootComponent, null, InsertType.CREATE)
+      surface.selectionModel.setSelection(ImmutableList.of(newComponent))
+      newComponent?.assignId("myId")
+    }
     val manager = NavSceneManager(model, model.surface as NavDesignSurface)
     manager.update()
     val scene = manager.scene
@@ -553,7 +550,6 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     val view = NavView(model.surface as NavDesignSurface, scene.sceneManager)
     scene.buildDisplayList(list, 0, view)
-    val context = SceneContext.get(view)
 
     assertEquals(
       "Clip,0,0,960,928\n" +
