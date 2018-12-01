@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_BACKGROUND_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_DRAG_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.INNER_RADIUS_LARGE;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.INNER_RADIUS_SMALL;
@@ -26,13 +26,11 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIU
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.LerpFloat;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
@@ -198,10 +196,8 @@ public class ActionHandleTarget extends NavBaseTarget {
     Color innerColor = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
 
     if (myIsDragging) {
-      list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, outerColor,
-                                    new LerpFloat(initialOuterRadius, finalOuterRadius, duration)));
-      list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_LEVEL, center, innerColor, finalInnerRadius));
-      list.add(new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext)));
+      list.add(new DrawActionHandleDrag(DRAW_ACTION_HANDLE_DRAG_LEVEL, center, initialOuterRadius, finalOuterRadius,
+                                        finalInnerRadius, duration));
     }
     else {
       list.add(new DrawActionHandle(DRAW_ACTION_HANDLE_LEVEL, center, initialOuterRadius, finalOuterRadius,
