@@ -444,6 +444,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       mySessionsManager.endCurrentSession();
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
+      myIdeServices.getFeatureTracker().trackChangeDevice(myDevice);
 
       // Then set a new process.
       setProcess(null);
@@ -482,6 +483,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
+      myIdeServices.getFeatureTracker().trackChangeProcess(myProcess);
 
       // In the case the device becomes null, keeps the previously stopped session.
       // This happens when the user explicitly stops an ongoing session or the profiler.
