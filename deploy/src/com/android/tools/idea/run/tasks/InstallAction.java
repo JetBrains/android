@@ -51,6 +51,15 @@ public class InstallAction extends DeployAction {
       options.setGrantAllPermissions();
     }
 
+    // API 28 changes how the instant property is set on app install.
+    // We can add --full to pmInstallOptions to restore the previous behavior,
+    // where an app's instant flag is reset on install, and avoid errors installing
+    // a non-instant app over its instant version with the device still treating
+    // the app as instant.
+    if (device.getVersion().isGreaterOrEqualThan(28)) {
+      options.setInstallFullApk();
+    }
+
     // We can just append this, since all these options get string-joined in the end anyways.
     if (userInstallOptions != null) {
       options.setUserInstallOptions(userInstallOptions);
