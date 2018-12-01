@@ -20,9 +20,9 @@ package com.android.tools.idea.lang.databinding
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.res.DataBindingInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import org.jetbrains.android.facet.AndroidFacet
 
 const val JAVA_LANG = "java.lang."
@@ -39,7 +39,7 @@ fun getDataBindingInfo(element: PsiElement): DataBindingInfo? {
     val facet = AndroidFacet.getInstance(module)
     if (facet != null && DataBindingUtil.isDataBindingEnabled(facet)) {
       val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
-      val topLevelFile = InjectedLanguageUtil.getTopLevelFile(element)
+      val topLevelFile = InjectedLanguageManager.getInstance(module.project).getTopLevelFile(element)
       if (topLevelFile != null) {
         var name = topLevelFile.name
         name = name.substring(0, name.lastIndexOf('.'))

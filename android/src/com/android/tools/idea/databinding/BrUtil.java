@@ -16,11 +16,16 @@
 package com.android.tools.idea.databinding;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.*;
-import com.intellij.util.containers.HashSet;
-
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiType;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class replicates some logic inside data binding compiler.
@@ -30,10 +35,20 @@ import java.util.Set;
  * We do not use {@linkplain com.intellij.psi.util.PropertyUtil} on purpose to avoid any inconsistencies
  * between Data Binding's compiler code and this.
  */
-public class BrUtil {
-  private static final Logger LOG = Logger.getInstance(BrUtil.class);
-  static Set<String> collectIds(Collection<? extends PsiModifierListOwner> psiElements) {
-    Set<String> properties = new HashSet<String>();
+public final class BrUtil {
+  @NotNull
+  private static Logger getLog() { return Logger.getInstance(BrUtil.class); }
+
+  /**
+   * Given a list of PSI elements in a class, return a list of ids that can be used to reference
+   * them from within a data binding expression.
+   *
+   * For example, {@code ViewModel { getData() { ... }}} could be accessed in a data binding layout
+   * as {@code @{viewModel.data}}, because "getData" can be referenced as "data".
+   */
+  @NotNull
+  static Set<String> collectIds(@NotNull Collection<? extends PsiModifierListOwner> psiElements) {
+    Set<String> properties = new HashSet<>();
     for (PsiModifierListOwner owner : psiElements) {
       String key = null;
       if (owner instanceof PsiField) {
@@ -48,7 +63,13 @@ public class BrUtil {
     return properties;
   }
 
-  static String stripPrefixFromMethod(PsiMethod psiMethod) {
+
+  /**
+   * Given a method with a getter / setter prefix, return the method name with the prefix stripped,
+   * or {@code null} otherwise.
+   */
+  @Nullable
+  private static String stripPrefixFromMethod(@NotNull PsiMethod psiMethod) {
     String name = psiMethod.getName();
     CharSequence propertyName;
     if (isGetter(psiMethod) || isSetter(psiMethod)) {
@@ -56,42 +77,44 @@ public class BrUtil {
     } else if (isBooleanGetter(psiMethod)) {
       propertyName = name.subSequence(2, name.length());
     } else {
-      LOG.warn("@Bindable associated with a method must follow JavaBeans convention: " + psiMethod.getName());
+      getLog().warn("@Bindable associated with a method must follow JavaBeans convention: " + psiMethod.getName());
       return null;
     }
     char firstChar = propertyName.charAt(0);
     return String.valueOf(Character.toLowerCase(firstChar)) + propertyName.subSequence(1, propertyName.length());
   }
 
-  public static boolean isGetter(PsiMethod psiMethod) {
+  public static boolean isGetter(@NotNull PsiMethod psiMethod) {
+    return matchesMethodPattern(psiMethod, "get", 0, type -> !PsiType.VOID.equals(type));
+  }
+
+  public static boolean isBooleanGetter(@NotNull PsiMethod psiMethod) {
+    return matchesMethodPattern(psiMethod, "is", 0, type -> PsiType.BOOLEAN.equals(type));
+  }
+
+  public static boolean isSetter(@NotNull PsiMethod psiMethod) {
+    return matchesMethodPattern(psiMethod, "set", 1, type -> PsiType.VOID.equals(type));
+  }
+
+  private static boolean matchesMethodPattern(@NotNull PsiMethod psiMethod,
+                                              @NotNull String prefix,
+                                              int parameterCount,
+                                              @NotNull Predicate<PsiType> returnTypePredicate) {
     String name = psiMethod.getName();
-    return prefixes(name, "get") &&
-           Character.isJavaIdentifierStart(name.charAt(3)) &&
-           psiMethod.getParameterList().getParametersCount() == 0 &&
-           !PsiType.VOID.equals(psiMethod.getReturnType()) ;
+    return isPrefix(name, prefix) &&
+           Character.isJavaIdentifierStart(name.charAt(prefix.length())) &&
+           psiMethod.getParameterList().getParametersCount() == parameterCount &&
+           returnTypePredicate.test(psiMethod.getReturnType());
   }
 
-  public static boolean isSetter(PsiMethod psiMethod) {
-    String name = psiMethod.getName();
-    return prefixes(name, "set") &&
-           Character.isJavaIdentifierStart(name.charAt(3)) &&
-           psiMethod.getParameterList().getParametersCount() == 1 &&
-           PsiType.VOID.equals(psiMethod.getReturnType());
+  @NotNull
+  private static String stripPrefixFromField(@NotNull PsiField psiField) {
+    String fieldName = psiField.getName();
+    assert fieldName != null;
+    return stripPrefixFromField(fieldName);
   }
 
-  public static boolean isBooleanGetter(PsiMethod psiMethod) {
-    String name = psiMethod.getName();
-    return prefixes(name, "is") &&
-           Character.isJavaIdentifierStart(name.charAt(2)) &&
-           psiMethod.getParameterList().getParametersCount() == 0 &&
-           PsiType.BOOLEAN.equals(psiMethod.getReturnType()) ;
-  }
-
-  static String stripPrefixFromField(PsiField psiField) {
-    return stripPrefixFromField(psiField.getName());
-  }
-
-  static boolean prefixes(CharSequence sequence, String prefix) {
+  private static boolean isPrefix(@NotNull CharSequence sequence, @NotNull String prefix) {
     boolean prefixes = false;
     if (sequence.length() > prefix.length()) {
       int count = prefix.length();
@@ -106,7 +129,12 @@ public class BrUtil {
     return prefixes;
   }
 
-  static String stripPrefixFromField(String name) {
+  /**
+   * Given an Android field of the format "m_field", "m_Field", "mField" or
+   * "_field", return "field". Otherwise, just return the name itself back.
+   */
+  @NotNull
+  private static String stripPrefixFromField(@NotNull String name) {
     if (name.length() >= 2) {
       char firstChar = name.charAt(0);
       char secondChar = name.charAt(1);
