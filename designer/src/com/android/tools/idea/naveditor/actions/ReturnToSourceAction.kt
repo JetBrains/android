@@ -28,11 +28,13 @@ class ReturnToSourceAction(private val mySurface: DesignSurface, private val com
   override fun actionPerformed(e: AnActionEvent) {
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createReturnToSourceAction()
-      mySurface.selectionModel.setSelection(listOf(action))
-      NavUsageTracker.getInstance(mySurface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-        .withActionInfo(action)
-        .withSource(NavEditorEvent.Source.CONTEXT_MENU)
-        .log()
+      mySurface.selectionModel.setSelection(listOfNotNull(action))
+      if (action != null) {
+        NavUsageTracker.getInstance(mySurface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+          .withActionInfo(action)
+          .withSource(NavEditorEvent.Source.CONTEXT_MENU)
+          .log()
+      }
     }
   }
 }

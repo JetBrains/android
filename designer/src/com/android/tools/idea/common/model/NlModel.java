@@ -864,6 +864,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The reason for this creation.
    */
+  @Nullable
   public NlComponent createComponent(@Nullable DesignSurface surface,
                                      @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
@@ -897,12 +898,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Simply create a component. In most cases you probably want
    * {@link #createComponent(DesignSurface, XmlTag, NlComponent, NlComponent, InsertType)}.
    */
+  @NotNull
   public NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent component = new NlComponent(this, tag);
     myComponentRegistrar.accept(component);
     return component;
   }
 
+  @NotNull
   public List<NlComponent> createComponents(@NotNull DnDTransferItem item, @NotNull InsertType insertType, @NotNull DesignSurface surface) {
     List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
@@ -1037,6 +1040,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Looks up the existing set of id's reachable from this model
    */
+  @NotNull
   public Set<String> getIds() {
     LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getFacet());
     Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
@@ -1099,6 +1103,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myListeners.clear();
   }
 
+  @NotNull
   @Override
   public String toString() {
     return NlModel.class.getSimpleName() + " for " + myFile;
@@ -1183,6 +1188,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myListeners.forEach(listener -> listener.modelChanged(this));
   }
 
+  @Nullable
   public ChangeType getLastChangeType() {
     return myModificationTrigger;
   }

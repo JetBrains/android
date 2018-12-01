@@ -29,7 +29,7 @@ class AddGlobalAction(private val mySurface: DesignSurface, private val componen
     WriteCommandAction.runWriteCommandAction(null) {
       assert(component.parent != null)
       val action = component.parent?.createAction(component.id)
-      mySurface.selectionModel.setSelection(listOf(action))
+      mySurface.selectionModel.setSelection(listOfNotNull(action))
       if (action != null) {
         NavUsageTracker.getInstance(mySurface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)

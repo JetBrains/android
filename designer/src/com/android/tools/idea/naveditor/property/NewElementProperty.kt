@@ -41,9 +41,9 @@ open class NewElementProperty(private val parent: NlComponent, private val tagNa
     if (value is String? && value.isNullOrEmpty()) {
       return
     }
-    val newComponent = WriteCommandAction.runWriteCommandAction(parent.model.project, Computable<NlComponent> {
+    val newComponent = WriteCommandAction.runWriteCommandAction(parent.model.project, Computable {
       val tag = parent.tag.createChildTag(tagName, null, null, false)
-      val result = parent.model.createComponent(null, tag, parent, null, InsertType.CREATE)
+      val result = parent.model.createComponent(null, tag, parent, null, InsertType.CREATE) ?: error("Failed to create <$tagName>!")
       result.setAttribute(namespace, attrName, value as String)
       result
     })

@@ -45,7 +45,9 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.D
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_DESTINATION
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_INCLUDE
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_NESTED
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
@@ -330,8 +332,14 @@ val NlComponent.startDestination: NlComponent?
  * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
  */
 @JvmOverloads
-fun NlComponent.createAction(destinationId: String? = null, id: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent {
+fun NlComponent.createAction(destinationId: String? = null, id: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent? {
   val newAction = createChild(TAG_ACTION)
+  if (newAction == null) {
+    ApplicationManager.getApplication().invokeLater {
+      Messages.showErrorDialog(model.project, "Failed to create Action!", "Error")
+    }
+    return null
+  }
   newAction.actionDestinationId = destinationId
   newAction.actionSetup()
   // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
@@ -363,11 +371,11 @@ fun generateActionId(source: NlComponent, destinationId: String?, popTo: String?
   return "action_${displaySourceId}_to_${effectiveId}"
 }
 
-fun NlComponent.createSelfAction(): NlComponent {
+fun NlComponent.createSelfAction(): NlComponent? {
   return createAction(id)
 }
 
-fun NlComponent.createReturnToSourceAction(): NlComponent {
+fun NlComponent.createReturnToSourceAction(): NlComponent? {
   return createAction {
     popUpTo = parent?.id
     inclusive = true
@@ -378,17 +386,23 @@ fun NlComponent.setAsStartDestination() {
   parent?.startDestinationId = id
 }
 
-fun NlComponent.createNestedGraph(): NlComponent {
-  return createChild(model.schema.getDefaultTag(DestinationType.NAVIGATION)!!)
+fun NlComponent.createNestedGraph(): NlComponent? {
+  val newComponent = createChild(model.schema.getDefaultTag(DestinationType.NAVIGATION)!!)
+  if (newComponent == null) {
+    ApplicationManager.getApplication().invokeLater {
+      Messages.showErrorDialog(model.project, "Failed to create Nested Graph!", "Error")
+    }
+  }
+  return newComponent
 }
 
 val NlComponent.supportsActions: Boolean
   get() = model.schema.getDestinationSubtags(tagName).containsKey(NavActionElement::class.java)
 
-private fun NlComponent.createChild(tagName: String): NlComponent {
+private fun NlComponent.createChild(tagName: String): NlComponent? {
   val newTag = tag.createChildTag(tagName, null, null, false)
   val child = model.createComponent(null, newTag, this, null, InsertType.CREATE)
-  child.ensureId()
+  child?.ensureId()
   return child
 }
 
@@ -423,7 +437,7 @@ val NlComponent.idPath: List<String?>
  * Moves the currently selected destinations into the nested graph returned from newParent
  * Since newParent may create a new NlComponent it is evaluated inside the run command
  */
-fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent): Boolean {
+fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?): Boolean {
   val currentNavigation = surface.currentNavigation
   val components = surface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
 
@@ -432,7 +446,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent)
   }
 
   WriteCommandAction.runWriteCommandAction(surface.project, "Add to Nested Graph", null, Runnable {
-    val graph = newParent()
+    val graph = newParent() ?: return@Runnable
     val ids = components.map { it.id }
     components.forEach { surface.sceneManager?.performUndoablePositionAction(it) }
 

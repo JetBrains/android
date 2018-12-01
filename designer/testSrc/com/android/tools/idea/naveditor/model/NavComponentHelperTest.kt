@@ -245,16 +245,16 @@ class NavComponentHelperTest2 : NavTestCase() {
 
     val f1 = model.find("f1")!!
     val root = model.components[0]!!
-    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_to_f2", f1.createAction("f2").id) }
-    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self", f1.createAction("f1").id) }
-    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self2", f1.createAction("f1").id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_to_f2", f1.createAction("f2")?.id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self", f1.createAction("f1")?.id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self2", f1.createAction("f1")?.id) }
     WriteCommandAction.runWriteCommandAction(project) {
       assertEquals(
           "action_f1_pop",
           f1.createAction {
             popUpTo = "f1"
             inclusive = true
-          }.id)
+          }?.id)
     }
     WriteCommandAction.runWriteCommandAction(project) {
       assertEquals(
@@ -262,9 +262,9 @@ class NavComponentHelperTest2 : NavTestCase() {
           f1.createAction {
             popUpTo = "f2"
             inclusive = true
-          }.id)
+          }?.id)
     }
-    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_global_f1", root.createAction("f1").id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_global_f1", root.createAction("f1")?.id) }
   }
 
   fun testGenerateActionId() {
