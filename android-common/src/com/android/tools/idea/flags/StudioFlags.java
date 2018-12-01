@@ -272,6 +272,11 @@ public final class StudioFlags {
     "Enable the new Property Panel",
     false);
 
+  public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL_WITH_TABS = Flag.create(
+    NELE, "new.property.tabs", "Use a tab panel to switch to the advanced table",
+    "Use a tab panel to switch to advanced",
+    false);
+
   public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
     NELE, "new.color.picker", "New Color Picker",
     "Enable new Color Picker in Layout Editor",

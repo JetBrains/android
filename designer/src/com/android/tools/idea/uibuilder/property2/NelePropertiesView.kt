@@ -18,14 +18,13 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.PropertiesView
 import com.android.tools.idea.common.property2.api.Watermark
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.inspector.AllAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.BasicAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.DeclaredAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.ProgressBarInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.TextViewInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.ViewInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 
@@ -43,15 +42,23 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedComponentBuilder())
-    val basic = addTab(BASIC_PAGE)
-    basic.searchable = false
-    basic.builders.add(IdInspectorBuilder(editorProvider))
-    basic.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
-    basic.builders.add(ViewInspectorBuilder(model.facet.module.project, editorProvider))
-    basic.builders.add(TextViewInspectorBuilder(editorProvider))
-    basic.builders.add(ProgressBarInspectorBuilder(editorProvider))
-    val advanced = addTab(ADVANCED_PAGE)
-    advanced.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
-    advanced.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
+    if (StudioFlags.NELE_NEW_PROPERTY_PANEL_WITH_TABS.get()) {
+      val basic = addTab(BASIC_PAGE)
+      basic.searchable = false
+      basic.builders.add(IdInspectorBuilder(editorProvider))
+      basic.builders.add(LayoutInspectorBuilder(model.project, editorProvider))
+      basic.builders.add(BasicAttributesInspectorBuilder(model.project, editorProvider))
+      val advanced = addTab(ADVANCED_PAGE)
+      advanced.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
+      advanced.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
+    }
+    else {
+      val tab = addTab("")
+      tab.builders.add(IdInspectorBuilder(editorProvider))
+      tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
+      tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
+      tab.builders.add(BasicAttributesInspectorBuilder(model.project, editorProvider))
+      tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
+    }
   }
 }

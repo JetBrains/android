@@ -33,6 +33,8 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.project.Project
 import javax.swing.JPanel
 
+private const val LAYOUT_TITLE = "Layout"
+
 /**
  * An [InspectorBuilder] for all procured layout attributes.
  *
@@ -53,7 +55,7 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
     val custom = setupCustomPanel(properties)
     if (!isApplicable(attributes, custom, properties)) return
 
-    val titleModel = inspector.addExpandableTitle("layout")
+    val titleModel = inspector.addExpandableTitle(LAYOUT_TITLE)
 
     if (custom != null) {
       inspector.addComponent(custom, titleModel)

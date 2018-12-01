@@ -42,7 +42,7 @@ class LayoutInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).hasSize(2)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("layout")
+    assertThat(util.inspector.lines[0].title).isEqualTo("Layout")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
   }
 
