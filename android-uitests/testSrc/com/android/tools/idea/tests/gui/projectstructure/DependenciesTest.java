@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Proje
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +51,6 @@ public class DependenciesTest {
     StudioFlags.NEW_PSD_ENABLED.clearOverride();
   }
 
-  @Ignore("b/70694098")
   @Test
   public void createNewFlavors() throws Exception {
     String projPath = guiTest.importSimpleApplication()
