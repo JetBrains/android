@@ -184,9 +184,15 @@ class PsContextImpl constructor(
       project.applyChanges()
     }
   }
+}
 
-  override fun PsPath.renderNavigation(specificPlace: PsPath): String =
-    """<a href="${specificPlace.getHyperlinkDestination(this@PsContextImpl)}">${this@renderNavigation.toString()}</a>"""
+class PsPathRendererImpl : PsPathRenderer {
+  var context: PsContext? = null
+  override fun PsPath.renderNavigation(specificPlace: PsPath): String {
+    val text = this.toString()
+    val href = specificPlace.getHyperlinkDestination(context!!).orEmpty()
+    return """<a href="$href">$text</a>"""
+  }
 }
 
 private fun analyzersMapOf(vararg analyzers: PsModelAnalyzer<out PsModule>): Map<Class<*>, PsModelAnalyzer<out PsModule>> =
