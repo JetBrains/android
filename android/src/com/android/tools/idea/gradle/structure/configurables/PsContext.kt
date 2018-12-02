@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
@@ -49,8 +48,4 @@ interface PsContext : Disposable {
    */
   @Throws(ConfigurationException::class)
   fun applyChanges()
-
-  fun PsPath.renderNavigation(specificPlace: PsPath = this): String
-  fun <T : PsPath> T.renderNavigation(specificPlace: T.() -> PsPath): String = renderNavigation(specificPlace())
 }
-
