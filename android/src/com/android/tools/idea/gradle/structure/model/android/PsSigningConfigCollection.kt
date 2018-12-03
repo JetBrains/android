@@ -28,7 +28,8 @@ class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
     return result
   }
 
-  override fun create(key: String): PsSigningConfig = PsSigningConfig(parent)
+  override fun create(key: String): PsSigningConfig =
+    PsSigningConfig(parent, renamed = { oldKey, newKey -> renamed(entries[oldKey] ?: error("Old key not found: $oldKey"), newKey) })
 
   override fun update(key: String, model: PsSigningConfig) {
     model.init(

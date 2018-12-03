@@ -40,7 +40,8 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
     return result
   }
 
-  override fun create(key: PsProductFlavorKey): PsProductFlavor = PsProductFlavor(parent)
+  override fun create(key: PsProductFlavorKey): PsProductFlavor =
+    PsProductFlavor(parent, renamed = { oldKey, newKey -> renamed(entries[oldKey] ?: error("Old key not found: $oldKey"), newKey) })
 
   override fun update(key: PsProductFlavorKey, model: PsProductFlavor) {
     model.init(

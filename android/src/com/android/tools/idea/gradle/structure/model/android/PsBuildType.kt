@@ -29,15 +29,12 @@ import java.io.File
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
 
 open class PsBuildType(
-  final override val parent: PsAndroidModule
+  final override val parent: PsAndroidModule,
+  private val renamed: (String, String) -> Unit
 ) : PsChildModel() {
   override val descriptor by BuildTypeDescriptors
   var resolvedModel: BuildType? = null
   private var parsedModel: BuildTypeModel? = null
-
-  constructor (parent: PsAndroidModule, resolvedModel: BuildType?, parsedModel: BuildTypeModel?) : this(parent) {
-    init(resolvedModel, parsedModel)
-  }
 
   fun init(resolvedModel: BuildType?, parsedModel: BuildTypeModel?) {
     this.resolvedModel = resolvedModel
@@ -71,6 +68,13 @@ open class PsBuildType(
       parsedModel = parent.parsedModel!!.android().addBuildType(name)
       parent.isModified = true
     }
+  }
+
+  fun rename(newName: String) {
+    ensureDeclared()
+    val oldName = name
+    parsedModel!!.rename(newName)
+    renamed(oldName, newName)
   }
 
   object BuildTypeDescriptors : ModelDescriptor<PsBuildType, BuildType, BuildTypeModel> {
