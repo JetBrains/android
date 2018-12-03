@@ -105,6 +105,7 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
         return if (reference is RoomColumnPsiReference) {
           when (reference.element.nameAsString.toLowerCase()) {
             "rowid", "_rowid_", "oid" -> true
+            "docid" -> true // TODO(b/120407095): do this only in FTS tables.
             else -> false
           }
         } else {
