@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
+import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
@@ -41,7 +42,7 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
     try {
       val context = PsContextImpl(project, disposable, disableAnalysis = true)
       val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
-      val analyzer = PsAndroidModuleAnalyzer(context)
+      val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val messageCollection = PsIssueCollection()
       analyzer.analyze(mainModule, messageCollection)
 
