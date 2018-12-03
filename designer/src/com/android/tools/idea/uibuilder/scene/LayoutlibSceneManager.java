@@ -579,15 +579,12 @@ public class LayoutlibSceneManager extends SceneManager {
         }
         DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
-            try {
-              updateModel().join();
-            }
-            catch (Throwable e) {
-              Logger.getInstance(LayoutlibSceneManager.class).error(e);
-            }
+            updateModel()
+              .whenComplete((result, ex) -> stopProgressIndicator());
           }
-
-          stopProgressIndicator();
+          else {
+            stopProgressIndicator();
+          }
         });
       }
 
