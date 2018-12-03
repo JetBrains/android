@@ -21,6 +21,7 @@ import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
@@ -36,13 +37,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.xml.util.XmlStringUtil.escapeString
 import java.util.regex.Pattern
 
-class PsAndroidModuleAnalyzer(val parentDisposable: Disposable) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
+class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer: PsPathRenderer) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
   override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
-    return analyzeDeclaredDependencies(model) + analyzeLibraryVersionPromotions(model)
+    return analyzeModuleVariants(model) + analyzeDeclaredDependencies(model) + analyzeLibraryVersionPromotions(model)
   }
+
+  private fun analyzeModuleVariants(model: PsAndroidModule) : Sequence<PsIssue> =
+    analyzeModuleDependencies(model, pathRenderer)
 
   private fun analyzeDeclaredDependencies(model: PsAndroidModule): Sequence<PsIssue> {
     val issuesByData = transferSyncIssues(model.resolvedModel)
@@ -130,4 +134,3 @@ private fun getSeverity(issue: SyncIssue): PsIssue.Severity {
 
 private fun transferSyncIssues(gradleModel: AndroidModuleModel?) =
   gradleModel?.androidProject?.syncIssues?.filter { !it.data.isNullOrEmpty() }?.groupBy { it.data!! }.orEmpty()
-

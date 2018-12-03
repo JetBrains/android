@@ -87,7 +87,7 @@ class PsContextImpl constructor(
       project,
       libraryUpdateCheckerDaemon,
       analyzersMapOf(
-        PsAndroidModuleAnalyzer(this),
+        PsAndroidModuleAnalyzer(this, PsPathRendererImpl().also { it.context = this }),
         PsJavaModuleAnalyzer(this))
     )
     if (!disableAnalysis) {
