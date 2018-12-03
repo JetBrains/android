@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_MULTIPLE_LOCAL_REPOS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_CUSTOM_MAVEN_REPOSITORY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT;
@@ -590,5 +591,31 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(model.name().toString()).isEqualTo("Good Name");
     assertThat(model.url().toString()).isEqualTo("good.url");
     verifyListProperty(model.artifactUrls(), "repositories.maven.artifactUrls", ImmutableList.of("nice.url", "other.nice.url"));
+  }
+
+  @Test
+  public void testMultipleLocalRepos() throws IOException {
+    writeToBuildFile(REPOSITORIES_MODEL_MULTIPLE_LOCAL_REPOS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositoriesModels = repositoriesModel.repositories();
+    assertThat(repositoriesModels).hasSize(3);
+
+    RepositoryModel firstModel = repositoriesModels.get(0);
+    verifyPropertyModel(firstModel.name(), "repositories.maven.name", "test2");
+    assertEquals(RepositoryModel.RepositoryType.MAVEN, firstModel.getType());
+    assertThat(firstModel).isInstanceOf(MavenRepositoryModelImpl.class);
+    assertEquals("file:/some/other/repo", ((MavenRepositoryModelImpl)firstModel).url().toString());
+
+    RepositoryModel secondModel = repositoriesModels.get(1);
+    assertEquals(RepositoryModel.RepositoryType.MAVEN, secondModel.getType());
+    assertThat(secondModel).isInstanceOf(MavenRepositoryModelImpl.class);
+    assertEquals("file:/the/best/repo", ((MavenRepositoryModelImpl)secondModel).url().toString());
+
+    RepositoryModel thirdModel = repositoriesModels.get(2);
+    assertEquals(RepositoryModel.RepositoryType.MAVEN, thirdModel.getType());
+    assertThat(thirdModel).isInstanceOf(MavenRepositoryModelImpl.class);
+    assertEquals("file:/some/repo", ((MavenRepositoryModelImpl)thirdModel).url().toString());
   }
 }
