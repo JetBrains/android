@@ -31,11 +31,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.naveditor.editor.NavEditorProvider"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.sampledata.CsvEditorProvider"/>
   </extensions>
 
@@ -57,16 +52,10 @@
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.naveditor.property.editors.NavPropertyEditors</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage</implementation-class>
     </component>
   </project-components>
 

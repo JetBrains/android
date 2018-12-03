@@ -20,7 +20,6 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileDocumentManager
 
@@ -71,8 +70,7 @@ class NavNlModelTest : NavTestCase() {
     FileDocumentManager.getInstance().saveAllDocuments()
     val result = String(model.virtualFile.contentsToByteArray())
     // ensure that we end up with a self-closing tag
-    Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<fragment\n" +
-                                                                      "android:id=\"@+id/f1\"/>\n")
+    assertThat(result.replace("\n *".toRegex(), "\n")).contains("<fragment\nandroid:id=\"@+id/f1\"/>\n")
   }
 
   fun testTooltips() {

@@ -35,5 +35,6 @@ iml_module(
         "//tools/adt/idea/whats-new-assistant[module]",
         "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module]",
+        "//tools/adt/idea/naveditor:intellij.android.naveditor[module]",
     ],
 )

@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="whats-new-assistant" />
     <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.android.databinding" />
+    <orderEntry type="module" module-name="intellij.android.naveditor" />
   </component>
 </module>

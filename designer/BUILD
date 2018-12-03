@@ -22,11 +22,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
-        "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/idea/images:intellij.platform.images[module]",
@@ -51,12 +47,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/idea/java/openapi:intellij.java[module]",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
     ],
 )
@@ -139,7 +129,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem.tests[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
