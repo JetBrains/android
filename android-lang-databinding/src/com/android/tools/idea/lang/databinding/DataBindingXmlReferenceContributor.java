@@ -21,7 +21,6 @@ import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import com.android.ide.common.resources.DataBindingResourceType;
-import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
@@ -34,6 +33,7 @@ import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.TextRange;
@@ -53,7 +53,6 @@ import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.psi.PsiType;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -89,7 +88,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null && DataBindingUtil.isDataBindingEnabled(facet)) {
             LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
-            PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
+            PsiFile topLevelFile = InjectedLanguageManager.getInstance(element.getProject()).getTopLevelFile(element);
             if (topLevelFile != null) {
               if (topLevelFile.getFileType() == DbFileType.INSTANCE) {
                 PsiElement fileContext = topLevelFile.getContext();
@@ -293,7 +292,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
   private static class PsiFieldReference extends DefinitionReference {
 
-    public PsiFieldReference(@NotNull PsiDbRefExpr refExpr, @NotNull PsiField field) {
+    private PsiFieldReference(@NotNull PsiDbRefExpr refExpr, @NotNull PsiField field) {
       super(refExpr, field, refExpr.getId().getTextRange().shiftRight(-refExpr.getStartOffsetInParent()));
     }
 
@@ -312,11 +311,11 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
   private static class PsiMethodReference extends DefinitionReference {
 
-    public PsiMethodReference(@NotNull PsiDbCallExpr expr, @NotNull PsiMethod method) {
+    private PsiMethodReference(@NotNull PsiDbCallExpr expr, @NotNull PsiMethod method) {
       super(expr, method, expr.getRefExpr().getId().getTextRange().shiftRight(-expr.getStartOffsetInParent()));
     }
 
-    public PsiMethodReference(@NotNull PsiDbRefExpr expr, @NotNull PsiMethod method) {
+    private PsiMethodReference(@NotNull PsiDbRefExpr expr, @NotNull PsiMethod method) {
       super(expr, method, expr.getId().getTextRange().shiftRight(-expr.getStartOffsetInParent()));
     }
 
@@ -336,11 +335,11 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   private static class VariableDefinitionReference extends DefinitionReference {
     private final PsiModelClass myModelClass;
 
-    public VariableDefinitionReference(@NotNull PsiElement element,
-                                       @NotNull XmlTag resolveTo,
-                                       @NotNull PsiDataBindingResourceItem variable,
-                                       @NotNull DataBindingInfo dataBindingInfo,
-                                       @NotNull Module module) {
+    private VariableDefinitionReference(@NotNull PsiElement element,
+                                        @NotNull XmlTag resolveTo,
+                                        @NotNull PsiDataBindingResourceItem variable,
+                                        @NotNull DataBindingInfo dataBindingInfo,
+                                        @NotNull Module module) {
       super(element, resolveTo);
       String type = DataBindingUtil.getQualifiedType(variable.getTypeDeclaration(), dataBindingInfo, false);
       PsiModelClass modelClass = null;
@@ -369,10 +368,10 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   private static class ImportDefinitionReference extends DefinitionReference {
     private final PsiModelClass myModelClass;
 
-    public ImportDefinitionReference(@NotNull PsiElement element,
-                                     @NotNull XmlTag resolveTo,
-                                     @NotNull PsiDataBindingResourceItem variable,
-                                     @NotNull Module module) {
+    private ImportDefinitionReference(@NotNull PsiElement element,
+                                      @NotNull XmlTag resolveTo,
+                                      @NotNull PsiDataBindingResourceItem variable,
+                                      @NotNull Module module) {
       super(element, resolveTo);
       String type = variable.getTypeDeclaration();
       PsiModelClass modelClass = null;
@@ -399,7 +398,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
   private static class ClassDefinitionReference extends DefinitionReference {
 
-    public ClassDefinitionReference(@NotNull PsiElement element, @NotNull PsiClass resolveTo) {
+    private ClassDefinitionReference(@NotNull PsiElement element, @NotNull PsiClass resolveTo) {
       super(element, resolveTo);
     }
 
@@ -424,7 +423,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     private final PsiPackage myTarget;
     private final TextRange myTextRange;
 
-    public PackageReference(@NotNull PsiElement element, @NotNull PsiPackage target) {
+    private PackageReference(@NotNull PsiElement element, @NotNull PsiPackage target) {
       myElement = element;
       myTarget = target;
       myTextRange = myElement.getTextRange().shiftRight(-myElement.getStartOffsetInParent());

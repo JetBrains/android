@@ -31,8 +31,6 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Reader;
-
 public class DbParserDefinition implements ParserDefinition {
 
   private static final IFileElementType FILE_ELEMENT_TYPE = new IFileElementType(DbLanguage.INSTANCE);
@@ -41,7 +39,7 @@ public class DbParserDefinition implements ParserDefinition {
   @NotNull
   @Override
   public Lexer createLexer(Project project) {
-    return new FlexAdapter(new _DbLexer((Reader)null));
+    return new FlexAdapter(new _DbLexer(null));
   }
 
   @Override

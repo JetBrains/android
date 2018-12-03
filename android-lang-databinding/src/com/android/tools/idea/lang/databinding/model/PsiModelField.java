@@ -26,7 +26,7 @@ import com.intellij.psi.PsiModifierList;
 import org.jetbrains.annotations.NotNull;
 
 public class PsiModelField extends ModelField {
-  @NotNull PsiField myPsiField;
+  @NotNull final PsiField myPsiField;
 
   private static final BindableCompat BINDABLE_COMPAT = new BindableCompat(new String[0]);
 

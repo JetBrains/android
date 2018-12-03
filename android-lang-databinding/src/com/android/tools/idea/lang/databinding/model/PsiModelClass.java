@@ -27,16 +27,21 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 public class PsiModelClass extends ModelClass {
 
-  @NotNull PsiType myType;
+  @NotNull final PsiType myType;
   ModelClass myComponentType;
 
   public PsiModelClass(@NotNull PsiType psiClassType) {
     myType = psiClassType;
   }
 
+  /**
+   * Constructs a {@link PsiClass} of the given {@link #myType}. Returns null if {@link #myType} is not an instance of {@link PsiClassType}.
+   * */
+  @Nullable
   public PsiClass getPsiClass() {
     if (myType instanceof PsiClassType) {
       return ((PsiClassType)myType).resolve();
