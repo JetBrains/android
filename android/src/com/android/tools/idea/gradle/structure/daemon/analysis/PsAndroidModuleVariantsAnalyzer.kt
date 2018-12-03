@@ -100,3 +100,20 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
 
     analyzeBuildTypes() + analyzeProductFlavors() + analyzeFlavorDimensions()
   }
+
+fun analyzeProductFlavors(model: PsAndroidModule, pathRenderer: PsPathRenderer): Sequence<PsGeneralIssue> =
+  with(pathRenderer) {
+    model.productFlavors.asSequence().filter { it.effectiveDimension == null }.map {
+      val configuredFlavorDimension = it.configuredDimension.maybeValue
+      PsGeneralIssue(
+        when {
+          configuredFlavorDimension.isNullOrEmpty() -> "Flavor '${it.path.renderNavigation()}' has no flavor dimension."
+          else -> "Flavor '${it.path.renderNavigation()}' has unknown dimension '$configuredFlavorDimension'."
+        },
+        it.path,
+        PsIssueType.PROJECT_ANALYSIS,
+        PsIssue.Severity.ERROR,
+        null
+      )
+    }
+  }
