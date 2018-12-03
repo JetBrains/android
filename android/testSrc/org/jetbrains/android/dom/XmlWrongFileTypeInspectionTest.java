@@ -15,12 +15,12 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.inspections.XmlWrongFileTypeInspection;
 import org.jetbrains.annotations.NotNull;
 

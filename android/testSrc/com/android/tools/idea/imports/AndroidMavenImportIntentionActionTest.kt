@@ -22,8 +22,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import org.jetbrains.android.loadNewFile
-import org.jetbrains.android.moveCaret
+import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.testing.moveCaret
 
 class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
   fun testUnresolvedSymbolInKotlin() {

@@ -117,6 +117,7 @@ import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
