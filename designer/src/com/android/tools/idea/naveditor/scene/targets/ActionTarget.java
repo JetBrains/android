@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getIconRect;
-import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getIconRectSelf;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getRegularActionIconRect;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getSelfActionIconRect;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -92,7 +92,7 @@ public class ActionTarget extends BaseTarget {
       }
 
       if (isPopAction) {
-        iconRect = getIconRectSelf(points[0], transform);
+        iconRect = getSelfActionIconRect(points[0], transform);
       }
     }
     else {
@@ -102,7 +102,7 @@ public class ActionTarget extends BaseTarget {
                         (int)points.p4.x, (int)points.p4.y, 10);
 
       if (isPopAction) {
-        iconRect = getIconRect(source, dest, transform);
+        iconRect = getRegularActionIconRect(source, dest, transform);
       }
     }
 

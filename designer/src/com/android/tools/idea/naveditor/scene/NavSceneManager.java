@@ -85,19 +85,17 @@ public class NavSceneManager extends SceneManager {
 
   @NavCoordinate private static final float ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
   @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUI.scale(6);
+  @NavCoordinate private static final int POP_ICON_VERTICAL_PADDING = JBUI.scale(10);
 
-  @NavCoordinate private static final int GLOBAL_ACTION_LINE_LENGTH = JBUI.scale(8);
-  @NavCoordinate private static final float GLOBAL_ACTION_WIDTH = ACTION_ARROW_PARALLEL + GLOBAL_ACTION_LINE_LENGTH;
-  @NavCoordinate private static final int GLOBAL_ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
-
-  @NavCoordinate private static final int EXIT_ACTION_LINE_LENGTH = JBUI.scale(14);
-  @NavCoordinate private static final float EXIT_ACTION_WIDTH = ACTION_ARROW_PARALLEL + EXIT_ACTION_LINE_LENGTH;
-  @NavCoordinate private static final int EXIT_ACTION_HORIZONTAL_PADDING = JBUI.scale(2);
+  @NavCoordinate private static final int ACTION_LINE_LENGTH = JBUI.scale(14);
+  @NavCoordinate private static final float ACTION_WIDTH = ACTION_ARROW_PARALLEL + ACTION_LINE_LENGTH;
+  @NavCoordinate private static final int ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
 
   private final NavScreenTargetProvider myScreenTargetProvider;
   private final NavigationTargetProvider myNavigationTargetProvider;
   private final NavActionTargetProvider myNavActionTargetProvider;
   private final HitProvider myNavDestinationHitProvider = new NavDestinationHitProvider();
+  private final HitProvider myHorizontalActionHitProvider = new NavHorizontalActionHitProvider();
 
   private final List<NavSceneLayoutAlgorithm> myLayoutAlgorithms;
   private final NavSceneLayoutAlgorithm mySavingLayoutAlgorithm;
@@ -148,10 +146,8 @@ public class NavSceneManager extends SceneManager {
 
     switch (NavComponentHelperKt.getActionType(nlComponent, getRoot())) {
       case GLOBAL:
-        sceneComponent.setSize((int)GLOBAL_ACTION_WIDTH, (int)ACTION_HEIGHT, false);
-        return;
       case EXIT:
-        sceneComponent.setSize((int)EXIT_ACTION_WIDTH, (int)ACTION_HEIGHT, false);
+        sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT, false);
         return;
       default:
         break;
@@ -530,11 +526,11 @@ public class NavSceneManager extends SceneManager {
   private static void layoutGlobalActions(@NotNull SceneComponent destination,
                                           @NotNull ArrayList<SceneComponent> globalActions,
                                           Boolean skip) {
-    layoutActions(destination, globalActions, skip, (int)(destination.getDrawX() - GLOBAL_ACTION_WIDTH - GLOBAL_ACTION_HORIZONTAL_PADDING));
+    layoutActions(destination, globalActions, skip, (int)(destination.getDrawX() - ACTION_WIDTH - ACTION_HORIZONTAL_PADDING));
   }
 
   private static void layoutExitActions(@NotNull SceneComponent source, @NotNull ArrayList<SceneComponent> exitActions, Boolean skip) {
-    layoutActions(source, exitActions, skip, source.getDrawX() + source.getDrawWidth() + EXIT_ACTION_HORIZONTAL_PADDING);
+    layoutActions(source, exitActions, skip, source.getDrawX() + source.getDrawWidth() + ACTION_HORIZONTAL_PADDING);
   }
 
   private static void layoutActions(SceneComponent component, ArrayList<SceneComponent> actions, Boolean skip, @NavCoordinate int x) {
@@ -544,6 +540,14 @@ public class NavSceneManager extends SceneManager {
       return;
     }
 
+    int popIconCount = 0;
+
+    for (int i = 0; i < (count + 1) / 2; i++) {
+      if (NavComponentHelperKt.getPopUpTo(actions.get(i).getNlComponent()) != null) {
+        popIconCount++;
+      }
+    }
+
     if (skip) {
       // Insert a null element to indicate that we need space for regular actions
       actions.add((count + 1) / 2, null);
@@ -551,10 +555,15 @@ public class NavSceneManager extends SceneManager {
     }
 
     @NavCoordinate int y = component.getDrawY() + component.getDrawHeight() / 2
-                           - (int)ACTION_HEIGHT / 2 - (count / 2) * (int)(ACTION_HEIGHT + ACTION_VERTICAL_PADDING);
+                           - (int)ACTION_HEIGHT / 2 - (count / 2) * (int)(ACTION_HEIGHT + ACTION_VERTICAL_PADDING)
+                           - (popIconCount * POP_ICON_VERTICAL_PADDING);
 
     for (SceneComponent action : actions) {
       if (action != null) {
+        if (NavComponentHelperKt.getPopUpTo(action.getNlComponent()) != null) {
+          y += POP_ICON_VERTICAL_PADDING;
+        }
+
         action.setPosition(x, y);
       }
       y += ACTION_HEIGHT + ACTION_VERTICAL_PADDING;
@@ -697,6 +706,9 @@ public class NavSceneManager extends SceneManager {
   public HitProvider getHitProvider(@NotNull NlComponent component) {
     if (NavComponentHelperKt.getSupportsActions(component)) {
       return myNavDestinationHitProvider;
+    }
+    else if (NavComponentHelperKt.getPopUpTo(component) != null) {
+      return myHorizontalActionHitProvider;
     }
     return super.getHitProvider(component);
   }
