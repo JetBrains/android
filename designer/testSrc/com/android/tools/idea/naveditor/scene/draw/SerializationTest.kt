@@ -223,11 +223,11 @@ class SerializationTest : TestCase() {
   fun testDrawHorizontalAction() {
     val factory = { s: String -> DrawHorizontalAction(s) }
 
-    testSerialization("DrawHorizontalAction,0,10.0x20.0x30.0x40.0,ffff0000",
-                      DrawHorizontalAction(0, Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED), factory)
+    testSerialization("DrawHorizontalAction,0,10.0x20.0x30.0x40.0,ffff0000,false",
+                      DrawHorizontalAction(0, Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED, false), factory)
 
-    testSerialization("DrawHorizontalAction,1,50.0x60.0x70.0x80.0,ff0000ff",
-                      DrawHorizontalAction(1, Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE), factory)
+    testSerialization("DrawHorizontalAction,1,50.0x60.0x70.0x80.0,ff0000ff,true",
+                      DrawHorizontalAction(1, Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE, true), factory)
   }
 
   companion object {

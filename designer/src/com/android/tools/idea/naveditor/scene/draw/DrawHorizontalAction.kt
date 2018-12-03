@@ -30,24 +30,27 @@ import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PARALLEL
 import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PERPENDICULAR
+import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import java.awt.Color
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 data class DrawHorizontalAction(private val level: Int,
                                 @SwingCoordinate private val rectangle: Rectangle2D.Float,
-                                private val color: Color) : CompositeDrawCommand() {
+                                private val color: Color,
+                                private val isPopAction: Boolean) : CompositeDrawCommand() {
   private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRect2D(sp[1]), stringToColor(sp[2]))
+    : this(sp[0].toInt(), stringToRect2D(sp[1]), stringToColor(sp[2]), sp[3].toBoolean())
 
-  constructor(s: String) : this(parse(s, 3))
+  constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel(): Int = level
 
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle), colorToString(color))
+  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle), colorToString(color), isPopAction)
 
   override fun buildCommands(): List<DrawCommand> {
-    val arrowWidth = rectangle.height * ACTION_ARROW_PARALLEL / ACTION_ARROW_PERPENDICULAR
+    val scale = rectangle.height / ACTION_ARROW_PERPENDICULAR
+    val arrowWidth = ACTION_ARROW_PARALLEL * scale
     val lineLength = Math.max(0f, rectangle.width - arrowWidth)
 
     val p1 = Point2D.Float(rectangle.x, rectangle.centerY.toFloat())
@@ -56,6 +59,15 @@ data class DrawHorizontalAction(private val level: Int,
 
     val arrowRect = Rectangle2D.Float(p2.x, rectangle.y, arrowWidth, rectangle.height)
     val drawArrow = DrawArrow(1, ArrowDirection.RIGHT, arrowRect, color)
-    return listOf(drawLine, drawArrow)
+
+    val list = mutableListOf(drawLine, drawArrow)
+
+    if (isPopAction) {
+      val iconRect = getHorizontalActionIconRect(rectangle)
+      val drawIcon = DrawIcon(iconRect, DrawIcon.IconType.POP_ACTION, color)
+      list.add(drawIcon)
+    }
+
+    return list
   }
 }

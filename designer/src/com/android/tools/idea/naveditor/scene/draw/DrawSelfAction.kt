@@ -35,7 +35,7 @@ import com.android.tools.idea.naveditor.scene.SELF_ACTION_LENGTHS
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.getArrowPoint
 import com.android.tools.idea.naveditor.scene.getArrowRectangle
-import com.android.tools.idea.naveditor.scene.getIconRectSelf
+import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
 import com.android.tools.idea.naveditor.scene.getStartPoint
 import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
@@ -89,7 +89,7 @@ data class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
       list.add(DrawSelfAction(start, end, color))
 
       if (isPopAction) {
-        val iconRect = getIconRectSelf(start, sceneContext)
+        val iconRect = getSelfActionIconRect(start, sceneContext)
         list.add(DrawIcon(iconRect, DrawIcon.IconType.POP_ACTION, color))
       }
     }

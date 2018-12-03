@@ -20,7 +20,7 @@ import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.DASHED_AC
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getArrowPoint;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getCurvePoints;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getDestinationDirection;
-import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getIconRect;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getRegularActionIconRect;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 
@@ -112,7 +112,7 @@ public class DrawAction extends DrawCommandBase {
     list.add(new DrawArrow(DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
 
     if (isPopAction) {
-      Rectangle2D.Float iconRectangle = getIconRect(source, dest, sceneContext);
+      Rectangle2D.Float iconRectangle = getRegularActionIconRect(source, dest, sceneContext);
       list.add(new DrawIcon(iconRectangle, DrawIcon.IconType.POP_ACTION, color));
     }
   }

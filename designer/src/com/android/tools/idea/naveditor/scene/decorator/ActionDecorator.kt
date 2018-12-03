@@ -43,11 +43,12 @@ object ActionDecorator : NavBaseDecorator() {
     val color = actionColor(sceneContext, component)
     val view = component.scene.designSurface.currentSceneView ?: return
     val actionType = nlComponent.getActionType(component.scene.root?.nlComponent)
+    val isPopAction = nlComponent.popUpTo != null
     when (actionType) {
       ActionType.NONE -> return
       ActionType.GLOBAL, ActionType.EXIT -> {
         @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
-        list.add(DrawHorizontalAction(DRAW_ACTION_LEVEL, drawRect, color))
+        list.add(DrawHorizontalAction(DRAW_ACTION_LEVEL, drawRect, color, isPopAction))
       }
       else -> {
         val scene = component.scene
@@ -55,7 +56,6 @@ object ActionDecorator : NavBaseDecorator() {
         val sourceNlComponent = scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
         val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return
         val sourceRect = Coordinates.getSwingRectDip(view, sourceSceneComponent.fillDrawRect2D(0, null))
-        val isPopAction = nlComponent.popUpTo != null
 
         if (actionType == ActionType.SELF) {
           DrawSelfAction.buildDisplayList(list, view, sourceRect, color, isPopAction)

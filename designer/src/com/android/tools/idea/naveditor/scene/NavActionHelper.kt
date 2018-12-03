@@ -62,6 +62,12 @@ val POP_ICON_DISTANCE = JBUI.scale(7)
 @NavCoordinate
 val POP_ICON_RANGE = JBUI.scale(50)
 
+@NavCoordinate
+private val POP_ICON_HORIZONTAL_PADDING = JBUI.scale(2f)
+
+@NavCoordinate
+private val POP_ICON_VERTICAL_PADDING = JBUI.scale(5f)
+
 private const val STEP_SIZE = 0.001
 private const val STEP_THRESHOLD = 0.4
 
@@ -202,7 +208,10 @@ fun getArrowPoint(context: SceneContext,
                     direction, context.getSwingDimension(shiftY).toFloat())
 }
 
-fun getIconRect(@SwingCoordinate source: Rectangle2D.Float,
+/**
+ * Returns the drawing rectangle for the pop icon for a regular action
+ */
+fun getRegularActionIconRect(@SwingCoordinate source: Rectangle2D.Float,
                 @SwingCoordinate dest: Rectangle2D.Float,
                 sceneContext: SceneContext): Rectangle2D.Float {
   val startPoint = getStartPoint(source)
@@ -251,7 +260,10 @@ fun getIconRect(@SwingCoordinate source: Rectangle2D.Float,
                            2 * radius, 2 * radius)
 }
 
-fun getIconRectSelf(@SwingCoordinate start: Point2D.Float, context: SceneContext): Rectangle2D.Float {
+/**
+ * Returns the drawing rectangle for the pop icon for a self action
+ */
+fun getSelfActionIconRect(@SwingCoordinate start: Point2D.Float, context: SceneContext): Rectangle2D.Float {
   val distance = context.getSwingDimension(POP_ICON_DISTANCE).toFloat()
   val offsetX = context.getSwingDimension(SELF_ACTION_LENGTHS[0]) + distance
   val x = start.x + offsetX
@@ -262,6 +274,21 @@ fun getIconRectSelf(@SwingCoordinate start: Point2D.Float, context: SceneContext
   val radius = context.getSwingDimension(POP_ICON_RADIUS).toFloat()
 
   return Rectangle2D.Float(x, y, 2 * radius, 2 * radius)
+}
+
+/**
+ * Returns the drawing rectangle for the pop icon for a horizontal action (i.e. global or exit)
+ */
+fun getHorizontalActionIconRect(@SwingCoordinate rectangle: Rectangle2D.Float): Rectangle2D.Float {
+  val iconRect = Rectangle2D.Float()
+  val scale = rectangle.height / NavSceneManager.ACTION_ARROW_PERPENDICULAR
+
+  iconRect.x = rectangle.x + POP_ICON_HORIZONTAL_PADDING * scale
+  iconRect.width = 2 * POP_ICON_RADIUS * scale
+  iconRect.height = iconRect.width
+  iconRect.y = rectangle.y + (rectangle.height / 2 - iconRect.height - POP_ICON_VERTICAL_PADDING * scale)
+
+  return iconRect
 }
 
 private fun getCenterPoint(rectangle: Rectangle2D.Float): Point2D.Float {

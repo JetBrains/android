@@ -29,8 +29,8 @@ import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
 import com.android.tools.idea.naveditor.scene.setRenderingHints
-import icons.StudioIcons.NavEditor.Properties.POP_ACTION
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
+import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
 import java.awt.Color
 import java.awt.Graphics2D
