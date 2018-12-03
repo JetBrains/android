@@ -30,6 +30,7 @@ import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.ATTR_TEXT_COLOR;
 import static com.android.SdkConstants.ATTR_TEXT_SIZE;
 import static com.android.SdkConstants.ATTR_TEXT_STYLE;
+import static com.android.SdkConstants.CLASS_SUPPORT_PREFERENCE_SCREEN;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
@@ -97,7 +98,12 @@ import org.w3c.dom.Element;
 public class LayoutPullParsers {
   static final boolean DEBUG = false;
 
-  private static final String[] VALID_XML_TAGS = {TAG_APPWIDGET_PROVIDER, TAG_PREFERENCE_SCREEN};
+  private static final String[] VALID_XML_TAGS = {
+    TAG_APPWIDGET_PROVIDER,
+    TAG_PREFERENCE_SCREEN,
+    CLASS_SUPPORT_PREFERENCE_SCREEN.oldName(),
+    CLASS_SUPPORT_PREFERENCE_SCREEN.newName()
+  };
   private static final String[] ADAPTIVE_ICON_TAGS = {TAG_ADAPTIVE_ICON, TAG_MASKABLE_ICON};
   private static final String[] FONT_FAMILY_TAGS = {TAG_FONT_FAMILY};
 
@@ -193,7 +199,8 @@ public class LayoutPullParsers {
             renderTask.setDecorations(false);
             return createWidgetParser(rootTag);
           }
-          else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
+          else if (tag.equals(TAG_PREFERENCE_SCREEN) ||
+                   CLASS_SUPPORT_PREFERENCE_SCREEN.isEquals(tag)) {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
